@@ -90,7 +90,7 @@ export enum StaticLimitAmps {
 export interface Connector {
   id?: string;
   connectorId: number;
-  currentInstantWatts: number;
+  currentInstantWatts?: number;
   currentStateOfCharge?: number;
   currentTotalConsumptionWh?: number;
   currentTotalInactivitySecs?: number;
@@ -102,8 +102,8 @@ export interface Connector {
   errorCode?: string;
   info?: string;
   vendorErrorCode?: string;
-  power: number;
-  type: ConnectorType;
+  power?: number;
+  type?: ConnectorType;
   voltage?: Voltage;
   amperage?: number;
   amperageLimit?: number;

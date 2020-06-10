@@ -42,7 +42,7 @@ export default class WSConnection {
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
-    this.serverIPPort = Utils.getLocalIP() + ':' + this.wsServer.port;
+    this.serverIPPort = Utils.getLocalIP() + ':' + this.wsServer.port.toString();
 
     // Default
     this.tenantIsValid = false;
@@ -93,7 +93,7 @@ export default class WSConnection {
     this.wsConnection.onclose = this.onClose.bind(this);
   }
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     try {
       // Check Tenant?
       await Utils.checkTenant(this.tenantID);
@@ -129,7 +129,7 @@ export default class WSConnection {
   public onClose(closeEvent: CloseEvent) {
   }
 
-  public async onMessage(messageEvent: MessageEvent) {
+  public async onMessage(messageEvent: MessageEvent): Promise<void> {
     let [messageType, messageId, commandName, commandPayload, errorDetails] = [0, '', ServerAction.CHARGING_STATION, '', ''];
     try {
       // Parse the message
@@ -259,12 +259,12 @@ export default class WSConnection {
     return this.serverIPPort;
   }
 
-  public async send(command, messageType = MessageType.CALL_MESSAGE) {
+  public async send(command, messageType = MessageType.CALL_MESSAGE): Promise<unknown> {
     // Send Message
     return this.sendMessage(uuid(), command, messageType);
   }
 
-  public async sendError(messageId, err) {
+  public async sendError(messageId, err): Promise<unknown> {
     // Check exception: only OCPP error are accepted
     const error = (err instanceof OCPPError ? err : new OCPPError({
       source: this.getChargingStationID(),
@@ -277,10 +277,11 @@ export default class WSConnection {
     return this.sendMessage(messageId, error, MessageType.ERROR_MESSAGE);
   }
 
-  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.RESULT_MESSAGE, commandName?: Command): Promise<any> {
+  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.RESULT_MESSAGE, commandName?: Command): Promise<unknown> {
     // Send a message through WSConnection
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
+    const tenant = await TenantStorage.getTenant(this.tenantID);
     // Create a promise
     return await new Promise((resolve, reject) => {
       let messageToSend;
@@ -322,13 +323,13 @@ export default class WSConnection {
           messageToSend = JSON.stringify([messageType, messageId, code, message, details]);
           break;
       }
-      // Check if wsConnection in ready
+      // Check if wsConnection is ready
       if (this.isWSConnectionOpen()) {
         // Yes: Send Message
         this.wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${TenantStorage.getTenant(this.tenantID).then((tenant) => tenant.name)})`);
+        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant.name})`);
       }
       // Request?
       if (messageType !== MessageType.CALL_MESSAGE) {
@@ -336,7 +337,7 @@ export default class WSConnection {
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID).then((tenant) => tenant.name)}`), Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant.name}`), Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
   }

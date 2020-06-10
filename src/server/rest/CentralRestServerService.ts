@@ -25,8 +25,9 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 
 class RequestMapper {
+  // eslint-disable-next-line no-undef
   private static instances = new Map<string, RequestMapper>();
-
+  // eslint-disable-next-line no-undef
   private paths = new Map<string, number>();
   private actions = new Array<Function>();
 
@@ -57,19 +58,19 @@ class RequestMapper {
         );
         // Register REST actions
         this.registerJsonActionsPaths({
-          [ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA]: ChargingStationService.handleAssignChargingStationsToSiteArea.bind(this),
-          [ServerAction.REMOVE_CHARGING_STATION_TO_SITE_AREA]: ChargingStationService.handleAssignChargingStationsToSiteArea.bind(this),
+          [ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA]: SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this),
+          [ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA]: SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this),
           [ServerAction.REGISTRATION_TOKEN_CREATE]: RegistrationTokenService.handleCreateRegistrationToken.bind(this),
           [ServerAction.USER_CREATE]: UserService.handleCreateUser.bind(this),
           [ServerAction.COMPANY_CREATE]: CompanyService.handleCreateCompany.bind(this),
-          [ServerAction.ADD_ASSET_TO_SITE_AREA]: AssetService.handleAssignAssetsToSiteArea.bind(this),
-          [ServerAction.REMOVE_ASSET_TO_SITE_AREA]: AssetService.handleAssignAssetsToSiteArea.bind(this),
+          [ServerAction.ADD_ASSET_TO_SITE_AREA]: SiteAreaService.handleAssignAssetsToSiteArea.bind(this),
+          [ServerAction.REMOVE_ASSET_TO_SITE_AREA]: SiteAreaService.handleAssignAssetsToSiteArea.bind(this),
           [ServerAction.ASSET_TEST_CONNECTION]: AssetService.handleCheckAssetConnection.bind(this),
           [ServerAction.ASSET_CREATE]: AssetService.handleCreateAsset.bind(this),
           [ServerAction.TENANT_CREATE]: TenantService.handleCreateTenant.bind(this),
           [ServerAction.SITE_CREATE]: SiteService.handleCreateSite.bind(this),
-          [ServerAction.ADD_USERS_TO_SITE]: SiteService.handleAddUsersToSite.bind(this),
-          [ServerAction.REMOVE_USERS_FROM_SITE]: SiteService.handleRemoveUsersFromSite.bind(this),
+          [ServerAction.ADD_USERS_TO_SITE]: SiteService.handleAssignUsersToSite.bind(this),
+          [ServerAction.REMOVE_USERS_FROM_SITE]: SiteService.handleAssignUsersToSite.bind(this),
           [ServerAction.ADD_SITES_TO_USER]: UserService.handleAssignSitesToUser.bind(this),
           [ServerAction.REMOVE_SITES_FROM_USER]: UserService.handleAssignSitesToUser.bind(this),
           [ServerAction.SITE_AREA_CREATE]: SiteAreaService.handleCreateSiteArea.bind(this),

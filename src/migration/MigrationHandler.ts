@@ -25,7 +25,7 @@ import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
-import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
+import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjectIDsTask';
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
 import cluster from 'cluster';
 import moment from 'moment';
@@ -67,7 +67,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
         currentMigrationTasks.push(new AddActivePropertyToTagsTask());
         currentMigrationTasks.push(new InitialCarImportTask());
-        currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
+        currentMigrationTasks.push(new UpdateConsumptionsToObjectIDsTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
         currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());

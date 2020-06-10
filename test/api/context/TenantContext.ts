@@ -242,9 +242,9 @@ export default class TenantContext {
     const ocppService = await this.getOCPPService(ocppVersion);
     const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
     // Check
-    expect(response.data).to.not.be.null;
-    expect(response.data.status).to.eql('Accepted');
-    expect(response.data).to.have.property('currentTime');
+    expect(response).to.not.be.null;
+    expect(response.status).to.eql('Accepted');
+    expect(response).to.have.property('currentTime');
     let createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     expect(createdChargingStation.maximumPower).to.eql(44160);
