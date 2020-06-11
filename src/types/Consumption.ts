@@ -25,6 +25,11 @@ export default interface Consumption {
   voltageL2: number;
   voltageL3: number;
   voltageDC: number;
+  amperage: number;
+  amperageL1: number;
+  amperageL2: number;
+  amperageL3: number;
+  amperageDC: number;
   totalInactivitySecs: number;
   totalDurationSecs: number;
   stateOfCharge: number;

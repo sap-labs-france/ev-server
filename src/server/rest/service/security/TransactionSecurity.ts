@@ -152,6 +152,11 @@ export default class TransactionSecurity {
         filteredTransaction.currentVoltageL2 = transaction.currentVoltageL2;
         filteredTransaction.currentVoltageL3 = transaction.currentVoltageL3;
         filteredTransaction.currentVoltageDC = transaction.currentVoltageDC;
+        filteredTransaction.currentAmperage = transaction.currentAmperage;
+        filteredTransaction.currentAmperageL1 = transaction.currentAmperageL1;
+        filteredTransaction.currentAmperageL2 = transaction.currentAmperageL2;
+        filteredTransaction.currentAmperageL3 = transaction.currentAmperageL3;
+        filteredTransaction.currentAmperageDC = transaction.currentAmperageDC;
       }
       if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
         const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
@@ -333,6 +338,11 @@ export default class TransactionSecurity {
         voltageL2: consumption.voltageL2,
         voltageL3: consumption.voltageL3,
         voltageDC: consumption.voltageDC,
+        amperage: consumption.amperage,
+        amperageL1: consumption.amperageL1,
+        amperageL2: consumption.amperageL2,
+        amperageL3: consumption.amperageL3,
+        amperageDC: consumption.amperageDC,
       };
       return newConsumption;
     });

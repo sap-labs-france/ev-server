@@ -16,6 +16,10 @@ interface MeterValueParams {
   voltageL1MeterValue?: number;
   voltageL2MeterValue?: number;
   voltageL3MeterValue?: number;
+  amperageMeterValue?: number;
+  amperageL1MeterValue?: number;
+  amperageL2MeterValue?: number;
+  amperageL3MeterValue?: number;
   socMeterValue?: number;
   signedDataMeterValue?: string;
 }
@@ -169,6 +173,34 @@ export default class ChargingStationContext {
           ...Constants.OCPP_VOLTAGE_L3_ATTRIBUTE,
         });
       }
+      // Amperage
+      if (meterValues.amperageMeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.amperageMeterValue.toString(),
+          ...Constants.OCPP_CURRENT_ATTRIBUTE,
+        });
+      }
+      // Amperage L1
+      if (meterValues.amperageL1MeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.amperageL1MeterValue.toString(),
+          ...Constants.OCPP_CURRENT_L1_ATTRIBUTE,
+        });
+      }
+      // Amperage L2
+      if (meterValues.amperageL2MeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.amperageL2MeterValue.toString(),
+          ...Constants.OCPP_CURRENT_L2_ATTRIBUTE,
+        });
+      }
+      // Amperage L3
+      if (meterValues.amperageL3MeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.amperageL3MeterValue.toString(),
+          ...Constants.OCPP_CURRENT_L3_ATTRIBUTE,
+        });
+      }
       // Soc
       if (meterValues.socMeterValue > 0) {
         meterValueRequest.meterValue[0].sampledValue.push({
@@ -270,6 +302,38 @@ export default class ChargingStationContext {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.voltageL3MeterValue.toString(),
           ...Constants.OCPP_VOLTAGE_L3_ATTRIBUTE,
+          context,
+        });
+      }
+      // Amperage
+      if (meterValues.amperageMeterValue > 0) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.amperageMeterValue.toString(),
+          ...Constants.OCPP_CURRENT_ATTRIBUTE,
+          context,
+        });
+      }
+      // Amperage L1
+      if (meterValues.amperageL1MeterValue > 0) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.amperageL1MeterValue.toString(),
+          ...Constants.OCPP_CURRENT_L1_ATTRIBUTE,
+          context,
+        });
+      }
+      // Amperage L2
+      if (meterValues.amperageL2MeterValue > 0) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.amperageL2MeterValue.toString(),
+          ...Constants.OCPP_CURRENT_L2_ATTRIBUTE,
+          context,
+        });
+      }
+      // Amperage L3
+      if (meterValues.amperageL3MeterValue > 0) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.amperageL3MeterValue.toString(),
+          ...Constants.OCPP_CURRENT_L3_ATTRIBUTE,
           context,
         });
       }

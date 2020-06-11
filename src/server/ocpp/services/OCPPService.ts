@@ -424,6 +424,11 @@ export default class OCPPService {
     transaction.currentVoltageL2 = Utils.convertToFloat(consumption.voltageL2);
     transaction.currentVoltageL3 = Utils.convertToFloat(consumption.voltageL3);
     transaction.currentVoltageDC = Utils.convertToFloat(consumption.voltageDC);
+    transaction.currentAmperage = Utils.convertToFloat(consumption.amperage);
+    transaction.currentAmperageL1 = Utils.convertToFloat(consumption.amperageL1);
+    transaction.currentAmperageL2 = Utils.convertToFloat(consumption.amperageL2);
+    transaction.currentAmperageL3 = Utils.convertToFloat(consumption.amperageL3);
+    transaction.currentAmperageDC = Utils.convertToFloat(consumption.amperageDC);
     transaction.currentTimestamp = Utils.convertToDate(consumption.endedAt);
     transaction.currentStateOfCharge = Utils.convertToInt(consumption.stateOfCharge);
     // If Transaction.Begin not provided (Cahors)
@@ -948,6 +953,42 @@ export default class OCPPService {
         attribute: Constants.OCPP_VOLTAGE_L3_ATTRIBUTE
       });
     }
+    // Add Amperage
+    if (transaction.currentAmperage > 0 || transaction.currentAmperageDC > 0) {
+      stopMeterValues.push({
+        id: (id++).toString(),
+        ...meterValueBasedProps,
+        value: (transaction.currentAmperage ? transaction.currentAmperage : transaction.currentAmperageDC),
+        attribute: Constants.OCPP_CURRENT_ATTRIBUTE
+      });
+    }
+    // Add Amperage L1
+    if (transaction.currentAmperageL1 > 0) {
+      stopMeterValues.push({
+        id: (id++).toString(),
+        ...meterValueBasedProps,
+        value: transaction.currentAmperageL1,
+        attribute: Constants.OCPP_CURRENT_L1_ATTRIBUTE
+      });
+    }
+    // Add Amperage L2
+    if (transaction.currentAmperageL2 > 0) {
+      stopMeterValues.push({
+        id: (id++).toString(),
+        ...meterValueBasedProps,
+        value: transaction.currentAmperageL2,
+        attribute: Constants.OCPP_CURRENT_L2_ATTRIBUTE
+      });
+    }
+    // Add Amperage L3
+    if (transaction.currentAmperageL3 > 0) {
+      stopMeterValues.push({
+        id: (id++).toString(),
+        ...meterValueBasedProps,
+        value: transaction.currentAmperageL3,
+        attribute: Constants.OCPP_CURRENT_L3_ATTRIBUTE
+      });
+    }
     return stopMeterValues;
   }
 
@@ -1263,6 +1304,32 @@ export default class OCPPService {
             }
             break;
         }
+      // Handle Amperage (A)
+      } else if (OCPPUtils.isCurrentImportMeterValue(meterValue)) {
+        const amperage = Utils.convertToFloat(meterValue.value);
+        const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+        // AC Charging Station
+        switch (currentType) {
+          case CurrentType.DC:
+            consumption.amperageDC = amperage;
+            break;
+          case CurrentType.AC:
+            switch (meterValue.attribute.phase) {
+              case OCPPPhase.L1:
+                consumption.amperageL1 = amperage;
+                break;
+              case OCPPPhase.L2:
+                consumption.amperageL2 = amperage;
+                break;
+              case OCPPPhase.L3:
+                consumption.amperageL3 = amperage;
+                break;
+              default:
+                consumption.amperage = amperage;
+                break;
+            }
+            break;
+        }
       // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
@@ -1406,6 +1473,37 @@ export default class OCPPService {
                   break;
                 default:
                   transaction.currentVoltage = voltage;
+                  break;
+              }
+              break;
+          }
+          continue;
+        }
+      }
+      // Amperage
+      if (meterValue.attribute.measurand === OCPPMeasurand.CURRENT_IMPORT) {
+        // Set only the last Amperage (used in the last consumtion)
+        if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
+          const amperage = Utils.convertToFloat(meterValue.value);
+          const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+          // AC Charging Station
+          switch (currentType) {
+            case CurrentType.DC:
+              transaction.currentAmperageDC = amperage;
+              break;
+            case CurrentType.AC:
+              switch (meterValue.attribute.phase) {
+                case OCPPPhase.L1:
+                  transaction.currentAmperageL1 = amperage;
+                  break;
+                case OCPPPhase.L2:
+                  transaction.currentAmperageL2 = amperage;
+                  break;
+                case OCPPPhase.L3:
+                  transaction.currentAmperageL3 = amperage;
+                  break;
+                default:
+                  transaction.currentAmperage = amperage;
                   break;
               }
               break;

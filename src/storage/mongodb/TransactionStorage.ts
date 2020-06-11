@@ -83,6 +83,11 @@ export default class TransactionStorage {
       currentVoltageL2: Utils.convertToInt(transactionToSave.currentVoltageL2),
       currentVoltageL3: Utils.convertToInt(transactionToSave.currentVoltageL3),
       currentVoltageDC: Utils.convertToInt(transactionToSave.currentVoltageDC),
+      currentAmperage: Utils.convertToFloat(transactionToSave.currentAmperage),
+      currentAmperageL1: Utils.convertToInt(transactionToSave.currentAmperageL1),
+      currentAmperageL2: Utils.convertToInt(transactionToSave.currentAmperageL2),
+      currentAmperageL3: Utils.convertToInt(transactionToSave.currentAmperageL3),
+      currentAmperageDC: Utils.convertToInt(transactionToSave.currentAmperageDC),
     };
     if (transactionToSave.stop) {
       // Add stop
@@ -121,6 +126,11 @@ export default class TransactionStorage {
       delete transactionMDB.currentVoltageL2;
       delete transactionMDB.currentVoltageL3;
       delete transactionMDB.currentVoltageDC;
+      delete transactionMDB.currentAmperage;
+      delete transactionMDB.currentAmperageL1;
+      delete transactionMDB.currentAmperageL2;
+      delete transactionMDB.currentAmperageL3;
+      delete transactionMDB.currentAmperageDC;
     }
     if (transactionToSave.remotestop) {
       transactionMDB.remotestop = {

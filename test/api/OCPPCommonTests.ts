@@ -49,6 +49,11 @@ export default class OCPPCommonTests {
   public voltageL2MeterValues: number[];
   public voltageL3MeterValues: number[];
 
+  public amperageMeterValues: number[];
+  public amperageL1MeterValues: number[];
+  public amperageL2MeterValues: number[];
+  public amperageL3MeterValues: number[];
+
   public transactionStartSignedData: string;
   public transactionEndSignedData: string;
 
@@ -166,6 +171,20 @@ export default class OCPPCommonTests {
     this.voltageL3MeterValues = Array.from({ length: 14 }, () => faker.random.number({
       min: 220, max: 240
     }));
+    // Amperage (14 values)
+    this.amperageL1MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 16, max: 32
+    }));
+    this.amperageL2MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 16, max: 32
+    }));
+    this.amperageL3MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 16, max: 32
+    }));
+    this.amperageMeterValues = [];
+    for (let i = 0; i < this.amperageL1MeterValues.length; i++) {
+      this.amperageMeterValues.push(this.amperageL1MeterValues[i] + this.amperageL2MeterValues[i] + this.amperageL3MeterValues[i]);
+    }
     // Total Inactivity (14 values)
     this.totalInactivities = [];
     let lastInactivity = 0;
@@ -413,6 +432,10 @@ export default class OCPPCommonTests {
         voltageL1MeterValue: this.voltageL1MeterValues[0],
         voltageL2MeterValue: this.voltageL2MeterValues[0],
         voltageL3MeterValue: this.voltageL3MeterValues[0],
+        amperageMeterValue: this.amperageMeterValues[0],
+        amperageL1MeterValue: this.amperageL1MeterValues[0],
+        amperageL2MeterValue: this.amperageL2MeterValues[0],
+        amperageL3MeterValue: this.amperageL3MeterValues[0],
         signedDataMeterValue: withSignedData ? this.transactionStartSignedData : null,
       }
     );
@@ -442,6 +465,10 @@ export default class OCPPCommonTests {
           voltageL1MeterValue: this.voltageL1MeterValues[index],
           voltageL2MeterValue: this.voltageL2MeterValues[index],
           voltageL3MeterValue: this.voltageL3MeterValues[index],
+          amperageMeterValue: this.amperageMeterValues[index],
+          amperageL1MeterValue: this.amperageL1MeterValues[index],
+          amperageL2MeterValue: this.amperageL2MeterValues[index],
+          amperageL3MeterValue: this.amperageL3MeterValues[index],
           socMeterValue: withSoC ? this.socMeterValues[index] : 0,
         }
       );
@@ -482,6 +509,10 @@ export default class OCPPCommonTests {
         voltageL1MeterValue: this.voltageL1MeterValues[this.voltageL1MeterValues.length - 1],
         voltageL2MeterValue: this.voltageL2MeterValues[this.voltageL2MeterValues.length - 1],
         voltageL3MeterValue: this.voltageL3MeterValues[this.voltageL3MeterValues.length - 1],
+        amperageMeterValue: this.amperageMeterValues[this.amperageMeterValues.length - 1],
+        amperageL1MeterValue: this.amperageL1MeterValues[this.amperageL1MeterValues.length - 1],
+        amperageL2MeterValue: this.amperageL2MeterValues[this.amperageL2MeterValues.length - 1],
+        amperageL3MeterValue: this.amperageL3MeterValues[this.amperageL3MeterValues.length - 1],
         socMeterValue: withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0,
         signedDataMeterValue: withSignedData ? this.transactionEndSignedData : null
       }
@@ -596,6 +627,10 @@ export default class OCPPCommonTests {
         'voltageL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
         'voltageL2': checkNewMeterValues ? this.voltageL2MeterValues[i] : 0,
         'voltageL3': checkNewMeterValues ? this.voltageL3MeterValues[i] : 0,
+        'amperage': checkNewMeterValues ? this.amperageMeterValues[i] : 0,
+        'amperageL1': checkNewMeterValues ? this.amperageL1MeterValues[i] : 0,
+        'amperageL2': checkNewMeterValues ? this.amperageL2MeterValues[i] : 0,
+        'amperageL3': checkNewMeterValues ? this.amperageL3MeterValues[i] : 0,
         'instantWatts': this.powerImportMeterValues[i],
         'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
           null, this.newTransaction.connectorId, this.powerImportMeterValues[i]),

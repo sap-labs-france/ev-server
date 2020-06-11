@@ -85,6 +85,11 @@ export default interface Transaction {
   currentVoltageL2?: number;
   currentVoltageL3?: number;
   currentVoltageDC?: number;
+  currentAmperage?: number;
+  currentAmperageL1?: number;
+  currentAmperageL2?: number;
+  currentAmperageL3?: number;
+  currentAmperageDC?: number;
   currentConsumptionWh?: number;
   currentCumulatedPrice?: number;
   currentTotalConsumptionWh: number;
@@ -117,4 +122,9 @@ export interface TransactionConsumption {
   voltageL2: number;
   voltageL3: number;
   voltageDC: number;
+  amperage: number;
+  amperageL1: number;
+  amperageL2: number;
+  amperageL3: number;
+  amperageDC: number;
 }

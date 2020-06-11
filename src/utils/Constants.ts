@@ -188,6 +188,29 @@ export default class Constants {
     phase: OCPPPhase.L3,
   };
 
+  public static readonly OCPP_CURRENT_ATTRIBUTE: OCPPAttribute = {
+    format: OCPPValueFormat.RAW,
+    measurand: OCPPMeasurand.CURRENT_IMPORT,
+    unit: OCPPUnitOfMeasure.AMP,
+    location: OCPPLocation.OUTLET,
+    context: OCPPReadingContext.SAMPLE_PERIODIC
+  };
+
+  public static readonly OCPP_CURRENT_L1_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_CURRENT_ATTRIBUTE,
+    phase: OCPPPhase.L1,
+  };
+
+  public static readonly OCPP_CURRENT_L2_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_CURRENT_ATTRIBUTE,
+    phase: OCPPPhase.L2,
+  };
+
+  public static readonly OCPP_CURRENT_L3_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_CURRENT_ATTRIBUTE,
+    phase: OCPPPhase.L3,
+  };
+
   public static readonly OCPP_POWER_ATTRIBUTE: OCPPAttribute = {
     format: OCPPValueFormat.RAW,
     measurand: OCPPMeasurand.POWER_ACTIVE_IMPORT,
