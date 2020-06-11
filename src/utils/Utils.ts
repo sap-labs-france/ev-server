@@ -559,7 +559,6 @@ export default class Utils {
     return totalAmps;
   }
 
-  // Tslint:disable-next-line: cyclomatic-complexity
   public static getChargingStationPower(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
     let totalPower = 0;
     if (chargingStation) {
@@ -722,7 +721,6 @@ export default class Utils {
     return null;
   }
 
-  // Tslint:disable-next-line: cyclomatic-complexity
   public static getChargingStationAmperage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
     let totalAmps = 0;
     if (chargingStation) {

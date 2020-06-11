@@ -5,7 +5,6 @@ export interface DataResult<T> {
   result: T[];
 }
 
-
 export interface TransactionDataResult {
   count: number;
   result: Transaction[];
