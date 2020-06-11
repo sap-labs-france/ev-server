@@ -1,5 +1,5 @@
 import AuthenticatedBaseApi from './AuthenticatedBaseApi';
-import Constants from './Constants';
+import TestConstants from './TestConstants';
 
 /**
  * CRUD API (Create Read Update Delete)
@@ -69,7 +69,7 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public async readAll(params = {}, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING, path) {
+  public async readAll(params = {}, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING, path) {
     // Build Paging
     this._buildPaging(paging, params);
     // Build Ordering

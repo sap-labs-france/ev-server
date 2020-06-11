@@ -1,5 +1,5 @@
-import Constants from './utils/Constants';
 import CrudApi from './utils/CrudApi';
+import TestConstants from './utils/TestConstants';
 
 export default class TenantApi extends CrudApi {
   private _baseApi;
@@ -13,7 +13,7 @@ export default class TenantApi extends CrudApi {
     return super.readById(id, '/client/api/Tenant');
   }
 
-  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/Tenants');
   }
 

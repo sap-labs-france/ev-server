@@ -1,5 +1,5 @@
-import Constants from './utils/Constants';
 import CrudApi from './utils/CrudApi';
+import TestConstants from './utils/TestConstants';
 
 export default class TransactionApi extends CrudApi {
   public constructor(authenticatedApi) {
@@ -10,15 +10,15 @@ export default class TransactionApi extends CrudApi {
     return await super.readById(id, '/client/api/Transaction');
   }
 
-  public async readAllActive(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAllActive(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return await super.readAll(params, paging, ordering, '/client/api/TransactionsActive');
   }
 
-  public async readAllCompleted(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAllCompleted(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return await super.readAll(params, paging, ordering, '/client/api/TransactionsCompleted');
   }
 
-  public async readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return await super.readAll(params, paging, ordering, '/client/api/TransactionsInError');
   }
 
@@ -27,7 +27,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllYears(params) {
-    return await super.readAll(params, Constants.DEFAULT_PAGING, Constants.DEFAULT_ORDERING, '/client/api/TransactionYears');
+    return await super.readAll(params, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/TransactionYears');
   }
 
   public async delete(id) {
@@ -45,10 +45,10 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllToRefund(params) {
-    return await super.readAll(params, Constants.DEFAULT_PAGING, Constants.DEFAULT_ORDERING, '/client/api/TransactionsToRefund');
+    return await super.readAll(params, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/TransactionsToRefund');
   }
 
-  public async readAllRefundReports(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAllRefundReports(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return await super.readAll(params, paging, ordering, '/client/api/TransactionsRefundReports');
   }
 

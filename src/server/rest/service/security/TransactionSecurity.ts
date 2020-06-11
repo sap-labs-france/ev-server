@@ -147,6 +147,16 @@ export default class TransactionSecurity {
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
+        filteredTransaction.currentVoltage = transaction.currentVoltage;
+        filteredTransaction.currentVoltageL1 = transaction.currentVoltageL1;
+        filteredTransaction.currentVoltageL2 = transaction.currentVoltageL2;
+        filteredTransaction.currentVoltageL3 = transaction.currentVoltageL3;
+        filteredTransaction.currentVoltageDC = transaction.currentVoltageDC;
+        filteredTransaction.currentAmperage = transaction.currentAmperage;
+        filteredTransaction.currentAmperageL1 = transaction.currentAmperageL1;
+        filteredTransaction.currentAmperageL2 = transaction.currentAmperageL2;
+        filteredTransaction.currentAmperageL3 = transaction.currentAmperageL3;
+        filteredTransaction.currentAmperageDC = transaction.currentAmperageDC;
       }
       if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
         const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
@@ -323,10 +333,17 @@ export default class TransactionSecurity {
         cumulatedAmount: consumption.cumulatedAmount,
         limitWatts: consumption.limitWatts,
         limitAmps: consumption.limitAmps,
+        voltage: consumption.voltage,
+        voltageL1: consumption.voltageL1,
+        voltageL2: consumption.voltageL2,
+        voltageL3: consumption.voltageL3,
+        voltageDC: consumption.voltageDC,
+        amperage: consumption.amperage,
+        amperageL1: consumption.amperageL1,
+        amperageL2: consumption.amperageL2,
+        amperageL3: consumption.amperageL3,
+        amperageDC: consumption.amperageDC,
       };
-      if (consumption.stateOfCharge) {
-        newConsumption.stateOfCharge = consumption.stateOfCharge;
-      }
       return newConsumption;
     });
     return filteredTransaction;
