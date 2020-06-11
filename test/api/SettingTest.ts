@@ -3,14 +3,14 @@
 //        Run npm run test:createContext to create the needed utall if not present.
 
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
 
-import config from '../config';
-import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
+import ContextDefinition from './context/ContextDefinition';
 import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
-import ContextDefinition from './context/ContextDefinition';
+import chaiSubset from 'chai-subset';
+import config from '../config';
+import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
