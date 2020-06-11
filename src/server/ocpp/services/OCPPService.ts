@@ -301,7 +301,7 @@ export default class OCPPService {
             // Update message with proper connectorId
             statusNotification.connectorId = connectors[i].connectorId;
             // Update
-            await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification, true);
+            await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
           }
         } else {
           // Do not take connector '0' into account for EBEE
@@ -315,7 +315,7 @@ export default class OCPPService {
         }
       } else {
         // Update only the given connectorId
-        await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification, false);
+        await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
       }
       // Respond
       return {};
@@ -1024,7 +1024,7 @@ export default class OCPPService {
     }
   }
 
-  private async updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, bothConnectorsUpdated) {
+  private async updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Get it
     let foundConnector: Connector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
     const oldConnectorStatus = foundConnector ? foundConnector.status : null;
@@ -1086,7 +1086,7 @@ export default class OCPPService {
       detailedMessages: [statusNotification, foundConnector]
     });
     // Check if transaction is ongoing (ABB bug)!!!
-    await this.checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, foundConnector, bothConnectorsUpdated);
+    await this.checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, foundConnector);
     // Notify admins
     await this.notifyStatusNotification(tenantID, chargingStation, statusNotification);
     // Send new status to IOP
@@ -1186,9 +1186,9 @@ export default class OCPPService {
     }
   }
 
-  private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector, bothConnectorsUpdated: boolean) {
+  private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check the status
-    if (!bothConnectorsUpdated &&
+    if (statusNotification.connectorId > 0 &&
       connector.currentTransactionID > 0 &&
       statusNotification.status === ChargePointStatus.AVAILABLE) {
       // Cleanup ongoing transactions on the connector
