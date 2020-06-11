@@ -3,14 +3,14 @@
 //        Run npm run test:createContext to create the needed utall if not present.
 
 import chai, { expect } from 'chai';
-
-import CentralServerService from './client/CentralServerService';
-import Constants from './client/utils/Constants';
-import ContextDefinition from './context/ContextDefinition';
-import TestData from './client/utils/TestData';
 import chaiSubset from 'chai-subset';
+
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
+import CentralServerService from './client/CentralServerService';
+import TestConstants from './client/utils/TestConstants';
+import TestData from './client/utils/TestData';
+import ContextDefinition from './context/ContextDefinition';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -26,7 +26,7 @@ describe('Setting tests', function() {
     testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
-    const response = await testData.superCentralService.tenantApi.readAll({ 'Search' : ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS }, { limit: Constants.UNLIMITED, skip: 0 });
+    const response = await testData.superCentralService.tenantApi.readAll({ 'Search' : ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS }, { limit: TestConstants.UNLIMITED, skip: 0 });
     testData.credentials.tenantId = response ? response.data.result[0].id : '';
   });
 
@@ -43,43 +43,43 @@ describe('Setting tests', function() {
   describe('Success cases (tenant utall)', () => {
     it('Check that retrieving refund settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'refund' }, { limit: Constants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'refund' }, { limit: TestConstants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving pricing settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, { limit: Constants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, { limit: TestConstants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving organization settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'organization' }, { limit: Constants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'organization' }, { limit: TestConstants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving analytics settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'analytics' }, { limit: Constants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'analytics' }, { limit: TestConstants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving ocpi settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'ocpi' }, { limit: Constants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'ocpi' }, { limit: TestConstants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving statistics settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'statistics' }, { limit: Constants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'statistics' }, { limit: TestConstants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving setting by id is working', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, { limit: Constants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, { limit: TestConstants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       const response = await testData.centralService.settingApi.readById(read.data.result[0].id);
       expect(response.status).to.equal(200);
@@ -87,7 +87,7 @@ describe('Setting tests', function() {
     it('Check that changing the pricing component from simple to convergent charging back and forth works', async () => {
       // Retrieve the setting id
       const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
-        limit: Constants.UNLIMITED,
+        limit: TestConstants.UNLIMITED,
         skip: 0
       });
       expect(read.status).to.equal(200);

@@ -1,13 +1,13 @@
-import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
-
-import CentralServerService from './client/CentralServerService';
-import Constants from './client/utils/Constants';
-import ContextDefinition from './context/ContextDefinition';
-import TenantComponents from '../../src/types/TenantComponents';
 import chaiSubset from 'chai-subset';
+
+import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType } from '../../src/types/Setting';
+import TenantComponents from '../../src/types/TenantComponents';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
+import CentralServerService from './client/CentralServerService';
+import TestConstants from './client/utils/TestConstants';
+import ContextDefinition from './context/ContextDefinition';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -40,7 +40,7 @@ describe('Tenant Settings test', function() {
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
     const response = await testData.superAdminCentralService.tenantApi.readAll({ 'Search': ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS }, {
-      limit: Constants.UNLIMITED,
+      limit: TestConstants.UNLIMITED,
       skip: 0
     });
     testData.credentials.tenantId = response ? response.data.result[0].id : '';

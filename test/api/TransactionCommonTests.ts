@@ -155,7 +155,11 @@ export default class TransactionCommonTests {
     const load = 100;
     const currentTime = startDate.clone().add(1, 'hour');
     const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
-      connectorId, transactionId, meterStart + load, 0, 0, currentTime.toDate());
+      connectorId,
+      transactionId,
+      currentTime.toDate(),
+      { energyActiveImportMeterValue: meterStart + load }
+    );
     expect(meterValueResponse).to.eql({});
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(transactionResponse.status).to.equal(200);
@@ -197,13 +201,21 @@ export default class TransactionCommonTests {
     cumulated += load;
     currentTime.add(1, 'hour');
     let meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
-      connectorId, transactionId, cumulated, 0, 0, currentTime.toDate());
+      connectorId,
+      transactionId,
+      currentTime.toDate(),
+      { energyActiveImportMeterValue: cumulated }
+    );
     expect(meterValueResponse).to.eql({});
     load = 50;
     cumulated += load;
     currentTime.add(1, 'hour');
     meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
-      connectorId, transactionId, cumulated, 0, 0, currentTime.toDate());
+      connectorId,
+      transactionId,
+      currentTime.toDate(),
+      { energyActiveImportMeterValue: cumulated }
+    );
     expect(meterValueResponse).to.eql({});
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(transactionResponse.status).to.equal(200);
@@ -573,7 +585,11 @@ export default class TransactionCommonTests {
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
       const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
-        connectorId, transactionId, cumulated, 0, 0, meterValue.timestamp.toDate());
+        connectorId,
+        transactionId,
+        meterValue.timestamp.toDate(),
+        { energyActiveImportMeterValue: cumulated }
+      );
       expect(meterValueResponse).to.eql({});
     }
     const consumptions = await this.transactionUserService.transactionApi.readAllConsumption(
@@ -628,7 +644,11 @@ export default class TransactionCommonTests {
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
       const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
-        connectorId, transactionId, cumulated, 0, 0, meterValue.timestamp.toDate());
+        connectorId,
+        transactionId,
+        meterValue.timestamp.toDate(),
+        { energyActiveImportMeterValue: cumulated }
+      );
       expect(meterValueResponse).to.eql({});
     }
     let consumptions = await this.transactionUserService.transactionApi.readAllConsumption({
@@ -1163,7 +1183,11 @@ export default class TransactionCommonTests {
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
       const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
-        connectorId, transactionId, cumulated, 0, 0, meterValue.timestamp.toDate());
+        connectorId,
+        transactionId,
+        meterValue.timestamp.toDate(),
+        { energyActiveImportMeterValue : cumulated }
+      );
       expect(meterValueResponse).to.eql({});
     }
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated, currentDate.add(1, 'hour').toDate());
@@ -1222,7 +1246,11 @@ export default class TransactionCommonTests {
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
       const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
-        connectorId, transactionId, cumulated, 0, 0, meterValue.timestamp.toDate());
+        connectorId,
+        transactionId,
+        meterValue.timestamp.toDate(),
+        { energyActiveImportMeterValue : cumulated }
+      );
       expect(meterValueResponse).to.eql({});
     }
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(
@@ -1273,7 +1301,11 @@ export default class TransactionCommonTests {
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
       const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
-        connectorId, transactionId, cumulated, 0, 0, meterValue.timestamp.toDate());
+        connectorId,
+        transactionId,
+        meterValue.timestamp.toDate(),
+        { energyActiveImportMeterValue : cumulated }
+      );
       expect(meterValueResponse).to.eql({});
     }
     await TestUtils.sleep(1000);

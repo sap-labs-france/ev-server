@@ -5,7 +5,6 @@ import BillingIntegration from '../../src/integration/billing/BillingIntegration
 import { BillingInvoiceStatus } from '../../src/types/Billing';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
-import { default as ClientConstants } from './client/utils/Constants';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -16,6 +15,7 @@ import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import TenantContext from './context/TenantContext';
+import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
 import { UserInErrorType } from '../../src/types/InError';
 import chaiSubset from 'chai-subset';
@@ -89,11 +89,12 @@ async function generateTransaction(user: User, chargingStationContext) {
   const meterStop = 1000;
   const startDate = moment().toDate();
   const stopDate = moment(startDate).add(1, 'hour');
-  let response = await chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
-  expect(response).to.be.transactionValid;
-  const transactionId1 = response.data.transactionId;
-  response = await chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
-  expect(response).to.be.transactionStatus('Accepted');
+  const startTransactionResponse = await chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  expect(startTransactionResponse).to.be.transactionValid;
+  const transactionId1 = startTransactionResponse.transactionId;
+  const stopTransactionResponse = await chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
+  expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
 }
 
 const testData: TestData = new TestData();
@@ -143,7 +144,7 @@ describe('Billing Service', function() {
       });
 
       it('Should connect to Billing Provider', async () => {
-        const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
+        const response = await testData.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
         expect(response.data.connectionIsValid).to.be.true;
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
       });
@@ -261,13 +262,13 @@ describe('Billing Service', function() {
       });
 
       it('Should list invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         expect(response.status).to.be.eq(200);
         expect(response.data.result.length).to.be.gt(0);
       });
 
       it('Should list filtered invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
@@ -318,7 +319,7 @@ describe('Billing Service', function() {
       });
 
       it('Should not be able to test connection to Billing Provider', async () => {
-        const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
+        const response = await testData.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
         expect(response.status).to.be.eq(HTTPAuthError.ERROR);
       });
 
@@ -384,14 +385,14 @@ describe('Billing Service', function() {
           testData.tenantContext.getTenant().subdomain,
           basicUser
         );
-        const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         for (let i = 0; i < response.data.result.length - 1; i++) {
           expect(response.data.result[i].userID).to.be.eq(basicUser.id);
         }
       });
 
       it('Should list filtered invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
@@ -432,11 +433,11 @@ describe('Billing Service', function() {
       });
 
       it('should create an invoice after a transaction', async () => {
-        let response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        let response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesBefore = response.data.count;
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
         await generateTransaction(testData.userContext, testData.chargingStationContext);
-        response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesAfter = response.data.count;
         expect(invoicesAfter).to.be.eq(invoicesBefore + 1);
       });
@@ -467,7 +468,7 @@ describe('Billing Service', function() {
       });
 
       it('should create an invoice after a transaction', async () => {
-        let response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        let response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesBefore = response.data.count;
         const adminUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         const basicUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -485,7 +486,7 @@ describe('Billing Service', function() {
           testData.userContext
         );
         await generateTransaction(testData.userContext, testData.chargingStationContext);
-        response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesAfter = response.data.count;
         expect(invoicesAfter).to.be.eq(invoicesBefore + 1);
       });

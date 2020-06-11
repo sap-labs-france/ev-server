@@ -1,8 +1,8 @@
-import { BillingTransactionData } from './Billing';
-import { ChargePointStatus } from './ocpp/OCPPServer';
 import ChargingStation from '../types/ChargingStation';
+import { BillingTransactionData } from './Billing';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
+import { ChargePointStatus } from './ocpp/OCPPServer';
 import { RefundTransactionData } from './Refund';
 import User from './User';
 
@@ -79,13 +79,18 @@ export default interface Transaction {
   currentInactivityStatus?: InactivityStatus;
   currentStateOfCharge: number;
   currentTotalDurationSecs?: number;
-  status?: ChargePointStatus;
-  numberOfMeterValues: number;
   currentInstantWatts: number;
+  currentVoltage?: number;
+  currentVoltageL1?: number;
+  currentVoltageL2?: number;
+  currentVoltageL3?: number;
+  currentVoltageDC?: number;
   currentConsumptionWh?: number;
   currentCumulatedPrice?: number;
   currentTotalConsumptionWh: number;
   currentSignedData?: string;
+  status?: ChargePointStatus;
+  numberOfMeterValues: number;
   uniqueId?: string;
   values?: TransactionConsumption[];
   billingData?: BillingTransactionData;
@@ -107,4 +112,9 @@ export interface TransactionConsumption {
   cumulatedConsumptionAmps: number;
   stateOfCharge: number;
   cumulatedAmount: number;
+  voltage: number;
+  voltageL1: number;
+  voltageL2: number;
+  voltageL3: number;
+  voltageDC: number;
 }

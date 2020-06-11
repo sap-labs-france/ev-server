@@ -1,19 +1,19 @@
-import RefundReport, { RefundStatus } from '../../types/Refund';
-import Transaction, { InactivityStatus } from '../../types/Transaction';
-import { TransactionInError, TransactionInErrorType } from '../../types/InError';
-
-import Constants from '../../utils/Constants';
-import ConsumptionStorage from './ConsumptionStorage';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
-import { NotifySessionNotStarted } from '../../types/Notification';
-import { ServerAction } from '../../types/Server';
-import User from '../../types/User';
-import Utils from '../../utils/Utils';
-import global from './../../types/GlobalType';
 import moment from 'moment';
+
+import global from './../../types/GlobalType';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import { TransactionInError, TransactionInErrorType } from '../../types/InError';
+import { NotifySessionNotStarted } from '../../types/Notification';
+import RefundReport, { RefundStatus } from '../../types/Refund';
+import { ServerAction } from '../../types/Server';
+import Transaction, { InactivityStatus } from '../../types/Transaction';
+import User from '../../types/User';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import ConsumptionStorage from './ConsumptionStorage';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'TransactionStorage';
 
@@ -78,6 +78,11 @@ export default class TransactionStorage {
       currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
       currentTotalConsumptionWh: Utils.convertToFloat(transactionToSave.currentTotalConsumptionWh),
       currentTotalDurationSecs: Utils.convertToInt(transactionToSave.currentTotalDurationSecs),
+      currentVoltage: Utils.convertToFloat(transactionToSave.currentVoltage),
+      currentVoltageL1: Utils.convertToInt(transactionToSave.currentVoltageL1),
+      currentVoltageL2: Utils.convertToInt(transactionToSave.currentVoltageL2),
+      currentVoltageL3: Utils.convertToInt(transactionToSave.currentVoltageL3),
+      currentVoltageDC: Utils.convertToInt(transactionToSave.currentVoltageDC),
     };
     if (transactionToSave.stop) {
       // Add stop
@@ -111,6 +116,11 @@ export default class TransactionStorage {
       delete transactionMDB.lastEnergyActiveImportMeterValue;
       delete transactionMDB.numberOfMeterValues;
       delete transactionMDB.currentTotalDurationSecs;
+      delete transactionMDB.currentVoltage;
+      delete transactionMDB.currentVoltageL1;
+      delete transactionMDB.currentVoltageL2;
+      delete transactionMDB.currentVoltageL3;
+      delete transactionMDB.currentVoltageDC;
     }
     if (transactionToSave.remotestop) {
       transactionMDB.remotestop = {

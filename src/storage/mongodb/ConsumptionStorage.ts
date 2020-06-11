@@ -1,9 +1,9 @@
 import Consumption from '../../types/Consumption';
+import global from '../../types/GlobalType';
 import Cypher from '../../utils/Cypher';
-import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'ConsumptionStorage';
 
@@ -34,6 +34,11 @@ export default class ConsumptionStorage {
       cumulatedAmount: Utils.convertToFloat(consumptionToSave.cumulatedAmount),
       cumulatedConsumptionWh: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionWh),
       cumulatedConsumptionAmps: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionAmps),
+      voltage: Utils.convertToFloat(consumptionToSave.voltage),
+      voltageL1: Utils.convertToFloat(consumptionToSave.voltageL1),
+      voltageL2: Utils.convertToFloat(consumptionToSave.voltageL2),
+      voltageL3: Utils.convertToFloat(consumptionToSave.voltageL3),
+      voltageDC: Utils.convertToFloat(consumptionToSave.voltageDC),
       pricingSource: consumptionToSave.pricingSource,
       amount: Utils.convertToFloat(consumptionToSave.amount),
       roundedAmount: Utils.convertToFloat(consumptionToSave.roundedAmount),
@@ -222,7 +227,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Do the optimization in the code!!!
-    // TODO: Handle this coding into the MongoDB request
+    // TODO: Handle this coding into MongoDB request
     const consumptions: Consumption[] = [];
     for (const consumptionMDB of consumptionsMDB) {
       let lastConsumption: Consumption = null;

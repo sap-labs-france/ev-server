@@ -1,18 +1,18 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
-import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
-
-import Authorizations from '../../../../authorization/Authorizations';
-import Constants from '../../../../utils/Constants';
-import Consumption from '../../../../types/Consumption';
-import { DataResult } from '../../../../types/DataResult';
-import RefundReport from '../../../../types/Refund';
-import { TransactionInError } from '../../../../types/InError';
-import User from '../../../../types/User';
-import UserToken from '../../../../types/UserToken';
-import Utils from '../../../../utils/Utils';
-import UtilsSecurity from './UtilsSecurity';
 import moment from 'moment';
 import sanitize from 'mongo-sanitize';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import Consumption from '../../../../types/Consumption';
+import { DataResult } from '../../../../types/DataResult';
+import { TransactionInError } from '../../../../types/InError';
+import RefundReport from '../../../../types/Refund';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
+import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
+import Constants from '../../../../utils/Constants';
+import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -147,6 +147,11 @@ export default class TransactionSecurity {
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
+        filteredTransaction.currentVoltage = transaction.currentVoltage;
+        filteredTransaction.currentVoltageL1 = transaction.currentVoltageL1;
+        filteredTransaction.currentVoltageL2 = transaction.currentVoltageL2;
+        filteredTransaction.currentVoltageL3 = transaction.currentVoltageL3;
+        filteredTransaction.currentVoltageDC = transaction.currentVoltageDC;
       }
       if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
         const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
@@ -323,10 +328,12 @@ export default class TransactionSecurity {
         cumulatedAmount: consumption.cumulatedAmount,
         limitWatts: consumption.limitWatts,
         limitAmps: consumption.limitAmps,
+        voltage: consumption.voltage,
+        voltageL1: consumption.voltageL1,
+        voltageL2: consumption.voltageL2,
+        voltageL3: consumption.voltageL3,
+        voltageDC: consumption.voltageDC,
       };
-      if (consumption.stateOfCharge) {
-        newConsumption.stateOfCharge = consumption.stateOfCharge;
-      }
       return newConsumption;
     });
     return filteredTransaction;
