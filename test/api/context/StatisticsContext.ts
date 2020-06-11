@@ -65,9 +65,11 @@ export default class StatisticsContext {
             if (m % StatisticsContext.CONSTANTS.INTERVAL_METER_VALUES === 0) {
               const meterTime = startTime.clone().add(m, 'minutes');
               if (m > StatisticsContext.CONSTANTS.CHARGING_MINUTES) {
-                response = await chargingStation.sendConsumptionMeterValue(1, transactionId, StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, meterTime);
+                response = await chargingStation.sendConsumptionMeterValue(
+                  1, transactionId, StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, 0, 0, meterTime);
               } else {
-                response = await chargingStation.sendConsumptionMeterValue(1, transactionId, StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * m, meterTime);
+                response = await chargingStation.sendConsumptionMeterValue(
+                  1, transactionId, StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * m, 0, 0, meterTime);
               }
             }
           }

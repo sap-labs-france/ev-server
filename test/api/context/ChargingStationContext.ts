@@ -104,8 +104,8 @@ export default class ChargingStationContext {
     }
   }
 
-  async sendConsumptionMeterValue(connectorId: number, transactionId: number, meterEnergyValue: number,
-    timestamp: Date, withSoC = false, meterSocValue = 0): Promise<OCPPMeterValuesResponse> {
+  async sendConsumptionMeterValue(connectorId: number, transactionId: number, energyActiveImportMeterValue: number,
+    powerImportMeterValue: number, socMeterValue: number, timestamp: Date): Promise<OCPPMeterValuesResponse> {
     let meterValueRequest: OCPPMeterValuesRequest | OCPP15MeterValuesRequest;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
@@ -115,20 +115,30 @@ export default class ChargingStationContext {
         transactionId: transactionId,
         meterValue: [{
           timestamp: timestamp.toISOString(),
-          sampledValue: [{
-            value: meterEnergyValue.toString(),
-            format: OCPPValueFormat.RAW,
-            measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
-            unit: OCPPUnitOfMeasure.WATT_HOUR,
-            location: OCPPLocation.OUTLET,
-            context: OCPPReadingContext.SAMPLE_PERIODIC
-          }]
+          sampledValue: [
+            {
+              value: energyActiveImportMeterValue.toString(),
+              format: OCPPValueFormat.RAW,
+              measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+              unit: OCPPUnitOfMeasure.WATT_HOUR,
+              location: OCPPLocation.OUTLET,
+              context: OCPPReadingContext.SAMPLE_PERIODIC
+            },
+            {
+              value: powerImportMeterValue.toString(),
+              format: OCPPValueFormat.RAW,
+              measurand: OCPPMeasurand.POWER_ACTIVE_IMPORT,
+              unit: OCPPUnitOfMeasure.WATT,
+              location: OCPPLocation.OUTLET,
+              context: OCPPReadingContext.SAMPLE_PERIODIC
+            },
+          ]
         }],
       };
       // Soc
-      if (withSoC) {
+      if (socMeterValue > 0) {
         meterValueRequest.meterValue[0].sampledValue.push({
-          value: meterSocValue.toString(),
+          value: socMeterValue.toString(),
           unit: OCPPUnitOfMeasure.PERCENT,
           context: OCPPReadingContext.SAMPLE_PERIODIC,
           measurand: OCPPMeasurand.STATE_OF_CHARGE,
@@ -151,7 +161,7 @@ export default class ChargingStationContext {
               format: OCPPValueFormat.RAW,
               context: OCPPReadingContext.SAMPLE_PERIODIC
             },
-            $value: meterEnergyValue.toString()
+            $value: energyActiveImportMeterValue.toString()
           }
         },
       };
@@ -160,21 +170,21 @@ export default class ChargingStationContext {
     return this.ocppService.executeMeterValues(this.chargingStation.id, meterValueRequest);
   }
 
-  async sendBeginMeterValue(connectorId: number, transactionId: number, meterEnergyValue: number, meterSocValue: number,
-    signedValue: string, timestamp, withSoC = false, withSignedData = false) {
-    return this.sendBeginEndMeterValue(OCPPReadingContext.TRANSACTION_BEGIN, connectorId, transactionId, meterEnergyValue,
-      meterSocValue, signedValue, timestamp, withSoC, withSignedData);
+  async sendBeginMeterValue(connectorId: number, transactionId: number, energyActiveImportStartMeterValue: number, powerImportStartMeterValue: number,
+    socStartMeterValue: number, signedDataStartMeterValue: string, timestamp) {
+    return this.sendBeginEndMeterValue(OCPPReadingContext.TRANSACTION_BEGIN, connectorId, transactionId,
+      energyActiveImportStartMeterValue, powerImportStartMeterValue, socStartMeterValue, signedDataStartMeterValue, timestamp);
   }
 
-  async sendEndMeterValue(connectorId: number, transactionId: number, meterEnergyValue: number, meterSocValue: number,
-    signedValue: string, timestamp, withSoC = false, withSignedData = false) {
-    return this.sendBeginEndMeterValue(OCPPReadingContext.TRANSACTION_END, connectorId, transactionId, meterEnergyValue,
-      meterSocValue, signedValue, timestamp, withSoC, withSignedData);
+  async sendEndMeterValue(connectorId: number, transactionId: number, energyActiveImportEndMeterValue: number, powerImportEndMeterValue: number,
+    socEndMeterValue: number, signedDataEndMeterValue: string, timestamp) {
+    return this.sendBeginEndMeterValue(OCPPReadingContext.TRANSACTION_END, connectorId, transactionId,
+      energyActiveImportEndMeterValue, powerImportEndMeterValue, socEndMeterValue, signedDataEndMeterValue, timestamp);
   }
 
   async sendBeginEndMeterValue(context: OCPPReadingContext.TRANSACTION_BEGIN | OCPPReadingContext.TRANSACTION_END,
-    connectorId: number, transactionId: number, meterEnergyValue: number, meterSocValue: number,
-    signedValue: string, timestamp, withSoC = false, withSignedData = false): Promise<OCPPMeterValuesResponse> {
+    connectorId: number, transactionId: number, energyActiveImportMeterValue: number, powerImportMeterValue: number, socMeterValue: number,
+    signedDataMeterValue: string, timestamp): Promise<OCPPMeterValuesResponse> {
     let meterValueRequest: OCPPMeterValuesRequest | OCPP15MeterValuesRequest;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
@@ -184,39 +194,48 @@ export default class ChargingStationContext {
         transactionId: transactionId,
         meterValue: [{
           timestamp: timestamp.toISOString(),
-          sampledValue: [{
-            value: meterEnergyValue.toString(),
-            unit: OCPPUnitOfMeasure.WATT_HOUR,
-            context: context
-          }]
+          sampledValue: [
+            {
+              value: energyActiveImportMeterValue.toString(),
+              unit: OCPPUnitOfMeasure.WATT_HOUR,
+              context,
+            },
+            {
+              value: powerImportMeterValue.toString(),
+              unit: OCPPUnitOfMeasure.WATT,
+              context,
+              measurand: OCPPMeasurand.POWER_ACTIVE_IMPORT,
+              location: OCPPLocation.EV
+            }
+          ]
         }],
       };
       // Soc
-      if (withSoC) {
+      if (socMeterValue > 0) {
         meterValueRequest.meterValue[0].sampledValue.push({
-          value: meterSocValue.toString(),
+          value: socMeterValue.toString(),
           unit: OCPPUnitOfMeasure.PERCENT,
-          context: context,
+          context,
           measurand: OCPPMeasurand.STATE_OF_CHARGE,
           location: OCPPLocation.EV
         });
       }
       // Signed Data
-      if (withSignedData) {
+      if (signedDataMeterValue) {
         meterValueRequest.meterValue[0].sampledValue.push({
-          value: signedValue,
+          value: signedDataMeterValue,
           format: OCPPValueFormat.SIGNED_DATA,
-          context: context,
+          context,
         });
       }
     // OCPP 1.5
     } else if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_15) {
-      // Do Nothing
+      // No Transaction Begin/End in this version
     }
     return this.ocppService.executeMeterValues(this.chargingStation.id, meterValueRequest);
   }
 
-  async sendClockMeterValue(connectorId: number, transactionId: number, meterValue: number, timestamp: Date): Promise<OCPPMeterValuesResponse> {
+  async sendClockMeterValue(connectorId: number, transactionId: number, energyActiveImportMeterValue: number, timestamp: Date): Promise<OCPPMeterValuesResponse> {
     let response: OCPPMeterValuesResponse;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
@@ -226,7 +245,7 @@ export default class ChargingStationContext {
         meterValue: [{
           timestamp: timestamp.toISOString(),
           sampledValue: [{
-            value: meterValue.toString(),
+            value: energyActiveImportMeterValue.toString(),
             format: OCPPValueFormat.RAW,
             measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
             unit: OCPPUnitOfMeasure.WATT_HOUR,
@@ -250,7 +269,7 @@ export default class ChargingStationContext {
               format: OCPPValueFormat.RAW,
               context: OCPPReadingContext.SAMPLE_CLOCK
             },
-            $value: meterValue.toString()
+            $value: energyActiveImportMeterValue.toString()
           }
         },
       });

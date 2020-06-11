@@ -426,6 +426,7 @@ export default class OCPPService {
     }
     // Set Consumption (currentTotalConsumptionWh, currentTotalInactivitySecs are updated in consumption creation)
     transaction.currentConsumptionWh = consumption.consumptionWh;
+    transaction.currentInstantWatts = consumption.instantWatts;
     transaction.currentTimestamp = consumption.endedAt;
     transaction.currentTotalDurationSecs = moment.duration(
       moment(transaction.lastEnergyActiveImportMeterValue ? transaction.lastEnergyActiveImportMeterValue.timestamp : new Date()).diff(
@@ -434,9 +435,6 @@ export default class OCPPService {
       chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs);
     // Instant Power not present in Meter Value
     if (!consumption.instantWatts) {
-      // Console.log('====================================');
-      // console.log('Build Watt');
-      // console.log('====================================');
       // Compute average Instant Power based on consumption over a time period (usually 60s)
       const diffSecs = moment(consumption.endedAt).diff(consumption.startedAt, 'milliseconds') / 1000;
       if (consumption.consumptionWh > 0) {
@@ -1185,6 +1183,13 @@ export default class OCPPService {
       // Handle SoC (%)
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         consumption.stateOfCharge = Utils.convertToFloat(meterValue.value);
+      // Handle Power (W/kW)
+      } else if (OCPPUtils.isPowerActiveImportMeterValue(meterValue)) {
+        // Compute power
+        const powerInMeterValue = Utils.convertToFloat(meterValue.value);
+        consumption.instantWatts = (meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT ?
+          powerInMeterValue * 1000 : powerInMeterValue);
+        consumption.instantAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.instantWatts);
       // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
