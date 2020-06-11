@@ -2,13 +2,13 @@
 // Note : These unit tests use the tenant utall. This tenant should exist prior running these tests.
 //        Run npm run test:createContext to create the needed utall if not present.
 import chai, { expect } from 'chai';
-
-import CentralServerService from './client/CentralServerService';
-import Constants from './client/utils/Constants';
-import TestData from './client/utils/TestData';
 import chaiSubset from 'chai-subset';
+
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
+import CentralServerService from './client/CentralServerService';
+import TestConstants from './client/utils/TestConstants';
+import TestData from './client/utils/TestData';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -39,7 +39,7 @@ describe('Encryption Setting tests', function() {
     it('Check that updating the refund/concur setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
       let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
-        limit: Constants.UNLIMITED,
+        limit: TestConstants.UNLIMITED,
         skip: 0
       });
       expect(read.status).to.equal(200);
@@ -69,7 +69,7 @@ describe('Encryption Setting tests', function() {
       expect(update.status).to.equal(200);
       // Retrieve the updated setting and check
       read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
-        limit: Constants.UNLIMITED,
+        limit: TestConstants.UNLIMITED,
         skip: 0
       });
       expect(read.status).to.equal(200);
@@ -81,7 +81,7 @@ describe('Encryption Setting tests', function() {
     it('Check that updating the pricing/convergent charging setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
       let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
-        limit: Constants.UNLIMITED,
+        limit: TestConstants.UNLIMITED,
         skip: 0
       });
       expect(read.status).to.equal(200);
@@ -107,7 +107,7 @@ describe('Encryption Setting tests', function() {
       expect(update.status).to.equal(200);
       // Retrieve the updated setting and check
       read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
-        limit: Constants.UNLIMITED,
+        limit: TestConstants.UNLIMITED,
         skip: 0
       });
       expect(read.status).to.equal(200);
