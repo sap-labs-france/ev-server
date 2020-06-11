@@ -1,13 +1,13 @@
-import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
-
 import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType } from '../../src/types/Setting';
+import chai, { expect } from 'chai';
+
+import CentralServerService from './client/CentralServerService';
+import ContextDefinition from './context/ContextDefinition';
 import TenantComponents from '../../src/types/TenantComponents';
+import TestConstants from './client/utils/TestConstants';
+import chaiSubset from 'chai-subset';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
-import CentralServerService from './client/CentralServerService';
-import TestConstants from './client/utils/TestConstants';
-import ContextDefinition from './context/ContextDefinition';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
