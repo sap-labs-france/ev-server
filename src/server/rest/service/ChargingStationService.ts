@@ -109,7 +109,7 @@ export default class ChargingStationService {
       ];
     }
     // No charge point
-    if (!chargingStation.chargePoints && filteredRequest.connectors) {
+    if ((!chargingStation.chargePoints || chargingStation.chargePoints.length === 0) && filteredRequest.connectors) {
       // Update Connectors
       for (const filteredConnector of filteredRequest.connectors) {
         // Set
