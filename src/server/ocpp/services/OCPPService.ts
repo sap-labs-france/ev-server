@@ -376,7 +376,7 @@ export default class OCPPService {
             // Save
             await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
           }
-          // Hndle OCPI
+          // Handle OCPI
           await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
