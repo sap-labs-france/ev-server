@@ -9,7 +9,6 @@ import BillingApi from './BillingApi';
 import CarApi from './CarApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
-import Constants from './utils/Constants';
 import ContextDefinition from '../context/ContextDefinition';
 import LogsApi from './LogsApi';
 import MailApi from './MailApi';
@@ -22,6 +21,7 @@ import SmartChargingApi from './SmartChargingApi';
 import StatisticsApi from './StatisticsApi';
 import TenantApi from './TenantApi';
 import TenantComponents from '../../../src/types/TenantComponents';
+import TestConstants from './utils/TestConstants';
 import TransactionApi from './TransactionApi';
 import User from '../../../src/types/User';
 import UserApi from './UserApi';
@@ -185,7 +185,7 @@ export default class CentralServerService {
     expect(entity).to.not.be.null;
     // Retrieve from the backend
     const response = await entityApi.readAll({}, {
-      limit: Constants.UNLIMITED,
+      limit: TestConstants.UNLIMITED,
       skip: 0
     });
     // Check
@@ -211,7 +211,7 @@ export default class CentralServerService {
     expect(entity).to.not.be.null;
     // Retrieve from the backend
     const response = await entityApi.readAll(params, {
-      limit: Constants.UNLIMITED,
+      limit: TestConstants.UNLIMITED,
       skip: 0
     });
     // Check

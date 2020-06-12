@@ -4,7 +4,7 @@
 import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
-import Constants from './client/utils/Constants';
+import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
 import chaiSubset from 'chai-subset';
 import config from '../config';
@@ -39,7 +39,7 @@ describe('Encryption Setting tests', function() {
     it('Check that updating the refund/concur setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
       let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
-        limit: Constants.UNLIMITED,
+        limit: TestConstants.UNLIMITED,
         skip: 0
       });
       expect(read.status).to.equal(200);
@@ -69,7 +69,7 @@ describe('Encryption Setting tests', function() {
       expect(update.status).to.equal(200);
       // Retrieve the updated setting and check
       read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
-        limit: Constants.UNLIMITED,
+        limit: TestConstants.UNLIMITED,
         skip: 0
       });
       expect(read.status).to.equal(200);
@@ -81,7 +81,7 @@ describe('Encryption Setting tests', function() {
     it('Check that updating the pricing/convergent charging setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
       let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
-        limit: Constants.UNLIMITED,
+        limit: TestConstants.UNLIMITED,
         skip: 0
       });
       expect(read.status).to.equal(200);
@@ -107,7 +107,7 @@ describe('Encryption Setting tests', function() {
       expect(update.status).to.equal(200);
       // Retrieve the updated setting and check
       read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
-        limit: Constants.UNLIMITED,
+        limit: TestConstants.UNLIMITED,
         skip: 0
       });
       expect(read.status).to.equal(200);

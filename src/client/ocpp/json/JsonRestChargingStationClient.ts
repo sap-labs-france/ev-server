@@ -1,11 +1,10 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
+import { MessageType, WSClientOptions } from '../../../types/WebSocket';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
-import { JsonWSClientConfiguration } from '../../../types/configuration/WSClientConfiguration';
 import Logging from '../../../utils/Logging';
-import { MessageType } from '../../../types/WebSocket';
 import { ServerAction } from '../../../types/Server';
 import WSClient from '../../websocket/WSClient';
 import { v4 as uuid } from 'uuid';
@@ -23,7 +22,18 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     super();
     this.tenantID = tenantID;
     // Get URL
-    let chargingStationURL = chargingStation.chargingStationURL;
+    let chargingStationURL: string;
+    if (Configuration.getChargingStationConfig().useServerLocalIPForRemoteCommand) {
+      let URLprotocol: string;
+      if (Configuration.getChargingStationConfig().secureLocalServer) {
+        URLprotocol = 'wss';
+      } else {
+        URLprotocol = 'ws';
+      }
+      chargingStationURL = URLprotocol + '://' + chargingStation.currentServerLocalIPAddressPort;
+    } else {
+      chargingStationURL = chargingStation.chargingStationURL;
+    }
     // Check URL: remove starting and trailing '/'
     if (chargingStationURL.endsWith('/')) {
       // Remove '/'
@@ -111,7 +121,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           protocol: 'rest'
         };
       }
-      const wsClientOptions: JsonWSClientConfiguration = {
+      const wsClientOptions: WSClientOptions = {
         WSOptions: WSOptions,
         autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
         autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
@@ -227,7 +237,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     const promise = await new Promise(async (resolve, reject) => {
       // Open WS Connection
       await this.openConnection();
-      // Check if wsConnection in ready
+      // Check if wsConnection is ready
       if (this.wsConnection.isConnectionOpen()) {
         // Send
         this.wsConnection.send(JSON.stringify(request));

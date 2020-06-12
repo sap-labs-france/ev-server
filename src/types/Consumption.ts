@@ -20,6 +20,16 @@ export default interface Consumption {
   currencyCode: string;
   instantWatts: number;
   instantAmps: number;
+  voltage: number;
+  voltageL1: number;
+  voltageL2: number;
+  voltageL3: number;
+  voltageDC: number;
+  amperage: number;
+  amperageL1: number;
+  amperageL2: number;
+  amperageL3: number;
+  amperageDC: number;
   totalInactivitySecs: number;
   totalDurationSecs: number;
   stateOfCharge: number;

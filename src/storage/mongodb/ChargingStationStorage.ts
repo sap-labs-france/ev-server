@@ -793,58 +793,6 @@ export default class ChargingStationStorage {
     return bucket.openDownloadStreamByName(filename);
   }
 
-  public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'removeChargingStationsFromSiteArea');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Site provided?
-    if (siteAreaID) {
-      // At least one ChargingStation
-      if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // Update all chargers
-        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
-          { '_id': { $in: chargingStationIDs } },
-          {
-            $set: { siteAreaID: null }
-          }, {
-            upsert: false
-          });
-      }
-    }
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'removeChargingStationsFromSiteArea', uniqueTimerID, {
-      siteAreaID,
-      chargingStationIDs
-    });
-  }
-
-  public static async addChargingStationsToSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addChargingStationsToSiteArea');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Site provided?
-    if (siteAreaID) {
-      // At least one ChargingStation
-      if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // Update all chargers
-        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
-          { '_id': { $in: chargingStationIDs } },
-          {
-            $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
-          }, {
-            upsert: false
-          });
-      }
-    }
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'addChargingStationsToSiteArea', uniqueTimerID, {
-      siteAreaID,
-      chargingStationIDs
-    });
-  }
-
   private static getChargerInErrorFacet(errorType: string) {
     switch (errorType) {
       case ChargingStationInErrorType.MISSING_SETTINGS:

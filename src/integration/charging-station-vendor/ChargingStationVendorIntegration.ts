@@ -628,7 +628,7 @@ export default abstract class ChargingStationVendorIntegration {
       // Get Amp per connector
       limitAmpAllPhases = this.connectorToChargePointLimitAmps(chargePoint, limitAmpAllPhases);
     }
-    // Per pahse
+    // Per phase
     limitAmpAllPhases *= Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorID);
     return limitAmpAllPhases;
   }

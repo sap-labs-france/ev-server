@@ -167,7 +167,7 @@ export default class SettingService {
     }
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
-    UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingUpdate.id}' doesn't exist anymore`,
+    UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingUpdate.id}' does not exist anymore`,
       MODULE_NAME, 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values

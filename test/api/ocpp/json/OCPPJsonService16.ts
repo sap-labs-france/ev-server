@@ -1,3 +1,5 @@
+import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse } from '../../../../src/types/ocpp/OCPPServer';
+
 import { MessageType } from '../../../../src/types/WebSocket';
 import OCPPService from '../OCPPService';
 import WSClient from '../../../../src/client/websocket/WSClient';
@@ -11,6 +13,7 @@ export default class OCPPJsonService16 extends OCPPService {
 
   public constructor(serverUrl, requestHandler) {
     super(serverUrl);
+    // eslint-disable-next-line no-undef
     this.wsSessions = new Map();
     this.requestHandler = requestHandler;
   }
@@ -20,7 +23,8 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   public async openConnection(chargeBoxIdentity) {
-    return await new Promise((resolve, reject) => {
+    // eslint-disable-next-line no-undef
+    return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = {};
       const wsClientOptions = {
@@ -91,67 +95,57 @@ export default class OCPPJsonService16 extends OCPPService {
     }
   }
 
-  public async executeAuthorize(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('Authorize', payload)
-    );
+  public async executeAuthorize(chargingStationID: string, authorize: OCPPAuthorizeRequest): Promise<OCPPAuthorizeResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('Authorize', authorize));
+    return response.data;
   }
 
-  public async executeStartTransaction(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('StartTransaction', payload)
-    );
+  public async executeStartTransaction(chargingStationID: string, startTransaction: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('StartTransaction', startTransaction));
+    return response.data;
   }
 
-  public async executeStopTransaction(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('StopTransaction', payload)
-    );
+  public async executeStopTransaction(chargingStationID: string, stopTransaction: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('StopTransaction', stopTransaction));
+    return response.data;
   }
 
-  public async executeHeartbeat(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('Heartbeat', payload)
-    );
+  public async executeHeartbeat(chargingStationID: string, heartbeat: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('Heartbeat', heartbeat));
+    return response.data;
   }
 
-  public async executeMeterValues(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('MeterValues', payload)
-    );
+  public async executeMeterValues(chargingStationID: string, meterValue: OCPPMeterValuesRequest|OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('MeterValues', meterValue));
+    return response.data;
   }
 
-  public async executeBootNotification(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('BootNotification', payload)
-    );
+  public async executeBootNotification(chargingStationID: string, bootNotification: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('BootNotification', bootNotification));
+    return response.data;
   }
 
-  public async executeStatusNotification(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('StatusNotification', payload)
-    );
+  public async executeStatusNotification(chargingStationID: string, statusNotification: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('StatusNotification', statusNotification));
+    return response.data;
   }
 
-  public async executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('FirmwareStatusNotification', payload)
-    );
+  public async executeFirmwareStatusNotification(chargingStationID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('FirmwareStatusNotification', firmwareStatusNotification));
+    return response.data;
   }
 
-  public async executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('DiagnosticsStatusNotification', payload)
-    );
+  public async executeDiagnosticsStatusNotification(chargingStationID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('DiagnosticsStatusNotification', diagnosticsStatusNotification));
+    return response.data;
   }
 
-  public async executeDataTransfer(chargeBoxIdentity, payload) {
-    return await this.send(chargeBoxIdentity,
-      this.buildRequest('DataTransfer', payload)
-    );
+  public async executeDataTransfer(chargingStationID: string, dataTransfer: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
+    const response = await this.send(chargingStationID, this.buildRequest('DataTransfer', dataTransfer));
+    return response.data;
   }
 
-  private async send(chargeBoxIdentity, message): Promise<any> {
+  private async send(chargeBoxIdentity: string, message: any): Promise<any> {
     // WS Opened?
     if (!this.wsSessions.get(chargeBoxIdentity)) {
       // Open WS
@@ -165,14 +159,15 @@ export default class OCPPJsonService16 extends OCPPService {
     });
     if (message[0] === MessageType.CALL_MESSAGE) {
       // Return a promise
-      return await new Promise((resolve, reject) => {
+      // eslint-disable-next-line no-undef
+      return new Promise((resolve, reject) => {
         // Set the resolve function
         this.wsSessions.get(chargeBoxIdentity).requests[message[1]] = { resolve, reject, t0: t0 };
       });
     }
   }
 
-  private buildRequest(command, payload) {
+  private buildRequest(command: string, payload: any) {
     // Build the request
     return [
       MessageType.CALL_MESSAGE,
@@ -181,7 +176,7 @@ export default class OCPPJsonService16 extends OCPPService {
       payload];
   }
 
-  private buildResponse(messageId, payload) {
+  private buildResponse(messageId, payload: any) {
     // Build the request
     return [
       MessageType.CALL_MESSAGE,

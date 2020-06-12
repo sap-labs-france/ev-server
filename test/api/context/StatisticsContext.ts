@@ -1,6 +1,7 @@
 import chai, { expect } from 'chai';
 
 import CentralServerService from '../client/CentralServerService';
+import ChargingStationContext from './ChargingStationContext';
 import ContextDefinition from './ContextDefinition';
 import { RefundStatus } from '../../../src/types/Refund';
 import TenantContext from './TenantContext';
@@ -33,7 +34,7 @@ export default class StatisticsContext {
   public transactionUserService: CentralServerService;
 
   private tenantContext: TenantContext;
-  private chargingStations: any[] = [];
+  private chargingStations: ChargingStationContext[] = [];
 
   constructor(tenantContext: TenantContext) {
     this.tenantContext = tenantContext;
@@ -55,24 +56,28 @@ export default class StatisticsContext {
         for (const user of users) {
           this.setUser(user);
           startTime = startTime.clone().add(1, 'days');
-          let response = await chargingStation.startTransaction(1, user.tags[0].id, 0, startTime);
-          expect(response).to.be.transactionValid;
-          const transactionId = response.data.transactionId;
+          const startTransactionResponse = await chargingStation.startTransaction(1, user.tags[0].id, 0, startTime.toDate());
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(startTransactionResponse).to.be.transactionValid;
+          const transactionId = startTransactionResponse.transactionId;
 
           for (let m = 1; m < StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES; m++) {
 
             if (m % StatisticsContext.CONSTANTS.INTERVAL_METER_VALUES === 0) {
               const meterTime = startTime.clone().add(m, 'minutes');
               if (m > StatisticsContext.CONSTANTS.CHARGING_MINUTES) {
-                response = await chargingStation.sendConsumptionMeterValue(1, transactionId, StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, meterTime);
+                await chargingStation.sendConsumptionMeterValue(1, transactionId, meterTime.toDate(),
+                  { energyActiveImportMeterValue: StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES });
               } else {
-                response = await chargingStation.sendConsumptionMeterValue(1, transactionId, StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * m, meterTime);
+                await chargingStation.sendConsumptionMeterValue(1, transactionId, meterTime.toDate(),
+                  { energyActiveImportMeterValue: StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * m });
               }
             }
           }
           const endTime = startTime.clone().add(StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES, 'minutes');
-          response = await chargingStation.stopTransaction(transactionId, user.tags[0].id, StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, endTime);
-          expect(response).to.be.transactionStatus('Accepted');
+          const stopTransactionResponse = await chargingStation.stopTransaction(transactionId, user.tags[0].id,
+            StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, endTime.toDate());
+          expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
 
           // Add a fake refund data to transaction
           await this.generateStaticRefundData(transactionId);
@@ -96,7 +101,8 @@ export default class StatisticsContext {
       status: RefundStatus.APPROVED,
     };
     await TransactionStorage.saveTransaction(this.tenantContext.getTenant().id, transaction);
-    console.log('Updated transaction ' + transaction.id + ' with refund data : ' + JSON.stringify(transaction.refundData));
+    // eslint-disable-next-line no-undef
+    console.log(`${this.tenantContext.getTenant().id} (${this.tenantContext.getTenant().name}) - Updated transaction '${transaction.id}' with refund data`);
   }
 
   public async deleteTestData() {

@@ -17,7 +17,7 @@ export default class JsonRestWSConnection extends WSConnection {
     super(wsConnection, req, wsServer);
   }
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     // Already initialized?
     if (!this.initialized) {
       // Call super class
@@ -35,7 +35,7 @@ export default class JsonRestWSConnection extends WSConnection {
     }
   }
 
-  public onError(event: Event) {
+  public onError(event: Event): void {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
@@ -45,20 +45,20 @@ export default class JsonRestWSConnection extends WSConnection {
     });
   }
 
-  public onClose(closeEvent: CloseEvent) {
+  public onClose(closeEvent: CloseEvent): void {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,
-      message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
+      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent.code}'`
     });
     // Remove the connection
     this.wsServer.removeRestConnection(this);
   }
 
-  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any) {
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?

@@ -2,6 +2,7 @@ import WebSocket, { AddressInfo } from 'ws';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
+import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Constants from '../../../utils/Constants';
 import JsonRestWSConnection from './JsonRestWSConnection';
@@ -30,14 +31,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     this.jsonRestClients = [];
   }
 
-  public start() {
+  public start(): void {
     // Keep it global
     global.centralSystemJsonServer = this;
     // Make server to listen
     this.startListening();
   }
 
-  public getChargingStationClient(tenantID: string, chargingStationID: string): JsonWSConnection {
+  public getChargingStationClient(tenantID: string, chargingStationID: string): ChargingStationClient {
     // Build ID
     const id = `${tenantID}~${chargingStationID}}`;
     // Charging Station exists?
@@ -53,7 +54,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return (this.wsServer.address() as AddressInfo).port;
   }
 
-  public removeJsonConnection(wsConnection: JsonWSConnection) {
+  public removeJsonConnection(wsConnection: JsonWSConnection): void {
     // Check first
     if (this.jsonChargingStationClients[wsConnection.getID()] &&
       this.jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection()['id']) {
@@ -62,7 +63,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     }
   }
 
-  public removeRestConnection(wsConnection: JsonRestWSConnection) {
+  public removeRestConnection(wsConnection: JsonRestWSConnection): void {
     // Check first
     if (this.jsonRestClients[wsConnection.getID()] &&
       this.jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection()['id']) {

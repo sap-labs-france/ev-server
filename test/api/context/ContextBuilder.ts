@@ -69,22 +69,19 @@ export default class ContextBuilder {
   async destroy() {
     if (this.tenantsContexts && this.tenantsContexts.length > 0) {
       this.tenantsContexts.forEach(async (tenantContext) => {
-        console.log('Delete tenant context ' + tenantContext.getTenant().id + ' ' + tenantContext.getTenant().subdomain);
+        console.log(`Delete Tenant context '${tenantContext.getTenant().id} (${tenantContext.getTenant().subdomain})`);
         await this.superAdminCentralServerService.deleteEntity(this.superAdminCentralServerService.tenantApi, tenantContext.getTenant());
       });
     }
     // Delete all tenants
     for (const tenantContextDef of ContextDefinition.TENANT_CONTEXT_LIST) {
-      console.log('Tenant to be deleted ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
       let tenantEntity = await TenantStorage.getTenant(tenantContextDef.id);
       if (!tenantEntity) {
         tenantEntity = await TenantStorage.getTenantBySubdomain(tenantContextDef.subdomain);
       }
       if (tenantEntity) {
-        console.log('Delete tenant ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
+        console.log(`Delete Tenant '${tenantContextDef.id} (${tenantContextDef.subdomain})`);
         await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.id);
-      } else {
-        console.error('Tenant to be deleted not found ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
       }
     }
   }
@@ -92,10 +89,8 @@ export default class ContextBuilder {
   async prepareContexts() {
     await this.init();
     await this.destroy();
-    // Prepare list of tenants to create
-    const tenantContexts = ContextDefinition.TENANT_CONTEXT_LIST;
     // Build each tenant context
-    for (const tenantContextDef of tenantContexts) {
+    for (const tenantContextDef of ContextDefinition.TENANT_CONTEXT_LIST) {
       await this.buildTenantContext(tenantContextDef);
     }
   }
@@ -133,7 +128,7 @@ export default class ContextBuilder {
       this.superAdminCentralServerService.tenantApi, dummyTenant);
     await this.superAdminCentralServerService.updateEntity(
       this.superAdminCentralServerService.tenantApi, buildTenant);
-    console.log('CREATE tenant context ' + buildTenant.id + ' ' + buildTenant.subdomain);
+    console.log(`${buildTenant.id} (${buildTenant.name}) - Create tenant context`);
     const userId = await UserStorage.saveUser(buildTenant.id, {
       'id': ContextDefinition.TENANT_USER_LIST[0].id,
       'issuer': true,
@@ -159,7 +154,7 @@ export default class ContextBuilder {
     const localCentralServiceService: CentralServerService = new CentralServerService(buildTenant.subdomain);
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
-      console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
+      console.log(`Settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings, null, ' ')}`);
       const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
       expect(allSettings.status).to.equal(200);
       for (const componentSettingKey in tenantContextDef.componentSettings) {
@@ -173,10 +168,10 @@ export default class ContextBuilder {
             identifier: componentSettingKey as TenantComponents,
             content: tenantContextDef.componentSettings[componentSettingKey].content as SettingDBContent
           };
-          console.log(`CREATE settings for ${componentSettingKey} in tenant ${buildTenant.name}`);
+          console.log(`${buildTenant.id} (${buildTenant.name}) - Create settings for '${componentSettingKey}'`);
           await localCentralServiceService.createEntity(localCentralServiceService.settingApi, settingInput);
         } else {
-          console.log(`UPDATE settings for ${componentSettingKey} in tenant ${buildTenant.name}`);
+          console.log(`${buildTenant.id} (${buildTenant.name}) - Update settings for '${componentSettingKey}'`);
           foundSetting.content = tenantContextDef.componentSettings[componentSettingKey].content;
           await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
         }
@@ -293,7 +288,7 @@ export default class ContextBuilder {
           siteAreaTemplate.maximumPower = siteAreaDef.maximumPower;
           siteAreaTemplate.numberOfPhases = siteAreaDef.numberOfPhases;
           siteAreaTemplate.voltage = siteAreaDef.voltage;
-          console.log(siteAreaTemplate.name);
+          console.log(`${buildTenant.id} (${buildTenant.name}) - Site Area '${siteAreaTemplate.name}'`);
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
           const siteAreaContext = siteContext.addSiteArea(siteAreaModel);
@@ -304,19 +299,19 @@ export default class ContextBuilder {
             if (siteAreaModel.smartCharging && siteAreaModel.numberOfPhases === 1) {
               const chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-              console.log(chargingStationTemplate.id);
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
               const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
               await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
             } else if (siteAreaModel.smartCharging && siteAreaModel.numberOfPhases === 3) {
               const chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-              console.log(chargingStationTemplate.id);
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
               const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
               await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
             } else {
               const chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-              console.log(chargingStationTemplate.id);
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
               const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
               await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
             }
@@ -336,7 +331,7 @@ export default class ContextBuilder {
           dummyAsset.issuer = true;
           dummyAsset.siteAreaID = assetDef.siteAreaID;
           dummyAsset.assetType = 'CO';
-          console.log(`Asset '${dummyAsset.name}' created`);
+          console.log(`${buildTenant.id} (${buildTenant.name}) - Asset '${dummyAsset.name}'`);
           await AssetStorage.saveAsset(buildTenant.id, dummyAsset);
           newTenantContext.getContext().assets.push(dummyAsset);
         }
@@ -356,7 +351,7 @@ export default class ContextBuilder {
     for (const chargingStationDef of relevantCS) {
       const chargingStationTemplate = Factory.chargingStation.build();
       chargingStationTemplate.id = chargingStationDef.baseName;
-      console.log(chargingStationTemplate.id);
+      console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
       const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
       await emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
     }
@@ -366,15 +361,15 @@ export default class ContextBuilder {
     const billingContext = new BillingContext(newTenantContext);
     switch (tenantContextDef.tenantName) {
       case ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
-        console.log(`Create transactions for chargers of site area ${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`);
+        console.log(`${buildTenant.id} (${buildTenant.name}) - Transactions - Site Area '${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}'`);
         await statisticContext.createTestData(ContextDefinition.SITE_CONTEXTS.SITE_BASIC, ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
         break;
       case ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS:
-        console.log('Create transactions for unassigned chargers');
+        console.log(`${buildTenant.id} (${buildTenant.name}) - Transactions - Unassigned Charging Stations`);
         await statisticContext.createTestData(ContextDefinition.SITE_CONTEXTS.NO_SITE, ContextDefinition.SITE_AREA_CONTEXTS.NO_SITE);
         break;
       case ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING:
-        console.log('Creating invoices for users');
+        console.log(`${buildTenant.id} (${buildTenant.name}) - Invoices`);
         await billingContext.createTestData();
     }
     return newTenantContext;

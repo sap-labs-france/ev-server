@@ -6,7 +6,6 @@ import { ActionsResponse } from '../../../types/GlobalType';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -310,7 +309,7 @@ export default class TransactionService {
         chargeBoxID: chargingStation.id,
         idTag: req.user.tagIDs[0],
         timestamp: Utils.convertToDate(transaction.lastEnergyActiveImportMeterValue ? transaction.lastEnergyActiveImportMeterValue.timestamp : transaction.timestamp).toISOString(),
-        meterStop: transaction.lastEnergyActiveImportMeterValue.value ? transaction.lastEnergyActiveImportMeterValue.value : transaction.meterStart
+        meterStop: transaction.lastEnergyActiveImportMeterValue ? transaction.lastEnergyActiveImportMeterValue.value : transaction.meterStart
       },
       true
     );
