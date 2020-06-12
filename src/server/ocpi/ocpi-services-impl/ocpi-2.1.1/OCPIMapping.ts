@@ -278,11 +278,10 @@ export default class OCPIMapping {
   static convertLanguageToLocale(language: string): string {
     if (language === 'fr') {
       return 'fr_FR';
+    } else if (language === 'es') {
+      return 'es_MX';
     }
-    if(language === 'en') {
-      return 'en_US';
-    }
-    return 'es_MX';
+    return 'en_US';
   }
 
   //
