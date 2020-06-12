@@ -490,7 +490,7 @@ export default class UserStorage {
 
   public static async getUsers(tenantID: string,
     params: {
-      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; excludeUserIDs?: string[];
+      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; excludeUserIDs?: string[]; notAssignedToCarID?: string;
       userID?: string; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
       notifications?: any; noLoginSince?: Date;
@@ -525,7 +525,7 @@ export default class UserStorage {
       filters.issuer = params.issuer;
     }
     if (params.excludeUserIDs && params.excludeUserIDs.length > 0) {
-      filters._id = { $nin : params.excludeUserIDs.map((userID) => Utils.convertToObjectID(userID)) };
+      filters._id = { $nin: params.excludeUserIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     // Email
     if (params.email) {
@@ -575,6 +575,12 @@ export default class UserStorage {
       DatabaseUtils.pushTransactionsLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'sessionsCount', countField: 'tagID'
       });
+    }
+    if (params.notAssignedToCarID) {
+      DatabaseUtils.pushUserCarLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'usersCar'
+      });
+      filters['usersCar.carID'] = { $ne: Utils.convertToObjectID(params.notAssignedToCarID) };
     }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {

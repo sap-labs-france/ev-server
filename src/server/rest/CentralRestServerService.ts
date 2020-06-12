@@ -97,7 +97,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCarCreate.bind(this),
-          [ServerAction.ASSIGN_USERS_CAR]: CarService.handleAssignUsersCar.bind(this)
+          [ServerAction.ADD_USERS_TO_CAR]: CarService.handleAddUsersToCar.bind(this)
         });
         break;
 
@@ -234,6 +234,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_DELETE]: ConnectionService.handleDeleteConnection.bind(this),
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
+          [ServerAction.REMOVE_USERS_FROM_CAR]: CarService.handleRemoveUsersFromCar.bind(this),
         });
         break;
     }

@@ -67,7 +67,7 @@ export enum ServerAction {
   CAR = 'Car',
   USERS_CAR = 'UsersCar',
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
-  ASSIGN_USERS_CAR = 'AssignUsersCar',
+  ADD_USERS_TO_CAR = 'AddUsersToCar',
 
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
   REGISTER_USER = 'RegisterUser',
@@ -213,7 +213,7 @@ export enum ServerAction {
 
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
   CAR_CATALOG_SYNCHRONIZATION = 'CarCatalogSynchronization',
-
+  REMOVE_USERS_FROM_CAR = 'RemoveUsersFromCar',
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
 
   UPDATE_CHARGING_STATION_WITH_TEMPLATE = 'UpdateChargingStationWithTemplate',

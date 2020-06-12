@@ -234,7 +234,7 @@ export default class CarService {
       // Force to reuse the car
       if (filteredRequest.forced) {
         newCar = car;
-      // Send error to the UI
+        // Send error to the UI
       } else {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -310,13 +310,13 @@ export default class CarService {
       });
     }
     // Check Car
-    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.id);
+    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.id, true);
     UtilsService.assertObjectExists(action, car, `Car ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCar', req.user);
     // Check Owner if Basic
     let userCar;
     if (Authorizations.isBasic(req.user)) {
-      userCar = await CarStorage.getUserCarByCarUser(req.user.tenantID, filteredRequest.id, req.user.id);
+      userCar = car.usersCar.find((userCarToFind) => userCarToFind.userID.toString() === req.user.id);
       if (!userCar || !userCar.owner) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
@@ -429,9 +429,9 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
     // Get the car
-    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID);
+    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID, true);
     if (Authorizations.isBasic(req.user)) {
-      const userCar = await CarStorage.getUserCarByCarUser(req.user.tenantID, filteredRequest.ID, req.user.id);
+      const userCar = car.usersCar.find((userCarToFind) => userCarToFind.userID.toString() === req.user.id);
       if (userCar) {
         car.isDefault = userCar.default;
       }
@@ -472,23 +472,23 @@ export default class CarService {
     next();
   }
 
-  public static async handleAssignUsersCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAddUsersToCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.CREATE, Entity.USERS_CARS,
-      MODULE_NAME, 'handleAssignUsersCar');
+      MODULE_NAME, 'handleAddUsersToCar');
     // Check auth
     if (!Authorizations.canAssignUsersCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.CREATE, entity: Entity.USERS_CARS,
-        module: MODULE_NAME, method: 'handleAssignUsersCar'
+        module: MODULE_NAME, method: 'handleAddUsersToCar'
       });
     }
     const filteredRequest = CarSecurity.filterUsersAssignRequest(req.body);
     // CarID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.carID, 'CarSecurity', 'filterUsersAssignRequest', req.user);
-    const result = await CarStorage.assignUsersCar(req.user.tenantID, filteredRequest.carID, filteredRequest.usersCar);
+    const result = await CarStorage.addUsersToCar(req.user.tenantID, filteredRequest.carID, filteredRequest.usersCar);
     // Return
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
@@ -499,7 +499,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.UPDATE, Entity.USERS_CARS,
       MODULE_NAME, 'handleUpdateUsersCar');
     // Check auth
-    if (!Authorizations.canUpdateUsersCar(req.user)) {
+    if (!Authorizations.canAssignUsersCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -515,4 +515,25 @@ export default class CarService {
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
+
+  public static async handleRemoveUsersFromCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.DELETE, Entity.USERS_CARS,
+      MODULE_NAME, 'handleRemoveUsersFromCar');
+    // Check auth
+    if (!Authorizations.canAssignUsersCar(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.DELETE, entity: Entity.USERS_CARS,
+        module: MODULE_NAME, method: 'handleDeleteUsersCar'
+      });
+    }
+    const usersCarIDs = CarSecurity.filterUsersCarRequestByIDs(req.body);
+    const result = await CarStorage.removeUsersFromCar(req.user.tenantID, usersCarIDs);
+
+    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+    next();
+  }
+
 }

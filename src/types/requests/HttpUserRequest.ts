@@ -34,6 +34,7 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   ErrorType?: string;
   ExcludeSiteID: string;
   ExcludeUserIDs: string;
+  NotAssignedToCarID: string;
 }
 
 export interface HttpUserSitesRequest extends HttpDatabaseRequest {
@@ -52,7 +53,7 @@ export interface HttpResetPasswordRequest {
   email: string;
   tenant: string;
   captcha: string;
-  passwords: { password: string, repeatPassword: string }; // Frontend...
+  passwords: { password: string; repeatPassword: string }; // Frontend...
   password?: string;
   repeatPassword?: string;
   hash: string;

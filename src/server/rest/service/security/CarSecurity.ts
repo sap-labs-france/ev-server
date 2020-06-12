@@ -288,6 +288,10 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
+  public static filterUsersCarRequestByIDs(request: any): string[] {
+    return request.usersCarIDs.map(sanitize);
+  }
+
   public static filterUsersAssignRequest(request: any): HttpUsersAssignRequest {
     const usersCar: UserCar[] = [];
     if (!Utils.isEmptyArray(request.usersCar)) {

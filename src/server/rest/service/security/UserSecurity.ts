@@ -49,6 +49,9 @@ export default class UserSecurity {
     if (request.ExcludeUserIDs) {
       request.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
     }
+    if (request.NotAssignedToCarID) {
+      request.NotAssignedToCarID = sanitize(request.NotAssignedToCarID);
+    }
     UtilsSecurity.filterSkipAndLimit(request, request);
     UtilsSecurity.filterSort(request, request);
     return request as HttpUsersRequest;

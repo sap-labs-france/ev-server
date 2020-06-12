@@ -796,7 +796,7 @@ export default class UserService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
         Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
     }
-    if (filteredRequest.ExcludeUserIDs && filteredRequest.ExcludeUserIDs.length > 0) {
+    if (filteredRequest.ExcludeUserIDs || filteredRequest.NotAssignedToCarID) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
     }
@@ -809,7 +809,8 @@ export default class UserService {
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
-        excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null)
+        excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
+        notAssignedToCarID: filteredRequest.NotAssignedToCarID
       },
       {
         limit: filteredRequest.Limit,
