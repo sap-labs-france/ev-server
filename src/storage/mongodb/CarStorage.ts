@@ -616,7 +616,7 @@ export default class CarStorage {
       }
     }
     // Log
-    Utils.logActionsResponse(tenantID, ServerAction.ASSIGN_USERS_CAR,
+    Utils.logActionsResponse(tenantID, ServerAction.USERS_CAR_UPDATE,
       MODULE_NAME, 'updateUsersCar', actionsDone,
       '{{inSuccess}} user(s) were successfully updated',
       '{{inError}} user(s) failed to be updated',
