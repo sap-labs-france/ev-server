@@ -292,6 +292,7 @@ export default class ContextBuilder {
           siteAreaTemplate.smartCharging = siteAreaDef.smartCharging;
           siteAreaTemplate.maximumPower = siteAreaDef.maximumPower;
           siteAreaTemplate.numberOfPhases = siteAreaDef.numberOfPhases;
+          siteAreaTemplate.voltage = siteAreaDef.voltage;
           console.log(siteAreaTemplate.name);
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
@@ -300,19 +301,17 @@ export default class ContextBuilder {
             (chargingStation) => chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true);
           // Create Charging Station for site area
           for (const chargingStationDef of relevantCS) {
-            if (siteAreaModel.smartCharging) {
+            if (siteAreaModel.smartCharging && siteAreaModel.numberOfPhases === 1) {
               const chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
               console.log(chargingStationTemplate.id);
-              const connectorsDef: any = [{
-                numberOfConnectedPhase: siteAreaModel.numberOfPhases,
-                status: 'Charging'
-              },
-              {
-                numberOfConnectedPhase: siteAreaModel.numberOfPhases,
-                status: 'Charging'
-              }];
-              const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, connectorsDef, siteAreaModel);
+              const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            } else if (siteAreaModel.smartCharging && siteAreaModel.numberOfPhases === 3) {
+              const chargingStationTemplate = Factory.chargingStation.build();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+              console.log(chargingStationTemplate.id);
+              const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
               await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
             } else {
               const chargingStationTemplate = Factory.chargingStation.build();
