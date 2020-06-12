@@ -1,23 +1,24 @@
-import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
-import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import fs from 'fs';
+
+import moment from 'moment';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
+import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
+import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
+import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
 import TenantComponents from '../../types/TenantComponents';
-import TenantStorage from './TenantStorage';
+import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import fs from 'fs';
-import global from '../../types/GlobalType';
-import moment from 'moment';
+import DatabaseUtils from './DatabaseUtils';
+import TenantStorage from './TenantStorage';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -602,23 +603,30 @@ export default class ChargingStationStorage {
     // Read DB
     const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenantID, 'configurations')
       .findOne({ '_id': id });
-    // Sort
-    if (parametersMDB.configuration) {
-      parametersMDB.configuration.sort((param1, param2) => {
-        if (param1.key.toLocaleLowerCase() < param2.key.toLocaleLowerCase()) {
-          return -1;
-        }
-        if (param1.key.toLocaleLowerCase() > param2.key.toLocaleLowerCase()) {
-          return 1;
-        }
-        return 0;
-      });
+    if (parametersMDB) {
+      // Sort
+      if (parametersMDB.configuration) {
+        parametersMDB.configuration.sort((param1, param2) => {
+          if (param1.key.toLocaleLowerCase() < param2.key.toLocaleLowerCase()) {
+            return -1;
+          }
+          if (param1.key.toLocaleLowerCase() > param2.key.toLocaleLowerCase()) {
+            return 1;
+          }
+          return 0;
+        });
+      }
+      // Debug
+      Logging.traceEnd(MODULE_NAME, 'getOcppParameters', uniqueTimerID);
+      return {
+        count: parametersMDB.configuration.length,
+        result: parametersMDB.configuration
+      };
     }
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'getOcppParameters', uniqueTimerID);
+    // No conf
     return {
-      count: parametersMDB.configuration.length,
-      result: parametersMDB.configuration
+      count: 0,
+      result: []
     };
   }
 
