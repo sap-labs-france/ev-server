@@ -1,15 +1,14 @@
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
 import Asset from '../../../types/Asset';
 import { AssetInErrorType } from '../../../types/InError';
 import AssetSecurity from './security/AssetSecurity';
 import AssetStorage from '../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
@@ -20,78 +19,6 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'AssetService';
 
 export default class AssetService {
-
-  public static async handleAssignAssetsToSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
-      Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleAssignAssetsToSiteArea');
-    const filteredRequest = AssetSecurity.filterAssignAssetsToSiteAreaRequest(req.body);
-    // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
-    if (!filteredRequest.assetIDs || (filteredRequest.assetIDs && filteredRequest.assetIDs.length <= 0)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Asset\'s IDs must be provided',
-        module: MODULE_NAME,
-        method: 'handleAssignAssetsToSiteArea',
-        user: req.user
-      });
-    }
-    // Get the Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
-      MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
-    // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME,
-        method: 'handleAssignAssetsToSiteArea',
-        value: filteredRequest.siteAreaID
-      });
-    }
-    // Get Assets
-    for (const assetID of filteredRequest.assetIDs) {
-      // Check the asset
-      const asset = await AssetStorage.getAsset(req.user.tenantID, assetID);
-      UtilsService.assertObjectExists(action, asset, `Asset '${assetID}' doesn't exist anymore.`,
-        MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
-      // Check auth
-      if (!Authorizations.canUpdateAsset(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.UPDATE,
-          entity: Entity.ASSET,
-          module: MODULE_NAME,
-          method: 'handleAssignAssetsToSiteArea',
-          value: assetID
-        });
-      }
-    }
-    // Save
-    if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
-      await AssetStorage.addAssetsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
-    } else {
-      await AssetStorage.removeAssetsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
-    }
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user,
-      module: MODULE_NAME,
-      method: 'handleAssignAssetsToSiteArea',
-      message: 'Site Area\'s Assets have been assigned successfully',
-      action: action
-    });
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
-  }
 
   public static async handleGetAssetsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active

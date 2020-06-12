@@ -1,6 +1,7 @@
 import WebSocket, { AddressInfo } from 'ws';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
+import CentralSystemServerConfiguration from '../../../types/configuration/CentralSystemServer';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
@@ -13,7 +14,6 @@ import https from 'https';
 const MODULE_NAME = 'WSServer';
 
 export default class WSServer extends WebSocket.Server {
-  public clients: Set<WebSocket>;
   private httpServer: http.Server;
   private serverName: string;
   private serverConfig: CentralSystemConfiguration;
@@ -61,7 +61,7 @@ export default class WSServer extends WebSocket.Server {
     }
   }
 
-  public static createHttpServer(serverConfig): http.Server {
+  public static createHttpServer(serverConfig: CentralSystemServerConfiguration): http.Server {
     // Create HTTP server
     let httpServer: http.Server;
     // Secured protocol?

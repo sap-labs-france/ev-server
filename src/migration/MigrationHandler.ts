@@ -1,4 +1,5 @@
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
+import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
@@ -7,7 +8,6 @@ import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTa
 import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsumptionsTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
-import CleanupAllTransactionsTask from './tasks/CleanupAllTransactionsTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import Constants from '../utils/Constants';
@@ -20,11 +20,12 @@ import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
+import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
 import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
-import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
+import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjectIDsTask';
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
 import cluster from 'cluster';
 import moment from 'moment';
@@ -58,7 +59,6 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new MigrateCoordinatesTask());
         currentMigrationTasks.push(new MigrateOcpiSettingTask());
         currentMigrationTasks.push(new AddTagTypeTask());
-        currentMigrationTasks.push(new CleanupAllTransactionsTask());
         currentMigrationTasks.push(new CleanupMeterValuesTask());
         currentMigrationTasks.push(new RenameTagPropertiesTask());
         currentMigrationTasks.push(new AddInactivityStatusInTransactionsTask());
@@ -67,12 +67,15 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
         currentMigrationTasks.push(new AddActivePropertyToTagsTask());
         currentMigrationTasks.push(new InitialCarImportTask());
-        currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
+        currentMigrationTasks.push(new UpdateConsumptionsToObjectIDsTask());
+        currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
         currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
         currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
+        currentMigrationTasks.push(new RenameTransactionsAndConsumptionsTask());
+        currentMigrationTasks.push(new AddConsumptionAmpsToConsumptionsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

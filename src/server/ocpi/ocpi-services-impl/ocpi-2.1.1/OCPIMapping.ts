@@ -1,5 +1,5 @@
 import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCPIChargingPeriod';
-import ChargingStation, { Connector, ConnectorType } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, Connector, ConnectorType } from '../../../../types/ChargingStation';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
@@ -24,6 +24,7 @@ import Tenant from '../../../../types/Tenant';
 import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Utils from '../../../../utils/Utils';
 import moment from 'moment';
 
 /**
@@ -90,7 +91,7 @@ export default class OCPIMapping {
           amperage: ocpiConnector.amperage,
           voltage: ocpiConnector.voltage,
           connectorId: connectorId,
-          currentConsumption: 0,
+          currentInstantWatts: 0,
           power: ocpiConnector.amperage * ocpiConnector.voltage,
           type: OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
         };
@@ -429,13 +430,20 @@ export default class OCPIMapping {
         format = OCPIConnectorFormat.CABLE;
         break;
     }
+    let chargePoint: ChargePoint;
+    if (connector.chargePointID) {
+      chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+    }
+    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
+    const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
+    const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {
       'id': `${evseID}*${connector.connectorId}`,
       'standard': type,
       'format': format,
-      'voltage': connector.voltage,
-      'amperage': connector.amperage,
-      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(connector.numberOfConnectedPhase),
+      'voltage': voltage,
+      'amperage': amperage,
+      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
       'last_updated': chargingStation.lastHeartBeat
     };
   }
@@ -564,7 +572,7 @@ export default class OCPIMapping {
         }
       }
     } else {
-      const consumption: number = transaction.stop ? transaction.stop.totalConsumption : transaction.currentTotalConsumption;
+      const consumption: number = transaction.stop ? transaction.stop.totalConsumptionWh : transaction.currentTotalConsumptionWh;
       chargingPeriods.push({
         // eslint-disable-next-line @typescript-eslint/camelcase
         start_date_time: transaction.timestamp,
@@ -575,7 +583,7 @@ export default class OCPIMapping {
       });
       const inactivity: number = transaction.stop ? transaction.stop.totalInactivitySecs : transaction.currentTotalInactivitySecs;
       if (inactivity > 0) {
-        const inactivityStart = transaction.stop ? transaction.stop.timestamp : transaction.lastUpdate;
+        const inactivityStart = transaction.stop ? transaction.stop.timestamp : transaction.currentTimestamp;
         chargingPeriods.push({
           // eslint-disable-next-line @typescript-eslint/camelcase
           start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
@@ -595,10 +603,10 @@ export default class OCPIMapping {
       start_date_time: consumption.startedAt,
       dimensions: []
     };
-    if (consumption.consumption > 0) {
+    if (consumption.consumptionWh > 0) {
       chargingPeriod.dimensions.push({
         type: CdrDimensionType.ENERGY,
-        volume: consumption.consumption / 1000
+        volume: consumption.consumptionWh / 1000
       });
       if (consumption.limitAmps > 0) {
         chargingPeriod.dimensions.push({

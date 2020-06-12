@@ -1,0 +1,37 @@
+{
+  "subject": "Terminales sin conexión",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Terminales sin conexión",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Estimado administrador,",
+      "",
+      "Las siguientes terminales en su organización están fuera de línea:  <b> <% - chargeBoxIDs%> </b> ",
+      ""
+    ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
+    "afterActionLines": [
+      "Atentamente,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

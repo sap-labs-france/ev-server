@@ -1,7 +1,9 @@
-import WebSocket, { AddressInfo, OPEN } from 'ws';
+import { MessageType, OcppErrorType } from '../../../types/WebSocket';
+import WebSocket, { OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import { Command } from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
@@ -21,16 +23,16 @@ export default class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
-  protected readonly serverIP: string;
+  protected readonly serverIPPort: string;
+  protected readonly chargingStationID: string;
+  protected readonly tenantID: string;
+  private readonly token: string;
   private readonly url: string;
   private readonly clientIP: string;
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
   private requests: any = {};
   private tenantIsValid: boolean;
-  private readonly chargingStationID: string;
-  private readonly tenantID: string;
-  private readonly token: string;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Init
@@ -40,7 +42,7 @@ export default class WSConnection {
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
-    this.serverIP = (this.wsServer.address as AddressInfo).address + ':' + (this.wsServer.address as AddressInfo).port;
+    this.serverIPPort = Utils.getLocalIP() + ':' + this.wsServer.port.toString();
 
     // Default
     this.tenantIsValid = false;
@@ -53,7 +55,7 @@ export default class WSConnection {
       // Remove '/'
       this.url = this.url.substring(1, this.url.length);
     }
-    // Parse URL: should like /OCPP16/TENANTID/TOKEN/CHARGEBOXID
+    // Parse URL: should be like /OCPP16/TENANTID/TOKEN/CHARGEBOXID
     // We support previous format for existing charging station without token /OCPP16/TENANTID/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
     if (splittedURL.length === 4) {
@@ -91,11 +93,10 @@ export default class WSConnection {
     this.wsConnection.onclose = this.onClose.bind(this);
   }
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     try {
       // Check Tenant?
       await Utils.checkTenant(this.tenantID);
-      // Ok
       this.tenantIsValid = true;
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
@@ -122,30 +123,28 @@ export default class WSConnection {
     }
   }
 
-  public onError(event: Event) {
+  public onError(event: Event): void {
   }
 
-  public onClose(closeEvent: CloseEvent) {
+  public onClose(closeEvent: CloseEvent): void {
   }
 
-  public async onMessage(messageEvent: MessageEvent) {
+  public async onMessage(messageEvent: MessageEvent): Promise<void> {
     let [messageType, messageId, commandName, commandPayload, errorDetails] = [0, '', ServerAction.CHARGING_STATION, '', ''];
     try {
       // Parse the message
       [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.data);
-
       // Initialize: done in the message as init could be lengthy and first message may be lost
       await this.initialize();
-
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
-        case Constants.OCPP_JSON_CALL_MESSAGE:
+        case MessageType.CALL_MESSAGE:
           // Process the call
           await this.handleRequest(messageId, commandName, commandPayload);
           break;
         // Outcome Message
-        case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
+        case MessageType.RESULT_MESSAGE:
           // Respond
           // eslint-disable-next-line no-case-declarations
           let responseCallback: Function;
@@ -174,7 +173,7 @@ export default class WSConnection {
           responseCallback(commandName);
           break;
         // Error Message
-        case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
+        case MessageType.ERROR_MESSAGE:
           // Log
           Logging.logError({
             tenantID: this.getTenantID(),
@@ -208,7 +207,6 @@ export default class WSConnection {
             });
           }
           delete this.requests[messageId];
-
           rejectCallback(new OCPPError({
             source: this.getChargingStationID(),
             module: MODULE_NAME,
@@ -237,7 +235,7 @@ export default class WSConnection {
     }
   }
 
-  public async handleRequest(messageId, commandName, commandPayload) {
+  public async handleRequest(messageId, commandName, commandPayload): Promise<void> {
     // To implement in sub-class
   }
 
@@ -257,82 +255,41 @@ export default class WSConnection {
     return this.clientIP;
   }
 
-  public getServerIP(): string {
-    return this.serverIP;
+  public getServerIPPort(): string {
+    return this.serverIPPort;
   }
 
-  public async send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
+  public async send(command, messageType = MessageType.CALL_MESSAGE): Promise<unknown> {
     // Send Message
     return this.sendMessage(uuid(), command, messageType);
   }
 
-  public async sendError(messageId, err) {
+  public async sendError(messageId, err): Promise<unknown> {
     // Check exception: only OCPP error are accepted
     const error = (err instanceof OCPPError ? err : new OCPPError({
       source: this.getChargingStationID(),
       module: MODULE_NAME,
       method: 'sendError',
-      code: Constants.OCPP_ERROR_INTERNAL_ERROR,
+      code: OcppErrorType.INTERNAL_ERROR,
       message: err.message
     }));
     // Send error
-    return this.sendMessage(messageId, error, Constants.OCPP_JSON_CALL_ERROR_MESSAGE);
+    return this.sendMessage(messageId, error, MessageType.ERROR_MESSAGE);
   }
 
-  public async sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = ''): Promise<any> {
+  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.RESULT_MESSAGE, commandName?: Command): Promise<unknown> {
     // Send a message through WSConnection
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
+    const tenant = await TenantStorage.getTenant(this.tenantID);
     // Create a promise
     return await new Promise((resolve, reject) => {
       let messageToSend;
-      // Type of message
-      switch (messageType) {
-        // Request
-        case Constants.OCPP_JSON_CALL_MESSAGE:
-          // Build request
-          this.requests[messageId] = [responseCallback, rejectCallback];
-          messageToSend = JSON.stringify([messageType, messageId, commandName, command]);
-          break;
-        // Response
-        case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
-          // Build response
-          messageToSend = JSON.stringify([messageType, messageId, command]);
-          break;
-        // Error Message
-        case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
-          // Build Message
-          // eslint-disable-next-line no-case-declarations
-          const {
-            code,
-            message,
-            details
-          } = command;
-          messageToSend = JSON.stringify([messageType, messageId, code, message, details]);
-          break;
-      }
-      // Check if wsConnection in ready
-      if (this.isWSConnectionOpen()) {
-        // Yes: Send Message
-        this.wsConnection.send(messageToSend);
-      } else {
-        // Reject it
-        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${TenantStorage.getTenant(this.tenantID).then((tenant) => tenant.name)})`);
-      }
-      // Request?
-      if (messageType !== Constants.OCPP_JSON_CALL_MESSAGE) {
-        // Yes: send Ok
-        resolve();
-      } else {
-        // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID).then((tenant) => tenant.name)}`), Constants.OCPP_SOCKET_TIMEOUT);
-      }
-
       // Function that will receive the request's response
       function responseCallback(payload) {
         // Send the response
         resolve(payload);
       }
-
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
@@ -340,6 +297,47 @@ export default class WSConnection {
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);
+      }
+      // Type of message
+      switch (messageType) {
+        // Request
+        case MessageType.CALL_MESSAGE:
+          // Build request
+          this.requests[messageId] = [responseCallback, rejectCallback];
+          messageToSend = JSON.stringify([messageType, messageId, commandName, commandParams]);
+          break;
+        // Response
+        case MessageType.RESULT_MESSAGE:
+          // Build response
+          messageToSend = JSON.stringify([messageType, messageId, commandParams]);
+          break;
+        // Error Message
+        case MessageType.ERROR_MESSAGE:
+          // Build Message
+          // eslint-disable-next-line no-case-declarations
+          const {
+            code,
+            message,
+            details
+          } = commandParams;
+          messageToSend = JSON.stringify([messageType, messageId, code, message, details]);
+          break;
+      }
+      // Check if wsConnection is ready
+      if (this.isWSConnectionOpen()) {
+        // Yes: Send Message
+        this.wsConnection.send(messageToSend);
+      } else {
+        // Reject it
+        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant.name})`);
+      }
+      // Request?
+      if (messageType !== MessageType.CALL_MESSAGE) {
+        // Yes: send Ok
+        resolve();
+      } else {
+        // Send timeout
+        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant.name}`), Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
   }

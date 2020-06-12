@@ -29,6 +29,8 @@ export default interface SiteArea extends CreatedUpdatedProps {
 
 export interface SiteAreaConsumption {
   date: Date;
-  instantPower: number;
+  instantWatts: number;
+  instantAmps: number;
   limitWatts: number;
+  limitAmps: number;
 }

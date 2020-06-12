@@ -1,5 +1,5 @@
-import Constants from './utils/Constants';
 import CrudApi from './utils/CrudApi';
+import TestConstants from './utils/TestConstants';
 
 export default class LogsApi extends CrudApi {
   public constructor(authenticatedApi) {
@@ -10,7 +10,7 @@ export default class LogsApi extends CrudApi {
     return super.readById(id, '/client/api/Logging');
   }
 
-  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/Loggings');
   }
 }

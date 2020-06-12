@@ -11,11 +11,11 @@ export interface OptimizerChargingProfilesResponse {
 export interface OptimizerState {
   currentTimeSeconds: number;
   fuseTree?: OptimizerFuseTree;
-  chargingStations?: OptimizerChargingStation[];
+  chargingStations?: OptimizerChargingStationConnectorFuse[];
   maximumSiteLimitKW?: number;
   cars: OptimizerCar[];
   energyPriceHistory?: OptimizerEnergyPriceHistory;
-  carAssignments: OptimizerCarAssignment[];
+  carAssignments: OptimizerCarConnectorAssignment[];
 }
 
 export interface OptimizerEvent {
@@ -60,9 +60,23 @@ export interface OptimizerEnergyPriceHistory {
   date?: string;
 }
 
-export interface OptimizerCarAssignment {
+export interface OptimizerCarConnectorAssignment {
   carID: number;
-  chargingStationID: number;
+  chargingStationID: number; // It's a connector but for the optimizer this is a Charging Station
+}
+
+export interface OptimizerFuseTreeNode {
+  '@type': 'Fuse' | 'ChargingStation';
+  id?: number;
+  phase1Connected?: boolean;
+  phase2Connected?: boolean;
+  phase3Connected?: boolean;
+  children?: OptimizerFuseTreeNode[];
+}
+
+export interface ConnectorPower {
+  numberOfConnectedPhase: number;
+  totalAmps: number;
 }
 
 export interface OptimizerFuse extends OptimizerFuseTreeNode {
@@ -71,20 +85,24 @@ export interface OptimizerFuse extends OptimizerFuseTreeNode {
   fusePhase1: number;
   fusePhase2: number;
   fusePhase3: number;
-  children: OptimizerFuseTreeNodeUnion[];
+  children: OptimizerChargingStationFuse[];
 }
 
-export interface OptimizerFuseTreeNode {
-  '@type': 'Fuse' | 'ChargingStation';
-  children?: OptimizerFuseTreeNodeUnion[];
-  id?: number;
-  phase1Connected?: boolean;
-  phase2Connected?: boolean;
-  phase3Connected?: boolean;
+export interface OptimizerChargingStationFuse extends OptimizerFuseTreeNode {
+  '@type': 'Fuse'; // For the optimizer
+  id: number;
+  fusePhase1?: number;
+  fusePhase2?: number;
+  fusePhase3?: number;
+  phaseToGrid?: { [P in OptimizerPhase]?: OptimizerPhase };
+  phaseToChargingStation?: { [P in OptimizerPhase]?: OptimizerPhase };
+  isBEVAllowed?: boolean;
+  isPHEVAllowed?: boolean;
+  status?: OptimizerStationStatus;
 }
 
-export interface OptimizerChargingStation extends OptimizerFuseTreeNode {
-  '@type': 'ChargingStation';
+export interface OptimizerChargingStationConnectorFuse extends OptimizerFuseTreeNode {
+  '@type': 'ChargingStation'; // For the optimizer
   id: number;
   fusePhase1?: number;
   fusePhase2?: number;
@@ -108,4 +126,4 @@ export type OptimizerPhase = 'PHASE_1' | 'PHASE_2' | 'PHASE_3';
 
 export type OptimizerStationStatus = 'Free' | 'Charging' | 'Reserved' | 'Blocked' | 'Maintenance' | 'Disconnected';
 
-export type OptimizerFuseTreeNodeUnion = OptimizerFuse | OptimizerChargingStation;
+export type OptimizerFuseTreeNodeUnion = OptimizerFuse | OptimizerChargingStationConnectorFuse;

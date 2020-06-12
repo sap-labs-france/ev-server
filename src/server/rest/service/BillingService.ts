@@ -28,30 +28,19 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.BILLING, action: Action.CHECK_CONNECTION,
-        module: MODULE_NAME, method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleCheckBillingConnection',
       });
     }
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleGetBillingConnection');
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingConnection');
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleGetBillingConnection',
-        action: action,
-        user: req.user
-      });
-    }
-    if (!Authorizations.canCheckConnectionBilling(req.user)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot connect to the billing service, check your configuration',
-        module: MODULE_NAME, method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleCheckBillingConnection',
         action: action,
         user: req.user
       });
@@ -64,9 +53,9 @@ export default class BillingService {
     } catch (error) {
       // Ko
       Logging.logError({
-        tenantID: tenant.id,
+        tenantID: req.user.tenantID,
         user: req.user,
-        module: MODULE_NAME, method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleCheckBillingConnection',
         message: 'Billing connection failed',
         action: action,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -134,7 +123,7 @@ export default class BillingService {
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' does not exist anymore.`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
@@ -170,7 +159,7 @@ export default class BillingService {
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' does not exist anymore.`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.forceSynchronizeUser(userToSynchronize, tenant.id);
@@ -240,7 +229,7 @@ export default class BillingService {
     const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
     // Get user
     const billingUser = await billingImpl.getUserByEmail(req.user.email);
-    UtilsService.assertObjectExists(action, billingUser, `Billing user with email '${req.user.email}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, billingUser, `Billing user with email '${req.user.email}' does not exist anymore.`,
       MODULE_NAME, 'handleGetUserInvoices', req.user);
     if (Authorizations.isBasic(req.user)) {
       filteredRequest.UserID = req.user.id;
@@ -296,7 +285,7 @@ export default class BillingService {
     if (Authorizations.isBasic(req.user)) {
       // Get the User
       user = await UserStorage.getUser(req.user.tenantID, req.user.id);
-      UtilsService.assertObjectExists(action, user, `User '${req.user.id}' doesn't exist anymore.`,
+      UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist anymore.`,
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
     // Sync invoices
@@ -333,7 +322,7 @@ export default class BillingService {
     const filteredRequest = BillingSecurity.filterForceSynchronizeUserInvoicesRequest(req.body);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist anymore.`,
       MODULE_NAME, 'handleForceSynchronizeUserInvoices', req.user);
     // Sync user invoices
     const synchronizeAction = await billingImpl.forceSynchronizeUserInvoices(req.user.tenantID, user);

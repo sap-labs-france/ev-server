@@ -296,9 +296,9 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
-    transaction.ocpiData.session.kwh = transaction.currentTotalConsumption / 1000;
+    transaction.ocpiData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
     // eslint-disable-next-line @typescript-eslint/camelcase
-    transaction.ocpiData.session.last_updated = transaction.lastUpdate;
+    transaction.ocpiData.session.last_updated = transaction.currentTimestamp;
     // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice;
     transaction.ocpiData.session.currency = transaction.priceUnit;
@@ -371,7 +371,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
-    transaction.ocpiData.session.kwh = transaction.stop.totalConsumption / 1000;
+    transaction.ocpiData.session.kwh = transaction.stop.totalConsumptionWh / 1000;
     // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.total_cost = transaction.stop.roundedPrice;
     // eslint-disable-next-line @typescript-eslint/camelcase
@@ -446,7 +446,7 @@ export default class CpoOCPIClient extends OCPIClient {
       // eslint-disable-next-line @typescript-eslint/camelcase
       total_time: transaction.stop.totalDurationSecs,
       // eslint-disable-next-line @typescript-eslint/camelcase
-      total_energy: transaction.stop.totalConsumption / 1000,
+      total_energy: transaction.stop.totalConsumptionWh / 1000,
       // eslint-disable-next-line @typescript-eslint/camelcase
       total_cost: transaction.stop.roundedPrice,
       currency: transaction.priceUnit,
@@ -669,7 +669,7 @@ export default class CpoOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_CHECK_SESSIONS,
         message: 'Session checked with result',
-        module: MODULE_NAME, method: 'checkLocation',
+        module: MODULE_NAME, method: 'checkSession',
         detailedMessages: { response : response.data }
       });
       const session = response.data.data as OCPISession;

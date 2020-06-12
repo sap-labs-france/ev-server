@@ -1,4 +1,4 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingTax, BillingUser } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingMethod, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import Stripe, { IResourceObject } from 'stripe';
 
 import BackendError from '../../../exception/BackendError';
@@ -435,8 +435,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           action: ServerAction.BILLING_TRANSACTION
         });
       }
-      if (billingUser.billingData.method !== Constants.BILLING_METHOD_IMMEDIATE &&
-          billingUser.billingData.method !== Constants.BILLING_METHOD_PERIODIC) {
+      if (billingUser.billingData.method !== BillingMethod.IMMEDIATE &&
+          billingUser.billingData.method !== BillingMethod.PERIODIC) {
         throw new BackendError({
           message: 'Transaction user is assigned to unknown billing method',
           source: Constants.CENTRAL_SERVER,
@@ -446,7 +446,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
       }
       if (!billingUser.billingData.subscriptionID &&
-        billingUser.billingData.method !== Constants.BILLING_METHOD_IMMEDIATE) {
+        billingUser.billingData.method !== BillingMethod.IMMEDIATE) {
         throw new BackendError({
           message: 'Transaction user is not subscribed to Stripe billing plan',
           source: Constants.CENTRAL_SERVER,
@@ -456,7 +456,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
       }
       if (billingUser.billingData.subscriptionID &&
-        billingUser.billingData.method !== Constants.BILLING_METHOD_IMMEDIATE) {
+        billingUser.billingData.method !== BillingMethod.IMMEDIATE) {
         const subscription = await this.getSubscription(billingUser.billingData.subscriptionID);
         if (!subscription || subscription.id !== billingUser.billingData.subscriptionID) {
           throw new BackendError({
@@ -571,12 +571,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Create or update invoice in Stripe
       let description = '';
       const i18nManager = new I18nManager(transaction.user.locale);
-      const totalConsumption = Math.round(transaction.stop.totalConsumption / 100) / 10;
+      const totalConsumptionWh = Math.round(transaction.stop.totalConsumptionWh / 100) / 10;
       const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
       if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-        description = i18nManager.translate('billing.chargingStopSiteArea', { totalConsumption: totalConsumption, siteArea: chargeBox.siteArea, time: time });
+        description = i18nManager.translate('billing.chargingStopSiteArea', { totalConsumption: totalConsumptionWh, siteArea: chargeBox.siteArea, time: time });
       } else {
-        description = i18nManager.translate('billing.chargingStopChargeBox', { totalConsumption: totalConsumption, chargeBox: transaction.chargeBoxID, time: time });
+        description = i18nManager.translate('billing.chargingStopChargeBox', { totalConsumption: totalConsumptionWh, chargeBox: transaction.chargeBoxID, time: time });
       }
       // Const taxRates: ITaxRate[] = [];
       // if (this.settings.taxID) {
@@ -586,7 +586,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Billing Method
       switch (transaction.user.billingData.method) {
         // Immediate
-        case Constants.BILLING_METHOD_IMMEDIATE:
+        case BillingMethod.IMMEDIATE:
           invoice = await this.createInvoice(billingUser, {
             description: description,
             amount: Math.round(transaction.stop.roundedPrice * 100)
@@ -594,7 +594,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           await this.sendInvoiceToUser(invoice.invoice);
           break;
         // Periodic
-        case Constants.BILLING_METHOD_PERIODIC:
+        case BillingMethod.PERIODIC:
           invoice.invoice = (await BillingStorage.getInvoices(this.tenantID, { invoiceStatus: [BillingInvoiceStatus.DRAFT] }, Constants.DB_PARAMS_SINGLE_RECORD)).result[0];
           if (invoice.invoice) {
             // A draft invoice already exists : append a new invoice item
@@ -612,7 +612,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           break;
       }
       return {
-        status: Constants.BILLING_STATUS_BILLED,
+        status: BillingStatus.BILLED,
         invoiceStatus: invoice.invoice.status,
         invoiceItem: invoice.invoiceItem,
       };
@@ -627,7 +627,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         detailedMessages: { error: error.message, stack: error.stack }
       });
       return {
-        status: Constants.BILLING_STATUS_UNBILLED,
+        status: BillingStatus.UNBILLED,
         invoiceStatus: null,
         invoiceItem: null
       };
@@ -688,8 +688,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
       return false;
     }
-    if ((billingMethod === Constants.BILLING_METHOD_IMMEDIATE && !this.settings.immediateBillingAllowed) ||
-          (billingMethod === Constants.BILLING_METHOD_PERIODIC && !this.settings.periodicBillingAllowed)) {
+    if ((billingMethod === BillingMethod.IMMEDIATE && !this.settings.immediateBillingAllowed) ||
+          (billingMethod === BillingMethod.PERIODIC && !this.settings.periodicBillingAllowed)) {
       Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.USER_DELETE,
@@ -702,10 +702,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const subscription = (customer.subscriptions && customer.subscriptions.data && customer.subscriptions.data.length > 0)
       ? customer.subscriptions.data[0] : null;
     let billingPlan = null;
-    if (!subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (!subscription && billingMethod !== BillingMethod.IMMEDIATE) {
       billingPlan = await this.retrieveBillingPlan();
     }
-    if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (!billingPlan && !subscription && billingMethod !== BillingMethod.IMMEDIATE) {
       Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.USER_DELETE,
@@ -715,7 +715,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
       return false;
     }
-    if (billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (billingPlan && billingMethod !== BillingMethod.IMMEDIATE) {
       const plan = await this.getBillingPlan(billingPlan);
       if (!plan || !plan.id || plan.id !== billingPlan) {
         Logging.logError({
@@ -877,10 +877,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
     // Take the first allowed method from the settings
     if (this.settings.immediateBillingAllowed) {
-      return Constants.BILLING_METHOD_IMMEDIATE;
+      return BillingMethod.IMMEDIATE;
     }
     if (this.settings.periodicBillingAllowed) {
-      return Constants.BILLING_METHOD_PERIODIC;
+      return BillingMethod.PERIODIC;
     }
   }
 
@@ -897,11 +897,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   private async modifyUser(user: User): Promise<BillingUser> {
     await this.checkConnection();
-    let locale = user.locale;
     const fullName = Utils.buildUserFullName(user);
-    if (locale) {
-      locale = locale.substr(0, 2).toLocaleLowerCase();
-    }
+    const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
     const i18nManager = new I18nManager(user.locale);
     const description = i18nManager.translate('billing.generatedUser', { email: user.email });
     let customer;
@@ -999,10 +996,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // No billing plan
     let billingPlan = null;
     // Only overwrite existing subscription with new billing plan, if billing plan is received from HTTP request
-    if (!subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (!subscription && billingMethod !== BillingMethod.IMMEDIATE) {
       billingPlan = await this.retrieveBillingPlan();
     }
-    if (subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (subscription && billingMethod !== BillingMethod.IMMEDIATE) {
       // Check whether existing subscription needs to be updated
       if (collectionMethod !== subscription.billing) {
         try {
@@ -1051,7 +1048,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         }
       }
     }
-    if (!subscription && billingPlan && billingMethod && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (!subscription && billingPlan && billingMethod && billingMethod !== BillingMethod.IMMEDIATE) {
       // Create subscription
       let billingCycleAnchor = moment().unix(); // Now
       const plan = await this.getBillingPlan(billingPlan); // Existence was already checked

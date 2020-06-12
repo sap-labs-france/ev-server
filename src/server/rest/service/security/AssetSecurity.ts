@@ -1,4 +1,4 @@
-import { HttpAssetRequest, HttpAssetsRequest, HttpAssignAssetsToSiteAreaRequest } from '../../../../types/requests/HttpBuildingRequest';
+import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 
 import Asset from '../../../../types/Asset';
 import Authorizations from '../../../../authorization/Authorizations';
@@ -19,13 +19,6 @@ export default class AssetSecurity {
       ID: sanitize(request.ID),
       WithSiteArea: UtilsSecurity.filterBoolean(request.WithSiteArea)
     } as HttpAssetRequest;
-  }
-
-  public static filterAssignAssetsToSiteAreaRequest(request: any): HttpAssignAssetsToSiteAreaRequest {
-    return {
-      siteAreaID: sanitize(request.siteAreaID),
-      assetIDs: request.assetIDs.map(sanitize)
-    };
   }
 
   public static filterAssetsRequest(request: any): HttpAssetsRequest {
