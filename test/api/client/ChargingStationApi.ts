@@ -1,5 +1,5 @@
-import Constants from './utils/Constants';
 import CrudApi from './utils/CrudApi';
+import TestConstants from './utils/TestConstants';
 import { expect } from 'chai';
 
 export default class ChargingStationApi extends CrudApi {
@@ -16,11 +16,11 @@ export default class ChargingStationApi extends CrudApi {
     return super.readById(id, '/client/api/ChargingStation');
   }
 
-  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/ChargingStations');
   }
 
-  public async readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/ChargingStationsInError');
   }
 
@@ -44,12 +44,12 @@ export default class ChargingStationApi extends CrudApi {
     return super.read({ Year: year }, '/client/api/ChargingStationUsageStatistics');
   }
 
-  public async readAllTransactions(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAllTransactions(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/ChargingStationTransactions');
   }
 
   public async readAllYears(params) {
-    return super.readAll(params, Constants.DEFAULT_PAGING, Constants.DEFAULT_ORDERING, '/client/api/TransactionYears');
+    return super.readAll(params, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/TransactionYears');
   }
 
   public async updateParams(data) {

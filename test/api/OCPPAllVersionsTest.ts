@@ -954,7 +954,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics();
+            await testData.ocppCommonTests.testTransactionMetrics(false, false, true);
           });
 
           it('Start user should not be able to delete his transaction', async () => {
@@ -982,7 +982,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SoC)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(true);
+            await testData.ocppCommonTests.testTransactionMetrics(true, false, true);
           });
 
           it('Start user should not be able to delete his transaction (with SoC)', async () => {
@@ -1010,7 +1010,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            await testData.ocppCommonTests.testTransactionMetrics(false, true, true);
           });
 
           it('Start user should not be able to delete his transaction (with SignedData)', async () => {
@@ -1053,7 +1053,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics();
+            await testData.ocppCommonTests.testTransactionMetrics(false, false, true);
           });
 
           it('Start user should not be able to delete his transaction', async () => {
@@ -1081,7 +1081,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SoC)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(true);
+            await testData.ocppCommonTests.testTransactionMetrics(true, false, true);
           });
 
           it('Start user should not be able to delete his transaction (with SoC)', async () => {
@@ -1109,7 +1109,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            await testData.ocppCommonTests.testTransactionMetrics(false, true, true);
           });
 
           it('Start user should not be able to delete his transaction (with SignedData)', async () => {

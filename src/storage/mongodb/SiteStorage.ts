@@ -93,11 +93,11 @@ export default class SiteStorage {
     Logging.traceEnd(MODULE_NAME, 'addUsersToSite', uniqueTimerID, { siteID, userIDs });
   }
 
-  public static async getUsers(tenantID: string,
+  public static async getSiteUsers(tenantID: string,
     params: { search?: string; siteID: string; siteOwnerOnly?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUsers');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSitesUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -202,7 +202,7 @@ export default class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, { siteID: params.siteID });
+    Logging.traceEnd(MODULE_NAME, 'getSitesUsers', uniqueTimerID, { siteID: params.siteID });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?

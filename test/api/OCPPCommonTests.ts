@@ -1,10 +1,12 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPP15TransactionData, OCPPAuthorizationStatus, OCPPMeterValue, OCPPReadingContext, OCPPStatusNotificationRequest, OCPPVersion } from '../../src/types/ocpp/OCPPServer';
 import Transaction, { InactivityStatus } from '../../src/types/Transaction';
 import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import Constants from '../../src/utils/Constants';
 import Factory from '../factories/Factory';
+import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import { PricingSettingsType } from '../../src/types/Setting';
 import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
@@ -19,7 +21,6 @@ chai.use(chaiSubset);
 chai.use(responseHelper);
 
 export default class OCPPCommonTests {
-
   public tenantContext: TenantContext;
   public chargingStationContext: ChargingStationContext;
   public centralUserContext: any;
@@ -27,26 +28,42 @@ export default class OCPPCommonTests {
 
   public currentPricingSetting;
   public priceKWH = 2;
+
   public chargingStationConnector1: OCPPStatusNotificationRequest;
   public chargingStationConnector2: OCPPStatusNotificationRequest;
+
   public transactionStartUser: User;
   public transactionStartUserService: CentralServerService;
   public transactionStopUser: User;
-  public transactionStartMeterValue: number;
-  public transactionStartSoC: number;
+
+  public energyActiveImportStartMeterValue: number;
+  public energyActiveImportEndMeterValue: number;
   public energyActiveImportMeterValues: number[];
-  public powerImportMeterValues: number[];
-  public totalInactivities: number[];
+
   public socMeterValues: number[];
-  public transactionSignedData: string;
+
+  public powerImportMeterValues: number[];
+
+  public voltageMeterValues: number[];
+  public voltageL1MeterValues: number[];
+  public voltageL2MeterValues: number[];
+  public voltageL3MeterValues: number[];
+
+  public amperageMeterValues: number[];
+  public amperageL1MeterValues: number[];
+  public amperageL2MeterValues: number[];
+  public amperageL3MeterValues: number[];
+
+  public transactionStartSignedData: string;
   public transactionEndSignedData: string;
+
+  public totalInactivities: number[];
   public meterValueIntervalSecs: number;
   public transactionStartTime: Date;
   public transactionTotalConsumptionWh: number;
-  public energyActiveImportFinalMeterValue: number;
-  public socFinalMeterValue: number;
   public transactionTotalInactivitySecs: number;
   public totalPrice: number;
+
   public newTransaction: Transaction;
   public transactionCurrentTime: Date;
 
@@ -121,28 +138,52 @@ export default class OCPPCommonTests {
       timestamp: new Date().toISOString()
     };
     // Set meter value start
-    this.transactionStartMeterValue = 0;
+    this.energyActiveImportStartMeterValue = 0;
     this.meterValueIntervalSecs = 60;
     // eslint-disable-next-line no-useless-escape
-    this.transactionSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">wQdZJR1CLRe+QhS3C+kHpkfVL4hqPhc8YIt/+4uHBBb9N6JNygltdEhYufTfaM++AJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eoQxVP10I4Zf9ACcAAAABAAERAP8e/5KqWwEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
+    this.transactionStartSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">wQdZJR1CLRe+QhS3C+kHpkfVL4hqPhc8YIt/+4uHBBb9N6JNygltdEhYufTfaM++AJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eoQxVP10I4Zf9ACcAAAABAAERAP8e/5KqWwEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
     // eslint-disable-next-line no-useless-escape
     this.transactionEndSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">GChPf/f+0Rw6DDWI0mujec6dOMDqm5cuCLXdEVV6MRua6OVqcHNP85q7K70tRPJKAJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eodYDQF0IrEb+ACgAAAABAAERAP8e/8OtYQEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
     // Energy Import Meter Value (14 values)
     this.energyActiveImportMeterValues = Array.from({ length: 12 }, () => faker.random.number({
-      min: 200,
-      max: 500
+      min: 200, max: 500
     })).concat([0, 0]);
     // SoC Meter Value (14 values)
     this.socMeterValues = Array.from({ length: 8 }, () => faker.random.number({
-      min: 10,
-      max: 90
+      min: 10, max: 90
     })).concat([8, 8, 98, 99, 100, 100]).sort((a, b) => (a - b));
-    this.transactionStartSoC = this.socMeterValues[0];
     // Power Import (14 values)
     this.powerImportMeterValues = [];
     for (let i = 0; i < this.energyActiveImportMeterValues.length; i++) {
       this.powerImportMeterValues.push(
         this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs));
+    }
+    // Voltage (14 values)
+    this.voltageMeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 220, max: 240
+    }));
+    this.voltageL1MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 220, max: 240
+    }));
+    this.voltageL2MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 220, max: 240
+    }));
+    this.voltageL3MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 220, max: 240
+    }));
+    // Amperage (14 values)
+    this.amperageL1MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 16, max: 32
+    }));
+    this.amperageL2MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 16, max: 32
+    }));
+    this.amperageL3MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+      min: 16, max: 32
+    }));
+    this.amperageMeterValues = [];
+    for (let i = 0; i < this.amperageL1MeterValues.length; i++) {
+      this.amperageMeterValues.push(this.amperageL1MeterValues[i] + this.amperageL2MeterValues[i] + this.amperageL3MeterValues[i]);
     }
     // Total Inactivity (14 values)
     this.totalInactivities = [];
@@ -154,8 +195,7 @@ export default class OCPPCommonTests {
     // Meter Values params
     this.transactionStartTime = moment().subtract(this.energyActiveImportMeterValues.length * this.meterValueIntervalSecs + 1, 'seconds').toDate();
     this.transactionTotalConsumptionWh = this.energyActiveImportMeterValues.reduce((sum, meterValue) => sum + meterValue);
-    this.energyActiveImportFinalMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumptionWh;
-    this.socFinalMeterValue = this.socMeterValues[this.socMeterValues.length - 1];
+    this.energyActiveImportEndMeterValue = this.energyActiveImportStartMeterValue + this.transactionTotalConsumptionWh;
     this.transactionTotalInactivitySecs = this.energyActiveImportMeterValues.reduce(
       (sum, meterValue) => (meterValue === 0 ? sum + this.meterValueIntervalSecs : sum), 0);
     this.totalPrice = this.priceKWH * (this.transactionTotalConsumptionWh / 1000);
@@ -193,24 +233,22 @@ export default class OCPPCommonTests {
 
   public async testConnectorStatus() {
     let response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
-    expect(response.data).to.eql({});
+    expect(response).to.eql({});
     response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector2);
-    expect(response.data).to.eql({});
+    expect(response).to.eql({});
     // Attention: connector status is always 'Unavailable', if too much time has passed since last heartbeat!!
     response = await this.chargingStationContext.sendHeartbeat();
     // Now we can test the connector status!
-    response = await this.chargingStationContext.readChargingStation();
-    expect(response.status).to.equal(200);
-    expect(response.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
-    // Check both Connectors
-    const foundChargingStation = response.data;
+    const foundChargingStation = await this.chargingStationContext.readChargingStation();
+    expect(foundChargingStation.status).to.equal(200);
+    expect(foundChargingStation.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
     // Check
-    expect(foundChargingStation.connectors).to.not.be.null;
-    expect(foundChargingStation.connectors[0]).to.include({
+    expect(foundChargingStation.data.connectors).to.not.be.null;
+    expect(foundChargingStation.data.connectors[0]).to.include({
       status: this.chargingStationConnector1.status,
       errorCode: this.chargingStationConnector1.errorCode
     });
-    expect(foundChargingStation.connectors[1]).to.include({
+    expect(foundChargingStation.data.connectors[1]).to.include({
       status: this.chargingStationConnector2.status,
       errorCode: this.chargingStationConnector2.errorCode
     });
@@ -223,21 +261,20 @@ export default class OCPPCommonTests {
     // Update
     let response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
     // Check
-    expect(response.data).to.eql({});
+    expect(response).to.eql({});
     // To be sure send a heartbeat
     response = await this.chargingStationContext.sendHeartbeat();
     // Check the connectors
-    response = await this.chargingStationContext.readChargingStation();
-    expect(response.status).to.equal(200);
-    expect(response.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
-    const foundChargingStation = response.data;
+    const foundChargingStation = await this.chargingStationContext.readChargingStation();
+    expect(foundChargingStation.status).to.equal(200);
+    expect(foundChargingStation.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
     // Check Connector 1
-    expect(foundChargingStation.connectors[0]).to.include({
+    expect(foundChargingStation.data.connectors[0]).to.include({
       status: this.chargingStationConnector1.status,
       errorCode: this.chargingStationConnector1.errorCode
     });
-    // Connector 2 should be still 'Available'
-    expect(foundChargingStation.connectors[1]).to.include({
+    // Connector 2 should be still ChargePointStatus.AVAILABLE
+    expect(foundChargingStation.data.connectors[1]).to.include({
       status: this.chargingStationConnector2.status,
       errorCode: this.chargingStationConnector2.errorCode
     });
@@ -247,14 +284,14 @@ export default class OCPPCommonTests {
     // Update
     response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
     // Check
-    expect(response.data).to.eql({});
+    expect(response).to.eql({});
   }
 
   public async testHeartbeat() {
     // Update Status of Connector 1
     const response = await this.chargingStationContext.sendHeartbeat();
     // Check
-    expect(response.data).to.have.property('currentTime');
+    expect(response).to.have.property('currentTime');
   }
 
   public async testClientIP() {
@@ -283,14 +320,14 @@ export default class OCPPCommonTests {
       'timestamp': new Date().toDateString()
     });
     // Check
-    expect(response.data).to.have.property('status');
-    expect(response.data.status).to.equal('Accepted');
+    expect(response).to.have.property('status');
+    expect(response.status).to.equal(OCPPStatus.ACCEPTED);
   }
 
   public async testChargingStationRegistrationWithInvalidToken() {
     const response = await this.chargingStationContext.sendBootNotification();
-    expect(response.data).not.to.be.null;
-    expect(response.data.status).eq('Rejected');
+    expect(response).not.to.be.null;
+    expect(response.status).eq(OCPPStatus.REJECTED);
   }
 
   public async testChargingStationRegistrationWithInvalidIdentifier() {
@@ -304,29 +341,29 @@ export default class OCPPCommonTests {
 
   public async testAuthorizeUsers() {
     // Asserts that the start user is authorized.
-    await this.testAuthorize(this.transactionStartUser.tags[0].id, 'Accepted');
+    await this.testAuthorize(this.transactionStartUser.tags[0].id, OCPPStatus.ACCEPTED);
     // Asserts that the stop user is authorized.
-    await this.testAuthorize(this.transactionStopUser.tags[0].id, 'Accepted');
+    await this.testAuthorize(this.transactionStopUser.tags[0].id, OCPPStatus.ACCEPTED);
     // Asserts that the user with a too long tag is not authorized.
-    await this.testAuthorize('ThisIsATooTooTooLongTag', 'Invalid');
+    await this.testAuthorize('ThisIsATooTooTooLongTag', OCPPAuthorizationStatus.INVALID);
   }
 
   public async testStartTransaction(validTransaction = true) {
     // Start a new Transaction
-    const response = await this.chargingStationContext.startTransaction(
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       this.transactionStartUser.tags[0].id,
-      this.transactionStartMeterValue,
+      this.energyActiveImportStartMeterValue,
       this.transactionStartTime
     );
     if (validTransaction) {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(response).to.be.transactionValid;
-      const transactionId = response.data.transactionId;
+      expect(startTransactionResponse).to.be.transactionValid;
+      const transactionId = startTransactionResponse.transactionId;
       await this.validateStartedTransaction(
-        response,
+        startTransactionResponse,
         this.chargingStationConnector1,
-        this.transactionStartMeterValue,
+        this.energyActiveImportStartMeterValue,
         this.transactionStartTime);
       this.newTransaction = (await this.centralUserService.transactionApi.readById(transactionId)).data;
       expect(this.newTransaction).to.not.be.null;
@@ -341,7 +378,7 @@ export default class OCPPCommonTests {
       expect(connector.currentTagID).eq(this.transactionStartUser.tags[0].id);
     } else {
       this.newTransaction = null;
-      expect(response).to.be.transactionStatus('Invalid');
+      expect(startTransactionResponse).to.be.transactionStatus(OCPPAuthorizationStatus.INVALID);
     }
   }
 
@@ -354,17 +391,17 @@ export default class OCPPCommonTests {
     // Clear old one
     this.newTransaction = null;
     // Start the 2nd Transaction
-    const response = await this.chargingStationContext.startTransaction(
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       this.transactionStartUser.tags[0].id,
-      this.transactionStartMeterValue,
+      this.energyActiveImportStartMeterValue,
       this.transactionStartTime
     );
-    const secondTransactionId = response.data.transactionId;
+    const secondTransactionId = startTransactionResponse.transactionId;
     await this.validateStartedTransaction(
-      response,
+      startTransactionResponse,
       this.chargingStationConnector1,
-      this.transactionStartMeterValue,
+      this.energyActiveImportStartMeterValue,
       this.transactionStartTime);
     // Check if the Transaction exists
     this.newTransaction = (await this.centralUserService.transactionApi.readById(secondTransactionId)).data;
@@ -379,79 +416,119 @@ export default class OCPPCommonTests {
     // Current Time matches Transaction one
     this.transactionCurrentTime = moment(this.newTransaction.timestamp).toDate();
     // Start Meter Value matches Transaction one
-    let transactionCurrentMeterValue = this.transactionStartMeterValue;
+    let currentEnergyActiveImportMeterValue = this.energyActiveImportStartMeterValue;
+    // ------------------------------------------------------------------
     // Send Transaction.Begin
-    let response = await this.chargingStationContext.sendBeginMeterValue(
+    // ------------------------------------------------------------------
+    let meterValueResponse = await this.chargingStationContext.sendBeginMeterValue(
       this.newTransaction.connectorId,
       this.newTransaction.id,
-      transactionCurrentMeterValue,
-      this.transactionStartSoC,
-      this.transactionSignedData,
       this.transactionCurrentTime,
-      withSoC,
-      withSignedData);
-    if (response) {
-      expect(response.data).to.eql({});
+      {
+        energyActiveImportMeterValue: this.energyActiveImportStartMeterValue,
+        socMeterValue: withSoC ? this.socMeterValues[0] : 0,
+        powerImportMeterValue: this.powerImportMeterValues[0],
+        voltageMeterValue: this.voltageMeterValues[0],
+        voltageL1MeterValue: this.voltageL1MeterValues[0],
+        voltageL2MeterValue: this.voltageL2MeterValues[0],
+        voltageL3MeterValue: this.voltageL3MeterValues[0],
+        amperageMeterValue: this.amperageMeterValues[0],
+        amperageL1MeterValue: this.amperageL1MeterValues[0],
+        amperageL2MeterValue: this.amperageL2MeterValues[0],
+        amperageL3MeterValue: this.amperageL3MeterValues[0],
+        signedDataMeterValue: withSignedData ? this.transactionStartSignedData : null,
+      }
+    );
+    if (meterValueResponse) {
+      expect(meterValueResponse).to.eql({});
     }
     // Check Transaction
-    response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
-    // Send Meter Values (except the last one which will be used in Stop Transaction)
+    let transactionValidation = await this.basicTransactionValidation(this.newTransaction.id,
+      this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
+    // ------------------------------------------------------------------
+    // Send Meter Values (except the last one which is used in Stop Transaction)
+    // ------------------------------------------------------------------
     for (let index = 0; index <= this.energyActiveImportMeterValues.length - 2; index++) {
       // Set new meter value
-      transactionCurrentMeterValue += this.energyActiveImportMeterValues[index];
+      currentEnergyActiveImportMeterValue += this.energyActiveImportMeterValues[index];
       // Add time
       this.transactionCurrentTime = moment(this.transactionCurrentTime).add(this.meterValueIntervalSecs, 's').toDate();
       // Send consumption meter value
-      response = await this.chargingStationContext.sendConsumptionMeterValue(
+      meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
         this.newTransaction.connectorId,
         this.newTransaction.id,
-        transactionCurrentMeterValue,
         this.transactionCurrentTime,
-        withSoC,
-        this.socMeterValues[index]);
-      expect(response.data).to.eql({});
+        {
+          energyActiveImportMeterValue: currentEnergyActiveImportMeterValue,
+          powerImportMeterValue: this.powerImportMeterValues[index],
+          voltageMeterValue: this.voltageMeterValues[index],
+          voltageL1MeterValue: this.voltageL1MeterValues[index],
+          voltageL2MeterValue: this.voltageL2MeterValues[index],
+          voltageL3MeterValue: this.voltageL3MeterValues[index],
+          amperageMeterValue: this.amperageMeterValues[index],
+          amperageL1MeterValue: this.amperageL1MeterValues[index],
+          amperageL2MeterValue: this.amperageL2MeterValues[index],
+          amperageL3MeterValue: this.amperageL3MeterValues[index],
+          socMeterValue: withSoC ? this.socMeterValues[index] : 0,
+        }
+      );
+      expect(meterValueResponse).to.eql({});
       // Check the Consumption
-      response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
-      expect(response.data).to.deep.include({
+      transactionValidation = await this.basicTransactionValidation(this.newTransaction.id,
+        this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
+      expect(transactionValidation.data).to.deep.include({
         currentInstantWatts: this.powerImportMeterValues[index],
-        currentTotalConsumptionWh: (transactionCurrentMeterValue - this.transactionStartMeterValue),
+        currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
         currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
         currentTotalInactivitySecs: this.totalInactivities[index],
-        currentCumulatedPrice: ((transactionCurrentMeterValue - this.transactionStartMeterValue) / 1000) * this.priceKWH,
+        currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.priceKWH,
         currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
           this.newTransaction.connectorId, this.totalInactivities[index]),
       });
       if (withSoC) {
-        expect(response.data).to.deep.include({
+        expect(transactionValidation.data).to.deep.include({
           currentStateOfCharge: this.socMeterValues[index]
         });
       } else {
-        expect(response.data).to.deep.include({
+        expect(transactionValidation.data).to.deep.include({
           stateOfCharge: this.newTransaction.stateOfCharge
         });
       }
     }
+    // ------------------------------------------------------------------
     // Send Transaction.End
-    response = await this.chargingStationContext.sendEndMeterValue(
+    // ------------------------------------------------------------------
+    meterValueResponse = await this.chargingStationContext.sendEndMeterValue(
       this.newTransaction.connectorId,
       this.newTransaction.id,
-      this.energyActiveImportFinalMeterValue,
-      this.socFinalMeterValue,
-      this.transactionEndSignedData,
-      moment(this.transactionCurrentTime),
-      withSoC,
-      withSignedData);
-    if (response) {
-      expect(response.data).to.eql({});
+      moment(this.transactionCurrentTime).toDate(),
+      {
+        energyActiveImportMeterValue: this.energyActiveImportEndMeterValue,
+        powerImportMeterValue: this.powerImportMeterValues[this.powerImportMeterValues.length - 1],
+        voltageMeterValue: this.voltageMeterValues[this.voltageMeterValues.length - 1],
+        voltageL1MeterValue: this.voltageL1MeterValues[this.voltageL1MeterValues.length - 1],
+        voltageL2MeterValue: this.voltageL2MeterValues[this.voltageL2MeterValues.length - 1],
+        voltageL3MeterValue: this.voltageL3MeterValues[this.voltageL3MeterValues.length - 1],
+        amperageMeterValue: this.amperageMeterValues[this.amperageMeterValues.length - 1],
+        amperageL1MeterValue: this.amperageL1MeterValues[this.amperageL1MeterValues.length - 1],
+        amperageL2MeterValue: this.amperageL2MeterValues[this.amperageL2MeterValues.length - 1],
+        amperageL3MeterValue: this.amperageL3MeterValues[this.amperageL3MeterValues.length - 1],
+        socMeterValue: withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0,
+        signedDataMeterValue: withSignedData ? this.transactionEndSignedData : null
+      }
+    );
+    if (meterValueResponse) {
+      expect(meterValueResponse).to.eql({});
     }
     // Check the Transaction End
-    response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
+    transactionValidation = await this.basicTransactionValidation(this.newTransaction.id,
+      this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
     if (withSoC) {
-      expect(response.data).to.deep.include({
-        currentStateOfCharge: this.socFinalMeterValue
+      expect(transactionValidation.data).to.deep.include({
+        currentStateOfCharge: this.socMeterValues[this.socMeterValues.length - 1]
       });
     } else {
-      expect(response.data).to.deep.include({
+      expect(transactionValidation.data).to.deep.include({
         stateOfCharge: this.newTransaction.stateOfCharge
       });
     }
@@ -461,29 +538,24 @@ export default class OCPPCommonTests {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     expect(this.transactionCurrentTime).to.not.be.null;
-
     // Set end time
     this.transactionCurrentTime = moment(this.transactionCurrentTime).add(this.meterValueIntervalSecs, 's').toDate();
-
     // Stop the Transaction
-    let response = await this.chargingStationContext.stopTransaction(this.newTransaction.id, this.transactionStopUser.tags[0].id, this.energyActiveImportFinalMeterValue, this.transactionCurrentTime);
+    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(this.newTransaction.id, this.transactionStopUser.tags[0].id, this.energyActiveImportEndMeterValue, this.transactionCurrentTime);
     // Check
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
-
+    expect(stopTransactionResponse).to.have.property('idTagInfo');
+    expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
     // Set the connector to Available
     this.chargingStationConnector1.status = ChargePointStatus.AVAILABLE;
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update
-    response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
-    // Check
-    expect(response.data).to.eql({});
-
+    const statusResponse = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
+    expect(statusResponse).to.eql({});
     // Check the Transaction
-    response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
-    expect(response.data).to.deep['containSubset']({
+    const transactionValidation = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
+    expect(transactionValidation.data).to.deep['containSubset']({
       'stop': {
-        'meterStop': this.energyActiveImportFinalMeterValue,
+        'meterStop': this.energyActiveImportEndMeterValue,
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
         'totalInactivitySecs': this.transactionTotalInactivitySecs,
         'inactivityStatus': InactivityStatus.INFO,
@@ -494,7 +566,7 @@ export default class OCPPCommonTests {
         'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
-        'stateOfCharge': (withSoC ? this.socFinalMeterValue : 0),
+        'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
         'user': {
           'id': this.transactionStopUser.id,
           'name': this.transactionStopUser.name,
@@ -504,7 +576,7 @@ export default class OCPPCommonTests {
     });
   }
 
-  public async testTransactionMetrics(withSoC = false, withSignedData = false) {
+  public async testTransactionMetrics(withSoC = false, withSignedData = false, checkNewMeterValues = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     const response = await this.centralUserService.transactionApi.readAllConsumption({ TransactionId: this.newTransaction.id });
@@ -513,7 +585,7 @@ export default class OCPPCommonTests {
     expect(response.data).to.deep['containSubset']({
       'chargeBoxID': this.newTransaction.chargeBoxID,
       'connectorId': this.newTransaction.connectorId,
-      'signedData': (withSignedData ? this.transactionSignedData : ''),
+      'signedData': (withSignedData ? this.transactionStartSignedData : ''),
       'stop': {
         'price': this.totalPrice,
         'pricingSource': 'simple',
@@ -522,7 +594,7 @@ export default class OCPPCommonTests {
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
         'totalInactivitySecs': this.transactionTotalInactivitySecs,
         'inactivityStatus': InactivityStatus.INFO,
-        'stateOfCharge': (withSoC ? this.socFinalMeterValue : 0),
+        'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
         'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'user': {
           'id': this.transactionStopUser.id,
@@ -539,7 +611,7 @@ export default class OCPPCommonTests {
     });
     // Init
     const transactionCurrentTime = moment(this.newTransaction.timestamp);
-    let transactionCumulatedConsumption = this.transactionStartMeterValue;
+    let transactionCumulatedConsumption = this.energyActiveImportStartMeterValue;
     // Check Consumption
     for (let i = 0; i < response.data.values.length; i++) {
       // Get the value
@@ -551,9 +623,17 @@ export default class OCPPCommonTests {
       // Check
       expect(value).to.include({
         'date': transactionCurrentTime.toISOString(),
-        'instantWatts': this.energyActiveImportMeterValues[i] * this.meterValueIntervalSecs,
+        'voltage': checkNewMeterValues ? this.voltageMeterValues[i] : 0,
+        'voltageL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
+        'voltageL2': checkNewMeterValues ? this.voltageL2MeterValues[i] : 0,
+        'voltageL3': checkNewMeterValues ? this.voltageL3MeterValues[i] : 0,
+        'amperage': checkNewMeterValues ? this.amperageMeterValues[i] : 0,
+        'amperageL1': checkNewMeterValues ? this.amperageL1MeterValues[i] : 0,
+        'amperageL2': checkNewMeterValues ? this.amperageL2MeterValues[i] : 0,
+        'amperageL3': checkNewMeterValues ? this.amperageL3MeterValues[i] : 0,
+        'instantWatts': this.powerImportMeterValues[i],
         'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
-          null, this.newTransaction.connectorId, this.energyActiveImportMeterValues[i] * this.meterValueIntervalSecs),
+          null, this.newTransaction.connectorId, this.powerImportMeterValues[i]),
         'cumulatedConsumptionWh': transactionCumulatedConsumption,
         'cumulatedConsumptionAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
           null, this.newTransaction.connectorId, transactionCumulatedConsumption)
@@ -575,6 +655,8 @@ export default class OCPPCommonTests {
       // Transaction must be deleted by Admin user
       response = await this.centralUserService.transactionApi.delete(this.newTransaction.id);
     }
+    // Remove from transactions to be deleted
+    this.chargingStationContext.removeTransaction(this.newTransaction.id);
     expect(response.status).to.equal(200);
     expect(response.data).to.have.property('status');
     expect(response.data.status).to.be.eql('Success');
@@ -584,7 +666,7 @@ export default class OCPPCommonTests {
   public async testConnectorStatusToStopTransaction() {
     // Check on Transaction
     this.newTransaction = null;
-    expect(this.chargingStationConnector1.status).to.eql('Available');
+    expect(this.chargingStationConnector1.status).to.eql(ChargePointStatus.AVAILABLE);
 
     // Start a new Transaction
     await this.testStartTransaction();
@@ -595,19 +677,18 @@ export default class OCPPCommonTests {
     this.chargingStationConnector1.errorCode = ChargePointErrorCode.NO_ERROR;
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update Status of Connector 1
-    let response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
+    const statusResponse = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
     // Check
-    expect(response.data).to.eql({});
+    expect(statusResponse).to.eql({});
     // Send Heartbeat to have an active charger
-    response = await this.chargingStationContext.sendHeartbeat();
+    await this.chargingStationContext.sendHeartbeat();
     // Now we can test the connector status!
-    response = await this.chargingStationContext.readChargingStation();
-    expect(response.status).to.equal(200);
-    expect(response.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
+    const foundChargingStation = await this.chargingStationContext.readChargingStation();
+    expect(foundChargingStation.status).to.equal(200);
+    expect(foundChargingStation.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
     // Check Connector1
-    const foundChargingStation = response.data;
-    expect(foundChargingStation.connectors).to.not.be.null;
-    expect(foundChargingStation.connectors[0]).to.include({
+    expect(foundChargingStation.data.connectors).to.not.be.null;
+    expect(foundChargingStation.data.connectors[0]).to.include({
       status: this.chargingStationConnector1.status,
       errorCode: this.chargingStationConnector1.errorCode
     });
@@ -617,20 +698,19 @@ export default class OCPPCommonTests {
   }
 
   public async testAuthorizeTagAsInteger() {
-    await this.testAuthorize(this.numberTag, 'Accepted');
-    await this.testAuthorize(this.numberTag.toString(), 'Accepted');
+    await this.testAuthorize(this.numberTag, OCPPStatus.ACCEPTED);
+    await this.testAuthorize(this.numberTag.toString(), OCPPStatus.ACCEPTED);
   }
 
   public async testAuthorizeInvalidTag() {
-    await this.testAuthorize(this.invalidTag, 'Invalid');
-    await this.testAuthorize('', 'Invalid');
-    await this.testAuthorize(null, 'Invalid');
+    await this.testAuthorize(this.invalidTag, OCPPAuthorizationStatus.INVALID);
+    await this.testAuthorize('', OCPPAuthorizationStatus.INVALID);
+    await this.testAuthorize(null, OCPPAuthorizationStatus.INVALID);
   }
 
   public async testAuthorizeUnknownTag() {
     const unknownTag = faker.random.alphaNumeric(8);
-    await this.testAuthorize(unknownTag, 'Invalid');
-
+    await this.testAuthorize(unknownTag, OCPPAuthorizationStatus.INVALID);
     const usersResponse = await this.centralUserService.userApi.getByTag(unknownTag);
     expect(usersResponse.status).eq(200);
     expect(usersResponse.data.count).eq(1);
@@ -673,66 +753,63 @@ export default class OCPPCommonTests {
       0,
       this.transactionStartTime
     );
-    expect(response).to.be.transactionStatus('Invalid');
+    expect(response).to.be.transactionStatus(OCPPAuthorizationStatus.INVALID);
     response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       '',
       0,
       this.transactionStartTime
     );
-    expect(response).to.be.transactionStatus('Invalid');
+    expect(response).to.be.transactionStatus(OCPPAuthorizationStatus.INVALID);
     response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       null,
       0,
       this.transactionStartTime
     );
-    expect(response).to.be.transactionStatus('Invalid');
+    expect(response).to.be.transactionStatus(OCPPAuthorizationStatus.INVALID);
   }
 
   public async testStopTransactionWithoutTransactionData() {
-    let response = await this.chargingStationContext.startTransaction(
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       this.numberTag.toString(),
-      this.transactionStartMeterValue,
+      this.energyActiveImportStartMeterValue,
       this.transactionStartTime
     );
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(response).to.be.transactionValid;
-    const transactionId = response.data.transactionId;
+    expect(startTransactionResponse).to.be.transactionValid;
+    const transactionId = startTransactionResponse.transactionId;
     this.transactionCurrentTime = moment().toDate();
-    const stopValue = this.transactionStartMeterValue + faker.random.number(100000);
-    response = await this.chargingStationContext.stopTransaction(
+    const stopValue = this.energyActiveImportStartMeterValue + faker.random.number(100000);
+    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(
       transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime);
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
+    expect(stopTransactionResponse).to.have.property('idTagInfo');
+    expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
   }
 
   public async testStopTransactionWithTransactionData() {
-    let response = await this.chargingStationContext.startTransaction(
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       this.numberTag.toString(),
-      this.transactionStartMeterValue,
+      this.energyActiveImportStartMeterValue,
       this.transactionStartTime
     );
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(response).to.be.transactionValid;
-    const transactionId = response.data.transactionId;
+    expect(startTransactionResponse).to.be.transactionValid;
+    const transactionId = startTransactionResponse.transactionId;
     this.transactionCurrentTime = moment().toDate();
-    const stopValue = this.transactionStartMeterValue + faker.random.number(100000);
-    let transactionData;
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
+    const stopValue = this.energyActiveImportStartMeterValue + faker.random.number(100000);
+    let transactionData: OCPPMeterValue[] | OCPP15TransactionData;
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_16) {
       transactionData = [
         {
           'timestamp': this.transactionStartTime.toISOString(),
           'sampledValue': [
             {
-              'value': this.transactionStartMeterValue,
-              'context': 'Transaction.Begin',
-              'format': 'Raw',
-              'measurand': 'Energy.Active.Import.Register',
-              'location': 'Outlet',
-              'unit': 'Wh'
+              'value': this.energyActiveImportStartMeterValue.toString(),
+              ...Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE,
+              'context': OCPPReadingContext.TRANSACTION_BEGIN,
             }
           ]
         },
@@ -740,79 +817,68 @@ export default class OCPPCommonTests {
           'timestamp': this.transactionCurrentTime.toISOString(),
           'sampledValue': [
             {
-              'value': stopValue,
-              'context': 'Transaction.End',
-              'format': 'Raw',
-              'measurand': 'Energy.Active.Import.Register',
-              'location': 'Outlet',
-              'unit': 'Wh'
+              'value': stopValue.toString(),
+              ...Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE,
+              'context': OCPPReadingContext.TRANSACTION_END,
             }
           ]
         }
       ];
+    // OCPP 1.5
     } else {
       transactionData = {
         'values': [
           {
             'timestamp': this.transactionStartTime.toISOString(),
             'value': {
-              'attributes': {
-                'context': 'Transaction.Begin',
-                'format': 'Raw',
-                'location': 'Outlet',
-                'measurand': 'Energy.Active.Import.Register',
-                'unit': 'Wh'
+              '$attributes': {
+                ...Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE,
+                'context': OCPPReadingContext.TRANSACTION_BEGIN,
               },
-              '$value': this.transactionStartMeterValue,
+              '$value': this.energyActiveImportStartMeterValue.toString(),
             }
           },
           {
             'timestamp': this.transactionCurrentTime.toISOString(),
             'value': {
-              'attributes': {
-                'context': 'Transaction.End',
-                'format': 'Raw',
-                'location': 'Outlet',
-                'measurand': 'Energy.Active.Import.Register',
-                'unit': 'Wh'
+              '$attributes': {
+                ...Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE,
+                'context': OCPPReadingContext.TRANSACTION_END,
               },
-              '$value': stopValue
+              '$value': stopValue.toString()
             }
           }
         ]
       };
     }
-    response = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime, transactionData);
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
+    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime, transactionData);
+    expect(stopTransactionResponse).to.have.property('idTagInfo');
+    expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
   }
 
   public async testStopTransactionWithInvalidTransactionData() {
-    let response = await this.chargingStationContext.startTransaction(
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       this.numberTag.toString(),
-      this.transactionStartMeterValue,
+      this.energyActiveImportStartMeterValue,
       this.transactionStartTime
     );
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(response).to.be.transactionValid;
-    const transactionId = response.data.transactionId;
+    expect(startTransactionResponse).to.be.transactionValid;
+    const transactionId = startTransactionResponse.transactionId;
     this.transactionCurrentTime = moment().toDate();
-    const stopValue = this.transactionStartMeterValue + faker.random.number(100000);
-    let transactionData;
+    const stopValue = this.energyActiveImportStartMeterValue + faker.random.number(100000);
+    let transactionData: OCPPMeterValue[] | OCPP15TransactionData;
     // Provide TransactionData for wrong OCPP Version
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.5') {
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_15) {
       transactionData = [
         {
           'timestamp': this.transactionStartTime.toISOString(),
           'sampledValue': [
             {
-              'value': this.transactionStartMeterValue,
-              'context': 'Transaction.Begin',
-              'format': 'Raw',
-              'measurand': 'Energy.Active.Import.Register',
-              'location': 'Outlet',
-              'unit': 'Wh'
+              'value': this.energyActiveImportStartMeterValue.toString(),
+              ...Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE,
+              'context': OCPPReadingContext.TRANSACTION_BEGIN,
             }
           ]
         },
@@ -820,80 +886,72 @@ export default class OCPPCommonTests {
           'timestamp': this.transactionCurrentTime.toISOString(),
           'sampledValue': [
             {
-              'value': stopValue,
-              'context': 'Transaction.End',
-              'format': 'Raw',
-              'measurand': 'Energy.Active.Import.Register',
-              'location': 'Outlet',
-              'unit': 'Wh'
+              'value': stopValue.toString(),
+              ...Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE,
+              'context': OCPPReadingContext.TRANSACTION_END,
             }
           ]
         }
       ];
+    // OCPP 1.5
     } else {
       transactionData = {
         'values': [
           {
             'timestamp': this.transactionStartTime.toISOString(),
             'value': {
-              'attributes': {
-                'context': 'Transaction.Begin',
-                'format': 'Raw',
-                'location': 'Outlet',
-                'measurand': 'Energy.Active.Import.Register',
-                'unit': 'Wh'
+              '$attributes': {
+                ...Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE,
+                'context': OCPPReadingContext.TRANSACTION_BEGIN,
               },
-              '$value': this.transactionStartMeterValue,
+              '$value': this.energyActiveImportStartMeterValue.toString(),
             }
           },
           {
             'timestamp': this.transactionCurrentTime.toISOString(),
             'value': {
-              'attributes': {
-                'context': 'Transaction.End',
-                'format': 'Raw',
-                'location': 'Outlet',
-                'measurand': 'Energy.Active.Import.Register',
-                'unit': 'Wh'
+              '$attributes': {
+                ...Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE,
+                'context': OCPPReadingContext.TRANSACTION_END,
               },
-              '$value': stopValue
+              '$value': stopValue.toString()
             }
           }
         ]
       };
     }
-    response = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime, transactionData);
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Invalid');
+    let stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime, transactionData);
+    expect(stopTransactionResponse).to.have.property('idTagInfo');
+    expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPAuthorizationStatus.INVALID);
     // Now stop the transaction without Transaction Data
-    response = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime);
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
+    stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime);
+    expect(stopTransactionResponse).to.have.property('idTagInfo');
+    expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
   }
 
   public async testRetrieveLastRebootDate() {
     const bootNotification = await this.chargingStationContext.sendBootNotification();
-    expect(bootNotification.data).to.not.be.null;
-    expect(bootNotification.data.status).to.eql('Accepted');
-    expect(bootNotification.data).to.have.property('currentTime');
+    expect(bootNotification).to.not.be.null;
+    expect(bootNotification.status).to.eql(OCPPStatus.ACCEPTED);
+    expect(bootNotification).to.have.property('currentTime');
     let chargingStationResponse = await this.chargingStationContext.readChargingStation();
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
-      expect(bootNotification.data.currentTime).to.equal(chargingStationResponse.data.lastReboot);
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_16) {
+      expect(bootNotification.currentTime).to.equal(chargingStationResponse.data.lastReboot);
     } else {
-      expect(bootNotification.data.currentTime.toISOString()).to.equal(chargingStationResponse.data.lastReboot);
+      expect((bootNotification.currentTime as unknown as Date).toISOString()).to.equal(chargingStationResponse.data.lastReboot);
     }
     const bootNotification2 = await this.chargingStationContext.sendBootNotification();
     chargingStationResponse = await this.chargingStationContext.readChargingStation();
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
-      expect(bootNotification2.data.currentTime).to.equal(chargingStationResponse.data.lastReboot);
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_16) {
+      expect(bootNotification2.currentTime).to.equal(chargingStationResponse.data.lastReboot);
     } else {
-      expect(bootNotification2.data.currentTime.toISOString()).to.equal(chargingStationResponse.data.lastReboot);
+      expect((bootNotification2.currentTime as unknown as Date).toISOString()).to.equal(chargingStationResponse.data.lastReboot);
     }
-    expect(bootNotification.data.currentTime).to.not.equal(bootNotification2.data.currentTime);
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
-      expect(new Date(bootNotification.data.currentTime)).to.beforeTime(new Date(bootNotification2.data.currentTime));
+    expect(bootNotification.currentTime).to.not.equal(bootNotification2.currentTime);
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_16) {
+      expect(new Date(bootNotification.currentTime)).to.beforeTime(new Date(bootNotification2.currentTime));
     } else {
-      expect(bootNotification.data.currentTime).to.beforeTime(bootNotification2.data.currentTime);
+      expect(bootNotification.currentTime).to.beforeTime(new Date(bootNotification2.currentTime));
     }
   }
 
@@ -901,60 +959,64 @@ export default class OCPPCommonTests {
     const meterStart = 0;
     let meterValue = meterStart;
     const currentTime = moment();
-    let response = await this.chargingStationContext.startTransaction(
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       this.numberTag.toString(),
       meterValue,
       currentTime.toDate()
     );
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(response).to.be.transactionValid;
-    const transactionId = response.data.transactionId;
-    response = await this.chargingStationContext.sendConsumptionMeterValue(
+    expect(startTransactionResponse).to.be.transactionValid;
+    const transactionId = startTransactionResponse.transactionId;
+    meterValue += 300;
+    let meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
       this.chargingStationConnector1.connectorId,
       transactionId,
-      meterValue += 300,
-      currentTime.add(1, 'minute').clone().toDate()
+      currentTime.add(1, 'minute').clone().toDate(),
+      { energyActiveImportMeterValue: meterValue }
     );
-    expect(response.data).to.eql({});
-    response = await this.chargingStationContext.sendConsumptionMeterValue(
+    expect(meterValueResponse).to.eql({});
+    meterValue += 300;
+    meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
       this.chargingStationConnector1.connectorId,
       transactionId,
-      meterValue += 300,
-      currentTime.add(1, 'minute').clone().toDate()
+      currentTime.add(1, 'minute').clone().toDate(),
+      { energyActiveImportMeterValue: meterValue }
     );
-    expect(response.data).to.eql({});
-    response = await this.chargingStationContext.sendConsumptionMeterValue(
+    expect(meterValueResponse).to.eql({});
+    meterValue += 300;
+    meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
       this.chargingStationConnector1.connectorId,
       transactionId,
-      meterValue += 300,
-      currentTime.add(1, 'minute').clone().toDate()
+      currentTime.add(1, 'minute').clone().toDate(),
+      { energyActiveImportMeterValue: meterValue }
     );
-    expect(response.data).to.eql({});
-    response = await this.chargingStationContext.sendClockMeterValue(
+    expect(meterValueResponse).to.eql({});
+    meterValueResponse = await this.chargingStationContext.sendClockMeterValue(
       this.chargingStationConnector1.connectorId,
       transactionId,
-      0,
-      currentTime.clone().toDate()
+      currentTime.clone().toDate(),
+      0
     );
-    expect(response.data).to.eql({});
-    response = await this.chargingStationContext.sendConsumptionMeterValue(
+    expect(meterValueResponse).to.eql({});
+    meterValue += 300;
+    meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
       this.chargingStationConnector1.connectorId,
       transactionId,
-      meterValue += 300,
-      currentTime.add(1, 'minute').clone().toDate()
+      currentTime.add(1, 'minute').clone().toDate(),
+      { energyActiveImportMeterValue: meterValue }
     );
-    expect(response.data).to.eql({});
-    response = await this.chargingStationContext.stopTransaction(
+    expect(meterValueResponse).to.eql({});
+    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(
       transactionId,
       this.numberTag.toString(),
       meterValue, currentTime.add(1, 'minute').clone().toDate()
     );
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
-    response = await this.centralUserService.transactionApi.readById(transactionId);
-    expect(response.status).to.equal(200);
-    expect(response.data).to.deep['containSubset']({
+    expect(stopTransactionResponse).to.have.property('idTagInfo');
+    expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
+    const transaction = await this.centralUserService.transactionApi.readById(transactionId);
+    expect(transaction.status).to.equal(200);
+    expect(transaction.data).to.deep['containSubset']({
       id: transactionId,
       meterStart: meterStart,
       stop: {
@@ -973,24 +1035,23 @@ export default class OCPPCommonTests {
   private async testAuthorize(tagId, expectedStatus) {
     const response = await this.chargingStationContext.authorize(tagId);
     // Check
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal(expectedStatus);
+    expect(response).to.have.property('idTagInfo');
+    expect(response.idTagInfo.status).to.equal(expectedStatus);
   }
 
   private async validateStartedTransaction(response, chargingStationConnector, startMeterValue, startTime) {
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
-    expect(response.data).to.have.property('transactionId');
-    expect(response.data.transactionId).to.not.equal(0);
-    const transactionId = response.data.transactionId;
+    expect(response).to.have.property('idTagInfo');
+    expect(response.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
+    expect(response).to.have.property('transactionId');
+    expect(response.transactionId).to.not.equal(0);
+    const transactionId = response.transactionId;
     // Update connector status
     chargingStationConnector.status = 'Occupied';
     chargingStationConnector.timestamp = new Date().toISOString();
-    let responseValidate = await this.chargingStationContext.setConnectorStatus(chargingStationConnector);
-    // Check connector status
-    expect(responseValidate.data).to.eql({});
-    responseValidate = await this.basicTransactionValidation(transactionId, chargingStationConnector.connectorId, startMeterValue, startTime.toISOString());
-    expect(responseValidate.data).to.deep.include({
+    const statusNotificationResponse = await this.chargingStationContext.setConnectorStatus(chargingStationConnector);
+    expect(statusNotificationResponse).to.eql({});
+    const basicTransactionValidation = await this.basicTransactionValidation(transactionId, chargingStationConnector.connectorId, startMeterValue, startTime.toISOString());
+    expect(basicTransactionValidation.data).to.deep.include({
       currentInstantWatts: 0,
       currentCumulatedPrice: 0,
       currentStateOfCharge: 0,
@@ -1003,9 +1064,9 @@ export default class OCPPCommonTests {
   }
 
   private async basicTransactionValidation(transactionId: number, connectorId: number, meterStart: number, timestamp: Date) {
-    const response = await this.centralUserService.transactionApi.readById(transactionId);
-    expect(response.status).to.equal(200);
-    expect(response.data).to.deep['containSubset']({
+    const transactionResponse = await this.centralUserService.transactionApi.readById(transactionId);
+    expect(transactionResponse.status).to.equal(200);
+    expect(transactionResponse.data).to.deep['containSubset']({
       'id': transactionId,
       'timestamp': timestamp,
       'chargeBoxID': this.chargingStationContext.getChargingStation().id,
@@ -1021,8 +1082,6 @@ export default class OCPPCommonTests {
         'firstName': this.transactionStartUser.firstName
       }
     });
-
-    return response;
+    return transactionResponse;
   }
-
 }

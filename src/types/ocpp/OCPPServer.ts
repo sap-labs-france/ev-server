@@ -81,24 +81,24 @@ export interface OCPPHeartbeatResponse {
   currentTime: string;
 }
 
-export interface OCPPMeterValueRequest {
+export interface OCPPMeterValuesRequest {
   connectorId: number;
   transactionId?: number;
   meterValue: OCPPMeterValue[];
 }
 
-export interface OCPP15MeterValueRequest {
+export interface OCPP15MeterValuesRequest {
   connectorId: number;
   transactionId?: number;
-  values: OCPP15MeterValues|OCPP15MeterValues[];
-}
-
-export interface OCPP15MeterValues {
-  timestamp: string;
-  value: OCPP15MeterValue|OCPP15MeterValue[];
+  values: OCPP15MeterValue|OCPP15MeterValue[];
 }
 
 export interface OCPP15MeterValue {
+  timestamp: string;
+  value: OCPP15MeterValueValue|OCPP15MeterValueValue[];
+}
+
+export interface OCPP15MeterValueValue {
   $attributes: OCPPAttribute;
   $value: string;
 }
@@ -129,7 +129,7 @@ export interface OCPPNormalizedMeterValue {
   transactionId: number;
   timestamp: Date;
   attribute: OCPPAttribute;
-  value: string|number;
+  value: string | number;
 }
 
 export interface OCPPMeterValue {
@@ -237,7 +237,7 @@ export enum ChargePointErrorCode {
   GROUND_FAILURE = 'GroundFailure',
   HIGH_TEMPERATURE = 'HighTemperature',
   INTERNAL_ERROR = 'InternalError',
-  LOCAL_LIST_CONFILCT = 'LocalListConflict',
+  LOCAL_LIST_CONFLICT = 'LocalListConflict',
   NO_ERROR = 'NoError',
   OTHER_ERROR = 'OtherError',
   OVER_CURRENT_FAILURE = 'OverCurrentFailure',
@@ -276,7 +276,7 @@ export interface OCPPAuthorizeRequestExtended extends OCPPAuthorizeRequest {
 }
 
 export interface OCPPAuthorizeResponse {
-  status: OCPPAuthorizationStatus;
+  idTagInfo: OCPPIdTagInfo;
 }
 
 export interface OCPPIdTagInfo {
@@ -390,11 +390,15 @@ export interface OCPPStopTransactionRequest {
   timestamp: string;
   transactionId: number;
   reason?: OCPPReason;
-  transactionData?: OCPPMeterValue[];
+  transactionData?: OCPP15TransactionData|OCPPMeterValue[];
+}
+
+export interface OCPP15TransactionData {
+  values: OCPP15MeterValue|OCPP15MeterValue[];
 }
 
 export enum OCPPReason {
-  EMERGENGY_STOP = 'EmergencyStop',
+  EMERGENCY_STOP = 'EmergencyStop',
   EV_DISCONNECTED = 'EVDisconnected',
   HARD_RESET = 'HardReset',
   LOCAL = 'Local',
@@ -412,5 +416,5 @@ export interface OCPPStopTransactionRequestExtended extends OCPPStopTransactionR
 }
 
 export interface OCPPStopTransactionResponse {
-  status: OCPPAuthorizationStatus;
+  idTagInfo: OCPPIdTagInfo;
 }

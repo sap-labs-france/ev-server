@@ -926,7 +926,7 @@ export default class UserStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteUser', uniqueTimerID, { id });
   }
 
-  public static async getSites(tenantID: string,
+  public static async getUserSites(tenantID: string,
     params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug

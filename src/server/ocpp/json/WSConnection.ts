@@ -42,7 +42,7 @@ export default class WSConnection {
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
-    this.serverIPPort = Utils.getLocalIP() + ':' + this.wsServer.port;
+    this.serverIPPort = Utils.getLocalIP() + ':' + this.wsServer.port.toString();
 
     // Default
     this.tenantIsValid = false;
@@ -55,7 +55,7 @@ export default class WSConnection {
       // Remove '/'
       this.url = this.url.substring(1, this.url.length);
     }
-    // Parse URL: should like /OCPP16/TENANTID/TOKEN/CHARGEBOXID
+    // Parse URL: should be like /OCPP16/TENANTID/TOKEN/CHARGEBOXID
     // We support previous format for existing charging station without token /OCPP16/TENANTID/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
     if (splittedURL.length === 4) {
@@ -93,7 +93,7 @@ export default class WSConnection {
     this.wsConnection.onclose = this.onClose.bind(this);
   }
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     try {
       // Check Tenant?
       await Utils.checkTenant(this.tenantID);
@@ -123,13 +123,13 @@ export default class WSConnection {
     }
   }
 
-  public onError(event: Event) {
+  public onError(event: Event): void {
   }
 
-  public onClose(closeEvent: CloseEvent) {
+  public onClose(closeEvent: CloseEvent): void {
   }
 
-  public async onMessage(messageEvent: MessageEvent) {
+  public async onMessage(messageEvent: MessageEvent): Promise<void> {
     let [messageType, messageId, commandName, commandPayload, errorDetails] = [0, '', ServerAction.CHARGING_STATION, '', ''];
     try {
       // Parse the message
@@ -235,7 +235,7 @@ export default class WSConnection {
     }
   }
 
-  public async handleRequest(messageId, commandName, commandPayload) {
+  public async handleRequest(messageId, commandName, commandPayload): Promise<void> {
     // To implement in sub-class
   }
 
@@ -259,12 +259,12 @@ export default class WSConnection {
     return this.serverIPPort;
   }
 
-  public async send(command, messageType = MessageType.CALL_MESSAGE) {
+  public async send(command, messageType = MessageType.CALL_MESSAGE): Promise<unknown> {
     // Send Message
     return this.sendMessage(uuid(), command, messageType);
   }
 
-  public async sendError(messageId, err) {
+  public async sendError(messageId, err): Promise<unknown> {
     // Check exception: only OCPP error are accepted
     const error = (err instanceof OCPPError ? err : new OCPPError({
       source: this.getChargingStationID(),
@@ -277,7 +277,7 @@ export default class WSConnection {
     return this.sendMessage(messageId, error, MessageType.ERROR_MESSAGE);
   }
 
-  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.RESULT_MESSAGE, commandName?: Command): Promise<any> {
+  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.RESULT_MESSAGE, commandName?: Command): Promise<unknown> {
     // Send a message through WSConnection
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;

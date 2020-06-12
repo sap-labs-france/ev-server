@@ -90,11 +90,15 @@ export default class ExpressTools {
     return (httpServer.address() as AddressInfo).port;
   }
 
+  public static getHttpServerAddress(httpServer: http.Server): string {
+    return (httpServer.address() as AddressInfo).address;
+  }
+
   public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
     // Default listen callback
     function defaultListenCb(): void {
       // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${(httpServer.address() as AddressInfo).address}:${(httpServer.address() as AddressInfo).port}'`;
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerPort(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}'`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'startServer',
@@ -102,7 +106,7 @@ export default class ExpressTools {
         message: logMsg
       });
       // eslint-disable-next-line no-console
-      console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+      console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
     }
     let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
@@ -111,7 +115,7 @@ export default class ExpressTools {
       cb = defaultListenCb;
     }
     // Log
-    const logMsg = `Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
+    const logMsg = `Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
     // eslint-disable-next-line no-console
     console.log(logMsg);
 
@@ -122,11 +126,11 @@ export default class ExpressTools {
       httpServer.listen(serverConfig.port, cb);
     } else if (listen) {
       // eslint-disable-next-line no-console
-      console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}, missing required port configuration`);
+      console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}, missing required port configuration`);
     }
   }
 
-  public static async healthCheckService(req: Request, res: Response, next: NextFunction) {
+  public static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
     res.sendStatus(HttpStatusCodes.OK);
   }
 }

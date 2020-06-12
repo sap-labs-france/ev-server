@@ -124,7 +124,7 @@ export default class Authorizations {
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
     // Get User's site
-    const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
+    const sites = (await UserStorage.getUserSites(tenantID, { userID: user.id },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
     sites.forEach((siteUser) => {
       if (!Authorizations.isAdmin(user)) {

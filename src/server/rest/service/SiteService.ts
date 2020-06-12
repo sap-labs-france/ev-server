@@ -287,7 +287,7 @@ export default class SiteService {
       });
     }
     // Get users
-    const users = await SiteStorage.getUsers(req.user.tenantID,
+    const users = await SiteStorage.getSiteUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
         siteID: filteredRequest.SiteID
