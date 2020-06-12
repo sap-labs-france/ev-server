@@ -52,8 +52,8 @@ export default class Constants {
   public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store regex in enum
   public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store regex in enum
 
-  public static readonly SUPPORTED_LOCALES = ['en_US', 'fr_FR'];
-  public static readonly SUPPORTED_LANGUAGES = ['en', 'fr'];
+  public static readonly SUPPORTED_LOCALES = ['en_US', 'fr_FR', 'es_MX'];
+  public static readonly SUPPORTED_LANGUAGES = ['en', 'fr', 'es'];
   public static readonly DEFAULT_LOCALE = 'en_US';
   public static readonly DEFAULT_LANGUAGE = 'en';
 
