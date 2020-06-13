@@ -1,18 +1,18 @@
-import sanitize from 'mongo-sanitize';
-
-import Authorizations from '../../../../authorization/Authorizations';
-import Consumption from '../../../../types/Consumption';
-import { DataResult } from '../../../../types/DataResult';
-import { TransactionInError } from '../../../../types/InError';
-import RefundReport from '../../../../types/Refund';
 import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
-import User from '../../../../types/User';
-import UserToken from '../../../../types/UserToken';
+
+import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import Utils from '../../../../utils/Utils';
+import Consumption from '../../../../types/Consumption';
+import { DataResult } from '../../../../types/DataResult';
+import RefundReport from '../../../../types/Refund';
+import { TransactionInError } from '../../../../types/InError';
+import User from '../../../../types/User';
 import UserSecurity from './UserSecurity';
+import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
