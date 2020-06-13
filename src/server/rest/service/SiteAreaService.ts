@@ -1,30 +1,30 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import moment from 'moment';
 
-import { ActionsResponse } from '../../../types/GlobalType';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import AssetStorage from '../../../storage/mongodb/AssetStorage';
-import Authorizations from '../../../authorization/Authorizations';
-import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../utils/Constants';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
-import Logging from '../../../utils/Logging';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import { ServerAction } from '../../../types/Server';
-import SiteArea from '../../../types/SiteArea';
-import SiteAreaSecurity from './security/SiteAreaSecurity';
+import AssetStorage from '../../../storage/mongodb/AssetStorage';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import { Action, Entity } from '../../../types/Authorization';
+import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
+import { ActionsResponse } from '../../../types/GlobalType';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
+import SiteArea from '../../../types/SiteArea';
 import TenantComponents from '../../../types/TenantComponents';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import SiteAreaSecurity from './security/SiteAreaSecurity';
 import UtilsService from './UtilsService';
-import moment from 'moment';
 
 const MODULE_NAME = 'SiteAreaService';
 
@@ -469,14 +469,15 @@ export default class SiteAreaService {
     siteArea.maximumPower = filteredRequest.maximumPower;
     siteArea.voltage = filteredRequest.voltage;
     if (filteredRequest.smartCharging && filteredRequest.numberOfPhases === 1) {
-      for (const charger of siteArea.chargingStations) {
-        for (const connector of charger.connectors) {
-          if (connector.numberOfConnectedPhase !== 1) {
+      for (const chargingStation of siteArea.chargingStations) {
+        for (const connector of chargingStation.connectors) {
+          const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+          if (numberOfPhases !== 1) {
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
               action: action,
               errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-              message: `'Error occurred while updating SiteArea.'${charger.id}' is not single phased`,
+              message: `'Error occurred while updating SiteArea.'${chargingStation.id}' is not single phased`,
               module: MODULE_NAME, method: 'handleUpdateSiteArea',
               user: req.user
             });
