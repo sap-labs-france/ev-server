@@ -1,18 +1,18 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
-import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
+import sanitize from 'mongo-sanitize';
 
 import Authorizations from '../../../../authorization/Authorizations';
-import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
-import RefundReport from '../../../../types/Refund';
 import { TransactionInError } from '../../../../types/InError';
+import RefundReport from '../../../../types/Refund';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
+import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
+import UserSecurity from './UserSecurity';
 import UtilsSecurity from './UtilsSecurity';
-import moment from 'moment';
-import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -180,8 +180,7 @@ export default class TransactionSecurity {
         filteredTransaction.tagID = transaction.tagID;
       }
       // Filter user
-      filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.user, loggedUser);
+      filteredTransaction.user = UserSecurity.filterMinimalUserResponse(transaction.user, loggedUser);
       filteredTransaction.userID = transaction.userID;
       // Transaction Stop
       if (transaction.stop) {
@@ -196,7 +195,7 @@ export default class TransactionSecurity {
           stateOfCharge: transaction.stop.stateOfCharge,
           signedData: transaction.stop.signedData,
           userID: transaction.stop.userID,
-          user: transaction.stop.user ? TransactionSecurity._filterUserInTransactionResponse(transaction.stop.user, loggedUser) : null
+          user: transaction.stop.user ? UserSecurity.filterMinimalUserResponse(transaction.stop.user, loggedUser) : null
         };
         if (transaction.stop.price) {
           filteredTransaction.stop.price = transaction.stop.price;
@@ -256,27 +255,6 @@ export default class TransactionSecurity {
       }
     }
     reports.result = filteredReports;
-  }
-
-  static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {
-    const filteredUser: any = {};
-    if (!user) {
-      return null;
-    }
-    // Check auth
-    if (Authorizations.canReadUser(loggedUser, user.id)) {
-      // Demo user?
-      if (Authorizations.isDemo(loggedUser)) {
-        filteredUser.id = null;
-        filteredUser.name = Constants.ANONYMIZED_VALUE;
-        filteredUser.firstName = Constants.ANONYMIZED_VALUE;
-      } else {
-        filteredUser.id = user.id;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
-      }
-    }
-    return filteredUser;
   }
 
   public static filterConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
