@@ -25,14 +25,6 @@ export default abstract class ChargingStationVendorIntegration {
     return chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation;
   }
 
-  public hasStaticLimitationFullSupport(chargingStation: ChargingStation, chargePoint?: ChargePoint): boolean {
-    if (!chargePoint.excludeFromPowerLimitation && chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation
-      && chargePoint.ocppParamForPowerLimitation) {
-      return true;
-    }
-    return false;
-  }
-
   public async setStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
     chargePoint?: ChargePoint, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
     if (chargePoint.excludeFromPowerLimitation) {
@@ -587,6 +579,14 @@ export default abstract class ChargingStationVendorIntegration {
       chargingSchedule.chargingRateUnit = ChargingRateUnitType.AMPERE;
     }
     return chargingSchedule;
+  }
+
+  private hasStaticLimitationFullSupport(chargingStation: ChargingStation, chargePoint?: ChargePoint): boolean {
+    if (!chargePoint.excludeFromPowerLimitation && chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation
+      && chargePoint.ocppParamForPowerLimitation) {
+      return true;
+    }
+    return false;
   }
 
   private async getStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
