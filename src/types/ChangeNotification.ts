@@ -1,4 +1,5 @@
 import { Action, Entity } from './Authorization';
+
 import { Data } from './GlobalType';
 
 export default interface ChangeNotification {

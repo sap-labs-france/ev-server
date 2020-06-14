@@ -5,9 +5,9 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
-import global from '../../types/GlobalType';
-import { NotificationData, TransactionNotificationData } from '../../types/SingleChangeNotification';
+import { TransactionNotificationData } from '../../types/SingleChangeNotification';
 import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
 
 const _pipeline = [];
 const _options = {
