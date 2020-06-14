@@ -474,6 +474,16 @@ export default class OCPPService {
         consumption.instantAmps = totalAmps;
       }
     }
+    // Fill Power per Phase
+    if (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0) {
+      consumption.instantWattsL1 = Utils.convertAmpToWatt(chargingStation, null, transaction.connectorId, consumption.instantAmpsL1);
+      consumption.instantWattsL2 = Utils.convertAmpToWatt(chargingStation, null, transaction.connectorId, consumption.instantAmpsL2);
+      consumption.instantWattsL3 = Utils.convertAmpToWatt(chargingStation, null, transaction.connectorId, consumption.instantAmpsL3);
+    }
+    // Fill Power per Phase
+    if (consumption.instantAmpsDC > 0 && consumption.instantVoltsDC) {
+      consumption.instantWattsDC = consumption.instantAmpsDC * consumption.instantVoltsDC;
+    }
   }
 
   public async handleAuthorize(headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended): Promise<OCPPIdTagInfo> {

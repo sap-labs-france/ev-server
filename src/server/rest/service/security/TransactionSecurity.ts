@@ -303,6 +303,10 @@ export default class TransactionSecurity {
       const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
         instantWatts: consumption.instantWatts,
+        instantWattsL1: consumption.instantWattsL1,
+        instantWattsL2: consumption.instantWattsL2,
+        instantWattsL3: consumption.instantWattsL3,
+        instantWattsDC: consumption.instantWattsDC,
         instantAmps: consumption.instantAmps,
         instantAmpsL1: consumption.instantAmpsL1,
         instantAmpsL2: consumption.instantAmpsL2,

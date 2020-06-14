@@ -634,6 +634,15 @@ export default class OCPPCommonTests {
         'instantAmpsL2': checkNewMeterValues ? this.amperageL2MeterValues[i] : 0,
         'instantAmpsL3': checkNewMeterValues ? this.amperageL3MeterValues[i] : 0,
         'instantWatts': this.powerImportMeterValues[i],
+        'instantWattsL1': checkNewMeterValues ?
+          Utils.convertAmpToWatt(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, this.amperageL1MeterValues[i]) : 0,
+        'instantWattsL2': checkNewMeterValues ?
+          Utils.convertAmpToWatt(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, this.amperageL2MeterValues[i]) : 0,
+        'instantWattsL3': checkNewMeterValues ?
+          Utils.convertAmpToWatt(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, this.amperageL3MeterValues[i]) : 0,
         'cumulatedConsumptionWh': transactionCumulatedConsumption,
         'cumulatedConsumptionAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
           null, this.newTransaction.connectorId, transactionCumulatedConsumption)
