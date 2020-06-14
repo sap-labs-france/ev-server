@@ -822,7 +822,7 @@ export default class Utils {
     return results;
   }
 
-  public static buildUserFullName(user: User, withID = true, withEmail = false, invertedName = false): string {
+  public static buildUserFullName(user: User|UserToken, withID = true, withEmail = false, invertedName = false): string {
     let fullName: string;
     if (!user || !user.name) {
       return 'Unknown';
@@ -841,8 +841,8 @@ export default class Utils {
         fullName = user.name;
       }
     }
-    if (withID && user.iNumber) {
-      fullName += ` (${user.iNumber})`;
+    if (withID && user.id) {
+      fullName += ` (${user.id})`;
     }
     if (withEmail && user.email) {
       fullName += `; ${user.email}`;
