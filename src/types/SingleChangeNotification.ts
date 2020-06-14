@@ -7,6 +7,14 @@ export default interface SingleChangeNotification extends ChangeNotification{
 
 export interface NotificationData {
   id: string;
-  type: string;
+  type?: string;
   data?: Data;
+}
+
+export interface TransactionNotificationData {
+  id: string;
+  type?: string;
+  data?: Data;
+  connectorId?: number;
+  chargeBoxID?: string;
 }
