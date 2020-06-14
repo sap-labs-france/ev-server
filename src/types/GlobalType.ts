@@ -5,6 +5,10 @@ import bluebird from 'bluebird';
 import path from 'path';
 import Global = NodeJS.Global;
 
+export interface Data {
+  id: string;
+}
+
 export interface KeyValue {
   key: string;
   value: string;
