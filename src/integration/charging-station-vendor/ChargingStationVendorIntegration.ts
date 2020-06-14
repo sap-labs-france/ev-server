@@ -49,7 +49,7 @@ export default abstract class ChargingStationVendorIntegration {
       });
       return { status: OCPPConfigurationStatus.NOT_SUPPORTED };
     }
-    // Check if feature is supported
+    // Check if feature is fully supported
     if (!this.hasStaticLimitationFullSupport(chargingStation, chargePoint)) {
       throw new BackendError({
         source: chargingStation.id,
