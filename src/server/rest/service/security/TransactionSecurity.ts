@@ -7,7 +7,6 @@ import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
 import RefundReport from '../../../../types/Refund';
 import { TransactionInError } from '../../../../types/InError';
-import User from '../../../../types/User';
 import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -304,23 +303,26 @@ export default class TransactionSecurity {
       const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
         instantWatts: consumption.instantWatts,
+        instantWattsL1: consumption.instantWattsL1,
+        instantWattsL2: consumption.instantWattsL2,
+        instantWattsL3: consumption.instantWattsL3,
+        instantWattsDC: consumption.instantWattsDC,
         instantAmps: consumption.instantAmps,
+        instantAmpsL1: consumption.instantAmpsL1,
+        instantAmpsL2: consumption.instantAmpsL2,
+        instantAmpsL3: consumption.instantAmpsL3,
+        instantAmpsDC: consumption.instantAmpsDC,
+        instantVolts: consumption.instantVolts,
+        instantVoltsL1: consumption.instantVoltsL1,
+        instantVoltsL2: consumption.instantVoltsL2,
+        instantVoltsL3: consumption.instantVoltsL3,
+        instantVoltsDC: consumption.instantVoltsDC,
         cumulatedConsumptionWh: consumption.cumulatedConsumptionWh,
         cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,
         limitWatts: consumption.limitWatts,
         limitAmps: consumption.limitAmps,
-        voltage: consumption.voltage,
-        voltageL1: consumption.voltageL1,
-        voltageL2: consumption.voltageL2,
-        voltageL3: consumption.voltageL3,
-        voltageDC: consumption.voltageDC,
-        amperage: consumption.amperage,
-        amperageL1: consumption.amperageL1,
-        amperageL2: consumption.amperageL2,
-        amperageL3: consumption.amperageL3,
-        amperageDC: consumption.amperageDC,
       };
       return newConsumption;
     });
