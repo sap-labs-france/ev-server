@@ -1,18 +1,17 @@
-import sanitize from 'mongo-sanitize';
-
-import Authorizations from '../../../../authorization/Authorizations';
-import Consumption from '../../../../types/Consumption';
-import { DataResult } from '../../../../types/DataResult';
-import { TransactionInError } from '../../../../types/InError';
-import RefundReport from '../../../../types/Refund';
 import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
-import User from '../../../../types/User';
-import UserToken from '../../../../types/UserToken';
+
+import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import Utils from '../../../../utils/Utils';
+import Consumption from '../../../../types/Consumption';
+import { DataResult } from '../../../../types/DataResult';
+import RefundReport from '../../../../types/Refund';
+import { TransactionInError } from '../../../../types/InError';
 import UserSecurity from './UserSecurity';
+import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -305,22 +304,21 @@ export default class TransactionSecurity {
         date: consumption.endedAt,
         instantWatts: consumption.instantWatts,
         instantAmps: consumption.instantAmps,
+        instantAmpsL1: consumption.instantAmpsL1,
+        instantAmpsL2: consumption.instantAmpsL2,
+        instantAmpsL3: consumption.instantAmpsL3,
+        instantAmpsDC: consumption.instantAmpsDC,
+        instantVolts: consumption.instantVolts,
+        instantVoltsL1: consumption.instantVoltsL1,
+        instantVoltsL2: consumption.instantVoltsL2,
+        instantVoltsL3: consumption.instantVoltsL3,
+        instantVoltsDC: consumption.instantVoltsDC,
         cumulatedConsumptionWh: consumption.cumulatedConsumptionWh,
         cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,
         limitWatts: consumption.limitWatts,
         limitAmps: consumption.limitAmps,
-        voltage: consumption.voltage,
-        voltageL1: consumption.voltageL1,
-        voltageL2: consumption.voltageL2,
-        voltageL3: consumption.voltageL3,
-        voltageDC: consumption.voltageDC,
-        amperage: consumption.amperage,
-        amperageL1: consumption.amperageL1,
-        amperageL2: consumption.amperageL2,
-        amperageL3: consumption.amperageL3,
-        amperageDC: consumption.amperageDC,
       };
       return newConsumption;
     });

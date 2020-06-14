@@ -419,16 +419,16 @@ export default class OCPPService {
     // Set Consumption (currentTotalConsumptionWh, currentTotalInactivitySecs are updated in consumption creation)
     transaction.currentConsumptionWh = Utils.convertToFloat(consumption.consumptionWh);
     transaction.currentInstantWatts = Utils.convertToFloat(consumption.instantWatts);
-    transaction.currentVoltage = Utils.convertToFloat(consumption.voltage);
-    transaction.currentVoltageL1 = Utils.convertToFloat(consumption.voltageL1);
-    transaction.currentVoltageL2 = Utils.convertToFloat(consumption.voltageL2);
-    transaction.currentVoltageL3 = Utils.convertToFloat(consumption.voltageL3);
-    transaction.currentVoltageDC = Utils.convertToFloat(consumption.voltageDC);
-    transaction.currentAmperage = Utils.convertToFloat(consumption.amperage);
-    transaction.currentAmperageL1 = Utils.convertToFloat(consumption.amperageL1);
-    transaction.currentAmperageL2 = Utils.convertToFloat(consumption.amperageL2);
-    transaction.currentAmperageL3 = Utils.convertToFloat(consumption.amperageL3);
-    transaction.currentAmperageDC = Utils.convertToFloat(consumption.amperageDC);
+    transaction.currentVoltage = Utils.convertToFloat(consumption.instantVolts);
+    transaction.currentVoltageL1 = Utils.convertToFloat(consumption.instantVoltsL1);
+    transaction.currentVoltageL2 = Utils.convertToFloat(consumption.instantVoltsL2);
+    transaction.currentVoltageL3 = Utils.convertToFloat(consumption.instantVoltsL3);
+    transaction.currentVoltageDC = Utils.convertToFloat(consumption.instantVoltsDC);
+    transaction.currentAmperage = Utils.convertToFloat(consumption.instantAmps);
+    transaction.currentAmperageL1 = Utils.convertToFloat(consumption.instantAmpsL1);
+    transaction.currentAmperageL2 = Utils.convertToFloat(consumption.instantAmpsL2);
+    transaction.currentAmperageL3 = Utils.convertToFloat(consumption.instantAmpsL3);
+    transaction.currentAmperageDC = Utils.convertToFloat(consumption.instantAmpsDC);
     transaction.currentTimestamp = Utils.convertToDate(consumption.endedAt);
     transaction.currentStateOfCharge = Utils.convertToInt(consumption.stateOfCharge);
     // If Transaction.Begin not provided (Cahors)
@@ -447,10 +447,31 @@ export default class OCPPService {
       if (consumption.consumptionWh > 0) {
         const sampleMultiplierWhToWatt = diffSecs > 0 ? 3600 / diffSecs : 0;
         consumption.instantWatts = consumption.consumptionWh * sampleMultiplierWhToWatt;
-        consumption.instantAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.instantWatts);
         transaction.currentInstantWatts = consumption.instantWatts;
       } else {
         transaction.currentInstantWatts = 0;
+      }
+    }
+    // Instant Amps not present in Meter Value
+    if (!consumption.instantAmps) {
+      // Compute Instant Amps based on Instant Watts
+      if (consumption.instantWatts > 0) {
+        consumption.instantAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.instantWatts);
+        transaction.currentAmperage = consumption.instantAmps;
+      } else {
+        transaction.currentAmperage = 0;
+      }
+    // If Meter Value Current is provided, also L1, L2, L3 should be
+    } else if (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0) {
+      // Check total amps with L1/l2/L3
+      const totalAmps = consumption.instantAmpsL1 + consumption.instantAmpsL2 + consumption.instantAmpsL3;
+      // Tolerance ± 10%
+      const minTotalAmps = totalAmps * 1.1;
+      const maxTotalAmps = totalAmps / 1.1;
+      // Out of bound limits?
+      if (consumption.instantAmps < minTotalAmps || consumption.instantAmps > maxTotalAmps) {
+        // Total amps is wrong: Override
+        consumption.instantAmps = totalAmps;
       }
     }
   }
@@ -1277,7 +1298,6 @@ export default class OCPPService {
         const powerInMeterValue = Utils.convertToFloat(meterValue.value);
         consumption.instantWatts = (meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT ?
           powerInMeterValue * 1000 : powerInMeterValue);
-        consumption.instantAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.instantWatts);
       // Handle Voltage (V)
       } else if (OCPPUtils.isVoltageMeterValue(meterValue)) {
         const voltage = Utils.convertToFloat(meterValue.value);
@@ -1285,47 +1305,47 @@ export default class OCPPService {
         // AC Charging Station
         switch (currentType) {
           case CurrentType.DC:
-            consumption.voltageDC = voltage;
+            consumption.instantVoltsDC = voltage;
             break;
           case CurrentType.AC:
             switch (meterValue.attribute.phase) {
               case OCPPPhase.L1:
-                consumption.voltageL1 = voltage;
+                consumption.instantVoltsL1 = voltage;
                 break;
               case OCPPPhase.L2:
-                consumption.voltageL2 = voltage;
+                consumption.instantVoltsL2 = voltage;
                 break;
               case OCPPPhase.L3:
-                consumption.voltageL3 = voltage;
+                consumption.instantVoltsL3 = voltage;
                 break;
               default:
-                consumption.voltage = voltage;
+                consumption.instantVolts = voltage;
                 break;
             }
             break;
         }
-      // Handle Amperage (A)
+      // Handle Current (A)
       } else if (OCPPUtils.isCurrentImportMeterValue(meterValue)) {
         const amperage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
         // AC Charging Station
         switch (currentType) {
           case CurrentType.DC:
-            consumption.amperageDC = amperage;
+            consumption.instantAmpsDC = amperage;
             break;
           case CurrentType.AC:
             switch (meterValue.attribute.phase) {
               case OCPPPhase.L1:
-                consumption.amperageL1 = amperage;
+                consumption.instantAmpsL1 = amperage;
                 break;
               case OCPPPhase.L2:
-                consumption.amperageL2 = amperage;
+                consumption.instantAmpsL2 = amperage;
                 break;
               case OCPPPhase.L3:
-                consumption.amperageL3 = amperage;
+                consumption.instantAmpsL3 = amperage;
                 break;
               default:
-                consumption.amperage = amperage;
+                consumption.instantAmps = amperage;
                 break;
             }
             break;
