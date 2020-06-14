@@ -6,6 +6,8 @@ import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 import global from '../../types/GlobalType';
+import { NotificationData, TransactionNotificationData } from '../../types/SingleChangeNotification';
+import Utils from '../../utils/Utils';
 
 const _pipeline = [];
 const _options = {
@@ -178,14 +180,14 @@ export default class MongoDBStorageNotification {
 
   private handleTransactionChange(tenantID: string, transactionID: string, action: Action, changeEvent) {
     if (transactionID) {
-      const notification: { [key: string]: any } = {
+      const notification: TransactionNotificationData = {
         'id': transactionID
       };
       // Operation
       switch (action) {
         case Action.CREATE: // Insert/Create
-          notification.connectorId = changeEvent.fullDocument.connectorId;
-          notification.chargeBoxID = changeEvent.fullDocument.chargeBoxID;
+          notification.connectorId = Utils.convertToInt(changeEvent.fullDocument.connectorId);
+          notification.chargeBoxID = changeEvent.fullDocument.chargeBoxID as string;
           break;
         case Action.UPDATE: // Update
           if (changeEvent.updateDescription && changeEvent.updateDescription.updatedFields && changeEvent.updateDescription.updatedFields.stop) {
@@ -207,13 +209,13 @@ export default class MongoDBStorageNotification {
 
   private handleMeterValuesChange(tenantID: string, metervaluesID: string, action: Action, changeEvent) {
     if (metervaluesID) {
-      const notification: { [key: string]: any } = {};
+      const notification = {} as TransactionNotificationData;
       // Insert/Create?
       if (action === Action.CREATE) {
         notification.id = changeEvent.fullDocument.transactionId;
         notification.type = Entity.TRANSACTION_METER_VALUES;
-        notification.chargeBoxID = changeEvent.fullDocument.chargeBoxID;
-        notification.connectorId = changeEvent.fullDocument.connectorId;
+        notification.chargeBoxID = changeEvent.fullDocument.chargeBoxID as string;
+        notification.connectorId = Utils.convertToInt(changeEvent.fullDocument.connectorId);
         // Notify, Force Transaction Update
         this.centralRestServer.notifyTransaction(tenantID, Action.UPDATE, notification);
       }
