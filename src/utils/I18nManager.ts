@@ -23,10 +23,12 @@ export default class I18nManager {
     // Get the supported locales for moment
     require('moment/locale/fr');
     require('moment/locale/de');
+    require('moment/locale/es');
     require('moment/locale/en-gb');
     // Get translation files
     i18n.translations['en'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
     i18n.translations['fr'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/fr.json`, 'utf8'));
+    i18n.translations['es'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/es.json`, 'utf8'));
     // Default
     i18n.locale = Constants.DEFAULT_LANGUAGE;
     moment.locale(Constants.DEFAULT_LANGUAGE);

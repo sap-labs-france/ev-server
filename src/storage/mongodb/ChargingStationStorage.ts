@@ -602,23 +602,30 @@ export default class ChargingStationStorage {
     // Read DB
     const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenantID, 'configurations')
       .findOne({ '_id': id });
-    // Sort
-    if (parametersMDB.configuration) {
-      parametersMDB.configuration.sort((param1, param2) => {
-        if (param1.key.toLocaleLowerCase() < param2.key.toLocaleLowerCase()) {
-          return -1;
-        }
-        if (param1.key.toLocaleLowerCase() > param2.key.toLocaleLowerCase()) {
-          return 1;
-        }
-        return 0;
-      });
+    if (parametersMDB) {
+      // Sort
+      if (parametersMDB.configuration) {
+        parametersMDB.configuration.sort((param1, param2) => {
+          if (param1.key.toLocaleLowerCase() < param2.key.toLocaleLowerCase()) {
+            return -1;
+          }
+          if (param1.key.toLocaleLowerCase() > param2.key.toLocaleLowerCase()) {
+            return 1;
+          }
+          return 0;
+        });
+      }
+      // Debug
+      Logging.traceEnd(MODULE_NAME, 'getOcppParameters', uniqueTimerID);
+      return {
+        count: parametersMDB.configuration.length,
+        result: parametersMDB.configuration
+      };
     }
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'getOcppParameters', uniqueTimerID);
+    // No conf
     return {
-      count: parametersMDB.configuration.length,
-      result: parametersMDB.configuration
+      count: 0,
+      result: []
     };
   }
 

@@ -469,14 +469,15 @@ export default class SiteAreaService {
     siteArea.maximumPower = filteredRequest.maximumPower;
     siteArea.voltage = filteredRequest.voltage;
     if (filteredRequest.smartCharging && filteredRequest.numberOfPhases === 1) {
-      for (const charger of siteArea.chargingStations) {
-        for (const connector of charger.connectors) {
-          if (connector.numberOfConnectedPhase !== 1) {
+      for (const chargingStation of siteArea.chargingStations) {
+        for (const connector of chargingStation.connectors) {
+          const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+          if (numberOfPhases !== 1) {
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
               action: action,
               errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-              message: `'Error occurred while updating SiteArea.'${charger.id}' is not single phased`,
+              message: `'Error occurred while updating SiteArea.'${chargingStation.id}' is not single phased`,
               module: MODULE_NAME, method: 'handleUpdateSiteArea',
               user: req.user
             });

@@ -623,17 +623,26 @@ export default class OCPPCommonTests {
       // Check
       expect(value).to.include({
         'date': transactionCurrentTime.toISOString(),
-        'voltage': checkNewMeterValues ? this.voltageMeterValues[i] : 0,
-        'voltageL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
-        'voltageL2': checkNewMeterValues ? this.voltageL2MeterValues[i] : 0,
-        'voltageL3': checkNewMeterValues ? this.voltageL3MeterValues[i] : 0,
-        'amperage': checkNewMeterValues ? this.amperageMeterValues[i] : 0,
-        'amperageL1': checkNewMeterValues ? this.amperageL1MeterValues[i] : 0,
-        'amperageL2': checkNewMeterValues ? this.amperageL2MeterValues[i] : 0,
-        'amperageL3': checkNewMeterValues ? this.amperageL3MeterValues[i] : 0,
+        'instantVolts': checkNewMeterValues ? this.voltageMeterValues[i] : 0,
+        'instantVoltsL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
+        'instantVoltsL2': checkNewMeterValues ? this.voltageL2MeterValues[i] : 0,
+        'instantVoltsL3': checkNewMeterValues ? this.voltageL3MeterValues[i] : 0,
+        'instantAmps': checkNewMeterValues ? this.amperageMeterValues[i] :
+          Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, this.powerImportMeterValues[i]),
+        'instantAmpsL1': checkNewMeterValues ? this.amperageL1MeterValues[i] : 0,
+        'instantAmpsL2': checkNewMeterValues ? this.amperageL2MeterValues[i] : 0,
+        'instantAmpsL3': checkNewMeterValues ? this.amperageL3MeterValues[i] : 0,
         'instantWatts': this.powerImportMeterValues[i],
-        'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
-          null, this.newTransaction.connectorId, this.powerImportMeterValues[i]),
+        'instantWattsL1': checkNewMeterValues ?
+          Utils.convertAmpToWatt(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, this.amperageL1MeterValues[i]) : 0,
+        'instantWattsL2': checkNewMeterValues ?
+          Utils.convertAmpToWatt(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, this.amperageL2MeterValues[i]) : 0,
+        'instantWattsL3': checkNewMeterValues ?
+          Utils.convertAmpToWatt(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, this.amperageL3MeterValues[i]) : 0,
         'cumulatedConsumptionWh': transactionCumulatedConsumption,
         'cumulatedConsumptionAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
           null, this.newTransaction.connectorId, transactionCumulatedConsumption)

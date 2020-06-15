@@ -7,11 +7,10 @@ import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
 import RefundReport from '../../../../types/Refund';
 import { TransactionInError } from '../../../../types/InError';
-import User from '../../../../types/User';
+import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
-import moment from 'moment';
 import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
@@ -180,8 +179,7 @@ export default class TransactionSecurity {
         filteredTransaction.tagID = transaction.tagID;
       }
       // Filter user
-      filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.user, loggedUser);
+      filteredTransaction.user = UserSecurity.filterMinimalUserResponse(transaction.user, loggedUser);
       filteredTransaction.userID = transaction.userID;
       // Transaction Stop
       if (transaction.stop) {
@@ -196,7 +194,7 @@ export default class TransactionSecurity {
           stateOfCharge: transaction.stop.stateOfCharge,
           signedData: transaction.stop.signedData,
           userID: transaction.stop.userID,
-          user: transaction.stop.user ? TransactionSecurity._filterUserInTransactionResponse(transaction.stop.user, loggedUser) : null
+          user: transaction.stop.user ? UserSecurity.filterMinimalUserResponse(transaction.stop.user, loggedUser) : null
         };
         if (transaction.stop.price) {
           filteredTransaction.stop.price = transaction.stop.price;
@@ -258,27 +256,6 @@ export default class TransactionSecurity {
     reports.result = filteredReports;
   }
 
-  static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {
-    const filteredUser: any = {};
-    if (!user) {
-      return null;
-    }
-    // Check auth
-    if (Authorizations.canReadUser(loggedUser, user.id)) {
-      // Demo user?
-      if (Authorizations.isDemo(loggedUser)) {
-        filteredUser.id = null;
-        filteredUser.name = Constants.ANONYMIZED_VALUE;
-        filteredUser.firstName = Constants.ANONYMIZED_VALUE;
-      } else {
-        filteredUser.id = user.id;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
-      }
-    }
-    return filteredUser;
-  }
-
   public static filterConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
     const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
@@ -326,23 +303,26 @@ export default class TransactionSecurity {
       const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
         instantWatts: consumption.instantWatts,
+        instantWattsL1: consumption.instantWattsL1,
+        instantWattsL2: consumption.instantWattsL2,
+        instantWattsL3: consumption.instantWattsL3,
+        instantWattsDC: consumption.instantWattsDC,
         instantAmps: consumption.instantAmps,
+        instantAmpsL1: consumption.instantAmpsL1,
+        instantAmpsL2: consumption.instantAmpsL2,
+        instantAmpsL3: consumption.instantAmpsL3,
+        instantAmpsDC: consumption.instantAmpsDC,
+        instantVolts: consumption.instantVolts,
+        instantVoltsL1: consumption.instantVoltsL1,
+        instantVoltsL2: consumption.instantVoltsL2,
+        instantVoltsL3: consumption.instantVoltsL3,
+        instantVoltsDC: consumption.instantVoltsDC,
         cumulatedConsumptionWh: consumption.cumulatedConsumptionWh,
         cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,
         limitWatts: consumption.limitWatts,
         limitAmps: consumption.limitAmps,
-        voltage: consumption.voltage,
-        voltageL1: consumption.voltageL1,
-        voltageL2: consumption.voltageL2,
-        voltageL3: consumption.voltageL3,
-        voltageDC: consumption.voltageDC,
-        amperage: consumption.amperage,
-        amperageL1: consumption.amperageL1,
-        amperageL2: consumption.amperageL2,
-        amperageL3: consumption.amperageL3,
-        amperageDC: consumption.amperageDC,
       };
       return newConsumption;
     });
