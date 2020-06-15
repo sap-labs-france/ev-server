@@ -102,6 +102,9 @@ export default class Authorizations {
     if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       return null;
     }
+    if (this.isDemo(loggedUser)) {
+      return null;
+    }
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
@@ -121,7 +124,7 @@ export default class Authorizations {
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
     // Get User's site
-    const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
+    const sites = (await UserStorage.getUserSites(tenantID, { userID: user.id },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
     sites.forEach((siteUser) => {
       if (!Authorizations.isAdmin(user)) {
@@ -158,7 +161,7 @@ export default class Authorizations {
       'tagIDs': user.tags ? user.tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
-      'language': user.locale.substring(0, 2),
+      'language': Utils.getLanguageFromLocale(user.locale),
       'currency': currency,
       'tenantID': tenantID,
       'tenantName': tenantName,

@@ -1,5 +1,7 @@
 import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 
+import Constants from '../../../../utils/Constants';
+import Eula from '../../../../types/Eula';
 import { Request } from 'express';
 import { UserStatus } from '../../../../types/User';
 import UtilsSecurity from './UtilsSecurity';
@@ -14,8 +16,8 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterResetPasswordRequest(request: any): Partial<HttpResetPasswordRequest> {
-    const filteredRequest: any = {};
+  public static filterResetPasswordRequest(request: HttpResetPasswordRequest): Partial<HttpResetPasswordRequest> {
+    const filteredRequest = {} as HttpResetPasswordRequest;
     // Set
     filteredRequest.email = sanitize(request.email);
     if (request.passwords) {
@@ -28,20 +30,21 @@ export default class AuthSecurity {
     return filteredRequest;
   }
 
-  public static filterRegisterUserRequest(request: any): Partial<HttpRegisterUserRequest> {
+  public static filterRegisterUserRequest(request: HttpRegisterUserRequest): Partial<HttpRegisterUserRequest> {
     return {
       name: sanitize(request.name),
+      firstName: sanitize(request.firstName),
+      password: sanitize(request.passwords.password),
       acceptEula: sanitize(request.acceptEula),
       captcha: sanitize(request.captcha),
       status: UserStatus.PENDING,
-      password: sanitize(request.passwords.password),
       email: sanitize(request.email),
-      firstName: sanitize(request.firstName),
+      locale: request.locale ? sanitize(request.locale.substring(0, 5)) : Constants.DEFAULT_LOCALE,
       tenant: sanitize(request.tenant)
     };
   }
 
-  public static filterLoginRequest(request: any): Partial<HttpLoginRequest> {
+  public static filterLoginRequest(request: HttpLoginRequest): Partial<HttpLoginRequest> {
     return {
       email: sanitize(request.email),
       password: sanitize(request.password),
@@ -58,7 +61,7 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterResendVerificationEmail(request: any): Partial<HttpResendVerificationMailRequest> {
+  public static filterResendVerificationEmail(request: HttpResendVerificationMailRequest): Partial<HttpResendVerificationMailRequest> {
     return {
       email: sanitize(request.email),
       tenant: sanitize(request.tenant),
@@ -75,11 +78,11 @@ export default class AuthSecurity {
     if (request.headers) {
       filteredRequest.tenant = sanitize(request.headers.tenant);
     }
-    return filteredRequest;
+    return filteredRequest as {Language: string; tenant: string};
   }
 
-  static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement) {
-    const filteredEndUserLicenseAgreement: any = {};
+  static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement: Eula): Eula {
+    const filteredEndUserLicenseAgreement = {} as Eula;
 
     if (!endUserLicenseAgreement) {
       return null;

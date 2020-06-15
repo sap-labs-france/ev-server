@@ -1,10 +1,12 @@
 import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 
+import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
 import SiteArea from './SiteArea';
+import User from './User';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -38,13 +40,13 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   maximumPower: number;
   voltage: Voltage;
   excludeFromSmartCharging?: boolean;
-  powerLimitUnit: PowerLimitUnits;
+  powerLimitUnit: ChargingRateUnitType;
   coordinates: number[];
   chargePoints: ChargePoint[];
   connectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string;
-  currentServerLocalIPAddress?: string;
+  currentServerLocalIPAddressPort?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;
   ocppStandardParameters?: KeyValue[];
@@ -81,11 +83,6 @@ export enum Command {
   UPDATE_FIRMWARE = 'UpdateFirmware',
 }
 
-export enum PowerLimitUnits {
-  WATT = 'W',
-  AMPERE = 'A'
-}
-
 export enum StaticLimitAmps {
   MIN_LIMIT = 6,
 }
@@ -93,24 +90,26 @@ export enum StaticLimitAmps {
 export interface Connector {
   id?: string;
   connectorId: number;
-  currentConsumption: number;
+  currentInstantWatts?: number;
   currentStateOfCharge?: number;
-  totalInactivitySecs?: number;
-  totalConsumption?: number;
+  currentTotalConsumptionWh?: number;
+  currentTotalInactivitySecs?: number;
+  currentInactivityStatus?: InactivityStatus;
+  currentTransactionID?: number;
+  currentTransactionDate?: Date;
+  currentTagID?: string;
   status: ChargePointStatus;
   errorCode?: string;
   info?: string;
   vendorErrorCode?: string;
-  power: number;
-  type: ConnectorType;
+  power?: number;
+  type?: ConnectorType;
   voltage?: Voltage;
   amperage?: number;
   amperageLimit?: number;
-  activeTransactionID?: number;
-  activeTransactionDate?: Date;
-  activeTagID?: string;
+  userID?: string;
+  user?: User;
   statusLastChangedOn?: Date;
-  inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: CurrentType;
   chargePointID?: number;
@@ -179,7 +178,7 @@ export interface ChargingStationTemplate {
   technical: {
     maximumPower: number;
     voltage?: Voltage;
-    powerLimitUnit: PowerLimitUnits;
+    powerLimitUnit: ChargingRateUnitType;
     chargePoints?: ChargePoint[];
     connectors: {
       connectorId: number;
@@ -220,8 +219,7 @@ export enum ConnectorType {
 }
 
 export interface ChargingStationCapabilities {
-  supportStaticLimitationForChargingStation: boolean;
-  supportStaticLimitationPerConnector: boolean;
+  supportStaticLimitation: boolean;
   supportChargingProfiles: boolean;
   supportCreditCard: boolean;
   supportRemoteStartStopTransaction: boolean;
@@ -233,11 +231,10 @@ export interface ChargingStationCapabilities {
 export interface ChargingStationOcppParameters {
   id: string;
   timestamp: Date;
-  configuration: KeyValue[];
+  configuration: OcppParameter[];
 }
 
 export interface OcppParameter {
-  id: string;
   key: string;
   value: string;
   readonly: boolean;
@@ -256,4 +253,5 @@ export enum ChargerVendor {
   WEBASTO = 'Webasto',
   DELTA = 'DELTA',
   ABB = 'ABB',
+  LEGRAND = 'Legrand',
 }

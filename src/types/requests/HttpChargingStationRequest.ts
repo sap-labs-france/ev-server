@@ -2,11 +2,6 @@ import { ConnectorType, CurrentType } from '../ChargingStation';
 
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpAssignChargingStationToSiteAreaRequest {
-  siteAreaID: string;
-  chargingStationIDs: string[];
-}
-
 export interface HttpTriggerSmartChargingRequest {
   siteAreaID: string;
 }

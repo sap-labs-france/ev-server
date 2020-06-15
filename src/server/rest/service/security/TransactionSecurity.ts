@@ -67,7 +67,7 @@ export default class TransactionSecurity {
   public static filterTransactionsRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
-    if (request.Issuer) {
+    if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -139,19 +139,27 @@ export default class TransactionSecurity {
         filteredTransaction.pricingSource = transaction.pricingSource;
       }
       if (!transaction.stop) {
-        filteredTransaction.currentConsumption = transaction.currentConsumption;
-        filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
+        filteredTransaction.currentInstantWatts = transaction.currentInstantWatts;
+        filteredTransaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
-        filteredTransaction.currentTotalDurationSecs =
-          moment.duration(moment(transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : new Date())
-            .diff(moment(transaction.timestamp))).asSeconds();
+        filteredTransaction.currentTotalDurationSecs = transaction.currentTotalDurationSecs;
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
+        filteredTransaction.currentVoltage = transaction.currentVoltage;
+        filteredTransaction.currentVoltageL1 = transaction.currentVoltageL1;
+        filteredTransaction.currentVoltageL2 = transaction.currentVoltageL2;
+        filteredTransaction.currentVoltageL3 = transaction.currentVoltageL3;
+        filteredTransaction.currentVoltageDC = transaction.currentVoltageDC;
+        filteredTransaction.currentAmperage = transaction.currentAmperage;
+        filteredTransaction.currentAmperageL1 = transaction.currentAmperageL1;
+        filteredTransaction.currentAmperageL2 = transaction.currentAmperageL2;
+        filteredTransaction.currentAmperageL3 = transaction.currentAmperageL3;
+        filteredTransaction.currentAmperageDC = transaction.currentAmperageDC;
       }
       if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
-        const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+        const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
         filteredTransaction.status = foundConnector ? foundConnector.status : null;
       }
       filteredTransaction.stateOfCharge = transaction.stateOfCharge;
@@ -181,7 +189,7 @@ export default class TransactionSecurity {
           tagID: Authorizations.isDemo(loggedUser) ? Constants.ANONYMIZED_VALUE : transaction.stop.tagID,
           meterStop: transaction.stop.meterStop,
           timestamp: transaction.stop.timestamp,
-          totalConsumption: transaction.stop.totalConsumption,
+          totalConsumptionWh: transaction.stop.totalConsumptionWh,
           totalInactivitySecs: transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs,
           inactivityStatus: transaction.stop.inactivityStatus,
           totalDurationSecs: transaction.stop.totalDurationSecs,
@@ -317,15 +325,25 @@ export default class TransactionSecurity {
     filteredTransaction.values = consumptions.map((consumption) => {
       const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
-        instantPower: consumption.instantPower,
-        cumulatedConsumption: consumption.cumulatedConsumption,
+        instantWatts: consumption.instantWatts,
+        instantAmps: consumption.instantAmps,
+        cumulatedConsumptionWh: consumption.cumulatedConsumptionWh,
+        cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,
-        limitWatts: consumption.limitWatts
+        limitWatts: consumption.limitWatts,
+        limitAmps: consumption.limitAmps,
+        voltage: consumption.voltage,
+        voltageL1: consumption.voltageL1,
+        voltageL2: consumption.voltageL2,
+        voltageL3: consumption.voltageL3,
+        voltageDC: consumption.voltageDC,
+        amperage: consumption.amperage,
+        amperageL1: consumption.amperageL1,
+        amperageL2: consumption.amperageL2,
+        amperageL3: consumption.amperageL3,
+        amperageDC: consumption.amperageDC,
       };
-      if (consumption.stateOfCharge) {
-        newConsumption.stateOfCharge = consumption.stateOfCharge;
-      }
       return newConsumption;
     });
     return filteredTransaction;

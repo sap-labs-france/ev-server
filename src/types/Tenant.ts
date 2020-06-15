@@ -39,6 +39,7 @@ export default interface Tenant extends CreatedUpdatedProps {
     };
     asset?: {
       active: boolean;
+      type: string;
     };
     car?: {
       active: boolean;

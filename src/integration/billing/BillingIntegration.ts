@@ -13,7 +13,7 @@ import { UserInErrorType } from '../../types/InError';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
-const MODULE_NAME = 'Billing';
+const MODULE_NAME = 'BillingIntegration';
 
 export default abstract class BillingIntegration<T extends BillingSetting> {
   protected readonly tenantID: string; // Assuming GUID or other string format ID

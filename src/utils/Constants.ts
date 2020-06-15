@@ -1,3 +1,6 @@
+import { OCPPAttribute, OCPPLocation, OCPPMeasurand, OCPPPhase, OCPPReadingContext, OCPPUnitOfMeasure, OCPPValueFormat } from '../types/ocpp/OCPPServer';
+
+import { OcppParameter } from '../types/ChargingStation';
 import Tenant from '../types/Tenant';
 
 export default class Constants {
@@ -10,6 +13,7 @@ export default class Constants {
   public static readonly DB_PARAMS_MAX_LIMIT = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 };
   public static readonly DB_PARAMS_SINGLE_RECORD = { limit: 1, skip: 0 };
   public static readonly DB_PARAMS_COUNT_ONLY = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true };
+
   public static readonly DEFAULT_TENANT = 'default';
   public static readonly DEFAULT_TENANT_OBJECT= {
     id: Constants.DEFAULT_TENANT,
@@ -24,12 +28,6 @@ export default class Constants {
 
   public static readonly DELAY_SMART_CHARGING_EXECUTION_MILLIS = 3000;
   public static readonly DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS = 3000;
-
-  public static readonly STATS_GROUP_BY_CONSUMPTION = 'C';
-  public static readonly STATS_GROUP_BY_USAGE = 'U';
-  public static readonly STATS_GROUP_BY_INACTIVITY = 'I';
-  public static readonly STATS_GROUP_BY_TRANSACTIONS = 'T';
-  public static readonly STATS_GROUP_BY_PRICING = 'P';
 
   public static readonly CHARGING_STATION_CONFIGURATION = 'Configuration';
 
@@ -61,15 +59,6 @@ export default class Constants {
 
   public static readonly ANONYMIZED_VALUE = '####';
 
-  public static readonly SETTING_PRICING_CONTENT_TYPE_SIMPLE = 'simple';
-  public static readonly SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING = 'convergentCharging';
-  public static readonly SETTING_REFUND_CONTENT_TYPE_CONCUR = 'concur';
-  public static readonly SETTING_REFUND_CONTENT_TYPE_GIREVE = 'gireve';
-  public static readonly SETTING_REFUND_CONTENT_TYPE_OCPI = 'ocpi';
-  public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
-  public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
-  public static readonly SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING = 'sapSmartCharging';
-
   public static readonly WS_DEFAULT_KEEPALIVE = 30; // Seconds
   public static readonly WS_RECONNECT_DISABLED = 0;
   public static readonly WS_RECONNECT_UNLIMITED = -1;
@@ -78,37 +67,7 @@ export default class Constants {
   public static readonly WS_UNSUPPORTED_DATA = 1007;
 
   public static readonly OCPP_SOCKET_TIMEOUT = 30000; // 30 sec
-  public static readonly OCPP_JSON_CALL_MESSAGE = 2; // Client-to-Server
-  public static readonly OCPP_JSON_CALL_RESULT_MESSAGE = 3; // Server-to-Client
-  public static readonly OCPP_JSON_CALL_ERROR_MESSAGE = 4; // Server-to-Client
-  // Requested Action is not known by receiver
-  public static readonly OCPP_ERROR_NOT_IMPLEMENTED = 'NotImplemented';
-  // Requested Action is recognized but not supported by the receiver
-  public static readonly OCPP_ERROR_NOT_SUPPORTED = 'NotSupported';
-  // An internal error occurred and the receiver was not able to process the requested Action successfully
-  public static readonly OCPP_ERROR_INTERNAL_ERROR = 'InternalError';
-  // Payload for Action is incomplete
-  public static readonly OCPP_ERROR_PROTOCOL_ERROR = 'ProtocolError';
-  // During the processing of Action a security issue occurred preventing receiver from completing the Action successfully
-  public static readonly OCPP_ERROR_SECURITY_ERROR = 'SecurityError';
-  // Payload for Action is syntactically incorrect or not conform the PDU structure for Action
-  public static readonly OCPP_ERROR_FORMATION_VIOLATION = 'FormationViolation';
-  // Payload is syntactically correct but at least one field contains an invalid value
-  public static readonly OCPP_ERROR_PROPERTY_RAINT_VIOLATION = 'PropertyraintViolation';
-  // Payload for Action is syntactically correct but at least one of the fields violates occurrence raints
-  public static readonly OCPP_ERROR_OCCURENCE_RAINT_VIOLATION = 'OccurenceraintViolation';
-  // Payload for Action is syntactically correct but at least one of the fields violates data type raints (e.g. "somestring" = 12)
-  public static readonly OCPP_ERROR_TYPERAINT_VIOLATION = 'TyperaintViolation';
-  // Any other error not covered by the previous ones
-  public static readonly OCPP_ERROR_GENERIC_ERROR = 'GenericError';
   public static readonly OCPP_RESPONSE_ACCEPTED = 'Accepted';
-
-  public static readonly BILLING_STATUS_UNBILLED = 'unbilled';
-  public static readonly BILLING_STATUS_BILLED = 'billed';
-
-  public static readonly BILLING_METHOD_IMMEDIATE = 'immediate';
-  public static readonly BILLING_METHOD_PERIODIC = 'periodic';
-  public static readonly BILLING_METHOD_ADVANCE = 'advance';
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
@@ -144,6 +103,119 @@ export default class Constants {
     'verificationToken': 0
   };
 
-  public static readonly MOBILE_OS_ANDROID = 'android'; // Not used
-  public static readonly MOBILE_OS_IOS = 'ios'; // Not used
+  public static readonly DEFAULT_OCPP_16_CONFIGURATION: OcppParameter[] = [
+    { 'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null },
+    { 'key': 'AuthorizationCacheEnabled', 'readonly': false, 'value': null },
+    { 'key': 'AuthorizeRemoteTxRequests', 'readonly': false, 'value': null },
+    { 'key': 'BlinkRepeat', 'readonly': false, 'value': null },
+    { 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null },
+    { 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null },
+    { 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null },
+    { 'key': 'HeartbeatInterval', 'readonly': false, 'value': null },
+    { 'key': 'LightIntensity', 'readonly': false, 'value': null },
+    { 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null },
+    { 'key': 'LocalPreAuthorize', 'readonly': false, 'value': null },
+    { 'key': 'MaxEnergyOnInvalidId', 'readonly': false, 'value': null },
+    { 'key': 'MeterValuesAlignedData', 'readonly': false, 'value': null },
+    { 'key': 'MeterValuesAlignedDataMaxLength', 'readonly': false, 'value': null },
+    { 'key': 'MeterValuesSampledData', 'readonly': false, 'value': null },
+    { 'key': 'MeterValuesSampledDataMaxLength', 'readonly': false, 'value': null },
+    { 'key': 'MeterValueSampleInterval', 'readonly': false, 'value': null },
+    { 'key': 'MinimumStatusDuration', 'readonly': false, 'value': null },
+    { 'key': 'NumberOfConnectors', 'readonly': false, 'value': null },
+    { 'key': 'ResetRetries', 'readonly': false, 'value': null },
+    { 'key': 'ConnectorPhaseRotation', 'readonly': false, 'value': null },
+    { 'key': 'ConnectorPhaseRotationMaxLength', 'readonly': false, 'value': null },
+    { 'key': 'StopTransactionOnEVSideDisconnect', 'readonly': false, 'value': null },
+    { 'key': 'StopTransactionOnInvalidId', 'readonly': false, 'value': null },
+    { 'key': 'StopTxnAlignedData', 'readonly': false, 'value': null },
+    { 'key': 'StopTxnAlignedDataMaxLength', 'readonly': false, 'value': null },
+    { 'key': 'StopTxnSampledData', 'readonly': false, 'value': null },
+    { 'key': 'StopTxnSampledDataMaxLength', 'readonly': false, 'value': null },
+    { 'key': 'SupportedFeatureProfiles', 'readonly': false, 'value': null },
+    { 'key': 'SupportedFeatureProfilesMaxLength', 'readonly': false, 'value': null },
+    { 'key': 'TransactionMessageAttempts', 'readonly': false, 'value': null },
+    { 'key': 'TransactionMessageRetryInterval', 'readonly': false, 'value': null },
+    { 'key': 'UnlockConnectorOnEVSideDisconnect', 'readonly': false, 'value': null },
+    { 'key': 'WebSocketPingInterval', 'readonly': false, 'value': null },
+    { 'key': 'LocalAuthListEnabled', 'readonly': false, 'value': null },
+    { 'key': 'LocalAuthListMaxLength', 'readonly': false, 'value': null },
+    { 'key': 'SendLocalListMaxLength', 'readonly': false, 'value': null },
+    { 'key': 'ReserveConnectorZeroSupported', 'readonly': false, 'value': null },
+    { 'key': 'ChargeProfileMaxStackLevel', 'readonly': false, 'value': null },
+    { 'key': 'ChargingScheduleAllowedChargingRateUnit', 'readonly': false, 'value': null },
+    { 'key': 'ChargingScheduleMaxPeriods', 'readonly': false, 'value': null },
+    { 'key': 'ConnectorSwitch3to1PhaseSupported', 'readonly': false, 'value': null },
+    { 'key': 'MaxChargingProfilesInstalled', 'readonly': false, 'value': null }
+  ];
+
+  public static readonly OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE: OCPPAttribute = {
+    unit: OCPPUnitOfMeasure.WATT_HOUR,
+    context: OCPPReadingContext.SAMPLE_PERIODIC,
+    measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+    location: OCPPLocation.OUTLET,
+    format: OCPPValueFormat.RAW,
+  };
+
+  public static readonly OCPP_SOC_ATTRIBUTE: OCPPAttribute = {
+    unit: OCPPUnitOfMeasure.PERCENT,
+    context: OCPPReadingContext.SAMPLE_PERIODIC,
+    measurand: OCPPMeasurand.STATE_OF_CHARGE,
+    location: OCPPLocation.EV,
+    format: OCPPValueFormat.RAW,
+  };
+
+  public static readonly OCPP_VOLTAGE_ATTRIBUTE: OCPPAttribute = {
+    format: OCPPValueFormat.RAW,
+    measurand: OCPPMeasurand.VOLTAGE,
+    unit: OCPPUnitOfMeasure.VOLT,
+    location: OCPPLocation.OUTLET,
+    context: OCPPReadingContext.SAMPLE_PERIODIC
+  };
+
+  public static readonly OCPP_VOLTAGE_L1_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_VOLTAGE_ATTRIBUTE,
+    phase: OCPPPhase.L1,
+  };
+
+  public static readonly OCPP_VOLTAGE_L2_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_VOLTAGE_ATTRIBUTE,
+    phase: OCPPPhase.L2,
+  };
+
+  public static readonly OCPP_VOLTAGE_L3_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_VOLTAGE_ATTRIBUTE,
+    phase: OCPPPhase.L3,
+  };
+
+  public static readonly OCPP_CURRENT_ATTRIBUTE: OCPPAttribute = {
+    format: OCPPValueFormat.RAW,
+    measurand: OCPPMeasurand.CURRENT_IMPORT,
+    unit: OCPPUnitOfMeasure.AMP,
+    location: OCPPLocation.OUTLET,
+    context: OCPPReadingContext.SAMPLE_PERIODIC
+  };
+
+  public static readonly OCPP_CURRENT_L1_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_CURRENT_ATTRIBUTE,
+    phase: OCPPPhase.L1,
+  };
+
+  public static readonly OCPP_CURRENT_L2_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_CURRENT_ATTRIBUTE,
+    phase: OCPPPhase.L2,
+  };
+
+  public static readonly OCPP_CURRENT_L3_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_CURRENT_ATTRIBUTE,
+    phase: OCPPPhase.L3,
+  };
+
+  public static readonly OCPP_POWER_ATTRIBUTE: OCPPAttribute = {
+    format: OCPPValueFormat.RAW,
+    measurand: OCPPMeasurand.POWER_ACTIVE_IMPORT,
+    unit: OCPPUnitOfMeasure.WATT,
+    location: OCPPLocation.OUTLET,
+    context: OCPPReadingContext.SAMPLE_PERIODIC
+  };
 }

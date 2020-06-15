@@ -1,4 +1,4 @@
-import { HttpSiteAreaConsumptionsRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaConsumptionsRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStationSecurity from './ChargingStationSecurity';
@@ -15,6 +15,20 @@ export default class SiteAreaSecurity {
 
   public static filterSiteAreaRequestByID(request: any): string {
     return sanitize(request.ID);
+  }
+
+  public static filterAssignAssetsToSiteAreaRequest(request: any): HttpAssignAssetsToSiteAreaRequest {
+    return {
+      siteAreaID: sanitize(request.siteAreaID),
+      assetIDs: request.assetIDs.map(sanitize)
+    };
+  }
+
+  public static filterAssignChargingStationsToSiteAreaRequest(request: any): HttpAssignChargingStationToSiteAreaRequest {
+    return {
+      siteAreaID: sanitize(request.siteAreaID),
+      chargingStationIDs: request.chargingStationIDs.map(sanitize)
+    };
   }
 
   public static filterSiteAreaRequest(request: any): HttpSiteAreaRequest {
@@ -79,6 +93,7 @@ export default class SiteAreaSecurity {
         filteredSiteArea.name = siteArea.name;
         filteredSiteArea.siteID = siteArea.siteID;
         filteredSiteArea.maximumPower = siteArea.maximumPower;
+        filteredSiteArea.voltage = siteArea.voltage;
         filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
       }
       if (Utils.objectHasProperty(siteArea, 'address')) {
@@ -114,9 +129,7 @@ export default class SiteAreaSecurity {
       return null;
     }
     for (const siteArea of siteAreas.result) {
-      // Filter
       const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
-      // Add
       if (filteredSiteArea) {
         filteredSiteAreas.push(filteredSiteArea);
       }
@@ -137,8 +150,10 @@ export default class SiteAreaSecurity {
     // Clean
     filteredSiteArea.values = consumptions.map((consumption) => ({
       date: consumption.endedAt,
-      instantPower: consumption.instantPower,
-      limitWatts: consumption.limitWatts
+      instantWatts: consumption.instantWatts,
+      instantAmps: consumption.instantAmps,
+      limitWatts: consumption.limitWatts,
+      limitAmps: consumption.limitAmps,
     }));
     return filteredSiteArea;
   }

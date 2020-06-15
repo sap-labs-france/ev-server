@@ -2,9 +2,9 @@ import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, Refund
 import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
-import Constants from './client/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import TenantComponents from '../../src/types/TenantComponents';
+import TestConstants from './client/utils/TestConstants';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
@@ -40,7 +40,7 @@ describe('Tenant Settings test', function() {
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
     const response = await testData.superAdminCentralService.tenantApi.readAll({ 'Search': ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS }, {
-      limit: Constants.UNLIMITED,
+      limit: TestConstants.UNLIMITED,
       skip: 0
     });
     testData.credentials.tenantId = response ? response.data.result[0].id : '';

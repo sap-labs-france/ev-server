@@ -1,10 +1,9 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
+import { MessageType, WSClientOptions } from '../../../types/WebSocket';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
-import Constants from '../../../utils/Constants';
-import { JsonWSClientConfiguration } from '../../../types/configuration/WSClientConfiguration';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import WSClient from '../../websocket/WSClient';
@@ -23,7 +22,18 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     super();
     this.tenantID = tenantID;
     // Get URL
-    let chargingStationURL = chargingStation.chargingStationURL;
+    let chargingStationURL: string;
+    if (Configuration.getChargingStationConfig().useServerLocalIPForRemoteCommand) {
+      let URLprotocol: string;
+      if (Configuration.getChargingStationConfig().secureLocalServer) {
+        URLprotocol = 'wss';
+      } else {
+        URLprotocol = 'ws';
+      }
+      chargingStationURL = URLprotocol + '://' + chargingStation.currentServerLocalIPAddressPort;
+    } else {
+      chargingStationURL = chargingStation.chargingStationURL;
+    }
     // Check URL: remove starting and trailing '/'
     if (chargingStationURL.endsWith('/')) {
       // Remove '/'
@@ -111,7 +121,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           protocol: 'rest'
         };
       }
-      const wsClientOptions: JsonWSClientConfiguration = {
+      const wsClientOptions: WSClientOptions = {
         WSOptions: WSOptions,
         autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
         autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
@@ -162,10 +172,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           const messageJson = JSON.parse(message.data);
           // Check if this corresponds to a request
           if (this.requests[messageJson[1]]) {
-            // Log
-            Logging.logReceivedAction(MODULE_NAME, this.tenantID, this.chargingStation.id, this.requests[messageJson[1]].command, messageJson);
             // Check message type
-            if (messageJson[0] === Constants.OCPP_JSON_CALL_ERROR_MESSAGE) {
+            if (messageJson[0] === MessageType.ERROR_MESSAGE) {
               // Error message
               Logging.logError({
                 tenantID: this.tenantID,
@@ -225,15 +233,14 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private async sendMessage(request): Promise<any> {
     // Return a promise
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     const promise = await new Promise(async (resolve, reject) => {
       // Open WS Connection
       await this.openConnection();
-      // Check if wsConnection in ready
+      // Check if wsConnection is ready
       if (this.wsConnection.isConnectionOpen()) {
-        // Log
-        Logging.logSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, request[2], request);
         // Send
-        await this.wsConnection.send(JSON.stringify(request));
+        this.wsConnection.send(JSON.stringify(request));
         // Set the resolve function
         this.requests[request[1]] = { resolve, reject, command: request[2] };
       } else {
@@ -246,6 +253,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private buildRequest(command, params = {}) {
     // Build the request
-    return [Constants.OCPP_JSON_CALL_MESSAGE, uuid(), command, params];
+    return [MessageType.CALL_MESSAGE, uuid(), command, params];
   }
 }

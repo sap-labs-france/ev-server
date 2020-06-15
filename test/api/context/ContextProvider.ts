@@ -4,6 +4,7 @@ import CentralServerService from '../client/CentralServerService';
 import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import Factory from '../../factories/Factory';
+import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
 import SiteContext from './SiteContext';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
@@ -132,13 +133,13 @@ export default class ContextProvider {
     }
 
     const registrationToken = faker.random.alphaNumeric(10);
-    const unregisteredChargingStation15 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15, ocppVersion: '1.5' });
+    const unregisteredChargingStation15 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15, ocppVersion: OCPPVersion.VERSION_15 });
     await newTenantContext.addChargingStation(unregisteredChargingStation15, registrationToken);
-    const unregisteredChargingStation16 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16, ocppVersion: '1.6' });
+    const unregisteredChargingStation16 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16, ocppVersion: OCPPVersion.VERSION_16 });
     await newTenantContext.addChargingStation(unregisteredChargingStation16, registrationToken);
-    const invalidChargingStation15 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP15, ocppVersion: '1.5' });
+    const invalidChargingStation15 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP15, ocppVersion: OCPPVersion.VERSION_15 });
     await newTenantContext.addChargingStation(invalidChargingStation15);
-    const invalidChargingStation16 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16, ocppVersion: '1.6' });
+    const invalidChargingStation16 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16, ocppVersion: OCPPVersion.VERSION_16 });
     await newTenantContext.addChargingStation(invalidChargingStation16);
 
     return newTenantContext;

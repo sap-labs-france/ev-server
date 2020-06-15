@@ -129,9 +129,7 @@ export default class MongoDBStorage {
     ]);
     await this.handleIndexesInCollection(collections, tenantID, 'consumptions', [
       { fields: { transactionId: 1 } },
-      { fields: { siteID: 1, startedAt: 1 } },
-      { fields: { siteAreaID: 1, startedAt: 1 } },
-      { fields: { transactionId: 1 } }
+      { fields: { siteAreaID: 1, startedAt: 1 } }
     ]);
     Logging.logDebug({
       tenantID: tenantID,
@@ -282,7 +280,7 @@ export default class MongoDBStorage {
   }
 
   private async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string,
-    name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
+    name: string, indexes?: { fields: any; options?: any }[]): Promise<void> {
     // Safety check
     if (!this.db) {
       throw new BackendError({
@@ -309,18 +307,6 @@ export default class MongoDBStorage {
         if (indexes) {
           // Get current indexes
           const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-          // Check each index that should be created
-          for (const index of indexes) {
-            // Create
-            // Check if it exists
-            const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
-            if (!foundIndex) {
-              // Create Indexes
-              console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
-              // eslint-disable-next-line @typescript-eslint/await-thenable
-              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-            }
-          }
           // Check each index that should be dropped
           for (const databaseIndex of databaseIndexes) {
             // Bypass ID
@@ -335,12 +321,23 @@ export default class MongoDBStorage {
               await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
             }
           }
+          // Check each index that should be created
+          for (const index of indexes) {
+            // Create
+            // Check if it exists
+            const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
+            if (!foundIndex) {
+              // Create Indexes
+              console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
+              // eslint-disable-next-line @typescript-eslint/await-thenable
+              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+            }
+          }
         }
       } finally {
         // Release the creation Lock
         await LockingManager.release(createCollection);
       }
     }
-    return false;
   }
 }

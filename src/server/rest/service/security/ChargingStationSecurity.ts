@@ -1,6 +1,6 @@
 import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../types/ChargingProfile';
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
@@ -9,19 +9,13 @@ import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
+import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationSecurity {
-
-  public static filterAssignChargingStationsToSiteAreaRequest(request: any): HttpAssignChargingStationToSiteAreaRequest {
-    return {
-      siteAreaID: sanitize(request.siteAreaID),
-      chargingStationIDs: request.chargingStationIDs.map(sanitize)
-    };
-  }
 
   public static filterChargingStationLimitPowerRequest(request: any): HttpChargingStationLimitPowerRequest {
     return {
@@ -48,13 +42,20 @@ export default class ChargingStationSecurity {
       // Yes: set all params
       filteredChargingStation = chargingStation;
       for (const connector of filteredChargingStation.connectors) {
-        if (connector && filteredChargingStation.inactive) {
-          connector.status = ChargePointStatus.UNAVAILABLE;
-          connector.currentConsumption = 0;
-          connector.totalConsumption = 0;
-          connector.totalInactivitySecs = 0;
-          connector.inactivityStatus = InactivityStatus.INFO;
-          connector.currentStateOfCharge = 0;
+        if (connector) {
+          // Inactive
+          if (filteredChargingStation.inactive) {
+            connector.status = ChargePointStatus.UNAVAILABLE;
+            connector.currentInstantWatts = 0;
+            connector.currentTotalConsumptionWh = 0;
+            connector.currentTotalInactivitySecs = 0;
+            connector.currentInactivityStatus = InactivityStatus.INFO;
+            connector.currentStateOfCharge = 0;
+          }
+          // Filter User
+          if (connector.user) {
+            connector.user = UserSecurity.filterMinimalUserResponse(connector.user, loggedUser);
+          }
         }
       }
     } else {
@@ -70,21 +71,22 @@ export default class ChargingStationSecurity {
           id: connector.id,
           connectorId: connector.connectorId,
           status: (filteredChargingStation.inactive ? ChargePointStatus.UNAVAILABLE : connector.status),
-          currentConsumption: (filteredChargingStation.inactive ? 0 : connector.currentConsumption),
+          currentInstantWatts: (filteredChargingStation.inactive ? 0 : connector.currentInstantWatts),
           currentStateOfCharge: (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
-          totalConsumption: (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
-          totalInactivitySecs: (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
-          inactivityStatus: connector.inactivityStatus,
-          activeTransactionID: connector.activeTransactionID,
-          activeTransactionDate: connector.activeTransactionDate,
-          activeTagID: connector.activeTagID,
+          currentTotalConsumptionWh: (filteredChargingStation.inactive ? 0 : connector.currentTotalConsumptionWh),
+          currentTotalInactivitySecs: (filteredChargingStation.inactive ? 0 : connector.currentTotalInactivitySecs),
+          currentInactivityStatus: connector.currentInactivityStatus,
+          currentTransactionID: connector.currentTransactionID,
+          currentTransactionDate: connector.currentTransactionDate,
+          currentTagID: connector.currentTagID,
           errorCode: connector.errorCode,
           type: connector.type,
           power: connector.power,
           numberOfConnectedPhase: connector.numberOfConnectedPhase,
           currentType: connector.currentType,
           voltage: connector.voltage,
-          amperage: connector.amperage
+          amperage: connector.amperage,
+          user: UserSecurity.filterMinimalUserResponse(connector.user, loggedUser)
         };
       });
       if (chargingStation.chargePoints) {

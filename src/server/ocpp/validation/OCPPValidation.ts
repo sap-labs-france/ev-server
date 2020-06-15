@@ -67,8 +67,7 @@ export default class OCPPValidation extends SchemaValidator {
   validateStartTransaction(chargingStation: ChargingStation, startTransaction) {
     this.validate(this._startTransactionRequest, startTransaction);
     // Check Connector ID
-    if (!chargingStation.connectors.find(
-      (connector) => connector.connectorId === startTransaction.connectorId)) {
+    if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
       throw new BackendError({
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateStartTransaction',
@@ -106,8 +105,7 @@ export default class OCPPValidation extends SchemaValidator {
       meterValues.connectorId = 1;
     }
     // Check if the transaction ID matches
-    const foundConnector = chargingStation.connectors.find(
-      (connector) => connector.connectorId === meterValues.connectorId);
+    const foundConnector = Utils.getConnectorFromID(chargingStation, meterValues.connectorId);
     if (!foundConnector) {
       Logging.logWarning({
         tenantID: tenantID,
@@ -117,7 +115,7 @@ export default class OCPPValidation extends SchemaValidator {
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
       });
     }
-    const chargerTransactionId = Utils.convertToInt(foundConnector ? foundConnector.activeTransactionID : 0);
+    const chargerTransactionId = Utils.convertToInt(foundConnector ? foundConnector.currentTransactionID : 0);
     // Transaction is provided in MeterValue?
     if (Utils.objectHasProperty(meterValues, 'transactionId')) {
       // Always integer

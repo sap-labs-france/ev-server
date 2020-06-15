@@ -30,12 +30,8 @@ import fs from 'fs';
 import global from './../types/GlobalType';
 import os from 'os';
 
-const {
-  WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
-  WS_DEFAULT_RECONNECT_TIMEOUT = Constants.WS_DEFAULT_RECONNECT_TIMEOUT
-} = {};
 const _appEnv = cfenv.getAppEnv();
-let config = null;
+let config: ConfigurationType = null;
 
 export default class Configuration {
   // Read the config file
@@ -267,8 +263,15 @@ export default class Configuration {
 
   // Central System config
   static getChargingStationConfig(): ChargingStationConfiguration {
-    // Read conf
-    return Configuration.getConfig().ChargingStation;
+    // Read conf and set defaults values
+    const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
+    if (Utils.isUndefined(chargingStationConfiguration.useServerLocalIPForRemoteCommand)) {
+      chargingStationConfiguration.useServerLocalIPForRemoteCommand = false;
+      if (Utils.isUndefined(chargingStationConfiguration.secureLocalServer)) {
+        chargingStationConfiguration.secureLocalServer = false;
+      }
+    }
+    return chargingStationConfiguration;
   }
 
   // Logging
@@ -284,10 +287,10 @@ export default class Configuration {
       Configuration.getConfig().WSClient = {} as WSClientConfiguration;
     }
     if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectMaxRetries)) {
-      Configuration.getConfig().WSClient.autoReconnectMaxRetries = WS_DEFAULT_RECONNECT_MAX_RETRIES;
+      Configuration.getConfig().WSClient.autoReconnectMaxRetries = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES;
     }
     if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectTimeout)) {
-      Configuration.getConfig().WSClient.autoReconnectTimeout = WS_DEFAULT_RECONNECT_TIMEOUT;
+      Configuration.getConfig().WSClient.autoReconnectTimeout = Constants.WS_DEFAULT_RECONNECT_TIMEOUT;
     }
     return Configuration.getConfig().WSClient;
   }

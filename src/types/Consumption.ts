@@ -9,14 +9,27 @@ export default interface Consumption {
   connectorId: number;
   siteAreaID: string;
   siteID: string;
-  consumption: number;
+  consumptionWh: number;
+  consumptionAmps: number;
   cumulatedAmount: number;
-  cumulatedConsumption: number;
+  cumulatedConsumptionWh: number;
+  cumulatedConsumptionAmps: number;
   pricingSource: string;
   amount: number;
   roundedAmount: number;
   currencyCode: string;
-  instantPower: number;
+  instantWatts: number;
+  instantAmps: number;
+  voltage: number;
+  voltageL1: number;
+  voltageL2: number;
+  voltageL3: number;
+  voltageDC: number;
+  amperage: number;
+  amperageL1: number;
+  amperageL2: number;
+  amperageL3: number;
+  amperageDC: number;
   totalInactivitySecs: number;
   totalDurationSecs: number;
   stateOfCharge: number;
@@ -28,4 +41,5 @@ export default interface Consumption {
   limitSiteAreaAmps?: number;
   limitSiteAreaWatts?: number;
   limitSiteAreaSource?: SiteAreaLimitSource;
+  smartChargingActive?: boolean;
 }

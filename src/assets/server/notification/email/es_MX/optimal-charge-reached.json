@@ -1,0 +1,38 @@
+{
+  "subject": "Carga óptima alcanzada",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Carga óptima alcanzada",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Hola <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Su vehículo eléctrico, que está conectado a <b> '<% - chargeBoxID%>' </b>, conector <b> '<% - connectorId%>' </b>, ha alcanzado su carga óptima."
+    ],
+    "stats": [
+      { "label": "Nivel de batería", "value": "<%- stateOfCharge %> %" }
+    ],
+    "action": {
+      "title": "Ver sesión",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
+    "afterActionLines": [
+      "Atentamente,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

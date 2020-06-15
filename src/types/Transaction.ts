@@ -1,6 +1,5 @@
-import { ChargePointStatus, OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
-
 import { BillingTransactionData } from './Billing';
+import { ChargePointStatus } from './ocpp/OCPPServer';
 import ChargingStation from '../types/ChargingStation';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
@@ -37,22 +36,22 @@ export default interface Transaction {
   signedData?: any;
   user?: User;
   stop?: {
+    timestamp: Date;
+    meterStop: number;
     tagID: string;
     userID: string;
     user?: User;
-    meterStop: number;
     price?: number;
     roundedPrice?: number;
     priceUnit?: string;
     pricingSource?: string;
-    stateOfCharge: number;
-    totalInactivitySecs: number;
+    stateOfCharge?: number;
+    totalInactivitySecs?: number;
     extraInactivitySecs?: number;
     extraInactivityComputed?: boolean;
-    totalConsumption: number;
-    totalDurationSecs: number;
+    totalConsumptionWh?: number;
+    totalDurationSecs?: number;
     inactivityStatus?: InactivityStatus;
-    timestamp: Date;
     transactionData?: any;
     signedData?: any;
   };
@@ -62,7 +61,10 @@ export default interface Transaction {
     userID: string;
   };
   refundData?: RefundTransactionData;
-  lastMeterValue?: Partial<OCPPNormalizedMeterValue>;
+  lastEnergyActiveImportMeterValue?: {
+    value: number;
+    timestamp: Date;
+  };
   chargeBox?: ChargingStation;
   meterStart: number;
   timestamp: Date;
@@ -72,18 +74,28 @@ export default interface Transaction {
   pricingSource?: string;
   stateOfCharge: number;
   timezone: string;
-  lastUpdate?: Date;
+  currentTimestamp?: Date;
   currentTotalInactivitySecs: number;
   currentInactivityStatus?: InactivityStatus;
   currentStateOfCharge: number;
   currentTotalDurationSecs?: number;
-  status?: ChargePointStatus;
-  numberOfMeterValues: number;
-  currentConsumption: number;
+  currentInstantWatts: number;
+  currentVoltage?: number;
+  currentVoltageL1?: number;
+  currentVoltageL2?: number;
+  currentVoltageL3?: number;
+  currentVoltageDC?: number;
+  currentAmperage?: number;
+  currentAmperageL1?: number;
+  currentAmperageL2?: number;
+  currentAmperageL3?: number;
+  currentAmperageDC?: number;
   currentConsumptionWh?: number;
   currentCumulatedPrice?: number;
-  currentTotalConsumption: number;
+  currentTotalConsumptionWh: number;
   currentSignedData?: string;
+  status?: ChargePointStatus;
+  numberOfMeterValues: number;
   uniqueId?: string;
   values?: TransactionConsumption[];
   billingData?: BillingTransactionData;
@@ -97,9 +109,22 @@ export default interface Transaction {
 
 export interface TransactionConsumption {
   date: Date;
-  instantPower: number;
+  instantWatts: number;
+  instantAmps: number;
   limitWatts: number;
-  cumulatedConsumption: number;
+  limitAmps: number;
+  cumulatedConsumptionWh: number;
+  cumulatedConsumptionAmps: number;
   stateOfCharge: number;
   cumulatedAmount: number;
+  voltage: number;
+  voltageL1: number;
+  voltageL2: number;
+  voltageL3: number;
+  voltageDC: number;
+  amperage: number;
+  amperageL1: number;
+  amperageL2: number;
+  amperageL3: number;
+  amperageDC: number;
 }

@@ -2,7 +2,7 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 import User from '../User';
 
 export interface HttpUserRequest extends Partial<User> {
-  passwords: {password?: string};
+  passwords: { password?: string };
 }
 
 export interface HttpSynchronizeUserRequest {
@@ -51,6 +51,9 @@ export interface HttpResetPasswordRequest {
   email: string;
   tenant: string;
   captcha: string;
+  passwords: { password: string, repeatPassword: string }; // Frontend...
+  password?: string;
+  repeatPassword?: string;
   hash: string;
 }
 export interface HttpCheckEulaRequest {
@@ -60,9 +63,10 @@ export interface HttpCheckEulaRequest {
 export interface HttpRegisterUserRequest extends HttpLoginRequest {
   name: string;
   firstName: string;
+  passwords: { password: string }; // Frontend...
   captcha: string;
   status: string;
-  passwords: {password: string}; // Frontend...
+  locale: string;
 }
 
 export interface HttpVerifyEmailRequest {

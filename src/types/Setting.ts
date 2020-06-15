@@ -8,7 +8,6 @@ export interface Setting {
   category?: 'business' | 'technical';
 }
 
-// Database Settings interface
 export interface SettingDB extends CreatedUpdatedProps, Setting {
   content: SettingDBContent;
 }
@@ -21,9 +20,8 @@ export interface SettingLink {
   url: string;
 }
 
-// Database Settings Content interface
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -32,6 +30,7 @@ export interface SettingDBContent {
   links?: SettingLink[];
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
+  asset?: AssetSetting;
 }
 
 export enum PricingSettingsType {
@@ -46,7 +45,13 @@ export interface PricingSettings extends Setting {
   convergentCharging?: ConvergentChargingPricingSetting;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PricingSetting {
+}
+
+export enum PricingContentType {
+  SIMPLE = 'simple',
+  CONVERGENT_CHARGING = 'convergentCharging',
 }
 
 export interface SimplePricingSetting extends PricingSetting {
@@ -121,7 +126,12 @@ export interface SmartChargingSettings extends Setting {
   sapSmartCharging?: SapSmartChargingSetting;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SmartChargingSetting {
+}
+
+export enum SmartChargingContentType {
+  SAP_SMART_CHARGING = 'sapSmartCharging',
 }
 
 export interface SapSmartChargingSetting extends SmartChargingSetting {
@@ -140,8 +150,10 @@ export interface RefundSettings extends Setting {
   concur?: ConcurRefundSetting;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface RefundSetting {
 }
+
 export interface ConcurRefundSetting extends RefundSetting {
   authenticationUrl: string;
   apiUrl: string;
@@ -181,30 +193,42 @@ export interface StripeBillingSetting extends BillingSetting {
   taxID: string;
 }
 
-export interface AssetSettings extends Setting {
-  identifier: TenantComponents.ASSET;
-  type: AssetSettingsType;
-}
-
-export enum AssetSettingsType {
-}
-
-export enum PricingContentType {
-  SIMPLE = 'simple',
-  CONVERGENT_CHARGING = 'convergentCharging',
-}
-
-export enum RefundContentType {
-  CONCUR = 'concur',
-  GIREVE = 'gireve',
-  OCPI = 'ocpi',
-  SAC = 'sac',
-}
-
 export enum BillingContentType {
   STRIPE = 'stripe',
 }
 
-export enum SmartChargingContentType {
-  SAP_SMART_CHARGING = 'sapSmartCharging',
+export interface AssetSettings extends Setting {
+  identifier: TenantComponents.ASSET;
+  type: AssetSettingsType;
+  asset?: AssetSetting;
+}
+
+export enum AssetSettingsType {
+  ASSET = 'asset',
+}
+
+export interface AssetSetting {
+  connections: AssetConnectionSetting[];
+}
+
+export interface AssetConnectionSetting {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  type: AssetConnectionType;
+  connection?: AssetSchneiderConnectionType;
+}
+
+export enum AssetConnectionType {
+  SCHNEIDER = 'schneider',
+}
+
+export interface AssetUserPasswordConnectionType {
+  user: string;
+  password: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
 }

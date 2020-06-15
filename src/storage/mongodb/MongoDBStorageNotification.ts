@@ -64,9 +64,15 @@ export default class MongoDBStorageNotification {
     if (this.dbConfig.monitorDBChange) {
       // Check
       if (!this.centralRestServer) {
+        // Log
+        Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.STARTUP,
+          module: MODULE_NAME, method: 'start',
+          message: `Error starting to monitor changes on database '${this.dbConfig.implementation}': REST server attribute not initialized`
+        });
         return;
       }
-
       const dbChangeStream = global.database.watch(_pipeline, _options);
       dbChangeStream.on('change', (change: { [key: string]: any }) => {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
@@ -83,18 +89,15 @@ export default class MongoDBStorageNotification {
         }
         this.handleCollectionChange(tenantID, collection, documentID, action, change);
       });
-
       dbChangeStream.on('error', (error: Error) => {
         MongoDBStorageNotification.handleDBChangeStreamError(error);
       });
-
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
         message: `Starting to monitor changes on database '${this.dbConfig.implementation}'...`
       });
-
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',

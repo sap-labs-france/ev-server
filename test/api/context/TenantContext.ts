@@ -5,6 +5,7 @@ import Factory from '../../factories/Factory';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPService from '../ocpp/OCPPService';
+import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
 import Tenant from '../../types/Tenant';
@@ -67,9 +68,9 @@ export default class TenantContext {
     if (!this.ocpp15 || !this.ocpp16 || token) {
       await this.initialize(token);
     }
-    if (ocppVersion === '1.6') {
+    if (ocppVersion === OCPPVersion.VERSION_16) {
       return this.ocpp16;
-    } else if (ocppVersion === '1.5') {
+    } else if (ocppVersion === OCPPVersion.VERSION_15) {
       return this.ocpp15;
     }
     throw new Error('unknown ocpp version');
@@ -242,9 +243,9 @@ export default class TenantContext {
     const ocppService = await this.getOCPPService(ocppVersion);
     const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
     // Check
-    expect(response.data).to.not.be.null;
-    expect(response.data.status).to.eql('Accepted');
-    expect(response.data).to.have.property('currentTime');
+    expect(response).to.not.be.null;
+    expect(response.status).to.eql('Accepted');
+    expect(response).to.have.property('currentTime');
     let createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     expect(createdChargingStation.maximumPower).to.eql(44160);
@@ -267,21 +268,34 @@ export default class TenantContext {
     // Charging Station
     expect(createdChargingStation.voltage).to.eql(230);
     // Connectors
-    expect(createdChargingStation.connectors.length).to.eql(2);
-    expect(createdChargingStation.connectors[0].power).to.eql(22080);
-    expect(createdChargingStation.connectors[0].amperage).to.eql(96);
-    expect(createdChargingStation.connectors[0].type).to.eql('T2');
-    expect(createdChargingStation.connectors[1].power).to.eql(22080);
-    expect(createdChargingStation.connectors[1].amperage).to.eql(96);
-    expect(createdChargingStation.connectors[1].type).to.eql('T2');
+    expect(createdChargingStation.connectors.length).to.eql(2,
+      `Number of connector of charging station ${createdChargingStation.id} must be 2`);
+    expect(createdChargingStation.connectors[0].power).to.eql(22080,
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have 22080 W`);
+    expect(createdChargingStation.connectors[0].amperage).to.eql(96,
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have 96 A`);
+    expect(createdChargingStation.connectors[0].type).to.eql('T2',
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    expect(createdChargingStation.connectors[1].power).to.eql(22080,
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have 22080 W`);
+    expect(createdChargingStation.connectors[1].amperage).to.eql(96,
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have 96 A`);
+    expect(createdChargingStation.connectors[1].type).to.eql('T2',
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have Type 2 connector`);
     // Charge Points
-    expect(createdChargingStation.chargePoints.length).to.eql(1);
+    expect(createdChargingStation.chargePoints.length).to.eql(1,
+      `Number of charge point of charging station ${createdChargingStation.id} must be 1`);
     expect(createdChargingStation.chargePoints[0].currentType).to.eql('AC');
-    expect(createdChargingStation.chargePoints[0].numberOfConnectedPhase).to.eql(3);
-    expect(createdChargingStation.chargePoints[0].cannotChargeInParallel).to.eql(false);
-    expect(createdChargingStation.chargePoints[0].sharePowerToAllConnectors).to.eql(false);
-    expect(createdChargingStation.chargePoints[0].excludeFromPowerLimitation).to.eql(false);
-    expect(createdChargingStation.chargePoints[0].ocppParamForPowerLimitation).to.eql('maxintensitysocket');
+    expect(createdChargingStation.chargePoints[0].numberOfConnectedPhase).to.eql(3,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} must have 3 phases`);
+    expect(createdChargingStation.chargePoints[0].cannotChargeInParallel).to.eql(false,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot charge in parallel`);
+    expect(createdChargingStation.chargePoints[0].sharePowerToAllConnectors).to.eql(false,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot share power`);
+    expect(createdChargingStation.chargePoints[0].excludeFromPowerLimitation).to.eql(false,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot be excluded from power limitation`);
+    expect(createdChargingStation.chargePoints[0].ocppParamForPowerLimitation).to.eql('maxintensitysocket',
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} must have OCPP param 'maxintensitysocket'`);
     // Assign to Site Area
     if (siteArea) {
       createdChargingStation.siteAreaID = siteArea.id;

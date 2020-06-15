@@ -470,7 +470,8 @@ export default class OCPPStorage {
           module: MODULE_NAME, method: 'saveMeterValues',
           action: ServerAction.METER_VALUES,
           message: 'An error occurred while trying to save the meter value',
-          detailedMessages: { error: error.message, stack: error.stack, meterValue: meterValueToSave }
+          detailedMessages: { error: error.message, stack: error.stack, meterValue: meterValueToSave,
+            meterValues: meterValuesToSave }
         });
       }
     }

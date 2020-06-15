@@ -1,7 +1,6 @@
 import { RefundSetting, RefundSettingsType } from '../../types/Setting';
 
 import ConcurRefundIntegration from './export/concur';
-import Constants from '../../utils/Constants';
 import DummyRefundIntegration from './dummy/DummyRefundIntegration';
 import Logging from '../../utils/Logging';
 import RefundIntegration from './RefundIntegration';
@@ -25,7 +24,7 @@ export default class RefundFactory {
         let refundIntegrationImpl = null;
         switch (setting.type) {
           case RefundSettingsType.CONCUR:
-            refundIntegrationImpl = new ConcurRefundIntegration(tenantID, setting[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+            refundIntegrationImpl = new ConcurRefundIntegration(tenantID, setting[RefundSettingsType.CONCUR]);
             break;
         }
         // Check if missing implementation

@@ -1,8 +1,8 @@
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
+import { MessageType } from '../../../types/WebSocket';
 import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
 import WebSocket from 'ws';
@@ -17,7 +17,7 @@ export default class JsonRestWSConnection extends WSConnection {
     super(wsConnection, req, wsServer);
   }
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     // Already initialized?
     if (!this.initialized) {
       // Call super class
@@ -35,7 +35,7 @@ export default class JsonRestWSConnection extends WSConnection {
     }
   }
 
-  public onError(event: Event) {
+  public onError(event: Event): void {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
@@ -45,22 +45,20 @@ export default class JsonRestWSConnection extends WSConnection {
     });
   }
 
-  public onClose(closeEvent: CloseEvent) {
+  public onClose(closeEvent: CloseEvent): void {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,
-      message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
+      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent.code}'`
     });
     // Remove the connection
     this.wsServer.removeRestConnection(this);
   }
 
-  public async handleRequest(messageId, commandName, commandPayload) {
-    // Log
-    Logging.logSendAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?
@@ -75,7 +73,7 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient = global.centralSystemJson.getChargingStationClient(this.getTenantID(), chargingStation.id);
+    const chargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), chargingStation.id);
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),
@@ -93,10 +91,8 @@ export default class JsonRestWSConnection extends WSConnection {
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method
       result = await chargingStationClient[actionMethod](commandPayload);
-      // Log
-      Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
-      await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
+      await this.sendMessage(messageId, result, MessageType.RESULT_MESSAGE);
     } else {
       // Error
       throw new BackendError({
