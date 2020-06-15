@@ -184,7 +184,7 @@ export default class Authorizations {
     return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Action.REMOTE_START_TRANSACTION);
   }
 
-  public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagId: string) {
+  public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagId: string): Promise<{ user: User, alternateUser: User }> {
     let user: User, alternateUser: User;
     // Check if same user
     if (tagId !== transaction.tagID) {
