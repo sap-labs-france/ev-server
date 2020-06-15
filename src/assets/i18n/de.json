@@ -1,0 +1,71 @@
+{
+  "notifications": {
+    "sessionNotStarted": {
+      "title": "Der Ladevorgang wurde nicht gestartet",
+      "body": "Sie haben sich an der Ladestation '{{chargeBoxID}}' authentifiziert, aber es konnte kein Ladevorgang gestartet werden"
+    },
+		"sessionStarted": {
+			"title": "Ladevorgang gestartet",
+			"body": "Ihr Ladevorgang an der Ladestation '{{chargeBoxID}}', Ladepunkt '{{connectorId}}' wurde erfolgreich gestartet. Organsation: '{{tenantName}}'"
+		},
+		"ocpiPatchChargingStationsStatusesError": {
+			"title": "Sende Roaming Status",
+			"body": "Der Status der Ladestation konnte nicht zur Roaming-Plattform übermittelt werden. Ort: '{{location}}' Organisation: '{{tenantName}}', überprüfen Sie die Logs"
+		},
+		"smtpAuthError": {
+			"title": "Email Server Error",
+			"body": "Die Authentizifierung gegen den ursprünglichen E-Mail Server ist fehlgeschlagen. Organisation: '{{tenantName}}', überprüfen Sie die Einstellungen"
+		},
+		"optimalChargeReached": {
+			"title": "Optimale Ladung erreicht",
+			"body": "Ihr Elektroauto, verbunden mit Ladestation '{{chargeBoxID}}', Ladepunkt '{{connectorId}}', hat die optimale Ladung (85%) erreicht. Organisation: '{{tenantName}}'"
+		},
+		"endOfCharge": {
+			"title": "Laden abgeschlossen",
+			"body": "Ihr Elektroauto, verbunden mit Ladestation '{{chargeBoxID}}', Ladepunkt '{{connectorId}}', hat gerade das Laden abgeschlossen. Organisation: '{{tenantName}}'"
+		},
+		"endOfSession": {
+			"title": "Ladevorgang abgeschlossen",
+			"body": "Ihr Ladevorgang an der Ladestation '{{chargeBoxID}}', Ladepunkt '{{connectorId}}' wurde gerade abgeschlossen. Organisation: '{{tenantName}}'"
+		},
+		"chargingStationStatusError": {
+			"title": "Fehler an Ladestation",
+			"body": "Fehler aufgetreten an Ladestation '{{chargeBoxID}}', Ladepunkt '{{connectorId}}'. Organisation: '{{tenantName}}': {{error}}"
+		},
+		"unknownUserBadged": {
+			"title": "Unbekannter Benutzer",
+			"body": "Ein unbekannter Benutzer hat sich an Ladestation '{{chargeBoxID}}' mit der ID '{{badgeID}}' authentifiziert. Organisation: '{{tenantName}}'"
+		},
+		"chargingStationRegistered": {
+			"title": "Ladestation verbunden",
+			"body": "Die Ladestation '{{chargeBoxID}}' wurde gerade mit dem zentralen Server verbunden. Organisation: '{{tenantName}}'"
+		},
+		"userAccountStatusChanged": {
+			"title": "Konto {{status}}",
+			"activated": "aktiviert",
+			"suspended": "deaktiviert",
+			"body": "Ihr Konto wurde von einem Administrator {{status}}. Organisation: '{{tenantName}}'"
+		},
+		"userAccountInactivity": {
+			"title": "Benutzerkonto",
+			"body": "Ihr Benutzerkonto ist inaktiv seit {{lastLogin}}. Organisation: '{{tenantName}}'. Bitte nehmen Sie zur Kenntnis, dass aus Compliance Gründen Benutzerkonten nach 6 monatiger Inaktivität gelöscht werden."
+		},
+		"preparingSessionNotStarted": {
+			"title": "Ladevorgang nicht gestartet",
+			"body": "Der Ladevorgang an Ladestation '{{chargeBoxID}}', Ladepunkt '{{connectorId}}' wurde nicht gestartet. Organisation: '{{tenantName}}'"
+		},
+		"offlineChargingStation": {
+			"title": "Ladestation offline",
+			"body": "Folgende Ladestationen sind offline. Organisation: '{{tenantName}}': {{chargeBoxIDs}}"
+		},
+    "billingUserSynchronizationFailed": {
+      "title": "Benutzer Synchro fehlgeschlagen",
+      "body": "Die Synchronisation der Benutzer(n) {{nbrUsersInError}} mit dem Bezahl-Dienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
+    }
+	},
+  "billing": {
+    "generatedUser": "Erstellter Benutzer für '{{email}}'",
+    "chargingStopSiteArea": "Ladung von {{totalConsumption}} kWh, Ort: {{siteArea}} (beendet um {{time}})",
+    "chargingStopChargeBox": "Ladung von {{totalConsumption}} kWh an Ladestation {{chargeBox}} (beendet um {{time}})"
+  }
+}
