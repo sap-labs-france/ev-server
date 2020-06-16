@@ -22,6 +22,7 @@ import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
 import cluster from 'cluster';
 import global from './types/GlobalType';
+import OCPPUtils from './server/ocpp/utils/OCPPUtils';
 
 const MODULE_NAME = 'Bootstrap';
 
@@ -99,6 +100,7 @@ export default class Bootstrap {
           message: logMsg
         });
         Bootstrap.databaseDone = true;
+        await OCPPUtils.recomputeTransactionConsumptions('5be7fb271014d90008992f06', 1180652495);
       }
       if (cluster.isMaster && !Bootstrap.migrationDone && Bootstrap.migrationConfig.active) {
         // Check and trigger migration (only master process can run the migration)
