@@ -13,6 +13,7 @@ import MongoDBStorage from './storage/mongodb/MongoDBStorage';
 import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
 import OCPIServer from './server/ocpi/OCPIServer';
 import OCPIServiceConfiguration from './types/configuration/OCPIServiceConfiguration';
+import OCPPUtils from './server/ocpp/utils/OCPPUtils';
 import ODataServer from './server/odata/ODataServer';
 import ODataServiceConfiguration from './types/configuration/ODataServiceConfiguration';
 import SchedulerManager from './scheduler/SchedulerManager';
@@ -22,7 +23,6 @@ import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
 import cluster from 'cluster';
 import global from './types/GlobalType';
-import OCPPUtils from './server/ocpp/utils/OCPPUtils';
 
 const MODULE_NAME = 'Bootstrap';
 

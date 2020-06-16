@@ -19,6 +19,7 @@ import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
+import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
 import { ServerAction } from '../types/Server';
@@ -29,7 +30,6 @@ import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjec
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
 import cluster from 'cluster';
 import moment from 'moment';
-import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
 
 const MODULE_NAME = 'MigrationHandler';
 
