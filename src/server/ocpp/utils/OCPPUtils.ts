@@ -1,7 +1,7 @@
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
@@ -34,7 +34,7 @@ import moment from 'moment';
 const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
-  public static async priceTransaction(tenantID: string, transaction: Transaction, consumption: Consumption, action: TransactionAction) {
+  public static async priceTransaction(tenantID: string, transaction: Transaction, consumption: Consumption, action: TransactionAction): Promise<void> {
     let pricedConsumption: PricedConsumption;
     // Get the pricing impl
     const pricingImpl = await PricingFactory.getPricingImpl(tenantID);
@@ -101,7 +101,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static async billTransaction(tenantID: string, transaction: Transaction, action: TransactionAction) {
+  public static async billTransaction(tenantID: string, transaction: Transaction, action: TransactionAction): Promise<void> {
     let billingDataStop: BillingDataTransactionStop;
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
@@ -137,7 +137,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static assertConsistencyInConsumption(chargingStation: ChargingStation, connectorID: number, consumption: Consumption) {
+  public static assertConsistencyInConsumption(chargingStation: ChargingStation, connectorID: number, consumption: Consumption): void {
     // Check Total Power with Meter Value Power L1, L2, L3
     if (consumption.instantWattsL1 > 0 || consumption.instantWattsL2 > 0 || consumption.instantWattsL3 > 0) {
       // Check total Power with L1/l2/L3
@@ -218,7 +218,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static updateTransactionWithConsumption(chargingStation: ChargingStation, transaction: Transaction, consumption: Consumption) {
+  public static updateTransactionWithConsumption(chargingStation: ChargingStation, transaction: Transaction, consumption: Consumption): void {
     // Set Consumption (currentTotalConsumptionWh, currentTotalInactivitySecs are updated in consumption creation)
     transaction.currentConsumptionWh = Utils.convertToFloat(consumption.consumptionWh);
     transaction.currentInstantWatts = Utils.convertToFloat(consumption.instantWatts);
@@ -365,7 +365,7 @@ export default class OCPPUtils {
   }
 
   public static updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
-    user: User, alternateUser: User, tagId: string) {
+    user: User, alternateUser: User, tagId: string): void {
     // Set final data
     transaction.stop = {
       meterStop: stopTransaction.meterStop,
@@ -546,6 +546,7 @@ export default class OCPPUtils {
           }
         }
       }
+      // FIXME: Remove debug log or consolidate logging in DB
       if ((new Date().getTime() - timeFrom) > 500) {
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         console.log(i + ` - Meter Value handled in ${new Date().getTime() - timeFrom}ms : ${JSON.stringify(meterValue)}`);
@@ -709,7 +710,7 @@ export default class OCPPUtils {
   }
 
   public static async addConnectorLimitationToConsumption(tenantID: string, chargingStation: ChargingStation,
-    connectorID: number, consumption: Consumption) {
+    connectorID: number, consumption: Consumption): Promise<void> {
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (chargingStationVendor) {
       // Get current limitation
@@ -729,7 +730,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption) {
+  public static async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption): Promise<void> {
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
       // Get limit of the site area
@@ -1072,7 +1073,7 @@ export default class OCPPUtils {
     return actionsResponse;
   }
 
-  public static async clearAndDeleteChargingProfile(tenantID: string, chargingProfile: ChargingProfile) {
+  public static async clearAndDeleteChargingProfile(tenantID: string, chargingProfile: ChargingProfile): Promise<void> {
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     // Check if Charging Profile is supported
@@ -1095,7 +1096,7 @@ export default class OCPPUtils {
       });
     }
     // Clear Charging Profile
-    // Do not check the result beacause:
+    // Do not check the result because:
     // 1\ Charging Profile exists and has been deleted: Status = ACCEPTED
     // 2\ Charging Profile does not exist : Status = UNKNOWN
     // As there are only 2 statuses, testing them is not necessary
@@ -1185,7 +1186,7 @@ export default class OCPPUtils {
     return chargingProfileID;
   }
 
-  static isValidMeterValue(meterValue: OCPPNormalizedMeterValue) {
+  static isValidMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return OCPPUtils.isSocMeterValue(meterValue) ||
       OCPPUtils.isEnergyActiveImportMeterValue(meterValue) ||
       OCPPUtils.isPowerActiveImportMeterValue(meterValue) ||
@@ -1193,32 +1194,32 @@ export default class OCPPUtils {
       OCPPUtils.isVoltageMeterValue(meterValue);
   }
 
-  static isSocMeterValue(meterValue: OCPPNormalizedMeterValue) {
+  static isSocMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return meterValue.attribute
       && meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC
       && meterValue.attribute.measurand === OCPPMeasurand.STATE_OF_CHARGE;
   }
 
-  static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue) {
+  static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER &&
       (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK));
   }
 
-  static isPowerActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue) {
+  static isPowerActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.POWER_ACTIVE_IMPORT &&
        meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static isCurrentImportMeterValue(meterValue: OCPPNormalizedMeterValue) {
+  static isCurrentImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.CURRENT_IMPORT &&
        meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static isVoltageMeterValue(meterValue: OCPPNormalizedMeterValue) {
+  static isVoltageMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.VOLTAGE &&
        meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
@@ -1435,7 +1436,7 @@ export default class OCPPUtils {
   }
 
   public static async requestChangeChargingStationOcppParameters(
-    tenantID: string, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam) {
+    tenantID: string, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -1458,7 +1459,7 @@ export default class OCPPUtils {
   }
 
   public static async requestChargingStationOcppParameters(
-    tenantID: string, chargingStation: ChargingStation, params: OCPPGetConfigurationCommandParam) {
+    tenantID: string, chargingStation: ChargingStation, params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     // Get the configuration
@@ -1467,7 +1468,7 @@ export default class OCPPUtils {
     return result;
   }
 
-  public static checkAndFreeChargingStationConnector(chargingStation: ChargingStation, connectorId: number) {
+  public static checkAndFreeChargingStationConnector(chargingStation: ChargingStation, connectorId: number): void {
     // Cleanup connector transaction data
     const foundConnector = Utils.getConnectorFromID(chargingStation, connectorId);
     if (foundConnector) {
