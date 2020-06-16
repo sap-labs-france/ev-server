@@ -9,7 +9,7 @@ import WebastoChargingStationVendorIntegration from './webasto/WebastoChargingSt
 export default class ChargingStationVendorFactory {
 
   static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
-    let chargingStationVendorImpl = null;
+    let chargingStationVendorImpl: ChargingStationVendorIntegration = null;
     switch (chargingStation.chargePointVendor) {
       case ChargerVendor.SCHNEIDER:
         chargingStationVendorImpl = new SchneiderChargingStationVendorIntegration(chargingStation);
