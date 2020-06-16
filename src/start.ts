@@ -22,6 +22,7 @@ import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
 import cluster from 'cluster';
 import global from './types/GlobalType';
+import OCPPUtils from './server/ocpp/utils/OCPPUtils';
 
 const MODULE_NAME = 'Bootstrap';
 

@@ -1,4 +1,5 @@
 import { Action, Entity } from '../../types/Authorization';
+import SingleChangeNotification, { NotificationData } from '../../types/SingleChangeNotification';
 import express, { NextFunction, Request, Response } from 'express';
 
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
@@ -12,7 +13,6 @@ import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SessionHashService from './service/SessionHashService';
-import SingleChangeNotification, { NotificationData } from '../../types/SingleChangeNotification';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
@@ -99,15 +99,15 @@ export default class CentralRestServer {
 
   startSocketIO(): void {
     // Log
-    const logMsg = 'Starting REST SocketIO Server...';
+    const logMsg = 'Starting REST SocketIO Server';
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME, method: 'startSocketIO',
       action: ServerAction.STARTUP,
-      message: logMsg
+      message: logMsg + '...'
     });
     // eslint-disable-next-line no-console
-    console.log(`Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master...'}`);
+    console.log(`${logMsg} ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master...'}`);
     // Init Socket IO
     CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 15000, pingInterval: 30000 });
     CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {

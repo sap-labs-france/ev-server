@@ -496,8 +496,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate> {
     try {
-      // Check Stripe
-      await this.checkConnection();
       // Check User
       if (!transaction.userID || !transaction.user) {
         throw new BackendError({

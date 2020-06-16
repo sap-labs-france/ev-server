@@ -188,7 +188,7 @@ export default class Constants {
     phase: OCPPPhase.L3,
   };
 
-  public static readonly OCPP_CURRENT_ATTRIBUTE: OCPPAttribute = {
+  public static readonly OCPP_CURRENT_IMPORT_ATTRIBUTE: OCPPAttribute = {
     format: OCPPValueFormat.RAW,
     measurand: OCPPMeasurand.CURRENT_IMPORT,
     unit: OCPPUnitOfMeasure.AMP,
@@ -196,26 +196,41 @@ export default class Constants {
     context: OCPPReadingContext.SAMPLE_PERIODIC
   };
 
-  public static readonly OCPP_CURRENT_L1_ATTRIBUTE: OCPPAttribute = {
-    ...Constants.OCPP_CURRENT_ATTRIBUTE,
+  public static readonly OCPP_CURRENT_IMPORT_L1_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_CURRENT_IMPORT_ATTRIBUTE,
     phase: OCPPPhase.L1,
   };
 
-  public static readonly OCPP_CURRENT_L2_ATTRIBUTE: OCPPAttribute = {
-    ...Constants.OCPP_CURRENT_ATTRIBUTE,
+  public static readonly OCPP_CURRENT_IMPORT_L2_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_CURRENT_IMPORT_ATTRIBUTE,
     phase: OCPPPhase.L2,
   };
 
-  public static readonly OCPP_CURRENT_L3_ATTRIBUTE: OCPPAttribute = {
-    ...Constants.OCPP_CURRENT_ATTRIBUTE,
+  public static readonly OCPP_CURRENT_IMPORT_L3_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_CURRENT_IMPORT_ATTRIBUTE,
     phase: OCPPPhase.L3,
   };
 
-  public static readonly OCPP_POWER_ATTRIBUTE: OCPPAttribute = {
+  public static readonly OCPP_POWER_ACTIVE_IMPORT_ATTRIBUTE: OCPPAttribute = {
     format: OCPPValueFormat.RAW,
     measurand: OCPPMeasurand.POWER_ACTIVE_IMPORT,
     unit: OCPPUnitOfMeasure.WATT,
     location: OCPPLocation.OUTLET,
     context: OCPPReadingContext.SAMPLE_PERIODIC
+  };
+
+  public static readonly OCPP_POWER_ACTIVE_IMPORT_L1_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_POWER_ACTIVE_IMPORT_ATTRIBUTE,
+    phase: OCPPPhase.L1,
+  };
+
+  public static readonly OCPP_POWER_ACTIVE_IMPORT_L2_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_POWER_ACTIVE_IMPORT_ATTRIBUTE,
+    phase: OCPPPhase.L2,
+  };
+
+  public static readonly OCPP_POWER_ACTIVE_IMPORT_L3_ATTRIBUTE: OCPPAttribute = {
+    ...Constants.OCPP_POWER_ACTIVE_IMPORT_ATTRIBUTE,
+    phase: OCPPPhase.L3,
   };
 }

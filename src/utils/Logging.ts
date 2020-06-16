@@ -53,6 +53,8 @@ const obs = new PerformanceObserver((items): void => {
 obs.observe({ entryTypes: ['measure'] });
 
 export default class Logging {
+  private static traceOCPPCalls: { [key: string]: number } = {};
+
   // Log Debug
   public static logDebug(log: Log): void {
     log.level = LogLevel.DEBUG;
@@ -137,6 +139,9 @@ export default class Logging {
   }
 
   public static logReceivedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, payload: any): void {
+    // Keep duration
+    Logging.traceOCPPCalls[`${chargeBoxID}~action`] = new Date().getTime();
+    // Log
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -148,6 +153,7 @@ export default class Logging {
   }
 
   public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, args: any): void {
+    // Log
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -159,12 +165,18 @@ export default class Logging {
   }
 
   public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any): void {
+    // Compute duration if provided
+    let executionDurationSecs: number;
+    if (Logging.traceOCPPCalls[`${chargeBoxID}~action`]) {
+      executionDurationSecs = (new Date().getTime() - Logging.traceOCPPCalls[`${chargeBoxID}~action`]) / 1000;
+      delete Logging.traceOCPPCalls[`${chargeBoxID}~action`];
+    }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
       Logging.logError({
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: '<< OCPP Request Returned',
+        message: `<< OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
         action: action,
         detailedMessages
       });
@@ -173,7 +185,7 @@ export default class Logging {
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: '<< OCPP Request Returned',
+        message: `<< OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
         action: action,
         detailedMessages
       });

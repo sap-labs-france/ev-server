@@ -1,24 +1,23 @@
-import fs from 'fs';
-
-import moment from 'moment';
+import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
+import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 
 import BackendError from '../../exception/BackendError';
-import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
-import DbParams from '../../types/database/DbParams';
+import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
-import global from '../../types/GlobalType';
-import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
 import TenantComponents from '../../types/TenantComponents';
-import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
+import Utils from '../../utils/Utils';
+import fs from 'fs';
+import global from '../../types/GlobalType';
+import moment from 'moment';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -97,12 +96,13 @@ export default class ChargingStationStorage {
     Logging.traceEnd(MODULE_NAME, 'saveChargingStationTemplate', uniqueTimerID);
   }
 
-  public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID): Promise<ChargingStation> {
+  public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
+    params: { includeDeleted?: boolean } = {}): Promise<ChargingStation> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStation');
     // Query single Charging Station
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID,
-      { chargingStationID: id, withSite: true }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { chargingStationID: id, withSite: true, ...params }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getChargingStation', uniqueTimerID, { id });
     return chargingStationsMDB.result[0];
@@ -715,7 +715,8 @@ export default class ChargingStationStorage {
     } else {
       aggregation.push({
         $sort: {
-          connectorID: -1
+          'connectorID': -1,
+          'profile.stackLevel': -1,
         }
       });
     }
