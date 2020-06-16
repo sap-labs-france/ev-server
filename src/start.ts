@@ -100,7 +100,6 @@ export default class Bootstrap {
           message: logMsg
         });
         Bootstrap.databaseDone = true;
-        await OCPPUtils.recomputeTransactionConsumptions('5be7fb271014d90008992f06', 1180652495);
       }
       if (cluster.isMaster && !Bootstrap.migrationDone && Bootstrap.migrationConfig.active) {
         // Check and trigger migration (only master process can run the migration)
