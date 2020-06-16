@@ -22,6 +22,18 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
     await this.deleteConsumptionProperties(tenant);
   }
 
+  getVersion() {
+    return '1.1';
+  }
+
+  getName() {
+    return 'RenameTransactionsAndConsumptionsTask';
+  }
+
+  isAsynchronous() {
+    return true;
+  }
+
   private async deleteConsumptionProperties(tenant: Tenant) {
     const result = await global.database.getCollection<any>(tenant.id, 'consumptions').updateMany(
       { },
@@ -73,17 +85,5 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
         message: `${result.modifiedCount} Consumption(s) have been updated in Tenant '${tenant.name}'`
       });
     }
-  }
-
-  getVersion() {
-    return '1.1';
-  }
-
-  getName() {
-    return 'RenameTransactionsAndConsumptionsTask';
-  }
-
-  isAsynchronous() {
-    return true;
   }
 }

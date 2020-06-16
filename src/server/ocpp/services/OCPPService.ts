@@ -1,48 +1,42 @@
-import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
-import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, SiteAreaLimitSource } from '../../../types/ChargingStation';
-import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
-
-import Authorizations from '../../../authorization/Authorizations';
-import BackendError from '../../../exception/BackendError';
-import { BillingDataTransactionStop } from '../../../types/Billing';
-import BillingFactory from '../../../integration/billing/BillingFactory';
-import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import Configuration from '../../../utils/Configuration';
-import Constants from '../../../utils/Constants';
-import Consumption from '../../../types/Consumption';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
-import I18nManager from '../../../utils/I18nManager';
-import LockingHelper from '../../../locking/LockingHelper';
-import LockingManager from '../../../locking/LockingManager';
-import Logging from '../../../utils/Logging';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import OCPPUtils from '../utils/OCPPUtils';
-import OCPPValidation from '../validation/OCPPValidation';
-import PricingFactory from '../../../integration/pricing/PricingFactory';
-import RegistrationToken from '../../../types/RegistrationToken';
-import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
-import { ServerAction } from '../../../types/Server';
-import SiteArea from '../../../types/SiteArea';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
-import Tenant from '../../../types/Tenant';
-import TenantComponents from '../../../types/TenantComponents';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import Utils from '../../../utils/Utils';
-import UtilsService from '../../rest/service/UtilsService';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
+import Authorizations from '../../../authorization/Authorizations';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import BackendError from '../../../exception/BackendError';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import LockingHelper from '../../../locking/LockingHelper';
+import LockingManager from '../../../locking/LockingManager';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
+import ChargingStation, { ChargerVendor, Connector, ConnectorType, CurrentType } from '../../../types/ChargingStation';
+import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
+import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import RegistrationToken from '../../../types/RegistrationToken';
+import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
+import TenantComponents from '../../../types/TenantComponents';
+import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
+import User from '../../../types/User';
+import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import UtilsService from '../../rest/service/UtilsService';
+import OCPPUtils from '../utils/OCPPUtils';
+import OCPPValidation from '../validation/OCPPValidation';
+
 
 momentDurationFormatSetup(moment as any);
 
@@ -363,17 +357,18 @@ export default class OCPPService {
           // Update Transaction
           this.updateTransactionWithMeterValues(chargingStation, transaction, newMeterValues.values);
           // Create Consumptions
-          const consumptions = await this.createConsumptionsFromMeterValues(headers.tenantID, chargingStation, transaction, newMeterValues.values);
+          const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(
+            headers.tenantID, chargingStation, transaction, newMeterValues.values);
           // Price/Bill Transaction and Save the Consumptions
           for (const consumption of consumptions) {
             // Update Transaction with Consumption
-            this.updateTransactionWithConsumption(chargingStation, transaction, consumption);
+            OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
             // Price & Bill
             if (consumption.toPrice) {
-              await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.UPDATE);
-              await this.billTransaction(headers.tenantID, transaction, TransactionAction.UPDATE);
+              await OCPPUtils.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.UPDATE);
+              await OCPPUtils.billTransaction(headers.tenantID, transaction, TransactionAction.UPDATE);
             }
-            // Save
+            // Save all
             await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
           }
           // Handle OCPI
@@ -413,77 +408,6 @@ export default class OCPPService {
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.METER_VALUES, error);
     }
     return {};
-  }
-
-  public updateTransactionWithConsumption(chargingStation: ChargingStation, transaction: Transaction, consumption: Consumption) {
-    // Set Consumption (currentTotalConsumptionWh, currentTotalInactivitySecs are updated in consumption creation)
-    transaction.currentConsumptionWh = Utils.convertToFloat(consumption.consumptionWh);
-    transaction.currentInstantWatts = Utils.convertToFloat(consumption.instantWatts);
-    transaction.currentVoltage = Utils.convertToFloat(consumption.instantVolts);
-    transaction.currentVoltageL1 = Utils.convertToFloat(consumption.instantVoltsL1);
-    transaction.currentVoltageL2 = Utils.convertToFloat(consumption.instantVoltsL2);
-    transaction.currentVoltageL3 = Utils.convertToFloat(consumption.instantVoltsL3);
-    transaction.currentVoltageDC = Utils.convertToFloat(consumption.instantVoltsDC);
-    transaction.currentAmperage = Utils.convertToFloat(consumption.instantAmps);
-    transaction.currentAmperageL1 = Utils.convertToFloat(consumption.instantAmpsL1);
-    transaction.currentAmperageL2 = Utils.convertToFloat(consumption.instantAmpsL2);
-    transaction.currentAmperageL3 = Utils.convertToFloat(consumption.instantAmpsL3);
-    transaction.currentAmperageDC = Utils.convertToFloat(consumption.instantAmpsDC);
-    transaction.currentTimestamp = Utils.convertToDate(consumption.endedAt);
-    transaction.currentStateOfCharge = Utils.convertToInt(consumption.stateOfCharge);
-    // If Transaction.Begin not provided (Cahors)
-    if (!transaction.stateOfCharge) {
-      transaction.stateOfCharge = Utils.convertToInt(transaction.currentStateOfCharge);
-    }
-    transaction.currentTotalDurationSecs = moment.duration(
-      moment(transaction.lastEnergyActiveImportMeterValue ? transaction.lastEnergyActiveImportMeterValue.timestamp : new Date()).diff(
-        moment(transaction.timestamp))).asSeconds();
-    transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
-      chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs);
-    // Instant Power not present in Meter Value
-    if (!consumption.instantWatts) {
-      // Compute average Instant Power based on consumption over a time period (usually 60s)
-      const diffSecs = moment(consumption.endedAt).diff(consumption.startedAt, 'milliseconds') / 1000;
-      if (consumption.consumptionWh > 0) {
-        const sampleMultiplierWhToWatt = diffSecs > 0 ? 3600 / diffSecs : 0;
-        consumption.instantWatts = consumption.consumptionWh * sampleMultiplierWhToWatt;
-        transaction.currentInstantWatts = consumption.instantWatts;
-      } else {
-        transaction.currentInstantWatts = 0;
-      }
-    }
-    // Instant Amps not present in Meter Value
-    if (!consumption.instantAmps) {
-      // Compute Instant Amps based on Instant Watts
-      if (consumption.instantWatts > 0) {
-        consumption.instantAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.instantWatts);
-        transaction.currentAmperage = consumption.instantAmps;
-      } else {
-        transaction.currentAmperage = 0;
-      }
-    // If Meter Value Current is provided, also L1, L2, L3 should be
-    } else if (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0) {
-      // Check total amps with L1/l2/L3
-      const totalAmps = consumption.instantAmpsL1 + consumption.instantAmpsL2 + consumption.instantAmpsL3;
-      // Tolerance ± 10%
-      const minTotalAmps = totalAmps * 1.1;
-      const maxTotalAmps = totalAmps / 1.1;
-      // Out of bound limits?
-      if (consumption.instantAmps < minTotalAmps || consumption.instantAmps > maxTotalAmps) {
-        // Total amps is wrong: Override
-        consumption.instantAmps = totalAmps;
-      }
-    }
-    // Fill Power per Phase
-    if (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0) {
-      consumption.instantWattsL1 = Utils.convertAmpToWatt(chargingStation, null, transaction.connectorId, consumption.instantAmpsL1);
-      consumption.instantWattsL2 = Utils.convertAmpToWatt(chargingStation, null, transaction.connectorId, consumption.instantAmpsL2);
-      consumption.instantWattsL3 = Utils.convertAmpToWatt(chargingStation, null, transaction.connectorId, consumption.instantAmpsL3);
-    }
-    // Fill Power per Phase
-    if (consumption.instantAmpsDC > 0 && consumption.instantVoltsDC) {
-      consumption.instantWattsDC = consumption.instantAmpsDC * consumption.instantVoltsDC;
-    }
   }
 
   public async handleAuthorize(headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended): Promise<OCPPIdTagInfo> {
@@ -678,7 +602,7 @@ export default class OCPPService {
         user
       };
       // Build first Dummy consumption for pricing the Start Transaction
-      const consumption = await this.createConsumptionFromMeterValue(
+      const consumption = await OCPPUtils.createConsumptionFromMeterValue(
         headers.tenantID, chargingStation, transaction,
         { timestamp: transaction.timestamp, value: transaction.meterStart },
         {
@@ -692,9 +616,9 @@ export default class OCPPService {
         }
       );
       // Price it
-      await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
+      await OCPPUtils.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
       // Billing
-      await this.billTransaction(headers.tenantID, transaction, TransactionAction.START);
+      await OCPPUtils.billTransaction(headers.tenantID, transaction, TransactionAction.START);
       // OCPI
       await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
       // Save it
@@ -850,20 +774,20 @@ export default class OCPPService {
         }
       }
       // Create last meter values
-      const stopMeterValues = this.createTransactionStopMeterValues(transaction, stopTransaction);
+      const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(transaction, stopTransaction);
       // Build final Consumptions
-      const consumptions = await this.createConsumptionsFromMeterValues(
+      const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(
         headers.tenantID, chargingStation, transaction, stopMeterValues);
       // Update
       for (const consumption of consumptions) {
         // Update Transaction with Consumption
-        this.updateTransactionWithConsumption(chargingStation, transaction, consumption);
+        OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
         // Update Transaction with Stop Transaction
-        this.updateTransactionWithStopTransaction(transaction, stopTransaction, user, alternateUser, tagId);
+        OCPPUtils.updateTransactionWithStopTransaction(transaction, stopTransaction, user, alternateUser, tagId);
         // Price & Bill
         if (consumption.toPrice) {
-          await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
-          await this.billTransaction(headers.tenantID, transaction, TransactionAction.STOP);
+          await OCPPUtils.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
+          await OCPPUtils.billTransaction(headers.tenantID, transaction, TransactionAction.STOP);
         }
         // Save Consumption
         await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
@@ -920,107 +844,6 @@ export default class OCPPService {
       // Error
       return { 'status': OCPPAuthorizationStatus.INVALID };
     }
-  }
-
-  private createTransactionStopMeterValues(transaction: Transaction,
-    stopTransaction: OCPPStopTransactionRequestExtended): OCPPNormalizedMeterValue[] {
-    const stopMeterValues: OCPPNormalizedMeterValue[] = [];
-    const meterValueBasedProps = {
-      chargeBoxID: transaction.chargeBoxID,
-      connectorId: transaction.connectorId,
-      transactionId: transaction.id,
-      timestamp: Utils.convertToDate(stopTransaction.timestamp),
-    };
-    let id = 696969;
-    // Energy
-    stopMeterValues.push({
-      id: (id++).toString(),
-      ...meterValueBasedProps,
-      value: stopTransaction.meterStop,
-      attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
-    });
-    // Add SoC
-    if (transaction.currentStateOfCharge > 0) {
-      stopMeterValues.push({
-        id: (id++).toString(),
-        ...meterValueBasedProps,
-        value: transaction.currentStateOfCharge,
-        attribute: Constants.OCPP_SOC_ATTRIBUTE
-      });
-    }
-    // Add Voltage
-    if (transaction.currentVoltage > 0 || transaction.currentVoltageDC > 0) {
-      stopMeterValues.push({
-        id: (id++).toString(),
-        ...meterValueBasedProps,
-        value: (transaction.currentVoltage ? transaction.currentVoltage : transaction.currentVoltageDC),
-        attribute: Constants.OCPP_VOLTAGE_ATTRIBUTE
-      });
-    }
-    // Add Voltage L1
-    if (transaction.currentVoltageL1 > 0) {
-      stopMeterValues.push({
-        id: (id++).toString(),
-        ...meterValueBasedProps,
-        value: transaction.currentVoltageL1,
-        attribute: Constants.OCPP_VOLTAGE_L1_ATTRIBUTE
-      });
-    }
-    // Add Voltage L2
-    if (transaction.currentVoltageL2 > 0) {
-      stopMeterValues.push({
-        id: (id++).toString(),
-        ...meterValueBasedProps,
-        value: transaction.currentVoltageL2,
-        attribute: Constants.OCPP_VOLTAGE_L2_ATTRIBUTE
-      });
-    }
-    // Add Voltage L3
-    if (transaction.currentVoltageL3 > 0) {
-      stopMeterValues.push({
-        id: (id++).toString(),
-        ...meterValueBasedProps,
-        value: transaction.currentVoltageL3,
-        attribute: Constants.OCPP_VOLTAGE_L3_ATTRIBUTE
-      });
-    }
-    // Add Amperage
-    if (transaction.currentAmperage > 0 || transaction.currentAmperageDC > 0) {
-      stopMeterValues.push({
-        id: (id++).toString(),
-        ...meterValueBasedProps,
-        value: (transaction.currentAmperage ? transaction.currentAmperage : transaction.currentAmperageDC),
-        attribute: Constants.OCPP_CURRENT_ATTRIBUTE
-      });
-    }
-    // Add Amperage L1
-    if (transaction.currentAmperageL1 > 0) {
-      stopMeterValues.push({
-        id: (id++).toString(),
-        ...meterValueBasedProps,
-        value: transaction.currentAmperageL1,
-        attribute: Constants.OCPP_CURRENT_L1_ATTRIBUTE
-      });
-    }
-    // Add Amperage L2
-    if (transaction.currentAmperageL2 > 0) {
-      stopMeterValues.push({
-        id: (id++).toString(),
-        ...meterValueBasedProps,
-        value: transaction.currentAmperageL2,
-        attribute: Constants.OCPP_CURRENT_L2_ATTRIBUTE
-      });
-    }
-    // Add Amperage L3
-    if (transaction.currentAmperageL3 > 0) {
-      stopMeterValues.push({
-        id: (id++).toString(),
-        ...meterValueBasedProps,
-        value: transaction.currentAmperageL3,
-        attribute: Constants.OCPP_CURRENT_L3_ATTRIBUTE
-      });
-    }
-    return stopMeterValues;
   }
 
   private async deleteAllTransactionTxProfile(tenantID: string, transaction: Transaction) {
@@ -1278,192 +1101,43 @@ export default class OCPPService {
     }
   }
 
-  private async createConsumptionFromMeterValue(tenantID: string, chargingStation: ChargingStation, transaction: Transaction,
-    lastEnergyActiveImportMeterValue: { value: number; timestamp: Date }, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
-    // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
-    if (OCPPUtils.isValidMeterValue(meterValue)) {
-      // First meter value: Create one based on the transaction
-      if (!lastEnergyActiveImportMeterValue) {
-        lastEnergyActiveImportMeterValue = {
-          timestamp: transaction.timestamp,
-          value: transaction.meterStart,
-        };
-      }
-      // Init
-      const consumption: Consumption = {
-        transactionId: transaction.id,
-        connectorId: transaction.connectorId,
-        chargeBoxID: transaction.chargeBoxID,
-        siteAreaID: transaction.siteAreaID,
-        siteID: transaction.siteID,
-        userID: transaction.userID,
-        endedAt: Utils.convertToDate(meterValue.timestamp),
-      } as Consumption;
-      // Handle SoC (%)
-      if (OCPPUtils.isSocMeterValue(meterValue)) {
-        consumption.stateOfCharge = Utils.convertToFloat(meterValue.value);
-      // Handle Power (W/kW)
-      } else if (OCPPUtils.isPowerActiveImportMeterValue(meterValue)) {
-        // Compute power
-        const powerInMeterValue = Utils.convertToFloat(meterValue.value);
-        consumption.instantWatts = (meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT ?
-          powerInMeterValue * 1000 : powerInMeterValue);
-      // Handle Voltage (V)
-      } else if (OCPPUtils.isVoltageMeterValue(meterValue)) {
-        const voltage = Utils.convertToFloat(meterValue.value);
-        const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-        // AC Charging Station
-        switch (currentType) {
-          case CurrentType.DC:
-            consumption.instantVoltsDC = voltage;
-            break;
-          case CurrentType.AC:
-            switch (meterValue.attribute.phase) {
-              case OCPPPhase.L1:
-                consumption.instantVoltsL1 = voltage;
-                break;
-              case OCPPPhase.L2:
-                consumption.instantVoltsL2 = voltage;
-                break;
-              case OCPPPhase.L3:
-                consumption.instantVoltsL3 = voltage;
-                break;
-              default:
-                consumption.instantVolts = voltage;
-                break;
-            }
-            break;
-        }
-      // Handle Current (A)
-      } else if (OCPPUtils.isCurrentImportMeterValue(meterValue)) {
-        const amperage = Utils.convertToFloat(meterValue.value);
-        const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-        // AC Charging Station
-        switch (currentType) {
-          case CurrentType.DC:
-            consumption.instantAmpsDC = amperage;
-            break;
-          case CurrentType.AC:
-            switch (meterValue.attribute.phase) {
-              case OCPPPhase.L1:
-                consumption.instantAmpsL1 = amperage;
-                break;
-              case OCPPPhase.L2:
-                consumption.instantAmpsL2 = amperage;
-                break;
-              case OCPPPhase.L3:
-                consumption.instantAmpsL3 = amperage;
-                break;
-              default:
-                consumption.instantAmps = amperage;
-                break;
-            }
-            break;
-        }
-      // Handle Consumption (Wh/kWh)
-      } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
-        // Complete consumption
-        consumption.startedAt = Utils.convertToDate(lastEnergyActiveImportMeterValue.timestamp);
-        const diffSecs = moment(meterValue.timestamp).diff(lastEnergyActiveImportMeterValue.timestamp, 'milliseconds') / 1000;
-        // Consumption
-        if (Utils.convertToFloat(meterValue.value) > lastEnergyActiveImportMeterValue.value) {
-          // Compute consumption
-          const consumptionInMeterValue = Utils.convertToFloat(meterValue.value) - Utils.convertToFloat(lastEnergyActiveImportMeterValue.value);
-          // Current consumption
-          consumption.consumptionWh = (meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT_HOUR ?
-            consumptionInMeterValue * 1000 : consumptionInMeterValue);
-          consumption.consumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.consumptionWh);
-          // Cumulated Consumption
-          transaction.currentTotalConsumptionWh += consumption.consumptionWh;
-        // No Consumption
-        } else {
-          consumption.consumptionWh = 0;
-          consumption.consumptionAmps = 0;
-          // Update inactivity
-          transaction.currentTotalInactivitySecs += diffSecs;
-          consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
-        }
-        consumption.cumulatedConsumptionWh = transaction.currentTotalConsumptionWh;
-        consumption.cumulatedConsumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, transaction.currentTotalConsumptionWh);
-        consumption.totalDurationSecs = !transaction.stop ?
-          moment.duration(moment(meterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
-          moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
-        consumption.toPrice = true;
-        // Handle current Connector limitation
-        await this.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
-        // Handle current Site Area limitation
-        await this.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
-        // Keep last one
-        transaction.lastEnergyActiveImportMeterValue = {
-          value: Utils.convertToFloat(meterValue.value),
-          timestamp: Utils.convertToDate(meterValue.timestamp)
-        };
-      }
-      // Return
-      return consumption;
-    }
-  }
-
-  private async addConnectorLimitationToConsumption(tenantID: string, chargingStation: ChargingStation, connectorID: number, consumption: Consumption) {
-    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
-    if (chargingStationVendor) {
-      // Get current limitation
-      const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-      const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-      const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(
-        tenantID, chargingStation, chargePoint, connectorID);
-      consumption.limitAmps = connectorLimit.limitAmps;
-      consumption.limitWatts = connectorLimit.limitWatts;
-      consumption.limitSource = connectorLimit.limitSource;
-    } else {
-      // Default
-      const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-      consumption.limitAmps = connector.amperageLimit;
-      consumption.limitWatts = connector.power;
-      consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
-    }
-  }
-
-  private async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption) {
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-      // Get limit of the site area
-      consumption.limitSiteAreaWatts = 0;
-      // Maximum power of the Site Area provided?
-      if (siteArea.maximumPower) {
-        consumption.limitSiteAreaWatts = siteArea.maximumPower;
-        consumption.limitSiteAreaAmps = Math.round(siteArea.maximumPower / siteArea.voltage);
-        consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
-      } else {
-        // Compute it for Charging Stations
-        const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_MAX_LIMIT);
-        for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
-          for (const connector of chargingStationOfSiteArea.connectors) {
-            consumption.limitSiteAreaWatts += connector.power;
-          }
-        }
-        consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / siteArea.voltage);
-        consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
-      }
-    }
-    consumption.smartChargingActive = siteArea.smartCharging;
-  }
-
   private updateTransactionWithMeterValues(chargingStation: ChargingStation, transaction: Transaction, meterValues: OCPPNormalizedMeterValue[]) {
     // Build consumptions
     for (const meterValue of meterValues) {
       // To keep backward compatibility with OCPP 1.5 where there is no Transaction.Begin/End,
       // We store the last Transaction.End meter value in transaction to create the last consumption
       // in Stop Transaction
+      if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
+        // Flag it
+        if (!transaction.transactionEndReceived) {
+          // First time: Clear all values
+          transaction.currentInstantWatts = 0;
+          transaction.currentInstanWattsL1 = 0;
+          transaction.currentInstanWattsL2 = 0;
+          transaction.currentInstanWattsL3 = 0;
+          transaction.currentInstanWattsDC = 0;
+          transaction.currentInstantVoltage = 0;
+          transaction.currentInstantVoltageL1 = 0;
+          transaction.currentInstantVoltageL2 = 0;
+          transaction.currentInstantVoltageL3 = 0;
+          transaction.currentInstantVoltageDC = 0;
+          transaction.currentInstantAmps = 0;
+          transaction.currentInstantAmpsL1 = 0;
+          transaction.currentInstantAmpsL2 = 0;
+          transaction.currentInstantAmpsL3 = 0;
+          transaction.currentInstantAmpsDC = 0;
+          transaction.transactionEndReceived = true;
+        }
+      }
       // Signed Data
       if (meterValue.attribute.format === OCPPValueFormat.SIGNED_DATA) {
         if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
           // Set the first Signed Data and keep it
-          transaction.signedData = meterValue.value;
+          transaction.signedData = meterValue.value as string;
           continue;
         } else if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
           // Set the last Signed Data (used in the last consumtion)
-          transaction.currentSignedData = meterValue.value + '';
+          transaction.currentSignedData = meterValue.value as string;
           continue;
         }
       }
@@ -1473,7 +1147,7 @@ export default class OCPPService {
         if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
           transaction.stateOfCharge = Utils.convertToFloat(meterValue.value);
           continue;
-          // Set the last SoC (used in the last consumtion)
+        // Set only the last SoC (will be used in the last consumtion building in StopTransaction due to backward compat with OCPP 1.5)
         } else if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
           transaction.currentStateOfCharge = Utils.convertToFloat(meterValue.value);
           continue;
@@ -1481,28 +1155,28 @@ export default class OCPPService {
       }
       // Voltage
       if (meterValue.attribute.measurand === OCPPMeasurand.VOLTAGE) {
-        // Set only the last Voltage (used in the last consumtion)
+        // Set only the last Voltage (will be used in the last consumtion building in StopTransaction due to backward compat with OCPP 1.5)
         if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
           const voltage = Utils.convertToFloat(meterValue.value);
           const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
           // AC Charging Station
           switch (currentType) {
             case CurrentType.DC:
-              transaction.currentVoltageDC = voltage;
+              transaction.currentInstantVoltageDC = voltage;
               break;
             case CurrentType.AC:
               switch (meterValue.attribute.phase) {
                 case OCPPPhase.L1:
-                  transaction.currentVoltageL1 = voltage;
+                  transaction.currentInstantVoltageL1 = voltage;
                   break;
                 case OCPPPhase.L2:
-                  transaction.currentVoltageL2 = voltage;
+                  transaction.currentInstantVoltageL2 = voltage;
                   break;
                 case OCPPPhase.L3:
-                  transaction.currentVoltageL3 = voltage;
+                  transaction.currentInstantVoltageL3 = voltage;
                   break;
                 default:
-                  transaction.currentVoltage = voltage;
+                  transaction.currentInstantVoltage = voltage;
                   break;
               }
               break;
@@ -1510,30 +1184,63 @@ export default class OCPPService {
           continue;
         }
       }
-      // Amperage
+      // Power
+      if (meterValue.attribute.measurand === OCPPMeasurand.POWER_ACTIVE_IMPORT) {
+        // Set only the last Power (will be used in the last consumtion building in StopTransaction due to backward compat with OCPP 1.5)
+        if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
+          const powerInMeterValue = Utils.convertToFloat(meterValue.value);
+          const powerInMeterValueWatts = (meterValue.attribute && meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT ?
+            powerInMeterValue * 1000 : powerInMeterValue);
+          const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+          // AC Charging Station
+          switch (currentType) {
+            case CurrentType.DC:
+              transaction.currentInstanWattsDC = powerInMeterValueWatts;
+              break;
+            case CurrentType.AC:
+              switch (meterValue.attribute.phase) {
+                case OCPPPhase.L1:
+                  transaction.currentInstanWattsL1 = powerInMeterValueWatts;
+                  break;
+                case OCPPPhase.L2:
+                  transaction.currentInstanWattsL2 = powerInMeterValueWatts;
+                  break;
+                case OCPPPhase.L3:
+                  transaction.currentInstanWattsL3 = powerInMeterValueWatts;
+                  break;
+                default:
+                  transaction.currentInstantWatts = powerInMeterValueWatts;
+                  break;
+              }
+              break;
+          }
+          continue;
+        }
+      }
+      // Current
       if (meterValue.attribute.measurand === OCPPMeasurand.CURRENT_IMPORT) {
-        // Set only the last Amperage (used in the last consumtion)
+        // Set only the last Current (will be used in the last consumtion building in StopTransaction due to backward compat with OCPP 1.5)
         if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
           const amperage = Utils.convertToFloat(meterValue.value);
           const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
           // AC Charging Station
           switch (currentType) {
             case CurrentType.DC:
-              transaction.currentAmperageDC = amperage;
+              transaction.currentInstantAmpsDC = amperage;
               break;
             case CurrentType.AC:
               switch (meterValue.attribute.phase) {
                 case OCPPPhase.L1:
-                  transaction.currentAmperageL1 = amperage;
+                  transaction.currentInstantAmpsL1 = amperage;
                   break;
                 case OCPPPhase.L2:
-                  transaction.currentAmperageL2 = amperage;
+                  transaction.currentInstantAmpsL2 = amperage;
                   break;
                 case OCPPPhase.L3:
-                  transaction.currentAmperageL3 = amperage;
+                  transaction.currentInstantAmpsL3 = amperage;
                   break;
                 default:
-                  transaction.currentAmperage = amperage;
+                  transaction.currentInstantAmps = amperage;
                   break;
               }
               break;
@@ -1545,153 +1252,6 @@ export default class OCPPService {
       if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         transaction.numberOfMeterValues++;
       }
-    }
-  }
-
-  private async createConsumptionsFromMeterValues(tenantID: string, chargingStation: ChargingStation,
-    transaction: Transaction, meterValues: OCPPNormalizedMeterValue[]): Promise<Consumption[]> {
-    // Build consumptions
-    const consumptions: Consumption[] = [];
-    for (const meterValue of meterValues) {
-      // Meter Value Handling
-      if (OCPPUtils.isValidMeterValue(meterValue)) {
-        // Build Consumption and Update Transaction with Meter Values
-        const consumption: Consumption = await this.createConsumptionFromMeterValue(
-          tenantID, chargingStation, transaction, transaction.lastEnergyActiveImportMeterValue, meterValue);
-        if (consumption) {
-          // Existing Consumption created?
-          const existingConsumption = consumptions.find(
-            (c) => c.endedAt.getTime() === consumption.endedAt.getTime());
-          if (existingConsumption) {
-            // Update properties
-            for (const property in consumption) {
-              existingConsumption[property] = consumption[property];
-            }
-          } else {
-            // Add new
-            consumptions.push(consumption);
-          }
-        }
-      }
-    }
-    return consumptions;
-  }
-
-  private async priceTransaction(tenantID: string, transaction: Transaction, consumption: Consumption, action: TransactionAction) {
-    let pricedConsumption;
-    // Get the pricing impl
-    const pricingImpl = await PricingFactory.getPricingImpl(tenantID);
-    switch (action) {
-      // Start Transaction
-      case TransactionAction.START:
-        // Active?
-        if (pricingImpl) {
-          // Set
-          pricedConsumption = await pricingImpl.startSession(transaction, consumption);
-          if (pricedConsumption) {
-            // Set the initial pricing
-            transaction.price = pricedConsumption.amount;
-            transaction.roundedPrice = pricedConsumption.roundedAmount;
-            transaction.priceUnit = pricedConsumption.currencyCode;
-            transaction.pricingSource = pricedConsumption.pricingSource;
-            transaction.currentCumulatedPrice = pricedConsumption.amount;
-          }
-        } else {
-          // Default
-          transaction.price = 0;
-          transaction.roundedPrice = 0;
-          transaction.priceUnit = '';
-          transaction.pricingSource = '';
-          transaction.currentCumulatedPrice = 0;
-        }
-        break;
-      // Meter Values
-      case TransactionAction.UPDATE:
-        // Active?
-        if (pricingImpl) {
-          // Set
-          pricedConsumption = await pricingImpl.updateSession(transaction, consumption);
-          if (pricedConsumption) {
-            // Update consumption
-            consumption.amount = pricedConsumption.amount;
-            consumption.roundedAmount = pricedConsumption.roundedAmount;
-            consumption.currencyCode = pricedConsumption.currencyCode;
-            consumption.pricingSource = pricedConsumption.pricingSource;
-            if (pricedConsumption.cumulatedAmount) {
-              consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            } else {
-              consumption.cumulatedAmount = Utils.convertToFloat((transaction.currentCumulatedPrice + consumption.amount).toFixed(6));
-            }
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-          }
-        }
-        break;
-      // Stop Transaction
-      case TransactionAction.STOP:
-        // Active?
-        if (pricingImpl) {
-          // Set
-          pricedConsumption = await pricingImpl.stopSession(transaction, consumption);
-          if (pricedConsumption) {
-            // Update consumption
-            consumption.amount = pricedConsumption.amount;
-            consumption.roundedAmount = pricedConsumption.roundedAmount;
-            consumption.currencyCode = pricedConsumption.currencyCode;
-            consumption.pricingSource = pricedConsumption.pricingSource;
-            if (pricedConsumption.cumulatedAmount) {
-              consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            } else {
-              consumption.cumulatedAmount = Utils.convertToFloat((transaction.currentCumulatedPrice + consumption.amount).toFixed(6));
-            }
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-            // Update Transaction
-            if (!transaction.stop) {
-              (transaction as any).stop = {};
-            }
-            transaction.stop.price = Utils.convertToFloat(transaction.currentCumulatedPrice.toFixed(6));
-            transaction.stop.roundedPrice = Utils.convertToFloat((transaction.currentCumulatedPrice).toFixed(2));
-            transaction.stop.priceUnit = pricedConsumption.currencyCode;
-            transaction.stop.pricingSource = pricedConsumption.pricingSource;
-          }
-        }
-        break;
-    }
-  }
-
-  private async billTransaction(tenantID: string, transaction: Transaction, action: TransactionAction) {
-    let billingDataStop: BillingDataTransactionStop;
-    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
-    if (!billingImpl) {
-      return;
-    }
-    // Check
-    switch (action) {
-      // Start Transaction
-      case TransactionAction.START:
-        // Delegate
-        await billingImpl.startTransaction(transaction);
-        // Update
-        transaction.billingData = {
-          lastUpdate: new Date()
-        };
-        break;
-      // Meter Values
-      case TransactionAction.UPDATE:
-        // Delegate
-        await billingImpl.updateTransaction(transaction);
-        // Update
-        transaction.billingData.lastUpdate = new Date();
-        break;
-      // Stop Transaction
-      case TransactionAction.STOP:
-        // Delegate
-        billingDataStop = await billingImpl.stopTransaction(transaction);
-        // Update
-        transaction.billingData.status = billingDataStop.status;
-        transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
-        transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
-        transaction.billingData.lastUpdate = new Date();
-        break;
     }
   }
 
@@ -2027,7 +1587,7 @@ export default class OCPPService {
             message: `Connector '${activeTransaction.connectorId}' > Pending Transaction ID '${activeTransaction.id}' with no consumption has been deleted`
           });
           // Delete
-          await TransactionStorage.deleteTransaction(tenantID, activeTransaction);
+          await TransactionStorage.deleteTransaction(tenantID, activeTransaction.id);
         } else {
           // Simulate a Stop Transaction
           const result = await this.handleStopTransaction({
@@ -2087,23 +1647,6 @@ export default class OCPPService {
         }
       ).catch(() => { });
     }
-  }
-
-  private updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
-    user: User, alternateUser: User, tagId) {
-    // Set final data
-    transaction.stop = {
-      meterStop: stopTransaction.meterStop,
-      timestamp: Utils.convertToDate(stopTransaction.timestamp),
-      userID: (alternateUser ? alternateUser.id : (user ? user.id : null)),
-      tagID: tagId,
-      stateOfCharge: transaction.currentStateOfCharge,
-      signedData: transaction.currentSignedData ? transaction.currentSignedData : '',
-      totalConsumptionWh: transaction.currentTotalConsumptionWh,
-      totalInactivitySecs: transaction.currentTotalInactivitySecs,
-      totalDurationSecs: transaction.currentTotalDurationSecs,
-      inactivityStatus: Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs)
-    };
   }
 
   private getStopTransactionTagId(stopTransaction: OCPPStopTransactionRequestExtended, transaction: Transaction): string {

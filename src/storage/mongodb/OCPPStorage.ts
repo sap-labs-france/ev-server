@@ -1,4 +1,4 @@
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -34,7 +34,8 @@ export default class OCPPStorage {
     Logging.traceEnd(MODULE_NAME, 'saveAuthorize', uniqueTimerID);
   }
 
-  static async getAuthorizes(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string}, dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
+  static async getAuthorizes(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string},
+    dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAuthorizes');
     // Check Tenant
@@ -123,7 +124,9 @@ export default class OCPPStorage {
     Logging.traceEnd(MODULE_NAME, 'saveHeartbeat', uniqueTimerID);
   }
 
-  static async getStatusNotifications(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string}, dbParams: DbParams) {
+  static async getStatusNotifications(tenantID: string,
+    params: { dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string },
+    dbParams: DbParams): Promise<DataResult<OCPPStatusNotificationRequestExtended>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getStatusNotifications');
     // Check Tenant
@@ -189,24 +192,18 @@ export default class OCPPStorage {
     const statusNotificationsMDB = await global.database.getCollection<any>(tenantID, 'statusnotifications')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-    const statusNotifications = [];
-    // Create
-    for (const statusNotificationMDB of statusNotificationsMDB) {
-      // Create status notification
-      const statusNotification = statusNotificationMDB;
-      // Add
-      statusNotifications.push(statusNotification);
-    }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getStatusNotifications', uniqueTimerID);
     // Ok
     return {
       count: (statusNotificationsCountMDB.length > 0 ? statusNotificationsCountMDB[0].count : 0),
-      result: statusNotifications
+      result: statusNotificationsMDB
     };
   }
 
-  static async getLastStatusNotifications(tenantID: string, params: {dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string}) {
+  static async getLastStatusNotifications(tenantID: string,
+    params: { dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string }):
+    Promise<OCPPStatusNotificationRequestExtended[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLastStatusNotifications');
     // Check Tenant
@@ -248,18 +245,10 @@ export default class OCPPStorage {
     const statusNotificationsMDB = await global.database.getCollection<any>(tenantID, 'statusnotifications')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-    const statusNotifications = [];
-    // Create
-    for (const statusNotificationMDB of statusNotificationsMDB) {
-      // Create status notification
-      const statusNotification = statusNotificationMDB;
-      // Add
-      statusNotifications.push(statusNotification);
-    }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getLastStatusNotifications', uniqueTimerID);
     // Ok
-    return statusNotifications;
+    return statusNotificationsMDB;
   }
 
   static async saveStatusNotification(tenantID: string, statusNotificationToSave: OCPPStatusNotificationRequestExtended) {
@@ -335,7 +324,8 @@ export default class OCPPStorage {
     Logging.traceEnd(MODULE_NAME, 'saveBootNotification', uniqueTimerID);
   }
 
-  public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string}, { limit, skip, sort }: DbParams) {
+  public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string},
+    { limit, skip, sort }: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getBootNotifications');
     // Check Tenant
@@ -350,7 +340,6 @@ export default class OCPPStorage {
     const filters: any = {
       '$or': DatabaseUtils.getNotDeletedFilter()
     };
-
     // Charging Station ID
     if (params.chargeBoxID) {
       filters._id = params.chargeBoxID;
@@ -389,18 +378,12 @@ export default class OCPPStorage {
     const bootNotificationsMDB = await global.database.getCollection<any>(tenantID, 'bootnotifications')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-    const bootNotifications = [];
-    // Create
-    for (const bootNotificationMDB of bootNotificationsMDB) {
-      // Add
-      bootNotifications.push(bootNotificationMDB);
-    }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getBootNotifications', uniqueTimerID);
     // Ok
     return {
       count: (bootNotificationsCountMDB.length > 0 ? bootNotificationsCountMDB[0].count : 0),
-      result: bootNotifications
+      result: bootNotificationsMDB
     };
   }
 
@@ -477,5 +460,63 @@ export default class OCPPStorage {
     }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
+  }
+
+  public static async getMeterValues(tenantID: string, params: { transactionId: number },
+    { limit, skip, sort }: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getMeterValues');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    limit = Utils.checkRecordLimit(limit);
+    // Check Skip
+    skip = Utils.checkRecordSkip(skip);
+    // Create Aggregation
+    const aggregation = [];
+    const filters: any = {};
+    // Charging Station ID
+    if (params.transactionId) {
+      filters.transactionId = params.transactionId;
+    }
+    // Filters
+    aggregation.push({
+      $match: filters
+    });
+    // Count Records
+    const meterValuesCountMDB = await global.database.getCollection<any>(tenantID, 'metervalues')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Sort
+    if (sort) {
+      aggregation.push({
+        $sort: sort
+      });
+    } else {
+      aggregation.push({
+        $sort: { timestamp: 1 }
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: limit
+    });
+    // Read DB
+    const meterValuesMDB = await global.database.getCollection<any>(tenantID, 'metervalues')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .toArray();
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'getMeterValues', uniqueTimerID);
+    // Ok
+    return {
+      count: (meterValuesCountMDB.length > 0 ? meterValuesCountMDB[0].count : 0),
+      result: meterValuesMDB
+    };
   }
 }

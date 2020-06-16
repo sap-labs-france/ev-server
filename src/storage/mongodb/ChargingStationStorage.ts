@@ -96,12 +96,13 @@ export default class ChargingStationStorage {
     Logging.traceEnd(MODULE_NAME, 'saveChargingStationTemplate', uniqueTimerID);
   }
 
-  public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID): Promise<ChargingStation> {
+  public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
+    params: { includeDeleted?: boolean } = {}): Promise<ChargingStation> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStation');
     // Query single Charging Station
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID,
-      { chargingStationID: id, withSite: true }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { chargingStationID: id, withSite: true, ...params }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getChargingStation', uniqueTimerID, { id });
     return chargingStationsMDB.result[0];
@@ -714,7 +715,8 @@ export default class ChargingStationStorage {
     } else {
       aggregation.push({
         $sort: {
-          connectorID: -1
+          'connectorID': -1,
+          'profile.stackLevel': -1,
         }
       });
     }

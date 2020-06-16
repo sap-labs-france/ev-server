@@ -139,6 +139,10 @@ export default class TransactionSecurity {
       }
       if (!transaction.stop) {
         filteredTransaction.currentInstantWatts = transaction.currentInstantWatts;
+        filteredTransaction.currentInstanWattsL1 = transaction.currentInstanWattsL1;
+        filteredTransaction.currentInstanWattsL2 = transaction.currentInstanWattsL2;
+        filteredTransaction.currentInstanWattsL3 = transaction.currentInstanWattsL3;
+        filteredTransaction.currentInstanWattsDC = transaction.currentInstanWattsDC;
         filteredTransaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
@@ -146,16 +150,16 @@ export default class TransactionSecurity {
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
-        filteredTransaction.currentVoltage = transaction.currentVoltage;
-        filteredTransaction.currentVoltageL1 = transaction.currentVoltageL1;
-        filteredTransaction.currentVoltageL2 = transaction.currentVoltageL2;
-        filteredTransaction.currentVoltageL3 = transaction.currentVoltageL3;
-        filteredTransaction.currentVoltageDC = transaction.currentVoltageDC;
-        filteredTransaction.currentAmperage = transaction.currentAmperage;
-        filteredTransaction.currentAmperageL1 = transaction.currentAmperageL1;
-        filteredTransaction.currentAmperageL2 = transaction.currentAmperageL2;
-        filteredTransaction.currentAmperageL3 = transaction.currentAmperageL3;
-        filteredTransaction.currentAmperageDC = transaction.currentAmperageDC;
+        filteredTransaction.currentInstantVoltage = transaction.currentInstantVoltage;
+        filteredTransaction.currentInstantVoltageL1 = transaction.currentInstantVoltageL1;
+        filteredTransaction.currentInstantVoltageL2 = transaction.currentInstantVoltageL2;
+        filteredTransaction.currentInstantVoltageL3 = transaction.currentInstantVoltageL3;
+        filteredTransaction.currentInstantVoltageDC = transaction.currentInstantVoltageDC;
+        filteredTransaction.currentInstantAmps = transaction.currentInstantAmps;
+        filteredTransaction.currentInstantAmpsL1 = transaction.currentInstantAmpsL1;
+        filteredTransaction.currentInstantAmpsL2 = transaction.currentInstantAmpsL2;
+        filteredTransaction.currentInstantAmpsL3 = transaction.currentInstantAmpsL3;
+        filteredTransaction.currentInstantAmpsDC = transaction.currentInstantAmpsDC;
       }
       if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
         const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
