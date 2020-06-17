@@ -6,12 +6,12 @@ import BackendError from '../../exception/BackendError';
 import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
-import { DataResult } from '../../types/DataResult';
 
 const MODULE_NAME = 'ChargingStationVendorIntegration';
 

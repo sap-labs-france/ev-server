@@ -114,7 +114,7 @@ export default class OCPIMapping {
     const evses: any = [];
     // Convert charging stations to evse(s)
     siteArea.chargingStations.forEach((chargingStation) => {
-      if (chargingStation.issuer === true && !chargingStation.private) {
+      if (chargingStation.issuer === true && chargingStation.public) {
         evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
       }
     });
@@ -280,6 +280,8 @@ export default class OCPIMapping {
       return 'fr_FR';
     } else if (language === 'es') {
       return 'es_MX';
+    } else if (language === 'de') {
+      return 'de_DE';
     }
     return 'en_US';
   }

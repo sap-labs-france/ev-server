@@ -435,7 +435,7 @@ export default class ChargingStationStorage {
       templateHashOcppStandard: chargingStationToSave.templateHashOcppStandard,
       templateHashOcppVendor: chargingStationToSave.templateHashOcppVendor,
       issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
-      private: Utils.convertToBoolean(chargingStationToSave.private),
+      public: Utils.convertToBoolean(chargingStationToSave.public),
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
