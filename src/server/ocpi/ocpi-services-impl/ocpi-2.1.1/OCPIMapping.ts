@@ -185,14 +185,11 @@ export default class OCPIMapping {
       tokens.push({
         uid: tag.id,
         type: OCPITokenType.RFID,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         auth_id: tag.userID,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         visual_number: tag.userID,
         issuer: tenant.name,
         valid: valid,
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
@@ -360,7 +357,6 @@ export default class OCPIMapping {
       name: site.name,
       address: `${site.address.address1} ${site.address.address2}`,
       city: site.address.city,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       postal_code: site.address.postalCode,
       country: site.address.country,
       coordinates: {
@@ -370,7 +366,6 @@ export default class OCPIMapping {
       type: OCPILocationType.UNKNOWN,
       evses: [{
         uid: OCPIUtils.buildEvseUID(chargingStation),
-        // eslint-disable-next-line @typescript-eslint/camelcase
         evse_id: evseID,
         status: OCPIMapping.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
@@ -379,10 +374,8 @@ export default class OCPIMapping {
           latitude: chargingStation.coordinates[1].toString(),
           longitude: chargingStation.coordinates[0].toString()
         },
-        // eslint-disable-next-line @typescript-eslint/camelcase
         last_updated: chargingStation.lastHeartBeat
       }],
-      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn
     };
     return ocpiLocation;
@@ -490,7 +483,7 @@ export default class OCPIMapping {
    * Convert internal Power (1/3 Phase) to PowerType
    * @param {*} power
    */
-  static convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase): OCPIPowerType {
+  static convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase: number): OCPIPowerType {
     switch (numberOfConnectedPhase) {
       case 0:
         return OCPIPowerType.DC;
@@ -575,7 +568,6 @@ export default class OCPIMapping {
     } else {
       const consumption: number = transaction.stop ? transaction.stop.totalConsumptionWh : transaction.currentTotalConsumptionWh;
       chargingPeriods.push({
-        // eslint-disable-next-line @typescript-eslint/camelcase
         start_date_time: transaction.timestamp,
         dimensions: [{
           type: CdrDimensionType.ENERGY,
@@ -586,7 +578,6 @@ export default class OCPIMapping {
       if (inactivity > 0) {
         const inactivityStart = transaction.stop ? transaction.stop.timestamp : transaction.currentTimestamp;
         chargingPeriods.push({
-          // eslint-disable-next-line @typescript-eslint/camelcase
           start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
           dimensions: [{
             type: CdrDimensionType.PARKING_TIME,
@@ -600,7 +591,6 @@ export default class OCPIMapping {
 
   static buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
     const chargingPeriod: OCPIChargingPeriod = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       start_date_time: consumption.startedAt,
       dimensions: []
     };
@@ -656,17 +646,12 @@ export default class OCPIMapping {
     if (ocpiSetting && ocpiSetting.ocpi) {
       credential.token = token;
       if (role === OCPIRole.EMSP) {
-        // eslint-disable-next-line @typescript-eslint/camelcase
         credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
-        // eslint-disable-next-line @typescript-eslint/camelcase
         credential.party_id = ocpiSetting.ocpi.emsp.partyID;
       } else {
-        // eslint-disable-next-line @typescript-eslint/camelcase
         credential.country_code = ocpiSetting.ocpi.cpo.countryCode;
-        // eslint-disable-next-line @typescript-eslint/camelcase
         credential.party_id = ocpiSetting.ocpi.cpo.partyID;
       }
-      // eslint-disable-next-line @typescript-eslint/camelcase
       credential.business_details = ocpiSetting.ocpi.businessDetails;
     }
     // Return credential object
