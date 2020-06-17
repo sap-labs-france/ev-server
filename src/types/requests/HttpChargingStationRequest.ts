@@ -35,7 +35,7 @@ export interface HttpChargingStationParamsUpdateRequest {
   id: string;
   chargingStationURL: string;
   maximumPower: number;
-  private: boolean;
+  public: boolean;
   excludeFromSmartCharging: boolean;
   siteAreaID: string;
   coordinates: number[];

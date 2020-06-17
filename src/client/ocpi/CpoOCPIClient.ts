@@ -514,7 +514,7 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'patchChargingStationStatus',
       });
     }
-    if (chargingStation.private) {
+    if (!chargingStation.public) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.OCPI_PATCH_STATUS,
