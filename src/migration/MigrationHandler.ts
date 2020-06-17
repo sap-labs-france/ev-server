@@ -1,3 +1,11 @@
+import cluster from 'cluster';
+import moment from 'moment';
+import LockingManager from '../locking/LockingManager';
+import MigrationStorage from '../storage/mongodb/MigrationStorage';
+import { LockEntity } from '../types/Locking';
+import { ServerAction } from '../types/Server';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
@@ -10,26 +18,19 @@ import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
-import Constants from '../utils/Constants';
 import InitialCarImportTask from './tasks/InitialCarImportTask';
-import { LockEntity } from '../types/Locking';
-import LockingManager from '../locking/LockingManager';
-import Logging from '../utils/Logging';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
-import MigrationStorage from '../storage/mongodb/MigrationStorage';
+import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
+import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPropertiesTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
-import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjectIDsTask';
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
-import cluster from 'cluster';
-import moment from 'moment';
-import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
 
 const MODULE_NAME = 'MigrationHandler';
 
@@ -78,6 +79,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new RenameTransactionsAndConsumptionsTask());
         currentMigrationTasks.push(new AddConsumptionAmpsToConsumptionsTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
+        currentMigrationTasks.push(new RenameChargingStationPropertiesTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
