@@ -22,6 +22,7 @@ import InitialCarImportTask from './tasks/InitialCarImportTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
+import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
 import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPropertiesTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
@@ -31,6 +32,8 @@ import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingSta
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjectIDsTask';
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
+import cluster from 'cluster';
+import moment from 'moment';
 
 const MODULE_NAME = 'MigrationHandler';
 

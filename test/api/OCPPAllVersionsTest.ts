@@ -931,7 +931,7 @@ describe('OCPP tests (all versions)', function() {
           );
         });
 
-        describe('1Users should be able to perform a complete regular transaction cycle', () => {
+        describe('Users should be able to perform a complete regular transaction cycle', () => {
 
           after(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
