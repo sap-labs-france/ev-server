@@ -297,24 +297,18 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
     transaction.ocpiData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
-    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.last_updated = transaction.currentTimestamp;
-    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice;
     transaction.ocpiData.session.currency = transaction.priceUnit;
     transaction.ocpiData.session.status = OCPISessionStatus.ACTIVE;
-    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
 
     const patchBody: Partial<OCPISession> = {
       kwh: transaction.ocpiData.session.kwh,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: transaction.ocpiData.session.last_updated,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       total_cost: transaction.ocpiData.session.total_cost,
       currency: transaction.ocpiData.session.currency,
       status: transaction.ocpiData.session.status,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       charging_periods: transaction.ocpiData.session.charging_periods
     };
     // Log
@@ -372,14 +366,10 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
     transaction.ocpiData.session.kwh = transaction.stop.totalConsumptionWh / 1000;
-    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.total_cost = transaction.stop.roundedPrice;
-    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.end_datetime = transaction.stop.timestamp;
-    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.last_updated = transaction.stop.timestamp;
     transaction.ocpiData.session.status = OCPISessionStatus.COMPLETED;
-    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
     // Log
     Logging.logDebug({
@@ -437,29 +427,18 @@ export default class CpoOCPIClient extends OCPIClient {
     const cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_PUSH_CDRS);
     transaction.ocpiData.cdr = {
       id: transaction.ocpiData.session.id,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       start_date_time: transaction.timestamp,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       stop_date_time: transaction.stop.timestamp,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       total_parking_time: transaction.stop.totalInactivitySecs,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       total_time: transaction.stop.totalDurationSecs,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       total_energy: transaction.stop.totalConsumptionWh / 1000,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       total_cost: transaction.stop.roundedPrice,
       currency: transaction.priceUnit,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_id: transaction.ocpiData.session.auth_id,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       authorization_id: transaction.ocpiData.session.authorization_id,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       charging_periods: await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction),
-      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: transaction.stop.timestamp
     };
     // Log

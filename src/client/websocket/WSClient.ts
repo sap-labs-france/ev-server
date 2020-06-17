@@ -144,7 +144,7 @@ export default class WSClient {
    * @param {String} data A string explaining why the connection is closing
    * @public
    */
-  public close(code?: number, reason?) {
+  public close(code?: number, reason?: string): void {
     return this.ws.close(code, reason);
   }
 
@@ -156,7 +156,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when the ping is sent
    * @public
    */
-  public ping(data?, mask?, callback?): void {
+  public ping(data?, mask?: boolean, callback?: (err: Error) => void): void {
     this.ws.ping(data, mask, callback);
   }
 
