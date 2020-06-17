@@ -270,6 +270,14 @@ export default class OCPPUtils {
         message: `Transaction with ID ${transactionId} does not exist`,
       });
     }
+    if (!transaction.stop) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.REBUILD_CONSUMPTION,
+        module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
+        message: `Transaction with ID ${transactionId} is in progress`,
+      });
+    }
     // Check Simple Pricing
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
       transactionSimplePricePerKWH = Utils.getRoundedNumberToTwoDecimals(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000));
