@@ -280,6 +280,8 @@ export default class OCPIMapping {
       return 'fr_FR';
     } else if (language === 'es') {
       return 'es_MX';
+    } else if (language === 'de') {
+      return 'de_DE';
     }
     return 'en_US';
   }
