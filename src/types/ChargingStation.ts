@@ -16,7 +16,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   templateHashOcppStandard?: string;
   templateHashOcppVendor?: string;
   issuer: boolean;
-  private: boolean;
+  public: boolean;
   siteAreaID?: string;
   chargePointSerialNumber: string;
   chargePointModel: string;

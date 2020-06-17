@@ -1,7 +1,7 @@
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
+import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream } from 'mongodb';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -23,7 +23,7 @@ const MODULE_NAME = 'ChargingStationStorage';
 
 export default class ChargingStationStorage {
 
-  public static async updateChargingStationTemplatesFromFile() {
+  public static async updateChargingStationTemplatesFromFile(): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateChargingStationTemplatesFromFile');
     // Read File
@@ -435,7 +435,7 @@ export default class ChargingStationStorage {
       templateHashOcppStandard: chargingStationToSave.templateHashOcppStandard,
       templateHashOcppVendor: chargingStationToSave.templateHashOcppVendor,
       issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
-      private: Utils.convertToBoolean(chargingStationToSave.private),
+      public: Utils.convertToBoolean(chargingStationToSave.public),
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
@@ -574,7 +574,7 @@ export default class ChargingStationStorage {
     return value;
   }
 
-  static async saveOcppParameters(tenantID: string, parameters: ChargingStationOcppParameters) {
+  static async saveOcppParameters(tenantID: string, parameters: ChargingStationOcppParameters): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveOcppParameters');
     // Check Tenant
@@ -800,6 +800,13 @@ export default class ChargingStationStorage {
     const bucket: GridFSBucket = global.database.getGridFSBucket('default.firmwares');
     // Get the file
     return bucket.openDownloadStreamByName(filename);
+  }
+
+  public static putChargingStationFirmware(filename: string): GridFSBucketWriteStream {
+    // Get the bucket
+    const bucket: GridFSBucket = global.database.getGridFSBucket('default.firmwares');
+    // Put the file
+    return bucket.openUploadStream(filename);
   }
 
   private static getChargerInErrorFacet(errorType: string) {

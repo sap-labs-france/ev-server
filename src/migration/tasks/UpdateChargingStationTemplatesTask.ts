@@ -31,13 +31,11 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     for (const tenant of tenants.result) {
       // Update current Charging Station with Template
       await this.applyTemplateToChargingStations(tenant);
-      // Remove unused props
-      // await this.cleanUpChargingStationDBProps(tenant);
     }
   }
 
   getVersion() {
-    return '2.9';
+    return '3.0';
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {
@@ -150,30 +148,6 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
         message: `${updated} Charging Stations have been processed with Template in Tenant '${tenant.name}' ('${tenant.subdomain}')`
-      });
-    }
-  }
-
-  private async cleanUpChargingStationDBProps(tenant: Tenant) {
-    const result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
-      { },
-      {
-        $unset: {
-          'numberOfConnectedPhase': '',
-          'inactive': '',
-          'cannotChargeInParallel': '',
-          'currentType': '',
-          'ocppAdvancedCommands': '',
-        }
-      },
-      { upsert: false }
-    );
-    if (result.modifiedCount > 0) {
-      Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-        module: MODULE_NAME, method: 'cleanUpChargingStationDBProps',
-        message: `${result.modifiedCount} Charging Stations unused properties have been removed in Tenant '${tenant.name}' ('${tenant.subdomain}')`
       });
     }
   }

@@ -133,7 +133,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    if (!chargingStation.issuer || chargingStation.private) {
+    if (!chargingStation.issuer || !chargingStation.public) {
       Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,

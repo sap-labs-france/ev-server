@@ -13,7 +13,6 @@ import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
@@ -566,26 +565,19 @@ export default class EmspOCPIClient extends OCPIClient {
     const token: OCPIToken = {
       uid: tag.id,
       type: OCPITokenType.RFID,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_id: user.id,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       visual_number: user.id,
       issuer: this.tenant.name,
       valid: true,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: new Date()
     };
     const authorizationId = uuid();
     const payload: OCPIStartSession = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       response_url: callbackUrl + '/' + authorizationId,
       token: token,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       evse_uid: chargingStation.imsi,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       location_id: chargingStation.iccid,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       authorization_id: authorizationId
     };
     // Log
@@ -646,9 +638,7 @@ export default class EmspOCPIClient extends OCPIClient {
       });
     }
     const payload: OCPIStopSession = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       response_url: callbackUrl + '/' + transaction.ocpiData.session.id,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       session_id: transaction.ocpiData.session.id
     };
     // Log
