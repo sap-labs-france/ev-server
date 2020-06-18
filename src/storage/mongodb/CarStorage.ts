@@ -510,125 +510,6 @@ export default class CarStorage {
     return userCarMDB._id.toHexString();
   }
 
-  public static async addUsersToCar(tenantID: string, carID: string, usersCarToSave: UserCar[]): Promise<ActionsResponse> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addUsersToCar');
-    const actionsDone: ActionsResponse = {
-      inSuccess: 0,
-      inError: 0
-    };
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Set
-    for (const userCar of usersCarToSave) {
-      try {
-        if (userCar.default) {
-          await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
-        }
-        userCar.carID = carID;
-        userCar.createdOn = new Date();
-        await CarStorage.saveUserCar(tenantID, userCar);
-        actionsDone.inSuccess++;
-      } catch (error) {
-        Logging.logError({
-          tenantID,
-          user: userCar.userID,
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'addUsersToCar',
-          action: ServerAction.USERS_CAR_UPDATE,
-          message: 'An error occurred while trying to assign the user to the car',
-          detailedMessages: { error: error.message, stack: error.stack, userCar }
-        });
-        actionsDone.inError++;
-      }
-    }
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'addUsersToCar', uniqueTimerID, { usersCarToSave });
-    return actionsDone;
-  }
-
-  public static async removeUsersFromCar(tenantID: string, usersCarIDs: string[]): Promise<ActionsResponse> {
-    // Debug
-    const actionsDone: ActionsResponse = {
-      inSuccess: 0,
-      inError: 0
-    };
-    await Utils.checkTenant(tenantID);
-    // Set
-    for (const userCarID of usersCarIDs) {
-      try {
-        await global.database.getCollection(tenantID, 'userscars')
-          .findOneAndDelete({ '_id': Utils.convertToObjectID(userCarID) });
-        actionsDone.inSuccess++;
-      } catch (error) {
-        actionsDone.inError++;
-      }
-    }
-    // Log
-    Utils.logActionsResponse(tenantID, ServerAction.REMOVE_USERS_FROM_CAR,
-      MODULE_NAME, 'removeUsersFromCar', actionsDone,
-      '{{inSuccess}} user(s) were successfully deleted',
-      '{{inError}} user(s) failed to be deleted',
-      '{{inSuccess}} user(s) were successfully deleted and {{inError}} failed to be deleted',
-      'All the users are up to date'
-    );
-    return actionsDone;
-  }
-
-
-  public static async updateUsersCar(tenantID: string, carID: string, usersCarToSave: UserCar[]): Promise<ActionsResponse> {
-    // Debug
-    const actionsDone: ActionsResponse = {
-      inSuccess: 0,
-      inError: 0
-    };
-    await Utils.checkTenant(tenantID);
-    // Set
-    for (const userCar of usersCarToSave) {
-      try {
-        const userCarDB = await CarStorage.getUserCarByCarUser(tenantID, carID, userCar.userID);
-        if (userCarDB) {
-          if (userCarDB.default !== userCar.default || !userCarDB.active || (userCar.owner && !userCarDB.owner)) {
-            if (userCar.default) {
-              await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
-            }
-            if (userCar.owner && !userCarDB.owner) {
-              await CarStorage.clearUserCarOwner(tenantID, carID);
-            }
-            userCarDB.owner = userCar.owner;
-            userCarDB.active = true;
-            userCarDB.default = userCar.default;
-            await CarStorage.saveUserCar(tenantID, userCarDB);
-            actionsDone.inSuccess++;
-          }
-        } else {
-          if (userCar.default) {
-            await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
-          }
-          if (userCar.owner) {
-            await CarStorage.clearUserCarOwner(tenantID, carID);
-          }
-          userCar.carID = carID;
-          userCar.lastChangedOn = new Date();
-          userCar.active = true;
-          await CarStorage.saveUserCar(tenantID, userCar);
-          actionsDone.inSuccess++;
-        }
-      } catch (error) {
-        actionsDone.inError++;
-      }
-    }
-    // Log
-    Utils.logActionsResponse(tenantID, ServerAction.USERS_CAR_UPDATE,
-      MODULE_NAME, 'updateUsersCar', actionsDone,
-      '{{inSuccess}} user(s) were successfully updated',
-      '{{inError}} user(s) failed to be updated',
-      '{{inSuccess}} user(s) were successfully updated and {{inError}} failed to be updated',
-      'All the users are up to date'
-    );
-    return actionsDone;
-  }
-
   public static async getCar(tenantID: string, carID: string = Constants.UNKNOWN_STRING_ID,
     params?: { withUsers?: boolean }, projectFields?: string[]): Promise<Car> {
     // Debug
@@ -775,7 +656,7 @@ export default class CarStorage {
     };
   }
 
-  public static async clearDefaultUserCar(tenantID: string, userID: string): Promise<void> {
+  public static async clearUserCarDefault(tenantID: string, userID: string): Promise<void> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'clearDefaultCar');
     await Utils.checkTenant(tenantID);
     await global.database.getCollection<any>(tenantID, 'userscars').updateMany(
@@ -817,8 +698,30 @@ export default class CarStorage {
     return usersCarsMDB.count > 0 ? usersCarsMDB.result[0] : null;
   }
 
+  public static async getUserCar(tenantID: string, userCarID: string = Constants.UNKNOWN_STRING_ID,
+    projectFields?: string[]): Promise<UserCar> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserCar');
+    // Query single Car
+    const usersCarsMDB = await CarStorage.getUsersCars(tenantID,
+      { usersCarsIDs: [userCarID] },
+      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    Logging.traceEnd(MODULE_NAME, 'getUserCar', uniqueTimerID, { userCarID });
+    return usersCarsMDB.count > 0 ? usersCarsMDB.result[0] : null;
+  }
+
+  public static async deleteUserCar(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteUserCar');
+    // Delete singular site area
+    await global.database.getCollection(tenantID, 'userscars')
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'deleteUserCar', uniqueTimerID, { id });
+  }
+
   public static async getUsersCars(tenantID: string,
-    params: { search?: string; userscarsIDs?: string[]; userIDs?: string[]; carIDs?: string[]; active?: boolean } = {},
+    params: { search?: string; usersCarsIDs?: string[]; userIDs?: string[]; carIDs?: string[]; active?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<UserCar>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUsersCars');
@@ -832,9 +735,9 @@ export default class CarStorage {
       filters.active = params.active;
     }
     // Limit on Car for Basic Users
-    if (!Utils.isEmptyArray(params.userscarsIDs)) {
+    if (!Utils.isEmptyArray(params.usersCarsIDs)) {
       // Build filter
-      filters._id = { $in: params.userscarsIDs.map((userscarsID) => Utils.convertToObjectID(userscarsID)) };
+      filters._id = { $in: params.usersCarsIDs.map((userscarsID) => Utils.convertToObjectID(userscarsID)) };
     }
     if (!Utils.isEmptyArray(params.carIDs)) {
       // Build filter
