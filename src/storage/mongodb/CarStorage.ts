@@ -626,12 +626,13 @@ export default class CarStorage {
     return actionsDone;
   }
 
-  public static async getCar(tenantID: string, carID: string = Constants.UNKNOWN_STRING_ID, withUsers?: boolean, projectFields?: string[]): Promise<Car> {
+  public static async getCar(tenantID: string, carID: string = Constants.UNKNOWN_STRING_ID,
+    params?: { withUsers?: boolean }, projectFields?: string[]): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCar');
     // Query single Car
     const carsMDB = await CarStorage.getCars(tenantID,
-      { carIDs: [carID], withUsers: withUsers },
+      { carIDs: [carID], ...params },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { carID });
     return carsMDB.count > 0 ? carsMDB.result[0] : null;

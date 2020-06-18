@@ -308,7 +308,7 @@ export default class CarService {
       });
     }
     // Check Car
-    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.id, true);
+    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.id, { withUsers: true });
     UtilsService.assertObjectExists(action, car, `Car ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCar', req.user);
     // Check Owner if Basic
@@ -436,7 +436,7 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
     // Get the car
-    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID, true);
+    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID, { withUsers: true });
     if (Authorizations.isBasic(req.user)) {
       const userCar = car.usersCar.find((userCarToFind) => userCarToFind.userID.toString() === req.user.id);
       if (userCar) {
