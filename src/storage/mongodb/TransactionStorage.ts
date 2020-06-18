@@ -1136,10 +1136,21 @@ export default class TransactionStorage {
         let: { tagID: '$_id', dateStart: '$dateStart', dateEnd: '$dateEnd' },
         pipeline: [{
           $match: {
-            $and: [
-              { $expr: { $eq: ['$tagID', '$$tagID'] } },
-              { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
-              { $expr: { $lt: ['$timestamp', '$$dateEnd'] } }
+            $or: [
+              {
+                $and: [
+                  { $expr: { $eq: ['$tagID', '$$tagID'] } },
+                  { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
+                  { $expr: { $lt: ['$timestamp', '$$dateEnd'] } }
+                ]
+              },
+              {
+                $and: [
+                  { $expr: { $eq: ['$stop.tagID', '$$tagID'] } },
+                  { $expr: { $gt: ['$stop.timestamp', '$$dateStart'] } },
+                  { $expr: { $lt: ['$stop.timestamp', '$$dateEnd'] } }
+                ]
+              },
             ]
           }
         }],
