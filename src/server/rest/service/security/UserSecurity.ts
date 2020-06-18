@@ -2,6 +2,7 @@ import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest
 import User, { UserRole } from '../../../../types/User';
 
 import Authorizations from '../../../../authorization/Authorizations';
+import Constants from '../../../../utils/Constants';
 import { DataResult } from '../../../../types/DataResult';
 import Tag from '../../../../types/Tag';
 import { UserInError } from '../../../../types/InError';
@@ -125,10 +126,17 @@ export default class UserSecurity {
         }
       } else {
         // Set only necessary info
-        filteredUser.id = user.id;
+        // Demo user?
+        if (Authorizations.isDemo(loggedUser)) {
+          filteredUser.id = null;
+          filteredUser.name = Constants.ANONYMIZED_VALUE;
+          filteredUser.firstName = Constants.ANONYMIZED_VALUE;
+        } else {
+          filteredUser.id = user.id;
+          filteredUser.name = user.name;
+          filteredUser.firstName = user.firstName;
+        }
         filteredUser.issuer = user.issuer;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
         filteredUser.email = user.email;
         filteredUser.locale = user.locale;
         filteredUser.phone = user.phone;
@@ -158,15 +166,22 @@ export default class UserSecurity {
 
   // User
   static filterMinimalUserResponse(user: User, loggedUser: UserToken): User {
-    const filteredUser = {} as User;
+    const filteredUser: any = {};
     if (!user) {
       return null;
     }
     // Check auth
     if (Authorizations.canReadUser(loggedUser, user.id)) {
-      filteredUser.id = user.id;
-      filteredUser.name = user.name;
-      filteredUser.firstName = user.firstName;
+      // Demo user?
+      if (Authorizations.isDemo(loggedUser)) {
+        filteredUser.id = null;
+        filteredUser.name = Constants.ANONYMIZED_VALUE;
+        filteredUser.firstName = Constants.ANONYMIZED_VALUE;
+      } else {
+        filteredUser.id = user.id;
+        filteredUser.name = user.name;
+        filteredUser.firstName = user.firstName;
+      }
     }
     return filteredUser;
   }

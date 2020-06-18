@@ -1,5 +1,4 @@
 import RefundReport, { RefundStatus } from '../../types/Refund';
-import Transaction, { InactivityStatus } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 
 import Constants from '../../utils/Constants';
@@ -10,6 +9,7 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/Notification';
 import { ServerAction } from '../../types/Server';
+import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
@@ -18,8 +18,8 @@ import moment from 'moment';
 const MODULE_NAME = 'TransactionStorage';
 
 export default class TransactionStorage {
-  public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
-    await this.deleteTransactions(tenantID, [transaction.id]);
+  public static async deleteTransaction(tenantID: string, transactionID: number): Promise<void> {
+    await this.deleteTransactions(tenantID, [transactionID]);
   }
 
   public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<number> {
@@ -75,19 +75,24 @@ export default class TransactionStorage {
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
       currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
+      transactionEndReceived: Utils.convertToBoolean(transactionToSave.transactionEndReceived),
       currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
+      currentInstanWattsL1: Utils.convertToFloat(transactionToSave.currentInstanWattsL1),
+      currentInstanWattsL2: Utils.convertToFloat(transactionToSave.currentInstanWattsL2),
+      currentInstanWattsL3: Utils.convertToFloat(transactionToSave.currentInstanWattsL3),
+      currentInstanWattsDC: Utils.convertToFloat(transactionToSave.currentInstanWattsDC),
       currentTotalConsumptionWh: Utils.convertToFloat(transactionToSave.currentTotalConsumptionWh),
       currentTotalDurationSecs: Utils.convertToInt(transactionToSave.currentTotalDurationSecs),
-      currentVoltage: Utils.convertToFloat(transactionToSave.currentVoltage),
-      currentVoltageL1: Utils.convertToInt(transactionToSave.currentVoltageL1),
-      currentVoltageL2: Utils.convertToInt(transactionToSave.currentVoltageL2),
-      currentVoltageL3: Utils.convertToInt(transactionToSave.currentVoltageL3),
-      currentVoltageDC: Utils.convertToInt(transactionToSave.currentVoltageDC),
-      currentAmperage: Utils.convertToFloat(transactionToSave.currentAmperage),
-      currentAmperageL1: Utils.convertToInt(transactionToSave.currentAmperageL1),
-      currentAmperageL2: Utils.convertToInt(transactionToSave.currentAmperageL2),
-      currentAmperageL3: Utils.convertToInt(transactionToSave.currentAmperageL3),
-      currentAmperageDC: Utils.convertToInt(transactionToSave.currentAmperageDC),
+      currentInstantVoltage: Utils.convertToFloat(transactionToSave.currentInstantVoltage),
+      currentInstantVoltageL1: Utils.convertToInt(transactionToSave.currentInstantVoltageL1),
+      currentInstantVoltageL2: Utils.convertToInt(transactionToSave.currentInstantVoltageL2),
+      currentInstantVoltageL3: Utils.convertToInt(transactionToSave.currentInstantVoltageL3),
+      currentInstantVoltageDC: Utils.convertToInt(transactionToSave.currentInstantVoltageDC),
+      currentInstantAmps: Utils.convertToFloat(transactionToSave.currentInstantAmps),
+      currentInstantAmpsL1: Utils.convertToInt(transactionToSave.currentInstantAmpsL1),
+      currentInstantAmpsL2: Utils.convertToInt(transactionToSave.currentInstantAmpsL2),
+      currentInstantAmpsL3: Utils.convertToInt(transactionToSave.currentInstantAmpsL3),
+      currentInstantAmpsDC: Utils.convertToInt(transactionToSave.currentInstantAmpsDC),
     };
     if (transactionToSave.stop) {
       // Add stop
@@ -112,6 +117,10 @@ export default class TransactionStorage {
       };
       // Remove runtime props
       delete transactionMDB.currentInstantWatts;
+      delete transactionMDB.currentInstanWattsL1;
+      delete transactionMDB.currentInstanWattsL2;
+      delete transactionMDB.currentInstanWattsL3;
+      delete transactionMDB.currentInstanWattsDC;
       delete transactionMDB.currentCumulatedPrice;
       delete transactionMDB.currentSignedData;
       delete transactionMDB.currentStateOfCharge;
@@ -121,16 +130,17 @@ export default class TransactionStorage {
       delete transactionMDB.lastEnergyActiveImportMeterValue;
       delete transactionMDB.numberOfMeterValues;
       delete transactionMDB.currentTotalDurationSecs;
-      delete transactionMDB.currentVoltage;
-      delete transactionMDB.currentVoltageL1;
-      delete transactionMDB.currentVoltageL2;
-      delete transactionMDB.currentVoltageL3;
-      delete transactionMDB.currentVoltageDC;
-      delete transactionMDB.currentAmperage;
-      delete transactionMDB.currentAmperageL1;
-      delete transactionMDB.currentAmperageL2;
-      delete transactionMDB.currentAmperageL3;
-      delete transactionMDB.currentAmperageDC;
+      delete transactionMDB.currentInstantVoltage;
+      delete transactionMDB.currentInstantVoltageL1;
+      delete transactionMDB.currentInstantVoltageL2;
+      delete transactionMDB.currentInstantVoltageL3;
+      delete transactionMDB.currentInstantVoltageDC;
+      delete transactionMDB.currentInstantAmps;
+      delete transactionMDB.transactionEndReceived;
+      delete transactionMDB.currentInstantAmpsL1;
+      delete transactionMDB.currentInstantAmpsL2;
+      delete transactionMDB.currentInstantAmpsL3;
+      delete transactionMDB.currentInstantAmpsDC;
     }
     if (transactionToSave.remotestop) {
       transactionMDB.remotestop = {
@@ -1126,10 +1136,21 @@ export default class TransactionStorage {
         let: { tagID: '$_id', dateStart: '$dateStart', dateEnd: '$dateEnd' },
         pipeline: [{
           $match: {
-            $and: [
-              { $expr: { $eq: ['$tagID', '$$tagID'] } },
-              { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
-              { $expr: { $lt: ['$timestamp', '$$dateEnd'] } }
+            $or: [
+              {
+                $and: [
+                  { $expr: { $eq: ['$tagID', '$$tagID'] } },
+                  { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
+                  { $expr: { $lt: ['$timestamp', '$$dateEnd'] } }
+                ]
+              },
+              {
+                $and: [
+                  { $expr: { $eq: ['$stop.tagID', '$$tagID'] } },
+                  { $expr: { $gt: ['$stop.timestamp', '$$dateStart'] } },
+                  { $expr: { $lt: ['$stop.timestamp', '$$dateEnd'] } }
+                ]
+              },
             ]
           }
         }],

@@ -17,64 +17,13 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
   }
 
   async migrateTenant(tenant: Tenant) {
-    // Rename Transaction props
-    await this.renameTransactionProperties(tenant);
-    // Rename Consumption props
+    // Consumptions
     await this.renameConsumptionProperties(tenant);
-  }
-
-  async renameTransactionProperties(tenant: Tenant) {
-    // Renamed properties in Transactions
-    const result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
-      {
-        'stop.totalConsumptionWh': { $exists: false },
-      },
-      {
-        $rename: {
-          'stop.totalConsumption': 'stop.totalConsumptionWh',
-        }
-      },
-      { upsert: false }
-    );
-    // Log in the default tenant
-    if (result.modifiedCount > 0) {
-      Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrateTenant',
-        message: `${result.modifiedCount} Transactions(s) have been updated in Tenant '${tenant.name}'`
-      });
-    }
-  }
-
-  async renameConsumptionProperties(tenant: Tenant) {
-    // Renamed properties in Transactions
-    const result = await global.database.getCollection<any>(tenant.id, 'consumptions').updateMany(
-      {
-        'consumptionWh': { $exists: false },
-      },
-      {
-        $rename: {
-          'instantPower': 'instantWatts',
-          'consumption': 'consumptionWh',
-          'cumulatedConsumption': 'cumulatedConsumptionWh'
-        }
-      },
-      { upsert: false }
-    );
-    // Log in the default tenant
-    if (result.modifiedCount > 0) {
-      Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrateTenant',
-        message: `${result.modifiedCount} Consumption(s) have been updated in Tenant '${tenant.name}'`
-      });
-    }
+    await this.deleteConsumptionProperties(tenant);
   }
 
   getVersion() {
-    return '1.0';
+    return '1.1';
   }
 
   getName() {
@@ -83,5 +32,58 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
 
   isAsynchronous() {
     return true;
+  }
+
+  private async deleteConsumptionProperties(tenant: Tenant) {
+    const result = await global.database.getCollection<any>(tenant.id, 'consumptions').updateMany(
+      { },
+      {
+        $unset: {
+          'amperage': '',
+        }
+      },
+      { upsert: false }
+    );
+    // Log in the default tenant
+    if (result.modifiedCount > 0) {
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.MIGRATION,
+        module: MODULE_NAME, method: 'deleteConsumptionProperties',
+        message: `${result.modifiedCount} Consumption(s) unused properties have been removed in Tenant '${tenant.name}' ('${tenant.subdomain}')`
+      });
+    }
+  }
+
+  private async renameConsumptionProperties(tenant: Tenant) {
+    // Renamed properties in Transactions
+    const result = await global.database.getCollection<any>(tenant.id, 'consumptions').updateMany(
+      {
+        'instantVolts': { $exists: false },
+      },
+      {
+        $rename: {
+          'voltage': 'instantVolts',
+          'voltageL1': 'instantVoltsL1',
+          'voltageL2': 'instantVoltsL2',
+          'voltageL3': 'instantVoltsL3',
+          'voltageDC': 'instantVoltsDC',
+          'amperageL1': 'instantAmpsL1',
+          'amperageL2': 'instantAmpsL2',
+          'amperageL3': 'instantAmpsL3',
+          'amperageDC': 'instantAmpsDC',
+        }
+      },
+      { upsert: false }
+    );
+    // Log in the default tenant
+    if (result.modifiedCount > 0) {
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.MIGRATION,
+        module: MODULE_NAME, method: 'renameConsumptionProperties',
+        message: `${result.modifiedCount} Consumption(s) have been updated in Tenant '${tenant.name}'`
+      });
+    }
   }
 }

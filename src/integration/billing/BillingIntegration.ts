@@ -24,7 +24,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     this.settings = settings;
   }
 
-  public async synchronizeUsers(tenantID): Promise<BillingUserSynchronizeAction> {
+  public async synchronizeUsers(tenantID: string): Promise<BillingUserSynchronizeAction> {
     await this.checkConnection();
     // Check
     const actionsDone: BillingUserSynchronizeAction = {

@@ -169,6 +169,7 @@ export enum ServerAction {
   EXTRA_INACTIVITY = 'ExtraInactivity',
 
   CONSUMPTION = 'Consumption',
+  REBUILD_CONSUMPTION = 'RebuildConsumption',
 
   WS_ERROR = 'WSError',
   WS_CLIENT_ERROR = 'WSClientError',

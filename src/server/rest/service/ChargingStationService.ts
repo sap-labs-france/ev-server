@@ -70,8 +70,8 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'maximumPower')) {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
-    if (Utils.objectHasProperty(filteredRequest, 'private')) {
-      chargingStation.private = filteredRequest.private;
+    if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      chargingStation.public = filteredRequest.public;
     }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
       chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
@@ -109,7 +109,7 @@ export default class ChargingStationService {
       ];
     }
     // No charge point
-    if (!chargingStation.chargePoints && filteredRequest.connectors) {
+    if ((!chargingStation.chargePoints || chargingStation.chargePoints.length === 0) && filteredRequest.connectors) {
       // Update Connectors
       for (const filteredConnector of filteredRequest.connectors) {
         // Set
@@ -191,17 +191,6 @@ export default class ChargingStationService {
         value: chargingStation.id
       });
     }
-    // Check if limit is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitation) {
-      throw new AppError({
-        source: chargingStation.id,
-        action: action,
-        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: 'Charging Station does not support power limitation',
-        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-        user: req.user
-      });
-    }
     // Get the Vendor instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
@@ -210,6 +199,17 @@ export default class ChargingStationService {
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
+    // Check if static limitation is supported
+    if (chargingStationVendor.hasStaticLimitationSupport(chargingStation)) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: action,
+        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        message: 'Charging Station does not support power limitation',
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
         user: req.user
       });
@@ -314,7 +314,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleTriggerSmartCharging(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleTriggerSmartCharging(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if Component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleTriggerSmartCharging');
@@ -374,7 +374,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleUpdateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);
     // Check existence
@@ -422,7 +422,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleDeleteChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check existence
     const chargingProfileID = ChargingStationSecurity.filterChargingProfileRequestByID(req.query);
     // Get Profile

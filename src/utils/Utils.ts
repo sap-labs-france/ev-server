@@ -487,6 +487,14 @@ export default class Utils {
     return changedValue;
   }
 
+  public static computeSimplePrice(pricePerKWH: number, consumptionWH: number): number {
+    return Utils.convertToFloat((pricePerKWH * (consumptionWH / 1000)).toFixed(6));
+  }
+
+  public static computeSimpleRoundedPrice(pricePerKWH: number, consumptionWH: number): number {
+    return Utils.convertToFloat((pricePerKWH * consumptionWH).toFixed(2));
+  }
+
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
     let userID: ObjectID | null = null;
     // Check Created By
@@ -570,14 +578,17 @@ export default class Utils {
             if (connectorId === 0 && chargePointOfCS.power) {
               totalPower += chargePointOfCS.power;
             // Connector
-            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power &&
-              (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
-              // Check Connector ID
-              const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.power) {
-                return connector.power;
+            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power) {
+              if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
+                // Check Connector ID
+                const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+                if (connector.power) {
+                  return connector.power;
+                }
+                return chargePointOfCS.power;
               }
-              return chargePointOfCS.power;
+              // Power is shared evenly on connectors
+              return chargePointOfCS.power / chargePointOfCS.connectorIDs.length;
             }
           }
         }
@@ -731,15 +742,18 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.amperage) {
               totalAmps += chargePointOfCS.amperage;
-            // Connector
-            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage &&
-              (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
-              // Check Connector ID
-              const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.amperage) {
-                return connector.amperage;
+            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage) {
+              if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
+                // Same power for all connectors
+                // Check Connector ID first
+                const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+                if (connector.amperage) {
+                  return connector.amperage;
+                }
+                return chargePointOfCS.amperage;
               }
-              return chargePointOfCS.amperage;
+              // Power is split evenly per connector
+              return chargePointOfCS.amperage / chargePointOfCS.connectorIDs.length;
             }
           }
         }
@@ -813,7 +827,7 @@ export default class Utils {
     return results;
   }
 
-  public static buildUserFullName(user: User, withID = true, withEmail = false, invertedName = false): string {
+  public static buildUserFullName(user: User|UserToken, withID = true, withEmail = false, invertedName = false): string {
     let fullName: string;
     if (!user || !user.name) {
       return 'Unknown';
@@ -832,8 +846,8 @@ export default class Utils {
         fullName = user.name;
       }
     }
-    if (withID && user.iNumber) {
-      fullName += ` (${user.iNumber})`;
+    if (withID && user.id) {
+      fullName += ` (${user.id})`;
     }
     if (withEmail && user.email) {
       fullName += `; ${user.email}`;
