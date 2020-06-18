@@ -506,7 +506,7 @@ export default class CarService {
         });
       }
     }
-    const filteredRequest = CarSecurity.filterUsersAssignRequest(req.body);
+    const filteredRequest = CarSecurity.filterUsersUpdateRequest(req.body);
     // CarID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.carID, MODULE_NAME, 'handleUpdateUsersCar', req.user);
     // Check Users

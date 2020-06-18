@@ -292,14 +292,14 @@ export default class CarSecurity {
     return request.usersCarIDs.map(sanitize);
   }
 
-  public static filterUsersAssignRequest(request: any): HttpUsersAssignRequest {
+  public static filterUsersUpdateRequest(request: any): HttpUsersAssignRequest {
     const usersCar: UserCar[] = [];
     if (!Utils.isEmptyArray(request.usersCar)) {
       for (const userCar of request.usersCar) {
         usersCar.push({
-          userID: userCar.user.id,
-          default: userCar.default,
-          owner: userCar.owner
+          userID: sanitize(userCar.user.id),
+          default: UtilsSecurity.filterBoolean(userCar.default),
+          owner: UtilsSecurity.filterBoolean(userCar.owner)
         } as UserCar);
       }
     }
