@@ -222,12 +222,6 @@ export default class Configuration {
     return Configuration.getConfig().EVDatabase;
   }
 
-  // Locale config
-  static getLocalesConfig(): LocalesConfiguration {
-    // Read conf
-    return Configuration.getConfig().Locales;
-  }
-
   // DB config
   static getStorageConfig(): StorageConfiguration {
     const storage: StorageConfiguration = Configuration.getConfig().Storage;
