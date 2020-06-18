@@ -774,7 +774,6 @@ export default class CarStorage {
   public static async clearDefaultUserCar(tenantID: string, userID: string): Promise<void> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'clearDefaultCar');
     await Utils.checkTenant(tenantID);
-
     await global.database.getCollection<any>(tenantID, 'userscars').updateMany(
       {
         userID: Utils.convertToObjectID(userID),

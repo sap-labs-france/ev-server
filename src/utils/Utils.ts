@@ -1,5 +1,5 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { Car, CarType } from '../types/Car';
+import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -853,6 +853,21 @@ export default class Utils {
       fullName += `; ${user.email}`;
     }
     return fullName;
+  }
+
+  public static buildCarName(carCatalog: CarCatalog) {
+    let carName: string;
+    if (!carCatalog) {
+      return '-';
+    }
+    carName = carCatalog.vehicleMake;
+    if (carCatalog.vehicleModel) {
+      carName += ` ${carCatalog.vehicleModel}`;
+    }
+    if (carCatalog.vehicleModelVersion) {
+      carName += ` ${carCatalog.vehicleModelVersion}`;
+    }
+    return carName;
   }
 
   // Save the users in file

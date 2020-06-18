@@ -224,7 +224,7 @@ export default class CarService {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
-            message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist for this user`,
+            message: `The Car with VIN '${filteredRequest.vin}' and License Plate '${filteredRequest.licensePlate}' already exist for this user`,
             user: req.user,
             actionOnUser: foundUser,
             module: MODULE_NAME, method: 'handleCarCreate'
@@ -239,7 +239,7 @@ export default class CarService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR_DIFFERENT_USER,
-          message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist with different user`,
+          message: `The Car with VIN '${filteredRequest.vin}' and License Plate '${filteredRequest.licensePlate}' already exist with different user`,
           user: req.user,
           module: MODULE_NAME, method: 'handleCarCreate'
         });
@@ -317,14 +317,24 @@ export default class CarService {
     let userCar;
     if (Authorizations.isBasic(req.user)) {
       userCar = car.usersCar.find((userCarToFind) => userCarToFind.userID.toString() === req.user.id);
-      if (!userCar || !userCar.owner) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+      // Assigned to this user?
+      if (!userCar) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.NO_CAR_FOR_USER,
           user: req.user,
-          action: Action.UPDATE,
-          entity: Entity.CAR,
-          module: MODULE_NAME,
-          method: 'handleUpdateCar'
+          module: MODULE_NAME, method: 'handleUpdateCar',
+          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarName(car.carCatalog)})`,
+        });
+      }
+      // Owner?
+      if (!userCar.owner) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_NOT_OWNER_OF_THE_CAR,
+          user: req.user,
+          module: MODULE_NAME, method: 'handleUpdateCar',
+          message: `User is not the owner of the car ID '${car.id}' (${Utils.buildCarName(car.carCatalog)})`,
         });
       }
     }
