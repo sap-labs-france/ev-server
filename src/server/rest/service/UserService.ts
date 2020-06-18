@@ -75,7 +75,7 @@ export default class UserService {
     }
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleAssignSitesToUser', req.user);
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
@@ -153,7 +153,7 @@ export default class UserService {
     }
     // Check user
     const user = await UserStorage.getUser(req.user.tenantID, id);
-    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`,
       MODULE_NAME, 'handleDeleteUser', req.user);
     // Deleted
     if (user.deleted) {
@@ -346,7 +346,7 @@ export default class UserService {
     }
     // Get User
     let user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateUser', req.user);
     // Deleted?
     if (user.deleted) {
@@ -581,7 +581,7 @@ export default class UserService {
     }
     // Get User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateUserMobileToken', req.user);
     // Deleted?
     if (user.deleted) {
@@ -647,7 +647,7 @@ export default class UserService {
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);
-    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
     // Deleted?
     if (user.deleted) {
@@ -698,7 +698,7 @@ export default class UserService {
     }
     // Get the logged user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.ID}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetUserImage', req.user);
     // Deleted?
     if (user.deleted) {
@@ -1062,7 +1062,7 @@ export default class UserService {
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);
-    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`,
       MODULE_NAME, 'handleGetUserInvoice', req.user);
     // Deleted?
     if (user.deleted) {

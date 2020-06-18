@@ -17,6 +17,7 @@ import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 
 const MODULE_NAME = 'CarService';
 
@@ -495,7 +496,32 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterUsersAssignRequest(req.body);
     // CarID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.carID, 'CarSecurity', 'filterUsersAssignRequest', req.user);
+    // Check Users
+    for (const userCar of filteredRequest.usersCar) {
+      // Check the user
+      const user = await UserStorage.getUser(req.user.tenantID, userCar.userID);
+      UtilsService.assertObjectExists(action, user, `User '${userCar.userID}' does not exist`,
+        MODULE_NAME, 'handleAssignUsersToSite', req.user);
+      // Auth
+      if (!Authorizations.canReadUser(req.user, userCar.userID)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.READ, entity: Entity.USER,
+          module: MODULE_NAME, method: 'handleAssignUsersToSite',
+          value: userCar.userID
+        });
+      }
+    }
     const result = await CarStorage.addUsersToCar(req.user.tenantID, filteredRequest.carID, filteredRequest.usersCar);
+    // Log
+    Utils.logActionsResponse(req.user.tenantID, ServerAction.ADD_USERS_TO_CAR,
+      MODULE_NAME, 'AssignUsersCar', result,
+      '{{inSuccess}} user(s) were successfully assigned',
+      '{{inError}} user(s) failed to be assigned',
+      '{{inSuccess}} user(s) were successfully assigned and {{inError}} failed to be assigned',
+      'All the users are up to date'
+    );
     // Return
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();

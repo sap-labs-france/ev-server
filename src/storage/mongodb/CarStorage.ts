@@ -530,17 +530,20 @@ export default class CarStorage {
         await CarStorage.saveUserCar(tenantID, userCar);
         actionsDone.inSuccess++;
       } catch (error) {
+        Logging.logError({
+          tenantID,
+          user: userCar.userID,
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'addUsersToCar',
+          action: ServerAction.USERS_CAR_UPDATE,
+          message: 'An error occurred while trying to assign the user to the car',
+          detailedMessages: { error: error.message, stack: error.stack, userCar }
+        });
         actionsDone.inError++;
       }
     }
-    // Log
-    Utils.logActionsResponse(tenantID, ServerAction.ADD_USERS_TO_CAR,
-      MODULE_NAME, 'AssignUsersCar', actionsDone,
-      '{{inSuccess}} user(s) were successfully assigned',
-      '{{inError}} user(s) failed to be assigned',
-      '{{inSuccess}} user(s) were successfully assigned and {{inError}} failed to be assigned',
-      'All the users are up to date'
-    );
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'addUsersToCar', uniqueTimerID, { usersCarToSave });
     return actionsDone;
   }
 
