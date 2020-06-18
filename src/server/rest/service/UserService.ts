@@ -796,7 +796,7 @@ export default class UserService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
         Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
     }
-    if (filteredRequest.ExcludeUserIDs || filteredRequest.NotAssignedToCarID) {
+    if (filteredRequest.NotAssignedToCarID) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
     }

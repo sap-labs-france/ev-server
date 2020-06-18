@@ -252,7 +252,7 @@ export default class CarSecurity {
     }
     const filteredUserCar: UserCar = {
       id: userCar.id,
-      user: userCar.user,
+      user: UserSecurity.filterMinimalUserResponse(userCar.user, loggedUser),
       carID: userCar.carID,
       userID: userCar.userID,
       default: userCar.default,
