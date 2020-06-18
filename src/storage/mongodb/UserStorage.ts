@@ -524,7 +524,7 @@ export default class UserStorage {
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
     }
-    if (params.excludeUserIDs && params.excludeUserIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.excludeUserIDs)) {
       filters._id = { $nin: params.excludeUserIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     // Email
