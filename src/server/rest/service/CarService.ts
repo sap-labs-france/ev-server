@@ -261,7 +261,7 @@ export default class CarService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCar',
-      message: `Car with plate ID '${newCar.licensePlate}' has been created successfully`,
+      message: `Car with VIN '${newCar.vin}' and plate ID '${newCar.licensePlate}' has been created successfully`,
       action: action,
       detailedMessages: { car: newCar }
     });
@@ -302,10 +302,8 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.CAR,
-        module: MODULE_NAME,
-        method: 'handleUpdateCar',
+        action: Action.UPDATE, entity: Entity.CAR,
+        module: MODULE_NAME, method: 'handleUpdateCar',
         value: filteredRequest.id
       });
     }
@@ -314,7 +312,7 @@ export default class CarService {
     UtilsService.assertObjectExists(action, car, `Car ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCar', req.user);
     // Check Owner if Basic
-    let userCar;
+    let userCar: UserCar;
     if (Authorizations.isBasic(req.user)) {
       userCar = car.usersCar.find((userCarToFind) => userCarToFind.userID.toString() === req.user.id);
       // Assigned to this user?
@@ -345,7 +343,7 @@ export default class CarService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
-          message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist`,
+          message: `Car with VIN '${filteredRequest.vin}' and License Plate '${filteredRequest.licensePlate}' already exists`,
           user: req.user,
           module: MODULE_NAME, method: 'handleUpdateCar'
         });
@@ -389,7 +387,6 @@ export default class CarService {
         });
       }
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
