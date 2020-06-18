@@ -1,15 +1,14 @@
-import { Car, CarCatalog, CarMaker, CarType, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable, UserCar } from '../../types/Car';
-import global, { ActionsResponse, Image } from '../../types/GlobalType';
-
+import { ObjectID } from 'mongodb';
+import { Car, CarCatalog, CarMaker, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable, UserCar } from '../../types/Car';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import global, { Image } from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
-import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
+
 
 const MODULE_NAME = 'CarStorage';
 
@@ -491,7 +490,6 @@ export default class CarStorage {
       userID: Utils.convertToObjectID(userCarToSave.userID),
       carID: Utils.convertToObjectID(userCarToSave.carID),
       default: userCarToSave.default,
-      active: true,
       owner: (userCarToSave.owner === true ? true : false)
     };
     // Add Last Changed/Created props
@@ -721,7 +719,7 @@ export default class CarStorage {
   }
 
   public static async getUsersCars(tenantID: string,
-    params: { search?: string; usersCarsIDs?: string[]; userIDs?: string[]; carIDs?: string[]; active?: boolean } = {},
+    params: { search?: string; usersCarsIDs?: string[]; userIDs?: string[]; carIDs?: string[]; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<UserCar>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUsersCars');
@@ -731,9 +729,6 @@ export default class CarStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
-    if (params.active) {
-      filters.active = params.active;
-    }
     // Limit on Car for Basic Users
     if (!Utils.isEmptyArray(params.usersCarsIDs)) {
       // Build filter
