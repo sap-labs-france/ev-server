@@ -45,7 +45,7 @@ export default class ExpressTools {
       app.get('/health-check', ExpressTools.healthCheckService.bind(this));
     }
     // Use
-    app.use(locale(Configuration.getLocalesConfig().supported));
+    app.use(locale(Constants.SUPPORTED_LOCALES));
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app

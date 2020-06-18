@@ -6,7 +6,6 @@ import BackendError from '../../exception/BackendError';
 import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
 import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
