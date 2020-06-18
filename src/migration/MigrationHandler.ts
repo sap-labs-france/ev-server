@@ -19,6 +19,8 @@ import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
+import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
+import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPropertiesTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
 import { ServerAction } from '../types/Server';
@@ -76,6 +78,8 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
         currentMigrationTasks.push(new RenameTransactionsAndConsumptionsTask());
         currentMigrationTasks.push(new AddConsumptionAmpsToConsumptionsTask());
+        currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
+        currentMigrationTasks.push(new RenameChargingStationPropertiesTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

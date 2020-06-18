@@ -12,6 +12,9 @@ import faker from 'faker';
 interface MeterValueParams {
   energyActiveImportMeterValue: number;
   powerImportMeterValue?: number;
+  powerImportL1MeterValue?: number;
+  powerImportL2MeterValue?: number;
+  powerImportL3MeterValue?: number;
   voltageMeterValue?: number;
   voltageL1MeterValue?: number;
   voltageL2MeterValue?: number;
@@ -142,7 +145,28 @@ export default class ChargingStationContext {
       if (meterValues.powerImportMeterValue) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.powerImportMeterValue.toString(),
-          ...Constants.OCPP_POWER_ATTRIBUTE,
+          ...Constants.OCPP_POWER_ACTIVE_IMPORT_ATTRIBUTE,
+        });
+      }
+      // Power L1
+      if (meterValues.powerImportL1MeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.powerImportL1MeterValue.toString(),
+          ...Constants.OCPP_POWER_ACTIVE_IMPORT_L1_ATTRIBUTE,
+        });
+      }
+      // Power L2
+      if (meterValues.powerImportL2MeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.powerImportL2MeterValue.toString(),
+          ...Constants.OCPP_POWER_ACTIVE_IMPORT_L2_ATTRIBUTE,
+        });
+      }
+      // Power L3
+      if (meterValues.powerImportL3MeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.powerImportL3MeterValue.toString(),
+          ...Constants.OCPP_POWER_ACTIVE_IMPORT_L3_ATTRIBUTE,
         });
       }
       // Voltage
@@ -177,28 +201,28 @@ export default class ChargingStationContext {
       if (meterValues.amperageMeterValue) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.amperageMeterValue.toString(),
-          ...Constants.OCPP_CURRENT_ATTRIBUTE,
+          ...Constants.OCPP_CURRENT_IMPORT_ATTRIBUTE,
         });
       }
       // Amperage L1
       if (meterValues.amperageL1MeterValue) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.amperageL1MeterValue.toString(),
-          ...Constants.OCPP_CURRENT_L1_ATTRIBUTE,
+          ...Constants.OCPP_CURRENT_IMPORT_L1_ATTRIBUTE,
         });
       }
       // Amperage L2
       if (meterValues.amperageL2MeterValue) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.amperageL2MeterValue.toString(),
-          ...Constants.OCPP_CURRENT_L2_ATTRIBUTE,
+          ...Constants.OCPP_CURRENT_IMPORT_L2_ATTRIBUTE,
         });
       }
       // Amperage L3
       if (meterValues.amperageL3MeterValue) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.amperageL3MeterValue.toString(),
-          ...Constants.OCPP_CURRENT_L3_ATTRIBUTE,
+          ...Constants.OCPP_CURRENT_IMPORT_L3_ATTRIBUTE,
         });
       }
       // Soc
@@ -261,8 +285,29 @@ export default class ChargingStationContext {
       if (meterValues.powerImportMeterValue > 0) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.powerImportMeterValue.toString(),
-          ...Constants.OCPP_POWER_ATTRIBUTE,
+          ...Constants.OCPP_POWER_ACTIVE_IMPORT_ATTRIBUTE,
           context,
+        });
+      }
+      // Power L1
+      if (meterValues.powerImportL1MeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.powerImportL1MeterValue.toString(),
+          ...Constants.OCPP_POWER_ACTIVE_IMPORT_L1_ATTRIBUTE,
+        });
+      }
+      // Power L2
+      if (meterValues.powerImportL2MeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.powerImportL2MeterValue.toString(),
+          ...Constants.OCPP_POWER_ACTIVE_IMPORT_L2_ATTRIBUTE,
+        });
+      }
+      // Power L3
+      if (meterValues.powerImportL3MeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.powerImportL3MeterValue.toString(),
+          ...Constants.OCPP_POWER_ACTIVE_IMPORT_L3_ATTRIBUTE,
         });
       }
       // Soc
@@ -309,7 +354,7 @@ export default class ChargingStationContext {
       if (meterValues.amperageMeterValue > 0) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.amperageMeterValue.toString(),
-          ...Constants.OCPP_CURRENT_ATTRIBUTE,
+          ...Constants.OCPP_CURRENT_IMPORT_ATTRIBUTE,
           context,
         });
       }
@@ -317,7 +362,7 @@ export default class ChargingStationContext {
       if (meterValues.amperageL1MeterValue > 0) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.amperageL1MeterValue.toString(),
-          ...Constants.OCPP_CURRENT_L1_ATTRIBUTE,
+          ...Constants.OCPP_CURRENT_IMPORT_L1_ATTRIBUTE,
           context,
         });
       }
@@ -325,7 +370,7 @@ export default class ChargingStationContext {
       if (meterValues.amperageL2MeterValue > 0) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.amperageL2MeterValue.toString(),
-          ...Constants.OCPP_CURRENT_L2_ATTRIBUTE,
+          ...Constants.OCPP_CURRENT_IMPORT_L2_ATTRIBUTE,
           context,
         });
       }
@@ -333,7 +378,7 @@ export default class ChargingStationContext {
       if (meterValues.amperageL3MeterValue > 0) {
         meterValueRequest.meterValue[0].sampledValue.push({
           value: meterValues.amperageL3MeterValue.toString(),
-          ...Constants.OCPP_CURRENT_L3_ATTRIBUTE,
+          ...Constants.OCPP_CURRENT_IMPORT_L3_ATTRIBUTE,
           context,
         });
       }

@@ -70,8 +70,8 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'maximumPower')) {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
-    if (Utils.objectHasProperty(filteredRequest, 'private')) {
-      chargingStation.private = filteredRequest.private;
+    if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      chargingStation.public = filteredRequest.public;
     }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
       chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;

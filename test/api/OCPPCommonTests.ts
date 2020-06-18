@@ -43,6 +43,9 @@ export default class OCPPCommonTests {
   public socMeterValues: number[];
 
   public powerImportMeterValues: number[];
+  public powerImportL1MeterValues: number[];
+  public powerImportL2MeterValues: number[];
+  public powerImportL3MeterValues: number[];
 
   public voltageMeterValues: number[];
   public voltageL1MeterValues: number[];
@@ -152,12 +155,6 @@ export default class OCPPCommonTests {
     this.socMeterValues = Array.from({ length: 8 }, () => faker.random.number({
       min: 10, max: 90
     })).concat([8, 8, 98, 99, 100, 100]).sort((a, b) => (a - b));
-    // Power Import (14 values)
-    this.powerImportMeterValues = [];
-    for (let i = 0; i < this.energyActiveImportMeterValues.length; i++) {
-      this.powerImportMeterValues.push(
-        this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs));
-    }
     // Voltage (14 values)
     this.voltageMeterValues = Array.from({ length: 14 }, () => faker.random.number({
       min: 220, max: 240
@@ -184,6 +181,27 @@ export default class OCPPCommonTests {
     this.amperageMeterValues = [];
     for (let i = 0; i < this.amperageL1MeterValues.length; i++) {
       this.amperageMeterValues.push(this.amperageL1MeterValues[i] + this.amperageL2MeterValues[i] + this.amperageL3MeterValues[i]);
+    }
+    // Power Import (14 values)
+    this.powerImportMeterValues = [];
+    for (let i = 0; i < this.amperageMeterValues.length; i++) {
+      this.powerImportMeterValues.push(
+        this.amperageMeterValues[i] * this.voltageMeterValues[i]);
+    }
+    this.powerImportL1MeterValues = [];
+    for (let i = 0; i < this.amperageL1MeterValues.length; i++) {
+      this.powerImportL1MeterValues.push(
+        this.amperageL1MeterValues[i] * this.voltageL1MeterValues[i]);
+    }
+    this.powerImportL2MeterValues = [];
+    for (let i = 0; i < this.amperageL2MeterValues.length; i++) {
+      this.powerImportL2MeterValues.push(
+        this.amperageL2MeterValues[i] * this.voltageL2MeterValues[i]);
+    }
+    this.powerImportL3MeterValues = [];
+    for (let i = 0; i < this.amperageL3MeterValues.length; i++) {
+      this.powerImportL3MeterValues.push(
+        this.amperageL3MeterValues[i] * this.voltageL3MeterValues[i]);
     }
     // Total Inactivity (14 values)
     this.totalInactivities = [];
@@ -461,6 +479,9 @@ export default class OCPPCommonTests {
         {
           energyActiveImportMeterValue: currentEnergyActiveImportMeterValue,
           powerImportMeterValue: this.powerImportMeterValues[index],
+          powerImportL1MeterValue: this.powerImportL1MeterValues[index],
+          powerImportL2MeterValue: this.powerImportL2MeterValues[index],
+          powerImportL3MeterValue: this.powerImportL3MeterValues[index],
           voltageMeterValue: this.voltageMeterValues[index],
           voltageL1MeterValue: this.voltageL1MeterValues[index],
           voltageL2MeterValue: this.voltageL2MeterValues[index],
@@ -474,17 +495,31 @@ export default class OCPPCommonTests {
       );
       expect(meterValueResponse).to.eql({});
       // Check the Consumption
-      transactionValidation = await this.basicTransactionValidation(this.newTransaction.id,
-        this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
-      expect(transactionValidation.data).to.deep.include({
-        currentInstantWatts: this.powerImportMeterValues[index],
-        currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
-        currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
-        currentTotalInactivitySecs: this.totalInactivities[index],
-        currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.priceKWH,
-        currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
-          this.newTransaction.connectorId, this.totalInactivities[index]),
-      });
+      if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_15) {
+        transactionValidation = await this.basicTransactionValidation(this.newTransaction.id,
+          this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
+        expect(transactionValidation.data).to.deep.include({
+          currentInstantWatts: this.energyActiveImportMeterValues[index] * (3600 / this.meterValueIntervalSecs),
+          currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
+          currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
+          currentTotalInactivitySecs: this.totalInactivities[index],
+          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.priceKWH,
+          currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
+            this.newTransaction.connectorId, this.totalInactivities[index]),
+        });
+      } else {
+        transactionValidation = await this.basicTransactionValidation(this.newTransaction.id,
+          this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
+        expect(transactionValidation.data).to.deep.include({
+          currentInstantWatts: this.powerImportMeterValues[index],
+          currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
+          currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
+          currentTotalInactivitySecs: this.totalInactivities[index],
+          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.priceKWH,
+          currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
+            this.newTransaction.connectorId, this.totalInactivities[index]),
+        });
+      }
       if (withSoC) {
         expect(transactionValidation.data).to.deep.include({
           currentStateOfCharge: this.socMeterValues[index]
@@ -541,7 +576,8 @@ export default class OCPPCommonTests {
     // Set end time
     this.transactionCurrentTime = moment(this.transactionCurrentTime).add(this.meterValueIntervalSecs, 's').toDate();
     // Stop the Transaction
-    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(this.newTransaction.id, this.transactionStopUser.tags[0].id, this.energyActiveImportEndMeterValue, this.transactionCurrentTime);
+    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(this.newTransaction.id,
+      this.transactionStopUser.tags[0].id, this.energyActiveImportEndMeterValue, this.transactionCurrentTime);
     // Check
     expect(stopTransactionResponse).to.have.property('idTagInfo');
     expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
@@ -552,7 +588,8 @@ export default class OCPPCommonTests {
     const statusResponse = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
     expect(statusResponse).to.eql({});
     // Check the Transaction
-    const transactionValidation = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
+    const transactionValidation = await this.basicTransactionValidation(this.newTransaction.id,
+      this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
     expect(transactionValidation.data).to.deep['containSubset']({
       'stop': {
         'meterStop': this.energyActiveImportEndMeterValue,
@@ -621,35 +658,42 @@ export default class OCPPCommonTests {
       // Sum
       transactionCumulatedConsumption += this.energyActiveImportMeterValues[i];
       // Check
-      expect(value).to.include({
-        'date': transactionCurrentTime.toISOString(),
-        'instantVolts': checkNewMeterValues ? this.voltageMeterValues[i] : 0,
-        'instantVoltsL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
-        'instantVoltsL2': checkNewMeterValues ? this.voltageL2MeterValues[i] : 0,
-        'instantVoltsL3': checkNewMeterValues ? this.voltageL3MeterValues[i] : 0,
-        'instantAmps': checkNewMeterValues ? this.amperageMeterValues[i] :
-          Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
-            null, this.newTransaction.connectorId, this.powerImportMeterValues[i]),
-        'instantAmpsL1': checkNewMeterValues ? this.amperageL1MeterValues[i] : 0,
-        'instantAmpsL2': checkNewMeterValues ? this.amperageL2MeterValues[i] : 0,
-        'instantAmpsL3': checkNewMeterValues ? this.amperageL3MeterValues[i] : 0,
-        'instantWatts': this.powerImportMeterValues[i],
-        'instantWattsL1': checkNewMeterValues ?
-          Utils.convertAmpToWatt(this.chargingStationContext.getChargingStation(),
-            null, this.newTransaction.connectorId, this.amperageL1MeterValues[i]) : 0,
-        'instantWattsL2': checkNewMeterValues ?
-          Utils.convertAmpToWatt(this.chargingStationContext.getChargingStation(),
-            null, this.newTransaction.connectorId, this.amperageL2MeterValues[i]) : 0,
-        'instantWattsL3': checkNewMeterValues ?
-          Utils.convertAmpToWatt(this.chargingStationContext.getChargingStation(),
-            null, this.newTransaction.connectorId, this.amperageL3MeterValues[i]) : 0,
-        'cumulatedConsumptionWh': transactionCumulatedConsumption,
-        'cumulatedConsumptionAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
-          null, this.newTransaction.connectorId, transactionCumulatedConsumption)
-      });
-      if (withSoC) {
+      if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_15) {
+        const instantWatts = this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs);
         expect(value).to.include({
-          'stateOfCharge': this.socMeterValues[i]
+          'date': transactionCurrentTime.toISOString(),
+          'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, instantWatts),
+          'instantWatts': instantWatts,
+          'cumulatedConsumptionWh': transactionCumulatedConsumption,
+          'cumulatedConsumptionAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, transactionCumulatedConsumption)
+        });
+        if (withSoC) {
+          expect(value).to.include({
+            'stateOfCharge': this.socMeterValues[i]
+          });
+        }
+      } else {
+        expect(value).to.include({
+          'date': transactionCurrentTime.toISOString(),
+          'instantVolts': checkNewMeterValues ? this.voltageMeterValues[i] : 0,
+          'instantVoltsL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
+          'instantVoltsL2': checkNewMeterValues ? this.voltageL2MeterValues[i] : 0,
+          'instantVoltsL3': checkNewMeterValues ? this.voltageL3MeterValues[i] : 0,
+          'instantAmps': checkNewMeterValues ? this.amperageMeterValues[i] :
+            Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
+              null, this.newTransaction.connectorId, this.powerImportMeterValues[i]),
+          'instantAmpsL1': checkNewMeterValues ? this.amperageL1MeterValues[i] : 0,
+          'instantAmpsL2': checkNewMeterValues ? this.amperageL2MeterValues[i] : 0,
+          'instantAmpsL3': checkNewMeterValues ? this.amperageL3MeterValues[i] : 0,
+          'instantWatts': this.powerImportMeterValues[i],
+          'instantWattsL1': checkNewMeterValues ? this.voltageL1MeterValues[i] * this.amperageL1MeterValues[i] : 0,
+          'instantWattsL2': checkNewMeterValues ? this.voltageL2MeterValues[i] * this.amperageL2MeterValues[i] : 0,
+          'instantWattsL3': checkNewMeterValues ? this.voltageL3MeterValues[i] * this.amperageL3MeterValues[i] : 0,
+          'cumulatedConsumptionWh': transactionCumulatedConsumption,
+          'cumulatedConsumptionAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
+            null, this.newTransaction.connectorId, transactionCumulatedConsumption)
         });
       }
     }

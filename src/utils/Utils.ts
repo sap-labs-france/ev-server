@@ -487,6 +487,14 @@ export default class Utils {
     return changedValue;
   }
 
+  public static computeSimplePrice(pricePerKWH: number, consumptionWH: number): number {
+    return Utils.convertToFloat((pricePerKWH * (consumptionWH / 1000)).toFixed(6));
+  }
+
+  public static computeSimpleRoundedPrice(pricePerKWH: number, consumptionWH: number): number {
+    return Utils.convertToFloat((pricePerKWH * consumptionWH).toFixed(2));
+  }
+
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
     let userID: ObjectID | null = null;
     // Check Created By
