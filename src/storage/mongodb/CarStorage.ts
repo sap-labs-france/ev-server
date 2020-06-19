@@ -559,7 +559,6 @@ export default class CarStorage {
     }
     // Limit on Car for Basic Users
     if (!Utils.isEmptyArray(params.carIDs)) {
-      // Build filter
       filters._id = { $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID)) };
     }
     // Create Aggregation
@@ -615,7 +614,6 @@ export default class CarStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
-
     // Sort
     if (dbParams.sort) {
       aggregation.push({

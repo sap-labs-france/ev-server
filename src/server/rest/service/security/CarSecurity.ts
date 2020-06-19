@@ -47,8 +47,7 @@ export default class CarSecurity {
   }
 
   public static filterCarCatalogResponse(carCatalog: CarCatalog, loggedUser: UserToken): CarCatalog {
-    let filteredCarCatalog;
-
+    let filteredCarCatalog: CarCatalog;
     if (!carCatalog) {
       return null;
     }
@@ -92,6 +91,23 @@ export default class CarSecurity {
     }
     // Created By / Last Changed By
     UtilsSecurity.filterCreatedAndLastChanged(filteredCarCatalog, carCatalog, loggedUser);
+    return filteredCarCatalog;
+  }
+
+  public static filterMinimalCarCatalogResponse(carCatalog: CarCatalog, loggedUser: UserToken): CarCatalog {
+    let filteredCarCatalog: CarCatalog;
+    if (!carCatalog) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadCarCatalog(loggedUser)) {
+      filteredCarCatalog = {
+        id: carCatalog.id,
+        vehicleModel: carCatalog.vehicleModel,
+        vehicleMake: carCatalog.vehicleMake,
+        vehicleModelVersion: carCatalog.vehicleModelVersion,
+      } as CarCatalog;
+    }
     return filteredCarCatalog;
   }
 
@@ -186,20 +202,19 @@ export default class CarSecurity {
       // Add
       if (car) {
         filteredCars.push(
-          this.filterCarResponse(car, loggedUser)
-        );
+          this.filterCarResponse(car, loggedUser, true));
       }
     }
     cars.result = filteredCars;
   }
 
-  public static filterCarResponse(car: Car, loggedUser: UserToken): Car {
+  public static filterCarResponse(car: Car, loggedUser: UserToken, forList = false): Car {
     let filteredCar: Car;
     if (!car) {
       return null;
     }
     // Admin?
-    if (Authorizations.isAdmin(loggedUser)) {
+    if (Authorizations.canUpdateCar(loggedUser)) {
       // Yes: set all params
       filteredCar = car;
     } else {
@@ -219,11 +234,15 @@ export default class CarSecurity {
     }
     if (car.users) {
       filteredCar.users = car.users.map(
-        (user) => UserSecurity.filterUserResponse(user, loggedUser));
+        (user) => forList ? UserSecurity.filterMinimalUserResponse(user, loggedUser) :
+          UserSecurity.filterUserResponse(user, loggedUser));
     }
     if (car.carCatalog) {
-      filteredCar.carCatalog = CarSecurity.filterCarCatalogResponse(car.carCatalog, loggedUser);
+      filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
+        this.filterCarCatalogResponse(car.carCatalog, loggedUser);
     }
+    // Remove unused props
+    delete filteredCar.usersCar;
     return filteredCar;
   }
 
