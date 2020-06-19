@@ -241,8 +241,6 @@ export default class CarSecurity {
       filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
         this.filterCarCatalogResponse(car.carCatalog, loggedUser);
     }
-    // Remove unused props
-    delete filteredCar.usersCar;
     return filteredCar;
   }
 

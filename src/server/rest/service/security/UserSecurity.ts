@@ -166,7 +166,7 @@ export default class UserSecurity {
 
   // User
   static filterMinimalUserResponse(user: User, loggedUser: UserToken): User {
-    const filteredUser: any = {};
+    const filteredUser = {} as User;
     if (!user) {
       return null;
     }
@@ -177,10 +177,12 @@ export default class UserSecurity {
         filteredUser.id = null;
         filteredUser.name = Constants.ANONYMIZED_VALUE;
         filteredUser.firstName = Constants.ANONYMIZED_VALUE;
+        filteredUser.email = Constants.ANONYMIZED_VALUE;
       } else {
         filteredUser.id = user.id;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
+        filteredUser.email = user.email;
       }
     }
     return filteredUser;
