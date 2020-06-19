@@ -82,6 +82,12 @@ export default class CentralRestServer {
       req.query.FileName = 'r7_update_3.3.0.10_d4.epk';
       await CentralRestServerService.restServiceUtil(req, res, next);
     });
+    this.expressApplication.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.12_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
+      req.url = decodeURIComponent(req.originalUrl);
+      req.params.action = 'FirmwareDownload';
+      req.query.FileName = 'r7_update_3.3.0.12_d4.epk';
+      await CentralRestServerService.restServiceUtil(req, res, next);
+    });
     // Catchall for util with logging
     this.expressApplication.all(['/client/util/*', '/client%2Futil%2F*'], (req: Request, res: Response) => {
       Logging.logDebug({

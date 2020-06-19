@@ -301,7 +301,7 @@ export default class Utils {
   public static getLanguageFromLocale(locale: string): string {
     let language = Constants.DEFAULT_LANGUAGE;
     // Set the User's locale
-    if (locale && locale.length > 2) {
+    if (locale && locale.length >= 2) {
       language = locale.substring(0, 2);
     }
     return language;

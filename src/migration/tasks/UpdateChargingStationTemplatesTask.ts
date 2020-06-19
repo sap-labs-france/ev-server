@@ -1,15 +1,15 @@
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../types/ocpp/OCPPClient';
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
+
+import { ActionsResponse } from './../../types/GlobalType';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
-import { ActionsResponse } from './../../types/GlobalType';
-
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
@@ -35,7 +35,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '3.0';
+    return '3.01';
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {

@@ -31,17 +31,11 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getEndUserLicenseAgreement');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    let languageFound = false;
     let currentEulaHash: string;
-    const supportLanguages = Configuration.getLocalesConfig().supported;
-    // Search for language
-    for (const supportLanguage of supportLanguages) {
-      if (language === supportLanguage.substring(0, 2)) {
-        languageFound = true;
-      }
-    }
-    if (!languageFound) {
-      language = 'en';
+    // Supported languages?
+    if (!Constants.SUPPORTED_LANGUAGES.includes(language)) {
+      // Default
+      language = Constants.DEFAULT_LANGUAGE;
     }
     // Get current eula
     const currentEula = UserStorage.getEndUserLicenseAgreementFromFile(language);
@@ -77,7 +71,7 @@ export default class UserStorage {
       Logging.traceEnd(MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, { language });
       return eulaMDB;
     }
-    // Create Default
+    // Create default
     const eula = {
       timestamp: new Date(),
       language: language,
@@ -850,7 +844,7 @@ export default class UserStorage {
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
       if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
-         ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
+        ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
         continue;
       }
       array.push(`$${type}`);
@@ -1146,7 +1140,7 @@ export default class UserStorage {
     }
     // Build Front End URL
     const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
-      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
+      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port.toString();
     // Parse the auth and replace values
     eulaText = Mustache.render(
       eulaText,
