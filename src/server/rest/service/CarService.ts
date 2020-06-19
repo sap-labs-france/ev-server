@@ -470,8 +470,7 @@ export default class CarService {
     const usersCars = await CarStorage.getUsersCars(req.user.tenantID,
       {
         search: filteredRequest.search,
-        carIDs: [filteredRequest.carID],
-        active: true
+        carIDs: [filteredRequest.carID]
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     // Filter
