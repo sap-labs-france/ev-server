@@ -241,6 +241,8 @@ export default class CarSecurity {
       filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
         this.filterCarCatalogResponse(car.carCatalog, loggedUser);
     }
+    UtilsSecurity.filterCreatedAndLastChanged(
+      filteredCar, car, loggedUser);
     return filteredCar;
   }
 
