@@ -16,7 +16,7 @@ export default interface UserNotifications {
   sendUserAccountInactivity: boolean;
   sendPreparingSessionNotStarted: boolean;
   sendOfflineChargingStations: boolean;
-  sendBillingUserSynchronizationFailed: boolean;
+  sendBillingSynchronizationFailed: boolean;
   sendCarCatalogSynchronizationFailed: boolean;
   sendSessionNotStarted: boolean;
 }
@@ -210,6 +210,12 @@ export interface OfflineChargingStationNotification extends BaseNotification {
 
 export interface BillingUserSynchronizationFailedNotification extends BaseNotification {
   nbrUsersInError: number;
+  evseDashboardURL: string;
+  evseDashboardBillingURL: string;
+}
+
+export interface BillingInvoiceSynchronizationFailedNotification extends BaseNotification {
+  nbrInvoicesInError: number;
   evseDashboardURL: string;
   evseDashboardBillingURL: string;
 }

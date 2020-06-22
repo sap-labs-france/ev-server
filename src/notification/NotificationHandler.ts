@@ -1,5 +1,5 @@
 import User, { UserRole } from '../types/User';
-import UserNotifications, { BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { BillingInvoiceSynchronizationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -734,8 +734,46 @@ export default class NotificationHandler {
                 // Send
                 for (const adminUser of adminUsers) {
                   // Enabled?
-                  if (adminUser.notificationsActive && adminUser.notifications.sendBillingUserSynchronizationFailed) {
+                  if (adminUser.notificationsActive && adminUser.notifications.sendBillingSynchronizationFailed) {
                     await notificationSource.notificationTask.sendBillingUserSynchronizationFailed(
+                      sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                  }
+                }
+              }
+            } catch (error) {
+              Logging.logActionExceptionMessage(tenantID, ServerAction.BILLING_USER_SYNCHRONIZATION_FAILED, error);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  static async sendBillingInvoicesSynchronizationFailed(tenantID: string, sourceData: BillingInvoiceSynchronizationFailedNotification): Promise<void> {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get the Tenant
+      const tenant = await TenantStorage.getTenant(tenantID);
+      // Enrich with admins
+      const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+      if (adminUsers && adminUsers.length > 0) {
+        // For each Sources
+        for (const notificationSource of NotificationHandler.notificationSources) {
+          // Active?
+          if (notificationSource.enabled) {
+            try {
+              // Check notification
+              const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+                tenantID, notificationSource.channel, ServerAction.BILLING_INVOICE_SYNCHRONIZATION_FAILED);
+              // Notified?
+              if (!hasBeenNotified) {
+                // Save
+                await NotificationHandler.saveNotification(
+                  tenantID, notificationSource.channel, null, ServerAction.BILLING_INVOICE_SYNCHRONIZATION_FAILED);
+                // Send
+                for (const adminUser of adminUsers) {
+                  // Enabled?
+                  if (adminUser.notificationsActive && adminUser.notifications.sendBillingSynchronizationFailed) {
+                    await notificationSource.notificationTask.sendBillingInvoiceSynchronizationFailed(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }

@@ -180,7 +180,7 @@ describe('Billing Service', function() {
           fakeUser,
           false
         );
-        testData.createdUsers.push(fakeUser);
+        // TestData.createdUsers.push(fakeUser);
         const billingUser = await billingImpl.getUserByEmail(fakeUser.email);
         expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
       });
@@ -387,7 +387,7 @@ describe('Billing Service', function() {
         );
         const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         for (let i = 0; i < response.data.result.length - 1; i++) {
-          expect(response.data.result[i].userID).to.be.eq(basicUser.id);
+          expect(response.data.result[i].user.id).to.be.eq(basicUser.id);
         }
       });
 
