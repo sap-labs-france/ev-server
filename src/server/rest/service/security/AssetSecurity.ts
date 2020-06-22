@@ -46,20 +46,6 @@ export default class AssetSecurity {
     return AssetSecurity._filterAssetRequest(request);
   }
 
-  public static filterAssetTestConnection(request: any): Partial<AssetConnectionSetting> {
-    return {
-      id: sanitize(request.id),
-      name: sanitize(request.name),
-      description: sanitize(request.description),
-      url: sanitize(request.url),
-      type: sanitize(request.type),
-      connection: {
-        user: sanitize(request.connection.user),
-        password: sanitize(request.connection.password)
-      }
-    }
-  }
-
   public static _filterAssetRequest(request: any): Partial<Asset> {
     const filteredRequest: Partial<Asset> = {};
     filteredRequest.name = sanitize(request.name),

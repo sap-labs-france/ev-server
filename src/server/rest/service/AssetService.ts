@@ -27,9 +27,9 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CHECK_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleCheckAssetConnection');
     // Filter request
-    const filteredRequest = AssetSecurity.filterAssetTestConnection(req.body);
+    const filteredRequest = AssetSecurity.filterAssetRequestByID(req.query);
     // Get asset connection type
-    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, filteredRequest.id);
+    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, filteredRequest);
     // Asset has unknown connection type
     if (!assetImpl) {
       throw new AppError({
@@ -73,8 +73,8 @@ export default class AssetService {
       });
       // Create fail response
       const response = {
-        connectionIsValid: false,
-        statusErrorCode: error.response.status
+        isConnectionValid: false,
+        error: (error.response && error.response.data) ? error.response.data.error : 'unknown_connection_error'
       }
       res.json(Object.assign(response));
     }

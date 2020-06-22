@@ -3,6 +3,7 @@ import BackendError from '../../../exception/BackendError';
 import { ServerAction } from '../../../types/Server';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
 import AssetIntegration from '../AssetIntegration';
 
 
@@ -20,7 +21,7 @@ export default class AssetSchneiderIntegration extends AssetIntegration<AssetSet
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.connection.user);
-    params.append('password', this.connection.connection.password);
+    params.append('password', Cypher.decrypt(this.connection.connection.password));
     // Send credentials to get the token
     await axios.post(`${this.connection.url}/GetToken`, params,
     {
