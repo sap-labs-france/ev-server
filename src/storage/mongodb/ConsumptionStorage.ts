@@ -39,7 +39,20 @@ export default class ConsumptionStorage {
       roundedAmount: Utils.convertToFloat(consumptionToSave.roundedAmount),
       currencyCode: consumptionToSave.currencyCode,
       instantWatts: Utils.convertToFloat(consumptionToSave.instantWatts),
+      instantWattsL1: Utils.convertToFloat(consumptionToSave.instantWattsL1),
+      instantWattsL2: Utils.convertToFloat(consumptionToSave.instantWattsL2),
+      instantWattsL3: Utils.convertToFloat(consumptionToSave.instantWattsL3),
+      instantWattsDC: Utils.convertToFloat(consumptionToSave.instantWattsDC),
       instantAmps: Utils.convertToFloat(consumptionToSave.instantAmps),
+      instantAmpsL1: Utils.convertToFloat(consumptionToSave.instantAmpsL1),
+      instantAmpsL2: Utils.convertToFloat(consumptionToSave.instantAmpsL2),
+      instantAmpsL3: Utils.convertToFloat(consumptionToSave.instantAmpsL3),
+      instantAmpsDC: Utils.convertToFloat(consumptionToSave.instantAmpsDC),
+      instantVolts: Utils.convertToFloat(consumptionToSave.instantVolts),
+      instantVoltsL1: Utils.convertToFloat(consumptionToSave.instantVoltsL1),
+      instantVoltsL2: Utils.convertToFloat(consumptionToSave.instantVoltsL2),
+      instantVoltsL3: Utils.convertToFloat(consumptionToSave.instantVoltsL3),
+      instantVoltsDC: Utils.convertToFloat(consumptionToSave.instantVoltsDC),
       totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
       stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
@@ -222,7 +235,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Do the optimization in the code!!!
-    // TODO: Handle this coding into the MongoDB request
+    // TODO: Handle this coding into MongoDB request
     const consumptions: Consumption[] = [];
     for (const consumptionMDB of consumptionsMDB) {
       let lastConsumption: Consumption = null;

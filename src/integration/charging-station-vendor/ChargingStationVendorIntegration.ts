@@ -21,40 +21,8 @@ export default abstract class ChargingStationVendorIntegration {
     this.chargingStation = chargingStation;
   }
 
-  public async getStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-    chargePoint?: ChargePoint): Promise<number> {
-    let ampLimitation = 0;
-    if (chargePoint.excludeFromPowerLimitation) {
-      Logging.logWarning({
-        tenantID: tenantID,
-        source: chargingStation.id,
-        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        message: `Charge Point '${chargePoint.chargePointID}' is excluded from power limitation`,
-        module: MODULE_NAME, method: 'getStaticPowerLimitation',
-        detailedMessages: { chargePoint }
-      });
-      return ampLimitation;
-    }
-    if (!chargePoint.ocppParamForPowerLimitation) {
-      Logging.logWarning({
-        tenantID: tenantID,
-        source: chargingStation.id,
-        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        message: `No OCPP parameter provided in template for Charge Point '${chargePoint.chargePointID}'`,
-        module: MODULE_NAME, method: 'getStaticPowerLimitation',
-        detailedMessages: { chargePoint }
-      });
-      return ampLimitation;
-    }
-    // Read the OCPP Parameter
-    const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(
-      tenantID, chargingStation, { key: [chargePoint.ocppParamForPowerLimitation] });
-    if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
-      ocppConfiguration.configurationKey[0].value) {
-      const connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
-      ampLimitation = this.convertLimitAmpToAllPhases(chargingStation, chargePoint, 0, connectorLimitAmps);
-    }
-    return ampLimitation;
+  public hasStaticLimitationSupport(chargingStation: ChargingStation): boolean {
+    return chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation;
   }
 
   public async setStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
@@ -81,13 +49,13 @@ export default abstract class ChargingStationVendorIntegration {
       });
       return { status: OCPPConfigurationStatus.NOT_SUPPORTED };
     }
-    // Check if feature is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitation) {
+    // Check if feature is fully supported
+    if (!this.hasStaticLimitationFullSupport(chargingStation, chargePoint)) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
-        message: 'Charging Station capabilities does not support static power limitation'
+        message: 'Charging Station capabilities or configuration does not support static power limitation'
       });
     }
     if (maxAmps < StaticLimitAmps.MIN_LIMIT) {
@@ -144,7 +112,7 @@ export default abstract class ChargingStationVendorIntegration {
     }
     // Update the DB OCPP configuration
     if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-        result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+      result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       // Refresh Configuration
       await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
       // Update the charger's connectors
@@ -159,7 +127,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
-    ocppParamName: string, ocppParamValue: string) {
+    ocppParamName: string, ocppParamValue: string): Promise<void> {
     if (chargingStation.chargePoints) {
       for (const chargePoint of chargingStation.chargePoints) {
         if (ocppParamName === chargePoint.ocppParamForPowerLimitation) {
@@ -174,8 +142,10 @@ export default abstract class ChargingStationVendorIntegration {
               action: ServerAction.OCPP_PARAM_UPDATE,
               message: `Connector ID '${connectorID}' amperage limit set to ${connector.amperageLimit}A following an update of OCPP param '${ocppParamName}'`,
               module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
-              detailedMessages: { ocppParamName, ocppParamValue, connectorID,
-                amperageLimit: connector.amperageLimit, chargePoint }
+              detailedMessages: {
+                ocppParamName, ocppParamValue, connectorID,
+                amperageLimit: connector.amperageLimit, chargePoint
+              }
             });
           }
           // Save it
@@ -423,108 +393,54 @@ export default abstract class ChargingStationVendorIntegration {
           message: 'Cannot get the current connector limit on Connector ID 0',
         });
       }
-      // Check First the Charging Profile
+      // Check first matching Charging Profile
       if (chargingStation.capabilities && chargingStation.capabilities.supportChargingProfiles) {
         // Get the current Charging Plan
-        const compositeSchedule = await this.getCompositeSchedule(
-          tenantID, chargingStation, chargePoint, connectorID, 60);
-        // Get the current connector limitation from the charging plan
-        if (compositeSchedule.status === OCPPGetCompositeScheduleStatus.ACCEPTED) {
-          // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
-          if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
-              compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
-              compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
-            let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
-            // Check
-            if (connectorLimitAmps > limitDefaultMaxAmps) {
-              connectorLimitAmps = limitDefaultMaxAmps;
-            }
-            const result: ConnectorCurrentLimit = {
-              limitAmps: connectorLimitAmps,
-              limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, connectorLimitAmps),
-              limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
-            };
-            Logging.logDebug({
-              tenantID: tenantID,
-              source: chargingStation.id,
-              action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-              message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
-              module: MODULE_NAME, method: 'getCurrentConnectorLimit',
-              detailedMessages: { result }
-            });
-            return result;
-          }
-        } else {
-          Logging.logWarning({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-            message: `Connector ID '${connectorID}' current limit: Cannot retrieve the Charging Plan, will try in DB`,
-            module: MODULE_NAME, method: 'getCurrentConnectorLimit',
-            detailedMessages: { compositeSchedule }
-          });
-          // Get the TX Charging Profiles from the DB
-          const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-            { chargingStationID: chargingStation.id, connectorID: connectorID,
-              profilePurposeType: ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
-          for (const chargingProfile of chargingProfiles.result) {
-            // Check type (only Absolute)
-            if (chargingProfile.profile.chargingProfileKind === ChargingProfileKindType.ABSOLUTE) {
-              const chargingSchedule = chargingProfile.profile.chargingSchedule;
-              // Check if the profile is still valid (must be)
-              const now = moment();
-              if (moment(chargingSchedule.startSchedule).add(chargingSchedule.duration, 's').isAfter(now)) {
-                let lastButOneSchedule: ChargingSchedulePeriod;
-                // Search
-                for (const schedulePeriod of chargingSchedule.chargingSchedulePeriod) {
-                  // First schedule period is always 0 then first one is always bypassed
-                  if (moment(chargingSchedule.startSchedule).add(schedulePeriod.startPeriod, 's').isAfter(now)) {
-                    // Found the schedule: Last but one is the correct one
-                    const result: ConnectorCurrentLimit = {
-                      limitAmps: Utils.convertToInt(lastButOneSchedule.limit),
-                      limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(lastButOneSchedule.limit)),
-                      limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
-                    };
-                    Logging.logDebug({
-                      tenantID: tenantID,
-                      source: chargingStation.id,
-                      action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-                      message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
-                      module: MODULE_NAME, method: 'getCurrentConnectorLimit',
-                      detailedMessages: { result }
-                    });
-                    return result;
-                  }
-                  // Keep it
-                  lastButOneSchedule = schedulePeriod;
-                }
-              }
-            }
-          }
+        // Check the TX Charging Profiles from the DB
+        let chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
+          { chargingStationID: chargingStation.id, connectorID: connectorID,
+            profilePurposeType: ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+        let result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
+        if (result) {
+          return result;
+        }
+        // Check the TX Default Charging Profiles from the DB
+        chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
+          { chargingStationID: chargingStation.id, connectorID: connectorID,
+            profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+        result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
+        if (result) {
+          return result;
+        }
+        // Check the Max Charging Profiles from the DB
+        chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
+          { chargingStationID: chargingStation.id, connectorID: connectorID,
+            profilePurposeType: ChargingProfilePurposeType.CHARGE_POINT_MAX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+        result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
+        if (result) {
+          return result;
         }
       }
       // Check next the static power limitation
       if (chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation) {
-        // Read the static limitation
-        let connectorLimitAmps = await this.getStaticPowerLimitation(tenantID, chargingStation, chargePoint);
-        // Check
-        if (connectorLimitAmps > limitDefaultMaxAmps) {
-          connectorLimitAmps = limitDefaultMaxAmps;
+        // Read the static limitation from connector
+        const connectorLimitAmps = Utils.getChargingStationAmperageLimit(chargingStation, chargePoint, connectorID);
+        if (connectorLimitAmps > 0) {
+          const result: ConnectorCurrentLimit = {
+            limitAmps: connectorLimitAmps,
+            limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, connectorLimitAmps),
+            limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
+          };
+          Logging.logDebug({
+            tenantID: tenantID,
+            source: chargingStation.id,
+            action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+            message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
+            module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+            detailedMessages: { result }
+          });
+          return result;
         }
-        const result: ConnectorCurrentLimit = {
-          limitAmps: connectorLimitAmps,
-          limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, connectorLimitAmps),
-          limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
-        };
-        Logging.logDebug({
-          tenantID: tenantID,
-          source: chargingStation.id,
-          action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-          message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
-          module: MODULE_NAME, method: 'getCurrentConnectorLimit',
-          detailedMessages: { result }
-        });
-        return result;
       }
     } catch (error) {
       Logging.logError({
@@ -556,7 +472,7 @@ export default abstract class ChargingStationVendorIntegration {
   public convertToVendorChargingProfile(chargingStation: ChargingStation,
     chargePoint: ChargePoint, chargingProfile: ChargingProfile): ChargingProfile {
     // Get vendor specific charging profile
-    const vendorSpecificChargingProfile = JSON.parse(JSON.stringify(chargingProfile));
+    const vendorSpecificChargingProfile: ChargingProfile = JSON.parse(JSON.stringify(chargingProfile));
     // Check connector
     if (chargingStation.connectors && vendorSpecificChargingProfile.profile && vendorSpecificChargingProfile.profile.chargingSchedule) {
       // Convert to Watts?
@@ -609,6 +525,50 @@ export default abstract class ChargingStationVendorIntegration {
     return chargingSchedule;
   }
 
+  private hasStaticLimitationFullSupport(chargingStation: ChargingStation, chargePoint?: ChargePoint): boolean {
+    if (!chargePoint.excludeFromPowerLimitation && chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation
+      && chargePoint.ocppParamForPowerLimitation) {
+      return true;
+    }
+    return false;
+  }
+
+  private async getStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
+    chargePoint?: ChargePoint): Promise<number> {
+    let ampLimitation = 0;
+    if (chargePoint.excludeFromPowerLimitation) {
+      Logging.logWarning({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
+        message: `Charge Point '${chargePoint.chargePointID}' is excluded from power limitation`,
+        module: MODULE_NAME, method: 'getStaticPowerLimitation',
+        detailedMessages: { chargePoint }
+      });
+      return ampLimitation;
+    }
+    if (!chargePoint.ocppParamForPowerLimitation) {
+      Logging.logWarning({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
+        message: `No OCPP parameter provided in template for Charge Point '${chargePoint.chargePointID}'`,
+        module: MODULE_NAME, method: 'getStaticPowerLimitation',
+        detailedMessages: { chargePoint }
+      });
+      return ampLimitation;
+    }
+    // Read the OCPP Parameter
+    const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(
+      tenantID, chargingStation, { key: [chargePoint.ocppParamForPowerLimitation] });
+    if (ocppConfiguration && !Utils.isEmptyArray(ocppConfiguration.configurationKey) &&
+      ocppConfiguration.configurationKey[0].value) {
+      const connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
+      ampLimitation = this.convertLimitAmpToAllPhases(chargingStation, chargePoint, 0, connectorLimitAmps);
+    }
+    return ampLimitation;
+  }
+
   private convertLimitAmpPerPhase(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, limitAmpAllPhases: number): number {
     let limitAmpPerPhase = limitAmpAllPhases;
     // Per charge point?
@@ -649,6 +609,46 @@ export default abstract class ChargingStationVendorIntegration {
     }
     // Default
     return limitAmp * chargePoint.connectorIDs.length;
+  }
+
+  private getCurrentConnectorLimitFromProfiles(tenantID: string, chargingStation: ChargingStation, chargePoint: ChargePoint,
+    connectorID: number, chargingProfiles: ChargingProfile[]): ConnectorCurrentLimit {
+    // Profiles should already be sorted by connectorID and Stack Level (highest stack level has prio)
+    for (const chargingProfile of chargingProfiles) {
+      // Check type (only Absolute)
+      if (chargingProfile.profile.chargingProfileKind === ChargingProfileKindType.ABSOLUTE) {
+        const chargingSchedule = chargingProfile.profile.chargingSchedule;
+        // Check if the profile is still valid (must be)
+        const now = moment();
+        if (moment(chargingSchedule.startSchedule).add(chargingSchedule.duration, 's').isAfter(now)) {
+          let lastButOneSchedule: ChargingSchedulePeriod;
+          // Search
+          for (const schedulePeriod of chargingSchedule.chargingSchedulePeriod) {
+            // First schedule period is always 0 then first one is always bypassed
+            if (moment(chargingSchedule.startSchedule).add(schedulePeriod.startPeriod, 's').isAfter(now)) {
+              // Found the schedule: Last but one is the correct one
+              const result: ConnectorCurrentLimit = {
+                limitAmps: Utils.convertToInt(lastButOneSchedule.limit),
+                limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(lastButOneSchedule.limit)),
+                limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
+              };
+              Logging.logDebug({
+                tenantID: tenantID,
+                source: chargingStation.id,
+                action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+                message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
+                module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+                detailedMessages: { result }
+              });
+              return result;
+            }
+            // Keep it
+            lastButOneSchedule = schedulePeriod;
+          }
+        }
+      }
+    }
+    return null;
   }
 }
 

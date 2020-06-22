@@ -222,12 +222,6 @@ export default class Configuration {
     return Configuration.getConfig().EVDatabase;
   }
 
-  // Locale config
-  static getLocalesConfig(): LocalesConfiguration {
-    // Read conf
-    return Configuration.getConfig().Locales;
-  }
-
   // DB config
   static getStorageConfig(): StorageConfiguration {
     const storage: StorageConfiguration = Configuration.getConfig().Storage;
@@ -267,6 +261,9 @@ export default class Configuration {
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
     if (Utils.isUndefined(chargingStationConfiguration.useServerLocalIPForRemoteCommand)) {
       chargingStationConfiguration.useServerLocalIPForRemoteCommand = false;
+      if (Utils.isUndefined(chargingStationConfiguration.secureLocalServer)) {
+        chargingStationConfiguration.secureLocalServer = false;
+      }
     }
     return chargingStationConfiguration;
   }

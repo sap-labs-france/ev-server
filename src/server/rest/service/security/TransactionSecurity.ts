@@ -7,11 +7,10 @@ import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
 import RefundReport from '../../../../types/Refund';
 import { TransactionInError } from '../../../../types/InError';
-import User from '../../../../types/User';
+import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
-import moment from 'moment';
 import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
@@ -140,6 +139,10 @@ export default class TransactionSecurity {
       }
       if (!transaction.stop) {
         filteredTransaction.currentInstantWatts = transaction.currentInstantWatts;
+        filteredTransaction.currentInstanWattsL1 = transaction.currentInstanWattsL1;
+        filteredTransaction.currentInstanWattsL2 = transaction.currentInstanWattsL2;
+        filteredTransaction.currentInstanWattsL3 = transaction.currentInstanWattsL3;
+        filteredTransaction.currentInstanWattsDC = transaction.currentInstanWattsDC;
         filteredTransaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
@@ -147,6 +150,16 @@ export default class TransactionSecurity {
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
+        filteredTransaction.currentInstantVoltage = transaction.currentInstantVoltage;
+        filteredTransaction.currentInstantVoltageL1 = transaction.currentInstantVoltageL1;
+        filteredTransaction.currentInstantVoltageL2 = transaction.currentInstantVoltageL2;
+        filteredTransaction.currentInstantVoltageL3 = transaction.currentInstantVoltageL3;
+        filteredTransaction.currentInstantVoltageDC = transaction.currentInstantVoltageDC;
+        filteredTransaction.currentInstantAmps = transaction.currentInstantAmps;
+        filteredTransaction.currentInstantAmpsL1 = transaction.currentInstantAmpsL1;
+        filteredTransaction.currentInstantAmpsL2 = transaction.currentInstantAmpsL2;
+        filteredTransaction.currentInstantAmpsL3 = transaction.currentInstantAmpsL3;
+        filteredTransaction.currentInstantAmpsDC = transaction.currentInstantAmpsDC;
       }
       if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
         const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
@@ -170,8 +183,7 @@ export default class TransactionSecurity {
         filteredTransaction.tagID = transaction.tagID;
       }
       // Filter user
-      filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.user, loggedUser);
+      filteredTransaction.user = UserSecurity.filterMinimalUserResponse(transaction.user, loggedUser);
       filteredTransaction.userID = transaction.userID;
       // Transaction Stop
       if (transaction.stop) {
@@ -186,7 +198,7 @@ export default class TransactionSecurity {
           stateOfCharge: transaction.stop.stateOfCharge,
           signedData: transaction.stop.signedData,
           userID: transaction.stop.userID,
-          user: transaction.stop.user ? TransactionSecurity._filterUserInTransactionResponse(transaction.stop.user, loggedUser) : null
+          user: transaction.stop.user ? UserSecurity.filterMinimalUserResponse(transaction.stop.user, loggedUser) : null
         };
         if (transaction.stop.price) {
           filteredTransaction.stop.price = transaction.stop.price;
@@ -248,27 +260,6 @@ export default class TransactionSecurity {
     reports.result = filteredReports;
   }
 
-  static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {
-    const filteredUser: any = {};
-    if (!user) {
-      return null;
-    }
-    // Check auth
-    if (Authorizations.canReadUser(loggedUser, user.id)) {
-      // Demo user?
-      if (Authorizations.isDemo(loggedUser)) {
-        filteredUser.id = null;
-        filteredUser.name = Constants.ANONYMIZED_VALUE;
-        filteredUser.firstName = Constants.ANONYMIZED_VALUE;
-      } else {
-        filteredUser.id = user.id;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
-      }
-    }
-    return filteredUser;
-  }
-
   public static filterConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
     const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
@@ -316,7 +307,20 @@ export default class TransactionSecurity {
       const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
         instantWatts: consumption.instantWatts,
+        instantWattsL1: consumption.instantWattsL1,
+        instantWattsL2: consumption.instantWattsL2,
+        instantWattsL3: consumption.instantWattsL3,
+        instantWattsDC: consumption.instantWattsDC,
         instantAmps: consumption.instantAmps,
+        instantAmpsL1: consumption.instantAmpsL1,
+        instantAmpsL2: consumption.instantAmpsL2,
+        instantAmpsL3: consumption.instantAmpsL3,
+        instantAmpsDC: consumption.instantAmpsDC,
+        instantVolts: consumption.instantVolts,
+        instantVoltsL1: consumption.instantVoltsL1,
+        instantVoltsL2: consumption.instantVoltsL2,
+        instantVoltsL3: consumption.instantVoltsL3,
+        instantVoltsDC: consumption.instantVoltsDC,
         cumulatedConsumptionWh: consumption.cumulatedConsumptionWh,
         cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
@@ -324,9 +328,6 @@ export default class TransactionSecurity {
         limitWatts: consumption.limitWatts,
         limitAmps: consumption.limitAmps,
       };
-      if (consumption.stateOfCharge) {
-        newConsumption.stateOfCharge = consumption.stateOfCharge;
-      }
       return newConsumption;
     });
     return filteredTransaction;

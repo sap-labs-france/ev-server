@@ -93,7 +93,7 @@ export default class JsonWSConnection extends WSConnection {
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
-      message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
+      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent.code}'`
     });
     // Remove the connection
     this.wsServer.removeJsonConnection(this);
@@ -121,7 +121,7 @@ export default class JsonWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OcppErrorType.NOT_IMPLEMENTED,
-        message: `The OCPP method 'handle${commandName}' has not been implemented`
+        message: `The OCPP method 'handle${typeof commandName === 'string' ? commandName : JSON.stringify(commandName)}' has not been implemented`
       });
     }
   }

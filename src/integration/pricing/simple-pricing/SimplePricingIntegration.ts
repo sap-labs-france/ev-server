@@ -1,7 +1,8 @@
+import { PricingSettingsType, SimplePricingSetting } from '../../../types/Setting';
+
 import Consumption from '../../../types/Consumption';
 import { PricedConsumption } from '../../../types/Pricing';
 import PricingIntegration from '../PricingIntegration';
-import { SimplePricingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
 
@@ -26,14 +27,14 @@ export default class SimplePricingIntegration extends PricingIntegration<SimpleP
     let amount: number;
     let roundedAmount: number;
     if (consumptionData.consumptionWh && typeof consumptionData.consumptionWh === 'number') {
-      amount = Utils.convertToFloat((this.settings.price * (consumptionData.consumptionWh / 1000)).toFixed(6));
-      roundedAmount = Utils.convertToFloat((this.settings.price * (consumptionData.consumptionWh / 1000)).toFixed(2));
+      amount = Utils.computeSimplePrice(this.settings.price, consumptionData.consumptionWh);
+      roundedAmount = Utils.computeSimpleRoundedPrice(this.settings.price, consumptionData.consumptionWh);
     } else {
       amount = 0;
       roundedAmount = 0;
     }
     const pricedConsumption: PricedConsumption = {
-      pricingSource: 'simple',
+      pricingSource: PricingSettingsType.SIMPLE,
       amount: amount,
       roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,

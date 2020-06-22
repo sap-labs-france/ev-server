@@ -1,9 +1,9 @@
+import { ChargePointStatus, OCPPBootNotificationRequestExtended, OCPPStatusNotificationRequestExtended } from '../../../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../types/ChargingProfile';
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import { ChargingStationInError } from '../../../../types/InError';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -151,20 +151,22 @@ export default class ChargingStationSecurity {
     chargingStations.result = filteredChargingStations;
   }
 
-  public static filterStatusNotificationsResponse(statusNotifications, loggedUser: UserToken) {
+  public static filterStatusNotificationsResponse(statusNotifications: OCPPStatusNotificationRequestExtended[],
+    loggedUser: UserToken): OCPPStatusNotificationRequestExtended[] {
     // Check
     if (!Authorizations.canListChargingStations(loggedUser)) {
-      return null;
+      return [];
     }
     return statusNotifications;
   }
 
-  public static filterBootNotificationsResponse(statusNotifications, loggedUser: UserToken) {
+  public static filterBootNotificationsResponse(bootNotifications: OCPPBootNotificationRequestExtended[],
+    loggedUser: UserToken): OCPPBootNotificationRequestExtended[] {
     // Check
     if (!Authorizations.canListChargingStations(loggedUser)) {
-      return null;
+      return [];
     }
-    return statusNotifications;
+    return bootNotifications;
   }
 
   public static filterChargingStationOcppParametersRequest(request: any): HttpChargingStationRequest {
@@ -243,8 +245,8 @@ export default class ChargingStationSecurity {
     if (Utils.objectHasProperty(request, 'excludeFromSmartCharging')) {
       filteredRequest.excludeFromSmartCharging = UtilsSecurity.filterBoolean(request.excludeFromSmartCharging);
     }
-    if (Utils.objectHasProperty(request, 'private')) {
-      filteredRequest.private = UtilsSecurity.filterBoolean(request.private);
+    if (Utils.objectHasProperty(request, 'public')) {
+      filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
     }
     if (Utils.objectHasProperty(request, 'siteAreaID')) {
       filteredRequest.siteAreaID = sanitize(request.siteAreaID);

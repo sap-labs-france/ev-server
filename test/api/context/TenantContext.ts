@@ -5,6 +5,7 @@ import Factory from '../../factories/Factory';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPService from '../ocpp/OCPPService';
+import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
 import Tenant from '../../types/Tenant';
@@ -67,9 +68,9 @@ export default class TenantContext {
     if (!this.ocpp15 || !this.ocpp16 || token) {
       await this.initialize(token);
     }
-    if (ocppVersion === '1.6') {
+    if (ocppVersion === OCPPVersion.VERSION_16) {
       return this.ocpp16;
-    } else if (ocppVersion === '1.5') {
+    } else if (ocppVersion === OCPPVersion.VERSION_15) {
       return this.ocpp15;
     }
     throw new Error('unknown ocpp version');

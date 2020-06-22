@@ -3,6 +3,7 @@ import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import centralSystemService12 from './services/SoapCentralSystemService12';
 import centralSystemService15 from './services/SoapCentralSystemService15';
@@ -87,11 +88,11 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer15.log = (type, data) => {
-        this.handleSoapServerLog('1.5', type, data);
+        this.handleSoapServerLog(OCPPVersion.VERSION_15, type, data);
       };
       // Log Request
       soapServer15.on('request', (request, methodName) => {
-        this.handleSoapServerMessage('1.5', request, methodName);
+        this.handleSoapServerMessage(OCPPVersion.VERSION_15, request, methodName);
       });
     }
     // OCPP 1.6 -----------------------------------------
@@ -100,11 +101,11 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer16.log = (type, data) => {
-        this.handleSoapServerLog('1.6', type, data);
+        this.handleSoapServerLog(OCPPVersion.VERSION_16, type, data);
       };
       // Log Request
       soapServer16.on('request', (request, methodName) => {
-        this.handleSoapServerMessage('1.6', request, methodName);
+        this.handleSoapServerMessage(OCPPVersion.VERSION_16, request, methodName);
       });
     }
   }

@@ -30,7 +30,6 @@ export enum ServerAction {
   CHARGING_STATION_UPDATE_PARAMS = 'ChargingStationUpdateParams',
   CHARGING_STATION_LIMIT_POWER = 'ChargingStationLimitPower',
   CHARGING_STATION_DELETE = 'ChargingStationDelete',
-  CHARGING_STATION_PROFILE_DELETE = 'ChargingProfileDelete',
 
   START_TRANSACTION = 'StartTransaction',
   STOP_TRANSACTION = 'StopTransaction',
@@ -164,6 +163,7 @@ export enum ServerAction {
   EXTRA_INACTIVITY = 'ExtraInactivity',
 
   CONSUMPTION = 'Consumption',
+  REBUILD_CONSUMPTION = 'RebuildConsumption',
 
   WS_ERROR = 'WSError',
   WS_CLIENT_ERROR = 'WSClientError',

@@ -4,7 +4,6 @@ import Transaction, { InactivityStatus } from '../../../../types/Transaction';
 import AppError from '../../../../exception/AppError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import { Connector } from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
@@ -36,7 +35,6 @@ export default class OCPISessionsService {
       });
     }
     if (!session.total_cost) {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       session.total_cost = 0;
     }
     if (!session.kwh) {
@@ -191,19 +189,15 @@ export default class OCPISessionsService {
     }
 
     if (!cdr.total_cost) {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       cdr.total_cost = 0;
     }
     if (!cdr.total_energy) {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       cdr.total_energy = 0;
     }
     if (!cdr.total_time) {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       cdr.total_time = 0;
     }
     if (!cdr.total_parking_time) {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       cdr.total_parking_time = 0;
     }
 

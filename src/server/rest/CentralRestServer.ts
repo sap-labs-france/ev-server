@@ -1,4 +1,5 @@
 import { Action, Entity } from '../../types/Authorization';
+import SingleChangeNotification, { NotificationData } from '../../types/SingleChangeNotification';
 import express, { NextFunction, Request, Response } from 'express';
 
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
@@ -12,8 +13,8 @@ import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SessionHashService from './service/SessionHashService';
-import SingleChangeNotification from '../../types/SingleChangeNotification';
 import UserToken from '../../types/UserToken';
+import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 import expressTools from '../ExpressTools';
 import http from 'http';
@@ -30,7 +31,7 @@ interface SocketIOJwt extends socketio.Socket {
 }
 
 export default class CentralRestServer {
-  private static centralSystemRestConfig;
+  private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
   private static restHttpServer: http.Server;
   private static socketIOServer: socketio.Server;
   private static changeNotifications: ChangeNotification[] = [];
@@ -43,13 +44,10 @@ export default class CentralRestServer {
     // Keep params
     CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
     this.chargingStationConfig = chargingStationConfig;
-
     // Initialize express app
     this.expressApplication = expressTools.initApplication('2mb');
-
     // Mount express-sanitizer middleware
     this.expressApplication.use(sanitize());
-
     // Log to console
     if (CentralRestServer.centralSystemRestConfig.debug) {
       // Log
@@ -69,16 +67,12 @@ export default class CentralRestServer {
         })
       );
     }
-
     // Authentication
     this.expressApplication.use(CentralRestServerAuthentication.initialize());
-
     // Auth services
     this.expressApplication.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
-
     // Secured API
     this.expressApplication.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
-
     // Util API
     this.expressApplication.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
     // Workaround URL encoding issue
@@ -88,7 +82,12 @@ export default class CentralRestServer {
       req.query.FileName = 'r7_update_3.3.0.10_d4.epk';
       await CentralRestServerService.restServiceUtil(req, res, next);
     });
-
+    this.expressApplication.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.12_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
+      req.url = decodeURIComponent(req.originalUrl);
+      req.params.action = 'FirmwareDownload';
+      req.query.FileName = 'r7_update_3.3.0.12_d4.epk';
+      await CentralRestServerService.restServiceUtil(req, res, next);
+    });
     // Catchall for util with logging
     this.expressApplication.all(['/client/util/*', '/client%2Futil%2F*'], (req: Request, res: Response) => {
       Logging.logDebug({
@@ -100,22 +99,21 @@ export default class CentralRestServer {
       });
       res.sendStatus(HttpStatusCodes.NOT_FOUND);
     });
-
     // Create HTTP server to serve the express app
     CentralRestServer.restHttpServer = expressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }
 
   startSocketIO(): void {
     // Log
-    const logMsg = 'Starting REST SocketIO Server...';
+    const logMsg = 'Starting REST SocketIO Server';
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME, method: 'startSocketIO',
       action: ServerAction.STARTUP,
-      message: logMsg
+      message: logMsg + '...'
     });
     // eslint-disable-next-line no-console
-    console.log(logMsg.replace('...', '') + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
+    console.log(`${logMsg} ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master...'}`);
     // Init Socket IO
     CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 15000, pingInterval: 30000 });
     CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {
@@ -134,9 +132,10 @@ export default class CentralRestServer {
       decodedPropertyName: 'decoded_token',
     }));
     // Handle Socket IO connection
-    CentralRestServer.socketIOServer.on('connect', (socket: SocketIOJwt) => {
+    CentralRestServer.socketIOServer.on('connection', (socket: SocketIOJwt) => {
       const userToken: UserToken = socket.decoded_token;
       if (!userToken || !userToken.tenantID) {
+        console.error('SocketIO client is trying to connect without token');
         Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'startSocketIO',
@@ -146,21 +145,40 @@ export default class CentralRestServer {
         });
         socket.disconnect(true);
       } else {
-        Logging.logDebug({
-          tenantID: userToken.tenantID,
-          module: MODULE_NAME, method: 'startSocketIO',
-          action: ServerAction.SOCKET_IO,
-          message: 'SocketIO client is connected',
-          detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
+        // Join Tenant Room
+        socket.join(userToken.tenantID, (error) => {
+          if (error) {
+            console.error(`${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO error when trying to join a room: ${error}`);
+            Logging.logError({
+              tenantID: userToken.tenantID,
+              module: MODULE_NAME, method: 'startSocketIO',
+              action: ServerAction.SOCKET_IO,
+              user: userToken.id,
+              message: `${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO error when trying to join a room '${userToken.tenantID}': ${error}`,
+              detailedMessages: { error, socketIOid: socket.id, socketIOHandshake: socket.handshake }
+            });
+            socket.disconnect(true);
+          } else {
+            console.log(`${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`);
+            Logging.logDebug({
+              tenantID: userToken.tenantID,
+              module: MODULE_NAME, method: 'startSocketIO',
+              action: ServerAction.SOCKET_IO,
+              user: userToken.id,
+              message: `${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`,
+              detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
+            });
+          }
         });
-        socket.join(userToken.tenantID);
         // Handle Socket IO disconnection
-        socket.on('disconnect', (reason) => {
+        socket.on('disconnect', (reason: string) => {
+          console.log(`${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is disconnected: ${reason}`);
           Logging.logDebug({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'startSocketIO',
             action: ServerAction.SOCKET_IO,
-            message: `SocketIO client is disconnected: ${reason}`,
+            user: userToken.id,
+            message: `${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is disconnected: ${reason}`,
             detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
           });
         });
@@ -187,11 +205,11 @@ export default class CentralRestServer {
   }
 
   // Start the server
-  start() {
+  start(): void {
     expressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
   }
 
-  public notifyUser(tenantID: string, action: Action, data) {
+  public notifyUser(tenantID: string, action: Action, data: NotificationData): void {
     // On User change rebuild userHashID
     if (data && data.id) {
       SessionHashService.rebuildUserHashID(tenantID, data.id).catch(() => {});
@@ -211,7 +229,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyTenant(tenantID: string, action: Action, data) {
+  public notifyTenant(tenantID: string, action: Action, data: NotificationData): void {
     // On Tenant change rebuild tenantHashID
     if (data && data.id) {
       SessionHashService.rebuildTenantHashID(data.id).catch(() => {});
@@ -231,7 +249,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifySite(tenantID: string, action: Action, data) {
+  public notifySite(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -247,7 +265,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifySiteArea(tenantID: string, action: Action, data) {
+  public notifySiteArea(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -263,7 +281,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyCompany(tenantID: string, action: Action, data) {
+  public notifyCompany(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -279,7 +297,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyAsset(tenantID: string, action: Action, data) {
+  public notifyAsset(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -295,7 +313,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyTransaction(tenantID: string, action: Action, data) {
+  public notifyTransaction(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -311,7 +329,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyChargingStation(tenantID: string, action: Action, data) {
+  public notifyChargingStation(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -327,7 +345,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyLogging(tenantID: string, action: Action) {
+  public notifyLogging(tenantID: string, action: Action): void {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -336,7 +354,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyRegistrationToken(tenantID: string, action: Action, data) {
+  public notifyRegistrationToken(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -352,7 +370,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyInvoice(tenantID: string, action: Action, data) {
+  public notifyInvoice(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -368,7 +386,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyCar(tenantID: string, action: Action, data) {
+  public notifyCar(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -384,7 +402,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyCarCatalog(tenantID: string, action: Action, data) {
+  public notifyCarCatalog(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -400,7 +418,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyChargingProfile(tenantID: string, action: Action, data) {
+  public notifyChargingProfile(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -416,7 +434,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyOcpiEndpoint(tenantID: string, action: Action, data) {
+  public notifyOcpiEndpoint(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -434,43 +452,38 @@ export default class CentralRestServer {
 
   private addChangeNotificationInBuffer(notification: ChangeNotification) {
     let dups = false;
-    // Add in buffer
+    // Handle dups in buffer
     for (const currentNotification of CentralRestServer.changeNotifications) {
-      // Same Entity and Action?
+      // Same notification
       if (currentNotification.tenantID === notification.tenantID &&
         currentNotification.entity === notification.entity &&
         currentNotification.action === notification.action) {
-        // Yes
         dups = true;
         break;
       }
     }
-    // Found dups?
     if (!dups) {
-      // No: Add it
+      // Add it
       CentralRestServer.changeNotifications.push(notification);
     }
   }
 
   private addSingleChangeNotificationInBuffer(notification: SingleChangeNotification) {
     let dups = false;
-    // Add in buffer
+    // Handle dups in buffer
     for (const currentNotification of CentralRestServer.singleChangeNotifications) {
-      // Same Entity and Action?
+      // Same notification
       if (currentNotification.tenantID === notification.tenantID &&
         currentNotification.entity === notification.entity &&
         currentNotification.action === notification.action &&
         currentNotification.data.id === notification.data.id &&
-        currentNotification.data.type === notification.data.type
-      ) {
-        // Yes
+        currentNotification.data.type === notification.data.type) {
         dups = true;
         break;
       }
     }
-    // Found dups?
     if (!dups) {
-      // No: Add it
+      // Add it
       CentralRestServer.singleChangeNotifications.push(notification);
     }
   }

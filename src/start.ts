@@ -19,6 +19,7 @@ import SchedulerManager from './scheduler/SchedulerManager';
 import { ServerAction } from './types/Server';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
+import TransactionStorage from './storage/mongodb/TransactionStorage';
 import Utils from './utils/Utils';
 import cluster from 'cluster';
 import global from './types/GlobalType';
