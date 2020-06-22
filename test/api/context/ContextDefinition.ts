@@ -599,7 +599,6 @@ export default class ContextDefinition {
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
-        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`]
     },

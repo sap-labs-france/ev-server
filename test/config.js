@@ -295,17 +295,18 @@ const config = convict({
   },
   smartCharging: {
     optimizerUrl: {
-      doc: 'smart charging url',
+      doc: 'Smart charging url',
       format: String,
       default: ''
     },
     user: {
-      doc: 'smart charging user',
+      doc: 'Smart charging user',
       format: String,
       default: ''
     },
     password: {
-      doc: 'smart charging password',
+      doc: 'Smart charging password',
+      format: String,
       default: ''
     },
   }

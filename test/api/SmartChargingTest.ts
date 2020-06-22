@@ -67,13 +67,33 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-const chargingStationConnector1: OCPPStatusNotificationRequest = {
+const smartChargingSettings = TestData.getSmartChargingSettings();
+for (const key of Object.keys(smartChargingSettings)) {
+  if (!smartChargingSettings[key] || smartChargingSettings[key] === '') {
+    testData.pending = true;
+  }
+}
+
+const chargingStationConnector1Charging: OCPPStatusNotificationRequest = {
+  connectorId: 1,
+  status: ChargePointStatus.CHARGING,
+  errorCode: ChargePointErrorCode.NO_ERROR,
+  timestamp: new Date().toISOString()
+};
+const chargingStationConnector2Charging: OCPPStatusNotificationRequest = {
+  connectorId: 2,
+  status: ChargePointStatus.CHARGING,
+  errorCode: ChargePointErrorCode.NO_ERROR,
+  timestamp: new Date().toISOString()
+};
+
+const chargingStationConnector1Available: OCPPStatusNotificationRequest = {
   connectorId: 1,
   status: ChargePointStatus.AVAILABLE,
   errorCode: ChargePointErrorCode.NO_ERROR,
   timestamp: new Date().toISOString()
 };
-const chargingStationConnector2: OCPPStatusNotificationRequest = {
+const chargingStationConnector2Available: OCPPStatusNotificationRequest = {
   connectorId: 2,
   status: ChargePointStatus.AVAILABLE,
   errorCode: ChargePointErrorCode.NO_ERROR,
@@ -84,6 +104,7 @@ const chargingStationConnector2: OCPPStatusNotificationRequest = {
 describe('Smart Charging Service', function() {
   this.pending = testData.pending;
   this.timeout(1000000);
+
   describe('With component SmartCharging (tenant utsmartcharg)', () => {
     before(async () => {
       global.database = new MongoDBStorage(config.get('storage'));
@@ -117,6 +138,12 @@ describe('Smart Charging Service', function() {
       }
     });
 
+    after(async () => {
+      await testData.chargingStationContext.cleanUpCreatedData();
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Available);
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Available);
+    });
+
     it('Should connect to Smart Charging Provider', async () => {
       const response = await testData.userService.smartChargingApi.testConnection({});
       expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
@@ -124,6 +151,8 @@ describe('Smart Charging Service', function() {
 
     describe('Test for three phased site area', () => {
       before(async () => {
+        chargingStationConnector1Charging.status = ChargePointStatus.CHARGING;
+        chargingStationConnector1Charging.status = ChargePointStatus.CHARGING;
         testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
         testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
@@ -137,8 +166,7 @@ describe('Smart Charging Service', function() {
         const meterStart = 180;
         const startDate = new Date;
         const transactionResponse = await testData.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
-        chargingStationConnector1.status = ChargePointStatus.CHARGING;
-        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1);
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
         expect(chargingProfiles).containSubset([{
           'chargingStationID': 'cs-16-ut-site-withSmartChargingThreePhased',
@@ -177,8 +205,7 @@ describe('Smart Charging Service', function() {
         const meterStart = 180;
         const startDate = new Date;
         const transactionResponse = await testData.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
-        chargingStationConnector2.status = ChargePointStatus.CHARGING;
-        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2);
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
         expect(chargingProfiles[0]).containSubset({
           'chargingStationID': 'cs-16-ut-site-withSmartChargingThreePhased',
@@ -304,6 +331,8 @@ describe('Smart Charging Service', function() {
     });
     describe('Test for single phased site area', () => {
       before(async () => {
+        chargingStationConnector1Charging.status = ChargePointStatus.CHARGING;
+        chargingStationConnector1Charging.status = ChargePointStatus.CHARGING;
         testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED);
         testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
@@ -318,8 +347,7 @@ describe('Smart Charging Service', function() {
         const meterStart = 180;
         const startDate = new Date;
         const transactionResponse = await testData.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
-        chargingStationConnector1.status = ChargePointStatus.CHARGING;
-        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1);
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
         expect(chargingProfiles).containSubset([{
           'chargingStationID': 'cs-16-ut-site-withSmartChargingSinglePhased',
@@ -358,8 +386,7 @@ describe('Smart Charging Service', function() {
         const meterStart = 180;
         const startDate = new Date;
         const transactionResponse = await testData.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
-        chargingStationConnector2.status = ChargePointStatus.CHARGING;
-        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2);
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
         expect(chargingProfiles[0]).containSubset({
           'chargingStationID': 'cs-16-ut-site-withSmartChargingSinglePhased',
