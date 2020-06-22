@@ -223,7 +223,7 @@ class RequestMapper {
           [ServerAction.COMPANY_DELETE]: CompanyService.handleDeleteCompany.bind(this),
           [ServerAction.ASSET_DELETE]: AssetService.handleDeleteAsset.bind(this),
           [ServerAction.CHARGING_STATION_DELETE]: ChargingStationService.handleDeleteChargingStation.bind(this),
-          [ServerAction.CHARGING_STATION_PROFILE_DELETE]: ChargingStationService.handleDeleteChargingProfile.bind(this),
+          [ServerAction.CHARGING_PROFILE_DELETE]: ChargingStationService.handleDeleteChargingProfile.bind(this),
           [ServerAction.TRANSACTION_DELETE]: TransactionService.handleDeleteTransaction.bind(this),
           [ServerAction.TRANSACTIONS_DELETE]: TransactionService.handleDeleteTransactions.bind(this),
           [ServerAction.INTEGRATION_CONNECTION_DELETE]: ConnectionService.handleDeleteConnection.bind(this),
