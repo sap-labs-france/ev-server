@@ -158,7 +158,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return actionsDone;
   }
 
-  public async synchronizeUser(user: User, tenantID) {
+  public async synchronizeUser(user: User, tenantID: string): Promise<void> {
     try {
       const exists = await this.userExists(user);
       let newUser: BillingUser;
@@ -207,7 +207,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     }
   }
 
-  public async forceSynchronizeUser(user: User, tenantID) {
+  public async forceSynchronizeUser(user: User, tenantID: string): Promise<void> {
     try {
       let billingUser = await this.getUserByEmail(user.email);
       if (billingUser) {
@@ -310,7 +310,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               // Get user
               userInInvoice = await UserStorage.getUserByBillingID(tenantID, invoiceBilling.customerID);
             }
-            invoiceBilling.userID = userInInvoice ? userInInvoice.id : null;
+            invoiceBilling.user.id = userInInvoice ? userInInvoice.id : null;
           }
           await BillingStorage.saveInvoice(tenantID, invoiceBilling);
           Logging.logDebug({
@@ -428,7 +428,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             // Get user
             userInInvoice = await UserStorage.getUserByBillingID(tenantID, invoiceBilling.customerID);
           }
-          invoiceBilling.userID = userInInvoice ? userInInvoice.id : null;
+          invoiceBilling.user = userInInvoice ? userInInvoice : null;
           await BillingStorage.saveInvoice(tenantID, invoiceBilling);
           Logging.logDebug({
             tenantID: tenantID,
@@ -521,7 +521,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return billingUser;
   }
 
-  async abstract checkConnection();
+  async abstract checkConnection(): Promise<void>;
 
   async abstract getUpdatedUserIDsInBilling(): Promise<string[]>;
 
@@ -547,7 +547,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   async abstract updateUser(user: User): Promise<BillingUser>;
 
-  async abstract deleteUser(user: User);
+  async abstract deleteUser(user: User): Promise<void>;
 
   async abstract userExists(user: User): Promise<boolean>;
 

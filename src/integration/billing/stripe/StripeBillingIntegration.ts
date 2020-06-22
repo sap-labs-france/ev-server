@@ -39,7 +39,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  public async checkConnection() {
+  public async checkConnection(): Promise<void> {
     // Check Stripe
     this.checkIfStripeIsInitialized();
     // Check Key
@@ -813,7 +813,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return this.modifyUser(user);
   }
 
-  public async deleteUser(user: User) {
+  public async deleteUser(user: User): Promise<void> {
     // Check Stripe
     await this.checkConnection();
     const customer = await this.getCustomerByEmail(user.email);

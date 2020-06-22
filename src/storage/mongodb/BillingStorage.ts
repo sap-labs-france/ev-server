@@ -6,7 +6,6 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
-import UserStorage from './UserStorage';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
@@ -130,6 +129,16 @@ export default class BillingStorage {
     aggregation.push({
       $limit: limit
     });
+    // Add Users
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID,
+      aggregation: aggregation,
+      asField: 'user',
+      localField: 'userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false
+    });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -151,14 +160,13 @@ export default class BillingStorage {
   public static async saveInvoice(tenantId: string, invoiceToSave: Partial<BillingInvoice>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveInvoice');
-    const user = await UserStorage.getUserByBillingID(tenantId, invoiceToSave.customerID);
     // Build Request
     // Properties to save
-    const invoiceMDB: any = {
+    const invoiceMDB = {
       _id: invoiceToSave.id ? Utils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
       invoiceID: invoiceToSave.invoiceID,
       number: invoiceToSave.number,
-      userID: user ? Utils.convertToObjectID(user.id) : null,
+      userID: invoiceToSave.user ? Utils.convertToObjectID(invoiceToSave.user.id) : null,
       customerID: invoiceToSave.customerID,
       amount: Utils.convertToFloat(invoiceToSave.amount),
       status: invoiceToSave.status,
