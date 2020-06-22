@@ -50,6 +50,9 @@ export default class UserSecurity {
     if (request.ExcludeUserIDs) {
       request.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
     }
+    if (request.IncludeUserIDs) {
+      request.IncludeUserIDs = sanitize(request.IncludeUserIDs);
+    }
     if (request.NotAssignedToCarID) {
       request.NotAssignedToCarID = sanitize(request.NotAssignedToCarID);
     }

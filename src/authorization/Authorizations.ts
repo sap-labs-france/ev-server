@@ -483,8 +483,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.LIST);
   }
 
-  public static canAssignUsersCar(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER_CAR, Action.CREATE);
+  public static canAssignUsersCars(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.ASSIGN);
   }
 
   public static canSynchronizeCarCatalogs(loggedUser: UserToken): boolean {

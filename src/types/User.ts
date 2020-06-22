@@ -46,6 +46,14 @@ export interface UserSite {
   siteOwner: boolean;
 }
 
+export interface UserCar extends CreatedUpdatedProps {
+  id?: string;
+  user: User;
+  carID: string;
+  default?: boolean;
+  owner?: boolean;
+}
+
 export enum UserStatus {
   PENDING = 'P',
   ACTIVE = 'A',

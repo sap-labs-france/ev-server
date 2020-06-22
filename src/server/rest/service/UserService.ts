@@ -810,6 +810,7 @@ export default class UserService {
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
         excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
+        includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
         notAssignedToCarID: filteredRequest.NotAssignedToCarID
       },
       {

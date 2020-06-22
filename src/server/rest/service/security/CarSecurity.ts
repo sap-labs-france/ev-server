@@ -1,13 +1,14 @@
-import { Car, CarCatalog, CarMaker, UserCar } from '../../../../types/Car';
-import { HttpCarByIDRequest, HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarsRequest, HttpUsersAssignRequest, HttpUsersCarsRequest } from '../../../../types/requests/HttpCarRequest';
-
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import { Car, CarCatalog, CarMaker } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
-import UserSecurity from './UserSecurity';
+import { HttpCarByIDRequest, HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarUpdateRequest, HttpCarsRequest, HttpUsersCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { UserCar } from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import UserSecurity from './UserSecurity';
 import UtilsSecurity from './UtilsSecurity';
-import sanitize from 'mongo-sanitize';
+
 
 export default class CarSecurity {
 
@@ -173,21 +174,37 @@ export default class CarSecurity {
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       forced: UtilsSecurity.filterBoolean(request.forced),
       type: sanitize(request.type),
-      isDefault: UtilsSecurity.filterBoolean(request.isDefault),
-      converterType: sanitize(request.converterType)
+      converterType: sanitize(request.converterType),
+      usersAdded: request.usersUpserted ? request.usersUpserted.map((userUpserted: UserCar) => ({
+        user: userUpserted.user,
+        default: userUpserted.default,
+        owner: userUpserted.owner,
+      })) : [],
     };
   }
 
-  public static filterCarUpdateRequest(request: any): HttpCarCreateRequest {
-    return {
+  public static filterCarUpdateRequest(request: any): HttpCarUpdateRequest {
+    const filteredRequest: HttpCarUpdateRequest = {
       vin: sanitize(request.vin),
       licensePlate: sanitize(request.licensePlate),
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       type: sanitize(request.type),
-      isDefault: UtilsSecurity.filterBoolean(request.isDefault),
       id: sanitize(request.id),
-      converterType: sanitize(request.converterType)
+      converterType: sanitize(request.converterType),
+      usersRemoved: request.usersRemoved ? request.usersRemoved.map((userRemoved: UserCar) => ({
+        id: userRemoved.id,
+        user: userRemoved.user,
+        default: userRemoved.default,
+        owner: userRemoved.owner,
+      })) : [],
+      usersUpserted: request.usersUpserted ? request.usersUpserted.map((userUpserted: UserCar) => ({
+        id: userUpserted.id,
+        user: userUpserted.user,
+        default: userUpserted.default,
+        owner: userUpserted.owner,
+      })) : [],
     };
+    return filteredRequest;
   }
 
   public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {
@@ -226,23 +243,19 @@ export default class CarSecurity {
         carCatalogID: car.carCatalogID,
         type: car.type,
         converterType: car.converterType,
-        isDefault: car.isDefault
+        carCatalog: car.carCatalog,
       };
-      if (!Utils.isEmptyArray(car.usersCar)) {
-        filteredCar.owner = (car.usersCar.find((usersCar) => usersCar.userID.toString() === loggedUser.id)).owner;
-      }
     }
-    if (car.users) {
-      filteredCar.users = car.users.map(
-        (user) => forList ? UserSecurity.filterMinimalUserResponse(user, loggedUser) :
-          UserSecurity.filterUserResponse(user, loggedUser));
+    if (filteredCar.carUsers) {
+      filteredCar.carUsers = car.carUsers.map((carUser) => ({
+        ...carUser, user: UserSecurity.filterMinimalUserResponse(carUser.user, loggedUser)
+      }));
     }
-    if (car.carCatalog) {
+    if (filteredCar.carCatalog) {
       filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
         this.filterCarCatalogResponse(car.carCatalog, loggedUser);
     }
-    UtilsSecurity.filterCreatedAndLastChanged(
-      filteredCar, car, loggedUser);
+    UtilsSecurity.filterCreatedAndLastChanged(filteredCar, car, loggedUser);
     return filteredCar;
   }
 
@@ -273,7 +286,6 @@ export default class CarSecurity {
       id: userCar.id,
       user: UserSecurity.filterMinimalUserResponse(userCar.user, loggedUser),
       carID: userCar.carID,
-      userID: userCar.userID,
       default: userCar.default,
       owner: userCar.owner
     };
@@ -284,6 +296,7 @@ export default class CarSecurity {
     const filteredRequest: HttpCarsRequest = {
       Search: sanitize(request.Search),
       CarMaker: sanitize(request.CarMaker),
+      WithUsers: UtilsSecurity.filterBoolean(request.WithUsers),
     } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -297,34 +310,13 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  public static filterUsersCarsRequest(request: any): HttpUsersCarsRequest {
+  public static filterCarUsersRequest(request: any): HttpUsersCarsRequest {
     const filteredRequest: HttpUsersCarsRequest = {
-      search: sanitize(request.search),
-      carID: sanitize(request.carID),
+      Search: sanitize(request.Search),
+      CarID: sanitize(request.CarID),
     } as HttpUsersCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
-  }
-
-  public static filterUsersCarRequestByIDs(request: any): string[] {
-    return request.usersCarIDs.map(sanitize);
-  }
-
-  public static filterUsersUpdateRequest(request: any): HttpUsersAssignRequest {
-    const usersCar: UserCar[] = [];
-    if (!Utils.isEmptyArray(request.usersCar)) {
-      for (const userCar of request.usersCar) {
-        usersCar.push({
-          userID: sanitize(userCar.user.id),
-          default: UtilsSecurity.filterBoolean(userCar.default),
-          owner: UtilsSecurity.filterBoolean(userCar.owner)
-        } as UserCar);
-      }
-    }
-    return {
-      carID: request.carID,
-      usersCar: usersCar
-    };
   }
 }

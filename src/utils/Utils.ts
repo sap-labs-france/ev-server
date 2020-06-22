@@ -827,45 +827,58 @@ export default class Utils {
     return results;
   }
 
-  public static buildUserFullName(user: User|UserToken, withID = true, withEmail = false, invertedName = false): string {
+  public static buildUserFullName(user: User|UserToken, withID = true, withEmail = false): string {
     let fullName: string;
     if (!user || !user.name) {
-      return 'Unknown';
+      return '-';
     }
-    if (invertedName) {
-      if (user.firstName) {
-        fullName = `${user.name}, ${user.firstName}`;
-      } else {
-        fullName = user.name;
-      }
+    if (user.firstName) {
+      fullName = `${user.firstName} ${user.name}`;
     } else {
-      // eslint-disable-next-line no-lonely-if
-      if (user.firstName) {
-        fullName = `${user.firstName} ${user.name}`;
-      } else {
-        fullName = user.name;
-      }
+      fullName = user.name;
     }
     if (withID && user.id) {
       fullName += ` (${user.id})`;
     }
     if (withEmail && user.email) {
-      fullName += `; ${user.email}`;
+      fullName += ` ${user.email}`;
     }
     return fullName;
   }
 
-  public static buildCarName(carCatalog: CarCatalog) {
-    let carName: string;
+  public static buildCarCatalogName(carCatalog: CarCatalog, withID = false): string {
+    let carCatalogName: string;
     if (!carCatalog) {
       return '-';
     }
-    carName = carCatalog.vehicleMake;
+    carCatalogName = carCatalog.vehicleMake;
     if (carCatalog.vehicleModel) {
-      carName += ` ${carCatalog.vehicleModel}`;
+      carCatalogName += ` ${carCatalog.vehicleModel}`;
     }
     if (carCatalog.vehicleModelVersion) {
-      carName += ` ${carCatalog.vehicleModelVersion}`;
+      carCatalogName += ` ${carCatalog.vehicleModelVersion}`;
+    }
+    if (withID && carCatalog.id) {
+      carCatalogName += ` (${carCatalog.id})`;
+    }
+    return carCatalogName;
+  }
+
+  public static buildCarName(car: Car, withID = false): string {
+    let carName: string;
+    if (!car) {
+      return '-';
+    }
+    if (car.carCatalog) {
+      carName = Utils.buildCarCatalogName(car.carCatalog, withID);
+    }
+    if (!carName) {
+      carName = `VIN '${car.vin}', License Plate '${car.licensePlate}'`;
+    } else {
+      carName += ` with VIN '${car.vin}' and License Plate '${car.licensePlate}'`;
+    }
+    if (withID && car.id) {
+      carName += ` (${car.id})`;
     }
     return carName;
   }
@@ -1794,15 +1807,17 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (Authorizations.isBasic(req.user) && car.type === CarType.POOL_CAR) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Pool cars can only be created by admin',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
-        user: req.user.id
-      });
+    if (!Authorizations.isAdmin(req.user)) {
+      if (car.type === CarType.POOL_CAR) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Pool cars can only be created by admin',
+          module: MODULE_NAME,
+          method: 'checkIfCarValid',
+          user: req.user.id
+        });
+      }
     }
   }
 

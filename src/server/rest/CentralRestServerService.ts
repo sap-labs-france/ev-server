@@ -96,8 +96,7 @@ class RequestMapper {
           [ServerAction.OCPI_ENPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
-          [ServerAction.CAR_CREATE]: CarService.handleCarCreate.bind(this),
-          [ServerAction.ADD_USERS_TO_CAR]: CarService.handleUpdateUsersCar.bind(this)
+          [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
         });
         break;
 
@@ -114,7 +113,7 @@ class RequestMapper {
           [ServerAction.CAR_MAKERS]: CarService.handleGetCarMakers.bind(this),
           [ServerAction.CARS]: CarService.handleGetCars.bind(this),
           [ServerAction.CAR]: CarService.handleGetCar.bind(this),
-          [ServerAction.USERS_CAR]: CarService.handleGetUsersFromCar.bind(this),
+          [ServerAction.CAR_USERS]: CarService.handleGetCarUsers.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
           [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleGetChargingStationsExport.bind(this),
           [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
@@ -211,7 +210,6 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_UNREGISTER]: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
-          [ServerAction.UPDATE_USERS_CAR]: CarService.handleUpdateUsersCar.bind(this),
         });
         break;
 
@@ -234,7 +232,6 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_DELETE]: ConnectionService.handleDeleteConnection.bind(this),
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
-          [ServerAction.REMOVE_USERS_FROM_CAR]: CarService.handleRemoveUsersFromCar.bind(this),
         });
         break;
     }
