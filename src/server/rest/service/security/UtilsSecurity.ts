@@ -124,7 +124,7 @@ export default class UtilsSecurity {
     return filteredAddress;
   }
 
-  static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser: UserToken): void {
+  static filterCreatedAndLastChanged(filteredEntity: any, entity: any, loggedUser: UserToken): void {
     if (entity.createdBy && typeof entity.createdBy === 'object' &&
       entity.createdBy.id && Authorizations.canReadUser(loggedUser, entity.createdBy.id)) {
       // Build user

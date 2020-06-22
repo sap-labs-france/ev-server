@@ -278,7 +278,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER_INVOICES,
               module: MODULE_NAME, method: 'forceSynchronizeUserInvoices',
-              message: `Billing invoice with ID '${invoiceIDInBilling}' does not exist anymore`
+              message: `Billing invoice with ID '${invoiceIDInBilling}' does not exist`
             });
             continue;
           }
@@ -396,7 +396,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
               module: MODULE_NAME, method: 'synchronizeInvoices',
-              message: `Billing invoice with ID '${invoiceIDInBilling}' does not exist anymore`
+              message: `Billing invoice with ID '${invoiceIDInBilling}' does not exist`
             });
             continue;
           }
