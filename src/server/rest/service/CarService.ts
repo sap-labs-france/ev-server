@@ -184,7 +184,7 @@ export default class CarService {
   }
 
   public static async handleCreateCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    let newCar: Car, isNewCar = false;
+    let newCar: Car;
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
@@ -205,9 +205,13 @@ export default class CarService {
     const carCatalog = await CarStorage.getCarCatalog(filteredRequest.carCatalogID);
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${filteredRequest.carCatalogID}' does not exist`,
       MODULE_NAME, 'handleCreateCar', req.user);
+    // Keep the current user to add for Basic role
+    const carUserToAdd = filteredRequest.usersAdded.find((carUser) => carUser.user.id === req.user.id);
     // Check Car
     const car = await CarStorage.getCarByVinLicensePlate(req.user.tenantID,
-      filteredRequest.licensePlate, filteredRequest.vin, { withUsers: true });
+      filteredRequest.licensePlate, filteredRequest.vin, {
+        withUsers: Authorizations.isBasic(req.user) ? true : false,
+      });
     if (car) {
       // If Admin, car already exits!
       if (Authorizations.isAdmin(req.user)) {
@@ -219,6 +223,7 @@ export default class CarService {
           module: MODULE_NAME, method: 'handleCreateCar'
         });
       }
+      // Basic part
       // Basic users: Check if the car is already assigned to user
       if (car.carUsers) {
         const foundCarUser = car.carUsers.find((carUser) => carUser.user.id === req.user.id);
@@ -237,7 +242,9 @@ export default class CarService {
       // Force to reuse the car
       if (filteredRequest.forced) {
         newCar = car;
-        // Send error to the UI
+        // Uncheck owner
+        carUserToAdd.owner = false;
+      // Send error to the UI
       } else {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -259,7 +266,10 @@ export default class CarService {
         createdOn: new Date()
       } as Car;
       newCar.id = await CarStorage.saveCar(req.user.tenantID, newCar);
-      isNewCar = true;
+      // If Basic, this is the car owner
+      if (Authorizations.isBasic(req.user)) {
+        carUserToAdd.owner = true;
+      }
     }
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -298,8 +308,10 @@ export default class CarService {
       });
     }
     // Check Car
-    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.id,
-      { withUsers: Authorizations.isBasic(req.user) ? true : false, userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null });
+    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.id, {
+      withUsers: Authorizations.isBasic(req.user) ? true : false,
+      userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
+    });
     UtilsService.assertObjectExists(action, car, `Car ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCar', req.user);
     // Check Owner if Basic
@@ -545,9 +557,6 @@ export default class CarService {
             await CarStorage.saveCarUser(tenantID, foundCarUserDB);
           // Create
           } else {
-            if (Authorizations.isBasic(loggedUser)) {
-              userToUpsert.owner = true;
-            }
             userToUpsert.carID = car.id;
             userToUpsert.createdBy = { 'id': loggedUser.id };
             userToUpsert.createdOn = new Date();

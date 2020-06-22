@@ -526,7 +526,7 @@ export default class CarStorage {
           owner: carUserToSave.owner,
         };
         // Add Last Changed/Created props
-        DatabaseUtils.addLastChangedCreatedProps(carUserMDB, carUsersToSave);
+        DatabaseUtils.addLastChangedCreatedProps(carUserMDB, carUserToSave);
         carUsersMDB.push(carUserMDB);
       }
       // Execute
@@ -550,7 +550,7 @@ export default class CarStorage {
 
   public static async getCarByVinLicensePlate(tenantID: string,
     licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
-    params: { withUsers?: boolean } = {}, projectFields?: string[]): Promise<Car> {
+    params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCarByVinLicensePlate');
     // Query single Car
