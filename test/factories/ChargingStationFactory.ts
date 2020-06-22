@@ -15,7 +15,7 @@ const chargingStationSinglePhased = Factory.define('chargingStation')
   .attr('chargeBoxSerialNumber', () => 'EV.2S7P44' + faker.random.alphaNumeric(15).toUpperCase())
   .attr('firmwareVersion', () => faker.random.alphaNumeric(25));
 
-export default class UserFactory {
+export default class ChargingStationFactory {
   static build(attributes?, options?) {
     return chargingStationThreePhased.build(attributes, options);
   }
