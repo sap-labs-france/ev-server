@@ -250,7 +250,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'forceSynchronizeUser',
-        action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
+        action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER_INVOICES,
         actionOnUser: user,
         message: `Cannot force synchronize invoices for user '${user.email}'`,
         detailedMessages: { error: error.message, stack: error.stack }
