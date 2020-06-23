@@ -47,6 +47,15 @@ export default class UserSecurity {
     if (request.ExcludeSiteID) {
       request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }
+    if (request.ExcludeUserIDs) {
+      request.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
+    }
+    if (request.IncludeUserIDs) {
+      request.IncludeUserIDs = sanitize(request.IncludeUserIDs);
+    }
+    if (request.NotAssignedToCarID) {
+      request.NotAssignedToCarID = sanitize(request.NotAssignedToCarID);
+    }
     UtilsSecurity.filterSkipAndLimit(request, request);
     UtilsSecurity.filterSort(request, request);
     return request as HttpUsersRequest;
@@ -160,7 +169,7 @@ export default class UserSecurity {
 
   // User
   static filterMinimalUserResponse(user: User, loggedUser: UserToken): User {
-    const filteredUser: any = {};
+    const filteredUser = {} as User;
     if (!user) {
       return null;
     }
@@ -171,10 +180,12 @@ export default class UserSecurity {
         filteredUser.id = null;
         filteredUser.name = Constants.ANONYMIZED_VALUE;
         filteredUser.firstName = Constants.ANONYMIZED_VALUE;
+        filteredUser.email = Constants.ANONYMIZED_VALUE;
       } else {
         filteredUser.id = user.id;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
+        filteredUser.email = user.email;
       }
     }
     return filteredUser;

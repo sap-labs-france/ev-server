@@ -129,7 +129,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { userID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, { userIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUser', uniqueTimerID, { id });
     return user.count > 0 ? user.result[0] : null;
@@ -185,24 +185,20 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addSitesToUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // User provided?
-    if (userID) {
-      // At least one Site
-      if (siteIDs && siteIDs.length > 0) {
-        const siteUsers = [];
-        // Create the list
-        for (const siteID of siteIDs) {
-          // Add
-          siteUsers.push({
-            '_id': Cypher.hash(`${siteID}~${userID}`),
-            'userID': Utils.convertToObjectID(userID),
-            'siteID': Utils.convertToObjectID(siteID),
-            'siteAdmin': false
-          });
-        }
-        // Execute
-        await global.database.getCollection<any>(tenantID, 'siteusers').insertMany(siteUsers);
+    // At least one Site
+    if (siteIDs && siteIDs.length > 0) {
+      const siteUsersMDB = [];
+      // Create the list
+      for (const siteID of siteIDs) {
+        siteUsersMDB.push({
+          '_id': Cypher.hash(`${siteID}~${userID}`),
+          'userID': Utils.convertToObjectID(userID),
+          'siteID': Utils.convertToObjectID(siteID),
+          'siteAdmin': false
+        });
       }
+      // Execute
+      await global.database.getCollection<any>(tenantID, 'siteusers').insertMany(siteUsersMDB);
     }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'addSitesToUser', uniqueTimerID, { userID, siteIDs });
@@ -485,7 +481,8 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-      userID?: string; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
+      includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
+      userIDs?: string[]; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
       notifications?: any; noLoginSince?: Date;
     },
@@ -501,11 +498,8 @@ export default class UserStorage {
     const filters: any = {
       '$or': DatabaseUtils.getNotDeletedFilter()
     };
-    // Filter by ID
-    if (params.userID) {
-      filters._id = Utils.convertToObjectID(params.userID);
-      // Filter by other properties
-    } else if (params.search) {
+    // Filter by other properties
+    if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'name': { $regex: searchRegex, $options: 'i' } },
@@ -515,8 +509,15 @@ export default class UserStorage {
         { 'plateID': { $regex: searchRegex, $options: 'i' } }
       ];
     }
+    // Limit on Car for Basic Users
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+    }
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
+    }
+    if (!Utils.isEmptyArray(params.excludeUserIDs)) {
+      filters._id = { $nin: params.excludeUserIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     // Email
     if (params.email) {
@@ -581,6 +582,32 @@ export default class UserStorage {
       aggregation.push({
         $match: filters
       });
+    }
+    // Add post filter
+    if (params.notAssignedToCarID) {
+      const notAssignedToCarIDFilter = {
+        '$or': []
+      };
+      DatabaseUtils.pushUserCarLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'carUsers'
+      });
+      // Add Car ID in OR
+      const carIDFilter = {};
+      carIDFilter['carUsers.carID'] = { $ne: Utils.convertToObjectID(params.notAssignedToCarID) };
+      notAssignedToCarIDFilter.$or.push(carIDFilter);
+      // Bypass Car ID if users has been removed in UI
+      if (params.includeCarUserIDs) {
+        const includeCarUserIDsFilter = {};
+        includeCarUserIDsFilter['carUsers.userID'] = { $in: params.includeCarUserIDs.map((includeCarUserID) =>
+          Utils.convertToObjectID(includeCarUserID)) };
+        notAssignedToCarIDFilter.$or.push(includeCarUserIDsFilter);
+      }
+      // Filters
+      if (filters) {
+        aggregation.push({
+          $match: notAssignedToCarIDFilter
+        });
+      }
     }
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {

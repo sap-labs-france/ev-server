@@ -467,7 +467,7 @@ export default class StatisticService {
           transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
         } else {
           // We can have duplicate user names, like 'Unknown'
-          userName = Utils.buildUserFullName(transactionStatMDB.user, false, false, true);
+          userName = Utils.buildUserFullName(transactionStatMDB.user, false, false);
           if (userName in transaction) {
             transaction[userName] += transactionStatMDB.total;
           } else {
@@ -482,7 +482,7 @@ export default class StatisticService {
 
   static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
     let user: User;
-    let unknownUser = Utils.buildUserFullName(user, false, false, true);
+    let unknownUser = Utils.buildUserFullName(user, false, false);
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }

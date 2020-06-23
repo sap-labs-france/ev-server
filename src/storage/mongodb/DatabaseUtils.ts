@@ -42,84 +42,90 @@ export default class DatabaseUtils {
     ];
   }
 
-  public static pushSiteLookupInAggregation(lookupParams: DbLookup) {
+  public static pushSiteLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('sites', {
       objectIDFields: ['companyID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushCarCatalogLookupInAggregation(lookupParams: DbLookup) {
+  public static pushCarCatalogLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('carcatalogs', {
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushCarLookupInAggregation(lookupParams: DbLookup) {
+  public static pushCarLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('cars', {
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushUserCarLookupInAggregation(lookupParams: DbLookup) {
-    DatabaseUtils.pushCollectionLookupInAggregation('userscars', {
+  public static pushUserCarLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+    DatabaseUtils.pushCollectionLookupInAggregation('carusers', {
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushSiteUserLookupInAggregation(lookupParams: DbLookup) {
+  public static pushSiteUserLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('siteusers', {
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushTransactionsLookupInAggregation(lookupParams: DbLookup) {
+  public static pushTransactionsLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('transactions', {
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushUserLookupInAggregation(lookupParams: DbLookup) {
+  public static pushUserLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('users', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushCompanyLookupInAggregation(lookupParams: DbLookup) {
+  public static pushCompanyLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('companies', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushSiteAreaLookupInAggregation(lookupParams: DbLookup) {
+  public static pushSiteAreaLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('siteareas', {
       objectIDFields: ['siteID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushChargingStationLookupInAggregation(lookupParams: DbLookup) {
+  public static pushChargingStationLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('chargingstations', {
       objectIDFields: ['siteAreaID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
-    }, [DatabaseUtils.buildChargingStationInactiveFlagQuery()]);
+    }, [DatabaseUtils.buildChargingStationInactiveFlagQuery(), ...additionalPipeline]);
   }
 
-  public static pushTagLookupInAggregation(lookupParams: DbLookup) {
+  public static pushTagLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('tags', {
       objectIDFields: ['lastChangedBy'],
       projectedFields: ['id', 'description', 'issuer', 'active', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
       ...lookupParams
-    });
+    }, additionalPipeline);
   }
 
-  public static pushArrayLookupInAggregation(arrayName: string, lookupMethod: (lookupParams: DbLookup) => void, lookupParams: DbLookup) {
+  public static pushArrayLookupInAggregation(arrayName: string,
+    lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
+    lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) {
     // Unwind the source
     lookupParams.aggregation.push({ '$unwind': { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } });
     // Call the lookup
     lookupMethod(lookupParams);
+    // Add external pipeline
+    if (!Utils.isEmptyArray(additionalPipeline)) {
+      lookupParams.aggregation.push(...additionalPipeline);
+    }
     // Group back to arrays
     lookupParams.aggregation.push(
       JSON.parse(`{
@@ -131,12 +137,12 @@ export default class DatabaseUtils {
       }`)
     );
     // Replace array
-    lookupParams.aggregation.push(JSON.parse(`{ "$addFields": { "root.${arrayName}": { "$cond": { "if": { "$eq": [ "$connectors", [{}] ] }, "then": [], "else": "$connectors" } } } }`));
+    lookupParams.aggregation.push(JSON.parse(`{ "$addFields": { "root.${arrayName}": { "$cond": { "if": { "$eq": [ "$${arrayName}", [{}] ] }, "then": [], "else": "$${arrayName}" } } } }`));
     // Replace root
     lookupParams.aggregation.push({ $replaceRoot: { newRoot: '$root' } });
   }
 
-  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, externalPipeline?: Record<string, any>[]) {
+  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) {
     // Build Lookup's pipeline
     if (!lookupParams.pipelineMatch) {
       lookupParams.pipelineMatch = {};
@@ -147,8 +153,8 @@ export default class DatabaseUtils {
     const pipeline: any[] = [
       { '$match': lookupParams.pipelineMatch }
     ];
-    if (externalPipeline) {
-      pipeline.push(...externalPipeline);
+    if (!Utils.isEmptyArray(additionalPipeline)) {
+      pipeline.push(...additionalPipeline);
     }
     if (lookupParams.countField) {
       pipeline.push({
