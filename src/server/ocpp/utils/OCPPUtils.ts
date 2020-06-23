@@ -760,7 +760,9 @@ export default class OCPPUtils {
         consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
         // Save Site Area max consumption
         siteArea.maximumPower = consumption.limitSiteAreaWatts;
-        await SiteAreaStorage.saveSiteArea(tenantID, siteArea);
+        if (siteArea.id) {
+          await SiteAreaStorage.saveSiteArea(tenantID, siteArea);
+        }
       }
     }
     consumption.smartChargingActive = siteArea.smartCharging;
