@@ -591,9 +591,11 @@ export default class UserStorage {
       DatabaseUtils.pushUserCarLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'carUsers'
       });
+      // Add Car ID in OR
       const carIDFilter = {};
       carIDFilter['carUsers.carID'] = { $ne: Utils.convertToObjectID(params.notAssignedToCarID) };
       notAssignedToCarIDFilter.$or.push(carIDFilter);
+      // Bypass Car ID if users has been removed in UI
       if (params.includeCarUserIDs) {
         const includeCarUserIDsFilter = {};
         includeCarUserIDsFilter['carUsers.userID'] = { $in: params.includeCarUserIDs.map((includeCarUserID) =>

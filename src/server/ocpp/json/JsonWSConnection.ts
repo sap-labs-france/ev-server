@@ -106,7 +106,6 @@ export default class JsonWSConnection extends WSConnection {
     if (typeof this.chargingStationService['handle' + commandName] === 'function') {
       if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
         this.headers.currentIPAddress = this.getClientIP();
-        this.headers.currentServerLocalIPAddressPort = this.getServerIPPort();
       }
       // Call it
       const result = await this.chargingStationService['handle' + commandName](this.headers, commandPayload);
