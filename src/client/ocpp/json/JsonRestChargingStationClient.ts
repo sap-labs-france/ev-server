@@ -22,18 +22,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     super();
     this.tenantID = tenantID;
     // Get URL
-    let chargingStationURL: string;
-    if (Configuration.getChargingStationConfig().useServerLocalIPForRemoteCommand) {
-      let URLprotocol: string;
-      if (Configuration.getChargingStationConfig().secureLocalServer) {
-        URLprotocol = 'wss';
-      } else {
-        URLprotocol = 'ws';
-      }
-      chargingStationURL = URLprotocol + '://' + chargingStation.currentServerLocalIPAddressPort;
-    } else {
-      chargingStationURL = chargingStation.chargingStationURL;
-    }
+    let chargingStationURL: string = chargingStation.chargingStationURL;
     // Check URL: remove starting and trailing '/'
     if (chargingStationURL.endsWith('/')) {
       // Remove '/'
