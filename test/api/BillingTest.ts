@@ -175,6 +175,7 @@ describe('Billing Service', function() {
         );
         fakeUser.firstName = 'Test';
         fakeUser.name = 'Name';
+        fakeUser.issuer = true;
         await testData.userService.updateEntity(
           testData.userService.userApi,
           fakeUser,

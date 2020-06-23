@@ -12,6 +12,7 @@ import { ServerAction } from '../../../types/Server';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -338,6 +339,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       nbrOfItems: stripeInvoice.lines.total_count
     } as Partial<BillingInvoice>;
     try {
+      invoice.user = await UserStorage.getUserByBillingID(this.tenantID, user.billingData.customerID);
       invoice.id = await BillingStorage.saveInvoice(this.tenantID, invoice);
       return { invoice: invoice as BillingInvoice, invoiceItem: invoiceItem };
     } catch (error) {

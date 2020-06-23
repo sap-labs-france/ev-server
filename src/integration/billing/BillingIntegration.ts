@@ -208,8 +208,9 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   }
 
   public async forceSynchronizeUser(user: User, tenantID: string): Promise<void> {
+    let billingUser: BillingUser;
     try {
-      let billingUser = await this.getUserByEmail(user.email);
+      billingUser = await this.getUserByEmail(user.email);
       if (billingUser) {
         if (user.billingData) {
           // Only override user's customerID
@@ -241,6 +242,20 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
+
+    // Synchronize user's invoices
+    try {
+      await this.synchronizeInvoices(this.tenantID, user);
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'forceSynchronizeUser',
+        action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
+        actionOnUser: user,
+        message: `Cannot force synchronize invoices for user '${user.email}'`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
   }
 
   public async forceSynchronizeUserInvoices(tenantID: string, user: User): Promise<ActionsResponse> {
@@ -249,7 +264,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       inSuccess: 0,
       inError: 0
     };
-    this.checkConnection();
+    await this.checkConnection();
     // Check billing user
     billingUser = await this.checkAndGetBillingUser(user);
     // Get all user invoices from Billing application
@@ -310,7 +325,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               // Get user
               userInInvoice = await UserStorage.getUserByBillingID(tenantID, invoiceBilling.customerID);
             }
-            invoiceBilling.user.id = userInInvoice ? userInInvoice.id : null;
+            Object.assign(invoiceBilling, { user: user });
           }
           await BillingStorage.saveInvoice(tenantID, invoiceBilling);
           Logging.logDebug({
@@ -358,7 +373,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       inSuccess: 0,
       inError: 0
     };
-    this.checkConnection();
+    await this.checkConnection();
     // Check billing user
     if (user) {
       billingUser = await this.checkAndGetBillingUser(user);
