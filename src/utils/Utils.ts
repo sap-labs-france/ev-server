@@ -34,7 +34,6 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
-import localIP from 'quick-local-ip';
 import moment from 'moment';
 import passwordGenerator from 'password-generator';
 import path from 'path';
@@ -971,10 +970,6 @@ export default class Utils {
       const ip = host[0];
       return ip;
     }
-  }
-
-  public static getLocalIP(): string {
-    return localIP.getLocalIP4() as string;
   }
 
   public static checkRecordLimit(recordLimit: number | string): number {

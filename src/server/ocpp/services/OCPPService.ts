@@ -155,7 +155,6 @@ export default class OCPPService {
       chargingStation.ocppProtocol = headers.ocppProtocol;
       chargingStation.lastHeartBeat = bootNotification.lastHeartBeat;
       chargingStation.currentIPAddress = bootNotification.currentIPAddress;
-      chargingStation.currentServerLocalIPAddressPort = headers.currentServerLocalIPAddressPort;
       // Set the Charging Station URL?
       if (headers.chargingStationURL) {
         chargingStation.chargingStationURL = headers.chargingStationURL;
@@ -224,7 +223,6 @@ export default class OCPPService {
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Replace IPs
       chargingStation.currentIPAddress = headers.currentIPAddress;
-      chargingStation.currentServerLocalIPAddressPort = headers.currentServerLocalIPAddressPort;
       // Check props
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat
@@ -239,7 +237,6 @@ export default class OCPPService {
       await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation.id, {
         lastHeartBeat: chargingStation.lastHeartBeat,
         currentIPAddress: chargingStation.currentIPAddress,
-        currentServerLocalIPAddressPort: chargingStation.currentServerLocalIPAddressPort,
       });
       // Save Heart Beat
       await OCPPStorage.saveHeartbeat(headers.tenantID, heartbeat);
@@ -1395,7 +1392,7 @@ export default class OCPPService {
       // Notification Before End Of Charge (Async)
       NotificationHandler.sendOptimalChargeReached(
         tenantID,
-        transaction.id + '-OCR',
+        transaction.id.toString() + '-OCR',
         transaction.user,
         chargingStation,
         {
@@ -1633,7 +1630,7 @@ export default class OCPPService {
       // Notify (Async)
       NotificationHandler.sendSessionStarted(
         tenantID,
-        transaction.id + '',
+        transaction.id.toString() + '',
         user,
         chargingStation,
         {
@@ -1678,7 +1675,7 @@ export default class OCPPService {
       // Send Notification (Async)
       NotificationHandler.sendEndOfSession(
         tenantID,
-        transaction.id + '-EOS',
+        transaction.id.toString() + '-EOS',
         user,
         chargingStation,
         {
@@ -1699,7 +1696,7 @@ export default class OCPPService {
         // Send Notification (Async)
         NotificationHandler.sendEndOfSignedSession(
           tenantID,
-          transaction.id + '-EOSS',
+          transaction.id.toString() + '-EOSS',
           user,
           chargingStation,
           {
@@ -1709,8 +1706,8 @@ export default class OCPPService {
             'chargeBoxID': chargingStation.id,
             'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
             'tagId': transaction.tagID,
-            'startDate': transaction.timestamp.toLocaleString('de-DE'),
-            'endDate': transaction.stop.timestamp.toLocaleString('de-DE'),
+            'startDate': transaction.timestamp.toLocaleString(user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+            'endDate': transaction.stop.timestamp.toLocaleString(user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
             'meterStart': (transaction.meterStart / 1000).toLocaleString(
               (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
               { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
