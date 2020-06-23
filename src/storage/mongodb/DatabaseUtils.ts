@@ -137,7 +137,22 @@ export default class DatabaseUtils {
       }`)
     );
     // Replace array
-    lookupParams.aggregation.push(JSON.parse(`{ "$addFields": { "root.${arrayName}": { "$cond": { "if": { "$eq": [ "$${arrayName}", [{}] ] }, "then": [], "else": "$${arrayName}" } } } }`));
+    lookupParams.aggregation.push(JSON.parse(`{
+      "$addFields": {
+        "root.${arrayName}": {
+          "$cond": {
+            "if": {
+              "$or": [
+                { "$eq": [ "$${arrayName}", [{}] ] },
+                { "$eq": [ "$${arrayName}", [null] ] }
+              ]
+            },
+            "then": [],
+            "else": "$${arrayName}"
+          }
+        }
+      }
+    }`));
     // Replace root
     lookupParams.aggregation.push({ $replaceRoot: { newRoot: '$root' } });
   }
@@ -194,6 +209,19 @@ export default class DatabaseUtils {
         }
       });
     }
+    // Check if the target field is a composed property: empty root document must be null ({} = null)
+    const splitAsField = lookupParams.asField.split('.');
+    if (splitAsField.length > 1) {
+      lookupParams.aggregation.push(JSON.parse(`{
+        "$addFields": {
+          "${splitAsField[0]}": {
+            "$cond": {
+              "if": { "$eq": [ "$${splitAsField[0]}", ${lookupParams.oneToOneCardinality ? '{}' : '[]'} ] },
+              "then": null, "else": "$${splitAsField[0]}" }
+          }
+        }
+      }`));
+    }
   }
 
   public static pushChargingStationInactiveFlag(aggregation: any[]) {
@@ -233,6 +261,19 @@ export default class DatabaseUtils {
         }
       }
     }`));
+    // Check if the field is a composed property: empty root document must be null ({} = null)
+    const splitFieldName = renamedFieldName.split('.');
+    if (splitFieldName.length === 2) {
+      aggregation.push(JSON.parse(`{
+        "$addFields": {
+          "${splitFieldName[0]}": {
+            "$cond": {
+              "if": { "$eq": [ "$${splitFieldName[0]}", { "${splitFieldName[1]}": null } ] },
+              "then": null, "else": "$${splitFieldName[0]}" }
+          }
+        }
+      }`));
+    }
   }
 
   public static clearFieldValueIfSubFieldIsNull(aggregation: any[], fieldName: string, subFieldName: string) {

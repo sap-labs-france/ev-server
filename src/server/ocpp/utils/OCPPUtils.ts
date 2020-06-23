@@ -762,8 +762,8 @@ export default class OCPPUtils {
         siteArea.maximumPower = consumption.limitSiteAreaWatts;
         await SiteAreaStorage.saveSiteArea(tenantID, siteArea);
       }
+      consumption.smartChargingActive = siteArea.smartCharging;
     }
-    consumption.smartChargingActive = siteArea.smartCharging;
   }
 
   public static async getChargingStationTemplate(chargingStation: ChargingStation): Promise<ChargingStationTemplate> {

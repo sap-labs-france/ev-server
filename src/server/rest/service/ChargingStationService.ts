@@ -82,7 +82,7 @@ export default class ChargingStationService {
       // Check number of phases corresponds to the site area one
       if (filteredRequest.connectors) {
         for (const connector of filteredRequest.connectors) {
-          if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea.numberOfPhases === 1) {
+          if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea && chargingStation.siteArea.numberOfPhases === 1) {
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
               action: action,
