@@ -887,7 +887,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   private async modifyUser(user: User): Promise<BillingUser> {
     await this.checkConnection();
-    const fullName = Utils.buildUserFullName(user, false, false, false);
+    const fullName = Utils.buildUserFullName(user, false, false);
     const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
     const i18nManager = new I18nManager(user.locale);
     const description = i18nManager.translate('billing.generatedUser', { email: user.email });
