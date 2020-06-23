@@ -1,1 +1,1 @@
-export { default } from '../../sap-smart-charging';
+export { default } from '../../dummy/DummySmartChargingIntegration';
