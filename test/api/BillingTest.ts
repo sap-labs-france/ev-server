@@ -181,7 +181,7 @@ describe('Billing Service', function() {
           fakeUser,
           false
         );
-        // TestData.createdUsers.push(fakeUser);
+        testData.createdUsers.push(fakeUser);
         const billingUser = await billingImpl.getUserByEmail(fakeUser.email);
         expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
       });
