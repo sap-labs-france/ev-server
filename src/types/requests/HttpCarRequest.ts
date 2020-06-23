@@ -1,7 +1,6 @@
 import { CarType } from '../Car';
-import { UserCar } from '../User';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
-
+import { UserCar } from '../User';
 
 export interface HttpCarCatalogsRequest extends HttpDatabaseRequest {
   Search?: string;
@@ -51,6 +50,7 @@ export interface HttpCarsRequest extends HttpDatabaseRequest {
   Search: string;
   CarMaker: string;
   WithUsers: boolean;
+  UserID: string;
 }
 
 export interface HttpUsersCarsRequest extends HttpDatabaseRequest {
