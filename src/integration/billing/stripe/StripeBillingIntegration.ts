@@ -13,6 +13,7 @@ import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
+import axios from 'axios';
 import moment from 'moment';
 
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
@@ -270,7 +271,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return collectedInvoiceIDs;
   }
 
-  public async createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }> {
+  public async createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }> {
     if (!user) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -351,7 +352,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  public async createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<BillingInvoiceItem> {
+  public async createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<BillingInvoiceItem> {
     await this.checkConnection();
     if (!invoiceItem) {
       throw new BackendError({
@@ -384,11 +385,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice> {
     await this.checkConnection();
+    let pdfUrl = '';
+    // Send invoice to user
     try {
       const stripeInvoice = await this.stripe.invoices.sendInvoice(invoice.invoiceID);
       invoice.status = stripeInvoice.status as BillingInvoiceStatus;
       invoice.id = await BillingStorage.saveInvoice(this.tenantID, invoice);
-      return invoice;
+      pdfUrl = stripeInvoice.invoice_pdf;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -398,6 +401,25 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
+    // Save generated pdf
+    if (pdfUrl !== '') {
+      try {
+        const response = await axios.get(pdfUrl, { responseType: 'arraybuffer' });
+        const base64Image = Buffer.from(response.data).toString('base64');
+        const encodedImage = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
+        invoice.encodedPdf = encodedImage;
+        await BillingStorage.saveInvoicePdf(this.tenantID, invoice.id, invoice.encodedPdf);
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_CREATE_INVOICE,
+          module: MODULE_NAME, method: 'createInvoice',
+          message: 'Failed to save invoice PDF in database',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+    return invoice;
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
@@ -426,7 +448,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
       }
       if (billingUser.billingData.method !== BillingMethod.IMMEDIATE &&
-          billingUser.billingData.method !== BillingMethod.PERIODIC) {
+        billingUser.billingData.method !== BillingMethod.PERIODIC) {
         throw new BackendError({
           message: 'Transaction user is assigned to unknown billing method',
           source: Constants.CENTRAL_SERVER,
@@ -677,7 +699,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       return false;
     }
     if ((billingMethod === BillingMethod.IMMEDIATE && !this.settings.immediateBillingAllowed) ||
-          (billingMethod === BillingMethod.PERIODIC && !this.settings.periodicBillingAllowed)) {
+      (billingMethod === BillingMethod.PERIODIC && !this.settings.periodicBillingAllowed)) {
       Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.USER_DELETE,
@@ -925,9 +947,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       dataToUpdate.email = user.email;
     }
     if (locale &&
-        (!customer.preferred_locales ||
-          customer.preferred_locales.length === 0 ||
-          customer.preferred_locales[0] !== locale)) {
+      (!customer.preferred_locales ||
+        customer.preferred_locales.length === 0 ||
+        customer.preferred_locales[0] !== locale)) {
       dataToUpdate.preferred_locales = [locale];
     }
     // Update

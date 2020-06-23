@@ -71,6 +71,7 @@ export interface BillingInvoice {
   customerID?: string;
   createdOn?: Date;
   nbrOfItems?: number;
+  encodedPdf?: string;
 }
 
 export interface BillingInvoiceItem {
@@ -83,4 +84,9 @@ export enum BillingInvoiceStatus {
   PAID = 'paid',
   OPEN = 'open',
   DRAFT = 'draft',
+}
+
+export interface BillingInvoicePdf {
+  id: string;
+  encodedPdf: string; // Base64 format
 }

@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoiceStatus } from '../../types/Billing';
+import { BillingInvoice, BillingInvoicePdf, BillingInvoiceStatus } from '../../types/Billing';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -175,6 +175,26 @@ export default class BillingStorage {
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveInvoice', uniqueTimerID, { invoiceMDB });
     return invoiceMDB._id.toHexString();
+  }
+
+  public static async saveInvoicePdf(tenantId: string, invoiceId: string, encodedPdf: string): Promise<BillingInvoicePdf> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveInvoicePdf');
+    // Build Request
+    // Properties to save
+    const invoiceFileMDB: any = {
+      _id: invoiceId ? Utils.convertToObjectID(invoiceId) : new ObjectID(),
+      encodedPdf: encodedPdf
+    };
+    // Modify and return the modified document
+    await global.database.getCollection<BillingInvoicePdf>(tenantId, 'invoicespdf').findOneAndReplace(
+      { _id: invoiceFileMDB._id },
+      invoiceFileMDB,
+      { upsert: true }
+    );
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'saveInvoicePdf', uniqueTimerID, { invoiceFileMDB });
+    return invoiceFileMDB._id.toHexString();
   }
 
   public static async deleteInvoice(tenantID: string, id: string): Promise<void> {
