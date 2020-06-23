@@ -42,7 +42,6 @@ export default class WSConnection {
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
-    this.serverIPPort = Utils.getLocalIP() + ':' + this.wsServer.port.toString();
 
     // Default
     this.tenantIsValid = false;
