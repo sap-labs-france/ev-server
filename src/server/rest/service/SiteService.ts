@@ -214,13 +214,13 @@ export default class SiteService {
     }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
-    UtilsService.assertObjectExists(action, site, `Site '${filteredRequest.siteID}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, site, `Site '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleAssignUsersToSite', req.user);
     // Get Users
     for (const userID of filteredRequest.userIDs) {
       // Check the user
       const user = await UserStorage.getUser(req.user.tenantID, userID);
-      UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist anymore.`,
+      UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
         MODULE_NAME, 'handleAssignUsersToSite', req.user);
       // Auth
       if (!Authorizations.canReadUser(req.user, userID)) {
