@@ -1,5 +1,5 @@
 import { default as Axios, default as axios } from 'axios';
-import { CarCatalog, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../../types/Car';
+import { CarCatalog, ChargeAlternativeTable, ChargeOptionTable, CarConverter } from '../../../types/Car';
 
 import BackendError from '../../../exception/BackendError';
 import CarIntegration from '../CarIntegration';
@@ -33,11 +33,11 @@ export default class EVDabaseCarIntegration extends CarIntegration {
     }
     // Build result
     for (const data of response.data) {
-      const chargeStandardTables: ChargeStandardTable[] = [];
+      const chargeStandardTables: CarConverter[] = [];
       const chargeAlternativeTables: ChargeAlternativeTable[] = [];
       const chargeOptionTables: ChargeOptionTable[] = [];
       for (const chargeStandard of Object.keys(data.Charge_Standard_Table)) {
-        const chargeStandardTable: ChargeStandardTable = {
+        const chargeStandardTable: CarConverter = {
           type: chargeStandard,
           evsePhaseVolt: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
           evsePhaseAmp: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseAmp,

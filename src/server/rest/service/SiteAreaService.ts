@@ -48,7 +48,7 @@ export default class SiteAreaService {
     }
     // Get the Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist`,
       MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
@@ -66,7 +66,7 @@ export default class SiteAreaService {
     for (const assetID of filteredRequest.assetIDs) {
       // Check the asset
       const asset = await AssetStorage.getAsset(req.user.tenantID, assetID);
-      UtilsService.assertObjectExists(action, asset, `Asset '${assetID}' does not exist anymore.`,
+      UtilsService.assertObjectExists(action, asset, `Asset '${assetID}' does not exist`,
         MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
       // Check auth
       if (!Authorizations.canReadAsset(req.user)) {
@@ -122,7 +122,7 @@ export default class SiteAreaService {
     }
     // Get the Site Area (before auth to get siteID)
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist anymore.`,
+    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist`,
       MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
@@ -140,7 +140,7 @@ export default class SiteAreaService {
     for (const chargingStationID of filteredRequest.chargingStationIDs) {
       // Check the charging station
       const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
-      UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingStationID}' does not exist anymore.`,
+      UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingStationID}' does not exist`,
         MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
       // Check auth
       if (!Authorizations.canReadChargingStation(req.user)) {

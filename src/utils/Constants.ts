@@ -100,7 +100,12 @@ export default class Constants {
     'image': 0,
     'address': 0,
     'plateID': 0,
-    'verificationToken': 0
+    'verificationToken': 0,
+    'mobileLastChangedOn': 0,
+    'issuer': 0,
+    'mobileOs': 0,
+    'mobileToken': 0,
+    'verifiedAt': 0,
   };
 
   public static readonly DEFAULT_OCPP_16_CONFIGURATION: OcppParameter[] = [

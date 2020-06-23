@@ -349,8 +349,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER_INVOICES,
               module: MODULE_NAME, method: 'forceSynchronizeUserInvoices',
-              message: `Invoice with ID '${invoiceIDInBilling}' has been ${invoice ? 'updated' : 'created'} in e-Mobility`,
-              detailedMessages: { invoiceBilling }
+              message: `Billing invoice with ID '${invoiceIDInBilling}' does not exist`
             });
             if (userInInvoice) {
               userInInvoice.billingData.invoicesLastSynchronizedOn = new Date();
@@ -470,8 +469,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
               module: MODULE_NAME, method: 'synchronizeInvoices',
-              message: `Invoice with ID '${invoiceIDInBilling}' has been ${invoice ? 'updated' : 'created'} in e-Mobility`,
-              detailedMessages: { invoiceBilling }
+              message: `Billing invoice with ID '${invoiceIDInBilling}' does not exist`
             });
             if (userInInvoice) {
               userInInvoice.billingData.invoicesLastSynchronizedOn = new Date();
