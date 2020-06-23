@@ -1,15 +1,15 @@
-import { ObjectID } from 'mongodb';
 import { Car, CarCatalog, CarConverter, CarMaker, ChargeAlternativeTable, ChargeOptionTable } from '../../types/Car';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
 import global, { Image } from '../../types/GlobalType';
-import { UserCar } from '../../types/User';
+
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
-
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
+import { UserCar } from '../../types/User';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CarStorage';
 
@@ -769,6 +769,16 @@ export default class CarStorage {
       .deleteMany({ 'carID': Utils.convertToObjectID(carID) });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteCarUserByCarID', uniqueTimerID, { carID });
+  }
+
+  public static async deleteCar(tenantID: string, carID: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteCar');
+    // Delete singular site area
+    await global.database.getCollection(tenantID, 'cars')
+      .deleteOne({ '_id': Utils.convertToObjectID(carID) });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'deleteCar', uniqueTimerID, { carID });
   }
 
   public static async deleteCarUsers(tenantID: string, ids: string[]): Promise<void> {

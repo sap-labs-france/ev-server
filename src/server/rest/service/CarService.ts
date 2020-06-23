@@ -244,7 +244,7 @@ export default class CarService {
         newCar = car;
         // Uncheck owner
         carUserToAdd.owner = false;
-      // Send error to the UI
+        // Send error to the UI
       } else {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -326,6 +326,16 @@ export default class CarService {
           user: req.user,
           module: MODULE_NAME, method: 'handleUpdateCar',
           message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
+        });
+      }
+      // Owned by this user ?
+      if (!carUser.owner) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_NOT_OWNER_OF_THE_CAR,
+          user: req.user,
+          module: MODULE_NAME, method: 'handleUpdateCar',
+          message: `User is not owner of the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
         });
       }
     }
@@ -461,6 +471,72 @@ export default class CarService {
     next();
   }
 
+  public static async handleDeleteCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const carId = CarSecurity.filterCarRequest(req.query).ID;
+    // Check auth
+    if (!Authorizations.canDeleteCar(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.DELETE,
+        entity: Entity.CAR,
+        module: MODULE_NAME, method: 'handleDeleteCar',
+        value: carId
+      });
+    }
+    // Get
+    const car = await CarStorage.getCar(req.user.tenantID, carId, {
+      withUsers: Authorizations.isBasic(req.user) ? true : false,
+      userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
+    });
+    UtilsService.assertObjectExists(action, car, `Car ID '${carId}' does not exist`,
+      MODULE_NAME, 'handleDeleteCar', req.user);
+    // Check Owner if Basic
+    let carUser: UserCar;
+    if (Authorizations.isBasic(req.user)) {
+      carUser = car.carUsers.find((carUserToFind) => carUserToFind.user.id.toString() === req.user.id);
+      // Assigned to this user?
+      if (!carUser) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.NO_CAR_FOR_USER,
+          user: req.user,
+          module: MODULE_NAME, method: 'handleDeleteCar',
+          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
+        });
+      }
+      // Owned by this user ?
+      if (!carUser.owner) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_NOT_OWNER_OF_THE_CAR,
+          user: req.user,
+          module: MODULE_NAME, method: 'handleDeleteCar',
+          message: `User is not owner of the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
+        });
+      }
+    }
+    // Owner?
+    if (Authorizations.isAdmin(req.user) || (Authorizations.isBasic(req.user) && carUser.owner)) {
+      // Check if Transaction exist (to Be implemented later)
+      // Ok: Delete
+      await CarStorage.deleteCarUsersByCarID(req.user.tenantID, carId);
+      await CarStorage.deleteCar(req.user.tenantID, carId);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
+        message: `Car '${car.id}' has been deleted successfully`,
+        action: action,
+        detailedMessages: { car }
+      });
+    }
+    // Delete
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   private static async handleAssignCarUsers(action: ServerAction, tenantID: string, loggedUser: UserToken,
     car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
     // Filter only allowed assignments
@@ -555,7 +631,7 @@ export default class CarService {
             userToUpsert.lastChangedOn = new Date();
             // Save (multi updates one shot does not exist in MongoDB)
             await CarStorage.saveCarUser(tenantID, foundCarUserDB);
-          // Create
+            // Create
           } else {
             userToUpsert.carID = car.id;
             userToUpsert.createdBy = { 'id': loggedUser.id };
