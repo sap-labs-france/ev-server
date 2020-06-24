@@ -263,6 +263,7 @@ export enum ServerAction {
   ASSET_IN_ERROR = 'AssetsInError',
   ASSET_UPDATE = 'AssetUpdate',
   ASSET_DELETE = 'AssetDelete',
+  CHECK_ASSET_CONNECTION = 'CheckAssetConnection',
 
   TENANT_CREATE = 'TenantCreate',
   TENANTS = 'Tenants',

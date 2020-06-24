@@ -246,17 +246,12 @@ export default class ChargingStationStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: {
-          _id: 1
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -269,7 +264,7 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushArrayLookupInAggregation('connectors', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
       tenantID, aggregation: aggregation, localField: 'connectors.userID', foreignField: '_id',
       asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-    });
+    }, { sort: dbParams.sort });
     // Site
     if (params.withSite && !params.withNoSiteArea) {
       DatabaseUtils.pushSiteLookupInAggregation({
@@ -386,17 +381,12 @@ export default class ChargingStationStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: {
-          _id: 1
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -500,7 +490,7 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationHeartBeat(tenantID: string, id: string,
-    params: { lastHeartBeat: Date; currentIPAddress: string }): Promise<void> {
+    params: { lastHeartBeat: Date; currentIPAddress: string|string[] }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationHeartBeat');
     // Check Tenant
@@ -706,18 +696,15 @@ export default class ChargingStationStorage {
     // Rename ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: {
-          'connectorID': -1,
-          'profile.stackLevel': -1,
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = {
+        'connectorID': -1,
+        'profile.stackLevel': -1,
+      };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip

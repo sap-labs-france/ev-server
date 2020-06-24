@@ -1,24 +1,77 @@
-import { Action, Entity } from '../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
-
-import AppAuthError from '../../../exception/AppAuthError';
-import Asset from '../../../types/Asset';
-import { AssetInErrorType } from '../../../types/InError';
-import AssetSecurity from './security/AssetSecurity';
-import AssetStorage from '../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../authorization/Authorizations';
-import Constants from '../../../utils/Constants';
-import { HTTPAuthError } from '../../../types/HTTPError';
-import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import AssetFactory from '../../../integration/asset/AssetFactory';
+import AssetStorage from '../../../storage/mongodb/AssetStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import Asset from '../../../types/Asset';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { AssetInErrorType } from '../../../types/InError';
+import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import AssetSecurity from './security/AssetSecurity';
 import UtilsService from './UtilsService';
+
 
 const MODULE_NAME = 'AssetService';
 
 export default class AssetService {
+
+  public static async handleCheckAssetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.CHECK_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleCheckAssetConnection');
+    // Filter request
+    const filteredRequest = AssetSecurity.filterAssetRequestByID(req.query);
+    // Get asset connection type
+    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, filteredRequest);
+    // Asset has unknown connection type
+    if (!assetImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Asset service is not configured',
+        module: MODULE_NAME, method: 'handleCheckAssetConnection',
+        action: action,
+        user: req.user
+      });
+    }
+    // Is authorized to check connection ?
+    if (!Authorizations.canCheckConnectionAsset(req.user)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Not authorized to check asset connections',
+        module: MODULE_NAME, method: 'handleCheckAssetConnection',
+        action: action,
+        user: req.user
+      });
+    }
+    try {
+      // Check connection
+      await assetImpl.checkConnection();
+      // Success
+      res.json(Object.assign({ connectionIsValid: true }, Constants.REST_RESPONSE_SUCCESS));
+    } catch (error) {
+      // KO
+      Logging.logError({
+        tenantID: req.user.tenantID,
+        user: req.user,
+        module: MODULE_NAME, method: 'handleCheckAssetConnection',
+        message: 'Asset connection failed',
+        action: action,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      // Create fail response
+      res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
+    }
+    next();
+  }
 
   public static async handleGetAssetsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
@@ -83,7 +136,7 @@ export default class AssetService {
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.ID,
       { withSiteArea: filteredRequest.WithSiteArea });
     // Found?
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${asset}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteAsset', req.user);
     // Delete
     await AssetStorage.deleteAsset(req.user.tenantID, asset.id);

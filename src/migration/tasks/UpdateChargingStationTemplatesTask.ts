@@ -104,7 +104,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
               message: `Apply Template's OCPP Parameters for '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
             });
             // Request the latest configuration
-            const result = await Utils.promiseWithTimeout<OCPPChangeConfigurationCommandResult>(
+            const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
               60 * 1000, OCPPUtils.requestAndSaveChargingStationOcppParameters(tenant.id, chargingStation),
               'Time out error (60s) in requesting OCPP params');
             if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
@@ -118,7 +118,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
               continue;
             }
             // Update the OCPP parameters from the template
-            const updatedOcppParameters = await Utils.promiseWithTimeout<ActionsResponse>(
+            const updatedOcppParameters = await Utils.executePromiseWithTimeout<ActionsResponse>(
               60 * 1000, OCPPUtils.updateChargingStationTemplateOcppParameters(tenant.id, chargingStation),
               'Time out error (60s) in updating OCPP Parameters');
             // Log

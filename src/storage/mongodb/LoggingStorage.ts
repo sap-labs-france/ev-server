@@ -199,15 +199,12 @@ export default class LoggingStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { timestamp: -1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
