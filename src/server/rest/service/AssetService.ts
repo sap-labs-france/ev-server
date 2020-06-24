@@ -58,9 +58,9 @@ export default class AssetService {
       // Create success response
       const response = {
         isConnectionValid: true
-      }
+      };
       // Success
-      res.json(Object.assign(response, Constants.REST_RESPONSE_SUCCESS))
+      res.json(Object.assign(response, Constants.REST_RESPONSE_SUCCESS));
     } catch (error) {
       // KO
       Logging.logError({
@@ -72,11 +72,7 @@ export default class AssetService {
         detailedMessages: { error: error.message, stack: error.stack }
       });
       // Create fail response
-      const response = {
-        isConnectionValid: false,
-        error: (error.response && error.response.data) ? error.response.data.error : 'unknown_connection_error'
-      }
-      res.json(Object.assign(response));
+      res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }
     next();
   }
