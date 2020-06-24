@@ -50,7 +50,7 @@ export default class WSServer extends WebSocket.Server {
               tenantID: Constants.DEFAULT_TENANT,
               module: MODULE_NAME,
               method: 'constructor',
-              message: `Web Socket from ${ws['ip']} do not respond to ping, terminating`
+              message: `Web Socket from ${(ws['ip'] as string|string[]).toString()} does not respond to ping, terminating`
             });
             ws.terminate();
           }

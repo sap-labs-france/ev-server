@@ -34,6 +34,7 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
+import http from 'http';
 import moment from 'moment';
 import passwordGenerator from 'password-generator';
 import path from 'path';
@@ -815,6 +816,10 @@ export default class Utils {
     return true;
   }
 
+  public static isEmptyObj(obj: any): boolean {
+    return _.isObject(obj) && _.isEmpty(obj);
+  }
+
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results = [];
@@ -826,7 +831,7 @@ export default class Utils {
     return results;
   }
 
-  public static buildUserFullName(user: User|UserToken, withID = true, withEmail = false): string {
+  public static buildUserFullName(user: User | UserToken, withID = true, withEmail = false): string {
     let fullName: string;
     if (!user || !user.name) {
       return '-';
@@ -958,9 +963,9 @@ export default class Utils {
     return message;
   }
 
-  public static getRequestIP(request): string {
-    if (request.ip) {
-      return request.ip;
+  public static getRequestIP(request: http.IncomingMessage|Partial<Request>): string | string[] {
+    if (request['ip']) {
+      return request['ip'];
     } else if (request.headers['x-forwarded-for']) {
       return request.headers['x-forwarded-for'];
     } else if (request.connection.remoteAddress) {

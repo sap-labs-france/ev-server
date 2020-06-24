@@ -65,7 +65,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     return actionsResponse;
   }
 
-  protected checkIfSiteAreaIsValid(siteArea: SiteArea) {
+  protected checkIfSiteAreaIsValid(siteArea: SiteArea): void {
     if (!siteArea.maximumPower) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
