@@ -415,9 +415,7 @@ export default class TransactionStorage {
     if (ownerMatch.$or && ownerMatch.$or.length > 0) {
       aggregation.push({
         $match: {
-          $and: [
-            ownerMatch, filterMatch
-          ]
+          $and: [ ownerMatch, filterMatch ]
         }
       });
     } else {
@@ -509,12 +507,12 @@ export default class TransactionStorage {
           break;
       }
     }
+    // Translate array response to number
     if (transactionCountMDB && transactionCountMDB.countRefundedReports) {
-      // Translate array response to number
       transactionCountMDB.countRefundedReports = transactionCountMDB.countRefundedReports.length;
     }
+    // Take first entry as reference currency. Expectation is that we have only one currency for all transaction
     if (transactionCountMDB && transactionCountMDB.currency) {
-      // Take first entry as reference currency. Expectation is that we have only one currency for all transaction
       transactionCountMDB.currency = transactionCountMDB.currency[0];
     }
     // Check if only the total count is requested
@@ -628,7 +626,6 @@ export default class TransactionStorage {
     const ownerMatch = { $or: [] };
     const filterMatch = {};
     filterMatch['refundData.reportId'] = { '$ne': null };
-
     if (params.ownerID) {
       ownerMatch.$or.push({
         userID: Utils.convertToObjectID(params.ownerID)
@@ -654,9 +651,12 @@ export default class TransactionStorage {
         $match: filterMatch
       });
     }
-    aggregation.push(
-      { '$group': { '_id': '$refundData.reportId', 'userID': { '$first': '$userID' } } }
-    );
+    aggregation.push({
+      $group: {
+        '_id': '$refundData.reportId',
+        'userID': { '$first': '$userID' }
+      }
+    });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues

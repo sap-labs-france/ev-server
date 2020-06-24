@@ -127,14 +127,6 @@ export default class AssetStorage {
         $match: filters
       });
     }
-    // Site Area
-    if (params.withSiteArea) {
-      DatabaseUtils.pushSiteAreaLookupInAggregation(
-        {
-          tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
-          asField: 'siteArea', oneToOneCardinality: true
-        });
-    }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -154,11 +146,6 @@ export default class AssetStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Handle the ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -177,6 +164,18 @@ export default class AssetStorage {
     aggregation.push({
       $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
     });
+    // Site Area
+    if (params.withSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true
+      });
+    }
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

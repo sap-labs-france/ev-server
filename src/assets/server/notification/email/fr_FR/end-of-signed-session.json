@@ -10,10 +10,10 @@
       { "label": "Heure de début", "value": "<%- startDate %>" },
       { "label": "Heure de fin", "value": "<%- endDate %>" },
       { "label": "Compteur initial", "value": "<%- meterStart %> kWh" },
-      { "label": "compteur final", "value": "<%- meterStop %> kWh" },
+      { "label": "Compteur final", "value": "<%- meterStop %> kWh" },
       { "label": "Consommation", "value": "<%- totalConsumption %> kWh" },
       { "label": "Coût", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informativ)" },
-      { "label": "contrat par", "value":"LOCAL (informativ)" }
+      { "label": "Contrat par", "value":"LOCAL (informativ)" }
     ],
     "xmlContent": "<%- xmlContent %>"
   }

@@ -1,5 +1,5 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import User from './User';
+import { UserCar } from './User';
 
 export interface CarCatalog extends CreatedUpdatedProps {
   id: number;
@@ -64,7 +64,7 @@ export interface CarCatalog extends CreatedUpdatedProps {
   chargeStandardChargeTime: number;
   chargeStandardChargeSpeed: number;
   chargeStandardEstimate?: boolean;
-  chargeStandardTables: ChargeStandardTable[];
+  chargeStandardTables: CarConverter[];
   chargeAlternativePower: number;
   chargeAlternativePhase: number;
   chargeAlternativePhaseAmp: number;
@@ -135,17 +135,17 @@ export interface Car extends CreatedUpdatedProps {
   carCatalogID: number;
   carCatalog?: CarCatalog;
   userIDs?: string;
-  users?: User[];
+  carUsers?: UserCar[];
+  type?: CarType;
+  converterType?: string;
 }
 
-export interface UserCar extends CreatedUpdatedProps {
+export interface CarUser extends CreatedUpdatedProps {
   id: string;
+  car: Car;
   userID: string;
-  carID: string;
-  user?: User;
-  car?: Car;
   default?: boolean;
-  type?: CarType;
+  owner?: boolean;
 }
 
 export interface CarMaker {
@@ -176,7 +176,7 @@ export interface ChargeAlternativeTable {
   chargeTime: number;
   chargeSpeed: number;
 }
-export interface ChargeStandardTable {
+export interface CarConverter {
   type: string;
   evsePhaseVolt: number;
   evsePhaseVoltCalculated: number;
