@@ -157,9 +157,6 @@ export default class TenantStorage {
     aggregation.push({
       $sort: dbParams.sort
     });
-    console.log('====================================');
-    console.log(dbParams.sort);
-    console.log('====================================');
     // Skip
     aggregation.push({
       $skip: dbParams.skip
