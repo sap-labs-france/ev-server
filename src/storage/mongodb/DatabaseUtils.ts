@@ -27,7 +27,7 @@ export default class DatabaseUtils {
     return `${prefix}.${collectionNameSuffix}`;
   }
 
-  public static getNotDeletedFilter(fieldName?: string): object {
+  public static getNotDeletedFilter(fieldName?: string): any {
     if (fieldName) {
       return JSON.parse(`[
         { "${fieldName}.deleted": { "$exists": false } },
@@ -117,14 +117,14 @@ export default class DatabaseUtils {
 
   public static pushArrayLookupInAggregation(arrayName: string,
     lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
-    lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) {
+    lookupParams: DbLookup, additionalParams: { pipeline?: Record<string, any>[], sort?: any } = {}) {
     // Unwind the source
     lookupParams.aggregation.push({ '$unwind': { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } });
     // Call the lookup
     lookupMethod(lookupParams);
     // Add external pipeline
-    if (!Utils.isEmptyArray(additionalPipeline)) {
-      lookupParams.aggregation.push(...additionalPipeline);
+    if (!Utils.isEmptyArray(additionalParams.pipeline)) {
+      lookupParams.aggregation.push(...additionalParams.pipeline);
     }
     // Group back to arrays
     lookupParams.aggregation.push(
@@ -155,6 +155,12 @@ export default class DatabaseUtils {
     }`));
     // Replace root
     lookupParams.aggregation.push({ $replaceRoot: { newRoot: '$root' } });
+    // Sort?
+    if (additionalParams.sort) {
+      lookupParams.aggregation.push({
+        $sort: additionalParams.sort
+      });
+    }
   }
 
   public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) {

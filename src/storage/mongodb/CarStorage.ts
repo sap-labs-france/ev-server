@@ -91,15 +91,12 @@ export default class CarStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { name: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     if (skip > 0) {
       aggregation.push({ $skip: skip });
@@ -630,20 +627,17 @@ export default class CarStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: {
-          'carCatalog.vehicleMake': 1,
-          'carCatalog.vehicleModel': 1,
-          'carCatalog.vehicleModelVersion': 1,
-          'licensePlate': 1,
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = {
+        'carCatalog.vehicleMake': 1,
+        'carCatalog.vehicleModel': 1,
+        'carCatalog.vehicleModelVersion': 1,
+        'licensePlate': 1,
+      };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     if (skip > 0) {
       aggregation.push({ $skip: skip });
@@ -669,7 +663,7 @@ export default class CarStorage {
       DatabaseUtils.pushArrayLookupInAggregation('carUsers', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
         tenantID, aggregation: aggregation, localField: 'carUsers.userID', foreignField: '_id',
         asField: 'carUsers.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-      }, carUsersPipeline);
+      }, { pipeline: carUsersPipeline });
     }
     // Add Car Catalog
     DatabaseUtils.pushCarCatalogLookupInAggregation({
@@ -833,15 +827,12 @@ export default class CarStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { 'user.name': 1, 'user.firstName': 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { 'user.name': 1, 'user.firstName': 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
