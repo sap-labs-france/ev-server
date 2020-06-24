@@ -17,6 +17,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UtilsService from './UtilsService';
+import fs from 'fs';
 
 const MODULE_NAME = 'BillingService';
 
@@ -329,5 +330,60 @@ export default class BillingService {
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
+  }
+
+  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.canDownloadInvoiceBilling(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        entity: Entity.INVOICE, action: Action.DOWNLOAD,
+        module: MODULE_NAME, method: 'handleDownloadInvoice',
+      });
+    }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleDownloadInvoice',
+        action: action,
+        user: req.user
+      });
+    }
+    const filteredRequest = BillingSecurity.filterDownloadInvoiceRequest(req.query);
+    // Get the Invoice
+    const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(req.user.tenantID, filteredRequest.invoiceID);
+    const invoicepdf = await BillingStorage.getInvoicePdf(req.user.tenantID, invoice.id);
+    UtilsService.assertObjectExists(action, invoicepdf, `Invoice '${filteredRequest.invoiceID}' does not exist`,
+      MODULE_NAME, 'handleDownloadInvoice', req.user);
+
+    if (invoicepdf && invoicepdf.encodedPdf) {
+      const base64RawData = invoicepdf.encodedPdf.split(';base64,').pop();
+      const filename = 'invoice_' + invoice.invoiceID + '.pdf';
+      fs.writeFile(filename, base64RawData, { encoding: 'base64' }, (err) => {
+        if (err) {
+          console.log(err);
+          throw err;
+        }
+        res.download(filename, (err2) => {
+          if (err2) {
+            console.log(err2);
+            throw err2;
+          }
+          fs.unlink(filename, (err3) => {
+            if (err3) {
+              console.log(err3);
+              throw err3;
+            }
+          });
+        });
+      });
+    }
   }
 }

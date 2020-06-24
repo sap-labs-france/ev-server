@@ -164,7 +164,9 @@ export default class BillingStorage {
       status: invoiceToSave.status,
       currency: invoiceToSave.currency,
       createdOn: Utils.convertToDate(invoiceToSave.createdOn),
-      nbrOfItems: Utils.convertToInt(invoiceToSave.nbrOfItems)
+      nbrOfItems: Utils.convertToInt(invoiceToSave.nbrOfItems),
+      downloadable: Utils.convertToBoolean(invoiceToSave.downloadable),
+      downloadUrl: invoiceToSave.downloadUrl
     };
     // Modify and return the modified document
     await global.database.getCollection<BillingInvoice>(tenantId, 'invoices').findOneAndReplace(
@@ -177,14 +179,14 @@ export default class BillingStorage {
     return invoiceMDB._id.toHexString();
   }
 
-  public static async saveInvoicePdf(tenantId: string, invoiceId: string, encodedPdf: string): Promise<BillingInvoicePdf> {
+  public static async saveInvoicePdf(tenantId: string, invoicePdf: BillingInvoicePdf): Promise<BillingInvoicePdf> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveInvoicePdf');
     // Build Request
     // Properties to save
     const invoiceFileMDB: any = {
-      _id: invoiceId ? Utils.convertToObjectID(invoiceId) : new ObjectID(),
-      encodedPdf: encodedPdf
+      _id: invoicePdf.id ? Utils.convertToObjectID(invoicePdf.id) : new ObjectID(),
+      encodedPdf: invoicePdf.encodedPdf
     };
     // Modify and return the modified document
     await global.database.getCollection<BillingInvoicePdf>(tenantId, 'invoicespdf').findOneAndReplace(
@@ -195,6 +197,21 @@ export default class BillingStorage {
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveInvoicePdf', uniqueTimerID, { invoiceFileMDB });
     return invoiceFileMDB._id.toHexString();
+  }
+
+  public static async getInvoicePdf(tenantID: string, id: string): Promise<BillingInvoicePdf> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getInvoicePdf');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Read DB
+    const invoicePdfMDB: { _id: string; encodedPdf: string } = await global.database.getCollection(tenantID, 'invoicespdf')
+      .findOne({ _id: Utils.convertToObjectID(id) });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'getInvoicePdf', uniqueTimerID, { id });
+    return {
+      id: id, encodedPdf: (invoicePdfMDB ? invoicePdfMDB.encodedPdf : null)
+    };
   }
 
   public static async deleteInvoice(tenantID: string, id: string): Promise<void> {

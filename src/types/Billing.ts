@@ -71,7 +71,8 @@ export interface BillingInvoice {
   customerID?: string;
   createdOn?: Date;
   nbrOfItems?: number;
-  encodedPdf?: string;
+  downloadable?: boolean
+  downloadUrl?: string;
 }
 
 export interface BillingInvoiceItem {

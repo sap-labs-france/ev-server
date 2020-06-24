@@ -1,5 +1,5 @@
 import { BillingInvoice, BillingTax } from '../../../../types/Billing';
-import { HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpDownloadInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
@@ -71,6 +71,7 @@ export default class BillingSecurity {
       filteredInvoice.createdOn = invoice.createdOn;
       filteredInvoice.currency = invoice.currency;
       filteredInvoice.customerID = invoice.customerID;
+      filteredInvoice.downloadable = invoice.downloadable;
     }
     return filteredInvoice;
   }
@@ -111,6 +112,12 @@ export default class BillingSecurity {
   static filterForceSynchronizeUserInvoicesRequest(request: any): HttpForceSynchronizeUserInvoicesRequest {
     return {
       userID: sanitize(request.userID)
+    };
+  }
+
+  static filterDownloadInvoiceRequest(request: any): HttpDownloadInvoiceRequest {
+    return {
+      invoiceID: sanitize(request.invoiceID)
     };
   }
 }

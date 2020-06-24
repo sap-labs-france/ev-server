@@ -1,4 +1,4 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingMethod, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoicePdf, BillingInvoiceStatus, BillingMethod, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import Stripe, { IResourceObject } from 'stripe';
 
 import BackendError from '../../../exception/BackendError';
@@ -173,7 +173,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         status: stripeInvoice.status as BillingInvoiceStatus,
         currency: stripeInvoice.currency,
         createdOn: new Date(stripeInvoice.created * 1000),
-        nbrOfItems: stripeInvoice.lines.total_count
+        nbrOfItems: stripeInvoice.lines.total_count,
+        downloadUrl: stripeInvoice.invoice_pdf
       } as BillingInvoice;
     }
     return null;
@@ -385,41 +386,61 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice> {
     await this.checkConnection();
-    let pdfUrl = '';
     // Send invoice to user
     try {
       const stripeInvoice = await this.stripe.invoices.sendInvoice(invoice.invoiceID);
       invoice.status = stripeInvoice.status as BillingInvoiceStatus;
+      invoice.downloadUrl = stripeInvoice.invoice_pdf;
       invoice.id = await BillingStorage.saveInvoice(this.tenantID, invoice);
-      pdfUrl = stripeInvoice.invoice_pdf;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SEND_INVOICE,
-        module: MODULE_NAME, method: 'sendInvoice',
+        module: MODULE_NAME, method: 'sendInvoiceToUser',
         message: 'Failed to send invoice',
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     // Save generated pdf
-    if (pdfUrl !== '') {
+    if (invoice.downloadUrl && invoice.downloadUrl !== '') {
+      // Download PDF file
+      const invoicePdf = await this.downloadInvoicePdf(invoice);
+      // Save PDF file into database
       try {
-        const response = await axios.get(pdfUrl, { responseType: 'arraybuffer' });
-        const base64Image = Buffer.from(response.data).toString('base64');
-        const encodedImage = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
-        invoice.encodedPdf = encodedImage;
-        await BillingStorage.saveInvoicePdf(this.tenantID, invoice.id, invoice.encodedPdf);
+        await BillingStorage.saveInvoicePdf(this.tenantID, invoicePdf);
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_DOWNLOAD_INVOICE,
+          module: MODULE_NAME, method: 'sendInvoiceToUser',
+          message: 'Failed to save invoice PDF in database',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+      // Update related invoice as downloadable
+      invoice.downloadable = true;
+      try {
+        await BillingStorage.saveInvoice(this.tenantID, invoice);
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_CREATE_INVOICE,
-          module: MODULE_NAME, method: 'createInvoice',
+          module: MODULE_NAME, method: 'sendInvoiceToUser',
           message: 'Failed to save invoice PDF in database',
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
     return invoice;
+  }
+
+  public async downloadInvoicePdf(invoice: BillingInvoice): Promise<BillingInvoicePdf> {
+    if (invoice.downloadUrl && invoice.downloadUrl !== '') {
+      const response = await axios.get(invoice.downloadUrl, { responseType: 'arraybuffer' });
+      const base64Image = Buffer.from(response.data).toString('base64');
+      const encodedPdf = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
+      return { id: invoice.id, encodedPdf: encodedPdf } as BillingInvoicePdf;
+    }
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {

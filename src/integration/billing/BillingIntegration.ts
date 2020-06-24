@@ -1,4 +1,4 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoicePdf, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 import { ActionsResponse } from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
@@ -429,7 +429,13 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             userInInvoice = await UserStorage.getUserByBillingID(tenantID, invoiceBilling.customerID);
           }
           invoiceBilling.userID = userInInvoice ? userInInvoice.id : null;
-          await BillingStorage.saveInvoice(tenantID, invoiceBilling);
+          invoiceBilling.id = await BillingStorage.saveInvoice(tenantID, invoiceBilling);
+          const invoicePdf = await this.downloadInvoicePdf(invoiceBilling);
+          if (invoicePdf) {
+            await BillingStorage.saveInvoicePdf(tenantID, invoicePdf);
+            invoiceBilling.downloadable = true;
+            await BillingStorage.saveInvoice(tenantID, invoiceBilling);
+          }
           Logging.logDebug({
             tenantID: tenantID,
             user: user,
@@ -562,4 +568,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   async abstract createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
 
   async abstract sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice>;
+
+  async abstract downloadInvoicePdf(invoice: BillingInvoice): Promise<BillingInvoicePdf>;
 }
