@@ -161,15 +161,12 @@ export default class SiteStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { 'user.name': 1, 'user.firstName': 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { 'user.name': 1, 'user.firstName': 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -375,15 +372,12 @@ export default class SiteStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { name: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip

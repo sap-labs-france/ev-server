@@ -651,15 +651,12 @@ export default class UserStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { status: -1, name: 1, firstName: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { status: -1, name: 1, firstName: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -769,15 +766,12 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { lastChangedOn: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { lastChangedOn: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -879,15 +873,12 @@ export default class UserStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Mongodb sort, skip and limit block
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { status: -1, name: 1, firstName: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { status: -1, name: 1, firstName: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -996,15 +987,12 @@ export default class UserStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { 'site.name': 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { 'site.name': 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip

@@ -150,20 +150,16 @@ export default class TenantStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: {
-          name: 1
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    console.log('====================================');
+    console.log(dbParams.sort);
+    console.log('====================================');
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -174,6 +170,8 @@ export default class TenantStorage {
     });
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(Constants.DEFAULT_TENANT, aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -181,9 +179,7 @@ export default class TenantStorage {
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
-      })
-      .toArray();
-
+      }).toArray();
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTenants', uniqueTimerID, { params, dbParams });
     // Ok

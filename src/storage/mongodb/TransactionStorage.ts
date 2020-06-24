@@ -525,23 +525,17 @@ export default class TransactionStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
-    if (dbParams.sort) {
-      if (!dbParams.sort.timestamp) {
-        aggregation.push({
-          $sort: { ...dbParams.sort, timestamp: -1 }
-        });
-      } else {
-        aggregation.push({
-          $sort: dbParams.sort
-        });
-      }
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
+    }
+    if (!dbParams.sort.timestamp) {
+      aggregation.push({
+        $sort: { ...dbParams.sort, timestamp: -1 }
+      });
     } else {
       aggregation.push({
-        $sort: { timestamp: -1 }
+        $sort: dbParams.sort
       });
     }
     // Skip
@@ -694,19 +688,16 @@ export default class TransactionStorage {
     // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
     // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
-    if (dbParams.sort) {
-      if (!dbParams.sort.timestamp) {
-        aggregation.push({
-          $sort: { ...dbParams.sort, timestamp: -1 }
-        });
-      } else {
-        aggregation.push({
-          $sort: dbParams.sort
-        });
-      }
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
+    }
+    if (!dbParams.sort.timestamp) {
+      aggregation.push({
+        $sort: { ...dbParams.sort, timestamp: -1 }
+      });
     } else {
       aggregation.push({
-        $sort: { timestamp: -1 }
+        $sort: dbParams.sort
       });
     }
     // Skip
@@ -890,19 +881,16 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Sort
-    if (dbParams.sort) {
-      if (!dbParams.sort.timestamp) {
-        aggregation.push({
-          $sort: { ...dbParams.sort, timestamp: -1 }
-        });
-      } else {
-        aggregation.push({
-          $sort: dbParams.sort
-        });
-      }
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
+    }
+    if (!dbParams.sort.timestamp) {
+      aggregation.push({
+        $sort: { ...dbParams.sort, timestamp: -1 }
+      });
     } else {
       aggregation.push({
-        $sort: { timestamp: -1 }
+        $sort: dbParams.sort
       });
     }
     // Skip

@@ -106,15 +106,12 @@ export default class NotificationStorage {
       $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
     });
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { timestamp: -1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
