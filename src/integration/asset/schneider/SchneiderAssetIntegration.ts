@@ -24,7 +24,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     params.append('username', this.connection.connection.user);
     params.append('password', Cypher.decrypt(this.connection.connection.password));
     // Send credentials to get the token
-    await Utils.promiseWithTimeout(5000,
+    await Utils.executePromiseWithTimeout(5000,
       axios.post(`${this.connection.url}/GetToken`, params, {
         headers: this.buildFormHeaders()
       }),

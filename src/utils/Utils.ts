@@ -69,7 +69,7 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static async promiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
+  public static async executePromiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
     let timeoutHandle;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
