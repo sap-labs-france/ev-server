@@ -5,11 +5,12 @@ import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import AssetIntegration from '../AssetIntegration';
+import Utils from '../../../utils/Utils';
 
 
-const MODULE_NAME = 'AssetSchneiderIntegration';
+const MODULE_NAME = 'SchneiderAssetIntegration';
 
-export default class AssetSchneiderIntegration extends AssetIntegration<AssetSetting> {
+export default class SchneiderAssetIntegration extends AssetIntegration<AssetSetting> {
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
   }
@@ -23,10 +24,12 @@ export default class AssetSchneiderIntegration extends AssetIntegration<AssetSet
     params.append('username', this.connection.connection.user);
     params.append('password', Cypher.decrypt(this.connection.connection.password));
     // Send credentials to get the token
-    await axios.post(`${this.connection.url}/GetToken`, params,
-    {
-      headers: this.buildFormHeaders()
-    });
+    await Utils.promiseWithTimeout(5000,
+      axios.post(`${this.connection.url}/GetToken`, params, {
+        headers: this.buildFormHeaders()
+      }),
+      `Time out error (5s) when trying to test the connection URL '${this.connection.url}/GetToken'`
+    );
   }
 
   private isAssetConnectionInitialized(): void {
@@ -40,9 +43,9 @@ export default class AssetSchneiderIntegration extends AssetIntegration<AssetSet
     }
   }
 
-  private buildFormHeaders(): object {
+  private buildFormHeaders(): any {
     return {
       'Content-Type': 'application/x-www-form-urlencoded'
-    }
+    };
   }
 }
