@@ -23,7 +23,7 @@ export default class MigrationStorage {
     return migrationsMDB;
   }
 
-  static async saveMigration(migrationToSave: Migration) {
+  static async saveMigration(migrationToSave: Migration): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveMigration');
     // Transfer

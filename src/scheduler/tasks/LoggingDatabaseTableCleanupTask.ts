@@ -40,7 +40,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
           });
         }
         // Delete date
-        const securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, 'w').startOf('week').toDate().toISOString();
+        const securityDeleteUpToDate: Date = moment().subtract(config.securityRetentionPeriodWeeks, 'w').startOf('week').toDate();
         // Delete Security Logs
         result = await LoggingStorage.deleteSecurityLogs(tenant.id, securityDeleteUpToDate);
         // Ok?
