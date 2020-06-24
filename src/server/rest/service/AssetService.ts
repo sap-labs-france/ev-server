@@ -55,12 +55,8 @@ export default class AssetService {
     try {
       // Check connection
       await assetImpl.checkConnection();
-      // Create success response
-      const response = {
-        isConnectionValid: true
-      };
       // Success
-      res.json(Object.assign(response, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ isConnectionValid: true }, Constants.REST_RESPONSE_SUCCESS));
     } catch (error) {
       // KO
       Logging.logError({
