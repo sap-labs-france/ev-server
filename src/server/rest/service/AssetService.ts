@@ -136,7 +136,7 @@ export default class AssetService {
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.ID,
       { withSiteArea: filteredRequest.WithSiteArea });
     // Found?
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${asset}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteAsset', req.user);
     // Delete
     await AssetStorage.deleteAsset(req.user.tenantID, asset.id);
