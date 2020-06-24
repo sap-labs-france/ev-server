@@ -650,9 +650,6 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
-
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -671,6 +668,8 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -728,7 +727,6 @@ export default class UserStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
-
     // Create Aggregation
     const aggregation = [];
     if (params) {
@@ -771,7 +769,6 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
-
     if (dbParams.sort) {
       aggregation.push({
         $sort: dbParams.sort
@@ -922,7 +919,7 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Delete User from sites
+    // Delete Site Users
     await global.database.getCollection<any>(tenantID, 'siteusers')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
     // Delete Image
@@ -968,24 +965,18 @@ export default class UserStorage {
       $match: filters
     });
     // Get Sites
-    DatabaseUtils.pushSiteLookupInAggregation(
-      {
-        tenantID, aggregation, localField: 'siteID', foreignField: '_id',
-        asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
-      });
+    DatabaseUtils.pushSiteLookupInAggregation({
+      tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+      asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+    });
     // Another match for searching on Sites
     if (params.search) {
       aggregation.push({
         $match: {
-          $or: [
-            { 'site.name': { $regex: params.search, $options: 'i' } }
-          ]
+          'site.name': { $regex: params.search, $options: 'i' }
         }
       });
     }
-    // Convert IDs to String
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -1022,6 +1013,11 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert IDs to String
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -1029,27 +1025,14 @@ export default class UserStorage {
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
-      })
-      .toArray();
-    // Create
-    const sites: SiteUser[] = [];
-    for (const siteUserMDB of siteUsersMDB) {
-      if (siteUserMDB.site) {
-        sites.push({
-          siteAdmin: siteUserMDB.siteAdmin,
-          siteOwner: siteUserMDB.siteOwner,
-          userID: siteUserMDB.userID,
-          site: siteUserMDB.site
-        });
-      }
-    }
+      }).toArray();
     // Debug
     Logging.traceEnd(MODULE_NAME, 'UserStorage', uniqueTimerID, { userID: params.userID });
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
-      result: sites
+      result: siteUsersMDB
     };
   }
 

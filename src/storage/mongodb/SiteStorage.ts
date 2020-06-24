@@ -119,7 +119,7 @@ export default class SiteStorage {
         }
       });
     }
-    // Get users
+    // Users
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation, localField: 'userID', foreignField: '_id',
       asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
@@ -142,9 +142,6 @@ export default class SiteStorage {
         }
       });
     }
-    // Convert IDs to String
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -181,6 +178,11 @@ export default class SiteStorage {
     aggregation.push({
       $limit: limit
     });
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert IDs to String
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -190,24 +192,13 @@ export default class SiteStorage {
         allowDiskUse: true
       })
       .toArray();
-    const users: UserSite[] = [];
-    // Convert to typed object
-    for (const siteUserMDB of siteUsersMDB) {
-      if (siteUserMDB.user) {
-        users.push({
-          user: siteUserMDB.user, siteID: params.siteID,
-          siteAdmin: !siteUserMDB.siteAdmin ? false : siteUserMDB.siteAdmin,
-          siteOwner: !siteUserMDB.siteOwner ? false : siteUserMDB.siteOwner
-        });
-      }
-    }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getSitesUsers', uniqueTimerID, { siteID: params.siteID });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
-      result: users
+      result: siteUsersMDB
     };
   }
 
@@ -383,20 +374,6 @@ export default class SiteStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Add Company
-    if (params.withCompany) {
-      DatabaseUtils.pushCompanyLookupInAggregation(
-        {
-          tenantID, aggregation, localField: 'companyID', foreignField: '_id',
-          asField: 'company', oneToOneCardinality: true
-        });
-    }
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'companyID');
-    // Add Last Changed / Created
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Handle the ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -415,6 +392,19 @@ export default class SiteStorage {
     aggregation.push({
       $limit: limit
     });
+    // Add Company
+    if (params.withCompany) {
+      DatabaseUtils.pushCompanyLookupInAggregation({
+        tenantID, aggregation, localField: 'companyID', foreignField: '_id',
+        asField: 'company', oneToOneCardinality: true
+      });
+    }
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'companyID');
+    // Add Last Changed / Created
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

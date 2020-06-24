@@ -108,10 +108,6 @@ export default class BillingStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Add Last Changed / Created
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Handle the ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -130,6 +126,10 @@ export default class BillingStorage {
     aggregation.push({
       $limit: limit
     });
+    // Add Last Changed / Created
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

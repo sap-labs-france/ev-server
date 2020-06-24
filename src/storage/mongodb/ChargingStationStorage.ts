@@ -208,6 +208,17 @@ export default class ChargingStationStorage {
         tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
         asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
       });
+      // Check Site ID
+      if (params.siteIDs && Array.isArray(params.siteIDs)) {
+        // Build filter
+        aggregation.push({
+          $match: {
+            'siteArea.siteID': {
+              $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+            }
+          }
+        });
+      }
     }
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
@@ -215,26 +226,6 @@ export default class ChargingStationStorage {
         $match: { 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } }
       });
     }
-    // Check Site ID
-    if (params.siteIDs && Array.isArray(params.siteIDs)) {
-      // Build filter
-      aggregation.push({
-        $match: {
-          'siteArea.siteID': {
-            $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
-          }
-        }
-      });
-    }
-    // Site
-    if (params.withSite && !params.withNoSiteArea) {
-      DatabaseUtils.pushSiteLookupInAggregation({
-        tenantID, aggregation: aggregation, localField: 'siteArea.siteID', foreignField: '_id',
-        asField: 'siteArea.site', oneToOneCardinality: true
-      });
-    }
-    // Convert siteID back to string after having queried the site
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteArea.siteID');
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -254,15 +245,6 @@ export default class ChargingStationStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Users on connectors
-    DatabaseUtils.pushArrayLookupInAggregation('connectors', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
-      tenantID, aggregation: aggregation, localField: 'connectors.userID', foreignField: '_id',
-      asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-    });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -283,8 +265,26 @@ export default class ChargingStationStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Users on connectors
+    DatabaseUtils.pushArrayLookupInAggregation('connectors', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
+      tenantID, aggregation: aggregation, localField: 'connectors.userID', foreignField: '_id',
+      asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+    });
+    // Site
+    if (params.withSite && !params.withNoSiteArea) {
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteArea.siteID', foreignField: '_id',
+        asField: 'siteArea.site', oneToOneCardinality: true
+      });
+    }
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert siteID back to string after having queried the site
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteArea.siteID');
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
