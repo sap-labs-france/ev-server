@@ -246,17 +246,16 @@ export default class ChargingStationStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
+    if (!dbParams.sort) {
+      dbParams.sort = {
         $sort: {
           _id: 1
         }
-      });
+      };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -269,7 +268,7 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushArrayLookupInAggregation('connectors', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
       tenantID, aggregation: aggregation, localField: 'connectors.userID', foreignField: '_id',
       asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-    });
+    }, { sort: dbParams.sort });
     // Site
     if (params.withSite && !params.withNoSiteArea) {
       DatabaseUtils.pushSiteLookupInAggregation({
