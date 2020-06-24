@@ -144,7 +144,7 @@ export default class Utils {
     return Math.round(numberToRound * 100) / 100;
   }
 
-  public static objectHasProperty(object: object, key: string): boolean {
+  public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
   }
 
@@ -307,7 +307,7 @@ export default class Utils {
     return language;
   }
 
-  public static async normalizeAndCheckSOAPParams(headers, req): Promise<void> {
+  public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
     // Normalize
     Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     Utils._normalizeOneSOAPParam(headers, 'Action');
@@ -401,7 +401,7 @@ export default class Utils {
   public static convertToDate(date: any): Date {
     // Check
     if (!date) {
-      return date;
+      return null;
     }
     // Check Type
     if (!(date instanceof Date)) {
@@ -431,7 +431,7 @@ export default class Utils {
     return Object.keys(document).length === 0;
   }
 
-  public static removeExtraEmptyLines(tab) {
+  public static removeExtraEmptyLines(tab: string[]) {
     // Start from the end
     for (let i = tab.length - 1; i > 0; i--) {
       // Two consecutive empty lines?
@@ -452,7 +452,7 @@ export default class Utils {
   }
 
   public static convertToObjectID(id: any): ObjectID {
-    let changedID = id;
+    let changedID: ObjectID = id;
     // Check
     if (typeof id === 'string') {
       // Create Object
@@ -462,7 +462,7 @@ export default class Utils {
   }
 
   public static convertToInt(value: any): number {
-    let changedValue = value;
+    let changedValue: number = value;
     if (!value) {
       return 0;
     }
@@ -475,7 +475,7 @@ export default class Utils {
   }
 
   public static convertToFloat(value: any): number {
-    let changedValue = value;
+    let changedValue: number = value;
     if (!value) {
       return 0;
     }
@@ -822,7 +822,7 @@ export default class Utils {
 
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
-    const results = [];
+    const results: any[] = [];
     for (let i = 0; i < sorted_arr.length - 1; i++) {
       if (_.isEqual(sorted_arr[i + 1], sorted_arr[i])) {
         results.push(sorted_arr[i]);
@@ -906,7 +906,7 @@ export default class Utils {
   }
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl;
+    let ocppUrl: string;
     const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
     switch (ocppProtocol) {
       case OCPPProtocol.JSON:
@@ -955,7 +955,7 @@ export default class Utils {
     return (env === 'production');
   }
 
-  public static hideShowMessage(message): string {
+  public static hideShowMessage(message: string): string {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
@@ -1005,7 +1005,7 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneJSonDocument(jsonDocument: object): object {
+  public static cloneJSonDocument(jsonDocument: any): any {
     return JSON.parse(JSON.stringify(jsonDocument));
   }
 
@@ -1608,7 +1608,7 @@ export default class Utils {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags ${filteredRequest.tags} is/are not valid`,
+          message: `User Tags ${JSON.stringify(filteredRequest.tags)} is/are not valid`,
           module: MODULE_NAME,
           method: 'checkIfUserValid',
           user: req.user.id,
@@ -1837,7 +1837,7 @@ export default class Utils {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
 
-  private static _normalizeOneSOAPParam(headers: object, name: string) {
+  private static _normalizeOneSOAPParam(headers: any, name: string) {
     const val = _.get(headers, name);
     if (val && val.$value) {
       _.set(headers, name, val.$value);
