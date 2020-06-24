@@ -13,10 +13,10 @@ export interface OCPPBootNotificationRequest {
 }
 
 export interface OCPPBootNotificationRequestExtended extends OCPPBootNotificationRequest {
-  endpoint: string;
+  endpoint: string|string[];
   id: string;
   chargeBoxID: string;
-  currentIPAddress: string;
+  currentIPAddress: string|string[];
   ocppProtocol: string;
   ocppVersion: string;
   lastHeartBeat: Date;

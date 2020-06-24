@@ -45,7 +45,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   chargePoints: ChargePoint[];
   connectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
-  currentIPAddress?: string;
+  currentIPAddress?: string|string[];
   currentServerLocalIPAddressPort?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;
