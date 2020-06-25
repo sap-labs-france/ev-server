@@ -359,6 +359,15 @@ export default class BillingService {
     const filteredRequest = BillingSecurity.filterDownloadInvoiceRequest(req.query);
     // Get the Invoice
     const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(req.user.tenantID, filteredRequest.invoiceID);
+    if (!Authorizations.isAdmin(req.user) && invoice.userID.toString() !== req.user.id) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        entity: Entity.INVOICE, action: Action.DOWNLOAD,
+        module: MODULE_NAME, method: 'handleDownloadInvoice',
+      });
+    }
+
     const invoicepdf = await BillingStorage.getInvoicePdf(req.user.tenantID, invoice.id);
     UtilsService.assertObjectExists(action, invoicepdf, `Invoice '${filteredRequest.invoiceID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
