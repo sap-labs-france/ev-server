@@ -135,6 +135,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Create the WS server
     this.wsServer = new WSServer(WSServer.createHttpServer(this.centralSystemConfig), this.serverName,
       this.centralSystemConfig, verifyClient, handleProtocols);
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.wsServer.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
       try {
         // Set an ID

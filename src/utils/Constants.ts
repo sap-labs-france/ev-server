@@ -1,8 +1,8 @@
-import { OcppParameter } from '../types/ChargingStation';
-import DbParams from '../types/database/DbParams';
 import { OCPPAttribute, OCPPLocation, OCPPMeasurand, OCPPPhase, OCPPReadingContext, OCPPUnitOfMeasure, OCPPValueFormat } from '../types/ocpp/OCPPServer';
-import Tenant from '../types/Tenant';
 
+import DbParams from '../types/database/DbParams';
+import { OcppParameter } from '../types/ChargingStation';
+import Tenant from '../types/Tenant';
 
 export default class Constants {
   public static readonly CSV_SEPARATOR = '\t'; // Cannot store regex in enum

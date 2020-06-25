@@ -38,7 +38,7 @@ import moment from 'moment';
 const MODULE_NAME = 'TransactionService';
 
 export default class TransactionService {
-  static async handleSynchronizeRefundedTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleSynchronizeRefundedTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError({
