@@ -1,4 +1,5 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -8,7 +9,6 @@ import AppError from '../exception/AppError';
 import Asset from '../types/Asset';
 import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
-import { Car } from '../types/Car';
 import { ChargingProfile } from '../types/ChargingProfile';
 import Company from '../types/Company';
 import Configuration from './Configuration';
@@ -34,7 +34,7 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
-import localIP from 'quick-local-ip';
+import http from 'http';
 import moment from 'moment';
 import passwordGenerator from 'password-generator';
 import path from 'path';
@@ -70,7 +70,7 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static async promiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
+  public static async executePromiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
     let timeoutHandle;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
@@ -816,6 +816,10 @@ export default class Utils {
     return true;
   }
 
+  public static isEmptyObj(obj: any): boolean {
+    return _.isObject(obj) && _.isEmpty(obj);
+  }
+
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results = [];
@@ -827,32 +831,60 @@ export default class Utils {
     return results;
   }
 
-  public static buildUserFullName(user: User|UserToken, withID = true, withEmail = false, invertedName = false): string {
+  public static buildUserFullName(user: User | UserToken, withID = true, withEmail = false): string {
     let fullName: string;
     if (!user || !user.name) {
-      return 'Unknown';
+      return '-';
     }
-    if (invertedName) {
-      if (user.firstName) {
-        fullName = `${user.name}, ${user.firstName}`;
-      } else {
-        fullName = user.name;
-      }
+    if (user.firstName) {
+      fullName = `${user.firstName} ${user.name}`;
     } else {
-      // eslint-disable-next-line no-lonely-if
-      if (user.firstName) {
-        fullName = `${user.firstName} ${user.name}`;
-      } else {
-        fullName = user.name;
-      }
+      fullName = user.name;
     }
     if (withID && user.id) {
       fullName += ` (${user.id})`;
     }
     if (withEmail && user.email) {
-      fullName += `; ${user.email}`;
+      fullName += ` ${user.email}`;
     }
     return fullName;
+  }
+
+  public static buildCarCatalogName(carCatalog: CarCatalog, withID = false): string {
+    let carCatalogName: string;
+    if (!carCatalog) {
+      return '-';
+    }
+    carCatalogName = carCatalog.vehicleMake;
+    if (carCatalog.vehicleModel) {
+      carCatalogName += ` ${carCatalog.vehicleModel}`;
+    }
+    if (carCatalog.vehicleModelVersion) {
+      carCatalogName += ` ${carCatalog.vehicleModelVersion}`;
+    }
+    if (withID && carCatalog.id) {
+      carCatalogName += ` (${carCatalog.id})`;
+    }
+    return carCatalogName;
+  }
+
+  public static buildCarName(car: Car, withID = false): string {
+    let carName: string;
+    if (!car) {
+      return '-';
+    }
+    if (car.carCatalog) {
+      carName = Utils.buildCarCatalogName(car.carCatalog, withID);
+    }
+    if (!carName) {
+      carName = `VIN '${car.vin}', License Plate '${car.licensePlate}'`;
+    } else {
+      carName += ` with VIN '${car.vin}' and License Plate '${car.licensePlate}'`;
+    }
+    if (withID && car.id) {
+      carName += ` (${car.id})`;
+    }
+    return carName;
   }
 
   // Save the users in file
@@ -931,9 +963,9 @@ export default class Utils {
     return message;
   }
 
-  public static getRequestIP(request): string {
-    if (request.ip) {
-      return request.ip;
+  public static getRequestIP(request: http.IncomingMessage|Partial<Request>): string | string[] {
+    if (request['ip']) {
+      return request['ip'];
     } else if (request.headers['x-forwarded-for']) {
       return request.headers['x-forwarded-for'];
     } else if (request.connection.remoteAddress) {
@@ -943,10 +975,6 @@ export default class Utils {
       const ip = host[0];
       return ip;
     }
-  }
-
-  public static getLocalIP(): string {
-    return localIP.getLocalIP4() as string;
   }
 
   public static checkRecordLimit(recordLimit: number | string): number {
@@ -1768,6 +1796,28 @@ export default class Utils {
         method: 'checkIfCarValid',
         user: req.user.id
       });
+    }
+    if (!car.type) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car type is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!Authorizations.isAdmin(req.user)) {
+      if (car.type === CarType.POOL_CAR) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Pool cars can only be created by admin',
+          module: MODULE_NAME,
+          method: 'checkIfCarValid',
+          user: req.user.id
+        });
+      }
     }
   }
 

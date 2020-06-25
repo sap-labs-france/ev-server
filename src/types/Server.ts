@@ -60,7 +60,10 @@ export enum ServerAction {
   CAR_CATALOG_IMAGES = 'CarCatalogImages',
   CAR_MAKERS = 'CarMakers',
   CAR_CREATE = 'CarCreate',
+  CAR_UPDATE = 'CarUpdate',
   CARS = 'Cars',
+  CAR = 'Car',
+  CAR_USERS = 'CarUsers',
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
 
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
@@ -208,7 +211,6 @@ export enum ServerAction {
 
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
   CAR_CATALOG_SYNCHRONIZATION = 'CarCatalogSynchronization',
-
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
 
   UPDATE_CHARGING_STATION_WITH_TEMPLATE = 'UpdateChargingStationWithTemplate',
@@ -261,6 +263,7 @@ export enum ServerAction {
   ASSET_IN_ERROR = 'AssetsInError',
   ASSET_UPDATE = 'AssetUpdate',
   ASSET_DELETE = 'AssetDelete',
+  CHECK_ASSET_CONNECTION = 'CheckAssetConnection',
 
   TENANT_CREATE = 'TenantCreate',
   TENANTS = 'Tenants',
