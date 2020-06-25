@@ -216,7 +216,7 @@ export default class ChargingStationService {
     }
     // Check Charging Profile
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { chargingStationID: [chargingStation.id], connectorID: 0 },
+      { chargingStationIDs: [chargingStation.id], connectorID: 0 },
       Constants.DB_PARAMS_MAX_LIMIT);
     const updatedChargingProfiles: ChargingProfile[] = Utils.cloneJSonDocument(chargingProfiles.result) as ChargingProfile[];
     for (let index = 0; index < updatedChargingProfiles.length; index++) {
@@ -307,7 +307,7 @@ export default class ChargingStationService {
     }
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
       { search: filteredRequest.Search,
-        chargingStationID: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: true },
