@@ -1,7 +1,8 @@
-import { OCPPAttribute, OCPPLocation, OCPPMeasurand, OCPPPhase, OCPPReadingContext, OCPPUnitOfMeasure, OCPPValueFormat } from '../types/ocpp/OCPPServer';
-
 import { OcppParameter } from '../types/ChargingStation';
+import DbParams from '../types/database/DbParams';
+import { OCPPAttribute, OCPPLocation, OCPPMeasurand, OCPPPhase, OCPPReadingContext, OCPPUnitOfMeasure, OCPPValueFormat } from '../types/ocpp/OCPPServer';
 import Tenant from '../types/Tenant';
+
 
 export default class Constants {
   public static readonly CSV_SEPARATOR = '\t'; // Cannot store regex in enum
@@ -10,9 +11,9 @@ export default class Constants {
   public static readonly DB_RECORD_COUNT_CEIL = 2000;
   public static readonly DB_RECORD_COUNT_NO_LIMIT = Number.MAX_SAFE_INTEGER;
 
-  public static readonly DB_PARAMS_MAX_LIMIT = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 };
-  public static readonly DB_PARAMS_SINGLE_RECORD = { limit: 1, skip: 0 };
-  public static readonly DB_PARAMS_COUNT_ONLY = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true };
+  public static readonly DB_PARAMS_MAX_LIMIT: DbParams = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, sort: null };
+  public static readonly DB_PARAMS_SINGLE_RECORD: DbParams = { limit: 1, skip: 0, sort: null };
+  public static readonly DB_PARAMS_COUNT_ONLY: DbParams = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true, sort: null };
 
   public static readonly DEFAULT_TENANT = 'default';
   public static readonly DEFAULT_TENANT_OBJECT= {
