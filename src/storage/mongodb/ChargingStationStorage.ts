@@ -723,12 +723,19 @@ export default class ChargingStationStorage {
       $limit: dbParams.limit
     });
     if (params.withChargingStation || params.withSiteArea) {
+      // Charging Stations
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID, aggregation, localField: 'chargingStationID', foreignField: '_id',
-        asField: 'chargingStation',
-        oneToOneCardinality: true,
-        oneToOneCardinalityNotNull: false
+        asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
+      // Site Areas
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
+        asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      // Convert
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
     }
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
@@ -736,15 +743,6 @@ export default class ChargingStationStorage {
     const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenantID, 'chargingprofiles')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-
-    if (params.withSiteArea) {
-      for (const chargingProfile of chargingProfilesMDB) {
-        if (chargingProfile.chargingStation.siteAreaID) {
-          chargingProfile.siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingProfile.chargingStation.siteAreaID);
-        }
-      }
-    }
-
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getChargingProfiles', uniqueTimerID, { params, dbParams });
     return {

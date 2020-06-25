@@ -295,16 +295,17 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfilesRequest(req.query);
     // Check auth
-    if (!Authorizations.canListChargingStations(req.user)) {
+    if (!Authorizations.canListChargingProfiles(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.CHARGING_STATION,
+        entity: Entity.CHARGING_PROFILES,
         module: MODULE_NAME,
         method: 'handleGetChargingProfiles'
       });
     }
+    // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
       { search: filteredRequest.Search,
         chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
@@ -312,11 +313,8 @@ export default class ChargingStationService {
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: true },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
-
     // Build the result
-    ChargingStationSecurity.filterChargingProfilesResponse(chargingProfiles, req.user,
-      Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION), filteredRequest);
-
+    ChargingStationSecurity.filterChargingProfilesResponse(chargingProfiles, req.user);
     res.json(chargingProfiles);
     next();
   }
@@ -657,8 +655,7 @@ export default class ChargingStationService {
     }
     res.json(
       // Filter
-      ChargingStationSecurity.filterChargingStationResponse(
-        chargingStation, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION))
+      ChargingStationSecurity.filterChargingStationResponse(chargingStation, req.user)
     );
     next();
   }
@@ -785,8 +782,7 @@ export default class ChargingStationService {
       }
     );
     // Build the result
-    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user,
-      Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user);
     // Return
     res.json(chargingStations);
     next();
@@ -1154,8 +1150,7 @@ export default class ChargingStationService {
       }
     );
     // Filter
-    ChargingStationSecurity.filterChargingStationsResponse(
-      chargingStations, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user);
     return chargingStations;
   }
 

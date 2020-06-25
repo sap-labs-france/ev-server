@@ -102,7 +102,7 @@ export default class DatabaseUtils {
 
   public static pushChargingStationLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
     DatabaseUtils.pushCollectionLookupInAggregation('chargingstations', {
-      objectIDFields: ['siteAreaID', 'createdBy', 'lastChangedBy'],
+      objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     }, [DatabaseUtils.buildChargingStationInactiveFlagQuery(), ...additionalPipeline]);
   }
