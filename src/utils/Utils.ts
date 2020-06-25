@@ -1,4 +1,5 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -8,7 +9,6 @@ import AppError from '../exception/AppError';
 import Asset from '../types/Asset';
 import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
-import { Car } from '../types/Car';
 import { ChargingProfile } from '../types/ChargingProfile';
 import Company from '../types/Company';
 import Configuration from './Configuration';
@@ -34,7 +34,7 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
-import localIP from 'quick-local-ip';
+import http from 'http';
 import moment from 'moment';
 import passwordGenerator from 'password-generator';
 import path from 'path';
@@ -48,7 +48,7 @@ const _tenants = [];
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
-  public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number) {
+  public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number): number {
     let intervalMins = 0;
     if (!chargingStation || !chargingStation.connectors) {
       return 0;
@@ -70,7 +70,7 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static async promiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
+  public static async executePromiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
     let timeoutHandle;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
@@ -87,7 +87,7 @@ export default class Utils {
   public static logActionsResponse(
     tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
     messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string) {
+    messageNoSuccessNoError: string): void {
     // Replace
     messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
     messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
@@ -144,15 +144,15 @@ export default class Utils {
     return Math.round(numberToRound * 100) / 100;
   }
 
-  public static objectHasProperty(object: object, key: string): boolean {
+  public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
   }
 
-  public static generateGUID() {
+  public static generateGUID(): string {
     return uuid();
   }
 
-  static generateTagID(name: string, firstName: string) {
+  static generateTagID(name: string, firstName: string): string {
     let tagID = '';
     if (name && name.length > 0) {
       tagID = name[0].toUpperCase();
@@ -168,14 +168,14 @@ export default class Utils {
     return tagID;
   }
 
-  public static isIterable(obj): boolean {
+  public static isIterable(obj: object): boolean {
     if (obj) {
       return typeof obj[Symbol.iterator] === 'function';
     }
     return false;
   }
 
-  public static isUndefined(obj): boolean {
+  public static isUndefined(obj: any): boolean {
     return typeof obj === 'undefined';
   }
 
@@ -257,7 +257,7 @@ export default class Utils {
     return config.heartbeatIntervalSecs * 3;
   }
 
-  public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
+  public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation): void {
     // Cannot charge in //
     if (chargingStation.chargePoints) {
       for (const chargePoint of chargingStation.chargePoints) {
@@ -298,16 +298,16 @@ export default class Utils {
     }
   }
 
-  public static getLanguageFromLocale(locale: string) {
+  public static getLanguageFromLocale(locale: string): string {
     let language = Constants.DEFAULT_LANGUAGE;
     // Set the User's locale
-    if (locale && locale.length > 2) {
+    if (locale && locale.length >= 2) {
       language = locale.substring(0, 2);
     }
     return language;
   }
 
-  public static async normalizeAndCheckSOAPParams(headers, req) {
+  public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
     // Normalize
     Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     Utils._normalizeOneSOAPParam(headers, 'Action');
@@ -401,7 +401,7 @@ export default class Utils {
   public static convertToDate(date: any): Date {
     // Check
     if (!date) {
-      return date;
+      return null;
     }
     // Check Type
     if (!(date instanceof Date)) {
@@ -431,7 +431,7 @@ export default class Utils {
     return Object.keys(document).length === 0;
   }
 
-  public static removeExtraEmptyLines(tab) {
+  public static removeExtraEmptyLines(tab: string[]) {
     // Start from the end
     for (let i = tab.length - 1; i > 0; i--) {
       // Two consecutive empty lines?
@@ -452,7 +452,7 @@ export default class Utils {
   }
 
   public static convertToObjectID(id: any): ObjectID {
-    let changedID = id;
+    let changedID: ObjectID = id;
     // Check
     if (typeof id === 'string') {
       // Create Object
@@ -462,7 +462,7 @@ export default class Utils {
   }
 
   public static convertToInt(value: any): number {
-    let changedValue = value;
+    let changedValue: number = value;
     if (!value) {
       return 0;
     }
@@ -475,7 +475,7 @@ export default class Utils {
   }
 
   public static convertToFloat(value: any): number {
-    let changedValue = value;
+    let changedValue: number = value;
     if (!value) {
       return 0;
     }
@@ -487,8 +487,16 @@ export default class Utils {
     return changedValue;
   }
 
+  public static computeSimplePrice(pricePerKWH: number, consumptionWH: number): number {
+    return Utils.convertToFloat((pricePerKWH * (consumptionWH / 1000)).toFixed(6));
+  }
+
+  public static computeSimpleRoundedPrice(pricePerKWH: number, consumptionWH: number): number {
+    return Utils.convertToFloat((pricePerKWH * consumptionWH).toFixed(2));
+  }
+
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
-    let userID = null;
+    let userID: ObjectID | null = null;
     // Check Created By
     if (user) {
       // Check User Model
@@ -517,7 +525,7 @@ export default class Utils {
   public static convertWattToAmp(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, wattValue: number): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
-      return Math.floor(wattValue / voltage);
+      return wattValue / voltage;
     }
     return 0;
   }
@@ -559,7 +567,6 @@ export default class Utils {
     return totalAmps;
   }
 
-  // Tslint:disable-next-line: cyclomatic-complexity
   public static getChargingStationPower(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
     let totalPower = 0;
     if (chargingStation) {
@@ -571,14 +578,17 @@ export default class Utils {
             if (connectorId === 0 && chargePointOfCS.power) {
               totalPower += chargePointOfCS.power;
             // Connector
-            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power &&
-                (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
-              // Check Connector ID
-              const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.power) {
-                return connector.power;
+            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power) {
+              if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
+                // Check Connector ID
+                const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+                if (connector.power) {
+                  return connector.power;
+                }
+                return chargePointOfCS.power;
               }
-              return chargePointOfCS.power;
+              // Power is shared evenly on connectors
+              return chargePointOfCS.power / chargePointOfCS.connectorIDs.length;
             }
           }
         }
@@ -722,7 +732,6 @@ export default class Utils {
     return null;
   }
 
-  // Tslint:disable-next-line: cyclomatic-complexity
   public static getChargingStationAmperage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
     let totalAmps = 0;
     if (chargingStation) {
@@ -733,15 +742,18 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.amperage) {
               totalAmps += chargePointOfCS.amperage;
-            // Connector
-            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage &&
-              (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
-              // Check Connector ID
-              const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.amperage) {
-                return connector.amperage;
+            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage) {
+              if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
+                // Same power for all connectors
+                // Check Connector ID first
+                const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+                if (connector.amperage) {
+                  return connector.amperage;
+                }
+                return chargePointOfCS.amperage;
               }
-              return chargePointOfCS.amperage;
+              // Power is split evenly per connector
+              return chargePointOfCS.amperage / chargePointOfCS.connectorIDs.length;
             }
           }
         }
@@ -756,13 +768,6 @@ export default class Utils {
             return connector.amperage;
           }
         }
-      }
-    }
-    if (!totalAmps) {
-      const power = Utils.getChargingStationPower(chargingStation, chargePoint, connectorId);
-      const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorId);
-      if (voltage && power) {
-        return power / voltage;
       }
     }
     return totalAmps;
@@ -782,7 +787,7 @@ export default class Utils {
               continue;
             }
             if (chargePointOfCS.cannotChargeInParallel ||
-                chargePointOfCS.sharePowerToAllConnectors) {
+              chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
               amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
             } else {
@@ -804,43 +809,86 @@ export default class Utils {
     return amperageLimit;
   }
 
-  public static isEmptyArray(array): boolean {
+  public static isEmptyArray(array: any): boolean {
     if (Array.isArray(array) && array.length > 0) {
       return false;
     }
     return true;
   }
 
-  public static buildUserFullName(user: User, withID = true, withEmail = false, invertedName = false) {
+  public static isEmptyObj(obj: any): boolean {
+    return _.isObject(obj) && _.isEmpty(obj);
+  }
+
+  public static findDuplicatesInArray(arr: any[]): any[] {
+    const sorted_arr = arr.slice().sort();
+    const results: any[] = [];
+    for (let i = 0; i < sorted_arr.length - 1; i++) {
+      if (_.isEqual(sorted_arr[i + 1], sorted_arr[i])) {
+        results.push(sorted_arr[i]);
+      }
+    }
+    return results;
+  }
+
+  public static buildUserFullName(user: User | UserToken, withID = true, withEmail = false): string {
     let fullName: string;
     if (!user || !user.name) {
-      return 'Unknown';
+      return '-';
     }
-    if (invertedName) {
-      if (user.firstName) {
-        fullName = `${user.name}, ${user.firstName}`;
-      } else {
-        fullName = user.name;
-      }
+    if (user.firstName) {
+      fullName = `${user.firstName} ${user.name}`;
     } else {
-      // eslint-disable-next-line no-lonely-if
-      if (user.firstName) {
-        fullName = `${user.firstName} ${user.name}`;
-      } else {
-        fullName = user.name;
-      }
+      fullName = user.name;
     }
-    if (withID && user.iNumber) {
-      fullName += ` (${user.iNumber})`;
+    if (withID && user.id) {
+      fullName += ` (${user.id})`;
     }
     if (withEmail && user.email) {
-      fullName += `; ${user.email}`;
+      fullName += ` ${user.email}`;
     }
     return fullName;
   }
 
+  public static buildCarCatalogName(carCatalog: CarCatalog, withID = false): string {
+    let carCatalogName: string;
+    if (!carCatalog) {
+      return '-';
+    }
+    carCatalogName = carCatalog.vehicleMake;
+    if (carCatalog.vehicleModel) {
+      carCatalogName += ` ${carCatalog.vehicleModel}`;
+    }
+    if (carCatalog.vehicleModelVersion) {
+      carCatalogName += ` ${carCatalog.vehicleModelVersion}`;
+    }
+    if (withID && carCatalog.id) {
+      carCatalogName += ` (${carCatalog.id})`;
+    }
+    return carCatalogName;
+  }
+
+  public static buildCarName(car: Car, withID = false): string {
+    let carName: string;
+    if (!car) {
+      return '-';
+    }
+    if (car.carCatalog) {
+      carName = Utils.buildCarCatalogName(car.carCatalog, withID);
+    }
+    if (!carName) {
+      carName = `VIN '${car.vin}', License Plate '${car.licensePlate}'`;
+    } else {
+      carName += ` with VIN '${car.vin}' and License Plate '${car.licensePlate}'`;
+    }
+    if (withID && car.id) {
+      carName += ` (${car.id})`;
+    }
+    return carName;
+  }
+
   // Save the users in file
-  public static saveFile(filename, content) {
+  public static saveFile(filename: string, content: string): void {
     // Save
     fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
   }
@@ -858,7 +906,7 @@ export default class Utils {
   }
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl;
+    let ocppUrl: string;
     const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
     switch (ocppProtocol) {
       case OCPPProtocol.JSON:
@@ -907,7 +955,7 @@ export default class Utils {
     return (env === 'production');
   }
 
-  public static hideShowMessage(message): string {
+  public static hideShowMessage(message: string): string {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
@@ -915,9 +963,9 @@ export default class Utils {
     return message;
   }
 
-  public static getRequestIP(request): string {
-    if (request.ip) {
-      return request.ip;
+  public static getRequestIP(request: http.IncomingMessage|Partial<Request>): string | string[] {
+    if (request['ip']) {
+      return request['ip'];
     } else if (request.headers['x-forwarded-for']) {
       return request.headers['x-forwarded-for'];
     } else if (request.connection.remoteAddress) {
@@ -927,10 +975,6 @@ export default class Utils {
       const ip = host[0];
       return ip;
     }
-  }
-
-  public static getLocalIP(): string {
-    return localIP.getLocalIP4();
   }
 
   public static checkRecordLimit(recordLimit: number | string): number {
@@ -949,7 +993,7 @@ export default class Utils {
     return recordLimit;
   }
 
-  public static roundTo(number, scale) {
+  public static roundTo(number: number, scale: number): string | number {
     return Utils.convertToFloat(number.toFixed(scale));
   }
 
@@ -961,7 +1005,7 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneJSonDocument(jsonDocument: object): object {
+  public static cloneJSonDocument(jsonDocument: any): any {
     return JSON.parse(JSON.stringify(jsonDocument));
   }
 
@@ -986,19 +1030,11 @@ export default class Utils {
     return recordSkip;
   }
 
-  public static generateToken(email) {
+  public static generateToken(email: string): string {
     return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
-  public static duplicateJSON(src): any {
-    if (!src || typeof src !== 'object') {
-      return src;
-    }
-    // Recreate all of it
-    return JSON.parse(JSON.stringify(src));
-  }
-
-  public static getRoleNameFromRoleID(roleID) {
+  public static getRoleNameFromRoleID(roleID: string): string {
     switch (roleID) {
       case UserRole.BASIC:
         return 'Basic';
@@ -1031,7 +1067,7 @@ export default class Utils {
     });
   }
 
-  public static async checkPasswordBCrypt(password, hash): Promise<boolean> {
+  public static async checkPasswordBCrypt(password: string, hash: string): Promise<boolean> {
     // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Compare
@@ -1046,7 +1082,7 @@ export default class Utils {
     });
   }
 
-  public static isPasswordStrongEnough(password) {
+  public static isPasswordStrongEnough(password: string): boolean {
     const uc = password.match(Constants.PWD_UPPERCASE_RE);
     const lc = password.match(Constants.PWD_LOWERCASE_RE);
     const n = password.match(Constants.PWD_NUMBER_RE);
@@ -1059,7 +1095,7 @@ export default class Utils {
   }
 
 
-  public static generatePassword() {
+  public static generatePassword(): string {
     let password = '';
     const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
     while (!Utils.isPasswordStrongEnough(password)) {
@@ -1086,7 +1122,7 @@ export default class Utils {
     }
   }
 
-  public static hashPassword(password) {
+  public static hashPassword(password: string): string {
     return Cypher.hash(password);
   }
 
@@ -1360,7 +1396,7 @@ export default class Utils {
     }
   }
 
-  public static isValidDate(date: any) {
+  public static isValidDate(date: any): boolean {
     return moment(date).isValid();
   }
 
@@ -1407,7 +1443,7 @@ export default class Utils {
     }
   }
 
-  public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request) {
+  public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request): Promise<void> {
     // Check that the Badge ID is not already used
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       if (tags) {
@@ -1572,7 +1608,7 @@ export default class Utils {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags ${filteredRequest.tags} is/are not valid`,
+          message: `User Tags ${JSON.stringify(filteredRequest.tags)} is/are not valid`,
           module: MODULE_NAME,
           method: 'checkIfUserValid',
           user: req.user.id,
@@ -1593,7 +1629,7 @@ export default class Utils {
     }
   }
 
-  public static getTimezone(coordinates: number[]) {
+  public static getTimezone(coordinates: number[]): string {
     if (coordinates && coordinates.length === 2) {
       return tzlookup(coordinates[1], coordinates[0]);
     }
@@ -1761,6 +1797,28 @@ export default class Utils {
         user: req.user.id
       });
     }
+    if (!car.type) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car type is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!Authorizations.isAdmin(req.user)) {
+      if (car.type === CarType.POOL_CAR) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Pool cars can only be created by admin',
+          module: MODULE_NAME,
+          method: 'checkIfCarValid',
+          user: req.user.id
+        });
+      }
+    }
   }
 
   private static _isUserEmailValid(email: string): boolean {
@@ -1779,7 +1837,7 @@ export default class Utils {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
 
-  private static _normalizeOneSOAPParam(headers: object, name: string) {
+  private static _normalizeOneSOAPParam(headers: any, name: string) {
     const val = _.get(headers, name);
     if (val && val.$value) {
       _.set(headers, name, val.$value);

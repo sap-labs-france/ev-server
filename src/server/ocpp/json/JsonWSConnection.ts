@@ -46,7 +46,7 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     // Already initialized?
     if (!this.initialized) {
       // Call super class
@@ -76,7 +76,7 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  public onError(event: Event) {
+  public onError(event: Event): void {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
@@ -86,27 +86,26 @@ export default class JsonWSConnection extends WSConnection {
     });
   }
 
-  public onClose(closeEvent: CloseEvent) {
+  public onClose(closeEvent: CloseEvent): void {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
-      message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
+      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent.code}'`
     });
     // Remove the connection
     this.wsServer.removeJsonConnection(this);
   }
 
-  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any) {
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
     // Log
     Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
     if (typeof this.chargingStationService['handle' + commandName] === 'function') {
       if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
         this.headers.currentIPAddress = this.getClientIP();
-        this.headers.currentServerLocalIPAddressPort = this.getServerIPPort();
       }
       // Call it
       const result = await this.chargingStationService['handle' + commandName](this.headers, commandPayload);
@@ -121,7 +120,7 @@ export default class JsonWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OcppErrorType.NOT_IMPLEMENTED,
-        message: `The OCPP method 'handle${commandName}' has not been implemented`
+        message: `The OCPP method 'handle${typeof commandName === 'string' ? commandName : JSON.stringify(commandName)}' has not been implemented`
       });
     }
   }

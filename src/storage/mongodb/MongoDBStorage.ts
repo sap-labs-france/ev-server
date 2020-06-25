@@ -7,6 +7,7 @@ import DatabaseUtils from './DatabaseUtils';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
+import MigrationConfiguration from '../../types/configuration/MigrationConfiguration';
 import { ServerAction } from '../../types/Server';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
 import Utils from '../../utils/Utils';
@@ -19,7 +20,7 @@ const MODULE_NAME = 'MongoDBStorage';
 export default class MongoDBStorage {
   private db: Db;
   private readonly dbConfig: StorageCfg;
-  private readonly migrationConfig;
+  private readonly migrationConfig: MigrationConfiguration;
 
   // Create database access
   public constructor(dbConfig: StorageCfg) {
@@ -103,7 +104,7 @@ export default class MongoDBStorage {
       { fields: { userID: 1 } }
     ]);
     // User Cars
-    await this.handleIndexesInCollection(collections, tenantID, 'usercars', [
+    await this.handleIndexesInCollection(collections, tenantID, 'carusers', [
       { fields: { userID: 1, carID: 1 }, options: { unique: true } }
     ]);
     // Cars
@@ -182,7 +183,7 @@ export default class MongoDBStorage {
       // No: Build it
       mongoUrl = mongoUriBuilder({
         host: urlencode(this.dbConfig.host),
-        port: Utils.convertToInt(urlencode(this.dbConfig.port + '')),
+        port: Utils.convertToInt(urlencode(this.dbConfig.port.toString() + '')),
         username: urlencode(this.dbConfig.user),
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),

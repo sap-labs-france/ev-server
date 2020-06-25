@@ -142,7 +142,7 @@ export default class Bootstrap {
     }
   }
 
-  private static startServerWorkers(serverName): void {
+  private static startServerWorkers(serverName: string): void {
     Bootstrap.numWorkers = Configuration.getClusterConfig().numWorkers;
     function onlineCb(worker): void {
       // Log
@@ -158,7 +158,7 @@ export default class Bootstrap {
     }
     function exitCb(worker, code, signal?): void {
       // Log
-      const logMsg = serverName + ' server worker ' + worker.id + ' died with code: ' + code + ', and signal: ' + signal +
+      const logMsg = serverName + ' server worker ' + worker.id.toString() + ' died with code: ' + code + ', and signal: ' + signal +
         '.\n Starting new ' + serverName + ' server worker';
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
@@ -205,7 +205,7 @@ export default class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startMasters',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`,
+        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}: ${error.toString()}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
@@ -292,7 +292,7 @@ export default class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`,
+        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}: ${error.toString()}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }

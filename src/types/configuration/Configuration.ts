@@ -42,7 +42,7 @@ export interface Configuration {
   Notification: NotificationConfiguration;
   Authorization: AuthorizationConfiguration;
   ChargingStation: ChargingStationConfiguration;
-  Locales: LocalesConfiguration;
+  Locales?: LocalesConfiguration;
   Scheduler: SchedulerConfiguration;
   Logging: LoggingConfiguration;
   HealthCheck?: HealthCheckConfiguration;

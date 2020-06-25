@@ -18,14 +18,14 @@ export default function(chai, utils) {
     // First, our instanceof check, shortcut
     new Assertion(this._obj).to.be.instanceof(Object);
     new Assertion(this._obj).to.be.not.null;
-    new Assertion(this._obj.data).to.not.be.null;
+    new Assertion(this._obj).to.not.be.null;
     // Second, our type check
     this.assert(
-      obj.data.idTagInfo instanceof Object
+      obj.idTagInfo instanceof Object
       , 'expected idTagInfo to be #{exp} but got #{act}'
       , 'expected idTagInfo to not be above #{act}'
       , 'Object'
-      , obj.data
+      , obj
     );
   });
 
@@ -35,11 +35,11 @@ export default function(chai, utils) {
     new Assertion(this._obj).to.be.transactionStatus('Accepted');
     // Second, our type check
     this.assert(
-      obj.data.transactionId > 1
+      obj.transactionId > 1
       , 'expected transactionId to be above #{exp} but got #{act}'
       , 'expected transactionId to not be above #{act}'
       , 1
-      , obj.data.transactionId
+      , obj.transactionId
     );
   });
 
@@ -49,11 +49,11 @@ export default function(chai, utils) {
     new Assertion(this._obj).to.be.transaction;
     // Second, our type check
     this.assert(
-      obj.data.idTagInfo.status === expectedStatus
+      obj.idTagInfo.status === expectedStatus
       , 'expected idTagInfo.status to be #{exp} but got #{act}'
       , 'expected idTagInfo to not be #{act}'
       , expectedStatus
-      , obj.data.idTagInfo.status
+      , obj.idTagInfo.status
     );
   });
 

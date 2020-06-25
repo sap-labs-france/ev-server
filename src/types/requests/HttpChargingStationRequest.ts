@@ -2,11 +2,6 @@ import { ConnectorType, CurrentType } from '../ChargingStation';
 
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpAssignChargingStationToSiteAreaRequest {
-  siteAreaID: string;
-  chargingStationIDs: string[];
-}
-
 export interface HttpTriggerSmartChargingRequest {
   siteAreaID: string;
 }
@@ -43,7 +38,7 @@ export interface HttpChargingStationParamsUpdateRequest {
   id: string;
   chargingStationURL: string;
   maximumPower: number;
-  private: boolean;
+  public: boolean;
   excludeFromSmartCharging: boolean;
   siteAreaID: string;
   coordinates: number[];

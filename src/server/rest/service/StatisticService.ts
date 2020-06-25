@@ -311,28 +311,6 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetCurrentMetrics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
-    // Check auth
-    if (!Authorizations.canListChargingStations(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
-        module: MODULE_NAME,
-        method: 'handleGetCurrentMetrics'
-      });
-    }
-    // Filter
-    const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query);
-    // Get Data
-    const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID,
-      { periodInMonth: filteredRequest.PeriodInMonth });
-    // Return
-    res.json(metrics);
-    next();
-  }
-
   static async handleGetStatisticsExport(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
@@ -489,7 +467,7 @@ export default class StatisticService {
           transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
         } else {
           // We can have duplicate user names, like 'Unknown'
-          userName = Utils.buildUserFullName(transactionStatMDB.user, false, false, true);
+          userName = Utils.buildUserFullName(transactionStatMDB.user, false, false);
           if (userName in transaction) {
             transaction[userName] += transactionStatMDB.total;
           } else {
@@ -504,7 +482,7 @@ export default class StatisticService {
 
   static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
     let user: User;
-    let unknownUser = Utils.buildUserFullName(user, false, false, true);
+    let unknownUser = Utils.buildUserFullName(user, false, false);
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }

@@ -1,5 +1,4 @@
 import RefundReport, { RefundStatus } from '../../types/Refund';
-import Transaction, { InactivityStatus } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 
 import Constants from '../../utils/Constants';
@@ -10,6 +9,7 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/Notification';
 import { ServerAction } from '../../types/Server';
+import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
@@ -18,8 +18,8 @@ import moment from 'moment';
 const MODULE_NAME = 'TransactionStorage';
 
 export default class TransactionStorage {
-  public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
-    await this.deleteTransactions(tenantID, [transaction.id]);
+  public static async deleteTransaction(tenantID: string, transactionID: number): Promise<void> {
+    await this.deleteTransactions(tenantID, [transactionID]);
   }
 
   public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<number> {
@@ -71,24 +71,30 @@ export default class TransactionStorage {
       numberOfMeterValues: Utils.convertToInt(transactionToSave.numberOfMeterValues),
       currentStateOfCharge: Utils.convertToInt(transactionToSave.currentStateOfCharge),
       currentSignedData: transactionToSave.currentSignedData,
-      lastMeterValue: transactionToSave.lastMeterValue,
+      lastEnergyActiveImportMeterValue: transactionToSave.lastEnergyActiveImportMeterValue,
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
       currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
-      currentConsumption: Utils.convertToFloat(transactionToSave.currentConsumption),
-      currentTotalConsumption: Utils.convertToFloat(transactionToSave.currentTotalConsumption),
+      transactionEndReceived: Utils.convertToBoolean(transactionToSave.transactionEndReceived),
+      currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
+      currentInstanWattsL1: Utils.convertToFloat(transactionToSave.currentInstanWattsL1),
+      currentInstanWattsL2: Utils.convertToFloat(transactionToSave.currentInstanWattsL2),
+      currentInstanWattsL3: Utils.convertToFloat(transactionToSave.currentInstanWattsL3),
+      currentInstanWattsDC: Utils.convertToFloat(transactionToSave.currentInstanWattsDC),
+      currentTotalConsumptionWh: Utils.convertToFloat(transactionToSave.currentTotalConsumptionWh),
+      currentTotalDurationSecs: Utils.convertToInt(transactionToSave.currentTotalDurationSecs),
+      currentInstantVoltage: Utils.convertToFloat(transactionToSave.currentInstantVoltage),
+      currentInstantVoltageL1: Utils.convertToInt(transactionToSave.currentInstantVoltageL1),
+      currentInstantVoltageL2: Utils.convertToInt(transactionToSave.currentInstantVoltageL2),
+      currentInstantVoltageL3: Utils.convertToInt(transactionToSave.currentInstantVoltageL3),
+      currentInstantVoltageDC: Utils.convertToInt(transactionToSave.currentInstantVoltageDC),
+      currentInstantAmps: Utils.convertToFloat(transactionToSave.currentInstantAmps),
+      currentInstantAmpsL1: Utils.convertToInt(transactionToSave.currentInstantAmpsL1),
+      currentInstantAmpsL2: Utils.convertToInt(transactionToSave.currentInstantAmpsL2),
+      currentInstantAmpsL3: Utils.convertToInt(transactionToSave.currentInstantAmpsL3),
+      currentInstantAmpsDC: Utils.convertToInt(transactionToSave.currentInstantAmpsDC),
     };
     if (transactionToSave.stop) {
-      // Remove runtime props
-      delete transactionMDB.currentConsumption;
-      delete transactionMDB.currentCumulatedPrice;
-      delete transactionMDB.currentSignedData;
-      delete transactionMDB.currentStateOfCharge;
-      delete transactionMDB.currentTotalConsumption;
-      delete transactionMDB.currentTotalInactivitySecs;
-      delete transactionMDB.currentInactivityStatus;
-      delete transactionMDB.lastMeterValue;
-      delete transactionMDB.numberOfMeterValues;
       // Add stop
       transactionMDB.stop = {
         userID: Utils.convertToObjectID(transactionToSave.stop.userID),
@@ -98,7 +104,7 @@ export default class TransactionStorage {
         transactionData: transactionToSave.stop.transactionData,
         stateOfCharge: Utils.convertToInt(transactionToSave.stop.stateOfCharge),
         signedData: transactionToSave.stop.signedData,
-        totalConsumption: Utils.convertToFloat(transactionToSave.stop.totalConsumption),
+        totalConsumptionWh: Utils.convertToFloat(transactionToSave.stop.totalConsumptionWh),
         totalInactivitySecs: Utils.convertToInt(transactionToSave.stop.totalInactivitySecs),
         extraInactivitySecs: Utils.convertToInt(transactionToSave.stop.extraInactivitySecs),
         extraInactivityComputed: !!transactionToSave.stop.extraInactivityComputed,
@@ -109,6 +115,32 @@ export default class TransactionStorage {
         priceUnit: transactionToSave.priceUnit,
         pricingSource: transactionToSave.stop.pricingSource
       };
+      // Remove runtime props
+      delete transactionMDB.currentInstantWatts;
+      delete transactionMDB.currentInstanWattsL1;
+      delete transactionMDB.currentInstanWattsL2;
+      delete transactionMDB.currentInstanWattsL3;
+      delete transactionMDB.currentInstanWattsDC;
+      delete transactionMDB.currentCumulatedPrice;
+      delete transactionMDB.currentSignedData;
+      delete transactionMDB.currentStateOfCharge;
+      delete transactionMDB.currentTotalConsumptionWh;
+      delete transactionMDB.currentTotalInactivitySecs;
+      delete transactionMDB.currentInactivityStatus;
+      delete transactionMDB.lastEnergyActiveImportMeterValue;
+      delete transactionMDB.numberOfMeterValues;
+      delete transactionMDB.currentTotalDurationSecs;
+      delete transactionMDB.currentInstantVoltage;
+      delete transactionMDB.currentInstantVoltageL1;
+      delete transactionMDB.currentInstantVoltageL2;
+      delete transactionMDB.currentInstantVoltageL3;
+      delete transactionMDB.currentInstantVoltageDC;
+      delete transactionMDB.currentInstantAmps;
+      delete transactionMDB.transactionEndReceived;
+      delete transactionMDB.currentInstantAmpsL1;
+      delete transactionMDB.currentInstantAmpsL2;
+      delete transactionMDB.currentInstantAmpsL3;
+      delete transactionMDB.currentInstantAmpsDC;
     }
     if (transactionToSave.remotestop) {
       transactionMDB.remotestop = {
@@ -383,9 +415,7 @@ export default class TransactionStorage {
     if (ownerMatch.$or && ownerMatch.$or.length > 0) {
       aggregation.push({
         $match: {
-          $and: [
-            ownerMatch, filterMatch
-          ]
+          $and: [ ownerMatch, filterMatch ]
         }
       });
     } else {
@@ -407,7 +437,7 @@ export default class TransactionStorage {
             _id: null,
             firstTimestamp: { $min: '$timestamp' },
             lastTimestamp: { $max: '$timestamp' },
-            totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+            totalConsumptionWattHours: { $sum: '$stop.totalConsumptionWh' },
             totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
             totalPrice: { $sum: '$stop.price' },
             totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
@@ -422,7 +452,7 @@ export default class TransactionStorage {
             _id: null,
             firstTimestamp: { $min: '$timestamp' },
             lastTimestamp: { $max: '$timestamp' },
-            totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+            totalConsumptionWattHours: { $sum: '$stop.totalConsumptionWh' },
             totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, '$stop.price', 0] } },
             totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, '$stop.price'] } },
             countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 1, 0] } },
@@ -477,12 +507,12 @@ export default class TransactionStorage {
           break;
       }
     }
+    // Translate array response to number
     if (transactionCountMDB && transactionCountMDB.countRefundedReports) {
-      // Translate array response to number
       transactionCountMDB.countRefundedReports = transactionCountMDB.countRefundedReports.length;
     }
+    // Take first entry as reference currency. Expectation is that we have only one currency for all transaction
     if (transactionCountMDB && transactionCountMDB.currency) {
-      // Take first entry as reference currency. Expectation is that we have only one currency for all transaction
       transactionCountMDB.currency = transactionCountMDB.currency[0];
     }
     // Check if only the total count is requested
@@ -495,23 +525,17 @@ export default class TransactionStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
-    if (dbParams.sort) {
-      if (!dbParams.sort.timestamp) {
-        aggregation.push({
-          $sort: { ...dbParams.sort, timestamp: -1 }
-        });
-      } else {
-        aggregation.push({
-          $sort: dbParams.sort
-        });
-      }
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
+    }
+    if (!dbParams.sort.timestamp) {
+      aggregation.push({
+        $sort: { ...dbParams.sort, timestamp: -1 }
+      });
     } else {
       aggregation.push({
-        $sort: { timestamp: -1 }
+        $sort: dbParams.sort
       });
     }
     // Skip
@@ -522,34 +546,19 @@ export default class TransactionStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add Charge Box
+    // Charge Box
     DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      localField: 'chargeBoxID',
-      foreignField: '_id',
-      asField: 'chargeBox',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
-    // Add Users
+    // Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'user',
-      localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'stop.user',
-      localField: 'stop.userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
@@ -596,7 +605,6 @@ export default class TransactionStorage {
     const ownerMatch = { $or: [] };
     const filterMatch = {};
     filterMatch['refundData.reportId'] = { '$ne': null };
-
     if (params.ownerID) {
       ownerMatch.$or.push({
         userID: Utils.convertToObjectID(params.ownerID)
@@ -622,9 +630,12 @@ export default class TransactionStorage {
         $match: filterMatch
       });
     }
-    aggregation.push(
-      { '$group': { '_id': '$refundData.reportId', 'userID': { '$first': '$userID' } } }
-    );
+    aggregation.push({
+      $group: {
+        '_id': '$refundData.reportId',
+        'userID': { '$first': '$userID' }
+      }
+    });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -662,19 +673,16 @@ export default class TransactionStorage {
     // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
     // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
-    if (dbParams.sort) {
-      if (!dbParams.sort.timestamp) {
-        aggregation.push({
-          $sort: { ...dbParams.sort, timestamp: -1 }
-        });
-      } else {
-        aggregation.push({
-          $sort: dbParams.sort
-        });
-      }
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
+    }
+    if (!dbParams.sort.timestamp) {
+      aggregation.push({
+        $sort: { ...dbParams.sort, timestamp: -1 }
+      });
     } else {
       aggregation.push({
-        $sort: { timestamp: -1 }
+        $sort: dbParams.sort
       });
     }
     // Skip
@@ -788,37 +796,21 @@ export default class TransactionStorage {
        (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID,
-        aggregation: aggregation,
-        localField: 'chargeBoxID',
-        foreignField: '_id',
-        asField: 'chargeBox',
-        oneToOneCardinality: true,
-        oneToOneCardinalityNotNull: false,
-        pipelineMatch: { 'issuer': true }
+        tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id', asField: 'chargeBox',
+        oneToOneCardinality: true, oneToOneCardinalityNotNull: false, pipelineMatch: { 'issuer': true }
       });
     }
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'user',
-      localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Used only in the error type : missing_user
     if (params.errorType && params.errorType.includes(TransactionInErrorType.MISSING_USER)) {
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID,
-        aggregation: aggregation,
-        localField: 'siteAreaID',
-        foreignField: '_id',
-        asField: 'siteArea',
-        oneToOneCardinality: true,
-        objectIDFields: ['createdBy', 'lastChangedBy']
+        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
       });
     }
     // Build facets for each type of error if any
@@ -837,14 +829,10 @@ export default class TransactionStorage {
       // Add a unique identifier as we may have the same Charging Station several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: [{ $substr: ['$_id', 0, -1] }, '#', '$errorCode'] } } });
     }
+    // Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'stop.user',
-      localField: 'stop.userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
@@ -858,19 +846,16 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Sort
-    if (dbParams.sort) {
-      if (!dbParams.sort.timestamp) {
-        aggregation.push({
-          $sort: { ...dbParams.sort, timestamp: -1 }
-        });
-      } else {
-        aggregation.push({
-          $sort: dbParams.sort
-        });
-      }
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
+    }
+    if (!dbParams.sort.timestamp) {
+      aggregation.push({
+        $sort: { ...dbParams.sort, timestamp: -1 }
+      });
     } else {
       aggregation.push({
-        $sort: { timestamp: -1 }
+        $sort: dbParams.sort
       });
     }
     // Skip
@@ -1104,10 +1089,21 @@ export default class TransactionStorage {
         let: { tagID: '$_id', dateStart: '$dateStart', dateEnd: '$dateEnd' },
         pipeline: [{
           $match: {
-            $and: [
-              { $expr: { $eq: ['$tagID', '$$tagID'] } },
-              { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
-              { $expr: { $lt: ['$timestamp', '$$dateEnd'] } }
+            $or: [
+              {
+                $and: [
+                  { $expr: { $eq: ['$tagID', '$$tagID'] } },
+                  { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
+                  { $expr: { $lt: ['$timestamp', '$$dateEnd'] } }
+                ]
+              },
+              {
+                $and: [
+                  { $expr: { $eq: ['$stop.tagID', '$$tagID'] } },
+                  { $expr: { $gt: ['$stop.timestamp', '$$dateStart'] } },
+                  { $expr: { $lt: ['$stop.timestamp', '$$dateEnd'] } }
+                ]
+              },
             ]
           }
         }],
@@ -1163,7 +1159,7 @@ export default class TransactionStorage {
         ];
       case TransactionInErrorType.NO_CONSUMPTION:
         return [
-          { $match: { 'stop.totalConsumption': { $lte: 0 } } },
+          { $match: { 'stop.totalConsumptionWh': { $lte: 0 } } },
           { $addFields: { 'errorCode': TransactionInErrorType.NO_CONSUMPTION } }
         ];
       case TransactionInErrorType.NEGATIVE_ACTIVITY:
@@ -1193,7 +1189,7 @@ export default class TransactionStorage {
           { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
           { $match: { 'activeDuration': { $gt: 0 } } },
           { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
-          { $addFields: { averagePower: { $abs: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } } },
+          { $addFields: { averagePower: { $abs: { $multiply: [{ $divide: ['$stop.totalConsumptionWh', '$activeDuration'] }, 3600] } } } },
           { $addFields: { impossiblePower: { $lte: [{ $subtract: [{ $multiply: ['$connector.power', 1.05] }, '$averagePower'] }, 0] } } },
           { $match: { 'impossiblePower': { $eq: true } } },
           { $addFields: { 'errorCode': TransactionInErrorType.OVER_CONSUMPTION } }
@@ -1201,7 +1197,7 @@ export default class TransactionStorage {
       case TransactionInErrorType.MISSING_PRICE:
         return [
           { $match: { 'stop.price': { $lte: 0 } } },
-          { $match: { 'stop.totalConsumption': { $gt: 0 } } },
+          { $match: { 'stop.totalConsumptionWh': { $gt: 0 } } },
           { $addFields: { 'errorCode': TransactionInErrorType.MISSING_PRICE } }
         ];
       case TransactionInErrorType.MISSING_USER:

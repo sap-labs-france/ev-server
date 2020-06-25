@@ -4,65 +4,65 @@
       "title": "La sesión no ha iniciado",
       "body": "Se ha conectado a la estación de carga '{{chargeBoxID}}' pero no ha iniciado ninguna sesión"
     },
-		"sessionStarted": {
-			"title": "Sesión iniciada",
-			"body": "Su sesión en la estación de carga '{{chargeBoxID}}', conector '{{connectorId}}' ha comenzado exitosamente en la organización '{{tenantName}}'"
-		},
-		"ocpiPatchChargingStationsStatusesError": {
-			"title": "Estatus de envío de itinerancia",
-			"body": "La transferencia a la plataforma de itinerancia de los estatus de la estación de carga ha fallado en la ubicación '{{location}}' en la organización '{{tenantName}}', verifique los registros "
-		},
-		"smtpAuthError": {
-			"title": "Error del servidor de correo electrónico",
-			"body": "La autenticación del servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
-		},
-		"optimalChargeReached": {
-			"title": "Carga óptima alcanzada",
-			"body": "Su vehículo eléctrico, que está conectado a '{{chargeBoxID}}', conector '{{connectorId}}', alcanzó su carga óptima (85%) en la organización '{{tenantName}}'"
-		},
-		"endOfCharge": {
-			"title": "Carga finalizada",
-			"body": "Su vehículo eléctrico, que está conectado en la estación de carga '{{chargeBoxID}}', conector '{{connectorId}}', ha terminado de cargar en la organización '{{tenantName}}'"
-		},
-		"endOfSession": {
-			"title": "Sesión finalizada",
-			"body": "Su sesión en la estación de carga '{{chargeBoxID}}', conector '{{connectorId}}' ha terminado en la organización '{{tenantName}}'"
-		},
-		"chargingStationStatusError": {
-			"title": "Error en la estación de carga",
-			"body": "Error occurrido en '{{chargeBoxID}}', conector '{{connectorId}}' en la organización '{{tenantName}}': {{error}}"
-		},
-		"unknownUserBadged": {
-			"title": "Usuario desconocido",
-			"body": "Un usuario desconocido se ha conectado a '{{chargeBoxID}}' con el badge ID '{{badgeID}}' en la organización '{{tenantName}}'"
-		},
-		"chargingStationRegistered": {
-			"title": "Estación de carga conectada",
-			"body": "La estación de carga '{{chargeBoxID}}' se ha conectado al servidor central en la organización'{{tenantName}}'"
-		},
-		"userAccountStatusChanged": {
-			"title": "Cuenta {{status}}",
-			"activated": "activada",
-			"suspended": "suspendida",
-			"body": "Su cuenta ha sido {{status}} por un administrador en la organización '{{tenantName}}'"
-		},
-		"userAccountInactivity": {
-			"title": "Cuenta de usuario",
-			"body": "Su cuenta ha estado inactiva desde {{lastLogin}} en la organización '{{tenantName}}'. Por razones legales, las cuentas que han estado inactivas durante más de 6 meses serán eliminadas."
-		},
-		"preparingSessionNotStarted": {
-			"title": "La sesión no ha iniciado",
-			"body": "Sesión no iniciada en la estación de carga '{{chargeBoxID}}', conector '{{connectorId}}' en la organización '{{tenantName}}'"
-		},
-		"offlineChargingStation": {
-			"title": "Estaciones de carga sin conexión",
-			"body": "Las siguientes estaciones de carga están fuera de línea en la organización '{{tenantName}}': {{chargeBoxIDs}}"
-		},
+    "sessionStarted": {
+      "title": "Sesión iniciada",
+      "body": "Su sesión en la estación de carga '{{chargeBoxID}}', conector '{{connectorId}}' ha comenzado exitosamente en la organización '{{tenantName}}'"
+    },
+    "ocpiPatchChargingStationsStatusesError": {
+      "title": "Estatus de envío de itinerancia",
+      "body": "La transferencia a la plataforma de itinerancia de los estatus de la estación de carga ha fallado en la ubicación '{{location}}' en la organización '{{tenantName}}', verifique los registros "
+    },
+    "smtpAuthError": {
+      "title": "Error del servidor de correo electrónico",
+      "body": "La autenticación del servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
+    },
+    "optimalChargeReached": {
+      "title": "Carga óptima alcanzada",
+      "body": "Su vehículo eléctrico, que está conectado a '{{chargeBoxID}}', conector '{{connectorId}}', alcanzó su carga óptima (85%) en la organización '{{tenantName}}'"
+    },
+    "endOfCharge": {
+      "title": "Carga finalizada",
+      "body": "Su vehículo eléctrico, que está conectado en la estación de carga '{{chargeBoxID}}', conector '{{connectorId}}', ha terminado de cargar en la organización '{{tenantName}}'"
+    },
+    "endOfSession": {
+      "title": "Sesión finalizada",
+      "body": "Su sesión en la estación de carga '{{chargeBoxID}}', conector '{{connectorId}}' ha terminado en la organización '{{tenantName}}'"
+    },
+    "chargingStationStatusError": {
+      "title": "Error en la estación de carga",
+      "body": "Error occurrido en '{{chargeBoxID}}', conector '{{connectorId}}' en la organización '{{tenantName}}': {{error}}"
+    },
+    "unknownUserBadged": {
+      "title": "Usuario desconocido",
+      "body": "Un usuario desconocido se ha conectado a '{{chargeBoxID}}' con el badge ID '{{badgeID}}' en la organización '{{tenantName}}'"
+    },
+    "chargingStationRegistered": {
+      "title": "Estación de carga conectada",
+      "body": "La estación de carga '{{chargeBoxID}}' se ha conectado al servidor central en la organización'{{tenantName}}'"
+    },
+    "userAccountStatusChanged": {
+      "title": "Cuenta {{status}}",
+      "activated": "activada",
+      "suspended": "suspendida",
+      "body": "Su cuenta ha sido {{status}} por un administrador en la organización '{{tenantName}}'"
+    },
+    "userAccountInactivity": {
+      "title": "Cuenta de usuario",
+      "body": "Su cuenta ha estado inactiva desde {{lastLogin}} en la organización '{{tenantName}}'. Por razones legales, las cuentas que han estado inactivas durante más de 6 meses serán eliminadas."
+    },
+    "preparingSessionNotStarted": {
+      "title": "La sesión no ha iniciado",
+      "body": "Sesión no iniciada en la estación de carga '{{chargeBoxID}}', conector '{{connectorId}}' en la organización '{{tenantName}}'"
+    },
+    "offlineChargingStation": {
+      "title": "Estaciones de carga sin conexión",
+      "body": "Las siguientes estaciones de carga están fuera de línea en la organización '{{tenantName}}': {{chargeBoxIDs}}"
+    },
     "billingUserSynchronizationFailed": {
       "title": "Error de sincronización de usuario",
       "body": "No se puede sincronizar {{nbrUsersInError}} usuario (s) con el proveedor de servicios de facturación en la organización '{{tenantName}}'"
     }
-	},
+  },
   "billing": {
     "generatedUser": "Usuario generado por '{{email}}'",
     "chargingStopSiteArea": "Cargando {{totalConsumption}} kWh en {{siteArea}} (finalizado a {{time}})",

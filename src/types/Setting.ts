@@ -216,6 +216,7 @@ export interface AssetConnectionSetting {
   name: string;
   description: string;
   url: string;
+  timestamp: Date;
   type: AssetConnectionType;
   connection?: AssetSchneiderConnectionType;
 }

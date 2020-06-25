@@ -1,8 +1,9 @@
 import { Car, CarCatalog, CarMaker } from '../../../../types/Car';
-import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarByIDRequest, HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarUpdateRequest, HttpCarsRequest, HttpUsersCarsRequest } from '../../../../types/requests/HttpCarRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
+import { UserCar } from '../../../../types/User';
 import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -47,8 +48,7 @@ export default class CarSecurity {
   }
 
   public static filterCarCatalogResponse(carCatalog: CarCatalog, loggedUser: UserToken): CarCatalog {
-    let filteredCarCatalog;
-
+    let filteredCarCatalog: CarCatalog;
     if (!carCatalog) {
       return null;
     }
@@ -92,6 +92,23 @@ export default class CarSecurity {
     }
     // Created By / Last Changed By
     UtilsSecurity.filterCreatedAndLastChanged(filteredCarCatalog, carCatalog, loggedUser);
+    return filteredCarCatalog;
+  }
+
+  public static filterMinimalCarCatalogResponse(carCatalog: CarCatalog, loggedUser: UserToken): CarCatalog {
+    let filteredCarCatalog: CarCatalog;
+    if (!carCatalog) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadCarCatalog(loggedUser)) {
+      filteredCarCatalog = {
+        id: carCatalog.id,
+        vehicleModel: carCatalog.vehicleModel,
+        vehicleMake: carCatalog.vehicleMake,
+        vehicleModelVersion: carCatalog.vehicleModelVersion,
+      } as CarCatalog;
+    }
     return filteredCarCatalog;
   }
 
@@ -142,7 +159,8 @@ export default class CarSecurity {
           rangeWLTP: carCatalog.rangeWLTP,
           efficiencyReal: carCatalog.efficiencyReal,
           image: carCatalog.image,
-          chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed
+          chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed,
+          chargeStandardTables: carCatalog.chargeStandardTables
         });
       }
     }
@@ -156,8 +174,37 @@ export default class CarSecurity {
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       forced: UtilsSecurity.filterBoolean(request.forced),
       type: sanitize(request.type),
-      isDefault: UtilsSecurity.filterBoolean(request.isDefault)
+      converterType: sanitize(request.converterType),
+      usersAdded: request.usersUpserted ? request.usersUpserted.map((userUpserted: UserCar) => ({
+        user: userUpserted.user,
+        default: userUpserted.default,
+        owner: userUpserted.owner,
+      })) : [],
     };
+  }
+
+  public static filterCarUpdateRequest(request: any): HttpCarUpdateRequest {
+    const filteredRequest: HttpCarUpdateRequest = {
+      vin: sanitize(request.vin),
+      licensePlate: sanitize(request.licensePlate),
+      carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
+      type: sanitize(request.type),
+      id: sanitize(request.id),
+      converterType: sanitize(request.converterType),
+      usersRemoved: request.usersRemoved ? request.usersRemoved.map((userRemoved: UserCar) => ({
+        id: userRemoved.id,
+        user: userRemoved.user,
+        default: userRemoved.default,
+        owner: userRemoved.owner,
+      })) : [],
+      usersUpserted: request.usersUpserted ? request.usersUpserted.map((userUpserted: UserCar) => ({
+        id: userUpserted.id,
+        user: userUpserted.user,
+        default: userUpserted.default,
+        owner: userUpserted.owner,
+      })) : [],
+    };
+    return filteredRequest;
   }
 
   public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {
@@ -172,20 +219,19 @@ export default class CarSecurity {
       // Add
       if (car) {
         filteredCars.push(
-          this.filterCarResponse(car, loggedUser)
-        );
+          this.filterCarResponse(car, loggedUser, true));
       }
     }
     cars.result = filteredCars;
   }
 
-  public static filterCarResponse(car: Car, loggedUser: UserToken): Car {
+  public static filterCarResponse(car: Car, loggedUser: UserToken, forList = false): Car {
     let filteredCar: Car;
     if (!car) {
       return null;
     }
     // Admin?
-    if (Authorizations.isAdmin(loggedUser)) {
+    if (Authorizations.canUpdateCar(loggedUser)) {
       // Yes: set all params
       filteredCar = car;
     } else {
@@ -195,23 +241,80 @@ export default class CarSecurity {
         vin: car.vin,
         licensePlate: car.licensePlate,
         carCatalogID: car.carCatalogID,
+        type: car.type,
+        converterType: car.converterType,
+        carCatalog: car.carCatalog,
       };
     }
-    if (car.users) {
-      filteredCar.users = car.users.map(
-        (user) => UserSecurity.filterUserResponse(user, loggedUser));
+    if (filteredCar.carUsers) {
+      filteredCar.carUsers = car.carUsers.map((carUser) => ({
+        ...carUser, user: UserSecurity.filterMinimalUserResponse(carUser.user, loggedUser)
+      }));
     }
-    if (car.carCatalog) {
-      filteredCar.carCatalog = CarSecurity.filterCarCatalogResponse(car.carCatalog, loggedUser);
+    if (filteredCar.carCatalog) {
+      filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
+        this.filterCarCatalogResponse(car.carCatalog, loggedUser);
     }
+    UtilsSecurity.filterCreatedAndLastChanged(filteredCar, car, loggedUser);
     return filteredCar;
+  }
+
+  public static filterUsersCarsResponse(usersCars: DataResult<UserCar>, loggedUser: UserToken) {
+    const filteredUsersCars: UserCar[] = [];
+    if (!usersCars.result) {
+      return null;
+    }
+    if (!Authorizations.canListUsersCars(loggedUser)) {
+      return null;
+    }
+    for (const userCar of usersCars.result) {
+      // Add
+      if (userCar) {
+        filteredUsersCars.push(
+          this.filterUserCarResponse(userCar, loggedUser)
+        );
+      }
+    }
+    usersCars.result = filteredUsersCars;
+  }
+
+  public static filterUserCarResponse(userCar: UserCar, loggedUser: UserToken): UserCar {
+    if (!userCar) {
+      return null;
+    }
+    const filteredUserCar: UserCar = {
+      id: userCar.id,
+      user: UserSecurity.filterMinimalUserResponse(userCar.user, loggedUser),
+      carID: userCar.carID,
+      default: userCar.default,
+      owner: userCar.owner
+    };
+    return filteredUserCar;
   }
 
   public static filterCarsRequest(request: any): HttpCarsRequest {
     const filteredRequest: HttpCarsRequest = {
       Search: sanitize(request.Search),
       CarMaker: sanitize(request.CarMaker),
+      WithUsers: UtilsSecurity.filterBoolean(request.WithUsers),
     } as HttpCarsRequest;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  public static filterCarRequest(request: any): HttpCarByIDRequest {
+    const filteredRequest: HttpCarByIDRequest = {
+      ID: sanitize(request.CarID),
+    } as HttpCarByIDRequest;
+    return filteredRequest;
+  }
+
+  public static filterCarUsersRequest(request: any): HttpUsersCarsRequest {
+    const filteredRequest: HttpUsersCarsRequest = {
+      Search: sanitize(request.Search),
+      CarID: sanitize(request.CarID),
+    } as HttpUsersCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

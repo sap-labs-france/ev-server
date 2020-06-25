@@ -1,7 +1,7 @@
 import Constants from '../../utils/Constants';
-import { JsonWSClientConfiguration } from '../../types/configuration/WSClientConfiguration';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
+import { WSClientOptions } from '../../types/WebSocket';
 import WebSocket from 'ws';
 
 const MODULE_NAME = 'WSClient';
@@ -32,7 +32,7 @@ export default class WSClient {
   public onreconnect: Function;
   public readyState: number;
   private url: string;
-  private options: JsonWSClientConfiguration;
+  private options: WSClientOptions;
   private callbacks: { [key: string]: Function };
   private dbLogging: boolean;
   private autoReconnectRetryCount: number;
@@ -41,9 +41,9 @@ export default class WSClient {
   private logTenantID: string;
   private ws: WebSocket;
 
-  public constructor(url: string, options: JsonWSClientConfiguration, dbLogging = true) {
+  public constructor(url: string, options: WSClientOptions, dbLogging = true) {
     this.url = url;
-    this.options = options || {} as JsonWSClientConfiguration;
+    this.options = options || {} as WSClientOptions;
     this.callbacks = {
       onopen: () => { },
       onerror: () => { },
@@ -72,7 +72,7 @@ export default class WSClient {
     this.reinstantiateCbs();
   }
 
-  public reconnect(error): void {
+  public reconnect(error: Error): void {
     if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
       (this.autoReconnectRetryCount < this.autoReconnectMaxRetries || this.autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {
       this.autoReconnectRetryCount++;
@@ -121,7 +121,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when data is written out
    * @public
    */
-  public send(data, options?, callback?) {
+  public send(data, options?, callback?: (err?: Error) => void): void {
     this.ws.send(data, options, callback);
   }
 
@@ -144,7 +144,7 @@ export default class WSClient {
    * @param {String} data A string explaining why the connection is closing
    * @public
    */
-  public close(code?: number, reason?) {
+  public close(code?: number, reason?: string): void {
     return this.ws.close(code, reason);
   }
 
@@ -156,7 +156,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when the ping is sent
    * @public
    */
-  public ping(data?, mask?, callback?): void {
+  public ping(data?, mask?: boolean, callback?: (err: Error) => void): void {
     this.ws.ping(data, mask, callback);
   }
 
@@ -177,11 +177,11 @@ export default class WSClient {
    *
    * @public
    */
-  public terminate() {
+  public terminate(): void {
     return this.ws.terminate();
   }
 
-  public isConnectionOpen() {
+  public isConnectionOpen(): boolean {
     return this.ws.readyState === WebSocket.OPEN;
   }
 

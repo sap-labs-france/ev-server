@@ -1,12 +1,11 @@
-import { HttpAssetRequest, HttpAssetsRequest, HttpAssignAssetsToSiteAreaRequest } from '../../../../types/requests/HttpAssetRequest';
-
-import Asset from '../../../../types/Asset';
-import Authorizations from '../../../../authorization/Authorizations';
-import { DataResult } from '../../../../types/DataResult';
-import SiteAreaSecurity from './SiteAreaSecurity';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
+import Authorizations from '../../../../authorization/Authorizations';
+import Asset from '../../../../types/Asset';
+import { DataResult } from '../../../../types/DataResult';
+import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import UserToken from '../../../../types/UserToken';
+import SiteAreaSecurity from './SiteAreaSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class AssetSecurity {
 
@@ -19,13 +18,6 @@ export default class AssetSecurity {
       ID: sanitize(request.ID),
       WithSiteArea: UtilsSecurity.filterBoolean(request.WithSiteArea)
     } as HttpAssetRequest;
-  }
-
-  public static filterAssignAssetsToSiteAreaRequest(request: any): HttpAssignAssetsToSiteAreaRequest {
-    return {
-      siteAreaID: sanitize(request.siteAreaID),
-      assetIDs: request.assetIDs.map(sanitize)
-    };
   }
 
   public static filterAssetsRequest(request: any): HttpAssetsRequest {

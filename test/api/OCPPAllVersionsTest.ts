@@ -81,16 +81,8 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
-        it('Should be able to start transaction with tag as integer', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithTagAsInteger();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
-        });
-
-        it('Should be able to start a transaction with meterStart as string', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithMeterStartAsString();
         });
 
         it('Should be able to start a transaction with meterStart greater than 0', async () => {
@@ -99,14 +91,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('Should not be able to start a transaction with invalid tag', async () => {
           await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
-        });
-
-        it('Should not be able to start a transaction with invalid connectorId', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidConnectorId();
-        });
-
-        it('Should not be able to start a transaction with invalid meterStart', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidMeterStart();
         });
 
         it('Should be able to stop a transaction without transactionData', async () => {
@@ -139,10 +123,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should have saved the connection\'s IP address', async () => {
           await testData.ocppCommonTests.testClientIP();
-        });
-
-        it('Charging station should have saved the server\'s local IP address', async () => {
-          await testData.ocppCommonTests.testServerLocalIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -210,16 +190,8 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
-        it('Should be able to start transaction with tag as integer', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithTagAsInteger();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
-        });
-
-        it('Should be able to start a transaction with meterStart as string', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithMeterStartAsString();
         });
 
         it('Should be able to start a transaction with meterStart greater than 0', async () => {
@@ -228,14 +200,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('Should not be able to start a transaction with invalid tag', async () => {
           await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
-        });
-
-        it('Should not be able to start a transaction with invalid connectorId', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidConnectorId();
-        });
-
-        it('Should not be able to start a transaction with invalid meterStart', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidMeterStart();
         });
 
         it('Should be able to stop a transaction without transactionData', async () => {
@@ -268,10 +232,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should have saved the connection\'s IP address', async () => {
           await testData.ocppCommonTests.testClientIP();
-        });
-
-        it('Charging station should have saved the server\'s local IP address', async () => {
-          await testData.ocppCommonTests.testServerLocalIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -398,7 +358,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -453,7 +413,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -467,7 +427,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -481,7 +441,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -495,7 +455,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -569,7 +529,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -624,7 +584,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -638,7 +598,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -652,7 +612,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -666,7 +626,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+            await testData.ocppCommonTests.testStartTransaction(false);
           });
 
         });
@@ -719,16 +679,8 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
-        it('Should be able to start transaction with tag as integer', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithTagAsInteger();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
-        });
-
-        it('Should be able to start a transaction with meterStart as string', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithMeterStartAsString();
         });
 
         it('Should be able to start a transaction with meterStart greater than 0', async () => {
@@ -737,14 +689,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('Should not be able to start a transaction with invalid tag', async () => {
           await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
-        });
-
-        it('Should not be able to start a transaction with invalid connectorId', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidConnectorId();
-        });
-
-        it('Should not be able to start a transaction with invalid meterStart', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidMeterStart();
         });
 
         it('Should be able to stop a transaction without transactionData', async () => {
@@ -777,10 +721,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should have saved the connection\'s IP address', async () => {
           await testData.ocppCommonTests.testClientIP();
-        });
-
-        it('Charging station should have saved the server\'s local IP address', async () => {
-          await testData.ocppCommonTests.testServerLocalIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -913,16 +853,8 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
-        it('Should be able to start transaction with tag as integer', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithTagAsInteger();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
-        });
-
-        it('Should be able to start a transaction with meterStart as string', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithMeterStartAsString();
         });
 
         it('Should be able to start a transaction with meterStart greater than 0', async () => {
@@ -931,14 +863,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('Should not be able to start a transaction with invalid tag', async () => {
           await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
-        });
-
-        it('Should not be able to start a transaction with invalid connectorId', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidConnectorId();
-        });
-
-        it('Should not be able to start a transaction with invalid meterStart', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidMeterStart();
         });
 
         it('Should be able to stop a transaction without transactionData', async () => {
@@ -971,10 +895,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should have saved the connection\'s IP address', async () => {
           await testData.ocppCommonTests.testClientIP();
-        });
-
-        it('Charging station should have saved the server\'s local IP address', async () => {
-          await testData.ocppCommonTests.testServerLocalIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -1018,7 +938,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics();
+            await testData.ocppCommonTests.testTransactionMetrics(false, false, true);
           });
 
           it('Start user should not be able to delete his transaction', async () => {
@@ -1046,7 +966,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SoC)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(true);
+            await testData.ocppCommonTests.testTransactionMetrics(true, false, true);
           });
 
           it('Start user should not be able to delete his transaction (with SoC)', async () => {
@@ -1074,7 +994,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            await testData.ocppCommonTests.testTransactionMetrics(false, true, true);
           });
 
           it('Start user should not be able to delete his transaction (with SignedData)', async () => {
@@ -1117,7 +1037,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics();
+            await testData.ocppCommonTests.testTransactionMetrics(false, false, true);
           });
 
           it('Start user should not be able to delete his transaction', async () => {
@@ -1145,7 +1065,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SoC)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(true);
+            await testData.ocppCommonTests.testTransactionMetrics(true, false, true);
           });
 
           it('Start user should not be able to delete his transaction (with SoC)', async () => {
@@ -1173,7 +1093,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            await testData.ocppCommonTests.testTransactionMetrics(false, true, true);
           });
 
           it('Start user should not be able to delete his transaction (with SignedData)', async () => {

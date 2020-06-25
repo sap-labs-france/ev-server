@@ -225,7 +225,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get sessions endpoint url
     let sessionsUrl = this.getEndpointUrl('sessions', ServerAction.OCPI_PULL_SESSIONS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
-    sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=20`;
+    sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
     while (nextResult) {
       // Log
@@ -295,7 +295,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get cdrs endpoint url
     let cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_PULL_CDRS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
-    cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=20`;
+    cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
     while (nextResult) {
       // Log
@@ -455,7 +455,55 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  async pushToken(token: OCPIToken) {
+  async checkToken(tokenUid: string): Promise<boolean> {
+    // Get tokens endpoint url
+    const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CHECK_TOKENS);
+    // Read configuration to retrieve
+    const countryCode = this.getLocalCountryCode(ServerAction.OCPI_CHECK_TOKENS);
+    const partyID = this.getLocalPartyID(ServerAction.OCPI_CHECK_TOKENS);
+    // Build url to IOP
+    const fullUrl = tokensUrl + `/${countryCode}/${partyID}/${tokenUid}`;
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_TOKENS,
+      message: `Get token at ${fullUrl}`,
+      module: MODULE_NAME, method: 'getToken',
+      detailedMessages: { tokenUid }
+    });
+    // Call IOP
+    const response = await axios.get(fullUrl,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`
+        },
+        timeout: 10000
+      });
+    if (response.status === 200 && response.data) {
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.OCPI_CHECK_LOCATIONS,
+        message: 'Token checked with result',
+        module: MODULE_NAME, method: 'checkToken',
+        detailedMessages: { response : response.data }
+      });
+      const checkedToken = response.data.data as OCPILocation;
+      if (checkedToken) {
+        return true;
+      }
+    }
+    // Check response
+    if (!response.data) {
+      throw new BackendError({
+        action: ServerAction.OCPI_CHECK_TOKENS,
+        message: `Get token failed with status ${JSON.stringify(response)}`,
+        module: MODULE_NAME, method: 'getToken',
+        detailedMessages: { response: response.data }
+      });
+    }
+  }
+
+  async pushToken(token: OCPIToken): Promise<boolean> {
     // Get tokens endpoint url
     const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_PUSH_TOKENS);
     // Read configuration to retrieve
@@ -489,6 +537,7 @@ export default class EmspOCPIClient extends OCPIClient {
         detailedMessages: { response: response.data }
       });
     }
+    return this.checkToken(token.uid);
   }
 
   async remoteStartSession(chargingStation: ChargingStation, connectorId: number, tagId: string): Promise<OCPICommandResponse> {
@@ -516,26 +565,19 @@ export default class EmspOCPIClient extends OCPIClient {
     const token: OCPIToken = {
       uid: tag.id,
       type: OCPITokenType.RFID,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_id: user.id,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       visual_number: user.id,
       issuer: this.tenant.name,
       valid: true,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: new Date()
     };
     const authorizationId = uuid();
     const payload: OCPIStartSession = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       response_url: callbackUrl + '/' + authorizationId,
       token: token,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       evse_uid: chargingStation.imsi,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       location_id: chargingStation.iccid,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       authorization_id: authorizationId
     };
     // Log
@@ -585,6 +627,7 @@ export default class EmspOCPIClient extends OCPIClient {
   async remoteStopSession(transactionId: number): Promise<OCPICommandResponse> {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
+    const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.STOP_SESSION;
     const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
     if (!transaction || !transaction.ocpiData || !transaction.ocpiData.session || transaction.issuer) {
       throw new BackendError({
@@ -595,9 +638,7 @@ export default class EmspOCPIClient extends OCPIClient {
       });
     }
     const payload: OCPIStopSession = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      response_url: commandUrl + '/' + uuid(),
-      // eslint-disable-next-line @typescript-eslint/camelcase
+      response_url: callbackUrl + '/' + transaction.ocpiData.session.id,
       session_id: transaction.ocpiData.session.id
     };
     // Log

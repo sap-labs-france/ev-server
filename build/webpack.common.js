@@ -3,7 +3,6 @@ const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
 const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const CopyPlugin = require('copy-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
 
 const config = {
   entry: commonPaths.srcPath + '/start.ts',
@@ -54,11 +53,6 @@ const config = {
   ],
   optimization: {
     minimize: false,
-    minimizer: [
-      new TerserPlugin({
-        sourceMap: true,
-      }),
-    ],
   },
 };
 

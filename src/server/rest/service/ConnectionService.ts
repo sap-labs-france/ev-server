@@ -46,7 +46,7 @@ export default class ConnectionService {
     }
     // Get it
     const connection = await ConnectionStorage.getConnection(req.user.tenantID, connectionID);
-    UtilsService.assertObjectExists(action, connection, `Connection ID '${connectionID}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, connection, `Connection ID '${connectionID}' does not exist`,
       MODULE_NAME, 'handleGetConnection', req.user);
     // Return
     res.json(
@@ -125,7 +125,7 @@ export default class ConnectionService {
     }
     // Get connection
     const connection = await ConnectionStorage.getConnection(req.user.tenantID, connectionID);
-    UtilsService.assertObjectExists(action, connection, `Connection ID '${connectionID}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, connection, `Connection ID '${connectionID}' does not exist`,
       MODULE_NAME, 'handleDeleteConnection', req.user);
     // Delete
     await ConnectionStorage.deleteConnectionById(req.user.tenantID, connection.id);

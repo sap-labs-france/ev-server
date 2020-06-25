@@ -29,16 +29,30 @@ export default class ConsumptionStorage {
       connectorId: Utils.convertToInt(consumptionToSave.connectorId),
       siteAreaID: Utils.convertToObjectID(consumptionToSave.siteAreaID),
       siteID: Utils.convertToObjectID(consumptionToSave.siteID),
-      consumption: Utils.convertToFloat(consumptionToSave.consumption),
+      consumptionWh: Utils.convertToFloat(consumptionToSave.consumptionWh),
+      consumptionAmps: Utils.convertToFloat(consumptionToSave.consumptionAmps),
       cumulatedAmount: Utils.convertToFloat(consumptionToSave.cumulatedAmount),
-      cumulatedConsumption: Utils.convertToFloat(consumptionToSave.cumulatedConsumption),
+      cumulatedConsumptionWh: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionWh),
       cumulatedConsumptionAmps: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionAmps),
       pricingSource: consumptionToSave.pricingSource,
       amount: Utils.convertToFloat(consumptionToSave.amount),
       roundedAmount: Utils.convertToFloat(consumptionToSave.roundedAmount),
       currencyCode: consumptionToSave.currencyCode,
-      instantPower: Utils.convertToFloat(consumptionToSave.instantPower),
+      instantWatts: Utils.convertToFloat(consumptionToSave.instantWatts),
+      instantWattsL1: Utils.convertToFloat(consumptionToSave.instantWattsL1),
+      instantWattsL2: Utils.convertToFloat(consumptionToSave.instantWattsL2),
+      instantWattsL3: Utils.convertToFloat(consumptionToSave.instantWattsL3),
+      instantWattsDC: Utils.convertToFloat(consumptionToSave.instantWattsDC),
       instantAmps: Utils.convertToFloat(consumptionToSave.instantAmps),
+      instantAmpsL1: Utils.convertToFloat(consumptionToSave.instantAmpsL1),
+      instantAmpsL2: Utils.convertToFloat(consumptionToSave.instantAmpsL2),
+      instantAmpsL3: Utils.convertToFloat(consumptionToSave.instantAmpsL3),
+      instantAmpsDC: Utils.convertToFloat(consumptionToSave.instantAmpsDC),
+      instantVolts: Utils.convertToFloat(consumptionToSave.instantVolts),
+      instantVoltsL1: Utils.convertToFloat(consumptionToSave.instantVoltsL1),
+      instantVoltsL2: Utils.convertToFloat(consumptionToSave.instantVoltsL2),
+      instantVoltsL3: Utils.convertToFloat(consumptionToSave.instantVoltsL3),
+      instantVoltsDC: Utils.convertToFloat(consumptionToSave.instantVoltsDC),
       totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
       stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
@@ -115,7 +129,7 @@ export default class ConsumptionStorage {
           hour: { '$hour': '$startedAt' },
           minute: { '$minute': '$startedAt' }
         },
-        instantPower: { $sum: '$instantPower' },
+        instantWatts: { $sum: '$instantWatts' },
         instantAmps: { $sum: '$instantAmps' },
         limitWatts: { $last: '$limitSiteAreaWatts' },
         limitAmps: { $last: '$limitSiteAreaAmps' }
@@ -196,7 +210,7 @@ export default class ConsumptionStorage {
     });
     aggregation.push({
       $addFields: {
-        roundedInstantPower: { $round: [{ $divide: ['$instantPower', 100] }] }
+        roundedInstantPower: { $round: [{ $divide: ['$instantWatts', 100] }] }
       }
     });
     // Triming excess values
@@ -221,7 +235,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Do the optimization in the code!!!
-    // TODO: Handle this coding into the MongoDB request
+    // TODO: Handle this coding into MongoDB request
     const consumptions: Consumption[] = [];
     for (const consumptionMDB of consumptionsMDB) {
       let lastConsumption: Consumption = null;

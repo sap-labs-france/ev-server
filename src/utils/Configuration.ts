@@ -31,7 +31,7 @@ import global from './../types/GlobalType';
 import os from 'os';
 
 const _appEnv = cfenv.getAppEnv();
-let config = null;
+let config: ConfigurationType = null;
 
 export default class Configuration {
   // Read the config file
@@ -222,12 +222,6 @@ export default class Configuration {
     return Configuration.getConfig().EVDatabase;
   }
 
-  // Locale config
-  static getLocalesConfig(): LocalesConfiguration {
-    // Read conf
-    return Configuration.getConfig().Locales;
-  }
-
   // DB config
   static getStorageConfig(): StorageConfiguration {
     const storage: StorageConfiguration = Configuration.getConfig().Storage;
@@ -263,8 +257,15 @@ export default class Configuration {
 
   // Central System config
   static getChargingStationConfig(): ChargingStationConfiguration {
-    // Read conf
-    return Configuration.getConfig().ChargingStation;
+    // Read conf and set defaults values
+    const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
+    if (!Utils.isUndefined(chargingStationConfiguration.useServerLocalIPForRemoteCommand)) {
+      console.log('Deprecated configuration key usage \'ChargingStation.useServerLocalIPForRemoteCommand\'');
+      if (!Utils.isUndefined(chargingStationConfiguration.secureLocalServer)) {
+        console.log('Deprecated configuration key usage \'ChargingStation.secureLocalServer\'');
+      }
+    }
+    return chargingStationConfiguration;
   }
 
   // Logging

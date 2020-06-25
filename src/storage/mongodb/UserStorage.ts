@@ -31,17 +31,11 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getEndUserLicenseAgreement');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    let languageFound = false;
     let currentEulaHash: string;
-    const supportLanguages = Configuration.getLocalesConfig().supported;
-    // Search for language
-    for (const supportLanguage of supportLanguages) {
-      if (language === supportLanguage.substring(0, 2)) {
-        languageFound = true;
-      }
-    }
-    if (!languageFound) {
-      language = 'en';
+    // Supported languages?
+    if (!Constants.SUPPORTED_LANGUAGES.includes(language)) {
+      // Default
+      language = Constants.DEFAULT_LANGUAGE;
     }
     // Get current eula
     const currentEula = UserStorage.getEndUserLicenseAgreementFromFile(language);
@@ -77,7 +71,7 @@ export default class UserStorage {
       Logging.traceEnd(MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, { language });
       return eulaMDB;
     }
-    // Create Default
+    // Create default
     const eula = {
       timestamp: new Date(),
       language: language,
@@ -135,7 +129,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { userID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, { userIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUser', uniqueTimerID, { id });
     return user.count > 0 ? user.result[0] : null;
@@ -191,24 +185,20 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addSitesToUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // User provided?
-    if (userID) {
-      // At least one Site
-      if (siteIDs && siteIDs.length > 0) {
-        const siteUsers = [];
-        // Create the list
-        for (const siteID of siteIDs) {
-          // Add
-          siteUsers.push({
-            '_id': Cypher.hash(`${siteID}~${userID}`),
-            'userID': Utils.convertToObjectID(userID),
-            'siteID': Utils.convertToObjectID(siteID),
-            'siteAdmin': false
-          });
-        }
-        // Execute
-        await global.database.getCollection<any>(tenantID, 'siteusers').insertMany(siteUsers);
+    // At least one Site
+    if (siteIDs && siteIDs.length > 0) {
+      const siteUsersMDB = [];
+      // Create the list
+      for (const siteID of siteIDs) {
+        siteUsersMDB.push({
+          '_id': Cypher.hash(`${siteID}~${userID}`),
+          'userID': Utils.convertToObjectID(userID),
+          'siteID': Utils.convertToObjectID(siteID),
+          'siteAdmin': false
+        });
       }
+      // Execute
+      await global.database.getCollection<any>(tenantID, 'siteusers').insertMany(siteUsersMDB);
     }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'addSitesToUser', uniqueTimerID, { userID, siteIDs });
@@ -491,7 +481,8 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-      userID?: string; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
+      includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
+      userIDs?: string[]; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
       notifications?: any; noLoginSince?: Date;
     },
@@ -507,11 +498,8 @@ export default class UserStorage {
     const filters: any = {
       '$or': DatabaseUtils.getNotDeletedFilter()
     };
-    // Filter by ID
-    if (params.userID) {
-      filters._id = Utils.convertToObjectID(params.userID);
-      // Filter by other properties
-    } else if (params.search) {
+    // Filter by other properties
+    if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'name': { $regex: searchRegex, $options: 'i' } },
@@ -521,8 +509,15 @@ export default class UserStorage {
         { 'plateID': { $regex: searchRegex, $options: 'i' } }
       ];
     }
+    // Limit on Car for Basic Users
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+    }
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
+    }
+    if (!Utils.isEmptyArray(params.excludeUserIDs)) {
+      filters._id = { $nin: params.excludeUserIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     // Email
     if (params.email) {
@@ -588,6 +583,32 @@ export default class UserStorage {
         $match: filters
       });
     }
+    // Add post filter
+    if (params.notAssignedToCarID) {
+      const notAssignedToCarIDFilter = {
+        '$or': []
+      };
+      DatabaseUtils.pushUserCarLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'carUsers'
+      });
+      // Add Car ID in OR
+      const carIDFilter = {};
+      carIDFilter['carUsers.carID'] = { $ne: Utils.convertToObjectID(params.notAssignedToCarID) };
+      notAssignedToCarIDFilter.$or.push(carIDFilter);
+      // Bypass Car ID if users has been removed in UI
+      if (params.includeCarUserIDs) {
+        const includeCarUserIDsFilter = {};
+        includeCarUserIDsFilter['carUsers.userID'] = { $in: params.includeCarUserIDs.map((includeCarUserID) =>
+          Utils.convertToObjectID(includeCarUserID)) };
+        notAssignedToCarIDFilter.$or.push(includeCarUserIDsFilter);
+      }
+      // Filters
+      if (filters) {
+        aggregation.push({
+          $match: notAssignedToCarIDFilter
+        });
+      }
+    }
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {
       DatabaseUtils.pushSiteUserLookupInAggregation({
@@ -629,19 +650,13 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
-
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { status: -1, name: 1, firstName: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { status: -1, name: 1, firstName: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -650,6 +665,8 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -707,7 +724,6 @@ export default class UserStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
-
     // Create Aggregation
     const aggregation = [];
     if (params) {
@@ -750,16 +766,12 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
-
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { lastChangedOn: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { lastChangedOn: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -841,7 +853,7 @@ export default class UserStorage {
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
       if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
-         ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
+        ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
         continue;
       }
       array.push(`$${type}`);
@@ -861,15 +873,12 @@ export default class UserStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Mongodb sort, skip and limit block
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { status: -1, name: 1, firstName: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { status: -1, name: 1, firstName: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -901,7 +910,7 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Delete User from sites
+    // Delete Site Users
     await global.database.getCollection<any>(tenantID, 'siteusers')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
     // Delete Image
@@ -917,7 +926,7 @@ export default class UserStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteUser', uniqueTimerID, { id });
   }
 
-  public static async getSites(tenantID: string,
+  public static async getUserSites(tenantID: string,
     params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
@@ -947,24 +956,18 @@ export default class UserStorage {
       $match: filters
     });
     // Get Sites
-    DatabaseUtils.pushSiteLookupInAggregation(
-      {
-        tenantID, aggregation, localField: 'siteID', foreignField: '_id',
-        asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
-      });
+    DatabaseUtils.pushSiteLookupInAggregation({
+      tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+      asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+    });
     // Another match for searching on Sites
     if (params.search) {
       aggregation.push({
         $match: {
-          $or: [
-            { 'site.name': { $regex: params.search, $options: 'i' } }
-          ]
+          'site.name': { $regex: params.search, $options: 'i' }
         }
       });
     }
-    // Convert IDs to String
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -984,15 +987,12 @@ export default class UserStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { 'site.name': 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { 'site.name': 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -1001,6 +1001,11 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert IDs to String
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -1008,27 +1013,14 @@ export default class UserStorage {
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
-      })
-      .toArray();
-    // Create
-    const sites: SiteUser[] = [];
-    for (const siteUserMDB of siteUsersMDB) {
-      if (siteUserMDB.site) {
-        sites.push({
-          siteAdmin: siteUserMDB.siteAdmin,
-          siteOwner: siteUserMDB.siteOwner,
-          userID: siteUserMDB.userID,
-          site: siteUserMDB.site
-        });
-      }
-    }
+      }).toArray();
     // Debug
     Logging.traceEnd(MODULE_NAME, 'UserStorage', uniqueTimerID, { userID: params.userID });
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
-      result: sites
+      result: siteUsersMDB
     };
   }
 
@@ -1137,7 +1129,7 @@ export default class UserStorage {
     }
     // Build Front End URL
     const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
-      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
+      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port.toString();
     // Parse the auth and replace values
     eulaText = Mustache.render(
       eulaText,

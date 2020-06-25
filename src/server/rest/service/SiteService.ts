@@ -22,74 +22,6 @@ const MODULE_NAME = 'SiteService';
 
 export default class SiteService {
 
-  public static async handleAddUsersToSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAddUsersToSite');
-    // Filter
-    const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
-    // Check auth
-    if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleAddUsersToSite',
-        value: filteredRequest.siteID
-      });
-    }
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteID, 'SiteSecurity', 'filterAssignSiteUsers', req.user);
-    if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The User\'s IDs must be provided',
-        module: MODULE_NAME,
-        method: 'filterAssignSiteUsers',
-        user: req.user
-      });
-    }
-    // Get the Site
-    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
-    if (!site) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleAddUsersToSite',
-        user: req.user
-      });
-    }
-    for (const userID of filteredRequest.userIDs) {
-      // Check the user
-      const user = await UserStorage.getUser(req.user.tenantID, userID);
-      if (!user) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-          message: `The User with ID '${userID}' does not exist`,
-          module: MODULE_NAME,
-          method: 'handleAddUsersToSite',
-          user: req.user
-        });
-      }
-    }
-    // Save
-    await SiteStorage.addUsersToSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleAddUsersToSite',
-      message: 'Site\'s Users have been added successfully', action: action
-    });
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
-  }
-
   public static async handleUpdateSiteUserAdmin(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
@@ -151,30 +83,12 @@ export default class SiteService {
     }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
-    if (!site) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserAdmin',
-        user: req.user,
-        actionOnUser: filteredRequest.userID
-      });
-    }
+    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.siteID}' does not exist`,
+      MODULE_NAME, 'handleUpdateSiteUserAdmin', req.user);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The User with ID '${filteredRequest.userID}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserAdmin',
-        user: req.user,
-        actionOnUser: filteredRequest.userID
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleUpdateSiteUserAdmin', req.user);
     // Check user
     if (!Authorizations.isBasic(user)) {
       throw new AppError({
@@ -250,30 +164,12 @@ export default class SiteService {
     }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
-    if (!site) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserOwner',
-        user: req.user,
-        actionOnUser: filteredRequest.userID
-      });
-    }
+    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.siteID}' does not exist`,
+      MODULE_NAME, 'handleUpdateSiteUserOwner', req.user);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The User with ID '${filteredRequest.userID}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserOwner',
-        user: req.user,
-        actionOnUser: filteredRequest.userID
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleUpdateSiteUserOwner', req.user);
     // Update
     await SiteStorage.updateSiteOwner(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
     // Log
@@ -288,10 +184,10 @@ export default class SiteService {
     next();
   }
 
-  public static async handleRemoveUsersFromSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAssignUsersToSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleRemoveUsersFromSite');
+      Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
@@ -301,43 +197,54 @@ export default class SiteService {
         action: Action.UPDATE,
         entity: Entity.SITE,
         module: MODULE_NAME,
-        method: 'handleRemoveUsersFromSite',
+        method: 'handleAssignUsersToSite',
         value: filteredRequest.siteID
+      });
+    }
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteID, MODULE_NAME, 'handleAssignUsersToSite', req.user);
+    if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The User\'s IDs must be provided',
+        module: MODULE_NAME,
+        method: 'handleAssignUsersToSite',
+        user: req.user
       });
     }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
-    if (!site) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleRemoveUsersFromSite',
-        user: req.user
-      });
-    }
+    UtilsService.assertObjectExists(action, site, `Site '${filteredRequest.siteID}' does not exist`,
+      MODULE_NAME, 'handleAssignUsersToSite', req.user);
     // Get Users
     for (const userID of filteredRequest.userIDs) {
       // Check the user
       const user = await UserStorage.getUser(req.user.tenantID, userID);
-      if (!user) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-          message: `The User with ID '${userID}' does not exist`,
+      UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
+        MODULE_NAME, 'handleAssignUsersToSite', req.user);
+      // Auth
+      if (!Authorizations.canReadUser(req.user, userID)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.READ,
+          entity: Entity.USER,
           module: MODULE_NAME,
-          method: 'handleRemoveUsersFromSite',
-          user: req.user
+          method: 'handleAssignUsersToSite',
+          value: userID
         });
       }
     }
     // Save
-    await SiteStorage.removeUsersFromSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
+    if (action === ServerAction.ADD_USERS_TO_SITE) {
+      await SiteStorage.addUsersToSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
+    } else {
+      await SiteStorage.removeUsersFromSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleRemoveUsersFromSite',
+      user: req.user, module: MODULE_NAME, method: 'handleAssignUsersToSite',
       message: 'Site\'s Users have been removed successfully', action: action
     });
     // Ok
@@ -365,16 +272,8 @@ export default class SiteService {
     }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.SiteID);
-    if (!site) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The Site with ID '${filteredRequest.SiteID}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleGetUsersFromSite',
-        user: req.user
-      });
-    }
+    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.SiteID}' does not exist`,
+      MODULE_NAME, 'handleGetUsersFromSite', req.user);
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.SiteID)) {
       throw new AppAuthError({
@@ -388,7 +287,7 @@ export default class SiteService {
       });
     }
     // Get users
-    const users = await SiteStorage.getUsers(req.user.tenantID,
+    const users = await SiteStorage.getSiteUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
         siteID: filteredRequest.SiteID

@@ -33,7 +33,7 @@ export default class Authorizations {
 
   private static configuration: AuthorizationConfiguration;
 
-  public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction) {
+  public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction): boolean {
     const context: AuthorizationContext = {
       UserID: transaction.userID,
       sitesOwner: loggedUser.sitesOwner,
@@ -43,7 +43,7 @@ export default class Authorizations {
       Action.REFUND_TRANSACTION, context);
   }
 
-  public static canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation) {
+  public static canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation): boolean {
     let context;
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       if (!chargingStation || !chargingStation.siteArea || !chargingStation.siteArea.site) {
@@ -64,7 +64,7 @@ export default class Authorizations {
       Action.REMOTE_START_TRANSACTION, context);
   }
 
-  public static canStopTransaction(loggedUser: UserToken, transaction: Transaction) {
+  public static canStopTransaction(loggedUser: UserToken, transaction: Transaction): boolean {
     if (!transaction) {
       return false;
     }
@@ -124,7 +124,7 @@ export default class Authorizations {
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
     // Get User's site
-    const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
+    const sites = (await UserStorage.getUserSites(tenantID, { userID: user.id },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
     sites.forEach((siteUser) => {
       if (!Authorizations.isAdmin(user)) {
@@ -161,7 +161,7 @@ export default class Authorizations {
       'tagIDs': user.tags ? user.tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
-      'language': user.locale.substring(0, 2),
+      'language': Utils.getLanguageFromLocale(user.locale),
       'currency': currency,
       'tenantID': tenantID,
       'tenantName': tenantName,
@@ -184,15 +184,18 @@ export default class Authorizations {
     return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Action.REMOTE_START_TRANSACTION);
   }
 
-  public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagId: string) {
+  public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation,
+    transaction: Transaction, tagId: string): Promise<{ user: User, alternateUser: User }> {
     let user: User, alternateUser: User;
     // Check if same user
     if (tagId !== transaction.tagID) {
-      alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, tagId, Action.REMOTE_STOP_TRANSACTION);
+      alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation,
+        transaction, tagId, Action.REMOTE_STOP_TRANSACTION);
       user = await UserStorage.getUserByTagId(tenantID, transaction.tagID);
     } else {
       // Check user
-      user = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, transaction.tagID, Action.REMOTE_STOP_TRANSACTION);
+      user = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation,
+        transaction, transaction.tagID, Action.REMOTE_STOP_TRANSACTION);
     }
     return { user, alternateUser };
   }
@@ -472,12 +475,28 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.LIST);
   }
 
+  public static canReadCar(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
+  }
+
+  public static canListUsersCars(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.LIST);
+  }
+
+  public static canAssignUsersCars(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.ASSIGN);
+  }
+
   public static canSynchronizeCarCatalogs(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.SYNCHRONIZE_CAR_CATALOGS);
   }
 
   public static canCreateCar(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.CREATE);
+  }
+
+  public static canUpdateCar(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.UPDATE);
   }
 
   public static canListAssets(loggedUser: UserToken): boolean {
@@ -568,6 +587,10 @@ export default class Authorizations {
 
   public static canSynchronizeInvoicesBilling(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE_INVOICES);
+  }
+
+  public static canCheckConnectionAsset(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CHECK_CONNECTION);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {
