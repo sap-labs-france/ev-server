@@ -426,7 +426,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_CREATE_INVOICE,
           module: MODULE_NAME, method: 'sendInvoiceToUser',
-          message: 'Failed to save invoice PDF in database',
+          message: 'Failed to save invoice in database',
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
