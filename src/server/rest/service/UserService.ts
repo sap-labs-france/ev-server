@@ -34,7 +34,7 @@ const MODULE_NAME = 'UserService';
 
 export default class UserService {
 
-  public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
@@ -552,7 +552,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest(req.body);
     // Check Mandatory fields
@@ -618,7 +618,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // User mandatory
@@ -669,7 +669,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = { ID: UserSecurity.filterUserByIDRequest(req.query) };
     // User mandatory

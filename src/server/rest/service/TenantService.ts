@@ -26,7 +26,7 @@ const MODULE_NAME = 'TenantService';
 
 export default class TenantService {
 
-  public static async handleDeleteTenant(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const id = TenantSecurity.filterTenantRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
@@ -75,7 +75,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
@@ -210,7 +210,7 @@ export default class TenantService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    ).catch(() => {});
+    ).catch(() => { });
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
@@ -245,8 +245,8 @@ export default class TenantService {
       MODULE_NAME, 'handleUpdateTenant', req.user);
     // Check if smart charging is deactivated in all site areas when deactivated in super tenant
     if (tenantUpdate.components && tenantUpdate.components.smartCharging &&
-        tenant.components && tenant.components.smartCharging &&
-       !tenantUpdate.components.smartCharging.active && tenant.components.smartCharging.active) {
+      tenant.components && tenant.components.smartCharging &&
+      !tenantUpdate.components.smartCharging.active && tenant.components.smartCharging.active) {
       const siteAreas = await SiteAreaStorage.getSiteAreas(tenantUpdate.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
       if (siteAreas.count !== 0) {
         throw new AppError({

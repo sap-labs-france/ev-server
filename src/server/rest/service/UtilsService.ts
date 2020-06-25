@@ -14,7 +14,7 @@ import Utils from '../../../utils/Utils';
 const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
-  static handleUnknownAction(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static handleUnknownAction(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
     // Action provided
     if (!action) {
       // Log
@@ -27,7 +27,7 @@ export default class UtilsService {
     }
   }
 
-  public static assertIdIsProvided(action: ServerAction, id: string|number, module: string, method: string, userToken: UserToken) {
+  public static assertIdIsProvided(action: ServerAction, id: string|number, module: string, method: string, userToken: UserToken): void {
     if (!id) {
       // Object does not exist
       throw new AppError({
@@ -42,7 +42,7 @@ export default class UtilsService {
     }
   }
 
-  public static assertObjectExists(action: ServerAction, object: any, errorMsg: string, module: string, method: string, userToken?: UserToken) {
+  public static assertObjectExists(action: ServerAction, object: any, errorMsg: string, module: string, method: string, userToken?: UserToken): void {
     if (!object) {
       throw new AppError({
         action,
@@ -57,7 +57,7 @@ export default class UtilsService {
   }
 
   public static assertComponentIsActiveFromToken(userToken: UserToken, component: TenantComponents,
-    action: Action, entity: Entity, module: string, method: string) {
+    action: Action, entity: Entity, module: string, method: string): void {
     // Check from token
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
