@@ -7,6 +7,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import Constants from '../../../utils/Constants';
 import { HTTPAuthError } from '../../../types/HTTPError';
 import I18nManager from '../../../utils/I18nManager';
+import { Log } from '../../../types/Log';
 import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../storage/mongodb/LoggingStorage';
 import { ServerAction } from '../../../types/Server';
@@ -18,7 +19,7 @@ import fs from 'fs';
 const MODULE_NAME = 'LoggingService';
 
 export default class LoggingService {
-  static async handleGetLoggings(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLoggings(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListLogging(req.user)) {
       throw new AppAuthError({
@@ -78,7 +79,7 @@ export default class LoggingService {
     next();
   }
 
-  static async handleGetLoggingsExport(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLoggingsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListLogging(req.user)) {
       throw new AppAuthError({
@@ -129,7 +130,7 @@ export default class LoggingService {
     });
   }
 
-  static async handleGetLogging(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLogging(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = LoggingSecurity.filterLoggingRequest(req.query);
     // Get logs
@@ -154,7 +155,7 @@ export default class LoggingService {
     next();
   }
 
-  private static convertToCSV(loggedUser: UserToken, loggings) {
+  private static convertToCSV(loggedUser: UserToken, loggings: Log[]): string {
     const i18nManager = new I18nManager(loggedUser.locale);
     let csv = `Date${Constants.CSV_SEPARATOR}Level${Constants.CSV_SEPARATOR}Type${Constants.CSV_SEPARATOR}Action${Constants.CSV_SEPARATOR}Message${Constants.CSV_SEPARATOR}Method${Constants.CSV_SEPARATOR}Module${Constants.CSV_SEPARATOR}Source${Constants.CSV_SEPARATOR}Host${Constants.CSV_SEPARATOR}Process\r\n`;
     for (const log of loggings) {

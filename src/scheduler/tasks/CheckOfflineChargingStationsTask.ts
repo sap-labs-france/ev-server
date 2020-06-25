@@ -19,19 +19,17 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
     if (await LockingManager.acquire(offlineChargingStationLock)) {
       try {
         // Compute the date some minutes ago
-        const someMinutesAgo = moment().subtract(
+        const offlineSince = moment().subtract(
           Utils.getChargingStationHeartbeatMaxIntervalSecs(), 'seconds').toDate();
-        const params = {
+        const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
           issuer: true,
-          offlineSince: someMinutesAgo
-        };
-        const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
+          offlineSince
+        }, Constants.DB_PARAMS_MAX_LIMIT);
         if (chargingStations.count > 0) {
           const chargingStationIDs: string = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
           // Send notification
           await NotificationHandler.sendOfflineChargingStations(
-            tenant.id,
-            {
+            tenant.id, {
               chargeBoxIDs: chargingStationIDs,
               evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
             }
