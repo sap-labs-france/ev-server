@@ -1,3 +1,12 @@
+import cluster from 'cluster';
+import moment from 'moment';
+import LockingManager from '../locking/LockingManager';
+import MigrationStorage from '../storage/mongodb/MigrationStorage';
+import { LockEntity } from '../types/Locking';
+import { ServerAction } from '../types/Server';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
+import MigrationTask from './MigrationTask';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
@@ -10,27 +19,20 @@ import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
-import Constants from '../utils/Constants';
+import CleanupSiteAreasTask from './tasks/CleanupSiteAreasTask';
 import InitialCarImportTask from './tasks/InitialCarImportTask';
-import { LockEntity } from '../types/Locking';
-import LockingManager from '../locking/LockingManager';
-import Logging from '../utils/Logging';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
-import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
 import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPropertiesTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
-import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjectIDsTask';
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
-import cluster from 'cluster';
-import moment from 'moment';
 
 const MODULE_NAME = 'MigrationHandler';
 
@@ -45,7 +47,7 @@ export default class MigrationHandler {
     if (await LockingManager.acquire(migrationLock)) {
       try {
         const startMigrationTime = moment();
-        const currentMigrationTasks = [];
+        const currentMigrationTasks: MigrationTask[] = [];
         // Log
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
@@ -80,6 +82,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddConsumptionAmpsToConsumptionsTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
         currentMigrationTasks.push(new RenameChargingStationPropertiesTask());
+        currentMigrationTasks.push(new CleanupSiteAreasTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
@@ -116,7 +119,7 @@ export default class MigrationHandler {
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
-          message: error.toString(),
+          message: error.message,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       } finally {
@@ -132,7 +135,7 @@ export default class MigrationHandler {
     }
   }
 
-  private static async executeTask(currentMigrationTask): Promise<void> {
+  private static async executeTask(currentMigrationTask: MigrationTask): Promise<void> {
     try {
       // Log Start Task
       Logging.logInfo({

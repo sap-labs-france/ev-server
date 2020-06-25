@@ -186,13 +186,6 @@ export default class SiteAreaStorage {
         $match: filters
       });
     }
-    // Sites
-    if (params.withSite) {
-      DatabaseUtils.pushSiteLookupInAggregation({
-        tenantID, aggregation, localField: 'siteID', foreignField: '_id',
-        asField: 'site', oneToOneCardinality: true
-      });
-    }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -212,6 +205,28 @@ export default class SiteAreaStorage {
     }
     // Remove the limit
     aggregation.pop();
+    // Add Sort
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
+    }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    // Skip
+    aggregation.push({
+      $skip: skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: limit
+    });
+    // Sites
+    if (params.withSite) {
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
+      });
+    }
     // Charging Stations
     if (params.withChargingStations || params.withAvailableChargers) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
@@ -225,26 +240,6 @@ export default class SiteAreaStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
-    // Sort
-    if (dbParams.sort) {
-      // Sort
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      // Default
-      aggregation.push({
-        $sort: { name: 1 }
-      });
-    }
-    // Skip
-    aggregation.push({
-      $skip: skip
-    });
-    // Limit
-    aggregation.push({
-      $limit: limit
-    });
     // Project
     if (projectFields) {
       DatabaseUtils.projectFields(aggregation,

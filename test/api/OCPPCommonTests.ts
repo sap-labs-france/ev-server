@@ -320,14 +320,6 @@ export default class OCPPCommonTests {
     expect(response.data.currentIPAddress).to.not.be.empty;
   }
 
-  public async testServerLocalIP() {
-    // Read charging station
-    const response = await this.chargingStationContext.readChargingStation();
-    // Check the presence of the server local IP
-    expect(response.data).to.have.property('currentServerLocalIPAddressPort');
-    expect(response.data.currentServerLocalIPAddressPort).to.not.be.empty;
-  }
-
   public async testDataTransfer() {
     // Check
     const response = await this.chargingStationContext.transferData({
@@ -1128,7 +1120,7 @@ export default class OCPPCommonTests {
       'meterStart': meterStart,
       'userID': this.transactionStartUser.id,
       'siteAreaID': this.chargingStationContext.getChargingStation().siteAreaID,
-      'siteID': this.chargingStationContext.getChargingStation().siteArea.siteID,
+      'siteID': this.chargingStationContext.getChargingStation().siteArea ? this.chargingStationContext.getChargingStation().siteArea.siteID : null,
       'user': {
         'id': this.transactionStartUser.id,
         'name': this.transactionStartUser.name,

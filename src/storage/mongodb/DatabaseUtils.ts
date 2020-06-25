@@ -27,7 +27,7 @@ export default class DatabaseUtils {
     return `${prefix}.${collectionNameSuffix}`;
   }
 
-  public static getNotDeletedFilter(fieldName?: string): object {
+  public static getNotDeletedFilter(fieldName?: string): any {
     if (fieldName) {
       return JSON.parse(`[
         { "${fieldName}.deleted": { "$exists": false } },
@@ -117,14 +117,14 @@ export default class DatabaseUtils {
 
   public static pushArrayLookupInAggregation(arrayName: string,
     lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
-    lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) {
+    lookupParams: DbLookup, additionalParams: { pipeline?: Record<string, any>[], sort?: any } = {}) {
     // Unwind the source
     lookupParams.aggregation.push({ '$unwind': { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } });
     // Call the lookup
     lookupMethod(lookupParams);
     // Add external pipeline
-    if (!Utils.isEmptyArray(additionalPipeline)) {
-      lookupParams.aggregation.push(...additionalPipeline);
+    if (!Utils.isEmptyArray(additionalParams.pipeline)) {
+      lookupParams.aggregation.push(...additionalParams.pipeline);
     }
     // Group back to arrays
     lookupParams.aggregation.push(
@@ -137,9 +137,30 @@ export default class DatabaseUtils {
       }`)
     );
     // Replace array
-    lookupParams.aggregation.push(JSON.parse(`{ "$addFields": { "root.${arrayName}": { "$cond": { "if": { "$eq": [ "$${arrayName}", [{}] ] }, "then": [], "else": "$${arrayName}" } } } }`));
+    lookupParams.aggregation.push(JSON.parse(`{
+      "$addFields": {
+        "root.${arrayName}": {
+          "$cond": {
+            "if": {
+              "$or": [
+                { "$eq": [ "$${arrayName}", [{}] ] },
+                { "$eq": [ "$${arrayName}", [null] ] }
+              ]
+            },
+            "then": [],
+            "else": "$${arrayName}"
+          }
+        }
+      }
+    }`));
     // Replace root
     lookupParams.aggregation.push({ $replaceRoot: { newRoot: '$root' } });
+    // Sort?
+    if (additionalParams.sort) {
+      lookupParams.aggregation.push({
+        $sort: additionalParams.sort
+      });
+    }
   }
 
   public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) {
@@ -194,6 +215,19 @@ export default class DatabaseUtils {
         }
       });
     }
+    // Check if the target field is a composed property: empty root document must be null ({} = null)
+    const splitAsField = lookupParams.asField.split('.');
+    if (splitAsField.length > 1) {
+      lookupParams.aggregation.push(JSON.parse(`{
+        "$addFields": {
+          "${splitAsField[0]}": {
+            "$cond": {
+              "if": { "$eq": [ "$${splitAsField[0]}", ${lookupParams.oneToOneCardinality ? '{}' : '[]'} ] },
+              "then": null, "else": "$${splitAsField[0]}" }
+          }
+        }
+      }`));
+    }
   }
 
   public static pushChargingStationInactiveFlag(aggregation: any[]) {
@@ -233,6 +267,19 @@ export default class DatabaseUtils {
         }
       }
     }`));
+    // Check if the field is a composed property: empty root document must be null ({} = null)
+    const splitFieldName = renamedFieldName.split('.');
+    if (splitFieldName.length === 2) {
+      aggregation.push(JSON.parse(`{
+        "$addFields": {
+          "${splitFieldName[0]}": {
+            "$cond": {
+              "if": { "$eq": [ "$${splitFieldName[0]}", { "${splitFieldName[1]}": null } ] },
+              "then": null, "else": "$${splitFieldName[0]}" }
+          }
+        }
+      }`));
+    }
   }
 
   public static clearFieldValueIfSubFieldIsNull(aggregation: any[], fieldName: string, subFieldName: string) {

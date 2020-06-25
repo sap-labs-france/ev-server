@@ -593,6 +593,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.DOWNLOAD);
   }
 
+  public static canCheckConnectionAsset(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CHECK_CONNECTION);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === UserRole.SUPER_ADMIN;
   }

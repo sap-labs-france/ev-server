@@ -1,15 +1,15 @@
-import { ObjectID } from 'mongodb';
 import { Car, CarCatalog, CarConverter, CarMaker, ChargeAlternativeTable, ChargeOptionTable } from '../../types/Car';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
 import global, { Image } from '../../types/GlobalType';
-import { UserCar } from '../../types/User';
+
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
-
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
+import { UserCar } from '../../types/User';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CarStorage';
 
@@ -90,20 +90,13 @@ export default class CarStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(Constants.DEFAULT_TENANT, aggregation);
-    // Handle the ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { name: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     if (skip > 0) {
       aggregation.push({ $skip: skip });
@@ -112,6 +105,10 @@ export default class CarStorage {
     aggregation.push({
       $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
     });
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(Constants.DEFAULT_TENANT, aggregation);
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -591,6 +588,7 @@ export default class CarStorage {
     }
     // Create Aggregation
     const aggregation = [];
+    // Filter on Users
     if (!Utils.isEmptyArray(params.userIDs) || params.withUsers) {
       DatabaseUtils.pushUserCarLookupInAggregation({
         tenantID: tenantID, aggregation, localField: '_id', foreignField: 'carID',
@@ -608,26 +606,6 @@ export default class CarStorage {
       aggregation.push({
         $match: filters
       });
-    }
-    DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
-      asField: 'carCatalog', oneToOneCardinality: true
-    });
-    if (params.withUsers) {
-      // Check
-      const carUsersPipeline = [];
-      if (!Utils.isEmptyArray(params.userIDs)) {
-        carUsersPipeline.push({
-          $match: {
-            'carUsers.userID': { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) }
-          }
-        });
-      }
-      // User on Car Users
-      DatabaseUtils.pushArrayLookupInAggregation('carUsers', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
-        tenantID, aggregation: aggregation, localField: 'carUsers.userID', foreignField: '_id',
-        asField: 'carUsers.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-      }, carUsersPipeline);
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -648,25 +626,18 @@ export default class CarStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Handle the ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: {
-          'carCatalog.vehicleMake': 1,
-          'carCatalog.vehicleModel': 1,
-          'carCatalog.vehicleModelVersion': 1,
-          'licensePlate': 1,
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = {
+        'carCatalog.vehicleMake': 1,
+        'carCatalog.vehicleModel': 1,
+        'carCatalog.vehicleModelVersion': 1,
+        'licensePlate': 1,
+      };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     if (skip > 0) {
       aggregation.push({ $skip: skip });
@@ -674,6 +645,30 @@ export default class CarStorage {
     // Limit
     aggregation.push({
       $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+    });
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Add Users
+    if (params.withUsers) {
+      // Check
+      const carUsersPipeline = [];
+      if (!Utils.isEmptyArray(params.userIDs)) {
+        carUsersPipeline.push({
+          $match: { 'carUsers.userID': { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) } }
+        });
+      }
+      // User on Car Users
+      DatabaseUtils.pushArrayLookupInAggregation('carUsers', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
+        tenantID, aggregation: aggregation, localField: 'carUsers.userID', foreignField: '_id',
+        asField: 'carUsers.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+      }, { pipeline: carUsersPipeline });
+    }
+    // Add Car Catalog
+    DatabaseUtils.pushCarCatalogLookupInAggregation({
+      tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
+      asField: 'carCatalog', oneToOneCardinality: true
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
@@ -812,10 +807,6 @@ export default class CarStorage {
         $match: filters
       });
     }
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenantID, aggregation, localField: 'userID', foreignField: '_id',
-      asField: 'user', oneToOneCardinality: true
-    });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -835,22 +826,13 @@ export default class CarStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Handle the ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { 'user.name': 1, 'user.firstName': 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { 'user.name': 1, 'user.firstName': 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -859,6 +841,17 @@ export default class CarStorage {
     aggregation.push({
       $limit: limit
     });
+    // Add User
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID: tenantID, aggregation, localField: 'userID', foreignField: '_id',
+      asField: 'user', oneToOneCardinality: true
+    });
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

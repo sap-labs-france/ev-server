@@ -127,14 +127,6 @@ export default class AssetStorage {
         $match: filters
       });
     }
-    // Site Area
-    if (params.withSiteArea) {
-      DatabaseUtils.pushSiteAreaLookupInAggregation(
-        {
-          tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
-          asField: 'siteArea', oneToOneCardinality: true
-        });
-    }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -154,21 +146,13 @@ export default class AssetStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Handle the ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { name: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     if (skip > 0) {
       aggregation.push({ $skip: skip });
@@ -177,6 +161,18 @@ export default class AssetStorage {
     aggregation.push({
       $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
     });
+    // Site Area
+    if (params.withSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true
+      });
+    }
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -248,15 +244,12 @@ export default class AssetStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { name: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     if (skip > 0) {
       aggregation.push({ $skip: skip });

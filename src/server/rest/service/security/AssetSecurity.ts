@@ -1,12 +1,12 @@
-import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
-
-import Asset from '../../../../types/Asset';
-import Authorizations from '../../../../authorization/Authorizations';
-import { DataResult } from '../../../../types/DataResult';
-import SiteAreaSecurity from './SiteAreaSecurity';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
+import Authorizations from '../../../../authorization/Authorizations';
+import Asset from '../../../../types/Asset';
+import { DataResult } from '../../../../types/DataResult';
+import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import { AssetConnectionSetting } from '../../../../types/Setting';
+import UserToken from '../../../../types/UserToken';
+import SiteAreaSecurity from './SiteAreaSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class AssetSecurity {
 

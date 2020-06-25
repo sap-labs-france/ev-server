@@ -72,19 +72,13 @@ export default class OCPPStorage {
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Sort
-    if (dbParams.sort) {
-      // Sort
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      // Default
-      aggregation.push({
-        $sort: {
-          timestamp: -1
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
     }
+    // Sort
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -167,19 +161,12 @@ export default class OCPPStorage {
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Sort
-    if (dbParams.sort) {
-      // Sort
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      // Default
-      aggregation.push({
-        $sort: {
-          _id: 1
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip

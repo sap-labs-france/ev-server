@@ -32,7 +32,7 @@ export default class NotificationHandler {
   ];
 
   static async saveNotification(tenantID: string, channel: string, notificationID: string,
-    sourceDescr: ServerAction, user?: User, chargingStation?: ChargingStation, notificationData?: object): Promise<void> {
+    sourceDescr: ServerAction, user?: User, chargingStation?: ChargingStation, notificationData?: any): Promise<void> {
     // Save it
     await NotificationStorage.saveNotification(tenantID, {
       timestamp: new Date(),
@@ -85,38 +85,23 @@ export default class NotificationHandler {
   }
 
   static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, chargeBoxID: string, userID: string,
-    interval?: { intervalMins?: number; intervalKey?: object }): Promise<boolean> {
+    interval: { intervalMins: number; additionalFilters?: any }): Promise<boolean> {
     try {
       // Check
       if (interval && interval.intervalMins) {
-        const params: any = {
-          channel,
-          sourceDescr
-        };
-        if (interval.intervalKey) {
-          params.data = interval.intervalKey;
-        }
-        if (chargeBoxID) {
-          params.chargeBoxID = chargeBoxID;
-        }
-        if (userID) {
-          params.userID = userID;
-        }
         // Save it
         const notifications = await NotificationStorage.getNotifications(
-          tenantID,
-          params,
-          Constants.DB_PARAMS_MAX_LIMIT
+          tenantID, {
+            channel,
+            sourceDescr,
+            chargeBoxID,
+            userID,
+            dateFrom: interval.intervalMins ? moment().subtract(interval.intervalMins, 'minute').toDate() : null,
+            additionalFilters: interval.additionalFilters ? interval.additionalFilters : null,
+          },
+          Constants.DB_PARAMS_COUNT_ONLY
         );
-        // Check
-        if (notifications.count > 0) {
-          // Get the first one (ordered desc)
-          const notification: Notification = notifications.result[0];
-          const diffMinutes = moment.duration(moment().diff(moment(notification.timestamp))).asMinutes();
-          if (diffMinutes <= interval.intervalMins) {
-            return true;
-          }
-        }
+        return notifications.count > 0;
       }
       // Default
       return false;
@@ -161,7 +146,7 @@ export default class NotificationHandler {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, ServerAction.END_OF_CHARGE,
-              chargingStation.id, user.id, { intervalMins, intervalKey: { transactionId: sourceData.transactionId } });
+              chargingStation.id, user.id, { intervalMins, additionalFilters: { transactionId: sourceData.transactionId } });
             if (!hasBeenNotified) {
               // Enabled?
               if (user.notificationsActive && user.notifications.sendEndOfCharge) {

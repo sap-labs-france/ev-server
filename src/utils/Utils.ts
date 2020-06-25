@@ -34,7 +34,7 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import fs from 'fs';
-import localIP from 'quick-local-ip';
+import http from 'http';
 import moment from 'moment';
 import passwordGenerator from 'password-generator';
 import path from 'path';
@@ -70,7 +70,7 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static async promiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
+  public static async executePromiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
     let timeoutHandle;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
@@ -144,7 +144,7 @@ export default class Utils {
     return Math.round(numberToRound * 100) / 100;
   }
 
-  public static objectHasProperty(object: object, key: string): boolean {
+  public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
   }
 
@@ -307,7 +307,7 @@ export default class Utils {
     return language;
   }
 
-  public static async normalizeAndCheckSOAPParams(headers, req): Promise<void> {
+  public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
     // Normalize
     Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     Utils._normalizeOneSOAPParam(headers, 'Action');
@@ -401,7 +401,7 @@ export default class Utils {
   public static convertToDate(date: any): Date {
     // Check
     if (!date) {
-      return date;
+      return null;
     }
     // Check Type
     if (!(date instanceof Date)) {
@@ -431,7 +431,7 @@ export default class Utils {
     return Object.keys(document).length === 0;
   }
 
-  public static removeExtraEmptyLines(tab) {
+  public static removeExtraEmptyLines(tab: string[]) {
     // Start from the end
     for (let i = tab.length - 1; i > 0; i--) {
       // Two consecutive empty lines?
@@ -452,7 +452,7 @@ export default class Utils {
   }
 
   public static convertToObjectID(id: any): ObjectID {
-    let changedID = id;
+    let changedID: ObjectID = id;
     // Check
     if (typeof id === 'string') {
       // Create Object
@@ -462,7 +462,7 @@ export default class Utils {
   }
 
   public static convertToInt(value: any): number {
-    let changedValue = value;
+    let changedValue: number = value;
     if (!value) {
       return 0;
     }
@@ -475,7 +475,7 @@ export default class Utils {
   }
 
   public static convertToFloat(value: any): number {
-    let changedValue = value;
+    let changedValue: number = value;
     if (!value) {
       return 0;
     }
@@ -816,9 +816,13 @@ export default class Utils {
     return true;
   }
 
+  public static isEmptyObj(obj: any): boolean {
+    return _.isObject(obj) && _.isEmpty(obj);
+  }
+
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
-    const results = [];
+    const results: any[] = [];
     for (let i = 0; i < sorted_arr.length - 1; i++) {
       if (_.isEqual(sorted_arr[i + 1], sorted_arr[i])) {
         results.push(sorted_arr[i]);
@@ -827,7 +831,7 @@ export default class Utils {
     return results;
   }
 
-  public static buildUserFullName(user: User|UserToken, withID = true, withEmail = false): string {
+  public static buildUserFullName(user: User | UserToken, withID = true, withEmail = false): string {
     let fullName: string;
     if (!user || !user.name) {
       return '-';
@@ -902,7 +906,7 @@ export default class Utils {
   }
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl;
+    let ocppUrl: string;
     const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
     switch (ocppProtocol) {
       case OCPPProtocol.JSON:
@@ -951,7 +955,7 @@ export default class Utils {
     return (env === 'production');
   }
 
-  public static hideShowMessage(message): string {
+  public static hideShowMessage(message: string): string {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
@@ -959,9 +963,9 @@ export default class Utils {
     return message;
   }
 
-  public static getRequestIP(request): string {
-    if (request.ip) {
-      return request.ip;
+  public static getRequestIP(request: http.IncomingMessage|Partial<Request>): string | string[] {
+    if (request['ip']) {
+      return request['ip'];
     } else if (request.headers['x-forwarded-for']) {
       return request.headers['x-forwarded-for'];
     } else if (request.connection.remoteAddress) {
@@ -971,10 +975,6 @@ export default class Utils {
       const ip = host[0];
       return ip;
     }
-  }
-
-  public static getLocalIP(): string {
-    return localIP.getLocalIP4() as string;
   }
 
   public static checkRecordLimit(recordLimit: number | string): number {
@@ -1005,7 +1005,7 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneJSonDocument(jsonDocument: object): object {
+  public static cloneJSonDocument(jsonDocument: any): any {
     return JSON.parse(JSON.stringify(jsonDocument));
   }
 
@@ -1608,7 +1608,7 @@ export default class Utils {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags ${filteredRequest.tags} is/are not valid`,
+          message: `User Tags ${JSON.stringify(filteredRequest.tags)} is/are not valid`,
           module: MODULE_NAME,
           method: 'checkIfUserValid',
           user: req.user.id,
@@ -1837,7 +1837,7 @@ export default class Utils {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
 
-  private static _normalizeOneSOAPParam(headers: object, name: string) {
+  private static _normalizeOneSOAPParam(headers: any, name: string) {
     const val = _.get(headers, name);
     if (val && val.$value) {
       _.set(headers, name, val.$value);

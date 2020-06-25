@@ -165,6 +165,11 @@ export default class SettingSecurity {
               description: sanitize(connection.description),
               url: sanitize(connection.url),
               type: sanitize(connection.type),
+              timestamp: new Date(),
+              connection: {
+                user: sanitize(connection.connection.user),
+                password: sanitize(connection.connection.password)
+              }
             };
             // Check type
             switch (connection.type) {
