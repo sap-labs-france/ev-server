@@ -733,7 +733,7 @@ export default class TransactionStorage {
     params: {
       search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
       siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-      errorType?: (TransactionInErrorType.LONG_INACTIVITY | TransactionInErrorType.NEGATIVE_ACTIVITY | TransactionInErrorType.NEGATIVE_DURATION | TransactionInErrorType.OVER_CONSUMPTION | TransactionInErrorType.INVALID_START_DATE | TransactionInErrorType.NO_CONSUMPTION | TransactionInErrorType.MISSING_USER | TransactionInErrorType.MISSING_PRICE)[];
+      errorType?: (TransactionInErrorType.LONG_INACTIVITY | TransactionInErrorType.NEGATIVE_ACTIVITY | TransactionInErrorType.NEGATIVE_DURATION | TransactionInErrorType.OVER_CONSUMPTION | TransactionInErrorType.INVALID_START_DATE | TransactionInErrorType.NO_CONSUMPTION | TransactionInErrorType.MISSING_USER | TransactionInErrorType.MISSING_PRICE | TransactionInErrorType.NO_BILLING_DATA)[];
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
@@ -1221,6 +1221,13 @@ export default class TransactionStorage {
           },
           { $addFields: { 'errorCode': TransactionInErrorType.MISSING_USER } }
         ];
+      case TransactionInErrorType.NO_BILLING_DATA:
+        return [
+          { $match: { 'billingData': { $exists: false } } },
+          { $match: { 'billingData.invoiceID': { $exists: false } } },
+          { $addFields: { 'errorCode': TransactionInErrorType.NO_BILLING_DATA } }
+        ];
+        break;
       default:
         return [];
     }

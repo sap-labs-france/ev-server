@@ -589,6 +589,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE_INVOICES);
   }
 
+  public static canLinkTransactionToInvoice(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LINK_INVOICE);
+  }
+
   public static canCheckConnectionAsset(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CHECK_CONNECTION);
   }

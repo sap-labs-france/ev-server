@@ -596,10 +596,15 @@ export default class TransactionService {
     }
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
-    } else if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
-      filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_PRICE, TransactionInErrorType.MISSING_USER];
     } else {
-      filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_USER];
+      const types = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_USER];
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
+        types.push(TransactionInErrorType.MISSING_PRICE);
+      }
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
+        types.push(TransactionInErrorType.NO_BILLING_DATA);
+      }
+      filter.errorType = types;
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
