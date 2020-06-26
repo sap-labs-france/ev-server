@@ -9,6 +9,6 @@ export default interface Tag {
   userID?: string;
   lastChangedBy?: Partial<User>;
   lastChangedOn?: Date;
-  sessionCount?: number;
+  transactionsCount?: number;
   ocpiToken?: OCPIToken;
 }
