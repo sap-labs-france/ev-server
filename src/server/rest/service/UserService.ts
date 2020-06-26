@@ -238,7 +238,7 @@ export default class UserService {
         { verificationToken: null, verifiedAt: null });
 
       for (const tag of user.tags) {
-        if (tag.sessionCount > 0) {
+        if (tag.transactionsCount > 0) {
           tag.active = false;
           tag.lastChangedOn = new Date();
           tag.lastChangedBy = { id: req.user.id };
@@ -433,7 +433,7 @@ export default class UserService {
         const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
         if (!foundTag) {
           // Tag not found in the current tag list, will be deleted or deactivated.
-          if (previousTag.sessionCount > 0) {
+          if (previousTag.transactionsCount > 0) {
             if (previousTag.active) {
               previousTag.active = false;
               previousTag.lastChangedOn = lastChangedOn;
