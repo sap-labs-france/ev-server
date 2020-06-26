@@ -160,6 +160,7 @@ export default class TransactionStorage {
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
         status: transactionToSave.billingData.status,
+        invoiceID: Utils.convertToObjectID(transactionToSave.billingData.invoiceID),
         invoiceStatus: transactionToSave.billingData.invoiceStatus,
         invoiceItem: transactionToSave.billingData.invoiceItem,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
@@ -178,6 +179,9 @@ export default class TransactionStorage {
       }
       if (!transactionMDB.billingData.invoiceItem) {
         delete transactionMDB.billingData.invoiceItem;
+      }
+      if (!transactionMDB.billingData.invoiceID) {
+        delete transactionMDB.billingData.invoiceID;
       }
     }
     if (transactionToSave.ocpiData) {

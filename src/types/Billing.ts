@@ -2,6 +2,7 @@ import { ActionsResponse } from './GlobalType';
 
 export interface BillingTransactionData {
   status?: string;
+  invoiceID?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
   lastUpdate?: Date;
@@ -29,6 +30,7 @@ export enum BillingMethod {
 
 export interface BillingDataTransactionStop {
   status?: string;
+  invoiceID?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
 }

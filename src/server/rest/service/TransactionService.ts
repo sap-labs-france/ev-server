@@ -6,6 +6,8 @@ import { ActionsResponse } from '../../../types/GlobalType';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -643,14 +645,17 @@ export default class TransactionService {
       inSuccess: 0,
       inError: 0
     };
-    const specificError: { refunded: number; notFound: number; refundedIDs: number[]; notFoundIDs: number[] } = {
+    const specificError: { refunded: number; notFound: number; billed: number, refundedIDs: number[]; notFoundIDs: number[], billedIDs: number[] } = {
       refunded: 0,
       notFound: 0,
+      billed: 0,
       refundedIDs: [],
-      notFoundIDs: []
+      notFoundIDs: [],
+      billedIDs: []
     };
     // Check if transaction has been refunded
     const refundConnector = await RefundFactory.getRefundImpl(loggedUser.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(loggedUser.tenantID);
     for (const transactionId of transactionsIDs) {
       // Get
       const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionId);
@@ -664,6 +669,10 @@ export default class TransactionService {
         result.inError++;
         specificError.refunded++;
         specificError.refundedIDs.push(transactionId);
+      } else if (billingImpl && transaction.billingData.invoiceID && await BillingStorage.getInvoice(loggedUser.tenantID, transaction.billingData.invoiceID)) {
+        result.inError++;
+        specificError.billed++;
+        specificError.billedIDs.push(transactionId);
       } else if (!transaction.stop) {
         if (!transaction.chargeBox) {
           transactionsIDsToDelete.push(transactionId);
@@ -695,6 +704,9 @@ export default class TransactionService {
       }
       if (specificError.refunded) {
         errorDetails.push(`${specificError.refunded} session IDs has been refunded and cannot be deleted: ${specificError.refundedIDs.join(', ')}`);
+      }
+      if (specificError.billed) {
+        errorDetails.push(`${specificError.billed} session IDs has been billed and cannot be deleted: ${specificError.billedIDs.join(', ')}`);
       }
       Logging.logError({
         tenantID: loggedUser.tenantID,

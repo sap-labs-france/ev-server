@@ -129,6 +129,7 @@ export default class OCPPUtils {
           billingDataStop = await billingImpl.stopTransaction(transaction);
           // Update
           transaction.billingData.status = billingDataStop.status;
+          transaction.billingData.invoiceID = billingDataStop.invoiceID;
           transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
           transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
           transaction.billingData.lastUpdate = new Date();
