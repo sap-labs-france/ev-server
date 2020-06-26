@@ -49,7 +49,7 @@
         "info": {
             "type": "string",
             "description": "string defining more information about the status notification",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 50
         },
         "timestamp": {
