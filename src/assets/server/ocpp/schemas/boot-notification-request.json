@@ -24,13 +24,13 @@
         "chargeBoxSerialNumber": {
             "type": "string",
             "description": "string defining the serial number of the charge box. To be treated as case insensitive.",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 50
         },
         "firmwareVersion": {
             "type": "string",
             "description": "string defining the firmware version of the charge point. To be treated as case insensitive.",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 50
         },
         "iccid": {
