@@ -284,8 +284,8 @@ export default class UserStorage {
     const tagMDB = {
       _id: tag.id,
       userID: Utils.convertToObjectID(userID),
-      issuer: tag.issuer,
-      active: tag.active,
+      issuer: Utils.convertToBoolean(tag.issuer),
+      active: Utils.convertToBoolean(tag.active),
       ocpiToken: tag.ocpiToken,
       description: tag.description
     };
@@ -690,12 +690,7 @@ export default class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, {
-      params,
-      limit,
-      skip,
-      sort: dbParams.sort
-    });
+    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, { params });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
