@@ -18,7 +18,7 @@
         "chargePointSerialNumber": {
             "type": "string",
             "description": "string defining the serial number of the charge point. To be treated as case insensitive.",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 50
         },
         "chargeBoxSerialNumber": {
@@ -54,7 +54,7 @@
         "meterSerialNumber": {
             "type": "string",
             "description": "string defining the meter serial number of the charge point. To be treated as case insensitive.",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 25
         }
     },
