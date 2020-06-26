@@ -13,7 +13,6 @@ import EmailConfiguration from '../types/configuration/EmailConfiguration';
 import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration';
 import HealthCheckConfiguration from '../types/configuration/HealthCheckConfiguration';
 import JsonEndpointConfiguration from '../types/configuration/JsonEndpointConfiguration';
-import LocalesConfiguration from '../types/configuration/LocalesConfiguration';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import MigrationConfiguration from '../types/configuration/MigrationConfiguration';
 import NotificationConfiguration from '../types/configuration/NotificationConfiguration';
@@ -259,10 +258,10 @@ export default class Configuration {
   static getChargingStationConfig(): ChargingStationConfiguration {
     // Read conf and set defaults values
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
-    if (Utils.isUndefined(chargingStationConfiguration.useServerLocalIPForRemoteCommand)) {
-      chargingStationConfiguration.useServerLocalIPForRemoteCommand = false;
-      if (Utils.isUndefined(chargingStationConfiguration.secureLocalServer)) {
-        chargingStationConfiguration.secureLocalServer = false;
+    if (!Utils.isUndefined(chargingStationConfiguration.useServerLocalIPForRemoteCommand)) {
+      console.log('Deprecated configuration key usage \'ChargingStation.useServerLocalIPForRemoteCommand\'');
+      if (!Utils.isUndefined(chargingStationConfiguration.secureLocalServer)) {
+        console.log('Deprecated configuration key usage \'ChargingStation.secureLocalServer\'');
       }
     }
     return chargingStationConfiguration;

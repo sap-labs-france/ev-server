@@ -159,7 +159,7 @@ export default class ConsumptionStorage {
       }
     });
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
+    const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
@@ -187,7 +187,7 @@ export default class ConsumptionStorage {
     // Sort
     aggregation.push({ $sort: { endedAt: 1 } });
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
+    const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug

@@ -41,7 +41,7 @@ export default class MongoDBStorageNotification {
     return null;
   }
 
-  static handleDBInvalidChange(tenantID: string, collection: string, change: Event) {
+  static handleDBInvalidChange(tenantID: string, collection: string, change: Event): void {
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.DB_WATCH,
@@ -51,7 +51,7 @@ export default class MongoDBStorageNotification {
     });
   }
 
-  static handleDBChangeStreamError(error: Error) {
+  static handleDBChangeStreamError(error: Error): void {
     // Log
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
@@ -62,7 +62,7 @@ export default class MongoDBStorageNotification {
     });
   }
 
-  async start() {
+  async start(): Promise<void> {
     if (this.dbConfig.monitorDBChange) {
       // Check
       if (!this.centralRestServer) {

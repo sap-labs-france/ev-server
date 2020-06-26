@@ -39,7 +39,7 @@ export default class ConnectionSecurity {
   }
 
   public static filterConnectionResponse(connection: Connection, loggedUser: UserToken): Connection {
-    let filteredConnection;
+    let filteredConnection: Connection;
     if (!connection) {
       return null;
     }

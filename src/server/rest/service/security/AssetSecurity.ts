@@ -1,6 +1,7 @@
 import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 
 import Asset from '../../../../types/Asset';
+import { AssetConnectionSetting } from '../../../../types/Setting';
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
 import SiteAreaSecurity from './SiteAreaSecurity';
