@@ -168,7 +168,7 @@ export default class Utils {
     return tagID;
   }
 
-  public static isIterable(obj: object): boolean {
+  public static isIterable(obj: any): boolean {
     if (obj) {
       return typeof obj[Symbol.iterator] === 'function';
     }
@@ -418,7 +418,7 @@ export default class Utils {
     return value ? value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
   }
 
-  public static isEmptyJSon(document) {
+  public static isEmptyJSon(document: any): boolean {
     // Empty?
     if (!document) {
       return true;
@@ -431,7 +431,7 @@ export default class Utils {
     return Object.keys(document).length === 0;
   }
 
-  public static removeExtraEmptyLines(tab: string[]) {
+  public static removeExtraEmptyLines(tab: string[]): void {
     // Start from the end
     for (let i = tab.length - 1; i > 0; i--) {
       // Two consecutive empty lines?
@@ -938,10 +938,10 @@ export default class Utils {
     return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
   }
 
-  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = ''): Promise<string> {
+  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId: number, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
+    return _evseBaseURL + '/transactions?TransactionID=' + transactionId.toString() + hash;
   }
 
   public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
@@ -1465,7 +1465,7 @@ export default class Utils {
     }
   }
 
-  public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request) {
+  public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request): void {
     const tenantID = req.user.tenantID;
     if (!tenantID) {
       throw new AppError({
@@ -1655,7 +1655,7 @@ export default class Utils {
     return false;
   }
 
-  public static createDefaultSettingContent(activeComponent, currentSettingContent): SettingDBContent {
+  public static createDefaultSettingContent(activeComponent: any, currentSettingContent: SettingDBContent): SettingDBContent {
     switch (activeComponent.name) {
       // Pricing
       case TenantComponents.PRICING:
