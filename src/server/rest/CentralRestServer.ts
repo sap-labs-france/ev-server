@@ -124,6 +124,8 @@ export default class CentralRestServer {
       secret: Configuration.getCentralSystemRestServiceConfig().userTokenKey,
       handshake: true,
       decodedPropertyName: 'decoded_token',
+      // No client-side callback, terminate connection server-side
+      callback: false
     }));
     // Handle Socket IO connection
     CentralRestServer.socketIOServer.on('connection', (socket: SocketIOJwt) => {
