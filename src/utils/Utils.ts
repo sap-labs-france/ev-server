@@ -1791,7 +1791,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Catalog ID  is mandatory',
+        message: 'Car Catalog ID is mandatory',
         module: MODULE_NAME,
         method: 'checkIfCarValid',
         user: req.user.id
