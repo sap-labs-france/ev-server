@@ -534,14 +534,14 @@ export default class Utils {
     if (!chargingStation.chargePoints) {
       return null;
     }
-    return chargingStation.chargePoints.find((chargePoint) => chargePoint.chargePointID === chargePointID);
+    return chargingStation.chargePoints.find((chargePoint) => chargePoint && (chargePoint.chargePointID === chargePointID));
   }
 
   public static getConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
     if (!chargingStation.connectors) {
       return null;
     }
-    return chargingStation.connectors.find((connector) => connector.connectorId === connectorID);
+    return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
   }
 
   public static computeChargingStationTotalAmps(chargingStation: ChargingStation): number {
@@ -1190,6 +1190,26 @@ export default class Utils {
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
     filteredRequest: ChargingProfile, req: Request): void {
+    if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Station ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!Utils.objectHasProperty(filteredRequest, 'connectorID')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Connector ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
     if (!filteredRequest.profile) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1246,16 +1266,19 @@ export default class Utils {
       });
     }
     // Check Max Limitation of each Schedule
+    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
+    const numberOfConnectors = filteredRequest.connectorID === 0 ?
+      (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
     const maxAmpLimit = Utils.getChargingStationAmperageLimit(
       chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       // Check Min
-      if (chargingSchedulePeriod.limit < StaticLimitAmps.MIN_LIMIT) {
+      if (chargingSchedulePeriod.limit < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Schedule is below the min limitation (${StaticLimitAmps.MIN_LIMIT}A)`,
+          message: `Charging Schedule is below the min limitation (${(StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors)}A)`,
           module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
           user: req.user.id,
           detailedMessages: { chargingSchedulePeriod }
