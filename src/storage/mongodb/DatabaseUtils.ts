@@ -130,7 +130,7 @@ export default class DatabaseUtils {
     lookupParams.aggregation.push(
       JSON.parse(`{
         "$group": {
-          "_id": "$_id",
+          "_id": "$id",
           "root": { "$first": "$$ROOT" },
           "${arrayName}": { "$push": "$${arrayName}" }
         }
