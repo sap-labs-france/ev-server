@@ -262,13 +262,13 @@ describe('Billing Service', function() {
       });
 
       it('Should list invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         expect(response.status).to.be.eq(200);
         expect(response.data.result.length).to.be.gt(0);
       });
 
       it('Should list filtered invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         expect(response.data.result.length).to.be.gt(0);
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
@@ -276,7 +276,7 @@ describe('Billing Service', function() {
       });
 
       it('Should download invoice as PDF', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         expect(response.data.result.length).to.be.gt(0);
         const downloadResponse = await testData.userService.billingApi.downloadInvoicePdf({ invoiceID : response.data.result[0].invoiceID });
         expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
@@ -393,21 +393,21 @@ describe('Billing Service', function() {
           testData.tenantContext.getTenant().subdomain,
           basicUser
         );
-        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         for (let i = 0; i < response.data.result.length - 1; i++) {
           expect(response.data.result[i].userID).to.be.eq(basicUser.id);
         }
       });
 
       it('Should list filtered invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
       });
 
       it('Should download invoice as PDF', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         expect(response.data.result.length).to.be.gt(0);
         const downloadResponse = await testData.userService.billingApi.downloadInvoicePdf({ invoiceID : response.data.result[0].invoiceID });
         expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
@@ -448,11 +448,11 @@ describe('Billing Service', function() {
       });
 
       it('should create an invoice after a transaction', async () => {
-        let response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        let response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         const invoicesBefore = response.data.count;
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
         await generateTransaction(testData.userContext, testData.chargingStationContext);
-        response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         const invoicesAfter = response.data.count;
         expect(invoicesAfter).to.be.eq(invoicesBefore + 1);
       });
@@ -483,7 +483,7 @@ describe('Billing Service', function() {
       });
 
       it('should create an invoice after a transaction', async () => {
-        let response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        let response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         const invoicesBefore = response.data.count;
         const adminUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         const basicUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -501,7 +501,7 @@ describe('Billing Service', function() {
           testData.userContext
         );
         await generateTransaction(testData.userContext, testData.chargingStationContext);
-        response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         const invoicesAfter = response.data.count;
         expect(invoicesAfter).to.be.eq(invoicesBefore + 1);
       });
