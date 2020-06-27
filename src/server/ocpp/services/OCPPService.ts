@@ -944,14 +944,8 @@ export default class OCPPService {
     await this.updateOCPIStatus(tenantID, chargingStation, foundConnector);
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
-    // Start Transaction in OCPP: trigger Smart Charging
-    if (oldConnectorStatus &&
-        (statusNotification.status === ChargePointStatus.CHARGING ||
-         statusNotification.status === ChargePointStatus.SUSPENDED_EV ||
-         statusNotification.status === ChargePointStatus.SUSPENDED_EVSE) &&
-        (oldConnectorStatus === ChargePointStatus.PREPARING ||
-         oldConnectorStatus === ChargePointStatus.AVAILABLE)) {
-      // Handle Smart Charging
+    // Trigger Smart Charging
+    if (statusNotification.status === ChargePointStatus.CHARGING) {
       try {
         // Trigger Smart Charging
         await this.triggerSmartCharging(tenantID, chargingStation);

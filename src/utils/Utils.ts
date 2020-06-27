@@ -168,7 +168,7 @@ export default class Utils {
     return tagID;
   }
 
-  public static isIterable(obj: object): boolean {
+  public static isIterable(obj: any): boolean {
     if (obj) {
       return typeof obj[Symbol.iterator] === 'function';
     }
@@ -418,7 +418,7 @@ export default class Utils {
     return value ? value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
   }
 
-  public static isEmptyJSon(document) {
+  public static isEmptyJSon(document: any): boolean {
     // Empty?
     if (!document) {
       return true;
@@ -431,7 +431,7 @@ export default class Utils {
     return Object.keys(document).length === 0;
   }
 
-  public static removeExtraEmptyLines(tab: string[]) {
+  public static removeExtraEmptyLines(tab: string[]): void {
     // Start from the end
     for (let i = tab.length - 1; i > 0; i--) {
       // Two consecutive empty lines?
@@ -938,10 +938,10 @@ export default class Utils {
     return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
   }
 
-  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = ''): Promise<string> {
+  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId: number, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
+    return _evseBaseURL + '/transactions?TransactionID=' + transactionId.toString() + hash;
   }
 
   public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
@@ -1282,8 +1282,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteValid',
+        module: MODULE_NAME, method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1292,8 +1291,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteValid',
+        module: MODULE_NAME, method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1302,8 +1300,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory for the Site',
-        module: MODULE_NAME,
-        method: 'checkIfSiteValid',
+        module: MODULE_NAME, method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1315,8 +1312,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1325,8 +1321,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1335,8 +1330,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1346,8 +1340,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1356,8 +1349,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage} kW`,
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1366,8 +1358,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site area number of phases must be either 1 or 3 but got ${siteArea.numberOfPhases}`,
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1379,8 +1370,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCompanyValid',
+        module: MODULE_NAME, method: 'checkIfCompanyValid',
         user: req.user.id
       });
     }
@@ -1389,8 +1379,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCompanyValid',
+        module: MODULE_NAME, method: 'checkIfCompanyValid',
         user: req.user.id
       });
     }
@@ -1406,8 +1395,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1416,8 +1404,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1426,8 +1413,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset Site Area is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1436,8 +1422,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset type is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1448,6 +1433,7 @@ export default class Utils {
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       if (tags) {
         for (const tag of tags) {
+          // Check if exists
           const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
           if (foundUser && (!user || (foundUser.id !== user.id))) {
             // Tag already used!
@@ -1460,12 +1446,31 @@ export default class Utils {
               user: req.user.id
             });
           }
+          // Check params
+          if (!tag.id) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              errorCode: HTTPError.GENERAL_ERROR,
+              message: 'Tag ID is mandatory',
+              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
+              user: req.user.id
+            });
+          }
+          if (!Utils.objectHasProperty(tag, 'active')) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              errorCode: HTTPError.GENERAL_ERROR,
+              message: 'Tag Active property is mandatory',
+              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
+              user: req.user.id
+            });
+          }
         }
       }
     }
   }
 
-  public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request) {
+  public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request): void {
     const tenantID = req.user.tenantID;
     if (!tenantID) {
       throw new AppError({
@@ -1655,7 +1660,7 @@ export default class Utils {
     return false;
   }
 
-  public static createDefaultSettingContent(activeComponent, currentSettingContent): SettingDBContent {
+  public static createDefaultSettingContent(activeComponent: any, currentSettingContent: SettingDBContent): SettingDBContent {
     switch (activeComponent.name) {
       // Pricing
       case TenantComponents.PRICING:

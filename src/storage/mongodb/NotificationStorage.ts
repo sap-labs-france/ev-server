@@ -13,7 +13,8 @@ const MODULE_NAME = 'NotificationStorage';
 export default class NotificationStorage {
 
   static async getNotifications(tenantID: string,
-    params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string; sourceDescr?: string; data?: object; chargeBoxID?: string },
+    params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string;
+      sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
     dbParams: DbParams): Promise<DataResult<Notification>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getNotifications');
@@ -49,9 +50,9 @@ export default class NotificationStorage {
       filters.userID = Utils.convertToObjectID(params.userID);
     }
     // Set Data
-    if (params.data) {
-      for (const key in params.data) {
-        filters[`data.${key}`] = params.data[key];
+    if (params.additionalFilters) {
+      for (const key in params.additionalFilters) {
+        filters[`data.${key}`] = params.additionalFilters[key];
       }
     }
     // Set SourceId?
@@ -79,31 +80,15 @@ export default class NotificationStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Add Charge Box
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-        localField: 'chargeBoxID',
-        foreignField: '_id',
-        as: 'chargeBox'
-      }
+    // Charge Box
+    DatabaseUtils.pushChargingStationLookupInAggregation({
+      tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true }
-    });
-    // Add User
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'userID',
-        foreignField: '_id',
-        as: 'user'
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
+    // Users
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Sort
     if (!dbParams.sort) {
