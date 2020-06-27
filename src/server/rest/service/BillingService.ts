@@ -5,6 +5,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
+import BackendError from '../../../exception/BackendError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import { BillingInvoiceStatus } from '../../../types/Billing';
 import BillingSecurity from './security/BillingSecurity';
@@ -363,17 +364,28 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, transaction, `Transaction '${filteredRequest.transactionID}' does not exist`,
       MODULE_NAME, 'handleLinkInvoiceToTransaction', req.user);
 
-    // Create an invoice for the transaction
-    const billingDataStop = await billingImpl.stopTransaction(transaction);
-    // Update transaction
-    transaction.billingData = {
-      status: billingDataStop.status,
-      invoiceID: billingDataStop.invoiceID,
-      invoiceStatus: billingDataStop.invoiceStatus,
-      invoiceItem: billingDataStop.invoiceItem,
-      lastUpdate: new Date()
-    };
-    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    try {
+      // Create an invoice for the transaction
+      const billingDataStop = await billingImpl.stopTransaction(transaction);
+      // Update transaction
+      transaction.billingData = {
+        status: billingDataStop.status,
+        invoiceID: billingDataStop.invoiceID,
+        invoiceStatus: billingDataStop.invoiceStatus,
+        invoiceItem: billingDataStop.invoiceItem,
+        lastUpdate: new Date()
+      };
+      await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'handleLinkTransactionToInvoice',
+        message: `Failed to link transaction ${transaction.id} to invoice`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+
     // Ok
     res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS));
     next();

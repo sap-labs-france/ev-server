@@ -1223,8 +1223,10 @@ export default class TransactionStorage {
         ];
       case TransactionInErrorType.NO_BILLING_DATA:
         return [
-          { $match: { 'billingData': { $exists: false } } },
-          { $match: { 'billingData.invoiceID': { $exists: false } } },
+          { $match: { $or: [
+            { 'billingData': { $exists: false } },
+            { 'billingData.invoiceID': { $exists: false } }
+          ] } },
           { $addFields: { 'errorCode': TransactionInErrorType.NO_BILLING_DATA } }
         ];
         break;
