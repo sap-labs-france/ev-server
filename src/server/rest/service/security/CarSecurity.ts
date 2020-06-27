@@ -297,6 +297,7 @@ export default class CarSecurity {
       Search: sanitize(request.Search),
       CarMaker: sanitize(request.CarMaker),
       WithUsers: UtilsSecurity.filterBoolean(request.WithUsers),
+      UserID: sanitize(request.UserID)
     } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
