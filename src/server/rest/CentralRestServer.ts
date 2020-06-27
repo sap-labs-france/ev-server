@@ -450,7 +450,7 @@ export default class CentralRestServer {
     let dups = false;
     if (this.hasSocketIOClients(notification.tenantID)) {
       // Handle dups in buffer
-      for (const currentNotification of CentralRestServer.changeNotifications) {
+      for (const currentNotification of CentralRestServer.changeNotifications.slice().reverse()) {
         // Same notification
         if (currentNotification.tenantID === notification.tenantID &&
           currentNotification.entity === notification.entity &&
@@ -470,7 +470,7 @@ export default class CentralRestServer {
     let dups = false;
     if (this.hasSocketIOClients(notification.tenantID)) {
       // Handle dups in buffer
-      for (const currentNotification of CentralRestServer.singleChangeNotifications) {
+      for (const currentNotification of CentralRestServer.singleChangeNotifications.slice().reverse()) {
         // Same notification
         if (currentNotification.tenantID === notification.tenantID &&
           currentNotification.entity === notification.entity &&
