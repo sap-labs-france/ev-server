@@ -462,7 +462,7 @@ describe('Billing Service', function() {
       });
 
       it('Should set a transaction in error', async () => {
-        await TestData.setBillingSystemInvalidCredentials(testData);
+        // Await TestData.setBillingSystemInvalidCredentials(testData);
         const transactionID = await generateTransaction(testData.userContext, testData.chargingStationContext);
         expect(transactionID).to.not.be.null;
         const transactions = await testData.transactionUserService.transactionApi.readAllInError({});
@@ -509,6 +509,10 @@ describe('Billing Service', function() {
         const invoicesAfter = response.data.count;
         expect(invoicesAfter).to.be.eq(invoicesBefore + 1);
       });
+    });
+
+    after(async () => {
+      await TestData.setBillingSystemValidCredentials(testData);
     });
   });
 });
