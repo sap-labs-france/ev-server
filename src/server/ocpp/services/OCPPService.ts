@@ -377,16 +377,10 @@ export default class OCPPService {
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
           // First Meter Value and no Car -> Trigger Smart Charging to adjust the single phase Car
-          if (transaction.numberOfMeterValues === 1 && !transaction.carID) {
-            const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-            // Single Phase car?
-            if (currentType === CurrentType.AC &&
-                transaction.currentInstantAmpsL1 > 0 &&
-                transaction.currentInstantAmpsL2 === 0 &&
-                transaction.currentInstantAmpsL3 === 0) {
-              // Yes: Trigger Smart Charging
-              await this.triggerSmartCharging(headers.tenantID, chargingStation);
-            }
+          if (transaction.numberOfMeterValues === 1 && !transaction.carID &&
+              !Utils.isTransactionInProgressOnThreePhases(chargingStation, transaction)) {
+            // Yes: Trigger Smart Charging
+            await this.triggerSmartCharging(headers.tenantID, chargingStation);
           }
           // Log
           Logging.logInfo({

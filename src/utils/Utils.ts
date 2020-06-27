@@ -16,7 +16,7 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { HTTPError } from '../types/HTTPError';
-import { InactivityStatus } from '../types/Transaction';
+import Transaction, { InactivityStatus } from '../types/Transaction';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
@@ -48,6 +48,18 @@ const _tenants = [];
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
+  public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    let threePhases = true;
+    if (currentType === CurrentType.AC &&
+        transaction.currentInstantAmpsL1 > 0 &&
+        transaction.currentInstantAmpsL2 === 0 &&
+        transaction.currentInstantAmpsL3 === 0) {
+      threePhases = false;
+    }
+    return threePhases;
+  }
+
   public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number): number {
     let intervalMins = 0;
     if (!chargingStation || !chargingStation.connectors) {
