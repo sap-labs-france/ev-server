@@ -27,6 +27,8 @@ export default abstract class ChargingStationVendorIntegration {
 
   public async setStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
     chargePoint?: ChargePoint, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, 0);
+    const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
     if (chargePoint.excludeFromPowerLimitation) {
       Logging.logWarning({
         tenantID: tenantID,
@@ -58,12 +60,12 @@ export default abstract class ChargingStationVendorIntegration {
         message: 'Charging Station capabilities or configuration does not support static power limitation'
       });
     }
-    if (maxAmps < StaticLimitAmps.MIN_LIMIT) {
+    if (maxAmps < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors)) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
-        message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT}A`,
+        message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors}A`,
       });
     }
     if (Utils.isEmptyArray(chargingStation.connectors)) {
