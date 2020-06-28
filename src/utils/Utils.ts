@@ -828,10 +828,6 @@ export default class Utils {
     return true;
   }
 
-  public static isEmptyObj(obj: any): boolean {
-    return _.isObject(obj) && _.isEmpty(obj);
-  }
-
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results: any[] = [];
