@@ -951,7 +951,8 @@ export default class OCPPService {
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
-    if (statusNotification.status === ChargePointStatus.CHARGING) {
+    if (statusNotification.status === ChargePointStatus.CHARGING ||
+        statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
         await this.triggerSmartCharging(tenantID, chargingStation);
@@ -1729,19 +1730,23 @@ export default class OCPPService {
   }
 
   private async triggerSmartCharging(tenantID: string, chargingStation: ChargingStation) {
-    // Get Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
-    if (siteArea && siteArea.smartCharging) {
-      const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
-      if (siteAreaLock) {
-        try {
-          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);
-          if (smartCharging) {
-            await smartCharging.computeAndApplyChargingProfiles(siteArea);
+    // Smart Charging must be active
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+      // Get Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
+      if (siteArea && siteArea.smartCharging) {
+        const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
+        if (siteAreaLock) {
+          try {
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);
+            if (smartCharging) {
+              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            }
+          } finally {
+            // Release lock
+            await LockingManager.release(siteAreaLock);
           }
-        } finally {
-          // Release lock
-          await LockingManager.release(siteAreaLock);
         }
       }
     }
