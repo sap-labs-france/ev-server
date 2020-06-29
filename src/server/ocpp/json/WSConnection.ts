@@ -313,13 +313,7 @@ export default class WSConnection {
         // Error Message
         case MessageType.ERROR_MESSAGE:
           // Build Message
-          // eslint-disable-next-line no-case-declarations
-          const {
-            code,
-            message,
-            details
-          } = commandParams;
-          messageToSend = JSON.stringify([messageType, messageId, code, message, details]);
+          messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OcppErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
           break;
       }
       // Check if wsConnection is ready
