@@ -306,7 +306,7 @@ export default class CarSecurity {
 
   public static filterCarRequest(request: any): HttpCarByIDRequest {
     const filteredRequest: HttpCarByIDRequest = {
-      ID: sanitize(request.CarID),
+      ID: sanitize(request.ID),
     } as HttpCarByIDRequest;
     return filteredRequest;
   }

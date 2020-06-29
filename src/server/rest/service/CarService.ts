@@ -325,17 +325,7 @@ export default class CarService {
           errorCode: HTTPError.NO_CAR_FOR_USER,
           user: req.user,
           module: MODULE_NAME, method: 'handleUpdateCar',
-          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
-        });
-      }
-      // Owned by this user ?
-      if (!carUser.owner) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_NOT_OWNER_OF_THE_CAR,
-          user: req.user,
-          module: MODULE_NAME, method: 'handleUpdateCar',
-          message: `User is not owner of the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
+          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarName(car, true)})`,
         });
       }
     }
@@ -503,19 +493,20 @@ export default class CarService {
           errorCode: HTTPError.NO_CAR_FOR_USER,
           user: req.user,
           module: MODULE_NAME, method: 'handleDeleteCar',
-          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
+          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarName(car, true)})`,
         });
       }
-      // Owned by this user ?
-      if (!carUser.owner) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_NOT_OWNER_OF_THE_CAR,
-          user: req.user,
-          module: MODULE_NAME, method: 'handleDeleteCar',
-          message: `User is not owner of the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
-        });
-      }
+    }
+    if (Authorizations.isBasic(req.user) && !carUser.owner) {
+      await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
+        message: `User '${req.user.id}' has been removed successfully from the car '${car.id}'`,
+        action: action,
+        detailedMessages: { car }
+      });
     }
     // Owner?
     if (Authorizations.isAdmin(req.user) || (Authorizations.isBasic(req.user) && carUser.owner)) {
