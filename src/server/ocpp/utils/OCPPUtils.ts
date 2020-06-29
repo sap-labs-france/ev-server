@@ -842,13 +842,19 @@ export default class OCPPUtils {
           // Handle capabilities
           chargingStation.capabilities = {} as ChargingStationCapabilities;
           if (Utils.objectHasProperty(chargingStationTemplate, 'capabilities')) {
-            let matchFirmware = true;
-            let matchOcpp = true;
+            let matchFirmware = false;
+            let matchOcpp = false;
             // Search Firmware/Ocpp match
             for (const capabilities of chargingStationTemplate.capabilities) {
               // Check Firmware version
               if (capabilities.supportedFirmwareVersions) {
-                matchFirmware = capabilities.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
+                const regExp = new RegExp(chargingStation.firmwareVersion);
+                for (const supportedFirmwareVersion of capabilities.supportedFirmwareVersions) {
+                  if (regExp.test(supportedFirmwareVersion)) {
+                    matchFirmware = true;
+                    break;
+                  }
+                }
               }
               // Check Ocpp version
               if (capabilities.supportedOcppVersions) {
@@ -869,7 +875,7 @@ export default class OCPPUtils {
           // Handle OCPP Standard Parameters
           chargingStation.ocppStandardParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppStandardParameters')) {
-            let matchOcpp = true;
+            let matchOcpp = false;
             // Search Firmware/Ocpp match
             for (const ocppStandardParameters of chargingStationTemplate.ocppStandardParameters) {
               // Check Ocpp version
@@ -897,13 +903,19 @@ export default class OCPPUtils {
           // Handle OCPP Vendor Parameters
           chargingStation.ocppVendorParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppVendorParameters')) {
-            let matchFirmware = true;
-            let matchOcpp = true;
+            let matchFirmware = false;
+            let matchOcpp = false;
             // Search Firmware/Ocpp match
             for (const ocppVendorParameters of chargingStationTemplate.ocppVendorParameters) {
               // Check Firmware version
               if (ocppVendorParameters.supportedFirmwareVersions) {
-                matchFirmware = ocppVendorParameters.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
+                const regExp = new RegExp(chargingStation.firmwareVersion);
+                for (const supportedFirmwareVersion of ocppVendorParameters.supportedFirmwareVersions) {
+                  if (regExp.test(supportedFirmwareVersion)) {
+                    matchFirmware = true;
+                    break;
+                  }
+                }
               }
               // Check Ocpp version
               if (ocppVendorParameters.supportedOcppVersions) {
