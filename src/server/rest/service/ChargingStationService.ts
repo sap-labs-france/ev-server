@@ -82,7 +82,7 @@ export default class ChargingStationService {
       // Check number of phases corresponds to the site area one
       if (filteredRequest.connectors) {
         for (const connector of filteredRequest.connectors) {
-          if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea.numberOfPhases === 1) {
+          if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea && chargingStation.siteArea.numberOfPhases === 1) {
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
               action: action,
@@ -147,16 +147,6 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationLimitPowerRequest(req.body);
     // Check
-    if (filteredRequest.ampLimitValue < StaticLimitAmps.MIN_LIMIT) {
-      throw new AppError({
-        source: filteredRequest.chargeBoxID,
-        action: action,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT}A`,
-        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-        user: req.user
-      });
-    }
     if (!filteredRequest.chargePointID) {
       throw new AppError({
         source: filteredRequest.chargeBoxID,
@@ -167,13 +157,26 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    // Check
+    // Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.chargeBoxID}' does not exist.`,
       MODULE_NAME, 'handleChargingStationLimitPower', req.user);
+    // Charge Point
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
     UtilsService.assertObjectExists(action, chargePoint, `Charge Point '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'handleChargingStationLimitPower', req.user);
+    // Min Current
+    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, 0);
+    if (filteredRequest.ampLimitValue < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length)) {
+      throw new AppError({
+        source: filteredRequest.chargeBoxID,
+        action: action,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length}A`,
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
@@ -204,7 +207,7 @@ export default class ChargingStationService {
       });
     }
     // Check if static limitation is supported
-    if (chargingStationVendor.hasStaticLimitationSupport(chargingStation)) {
+    if (!chargingStationVendor.hasStaticLimitationSupport(chargingStation)) {
       throw new AppError({
         source: chargingStation.id,
         action: action,

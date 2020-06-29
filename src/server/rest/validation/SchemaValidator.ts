@@ -23,7 +23,7 @@ export default class SchemaValidator {
     this.ajv = ajvSanitizer(new Ajv(config), extraSanitizers);
   }
 
-  public validate(schema: object, content: any): void {
+  public validate(schema: boolean|object, content: any): void {
     const fnValidate = this.ajv.compile(schema);
     if (!fnValidate(content)) {
       if (!fnValidate.errors) {

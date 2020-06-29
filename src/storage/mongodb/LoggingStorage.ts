@@ -1,5 +1,6 @@
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { Log } from '../../types/Log';
@@ -13,7 +14,7 @@ import os from 'os';
 const MODULE_NAME = 'LoggingStorage';
 
 export default class LoggingStorage {
-  public static async deleteLogs(tenantID, deleteUpToDate: Date) {
+  public static async deleteLogs(tenantID: string, deleteUpToDate: Date): Promise<{ ok?: number; n?: number; }> {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -35,7 +36,7 @@ export default class LoggingStorage {
     return result.result;
   }
 
-  public static async deleteSecurityLogs(tenantID, deleteUpToDate) {
+  public static async deleteSecurityLogs(tenantID: string, deleteUpToDate: Date): Promise<{ ok?: number; n?: number; }> {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -57,7 +58,7 @@ export default class LoggingStorage {
     return result.result;
   }
 
-  public static async saveLog(tenantID, logToSave: Log) {
+  public static async saveLog(tenantID: string, logToSave: Log): Promise<void> {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set
@@ -67,7 +68,7 @@ export default class LoggingStorage {
       level: logToSave.level,
       source: logToSave.source,
       host: logToSave.host ? logToSave.host : (Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()),
-      process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id : 'master'),
+      process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master'),
       type: logToSave.type,
       timestamp: Utils.convertToDate(logToSave.timestamp),
       module: logToSave.module,
@@ -95,7 +96,7 @@ export default class LoggingStorage {
   public static async getLogs(tenantID: string, params: {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
     hosts?: string[]; userIDs?: string[]; search?: string; logID?: string;
-  } = {}, dbParams: DbParams) {
+  } = {}, dbParams: DbParams): Promise<DataResult<Log>> {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -199,15 +200,12 @@ export default class LoggingStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { timestamp: -1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip

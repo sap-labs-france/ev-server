@@ -146,19 +146,12 @@ export default class OCPIEndpointStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (dbParams.sort) {
-      // Sort
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      // Default
-      aggregation.push({
-        $sort: {
-          name: 1
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip

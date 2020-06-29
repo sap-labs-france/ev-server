@@ -71,7 +71,7 @@ export default class ConnectionStorage {
     const connectionsCountMDB = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
-    const connectionsMDB = await global.database.getCollection<any>(tenantID, 'connections')
+    const connectionsMDB = await global.database.getCollection<Connection>(tenantID, 'connections')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     Logging.traceEnd(MODULE_NAME, 'getConnectionByUserId', uniqueTimerID);
@@ -94,7 +94,7 @@ export default class ConnectionStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Exec
-    const results = await global.database.getCollection<any>(tenantID, 'connections')
+    const results = await global.database.getCollection<Connection>(tenantID, 'connections')
       .aggregate(aggregation)
       .toArray();
     let connection: Connection;
@@ -105,19 +105,19 @@ export default class ConnectionStorage {
     return connection;
   }
 
-  static async deleteConnectionById(tenantID: string, id: string) {
+  static async deleteConnectionById(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteConnection');
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection<any>(tenantID, 'connections')
+    await global.database.getCollection<Connection>(tenantID, 'connections')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteConnection', uniqueTimerID, { id });
   }
 
-  static async deleteConnectionByUserId(tenantID: string, userId: string) {
+  static async deleteConnectionByUserId(tenantID: string, userId: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteConnectionByUser');
     // Check
@@ -130,4 +130,3 @@ export default class ConnectionStorage {
   }
 
 }
-

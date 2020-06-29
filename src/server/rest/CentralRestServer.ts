@@ -76,12 +76,6 @@ export default class CentralRestServer {
     // Util API
     this.expressApplication.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
     // Workaround URL encoding issue
-    this.expressApplication.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
-      req.url = decodeURIComponent(req.originalUrl);
-      req.params.action = 'FirmwareDownload';
-      req.query.FileName = 'r7_update_3.3.0.10_d4.epk';
-      await CentralRestServerService.restServiceUtil(req, res, next);
-    });
     this.expressApplication.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.12_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
       req.url = decodeURIComponent(req.originalUrl);
       req.params.action = 'FirmwareDownload';
@@ -115,7 +109,7 @@ export default class CentralRestServer {
     // eslint-disable-next-line no-console
     console.log(`${logMsg} ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master...'}`);
     // Init Socket IO
-    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 15000, pingInterval: 30000 });
+    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer);
     CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
@@ -130,6 +124,8 @@ export default class CentralRestServer {
       secret: Configuration.getCentralSystemRestServiceConfig().userTokenKey,
       handshake: true,
       decodedPropertyName: 'decoded_token',
+      // No client-side callback, terminate connection server-side
+      callback: false
     }));
     // Handle Socket IO connection
     CentralRestServer.socketIOServer.on('connection', (socket: SocketIOJwt) => {
@@ -148,37 +144,37 @@ export default class CentralRestServer {
         // Join Tenant Room
         socket.join(userToken.tenantID, (error) => {
           if (error) {
-            console.error(`${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO error when trying to join a room: ${error}`);
+            console.error(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO error when trying to join a room: ${error}`);
             Logging.logError({
               tenantID: userToken.tenantID,
               module: MODULE_NAME, method: 'startSocketIO',
               action: ServerAction.SOCKET_IO,
               user: userToken.id,
-              message: `${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO error when trying to join a room '${userToken.tenantID}': ${error}`,
+              message: `${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO error when trying to join a room '${userToken.tenantID}': ${error}`,
               detailedMessages: { error, socketIOid: socket.id, socketIOHandshake: socket.handshake }
             });
             socket.disconnect(true);
           } else {
-            console.log(`${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`);
+            console.log(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`);
             Logging.logDebug({
               tenantID: userToken.tenantID,
               module: MODULE_NAME, method: 'startSocketIO',
               action: ServerAction.SOCKET_IO,
               user: userToken.id,
-              message: `${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`,
+              message: `${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`,
               detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
             });
           }
         });
         // Handle Socket IO disconnection
         socket.on('disconnect', (reason: string) => {
-          console.log(`${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is disconnected: ${reason}`);
+          console.log(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is disconnected: ${reason}`);
           Logging.logDebug({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'startSocketIO',
             action: ServerAction.SOCKET_IO,
             user: userToken.id,
-            message: `${userToken.tenantName} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is disconnected: ${reason}`,
+            message: `${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is disconnected: ${reason}`,
             detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
           });
         });
@@ -212,7 +208,7 @@ export default class CentralRestServer {
   public notifyUser(tenantID: string, action: Action, data: NotificationData): void {
     // On User change rebuild userHashID
     if (data && data.id) {
-      SessionHashService.rebuildUserHashID(tenantID, data.id).catch(() => {});
+      SessionHashService.rebuildUserHashID(tenantID, data.id).catch(() => { });
     }
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
@@ -232,7 +228,7 @@ export default class CentralRestServer {
   public notifyTenant(tenantID: string, action: Action, data: NotificationData): void {
     // On Tenant change rebuild tenantHashID
     if (data && data.id) {
-      SessionHashService.rebuildTenantHashID(data.id).catch(() => {});
+      SessionHashService.rebuildTenantHashID(data.id).catch(() => { });
     }
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
@@ -452,39 +448,50 @@ export default class CentralRestServer {
 
   private addChangeNotificationInBuffer(notification: ChangeNotification) {
     let dups = false;
-    // Handle dups in buffer
-    for (const currentNotification of CentralRestServer.changeNotifications) {
-      // Same notification
-      if (currentNotification.tenantID === notification.tenantID &&
-        currentNotification.entity === notification.entity &&
-        currentNotification.action === notification.action) {
-        dups = true;
-        break;
+    if (this.hasSocketIOClients(notification.tenantID)) {
+      // Handle dups in buffer
+      for (const currentNotification of CentralRestServer.changeNotifications) {
+        // Same notification
+        if (currentNotification.tenantID === notification.tenantID &&
+          currentNotification.entity === notification.entity &&
+          currentNotification.action === notification.action) {
+          dups = true;
+          break;
+        }
       }
-    }
-    if (!dups) {
-      // Add it
-      CentralRestServer.changeNotifications.push(notification);
+      if (!dups) {
+        // Add it
+        CentralRestServer.changeNotifications.push(notification);
+      }
     }
   }
 
   private addSingleChangeNotificationInBuffer(notification: SingleChangeNotification) {
     let dups = false;
-    // Handle dups in buffer
-    for (const currentNotification of CentralRestServer.singleChangeNotifications) {
-      // Same notification
-      if (currentNotification.tenantID === notification.tenantID &&
-        currentNotification.entity === notification.entity &&
-        currentNotification.action === notification.action &&
-        currentNotification.data.id === notification.data.id &&
-        currentNotification.data.type === notification.data.type) {
-        dups = true;
-        break;
+    if (this.hasSocketIOClients(notification.tenantID)) {
+      // Handle dups in buffer
+      for (const currentNotification of CentralRestServer.singleChangeNotifications) {
+        // Same notification
+        if (currentNotification.tenantID === notification.tenantID &&
+          currentNotification.entity === notification.entity &&
+          currentNotification.action === notification.action &&
+          currentNotification.data.id === notification.data.id &&
+          currentNotification.data.type === notification.data.type) {
+          dups = true;
+          break;
+        }
+      }
+      if (!dups) {
+      // Add it
+        CentralRestServer.singleChangeNotifications.push(notification);
       }
     }
-    if (!dups) {
-      // Add it
-      CentralRestServer.singleChangeNotifications.push(notification);
+  }
+
+  private hasSocketIOClients(tenantID: string): boolean {
+    if (CentralRestServer.socketIOServer.sockets.adapter.rooms[tenantID]) {
+      return CentralRestServer.socketIOServer.sockets.adapter.rooms[tenantID].length > 0;
     }
+    return false;
   }
 }

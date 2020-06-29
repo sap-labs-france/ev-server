@@ -376,6 +376,12 @@ export default class OCPPService {
           await this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
+          // First Meter Value and no Car -> Trigger Smart Charging to adjust the single phase Car
+          if (transaction.numberOfMeterValues === 1 && !transaction.carID &&
+              !Utils.isTransactionInProgressOnThreePhases(chargingStation, transaction)) {
+            // Yes: Trigger Smart Charging
+            await this.triggerSmartCharging(headers.tenantID, chargingStation);
+          }
           // Log
           Logging.logInfo({
             tenantID: headers.tenantID,
@@ -944,14 +950,9 @@ export default class OCPPService {
     await this.updateOCPIStatus(tenantID, chargingStation, foundConnector);
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
-    // Start Transaction in OCPP: trigger Smart Charging
-    if (oldConnectorStatus &&
-        (statusNotification.status === ChargePointStatus.CHARGING ||
-         statusNotification.status === ChargePointStatus.SUSPENDED_EV ||
-         statusNotification.status === ChargePointStatus.SUSPENDED_EVSE) &&
-        (oldConnectorStatus === ChargePointStatus.PREPARING ||
-         oldConnectorStatus === ChargePointStatus.AVAILABLE)) {
-      // Handle Smart Charging
+    // Trigger Smart Charging
+    if (statusNotification.status === ChargePointStatus.CHARGING ||
+        statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
         await this.triggerSmartCharging(tenantID, chargingStation);
@@ -1729,19 +1730,23 @@ export default class OCPPService {
   }
 
   private async triggerSmartCharging(tenantID: string, chargingStation: ChargingStation) {
-    // Get Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
-    if (siteArea && siteArea.smartCharging) {
-      const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
-      if (siteAreaLock) {
-        try {
-          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);
-          if (smartCharging) {
-            await smartCharging.computeAndApplyChargingProfiles(siteArea);
+    // Smart Charging must be active
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+      // Get Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
+      if (siteArea && siteArea.smartCharging) {
+        const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
+        if (siteAreaLock) {
+          try {
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);
+            if (smartCharging) {
+              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            }
+          } finally {
+            // Release lock
+            await LockingManager.release(siteAreaLock);
           }
-        } finally {
-          // Release lock
-          await LockingManager.release(siteAreaLock);
         }
       }
     }

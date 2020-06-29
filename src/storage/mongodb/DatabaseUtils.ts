@@ -27,7 +27,7 @@ export default class DatabaseUtils {
     return `${prefix}.${collectionNameSuffix}`;
   }
 
-  public static getNotDeletedFilter(fieldName?: string): object {
+  public static getNotDeletedFilter(fieldName?: string): any {
     if (fieldName) {
       return JSON.parse(`[
         { "${fieldName}.deleted": { "$exists": false } },
@@ -42,72 +42,72 @@ export default class DatabaseUtils {
     ];
   }
 
-  public static pushSiteLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushSiteLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('sites', {
       objectIDFields: ['companyID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
     }, additionalPipeline);
   }
 
-  public static pushCarCatalogLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushCarCatalogLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('carcatalogs', {
       ...lookupParams
     }, additionalPipeline);
   }
 
-  public static pushCarLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushCarLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('cars', {
       ...lookupParams
     }, additionalPipeline);
   }
 
-  public static pushUserCarLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushUserCarLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('carusers', {
       ...lookupParams
     }, additionalPipeline);
   }
 
-  public static pushSiteUserLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushSiteUserLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('siteusers', {
       ...lookupParams
     }, additionalPipeline);
   }
 
-  public static pushTransactionsLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushTransactionsLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('transactions', {
       ...lookupParams
     }, additionalPipeline);
   }
 
-  public static pushUserLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushUserLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('users', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     }, additionalPipeline);
   }
 
-  public static pushCompanyLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushCompanyLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('companies', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     }, additionalPipeline);
   }
 
-  public static pushSiteAreaLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushSiteAreaLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('siteareas', {
       objectIDFields: ['siteID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
     }, additionalPipeline);
   }
 
-  public static pushChargingStationLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushChargingStationLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('chargingstations', {
       objectIDFields: ['siteAreaID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
     }, [DatabaseUtils.buildChargingStationInactiveFlagQuery(), ...additionalPipeline]);
   }
 
-  public static pushTagLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []) {
+  public static pushTagLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('tags', {
       objectIDFields: ['lastChangedBy'],
       projectedFields: ['id', 'description', 'issuer', 'active', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
@@ -117,49 +117,71 @@ export default class DatabaseUtils {
 
   public static pushArrayLookupInAggregation(arrayName: string,
     lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
-    lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) {
+    lookupParams: DbLookup, additionalParams: { pipeline?: Record<string, any>[], sort?: any } = {}): void {
     // Unwind the source
     lookupParams.aggregation.push({ '$unwind': { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } });
     // Call the lookup
     lookupMethod(lookupParams);
     // Add external pipeline
-    if (!Utils.isEmptyArray(additionalPipeline)) {
-      lookupParams.aggregation.push(...additionalPipeline);
+    if (!Utils.isEmptyArray(additionalParams.pipeline)) {
+      lookupParams.aggregation.push(...additionalParams.pipeline);
     }
     // Group back to arrays
     lookupParams.aggregation.push(
       JSON.parse(`{
         "$group": {
-          "_id": "$_id",
+          "_id": {
+            "ïd": "$id",
+            "_ïd": "$_id"
+          },
           "root": { "$first": "$$ROOT" },
           "${arrayName}": { "$push": "$${arrayName}" }
         }
       }`)
     );
     // Replace array
-    lookupParams.aggregation.push(JSON.parse(`{ "$addFields": { "root.${arrayName}": { "$cond": { "if": { "$eq": [ "$${arrayName}", [{}] ] }, "then": [], "else": "$${arrayName}" } } } }`));
+    lookupParams.aggregation.push(JSON.parse(`{
+      "$addFields": {
+        "root.${arrayName}": {
+          "$cond": {
+            "if": {
+              "$or": [
+                { "$eq": [ "$${arrayName}", [{}] ] },
+                { "$eq": [ "$${arrayName}", [null] ] }
+              ]
+            },
+            "then": [],
+            "else": "$${arrayName}"
+          }
+        }
+      }
+    }`));
     // Replace root
     lookupParams.aggregation.push({ $replaceRoot: { newRoot: '$root' } });
+    // Sort?
+    if (additionalParams.sort) {
+      lookupParams.aggregation.push({
+        $sort: additionalParams.sort
+      });
+    }
   }
 
-  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) {
+  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]): void {
     // Build Lookup's pipeline
     if (!lookupParams.pipelineMatch) {
       lookupParams.pipelineMatch = {};
     }
-    lookupParams.pipelineMatch['$expr'] = lookupParams.localField.includes('.') && !lookupParams.oneToOneCardinality ?
-      { '$in': [`$${lookupParams.foreignField}`, '$$fieldVar.' + lookupParams.localField.split('.')[1]] } :
-      { '$eq': [`$${lookupParams.foreignField}`, '$$fieldVar'] };
+    lookupParams.pipelineMatch['$expr'] = { '$eq': [`$${lookupParams.foreignField}`, '$$fieldVar'] };
     const pipeline: any[] = [
       { '$match': lookupParams.pipelineMatch }
     ];
     if (!Utils.isEmptyArray(additionalPipeline)) {
       pipeline.push(...additionalPipeline);
     }
-    if (lookupParams.countField) {
+    if (lookupParams.count) {
       pipeline.push({
         '$group': {
-          '_id': `$${lookupParams.countField}`,
+          '_id': `$${lookupParams.asField}`,
           'count': { '$sum': 1 }
         }
       });
@@ -178,9 +200,7 @@ export default class DatabaseUtils {
     lookupParams.aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(lookupParams.tenantID, collection),
-        'let': { 'fieldVar': `$${lookupParams.localField.includes('.') && !lookupParams.oneToOneCardinality ?
-          lookupParams.localField.split('.')[0] :
-          lookupParams.localField}` },
+        'let': { 'fieldVar': `$${lookupParams.localField}` },
         pipeline,
         'as': lookupParams.asField
       }
@@ -194,14 +214,41 @@ export default class DatabaseUtils {
         }
       });
     }
+    // Check if the target field is a composed property: empty root document must be null ({} = null)
+    const splitAsField = lookupParams.asField.split('.');
+    if (splitAsField.length > 1) {
+      lookupParams.aggregation.push(JSON.parse(`{
+        "$addFields": {
+          "${splitAsField[0]}": {
+            "$cond": {
+              "if": { "$eq": [ "$${splitAsField[0]}", ${lookupParams.oneToOneCardinality ? '{}' : '[]'} ] },
+              "then": null, "else": "$${splitAsField[0]}" }
+          }
+        }
+      }`));
+    }
+    // Set only the count
+    if (lookupParams.count) {
+      lookupParams.aggregation.push({
+        $unwind: {
+          path: `$${lookupParams.asField}`,
+          preserveNullAndEmptyArrays: true
+        }
+      });
+      lookupParams.aggregation.push(JSON.parse(`{
+        "$addFields": {
+          "${lookupParams.asField}": "$${lookupParams.asField}.count"
+        }
+      }`));
+    }
   }
 
-  public static pushChargingStationInactiveFlag(aggregation: any[]) {
+  public static pushChargingStationInactiveFlag(aggregation: any[]): void {
     // Add inactive field
     aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
   }
 
-  public static projectFields(aggregation: any[], projectedFields: string[]) {
+  public static projectFields(aggregation: any[], projectedFields: string[]): void {
     if (projectedFields) {
       const project = {
         $project: {}
@@ -213,7 +260,7 @@ export default class DatabaseUtils {
     }
   }
 
-  public static pushConvertObjectIDToString(aggregation: any[], fieldName: string, renamedFieldName?: string) {
+  public static pushConvertObjectIDToString(aggregation: any[], fieldName: string, renamedFieldName?: string): void {
     if (!renamedFieldName) {
       renamedFieldName = fieldName;
     }
@@ -233,9 +280,22 @@ export default class DatabaseUtils {
         }
       }
     }`));
+    // Check if the field is a composed property: empty root document must be null ({} = null)
+    const splitFieldName = renamedFieldName.split('.');
+    if (splitFieldName.length === 2) {
+      aggregation.push(JSON.parse(`{
+        "$addFields": {
+          "${splitFieldName[0]}": {
+            "$cond": {
+              "if": { "$eq": [ "$${splitFieldName[0]}", { "${splitFieldName[1]}": null } ] },
+              "then": null, "else": "$${splitFieldName[0]}" }
+          }
+        }
+      }`));
+    }
   }
 
-  public static clearFieldValueIfSubFieldIsNull(aggregation: any[], fieldName: string, subFieldName: string) {
+  public static clearFieldValueIfSubFieldIsNull(aggregation: any[], fieldName: string, subFieldName: string): void {
     // Remove if null
     const addNullFields: any = {};
     addNullFields[`${fieldName}`] = {
@@ -248,7 +308,7 @@ export default class DatabaseUtils {
     aggregation.push({ $addFields: addNullFields });
   }
 
-  public static pushRenameField(aggregation: any[], fieldName: string, renamedFieldName: string) {
+  public static pushRenameField(aggregation: any[], fieldName: string, renamedFieldName: string): void {
     // Rename
     aggregation.push(JSON.parse(`{
       "$addFields": {
@@ -263,12 +323,12 @@ export default class DatabaseUtils {
     }`));
   }
 
-  public static pushRenameDatabaseIDToNumber(aggregation: any[]) {
+  public static pushRenameDatabaseIDToNumber(aggregation: any[]): void {
     // Rename ID
     DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
   }
 
-  public static addLastChangedCreatedProps(dest: any, entity: any) {
+  public static addLastChangedCreatedProps(dest: any, entity: any): void {
     dest.createdBy = null;
     dest.lastChangedBy = null;
     if (entity.createdBy || entity.createdOn) {
@@ -281,7 +341,7 @@ export default class DatabaseUtils {
     }
   }
 
-  public static pushRenameDatabaseID(aggregation: any[], nestedField?: string) {
+  public static pushRenameDatabaseID(aggregation: any[], nestedField?: string): void {
     // Root document?
     if (!nestedField) {
       // Convert ID to string
@@ -336,7 +396,7 @@ export default class DatabaseUtils {
       return null;
     }
     if (ObjectID.isValid(obj[prop])) {
-      return obj[prop];
+      return obj[prop] as ObjectID;
     }
     if (obj[prop].id) {
       return Utils.convertToObjectID(obj[prop].id);

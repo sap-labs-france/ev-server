@@ -18,7 +18,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'ConnectionService';
 
 export default class ConnectionService {
-  public static async handleGetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const connectionID = ConnectionSecurity.filterConnectionRequestByID(req.query);
     // Charge Box is mandatory
@@ -56,7 +56,7 @@ export default class ConnectionService {
     next();
   }
 
-  public static async handleGetConnections(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetConnections(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListConnections(req.user)) {
       throw new AppAuthError({
@@ -79,7 +79,7 @@ export default class ConnectionService {
     next();
   }
 
-  public static async handleCreateConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateConnection(req.user)) {
       throw new AppAuthError({
@@ -111,7 +111,7 @@ export default class ConnectionService {
     next();
   }
 
-  public static async handleDeleteConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const connectionID = ConnectionSecurity.filterConnectionRequestByID(req.query);
     if (!connectionID) {

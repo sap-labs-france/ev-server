@@ -1,8 +1,8 @@
 import { AssetConnectionType, AssetSetting } from '../../types/Setting';
 
 import AssetIntegration from './AssetIntegration';
-import AssetSchneiderIntegration from './schneider/AssetSchneiderIntegration';
 import Logging from '../../utils/Logging';
+import SchneiderAssetIntegration from './schneider/SchneiderAssetIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -23,10 +23,10 @@ export default class AssetFactory {
         // Find connection
         const foundConnection = settings.asset.connections.find((connection) => connection.id === connectionID);
         if (foundConnection) {
-          let assetIntegrationImpl = null;
+          let assetIntegrationImpl: AssetIntegration<AssetSetting> = null;
           switch (foundConnection.type) {
             case AssetConnectionType.SCHNEIDER:
-              assetIntegrationImpl = new AssetSchneiderIntegration(tenantID, settings.asset, foundConnection);
+              assetIntegrationImpl = new SchneiderAssetIntegration(tenantID, settings.asset, foundConnection);
               break;
           }
           return assetIntegrationImpl;

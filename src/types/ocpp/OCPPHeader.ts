@@ -4,12 +4,12 @@ export interface OCPPHeader {
   ocppVersion?: OCPPVersion;
   ocppProtocol?: OCPPProtocol;
   chargeBoxIdentity?: string;
-  currentIPAddress?: string;
+  currentIPAddress?: string|string[];
   currentServerLocalIPAddressPort?: string;
   tenantID?: string;
   token?: string;
   chargingStationURL?: string;
   From?: {
-    Address: string;
+    Address: string|string[];
   };
 }

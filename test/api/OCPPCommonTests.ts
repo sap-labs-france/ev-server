@@ -1120,7 +1120,7 @@ export default class OCPPCommonTests {
       'meterStart': meterStart,
       'userID': this.transactionStartUser.id,
       'siteAreaID': this.chargingStationContext.getChargingStation().siteAreaID,
-      'siteID': this.chargingStationContext.getChargingStation().siteArea.siteID,
+      'siteID': this.chargingStationContext.getChargingStation().siteArea ? this.chargingStationContext.getChargingStation().siteArea.siteID : null,
       'user': {
         'id': this.transactionStartUser.id,
         'name': this.transactionStartUser.name,

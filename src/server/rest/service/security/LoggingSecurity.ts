@@ -35,8 +35,8 @@ export default class LoggingSecurity {
     };
   }
 
-  static filterLoggingResponse(logging, loggedUser: UserToken, withDetailedMessage = false): Log {
-    const filteredLogging: any = {};
+  static filterLoggingResponse(logging: Log, loggedUser: UserToken, withDetailedMessage = false): Log {
+    const filteredLogging: Log = {} as Log;
 
     if (!logging) {
       return null;
@@ -71,7 +71,7 @@ export default class LoggingSecurity {
     return filteredLogging;
   }
 
-  static filterLoggingsResponse(logs: DataResult<Log>, loggedUser): void {
+  static filterLoggingsResponse(logs: DataResult<Log>, loggedUser: UserToken): void {
     const filteredLogs = [];
     if (!logs.result) {
       return null;
