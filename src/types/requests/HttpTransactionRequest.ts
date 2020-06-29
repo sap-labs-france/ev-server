@@ -8,7 +8,7 @@ export interface HttpAssignTransactionsToUserRequest {
   UserID?: string;
 }
 
-export interface HttpAssignTransactionsToUserRequest {
+export interface HttpUnassignTransactionsToUserRequest {
   UserID?: string;
 }
 
