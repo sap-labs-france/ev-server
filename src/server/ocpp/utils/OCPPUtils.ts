@@ -140,7 +140,7 @@ export default class OCPPUtils {
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'stopTransaction',
+              module: MODULE_NAME, method: 'billTransaction',
               message: `Failed to bill transaction ${transaction.id}`,
               detailedMessages: { error: error.message, stack: error.stack }
             });
