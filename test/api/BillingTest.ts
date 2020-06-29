@@ -462,11 +462,11 @@ describe('Billing Service', function() {
       });
 
       it('Should set a transaction in error', async () => {
-        // Await TestData.setBillingSystemInvalidCredentials(testData);
+        await TestData.setBillingSystemInvalidCredentials(testData);
         const transactionID = await generateTransaction(testData.userContext, testData.chargingStationContext);
         expect(transactionID).to.not.be.null;
         const transactions = await testData.transactionUserService.transactionApi.readAllInError({});
-        console.log(transactions);
+        expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
       });
     });
 
