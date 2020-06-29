@@ -1,4 +1,4 @@
-import { HttpRegistrationTokenRequest, HttpRegistrationTokensRequest, HttpRegistrationTokensResponse } from '../../../../types/requests/HttpRegistrationToken';
+import { HttpRegistrationTokenRequest, HttpRegistrationTokensRequest } from '../../../../types/requests/HttpRegistrationToken';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
