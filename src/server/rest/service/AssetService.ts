@@ -243,7 +243,7 @@ export default class AssetService {
         withNoSiteArea: filteredRequest.WithNoSiteArea
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates']
+      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates', 'dynamicAsset', 'assetConnectionID', 'meterID']
     );
     // Filter
     AssetSecurity.filterAssetsResponse(assets, req.user);
@@ -336,6 +336,9 @@ export default class AssetService {
     asset.assetType = filteredRequest.assetType;
     asset.coordinates = filteredRequest.coordinates;
     asset.image = filteredRequest.image;
+    asset.dynamicAsset = filteredRequest.dynamicAsset;
+    asset.connectionID = filteredRequest.connectionID;
+    asset.meterID = filteredRequest.meterID;
     asset.lastChangedBy = { 'id': req.user.id };
     asset.lastChangedOn = new Date();
     // Update Asset

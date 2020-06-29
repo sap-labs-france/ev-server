@@ -10,4 +10,7 @@ export default interface Asset extends CreatedUpdatedProps {
   coordinates: number[];
   issuer: boolean;
   image?: string;
+  dynamicAsset: boolean;
+  connectionID?: string;
+  meterID?: string;
 }

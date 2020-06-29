@@ -62,14 +62,16 @@ export default class AssetStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set
-    const assetMDB: any = {
-      _id: assetToSave.id ? Utils.convertToObjectID(assetToSave.id) : new ObjectID(),
-      name: assetToSave.name,
-      siteAreaID: Utils.convertToObjectID(assetToSave.siteAreaID),
-      coordinates: assetToSave.coordinates,
-      assetType: assetToSave.assetType,
-      issuer: Utils.convertToBoolean(assetToSave.issuer),
-    };
+    const assetMDB: any = {};
+    assetMDB._id = assetToSave.id ? Utils.convertToObjectID(assetToSave.id) : new ObjectID();
+    assetMDB.name = assetToSave.name;
+    assetMDB.siteAreaID = Utils.convertToObjectID(assetToSave.siteAreaID);
+    assetMDB.coordinates = assetToSave.coordinates;
+    assetMDB.assetType = assetToSave.assetType;
+    assetMDB.dynamicAsset = assetToSave.dynamicAsset;
+    assetMDB.issuer = Utils.convertToBoolean(assetToSave.issuer);
+    assetMDB.connectionID = assetToSave.connectionID;
+    assetMDB.meterID = assetToSave.meterID;
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(assetMDB, assetToSave);
     // Modify
