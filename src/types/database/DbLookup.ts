@@ -7,7 +7,7 @@ export default interface DbLookup {
   asField: string;
   objectIDFields?: string[];
   projectedFields?: string[];
-  countField?: string;
+  count?: boolean;
   oneToOneCardinality?: boolean;
   oneToOneCardinalityNotNull?: boolean;
   pipelineMatch?: any;

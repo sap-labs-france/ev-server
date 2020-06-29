@@ -28,7 +28,7 @@ export default class WSConnection {
   protected readonly tenantID: string;
   private readonly token: string;
   private readonly url: string;
-  private readonly clientIP: string;
+  private readonly clientIP: string|string[];
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
   private requests: any = {};
@@ -250,7 +250,7 @@ export default class WSConnection {
     return this.url;
   }
 
-  public getClientIP(): string {
+  public getClientIP(): string|string[] {
     return this.clientIP;
   }
 

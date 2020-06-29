@@ -1,5 +1,5 @@
 import { default as Axios, default as axios } from 'axios';
-import { CarCatalog, ChargeAlternativeTable, ChargeOptionTable, CarConverter } from '../../../types/Car';
+import { CarCatalog, CarConverter, ChargeAlternativeTable, ChargeOptionTable } from '../../../types/Car';
 
 import BackendError from '../../../exception/BackendError';
 import CarIntegration from '../CarIntegration';

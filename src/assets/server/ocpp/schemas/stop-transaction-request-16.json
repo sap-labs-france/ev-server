@@ -10,7 +10,7 @@
         "idTag": {
             "type": "string",
             "description": "string defining identification token, e.g. RFID or credit card number. To be treated as case insensitive.",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 20
         },
         "timestamp": {
