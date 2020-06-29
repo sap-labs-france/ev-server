@@ -1,4 +1,4 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
 
 import Authorizations from '../../../../authorization/Authorizations';
@@ -25,7 +25,7 @@ export default class TransactionSecurity {
     return { UserID: request.UserID ? sanitize(request.UserID) : null };
   }
 
-  static filterUnassignedTransactionsCountRequest(request: any) {
+  static filterUnassignedTransactionsCountRequest(request: any): HttpUnassignTransactionsToUserRequest {
     return { UserID: request.UserID ? sanitize(request.UserID) : null };
   }
 
@@ -139,10 +139,10 @@ export default class TransactionSecurity {
       }
       if (!transaction.stop) {
         filteredTransaction.currentInstantWatts = transaction.currentInstantWatts;
-        filteredTransaction.currentInstanWattsL1 = transaction.currentInstanWattsL1;
-        filteredTransaction.currentInstanWattsL2 = transaction.currentInstanWattsL2;
-        filteredTransaction.currentInstanWattsL3 = transaction.currentInstanWattsL3;
-        filteredTransaction.currentInstanWattsDC = transaction.currentInstanWattsDC;
+        filteredTransaction.currentInstantWattsL1 = transaction.currentInstantWattsL1;
+        filteredTransaction.currentInstantWattsL2 = transaction.currentInstantWattsL2;
+        filteredTransaction.currentInstantWattsL3 = transaction.currentInstantWattsL3;
+        filteredTransaction.currentInstantWattsDC = transaction.currentInstantWattsDC;
         filteredTransaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
