@@ -53,8 +53,8 @@ export default class Utils {
     let threePhases = true;
     if (currentType === CurrentType.AC &&
         transaction.currentInstantAmpsL1 > 0 &&
-        transaction.currentInstantAmpsL2 === 0 &&
-        transaction.currentInstantAmpsL3 === 0) {
+        (transaction.currentInstantAmpsL2 === 0 ||
+         transaction.currentInstantAmpsL3 === 0)) {
       threePhases = false;
     }
     return threePhases;
@@ -1281,12 +1281,12 @@ export default class Utils {
       chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       // Check Min
-      if (chargingSchedulePeriod.limit < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors)) {
+      if (chargingSchedulePeriod.limit < 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Schedule is below the min limitation (${(StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors)}A)`,
+          message: 'Charging Schedule is below the min limitation (0A)',
           module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
           user: req.user.id,
           detailedMessages: { chargingSchedulePeriod }
