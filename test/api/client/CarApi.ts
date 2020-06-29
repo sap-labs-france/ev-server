@@ -23,7 +23,7 @@ export default class CarApi extends CrudApi {
   }
 
   public async readCar(id) {
-    return super.read({ CarID: id }, '/client/api/Car');
+    return super.read({ ID: id }, '/client/api/Car');
   }
 
   public async readCars(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
@@ -36,6 +36,10 @@ export default class CarApi extends CrudApi {
 
   public async create(data) {
     return super.create(data, '/client/api/CarCreate');
+  }
+
+  public async delete(id) {
+    return super.delete(id, '/client/api/CarDelete');
   }
 
 }

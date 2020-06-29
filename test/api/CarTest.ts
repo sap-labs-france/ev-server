@@ -316,6 +316,21 @@ describe('Car Service', function() {
           expect(response.status).to.equal(550);
         });
       });
+
+      after(async () => {
+        testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_CAR, {
+          email: config.get('admin.username'),
+          password: config.get('admin.password')
+        });
+        // Delete any created car
+        testData.createdCars.forEach(async (car) => {
+          await testData.centralService.deleteEntity(
+            testData.centralService.carApi,
+            car,
+            false
+          );
+        });
+      });
     });
 
     describe('Where Super admin user', () => {
