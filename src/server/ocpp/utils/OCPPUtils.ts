@@ -875,15 +875,26 @@ export default class OCPPUtils {
           // Handle OCPP Standard Parameters
           chargingStation.ocppStandardParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppStandardParameters')) {
+            let matchFirmware = false;
             let matchOcpp = false;
             // Search Firmware/Ocpp match
             for (const ocppStandardParameters of chargingStationTemplate.ocppStandardParameters) {
+              // Check Firmware version
+              if (ocppStandardParameters.supportedFirmwareVersions) {
+                const regExp = new RegExp(chargingStation.firmwareVersion);
+                for (const supportedFirmwareVersion of ocppStandardParameters.supportedFirmwareVersions) {
+                  if (regExp.test(supportedFirmwareVersion)) {
+                    matchFirmware = true;
+                    break;
+                  }
+                }
+              }
               // Check Ocpp version
               if (ocppStandardParameters.supportedOcppVersions) {
                 matchOcpp = ocppStandardParameters.supportedOcppVersions.includes(chargingStation.ocppVersion);
               }
               // Found?
-              if (matchOcpp) {
+              if (matchFirmware && matchOcpp) {
                 for (const parameter in ocppStandardParameters.parameters) {
                   chargingStation.ocppStandardParameters.push({
                     key: parameter,

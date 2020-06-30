@@ -14,15 +14,15 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 
-  getName() {
+  getName(): string {
     return 'UpdateChargingStationTemplatesTask';
   }
 
-  async migrate() {
+  async migrate(): Promise<void> {
     // Update Template
     await this.updateChargingStationTemplate();
     // Avoid migrating the current charging stations due to Schneider charge@home Wallboxes
@@ -34,7 +34,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '3.04';
   }
 
