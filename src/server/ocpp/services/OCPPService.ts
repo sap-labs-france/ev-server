@@ -1,4 +1,4 @@
-import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorType, CurrentType } from '../../../types/ChargingStation';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
@@ -908,7 +908,8 @@ export default class OCPPService {
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&
-      foundConnector.errorCode === statusNotification.errorCode) {
+        foundConnector.errorCode === statusNotification.errorCode &&
+        foundConnector.info === statusNotification.info) {
       // No Change: Do not save it
       Logging.logWarning({
         tenantID: tenantID,
@@ -1074,7 +1075,7 @@ export default class OCPPService {
 
   private async notifyStatusNotification(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Faulted?
-    if (statusNotification.status === ChargePointStatus.FAULTED) {
+    if (statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
       // Log
       Logging.logError({
         tenantID: tenantID,
@@ -1110,10 +1111,10 @@ export default class OCPPService {
         if (!transaction.transactionEndReceived) {
           // First time: Clear all values
           transaction.currentInstantWatts = 0;
-          transaction.currentInstanWattsL1 = 0;
-          transaction.currentInstanWattsL2 = 0;
-          transaction.currentInstanWattsL3 = 0;
-          transaction.currentInstanWattsDC = 0;
+          transaction.currentInstantWattsL1 = 0;
+          transaction.currentInstantWattsL2 = 0;
+          transaction.currentInstantWattsL3 = 0;
+          transaction.currentInstantWattsDC = 0;
           transaction.currentInstantVoltage = 0;
           transaction.currentInstantVoltageL1 = 0;
           transaction.currentInstantVoltageL2 = 0;
@@ -1193,18 +1194,18 @@ export default class OCPPService {
           // AC Charging Station
           switch (currentType) {
             case CurrentType.DC:
-              transaction.currentInstanWattsDC = powerInMeterValueWatts;
+              transaction.currentInstantWattsDC = powerInMeterValueWatts;
               break;
             case CurrentType.AC:
               switch (meterValue.attribute.phase) {
                 case OCPPPhase.L1:
-                  transaction.currentInstanWattsL1 = powerInMeterValueWatts;
+                  transaction.currentInstantWattsL1 = powerInMeterValueWatts;
                   break;
                 case OCPPPhase.L2:
-                  transaction.currentInstanWattsL2 = powerInMeterValueWatts;
+                  transaction.currentInstantWattsL2 = powerInMeterValueWatts;
                   break;
                 case OCPPPhase.L3:
-                  transaction.currentInstanWattsL3 = powerInMeterValueWatts;
+                  transaction.currentInstantWattsL3 = powerInMeterValueWatts;
                   break;
                 default:
                   transaction.currentInstantWatts = powerInMeterValueWatts;

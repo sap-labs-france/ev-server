@@ -53,8 +53,8 @@ export default class Utils {
     let threePhases = true;
     if (currentType === CurrentType.AC &&
         transaction.currentInstantAmpsL1 > 0 &&
-        transaction.currentInstantAmpsL2 === 0 &&
-        transaction.currentInstantAmpsL3 === 0) {
+        (transaction.currentInstantAmpsL2 === 0 ||
+         transaction.currentInstantAmpsL3 === 0)) {
       threePhases = false;
     }
     return threePhases;
@@ -826,10 +826,6 @@ export default class Utils {
       return false;
     }
     return true;
-  }
-
-  public static isEmptyObj(obj: any): boolean {
-    return _.isObject(obj) && _.isEmpty(obj);
   }
 
   public static findDuplicatesInArray(arr: any[]): any[] {
