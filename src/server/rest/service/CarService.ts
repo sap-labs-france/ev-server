@@ -49,8 +49,8 @@ export default class CarService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
-        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image', 'chargeStandardChargeSpeed',
-        'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'fastChargePlug', 'chargeStandardTables', 'fastChargePowerMax', 'drivetrainPowerHP']
+        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
+        'chargeStandardPower','chargeStandardPhase','chargeStandardPhaseAmp','chargeAlternativePower','chargeOptionPower','chargeOptionPhaseAmp','chargeAlternativePhaseAmp', 'chargePlug', 'fastChargePlug','fastChargePowerMax', 'drivetrainPowerHP']
     );
     // Filter
     CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
@@ -86,7 +86,7 @@ export default class CarService {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation', 'drivetrainPowerHP',
           'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardTables', 'chargeStandardPower', 'chargeStandardPhase', 'image']);
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase','chargeAlternativePower', 'chargeAlternativePhase','chargeOptionPower', 'chargeOptionPhase', 'image']);
     } else {
       // Get the car
       carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID);
@@ -325,17 +325,7 @@ export default class CarService {
           errorCode: HTTPError.NO_CAR_FOR_USER,
           user: req.user,
           module: MODULE_NAME, method: 'handleUpdateCar',
-          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
-        });
-      }
-      // Owned by this user ?
-      if (!carUser.owner) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_NOT_OWNER_OF_THE_CAR,
-          user: req.user,
-          module: MODULE_NAME, method: 'handleUpdateCar',
-          message: `User is not owner of the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
+          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarName(car, true)})`,
         });
       }
     }
@@ -503,19 +493,20 @@ export default class CarService {
           errorCode: HTTPError.NO_CAR_FOR_USER,
           user: req.user,
           module: MODULE_NAME, method: 'handleDeleteCar',
-          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
+          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarName(car, true)})`,
         });
       }
-      // Owned by this user ?
-      if (!carUser.owner) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_NOT_OWNER_OF_THE_CAR,
-          user: req.user,
-          module: MODULE_NAME, method: 'handleDeleteCar',
-          message: `User is not owner of the car ID '${car.id}' (${Utils.buildCarCatalogName(car.carCatalog)})`,
-        });
-      }
+    }
+    if (Authorizations.isBasic(req.user) && !carUser.owner) {
+      await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
+        message: `User '${req.user.id}' has been removed successfully from the car '${car.id}'`,
+        action: action,
+        detailedMessages: { car }
+      });
     }
     // Owner?
     if (Authorizations.isAdmin(req.user) || (Authorizations.isBasic(req.user) && carUser.owner)) {

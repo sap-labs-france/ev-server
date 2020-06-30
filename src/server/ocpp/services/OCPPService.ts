@@ -1,4 +1,4 @@
-import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorType, CurrentType } from '../../../types/ChargingStation';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
@@ -376,6 +376,12 @@ export default class OCPPService {
           await this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
+          // First Meter Value and no Car -> Trigger Smart Charging to adjust the single phase Car
+          if (transaction.numberOfMeterValues === 1 && !transaction.carID &&
+              !Utils.isTransactionInProgressOnThreePhases(chargingStation, transaction)) {
+            // Yes: Trigger Smart Charging
+            await this.triggerSmartCharging(headers.tenantID, chargingStation);
+          }
           // Log
           Logging.logInfo({
             tenantID: headers.tenantID,
@@ -902,7 +908,8 @@ export default class OCPPService {
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&
-      foundConnector.errorCode === statusNotification.errorCode) {
+        foundConnector.errorCode === statusNotification.errorCode &&
+        foundConnector.info === statusNotification.info) {
       // No Change: Do not save it
       Logging.logWarning({
         tenantID: tenantID,
@@ -945,7 +952,8 @@ export default class OCPPService {
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
-    if (statusNotification.status === ChargePointStatus.CHARGING) {
+    if (statusNotification.status === ChargePointStatus.CHARGING ||
+        statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
         await this.triggerSmartCharging(tenantID, chargingStation);
@@ -1067,7 +1075,7 @@ export default class OCPPService {
 
   private async notifyStatusNotification(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Faulted?
-    if (statusNotification.status === ChargePointStatus.FAULTED) {
+    if (statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
       // Log
       Logging.logError({
         tenantID: tenantID,
@@ -1723,19 +1731,23 @@ export default class OCPPService {
   }
 
   private async triggerSmartCharging(tenantID: string, chargingStation: ChargingStation) {
-    // Get Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
-    if (siteArea && siteArea.smartCharging) {
-      const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
-      if (siteAreaLock) {
-        try {
-          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);
-          if (smartCharging) {
-            await smartCharging.computeAndApplyChargingProfiles(siteArea);
+    // Smart Charging must be active
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+      // Get Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
+      if (siteArea && siteArea.smartCharging) {
+        const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
+        if (siteAreaLock) {
+          try {
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);
+            if (smartCharging) {
+              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            }
+          } finally {
+            // Release lock
+            await LockingManager.release(siteAreaLock);
           }
-        } finally {
-          // Release lock
-          await LockingManager.release(siteAreaLock);
         }
       }
     }

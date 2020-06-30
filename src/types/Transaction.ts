@@ -27,6 +27,7 @@ export enum TransactionAction {
 
 export default interface Transaction {
   id?: number;
+  carID?: string;
   siteID?: string;
   siteAreaID?: string;
   issuer: boolean;

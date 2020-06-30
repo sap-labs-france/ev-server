@@ -86,8 +86,11 @@ export default class CarSecurity {
         miscTurningCircle: carCatalog.miscTurningCircle,
         miscSegment: carCatalog.miscSegment,
         miscIsofixSeats: carCatalog.miscIsofixSeats,
-        chargeStandardTables: carCatalog.chargeStandardTables,
         image: carCatalog.image,
+        chargeAlternativePower: carCatalog.chargeAlternativePower,
+        chargeAlternativePhase: carCatalog.chargeAlternativePhase,
+        chargeOptionPower: carCatalog.chargeOptionPower,
+        chargeOptionPhase: carCatalog.chargeOptionPhase,
       } as CarCatalog;
     }
     // Created By / Last Changed By
@@ -160,7 +163,11 @@ export default class CarSecurity {
           efficiencyReal: carCatalog.efficiencyReal,
           image: carCatalog.image,
           chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed,
-          chargeStandardTables: carCatalog.chargeStandardTables
+          chargeOptionPower: carCatalog.chargeOptionPower,
+          chargeAlternativePower: carCatalog.chargeAlternativePower,
+          chargeStandardPhaseAmp: carCatalog.chargeStandardPhaseAmp,
+          chargeOptionPhaseAmp: carCatalog.chargeOptionPhaseAmp,
+          chargeAlternativePhaseAmp: carCatalog.chargeAlternativePhaseAmp,
         });
       }
     }
@@ -306,7 +313,7 @@ export default class CarSecurity {
 
   public static filterCarRequest(request: any): HttpCarByIDRequest {
     const filteredRequest: HttpCarByIDRequest = {
-      ID: sanitize(request.CarID),
+      ID: sanitize(request.ID),
     } as HttpCarByIDRequest;
     return filteredRequest;
   }
