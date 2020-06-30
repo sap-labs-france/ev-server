@@ -34,6 +34,10 @@ import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -71,6 +75,27 @@ export default class ChargingStationService {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      if (filteredRequest.public === false && filteredRequest.public !== chargingStation.public) {
+        // Remove charging station from ocpi
+        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+          const tenant = await TenantStorage.getTenant(req.user.tenantID);
+          try {
+            const ocpiClient: CpoOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+            if (ocpiClient) {
+              await ocpiClient.removeChargingStation(chargingStation);
+            }
+          } catch (error) {
+            Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+              action: action,
+              user: req.user,
+              message: `Unable to remove charging station ${chargingStation.id} from IOP`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
+        }
+      }
       chargingStation.public = filteredRequest.public;
     }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
