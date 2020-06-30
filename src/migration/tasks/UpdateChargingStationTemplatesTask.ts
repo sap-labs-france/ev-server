@@ -25,7 +25,6 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   async migrate(): Promise<void> {
     // Update Template
     await this.updateChargingStationTemplate();
-    // Avoid migrating the current charging stations due to Schneider charge@home Wallboxes
     // Update Charging Stations
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
