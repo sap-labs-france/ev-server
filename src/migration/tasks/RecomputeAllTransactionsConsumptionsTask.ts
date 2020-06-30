@@ -44,7 +44,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
         try {
           // Recompute consumption
           const timeFrom = new Date().getTime();
-          const nbrOfConsumptions = await OCPPUtils.recomputeTransactionConsumptions(tenant.id, transactionMDB._id);
+          const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(tenant.id, transactionMDB._id);
           const durationSecs = Math.trunc((new Date().getTime() - timeFrom) / 1000);
           consumptionsUpdated.inSuccess++;
           if (nbrOfConsumptions > 0) {

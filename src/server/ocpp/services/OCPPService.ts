@@ -1111,10 +1111,10 @@ export default class OCPPService {
         if (!transaction.transactionEndReceived) {
           // First time: Clear all values
           transaction.currentInstantWatts = 0;
-          transaction.currentInstanWattsL1 = 0;
-          transaction.currentInstanWattsL2 = 0;
-          transaction.currentInstanWattsL3 = 0;
-          transaction.currentInstanWattsDC = 0;
+          transaction.currentInstantWattsL1 = 0;
+          transaction.currentInstantWattsL2 = 0;
+          transaction.currentInstantWattsL3 = 0;
+          transaction.currentInstantWattsDC = 0;
           transaction.currentInstantVoltage = 0;
           transaction.currentInstantVoltageL1 = 0;
           transaction.currentInstantVoltageL2 = 0;
@@ -1194,18 +1194,18 @@ export default class OCPPService {
           // AC Charging Station
           switch (currentType) {
             case CurrentType.DC:
-              transaction.currentInstanWattsDC = powerInMeterValueWatts;
+              transaction.currentInstantWattsDC = powerInMeterValueWatts;
               break;
             case CurrentType.AC:
               switch (meterValue.attribute.phase) {
                 case OCPPPhase.L1:
-                  transaction.currentInstanWattsL1 = powerInMeterValueWatts;
+                  transaction.currentInstantWattsL1 = powerInMeterValueWatts;
                   break;
                 case OCPPPhase.L2:
-                  transaction.currentInstanWattsL2 = powerInMeterValueWatts;
+                  transaction.currentInstantWattsL2 = powerInMeterValueWatts;
                   break;
                 case OCPPPhase.L3:
-                  transaction.currentInstanWattsL3 = powerInMeterValueWatts;
+                  transaction.currentInstantWattsL3 = powerInMeterValueWatts;
                   break;
                 default:
                   transaction.currentInstantWatts = powerInMeterValueWatts;
