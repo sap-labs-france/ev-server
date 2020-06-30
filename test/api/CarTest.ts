@@ -293,6 +293,15 @@ describe('Car Service', function() {
           );
         });
 
+        it('Should not be able to delete a not owned car', async () => {
+          const response = await testData.centralService.deleteEntity(
+            testData.centralService.carApi,
+            testData.createdCars[1],
+            false
+          );
+          expect(response.status).to.equal(550);
+        });
+
         it('Should not be able to update a car to a pool car', async () => {
           // Update
           const carToUpdate = (await testData.centralService.carApi.readCar(testData.newCar.id)).data;
