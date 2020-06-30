@@ -1,4 +1,6 @@
 import { AssetConnectionSetting, AssetSetting } from '../../types/Setting';
+import Asset from '../../types/Asset';
+import { AbstractConsumption } from '../../types/Consumption';
 
 export default abstract class AssetIntegration<T extends AssetSetting> {
   protected readonly tenantID: string;
@@ -12,4 +14,5 @@ export default abstract class AssetIntegration<T extends AssetSetting> {
   }
 
   async abstract checkConnection();
+  async abstract retrieveMeterValuesByID(asset: Asset, meterID: string): Promise<AbstractConsumption>;
 }

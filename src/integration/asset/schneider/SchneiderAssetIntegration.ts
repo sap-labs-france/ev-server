@@ -1,12 +1,13 @@
-import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
-
-import AssetIntegration from '../AssetIntegration';
+import axios from 'axios';
 import BackendError from '../../../exception/BackendError';
+import Asset from '../../../types/Asset';
+import { AbstractConsumption } from '../../../types/Consumption';
+import { ServerAction } from '../../../types/Server';
+import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
-import axios from 'axios';
+import AssetIntegration from '../AssetIntegration';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 
@@ -32,11 +33,16 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     );
   }
 
+  public async retrieveMeterValuesByID(asset: Asset, meterID: string): Promise<AbstractConsumption> {
+    return;
+  }
+
   private isAssetConnectionInitialized(): void {
     if (!this.connection) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'isAssetConnectionInitialized',
+        module: MODULE_NAME,
+        method: 'isAssetConnectionInitialized',
         action: ServerAction.CHECK_CONNECTION,
         message: 'No connection provided'
       });

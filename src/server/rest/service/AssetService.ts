@@ -42,14 +42,14 @@ export default class AssetService {
       });
     }
     // Is authorized to check connection ?
-    if (!Authorizations.canCheckConnectionAsset(req.user)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Not authorized to check asset connections',
-        module: MODULE_NAME, method: 'handleCheckAssetConnection',
-        action: action,
-        user: req.user
+    if (!Authorizations.canCheckAssetConnection(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.CHECK_CONNECTION,
+        entity: Entity.ASSET,
+        module: MODULE_NAME,
+        method: 'handleCheckAssetConnection'
       });
     }
     try {
@@ -70,6 +70,75 @@ export default class AssetService {
       // Create fail response
       res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }
+    next();
+  }
+
+  public static async handleRefreshMetrics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.REFRESH_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleRefreshMetrics');
+    // Is authorized to check connection ?
+    if (!Authorizations.canRefreshAssetConnection(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.REFRESH_CONNECTION,
+        entity: Entity.ASSET,
+        module: MODULE_NAME,
+        method: 'handleRefreshMetrics'
+      });
+    }
+    // Filter request
+    const filteredRequestID = AssetSecurity.filterAssetRequestByID(req.query);
+    // Check Mandatory fields
+    UtilsService.assertIdIsProvided(action, filteredRequestID, MODULE_NAME, 'handleRefreshMetrics', req.user);
+    // Get
+    const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequestID);
+    // Filter
+    AssetSecurity.filterAssetResponse(asset, req.user);
+    // Found?
+    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequestID}' does not exist`,
+      MODULE_NAME, 'handleRefreshMetrics', req.user);
+    // Dynamic asset ?
+    if (!asset.dynamicAsset) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Not a dynamic asset',
+        module: MODULE_NAME, method: 'handleRefreshMetrics',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get asset connection type
+    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, asset.connectionID);
+    // Asset has unknown connection type
+    if (!assetImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Asset service is not configured',
+        module: MODULE_NAME, method: 'handleRefreshMetrics',
+        action: action,
+        user: req.user
+      });
+    }
+    try {
+      // Check connection
+      await assetImpl.checkConnection();
+    } catch (error) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Connection to the asset failed',
+        module: MODULE_NAME, method: 'handleRefreshMetrics',
+        action: action,
+        user: req.user,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+    Utils.retrieveAssetMetrics(req.user.tenantID, asset);
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 

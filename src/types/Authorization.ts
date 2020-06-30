@@ -110,6 +110,7 @@ export enum Action {
   SYNCHRONIZE_USER = 'SynchronizeUser',
   SYNCHRONIZE_INVOICES = 'SynchronizeInvoices',
   CHECK_CONNECTION = 'CheckConnection',
+  REFRESH_CONNECTION = 'RefreshConnection',
   PING = 'Ping',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
   REGISTER = 'Register',
