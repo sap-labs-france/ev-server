@@ -1514,7 +1514,7 @@ export default class OCPPService {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
             // Add Attributes
-            const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+            const newLocalMeterValue = Utils.cloneJSonDocument(newMeterValue);
             newLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
             // Data is to be interpreted as integer/decimal numeric data
             if (newLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
@@ -1528,7 +1528,7 @@ export default class OCPPService {
           }
         } else {
           // Add Attributes
-          const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+          const newLocalMeterValue = Utils.cloneJSonDocument(newMeterValue);
           newLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
           // Add
           newMeterValues.values.push(newLocalMeterValue);
