@@ -848,9 +848,9 @@ export default class OCPPUtils {
             for (const capabilities of chargingStationTemplate.capabilities) {
               // Check Firmware version
               if (capabilities.supportedFirmwareVersions) {
-                const regExp = new RegExp(chargingStation.firmwareVersion);
                 for (const supportedFirmwareVersion of capabilities.supportedFirmwareVersions) {
-                  if (regExp.test(supportedFirmwareVersion)) {
+                  const regExp = new RegExp(supportedFirmwareVersion);
+                  if (regExp.test(chargingStation.firmwareVersion)) {
                     matchFirmware = true;
                     break;
                   }
@@ -881,9 +881,9 @@ export default class OCPPUtils {
             for (const ocppStandardParameters of chargingStationTemplate.ocppStandardParameters) {
               // Check Firmware version
               if (ocppStandardParameters.supportedFirmwareVersions) {
-                const regExp = new RegExp(chargingStation.firmwareVersion);
                 for (const supportedFirmwareVersion of ocppStandardParameters.supportedFirmwareVersions) {
-                  if (regExp.test(supportedFirmwareVersion)) {
+                  const regExp = new RegExp(supportedFirmwareVersion);
+                  if (regExp.test(chargingStation.firmwareVersion)) {
                     matchFirmware = true;
                     break;
                   }
@@ -920,9 +920,9 @@ export default class OCPPUtils {
             for (const ocppVendorParameters of chargingStationTemplate.ocppVendorParameters) {
               // Check Firmware version
               if (ocppVendorParameters.supportedFirmwareVersions) {
-                const regExp = new RegExp(chargingStation.firmwareVersion);
                 for (const supportedFirmwareVersion of ocppVendorParameters.supportedFirmwareVersions) {
-                  if (regExp.test(supportedFirmwareVersion)) {
+                  const regExp = new RegExp(supportedFirmwareVersion);
+                  if (regExp.test(chargingStation.firmwareVersion)) {
                     matchFirmware = true;
                     break;
                   }
