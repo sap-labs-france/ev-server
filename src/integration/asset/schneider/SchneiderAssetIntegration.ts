@@ -1,12 +1,12 @@
-import axios from 'axios';
-import BackendError from '../../../exception/BackendError';
-import { ServerAction } from '../../../types/Server';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+
+import AssetIntegration from '../AssetIntegration';
+import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import AssetIntegration from '../AssetIntegration';
+import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
-
+import axios from 'axios';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 

@@ -206,15 +206,12 @@ export default class SiteAreaStorage {
     // Remove the limit
     aggregation.pop();
     // Add Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { name: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: skip
@@ -346,7 +343,7 @@ export default class SiteAreaStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteSiteArea', uniqueTimerID, { id });
   }
 
-  public static async deleteSiteAreas(tenantID: string, siteAreaIDs: string[]) {
+  public static async deleteSiteAreas(tenantID: string, siteAreaIDs: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteSiteAreas');
     // Check Tenant
@@ -375,7 +372,7 @@ export default class SiteAreaStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteSiteAreas', uniqueTimerID, { siteAreaIDs });
   }
 
-  public static async deleteSiteAreasFromSites(tenantID: string, siteIDs: string[]) {
+  public static async deleteSiteAreasFromSites(tenantID: string, siteIDs: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteSiteAreasFromSites');
     // Check Tenant

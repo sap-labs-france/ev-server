@@ -77,10 +77,10 @@ export default class TransactionStorage {
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
       transactionEndReceived: Utils.convertToBoolean(transactionToSave.transactionEndReceived),
       currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
-      currentInstanWattsL1: Utils.convertToFloat(transactionToSave.currentInstanWattsL1),
-      currentInstanWattsL2: Utils.convertToFloat(transactionToSave.currentInstanWattsL2),
-      currentInstanWattsL3: Utils.convertToFloat(transactionToSave.currentInstanWattsL3),
-      currentInstanWattsDC: Utils.convertToFloat(transactionToSave.currentInstanWattsDC),
+      currentInstantWattsL1: Utils.convertToFloat(transactionToSave.currentInstantWattsL1),
+      currentInstantWattsL2: Utils.convertToFloat(transactionToSave.currentInstantWattsL2),
+      currentInstantWattsL3: Utils.convertToFloat(transactionToSave.currentInstantWattsL3),
+      currentInstantWattsDC: Utils.convertToFloat(transactionToSave.currentInstantWattsDC),
       currentTotalConsumptionWh: Utils.convertToFloat(transactionToSave.currentTotalConsumptionWh),
       currentTotalDurationSecs: Utils.convertToInt(transactionToSave.currentTotalDurationSecs),
       currentInstantVoltage: Utils.convertToFloat(transactionToSave.currentInstantVoltage),
@@ -117,10 +117,10 @@ export default class TransactionStorage {
       };
       // Remove runtime props
       delete transactionMDB.currentInstantWatts;
-      delete transactionMDB.currentInstanWattsL1;
-      delete transactionMDB.currentInstanWattsL2;
-      delete transactionMDB.currentInstanWattsL3;
-      delete transactionMDB.currentInstanWattsDC;
+      delete transactionMDB.currentInstantWattsL1;
+      delete transactionMDB.currentInstantWattsL2;
+      delete transactionMDB.currentInstantWattsL3;
+      delete transactionMDB.currentInstantWattsDC;
       delete transactionMDB.currentCumulatedPrice;
       delete transactionMDB.currentSignedData;
       delete transactionMDB.currentStateOfCharge;
@@ -525,23 +525,17 @@ export default class TransactionStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
-    if (dbParams.sort) {
-      if (!dbParams.sort.timestamp) {
-        aggregation.push({
-          $sort: { ...dbParams.sort, timestamp: -1 }
-        });
-      } else {
-        aggregation.push({
-          $sort: dbParams.sort
-        });
-      }
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
+    }
+    if (!dbParams.sort.timestamp) {
+      aggregation.push({
+        $sort: { ...dbParams.sort, timestamp: -1 }
+      });
     } else {
       aggregation.push({
-        $sort: { timestamp: -1 }
+        $sort: dbParams.sort
       });
     }
     // Skip
@@ -552,34 +546,19 @@ export default class TransactionStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add Charge Box
+    // Charge Box
     DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      localField: 'chargeBoxID',
-      foreignField: '_id',
-      asField: 'chargeBox',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
-    // Add Users
+    // Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'user',
-      localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'stop.user',
-      localField: 'stop.userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
@@ -694,19 +673,16 @@ export default class TransactionStorage {
     // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
     // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
-    if (dbParams.sort) {
-      if (!dbParams.sort.timestamp) {
-        aggregation.push({
-          $sort: { ...dbParams.sort, timestamp: -1 }
-        });
-      } else {
-        aggregation.push({
-          $sort: dbParams.sort
-        });
-      }
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
+    }
+    if (!dbParams.sort.timestamp) {
+      aggregation.push({
+        $sort: { ...dbParams.sort, timestamp: -1 }
+      });
     } else {
       aggregation.push({
-        $sort: { timestamp: -1 }
+        $sort: dbParams.sort
       });
     }
     // Skip
@@ -820,37 +796,21 @@ export default class TransactionStorage {
        (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID,
-        aggregation: aggregation,
-        localField: 'chargeBoxID',
-        foreignField: '_id',
-        asField: 'chargeBox',
-        oneToOneCardinality: true,
-        oneToOneCardinalityNotNull: false,
-        pipelineMatch: { 'issuer': true }
+        tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id', asField: 'chargeBox',
+        oneToOneCardinality: true, oneToOneCardinalityNotNull: false, pipelineMatch: { 'issuer': true }
       });
     }
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'user',
-      localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Used only in the error type : missing_user
     if (params.errorType && params.errorType.includes(TransactionInErrorType.MISSING_USER)) {
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID,
-        aggregation: aggregation,
-        localField: 'siteAreaID',
-        foreignField: '_id',
-        asField: 'siteArea',
-        oneToOneCardinality: true,
-        objectIDFields: ['createdBy', 'lastChangedBy']
+        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
       });
     }
     // Build facets for each type of error if any
@@ -869,14 +829,10 @@ export default class TransactionStorage {
       // Add a unique identifier as we may have the same Charging Station several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: [{ $substr: ['$_id', 0, -1] }, '#', '$errorCode'] } } });
     }
+    // Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'stop.user',
-      localField: 'stop.userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
@@ -890,19 +846,16 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Sort
-    if (dbParams.sort) {
-      if (!dbParams.sort.timestamp) {
-        aggregation.push({
-          $sort: { ...dbParams.sort, timestamp: -1 }
-        });
-      } else {
-        aggregation.push({
-          $sort: dbParams.sort
-        });
-      }
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: -1 };
+    }
+    if (!dbParams.sort.timestamp) {
+      aggregation.push({
+        $sort: { ...dbParams.sort, timestamp: -1 }
+      });
     } else {
       aggregation.push({
-        $sort: { timestamp: -1 }
+        $sort: dbParams.sort
       });
     }
     // Skip

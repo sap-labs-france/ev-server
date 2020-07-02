@@ -27,6 +27,7 @@ export enum TransactionAction {
 
 export default interface Transaction {
   id?: number;
+  carID?: string;
   siteID?: string;
   siteAreaID?: string;
   issuer: boolean;
@@ -63,10 +64,10 @@ export default interface Transaction {
   currentTotalDurationSecs?: number;
   transactionEndReceived?: boolean;
   currentInstantWatts: number;
-  currentInstanWattsL1?: number;
-  currentInstanWattsL2?: number;
-  currentInstanWattsL3?: number;
-  currentInstanWattsDC?: number;
+  currentInstantWattsL1?: number;
+  currentInstantWattsL2?: number;
+  currentInstantWattsL3?: number;
+  currentInstantWattsDC?: number;
   currentInstantVoltage?: number;
   currentInstantVoltageL1?: number;
   currentInstantVoltageL2?: number;

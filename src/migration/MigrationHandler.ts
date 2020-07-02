@@ -20,6 +20,7 @@ import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
+import MigrationTask from './MigrationTask';
 import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
 import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPropertiesTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
@@ -46,7 +47,7 @@ export default class MigrationHandler {
     if (await LockingManager.acquire(migrationLock)) {
       try {
         const startMigrationTime = moment();
-        const currentMigrationTasks = [];
+        const currentMigrationTasks: MigrationTask[] = [];
         // Log
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
@@ -118,7 +119,7 @@ export default class MigrationHandler {
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
-          message: error.toString(),
+          message: error.message,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       } finally {
@@ -134,7 +135,7 @@ export default class MigrationHandler {
     }
   }
 
-  private static async executeTask(currentMigrationTask): Promise<void> {
+  private static async executeTask(currentMigrationTask: MigrationTask): Promise<void> {
     try {
       // Log Start Task
       Logging.logInfo({

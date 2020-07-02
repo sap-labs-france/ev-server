@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorMDB, ConnectorType, OcppParameter } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream } from 'mongodb';
 
@@ -71,11 +71,11 @@ export default class ChargingStationStorage {
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Query Templates
-    const chargingStationTemplatesMDB =
-      await global.database.getCollection(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
+    const chargingStationTemplatesMDB: ChargingStationTemplate[] =
+      await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
         .aggregate(aggregation).toArray();
     // Transfer
-    const chargingStationTemplates = [];
+    const chargingStationTemplates: ChargingStationTemplate[] = [];
     for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
       chargingStationTemplates.push(chargingStationTemplateMDB);
     }
@@ -247,11 +247,7 @@ export default class ChargingStationStorage {
     aggregation.pop();
     // Sort
     if (!dbParams.sort) {
-      dbParams.sort = {
-        $sort: {
-          _id: 1
-        }
-      };
+      dbParams.sort = { _id: 1 };
     }
     aggregation.push({
       $sort: dbParams.sort
@@ -385,17 +381,12 @@ export default class ChargingStationStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: {
-          _id: 1
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -488,7 +479,7 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const updatedFields: any = {};
-    updatedFields['connectors.' + (connector.connectorId - 1)] = connectorMDB;
+    updatedFields['connectors.' + (connector.connectorId - 1).toString()] = connectorMDB;
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
@@ -499,7 +490,7 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationHeartBeat(tenantID: string, id: string,
-    params: { lastHeartBeat: Date; currentIPAddress: string|string[] }): Promise<void> {
+    params: { lastHeartBeat: Date; currentIPAddress: string | string[] }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationHeartBeat');
     // Check Tenant
@@ -547,14 +538,14 @@ export default class ChargingStationStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteChargingStation', uniqueTimerID);
   }
 
-  public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string) {
+  public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOcppParameterValue');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Get the config
     const configuration = await ChargingStationStorage.getOcppParameters(tenantID, chargeBoxID);
-    let value = null;
+    let value: string = null;
     if (configuration) {
       // Get the value
       configuration.result.every((param) => {
@@ -705,18 +696,15 @@ export default class ChargingStationStorage {
     // Rename ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: {
-          'connectorID': -1,
-          'profile.stackLevel': -1,
-        }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = {
+        'connectorID': -1,
+        'profile.stackLevel': -1,
+      };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -765,7 +753,7 @@ export default class ChargingStationStorage {
       { $set: chargingProfileMDB },
       { upsert: true });
     Logging.traceEnd(MODULE_NAME, 'saveChargingProfile', uniqueTimerID);
-    return chargingProfileFilter._id;
+    return chargingProfileFilter._id as string;
   }
 
   public static async deleteChargingProfile(tenantID: string, id: string): Promise<void> {
@@ -847,7 +835,7 @@ export default class ChargingStationStorage {
     }
   }
 
-  private static connector2connectorMDB(connector: Connector): object {
+  private static connector2connectorMDB(connector: Connector): ConnectorMDB {
     if (!connector) {
       return null;
     }
@@ -878,7 +866,7 @@ export default class ChargingStationStorage {
     };
   }
 
-  private static chargePoint2ChargePointMDB(chargePoint: ChargePoint): object {
+  private static chargePoint2ChargePointMDB(chargePoint: ChargePoint): ChargePoint {
     if (!chargePoint) {
       return null;
     }

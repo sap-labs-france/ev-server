@@ -15,12 +15,15 @@ import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../utils/Constants';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../types/DataResult';
 import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
@@ -29,6 +32,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
@@ -71,6 +75,27 @@ export default class ChargingStationService {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      if (filteredRequest.public === false && filteredRequest.public !== chargingStation.public) {
+        // Remove charging station from ocpi
+        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+          const tenant = await TenantStorage.getTenant(req.user.tenantID);
+          try {
+            const ocpiClient: CpoOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+            if (ocpiClient) {
+              await ocpiClient.removeChargingStation(chargingStation);
+            }
+          } catch (error) {
+            Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+              action: action,
+              user: req.user,
+              message: `Unable to remove charging station ${chargingStation.id} from IOP`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
+        }
+      }
       chargingStation.public = filteredRequest.public;
     }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
@@ -147,16 +172,6 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationLimitPowerRequest(req.body);
     // Check
-    if (filteredRequest.ampLimitValue < StaticLimitAmps.MIN_LIMIT) {
-      throw new AppError({
-        source: filteredRequest.chargeBoxID,
-        action: action,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT}A`,
-        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-        user: req.user
-      });
-    }
     if (!filteredRequest.chargePointID) {
       throw new AppError({
         source: filteredRequest.chargeBoxID,
@@ -167,13 +182,26 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    // Check
+    // Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.chargeBoxID}' does not exist.`,
       MODULE_NAME, 'handleChargingStationLimitPower', req.user);
+    // Charge Point
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
     UtilsService.assertObjectExists(action, chargePoint, `Charge Point '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'handleChargingStationLimitPower', req.user);
+    // Min Current
+    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, 0);
+    if (filteredRequest.ampLimitValue < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length)) {
+      throw new AppError({
+        source: filteredRequest.chargeBoxID,
+        action: action,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length}A`,
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
@@ -204,7 +232,7 @@ export default class ChargingStationService {
       });
     }
     // Check if static limitation is supported
-    if (chargingStationVendor.hasStaticLimitationSupport(chargingStation)) {
+    if (!chargingStationVendor.hasStaticLimitationSupport(chargingStation)) {
       throw new AppError({
         source: chargingStation.id,
         action: action,

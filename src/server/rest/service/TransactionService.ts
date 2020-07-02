@@ -38,7 +38,7 @@ import moment from 'moment';
 const MODULE_NAME = 'TransactionService';
 
 export default class TransactionService {
-  static async handleSynchronizeRefundedTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleSynchronizeRefundedTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError({
@@ -182,6 +182,30 @@ export default class TransactionService {
     const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, user);
     // Return
     res.json(count);
+    next();
+  }
+
+  public static async handleRebuildTransactionConsumptions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Auth
+    if (!Authorizations.canUpdateTransaction(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleRebuildTransactionConsumptions'
+      });
+    }
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID.toString(), MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
+      MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
+    // Get unassigned transactions
+    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.user.tenantID, filteredRequest.ID);
+    // Return
+    res.json({ nbrOfConsumptions, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
 

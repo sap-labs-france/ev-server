@@ -2,6 +2,7 @@ import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingS
 import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
+import Transaction, { InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -16,7 +17,6 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { HTTPError } from '../types/HTTPError';
-import { InactivityStatus } from '../types/Transaction';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
@@ -48,6 +48,18 @@ const _tenants = [];
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
+  public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    let threePhases = true;
+    if (currentType === CurrentType.AC &&
+        transaction.currentInstantAmpsL1 > 0 &&
+        (transaction.currentInstantAmpsL2 === 0 ||
+         transaction.currentInstantAmpsL3 === 0)) {
+      threePhases = false;
+    }
+    return threePhases;
+  }
+
   public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number): number {
     let intervalMins = 0;
     if (!chargingStation || !chargingStation.connectors) {
@@ -144,7 +156,7 @@ export default class Utils {
     return Math.round(numberToRound * 100) / 100;
   }
 
-  public static objectHasProperty(object: object, key: string): boolean {
+  public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
   }
 
@@ -168,7 +180,7 @@ export default class Utils {
     return tagID;
   }
 
-  public static isIterable(obj: object): boolean {
+  public static isIterable(obj: any): boolean {
     if (obj) {
       return typeof obj[Symbol.iterator] === 'function';
     }
@@ -307,7 +319,7 @@ export default class Utils {
     return language;
   }
 
-  public static async normalizeAndCheckSOAPParams(headers, req): Promise<void> {
+  public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
     // Normalize
     Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     Utils._normalizeOneSOAPParam(headers, 'Action');
@@ -401,7 +413,7 @@ export default class Utils {
   public static convertToDate(date: any): Date {
     // Check
     if (!date) {
-      return date;
+      return null;
     }
     // Check Type
     if (!(date instanceof Date)) {
@@ -418,7 +430,7 @@ export default class Utils {
     return value ? value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
   }
 
-  public static isEmptyJSon(document) {
+  public static isEmptyJSon(document: any): boolean {
     // Empty?
     if (!document) {
       return true;
@@ -431,7 +443,7 @@ export default class Utils {
     return Object.keys(document).length === 0;
   }
 
-  public static removeExtraEmptyLines(tab) {
+  public static removeExtraEmptyLines(tab: string[]): void {
     // Start from the end
     for (let i = tab.length - 1; i > 0; i--) {
       // Two consecutive empty lines?
@@ -452,7 +464,7 @@ export default class Utils {
   }
 
   public static convertToObjectID(id: any): ObjectID {
-    let changedID = id;
+    let changedID: ObjectID = id;
     // Check
     if (typeof id === 'string') {
       // Create Object
@@ -462,7 +474,7 @@ export default class Utils {
   }
 
   public static convertToInt(value: any): number {
-    let changedValue = value;
+    let changedValue: number = value;
     if (!value) {
       return 0;
     }
@@ -475,7 +487,7 @@ export default class Utils {
   }
 
   public static convertToFloat(value: any): number {
-    let changedValue = value;
+    let changedValue: number = value;
     if (!value) {
       return 0;
     }
@@ -534,14 +546,14 @@ export default class Utils {
     if (!chargingStation.chargePoints) {
       return null;
     }
-    return chargingStation.chargePoints.find((chargePoint) => chargePoint.chargePointID === chargePointID);
+    return chargingStation.chargePoints.find((chargePoint) => chargePoint && (chargePoint.chargePointID === chargePointID));
   }
 
   public static getConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
     if (!chargingStation.connectors) {
       return null;
     }
-    return chargingStation.connectors.find((connector) => connector.connectorId === connectorID);
+    return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
   }
 
   public static computeChargingStationTotalAmps(chargingStation: ChargingStation): number {
@@ -816,13 +828,9 @@ export default class Utils {
     return true;
   }
 
-  public static isEmptyObj(obj: any): boolean {
-    return _.isObject(obj) && _.isEmpty(obj);
-  }
-
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
-    const results = [];
+    const results: any[] = [];
     for (let i = 0; i < sorted_arr.length - 1; i++) {
       if (_.isEqual(sorted_arr[i + 1], sorted_arr[i])) {
         results.push(sorted_arr[i]);
@@ -906,7 +914,7 @@ export default class Utils {
   }
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl;
+    let ocppUrl: string;
     const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
     switch (ocppProtocol) {
       case OCPPProtocol.JSON:
@@ -938,10 +946,10 @@ export default class Utils {
     return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
   }
 
-  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = ''): Promise<string> {
+  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId: number, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
+    return _evseBaseURL + '/transactions?TransactionID=' + transactionId.toString() + hash;
   }
 
   public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
@@ -955,7 +963,7 @@ export default class Utils {
     return (env === 'production');
   }
 
-  public static hideShowMessage(message): string {
+  public static hideShowMessage(message: string): string {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
@@ -1005,7 +1013,7 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneJSonDocument(jsonDocument: object): object {
+  public static cloneJSonDocument(jsonDocument: any): any {
     return JSON.parse(JSON.stringify(jsonDocument));
   }
 
@@ -1190,6 +1198,26 @@ export default class Utils {
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
     filteredRequest: ChargingProfile, req: Request): void {
+    if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Station ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!Utils.objectHasProperty(filteredRequest, 'connectorID')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Connector ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
     if (!filteredRequest.profile) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1246,16 +1274,19 @@ export default class Utils {
       });
     }
     // Check Max Limitation of each Schedule
+    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
+    const numberOfConnectors = filteredRequest.connectorID === 0 ?
+      (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
     const maxAmpLimit = Utils.getChargingStationAmperageLimit(
       chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       // Check Min
-      if (chargingSchedulePeriod.limit < StaticLimitAmps.MIN_LIMIT) {
+      if (chargingSchedulePeriod.limit < 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Schedule is below the min limitation (${StaticLimitAmps.MIN_LIMIT}A)`,
+          message: 'Charging Schedule is below the min limitation (0A)',
           module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
           user: req.user.id,
           detailedMessages: { chargingSchedulePeriod }
@@ -1282,8 +1313,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteValid',
+        module: MODULE_NAME, method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1292,8 +1322,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteValid',
+        module: MODULE_NAME, method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1302,8 +1331,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory for the Site',
-        module: MODULE_NAME,
-        method: 'checkIfSiteValid',
+        module: MODULE_NAME, method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1315,8 +1343,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1325,8 +1352,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1335,8 +1361,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1346,8 +1371,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1356,8 +1380,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage} kW`,
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1366,8 +1389,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site area number of phases must be either 1 or 3 but got ${siteArea.numberOfPhases}`,
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1379,8 +1401,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCompanyValid',
+        module: MODULE_NAME, method: 'checkIfCompanyValid',
         user: req.user.id
       });
     }
@@ -1389,8 +1410,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCompanyValid',
+        module: MODULE_NAME, method: 'checkIfCompanyValid',
         user: req.user.id
       });
     }
@@ -1406,8 +1426,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1416,8 +1435,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1426,8 +1444,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset Site Area is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1436,8 +1453,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset type is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1448,6 +1464,7 @@ export default class Utils {
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       if (tags) {
         for (const tag of tags) {
+          // Check if exists
           const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
           if (foundUser && (!user || (foundUser.id !== user.id))) {
             // Tag already used!
@@ -1460,12 +1477,31 @@ export default class Utils {
               user: req.user.id
             });
           }
+          // Check params
+          if (!tag.id) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              errorCode: HTTPError.GENERAL_ERROR,
+              message: 'Tag ID is mandatory',
+              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
+              user: req.user.id
+            });
+          }
+          if (!Utils.objectHasProperty(tag, 'active')) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              errorCode: HTTPError.GENERAL_ERROR,
+              message: 'Tag Active property is mandatory',
+              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
+              user: req.user.id
+            });
+          }
         }
       }
     }
   }
 
-  public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request) {
+  public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request): void {
     const tenantID = req.user.tenantID;
     if (!tenantID) {
       throw new AppError({
@@ -1608,7 +1644,7 @@ export default class Utils {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags ${filteredRequest.tags} is/are not valid`,
+          message: `User Tags ${JSON.stringify(filteredRequest.tags)} is/are not valid`,
           module: MODULE_NAME,
           method: 'checkIfUserValid',
           user: req.user.id,
@@ -1655,7 +1691,7 @@ export default class Utils {
     return false;
   }
 
-  public static createDefaultSettingContent(activeComponent, currentSettingContent): SettingDBContent {
+  public static createDefaultSettingContent(activeComponent: any, currentSettingContent: SettingDBContent): SettingDBContent {
     switch (activeComponent.name) {
       // Pricing
       case TenantComponents.PRICING:
@@ -1837,7 +1873,7 @@ export default class Utils {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
 
-  private static _normalizeOneSOAPParam(headers: object, name: string) {
+  private static _normalizeOneSOAPParam(headers: any, name: string) {
     const val = _.get(headers, name);
     if (val && val.$value) {
       _.set(headers, name, val.$value);

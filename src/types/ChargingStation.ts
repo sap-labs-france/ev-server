@@ -5,6 +5,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import { ObjectID } from 'mongodb';
 import SiteArea from './SiteArea';
 import User from './User';
 
@@ -84,7 +85,7 @@ export enum Command {
 }
 
 export enum StaticLimitAmps {
-  MIN_LIMIT = 6,
+  MIN_LIMIT_PER_PHASE = 13,
 }
 
 export interface Connector {
@@ -108,6 +109,34 @@ export interface Connector {
   amperage?: number;
   amperageLimit?: number;
   userID?: string;
+  user?: User;
+  statusLastChangedOn?: Date;
+  numberOfConnectedPhase?: number;
+  currentType?: CurrentType;
+  chargePointID?: number;
+}
+
+export interface ConnectorMDB {
+  id?: string;
+  connectorId: number;
+  currentInstantWatts?: number;
+  currentStateOfCharge?: number;
+  currentTotalConsumptionWh?: number;
+  currentTotalInactivitySecs?: number;
+  currentInactivityStatus?: InactivityStatus;
+  currentTransactionID?: number;
+  currentTransactionDate?: Date;
+  currentTagID?: string;
+  status: ChargePointStatus;
+  errorCode?: string;
+  info?: string;
+  vendorErrorCode?: string;
+  power?: number;
+  type?: ConnectorType;
+  voltage?: Voltage;
+  amperage?: number;
+  amperageLimit?: number;
+  userID?: ObjectID;
   user?: User;
   statusLastChangedOn?: Date;
   numberOfConnectedPhase?: number;
@@ -197,13 +226,14 @@ export interface ChargingStationTemplate {
     capabilities: ChargingStationCapabilities;
   }[];
   ocppStandardParameters: {
+    supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: object;
+    parameters: any;
   }[];
   ocppVendorParameters: {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: object;
+    parameters: any;
   }[];
 }
 
