@@ -2,6 +2,7 @@ import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingS
 import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
+import Transaction, { InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -16,7 +17,6 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { HTTPError } from '../types/HTTPError';
-import Transaction, { InactivityStatus } from '../types/Transaction';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
@@ -826,10 +826,6 @@ export default class Utils {
       return false;
     }
     return true;
-  }
-
-  public static isEmptyObj(obj: any): boolean {
-    return _.isObject(obj) && _.isEmpty(obj);
   }
 
   public static findDuplicatesInArray(arr: any[]): any[] {

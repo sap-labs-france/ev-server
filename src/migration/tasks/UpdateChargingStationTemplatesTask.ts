@@ -14,18 +14,17 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 
-  getName() {
+  getName(): string {
     return 'UpdateChargingStationTemplatesTask';
   }
 
-  async migrate() {
+  async migrate(): Promise<void> {
     // Update Template
     await this.updateChargingStationTemplate();
-    // Avoid migrating the current charging stations due to Schneider charge@home Wallboxes
     // Update Charging Stations
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
@@ -34,8 +33,8 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     }
   }
 
-  getVersion() {
-    return '3.03';
+  getVersion(): string {
+    return '3.07';
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {

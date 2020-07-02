@@ -476,6 +476,35 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
+  async removeChargingStation(chargingStation: ChargingStation) {
+    if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: ServerAction.OCPI_PATCH_STATUS,
+        message: 'Charging Station must be associated to a site area',
+        module: MODULE_NAME, method: 'removeChargingStation',
+      });
+    }
+    if (!chargingStation.issuer) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: ServerAction.OCPI_PATCH_STATUS,
+        message: 'Only charging Station issued locally can be exposed to IOP',
+        module: MODULE_NAME, method: 'removeChargingStation',
+      });
+    }
+    let siteID;
+    if (!chargingStation.siteArea || !chargingStation.siteArea.siteID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    } else {
+      siteID = chargingStation.siteArea.siteID;
+    }
+    for (const connector of chargingStation.connectors) {
+      await this.patchEVSEStatus(siteID, OCPIUtils.buildEvseUID(chargingStation, connector), OCPIEvseStatus.REMOVED);
+    }
+  }
+
   async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector) {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
