@@ -226,6 +226,7 @@ export interface ChargingStationTemplate {
     capabilities: ChargingStationCapabilities;
   }[];
   ocppStandardParameters: {
+    supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
     parameters: any;
   }[];

@@ -15,12 +15,15 @@ import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../utils/Constants';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../types/DataResult';
 import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
@@ -29,6 +32,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
@@ -71,6 +75,27 @@ export default class ChargingStationService {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      if (filteredRequest.public === false && filteredRequest.public !== chargingStation.public) {
+        // Remove charging station from ocpi
+        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+          const tenant = await TenantStorage.getTenant(req.user.tenantID);
+          try {
+            const ocpiClient: CpoOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+            if (ocpiClient) {
+              await ocpiClient.removeChargingStation(chargingStation);
+            }
+          } catch (error) {
+            Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+              action: action,
+              user: req.user,
+              message: `Unable to remove charging station ${chargingStation.id} from IOP`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
+        }
+      }
       chargingStation.public = filteredRequest.public;
     }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
