@@ -766,6 +766,16 @@ export default class CarStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteCarUserByCarID', uniqueTimerID, { carID });
   }
 
+  public static async deleteCar(tenantID: string, carID: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteCar');
+    // Delete singular site area
+    await global.database.getCollection(tenantID, 'cars')
+      .deleteOne({ '_id': Utils.convertToObjectID(carID) });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'deleteCar', uniqueTimerID, { carID });
+  }
+
   public static async deleteCarUsers(tenantID: string, ids: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteCarUserByCarID');

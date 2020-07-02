@@ -50,6 +50,7 @@ export interface HttpCarsRequest extends HttpDatabaseRequest {
   Search: string;
   CarMaker: string;
   WithUsers: boolean;
+  UserID: string;
 }
 
 export interface HttpUsersCarsRequest extends HttpDatabaseRequest {

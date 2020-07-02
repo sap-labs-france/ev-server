@@ -234,6 +234,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_DELETE]: ConnectionService.handleDeleteConnection.bind(this),
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
+          [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
         });
         break;
     }
