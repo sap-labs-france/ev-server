@@ -187,7 +187,7 @@ export default class CarSecurity {
       forced: UtilsSecurity.filterBoolean(request.forced),
       type: sanitize(request.type),
       converter: {
-        powerAmps: Utils.convertToFloat(sanitize(request.converter.powerAmps)),
+        ampPerPhase: Utils.convertToFloat(sanitize(request.converter.ampPerPhase)),
         numberOfPhases: Utils.convertToInt(sanitize(request.converter.numberOfPhases)),
         type: sanitize(request.converter.type),
         powerWatts: Utils.convertToFloat(sanitize(request.converter.powerWatts))
@@ -208,7 +208,7 @@ export default class CarSecurity {
       type: sanitize(request.type),
       id: sanitize(request.id),
       converter: {
-        powerAmps: Utils.convertToFloat(sanitize(request.converter.powerAmps)),
+        ampPerPhase: Utils.convertToFloat(sanitize(request.converter.ampPerPhase)),
         numberOfPhases: Utils.convertToInt(sanitize(request.converter.numberOfPhases)),
         type: sanitize(request.converterType.type),
         powerWatts: Utils.convertToFloat(sanitize(request.converter.powerWatts))
