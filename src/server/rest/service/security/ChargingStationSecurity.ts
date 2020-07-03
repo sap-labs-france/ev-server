@@ -62,6 +62,7 @@ export default class ChargingStationSecurity {
       }
       filteredChargingStation.id = chargingStation.id;
       filteredChargingStation.inactive = chargingStation.inactive;
+      filteredChargingStation.powerLimitUnit = chargingStation.powerLimitUnit;
       filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
       filteredChargingStation.maximumPower = chargingStation.maximumPower;
       filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
