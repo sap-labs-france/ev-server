@@ -185,7 +185,7 @@ export default class ChargingStationSecurity {
       return null;
     }
     for (const chargingProfile of chargingProfiles.result) {
-      const filteredChargingProfile = this.filterChargingProfileResponse(chargingProfile, loggedUser, true);
+      const filteredChargingProfile = this.filterChargingProfileResponse(chargingProfile, loggedUser);
       if (filteredChargingProfile) {
         filteredChargingProfiles.push(filteredChargingProfile);
       }
@@ -193,7 +193,7 @@ export default class ChargingStationSecurity {
     chargingProfiles.result = filteredChargingProfiles;
   }
 
-  static filterChargingProfileResponse(chargingProfile: ChargingProfile, loggedUser: UserToken, forList: boolean): ChargingProfile {
+  static filterChargingProfileResponse(chargingProfile: ChargingProfile, loggedUser: UserToken): ChargingProfile {
     const filteredChargingProfile = {} as ChargingProfile;
     if (!chargingProfile) {
       return null;
@@ -218,24 +218,22 @@ export default class ChargingStationSecurity {
       filteredChargingProfile.profile.recurrencyKind = chargingProfile.profile.recurrencyKind;
       filteredChargingProfile.profile.validFrom = chargingProfile.profile.validFrom;
       filteredChargingProfile.profile.validTo = chargingProfile.profile.validTo;
-      if (!forList) {
-        if (Utils.objectHasProperty(chargingProfile.profile, 'chargingSchedule')) {
-          const chargingSchedule = {} as ChargingSchedule;
-          filteredChargingProfile.profile.chargingSchedule = chargingSchedule;
-          chargingSchedule.duration = chargingProfile.profile.chargingSchedule.duration;
-          chargingSchedule.startSchedule = chargingProfile.profile.chargingSchedule.startSchedule;
-          chargingSchedule.chargingRateUnit = chargingProfile.profile.chargingSchedule.chargingRateUnit;
-          chargingSchedule.minChargeRate = chargingProfile.profile.chargingSchedule.minChargeRate;
-          filteredChargingProfile.profile.chargingSchedule.chargingSchedulePeriod = [];
-          // Check
-          for (const chargingSchedulePeriod of chargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
-            const chargingSchedulePeriodNew: ChargingSchedulePeriod = {} as ChargingSchedulePeriod;
-            chargingSchedulePeriodNew.startPeriod = sanitize(chargingSchedulePeriod.startPeriod);
-            chargingSchedulePeriodNew.limit = sanitize(chargingSchedulePeriod.limit);
-            chargingSchedulePeriodNew.numberPhases = sanitize(chargingSchedulePeriod.numberPhases);
-            // Add
-            filteredChargingProfile.profile.chargingSchedule.chargingSchedulePeriod.push(chargingSchedulePeriodNew);
-          }
+      if (Utils.objectHasProperty(chargingProfile.profile, 'chargingSchedule')) {
+        const chargingSchedule = {} as ChargingSchedule;
+        filteredChargingProfile.profile.chargingSchedule = chargingSchedule;
+        chargingSchedule.duration = chargingProfile.profile.chargingSchedule.duration;
+        chargingSchedule.startSchedule = chargingProfile.profile.chargingSchedule.startSchedule;
+        chargingSchedule.chargingRateUnit = chargingProfile.profile.chargingSchedule.chargingRateUnit;
+        chargingSchedule.minChargeRate = chargingProfile.profile.chargingSchedule.minChargeRate;
+        filteredChargingProfile.profile.chargingSchedule.chargingSchedulePeriod = [];
+        // Check
+        for (const chargingSchedulePeriod of chargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+          const chargingSchedulePeriodNew: ChargingSchedulePeriod = {} as ChargingSchedulePeriod;
+          chargingSchedulePeriodNew.startPeriod = sanitize(chargingSchedulePeriod.startPeriod);
+          chargingSchedulePeriodNew.limit = sanitize(chargingSchedulePeriod.limit);
+          chargingSchedulePeriodNew.numberPhases = sanitize(chargingSchedulePeriod.numberPhases);
+          // Add
+          filteredChargingProfile.profile.chargingSchedule.chargingSchedulePeriod.push(chargingSchedulePeriodNew);
         }
       }
     }
