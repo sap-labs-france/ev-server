@@ -61,6 +61,7 @@ export enum ServerAction {
   CAR_MAKERS = 'CarMakers',
   CAR_CREATE = 'CarCreate',
   CAR_UPDATE = 'CarUpdate',
+  CAR_DELETE = 'CarDelete',
   CARS = 'Cars',
   CAR = 'Car',
   CAR_USERS = 'CarUsers',
@@ -166,7 +167,7 @@ export enum ServerAction {
   EXTRA_INACTIVITY = 'ExtraInactivity',
 
   CONSUMPTION = 'Consumption',
-  REBUILD_CONSUMPTION = 'RebuildConsumption',
+  REBUILD_TRANSACTION_CONSUMPTIONS = 'RebuildTransactionConsumptions',
 
   WS_ERROR = 'WSError',
   WS_CLIENT_ERROR = 'WSClientError',

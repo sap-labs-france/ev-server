@@ -77,10 +77,10 @@ export default class TransactionStorage {
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
       transactionEndReceived: Utils.convertToBoolean(transactionToSave.transactionEndReceived),
       currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
-      currentInstanWattsL1: Utils.convertToFloat(transactionToSave.currentInstanWattsL1),
-      currentInstanWattsL2: Utils.convertToFloat(transactionToSave.currentInstanWattsL2),
-      currentInstanWattsL3: Utils.convertToFloat(transactionToSave.currentInstanWattsL3),
-      currentInstanWattsDC: Utils.convertToFloat(transactionToSave.currentInstanWattsDC),
+      currentInstantWattsL1: Utils.convertToFloat(transactionToSave.currentInstantWattsL1),
+      currentInstantWattsL2: Utils.convertToFloat(transactionToSave.currentInstantWattsL2),
+      currentInstantWattsL3: Utils.convertToFloat(transactionToSave.currentInstantWattsL3),
+      currentInstantWattsDC: Utils.convertToFloat(transactionToSave.currentInstantWattsDC),
       currentTotalConsumptionWh: Utils.convertToFloat(transactionToSave.currentTotalConsumptionWh),
       currentTotalDurationSecs: Utils.convertToInt(transactionToSave.currentTotalDurationSecs),
       currentInstantVoltage: Utils.convertToFloat(transactionToSave.currentInstantVoltage),
@@ -117,10 +117,10 @@ export default class TransactionStorage {
       };
       // Remove runtime props
       delete transactionMDB.currentInstantWatts;
-      delete transactionMDB.currentInstanWattsL1;
-      delete transactionMDB.currentInstanWattsL2;
-      delete transactionMDB.currentInstanWattsL3;
-      delete transactionMDB.currentInstanWattsDC;
+      delete transactionMDB.currentInstantWattsL1;
+      delete transactionMDB.currentInstantWattsL2;
+      delete transactionMDB.currentInstantWattsL3;
+      delete transactionMDB.currentInstantWattsDC;
       delete transactionMDB.currentCumulatedPrice;
       delete transactionMDB.currentSignedData;
       delete transactionMDB.currentStateOfCharge;

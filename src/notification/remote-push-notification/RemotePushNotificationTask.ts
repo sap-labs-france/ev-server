@@ -121,7 +121,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OPTIMAL_CHARGE_REACHED, title, body, user, {
-      transactionId: data.transactionId + '',
+      transactionId: data.transactionId.toString() + '',
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
     },
@@ -138,7 +138,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_CHARGE, title, body, user, {
-      transactionId: data.transactionId + '',
+      transactionId: data.transactionId.toString() + '',
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
     },
@@ -155,7 +155,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_SESSION, title, body, user, {
-      transactionId: data.transactionId + '',
+      transactionId: data.transactionId.toString() + '',
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
     },
@@ -248,7 +248,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_STARTED, title, body, user, {
-      'transactionId': data.transactionId + '',
+      'transactionId': data.transactionId.toString() + '',
       'chargeBoxID': data.chargeBoxID,
       'connectorId': data.connectorId + ''
     },
@@ -291,7 +291,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { nbrUsersInError: data.nbrUsersInError, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_USER_SYNCHRONIZATION_FAILED,
-      title, body, user, { 'error': data.nbrUsersInError + '', }, severity);
+      title, body, user, { 'error': data.nbrUsersInError.toString() + '', }, severity);
   }
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: object, severity?: NotificationSeverity) {

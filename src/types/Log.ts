@@ -14,10 +14,12 @@ export interface Log {
   timestamp?: Date;
   action?: ServerAction;
   type?: LogType;
-  message: string|object;
+  message: string|any;
   user?: User|UserToken|string;
+  userFullName?: string;
   actionOnUser?: User|UserToken|string;
-  detailedMessages?: string|object;
+  hasDetailedMessages?: boolean;
+  detailedMessages?: string|any;
 }
 
 export enum LogLevel {

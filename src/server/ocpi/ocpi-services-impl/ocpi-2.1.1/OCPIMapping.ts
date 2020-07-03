@@ -65,8 +65,6 @@ export default class OCPIMapping {
       issuer: false,
       connectors: [],
       chargeBoxSerialNumber: evse.evse_id,
-      imsi: evse.uid,
-      iccid: location.id,
       ocpiData: {
         evse: evse
       }
