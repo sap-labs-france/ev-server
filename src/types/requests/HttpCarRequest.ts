@@ -1,4 +1,4 @@
-import { CarType, Converter } from '../Car';
+import { CarConverter, CarType } from '../Car';
 
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 import { UserCar } from '../User';
@@ -31,7 +31,7 @@ export interface HttpCarCreateRequest {
   forced?: boolean;
   type: CarType;
   id?: string;
-  converter?: Converter;
+  converter?: CarConverter;
   usersAdded?: UserCar[];
 }
 
@@ -42,7 +42,7 @@ export interface HttpCarUpdateRequest {
   forced?: boolean;
   type: CarType;
   id?: string;
-  converter?: Converter;
+  converter?: CarConverter;
   usersRemoved?: UserCar[];
   usersUpserted?: UserCar[];
 }

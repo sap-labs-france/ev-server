@@ -187,10 +187,10 @@ export default class CarSecurity {
       forced: UtilsSecurity.filterBoolean(request.forced),
       type: sanitize(request.type),
       converter: {
-        ampPerPhase: Utils.convertToFloat(sanitize(request.converter.ampPerPhase)),
-        numberOfPhases: Utils.convertToInt(sanitize(request.converter.numberOfPhases)),
+        amperagePerPhase: sanitize(request.converter.amperagePerPhase),
+        numberOfPhases: sanitize(request.converter.numberOfPhases),
         type: sanitize(request.converter.type),
-        powerWatts: Utils.convertToFloat(sanitize(request.converter.powerWatts))
+        powerWatts: sanitize(request.converter.powerWatts)
       },
       usersAdded: request.usersUpserted ? request.usersUpserted.map((userUpserted: UserCar) => ({
         user: userUpserted.user,
@@ -208,10 +208,10 @@ export default class CarSecurity {
       type: sanitize(request.type),
       id: sanitize(request.id),
       converter: {
-        ampPerPhase: Utils.convertToFloat(sanitize(request.converter.ampPerPhase)),
-        numberOfPhases: Utils.convertToInt(sanitize(request.converter.numberOfPhases)),
-        type: sanitize(request.converterType.type),
-        powerWatts: Utils.convertToFloat(sanitize(request.converter.powerWatts))
+        amperagePerPhase: sanitize(request.converter.amperagePerPhase),
+        numberOfPhases: sanitize(request.converter.numberOfPhases),
+        type: sanitize(request.converter.type),
+        powerWatts: sanitize(request.converter.powerWatts)
       },
       usersRemoved: request.usersRemoved ? request.usersRemoved.map((userRemoved: UserCar) => ({
         id: userRemoved.id,
