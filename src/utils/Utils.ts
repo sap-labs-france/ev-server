@@ -499,12 +499,12 @@ export default class Utils {
     return changedValue;
   }
 
-  public static computeSimplePrice(pricePerKWH: number, consumptionWH: number): number {
-    return Utils.convertToFloat((pricePerKWH * (consumptionWH / 1000)).toFixed(6));
+  public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
+    return Utils.convertToFloat((pricePerkWh * (consumptionWh / 1000)).toFixed(6));
   }
 
-  public static computeSimpleRoundedPrice(pricePerKWH: number, consumptionWH: number): number {
-    return Utils.convertToFloat((pricePerKWH * consumptionWH).toFixed(2));
+  public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
+    return Utils.convertToFloat((pricePerkWh * consumptionWh).toFixed(2));
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {

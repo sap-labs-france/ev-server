@@ -251,7 +251,7 @@ export default class OCPPUtils {
 
   public static async rebuildTransactionConsumptions(tenantID: string, transactionId: number): Promise<number> {
     let consumptions: Consumption[] = [];
-    let transactionSimplePricePerKWH;
+    let transactionSimplePricePerkWh;
     if (!transactionId) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -280,7 +280,7 @@ export default class OCPPUtils {
     }
     // Check Simple Pricing
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
-      transactionSimplePricePerKWH = Utils.getRoundedNumberToTwoDecimals(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000));
+      transactionSimplePricePerkWh = Utils.getRoundedNumberToTwoDecimals(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000));
     }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,
@@ -330,9 +330,9 @@ export default class OCPPUtils {
           await OCPPUtils.billTransaction(tenantID, transaction, TransactionAction.UPDATE);
         }
         // Override the price if simple pricing only
-        if (transactionSimplePricePerKWH > 0) {
-          consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerKWH, consumption.consumptionWh);
-          consumption.roundedAmount = Utils.computeSimpleRoundedPrice(transactionSimplePricePerKWH, consumption.consumptionWh);
+        if (transactionSimplePricePerkWh > 0) {
+          consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
+          consumption.roundedAmount = Utils.computeSimpleRoundedPrice(transactionSimplePricePerkWh, consumption.consumptionWh);
           consumption.pricingSource = PricingSettingsType.SIMPLE;
         }
         // Cumulated props
@@ -898,7 +898,6 @@ export default class OCPPUtils {
                 for (const parameter in ocppStandardParameters.parameters) {
                   chargingStation.ocppStandardParameters.push({
                     key: parameter,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     value: ocppStandardParameters.parameters[parameter]
                   });
                 }
@@ -937,7 +936,6 @@ export default class OCPPUtils {
                 for (const parameter in ocppVendorParameters.parameters) {
                   chargingStation.ocppVendorParameters.push({
                     key: parameter,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     value: ocppVendorParameters.parameters[parameter]
                   });
                 }

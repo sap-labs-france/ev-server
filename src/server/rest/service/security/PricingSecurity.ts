@@ -24,7 +24,7 @@ export default class PricingSecurity {
   static filterPricingUpdateRequest(request: any): Pricing {
     const filteredRequest: Pricing = {} as Pricing;
     // Set
-    filteredRequest.pricekWh = sanitize(request.priceKWH);
+    filteredRequest.pricekWh = sanitize(request.pricekWh);
     filteredRequest.priceUnit = sanitize(request.priceUnit);
     return filteredRequest;
   }
