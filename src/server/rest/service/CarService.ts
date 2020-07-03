@@ -51,7 +51,7 @@ export default class CarService {
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
         'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
         'chargeStandardPower','chargeStandardPhase','chargeStandardPhaseAmp','chargeAlternativePower','chargeOptionPower',
-        'chargeOptionPhaseAmp','chargeAlternativePhaseAmp', 'chargePlug', 'fastChargePlug','fastChargePowerMax', 'drivetrainPowerHP']
+        'chargeOptionPhaseAmp','chargeOptionPhase','chargeAlternativePhaseAmp','chargeAlternativePhase', 'chargePlug', 'fastChargePlug','fastChargePowerMax', 'drivetrainPowerHP']
     );
     // Filter
     CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
@@ -88,7 +88,7 @@ export default class CarService {
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
           'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase','chargeAlternativePower',
-          'chargeAlternativePhase','chargeOptionPower', 'chargeOptionPhase', 'image']);
+          'chargeAlternativePhase','chargeOptionPower', 'chargeOptionPhase', 'image','chargeOptionPhaseAmp','chargeAlternativePhaseAmp']);
     } else {
       // Get the car
       carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID);
@@ -264,7 +264,7 @@ export default class CarService {
         vin: filteredRequest.vin,
         createdBy: { id: req.user.id },
         type: filteredRequest.type,
-        converterType: filteredRequest.converterType,
+        converter: filteredRequest.converter,
         createdOn: new Date()
       } as Car;
       newCar.id = await CarStorage.saveCar(req.user.tenantID, newCar);
@@ -351,7 +351,7 @@ export default class CarService {
       car.vin = filteredRequest.vin;
       car.licensePlate = filteredRequest.licensePlate;
       car.type = filteredRequest.type;
-      car.converterType = filteredRequest.converterType;
+      car.converter = filteredRequest.converter;
       car.lastChangedBy = { 'id': req.user.id };
       car.lastChangedOn = new Date();
       await CarStorage.saveCar(req.user.tenantID, car);

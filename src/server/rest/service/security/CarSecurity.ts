@@ -91,6 +91,9 @@ export default class CarSecurity {
         chargeAlternativePhase: carCatalog.chargeAlternativePhase,
         chargeOptionPower: carCatalog.chargeOptionPower,
         chargeOptionPhase: carCatalog.chargeOptionPhase,
+        chargeOptionPhaseAmp: carCatalog.chargeOptionPhaseAmp,
+        chargeAlternativePhaseAmp: carCatalog.chargeAlternativePhaseAmp,
+        chargeStandardPhaseAmp: carCatalog.chargeStandardPhaseAmp
       } as CarCatalog;
     }
     // Created By / Last Changed By
@@ -168,6 +171,8 @@ export default class CarSecurity {
           chargeStandardPhaseAmp: carCatalog.chargeStandardPhaseAmp,
           chargeOptionPhaseAmp: carCatalog.chargeOptionPhaseAmp,
           chargeAlternativePhaseAmp: carCatalog.chargeAlternativePhaseAmp,
+          chargeAlternativePhase: carCatalog.chargeAlternativePhase,
+          chargeOptionPhase: carCatalog.chargeOptionPhase
         });
       }
     }
@@ -181,7 +186,12 @@ export default class CarSecurity {
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       forced: UtilsSecurity.filterBoolean(request.forced),
       type: sanitize(request.type),
-      converterType: sanitize(request.converterType),
+      converter: {
+        ampPerPhase: Utils.convertToFloat(sanitize(request.converter.ampPerPhase)),
+        numberOfPhases: Utils.convertToInt(sanitize(request.converter.numberOfPhases)),
+        type: sanitize(request.converter.type),
+        powerWatts: Utils.convertToFloat(sanitize(request.converter.powerWatts))
+      },
       usersAdded: request.usersUpserted ? request.usersUpserted.map((userUpserted: UserCar) => ({
         user: userUpserted.user,
         default: userUpserted.default,
@@ -197,7 +207,12 @@ export default class CarSecurity {
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       type: sanitize(request.type),
       id: sanitize(request.id),
-      converterType: sanitize(request.converterType),
+      converter: {
+        ampPerPhase: Utils.convertToFloat(sanitize(request.converter.ampPerPhase)),
+        numberOfPhases: Utils.convertToInt(sanitize(request.converter.numberOfPhases)),
+        type: sanitize(request.converterType.type),
+        powerWatts: Utils.convertToFloat(sanitize(request.converter.powerWatts))
+      },
       usersRemoved: request.usersRemoved ? request.usersRemoved.map((userRemoved: UserCar) => ({
         id: userRemoved.id,
         user: userRemoved.user,
@@ -249,7 +264,7 @@ export default class CarSecurity {
         licensePlate: car.licensePlate,
         carCatalogID: car.carCatalogID,
         type: car.type,
-        converterType: car.converterType,
+        converter: car.converter,
         carCatalog: car.carCatalog,
       };
     }
