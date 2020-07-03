@@ -1,6 +1,9 @@
+import ChargingStation from './ChargingStation';
+
 export interface ChargingProfile {
   id?: string;
   chargingStationID: string;
+  chargingStation?: ChargingStation;
   chargePointID: number;
   connectorID?: number;
   profile: Profile;

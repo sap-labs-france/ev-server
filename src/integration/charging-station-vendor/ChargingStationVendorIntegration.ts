@@ -400,7 +400,7 @@ export default abstract class ChargingStationVendorIntegration {
         // Get the current Charging Plan
         // Check the TX Charging Profiles from the DB
         let chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationID: chargingStation.id, connectorID: connectorID,
+          { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
             profilePurposeType: ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
         let result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
@@ -408,7 +408,7 @@ export default abstract class ChargingStationVendorIntegration {
         }
         // Check the TX Default Charging Profiles from the DB
         chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationID: chargingStation.id, connectorID: connectorID,
+          { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
             profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
         result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
@@ -416,7 +416,7 @@ export default abstract class ChargingStationVendorIntegration {
         }
         // Check the Max Charging Profiles from the DB
         chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationID: chargingStation.id, connectorID: connectorID,
+          { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
             profilePurposeType: ChargingProfilePurposeType.CHARGE_POINT_MAX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
         result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
@@ -541,7 +541,7 @@ export default abstract class ChargingStationVendorIntegration {
       // Get Amp per connector
       limitAmpPerPhase = this.chargePointToConnectorLimitAmps(chargePoint, limitAmpPerPhase);
     }
-    // Per pahse
+    // Per phase
     limitAmpPerPhase /= Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorID);
     return limitAmpPerPhase;
   }

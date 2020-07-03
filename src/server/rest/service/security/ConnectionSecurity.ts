@@ -7,8 +7,8 @@ import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class ConnectionSecurity {
-  public static filterConnectionDeleteRequest(request: any) {
-    const filteredRequest: any = {};
+  public static filterConnectionDeleteRequest(request: any): Connection {
+    const filteredRequest: Connection = {} as Connection;
     // Set
     filteredRequest.userId = sanitize(request.userId);
     filteredRequest.connectorId = sanitize(request.connectorId);
