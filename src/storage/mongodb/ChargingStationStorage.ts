@@ -707,8 +707,10 @@ export default class ChargingStationStorage {
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = {
-        'connectorID': -1,
-        'profile.stackLevel': -1,
+        'chargingStationID': 1,
+        'connectorID': 1,
+        'profile.chargingProfilePurpose': 1,
+        'profile.stackLevel': 1,
       };
     }
     aggregation.push({
