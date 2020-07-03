@@ -54,7 +54,7 @@ export default class CompanySecurity {
     };
   }
 
-  public static filterCompanyResponse(company: Company, loggedUser: UserToken) {
+  public static filterCompanyResponse(company: Company, loggedUser: UserToken): Company {
     let filteredCompany;
 
     if (!company) {
@@ -84,7 +84,7 @@ export default class CompanySecurity {
     return filteredCompany;
   }
 
-  public static filterCompaniesResponse(companies: DataResult<Company>, loggedUser: UserToken) {
+  public static filterCompaniesResponse(companies: DataResult<Company>, loggedUser: UserToken): void {
     const filteredCompanies = [];
 
     if (!companies.result) {

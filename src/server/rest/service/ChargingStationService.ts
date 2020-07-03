@@ -244,7 +244,7 @@ export default class ChargingStationService {
     }
     // Check Charging Profile
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { chargingStationID: chargingStation.id, connectorID: 0 },
+      { chargingStationIDs: [chargingStation.id], connectorID: 0 },
       Constants.DB_PARAMS_MAX_LIMIT);
     const updatedChargingProfiles: ChargingProfile[] = Utils.cloneJSonDocument(chargingProfiles.result) as ChargingProfile[];
     for (let index = 0; index < updatedChargingProfiles.length; index++) {
@@ -321,23 +321,28 @@ export default class ChargingStationService {
 
   public static async handleGetChargingProfiles(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGetChargingProfiles', req.user);
+    const filteredRequest = ChargingStationSecurity.filterChargingProfilesRequest(req.query);
     // Check auth
-    if (!Authorizations.canReadChargingStation(req.user)) {
+    if (!Authorizations.canListChargingProfiles(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.CHARGING_STATION,
+        action: Action.LIST,
+        entity: Entity.CHARGING_PROFILES,
         module: MODULE_NAME,
-        method: 'handleGetChargingProfiles',
-        value: filteredRequest.ChargeBoxID
+        method: 'handleGetChargingProfiles'
       });
     }
+    // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { chargingStationID: filteredRequest.ChargeBoxID, connectorID: filteredRequest.ConnectorID },
+      { search: filteredRequest.Search,
+        chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        connectorID: filteredRequest.ConnectorID,
+        withChargingStation: filteredRequest.WithChargingStation,
+        withSiteArea: true },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+    // Build the result
+    ChargingStationSecurity.filterChargingProfilesResponse(chargingProfiles, req.user);
     res.json(chargingProfiles);
     next();
   }
@@ -678,8 +683,7 @@ export default class ChargingStationService {
     }
     res.json(
       // Filter
-      ChargingStationSecurity.filterChargingStationResponse(
-        chargingStation, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION))
+      ChargingStationSecurity.filterChargingStationResponse(chargingStation, req.user)
     );
     next();
   }
@@ -806,8 +810,7 @@ export default class ChargingStationService {
       }
     );
     // Build the result
-    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user,
-      Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user);
     // Return
     res.json(chargingStations);
     next();
@@ -1175,8 +1178,7 @@ export default class ChargingStationService {
       }
     );
     // Filter
-    ChargingStationSecurity.filterChargingStationsResponse(
-      chargingStations, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user);
     return chargingStations;
   }
 
