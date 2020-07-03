@@ -32,6 +32,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.COMPANY, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -259,6 +261,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION, Action.EXPORT_PARAMS,
           Action.CHANGE_AVAILABILITY],
         attributes: ['*'],
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
+      },
+      { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
