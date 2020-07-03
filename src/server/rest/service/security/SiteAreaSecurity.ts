@@ -120,7 +120,7 @@ export default class SiteAreaSecurity {
     return filteredSiteArea;
   }
 
-  static filterSiteAreasResponse(siteAreas: DataResult<SiteArea>, loggedUser) {
+  static filterSiteAreasResponse(siteAreas: DataResult<SiteArea>, loggedUser: UserToken): void {
     const filteredSiteAreas = [];
     if (!siteAreas.result) {
       return null;

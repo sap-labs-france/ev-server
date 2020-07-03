@@ -132,7 +132,7 @@ export default class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean): void {
     const filteredChargingStations: ChargingStation[] | ChargingStationInError[] = [];
     // Check
     if (!chargingStations.result) {

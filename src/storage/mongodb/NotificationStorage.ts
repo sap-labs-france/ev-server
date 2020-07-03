@@ -118,7 +118,7 @@ export default class NotificationStorage {
     };
   }
 
-  static async saveNotification(tenantID: string, notificationToSave: Notification): Promise<void> {
+  static async saveNotification(tenantID: string, notificationToSave: Partial<Notification>): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveNotification');
     // Check Tenant
