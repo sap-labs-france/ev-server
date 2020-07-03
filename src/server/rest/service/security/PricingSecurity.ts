@@ -1,11 +1,12 @@
 import Authorizations from '../../../../authorization/Authorizations';
+import { Pricing } from '../../../../types/Pricing';
 import UserToken from '../../../../types/UserToken';
 import sanitize from 'mongo-sanitize';
 
 export default class PricingSecurity {
   // Pricing
-  static filterPricingResponse(pricing, loggedUser: UserToken) {
-    const filteredPricing: any = {};
+  static filterPricingResponse(pricing: Pricing, loggedUser: UserToken): Pricing {
+    const filteredPricing: Pricing = {} as Pricing;
     if (!pricing) {
       return null;
     }
@@ -14,17 +15,16 @@ export default class PricingSecurity {
     }
     // Set
     filteredPricing.timestamp = pricing.timestamp;
-    filteredPricing.priceKWH = pricing.priceKWH;
+    filteredPricing.pricekWh = pricing.pricekWh;
     filteredPricing.priceUnit = pricing.priceUnit;
     // Return
     return filteredPricing;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterPricingUpdateRequest(request: any) {
-    const filteredRequest: any = {};
+  static filterPricingUpdateRequest(request: any): Pricing {
+    const filteredRequest: Pricing = {} as Pricing;
     // Set
-    filteredRequest.priceKWH = sanitize(request.priceKWH);
+    filteredRequest.pricekWh = sanitize(request.priceKWH);
     filteredRequest.priceUnit = sanitize(request.priceUnit);
     return filteredRequest;
   }
