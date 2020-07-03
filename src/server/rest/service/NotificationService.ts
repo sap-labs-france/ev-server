@@ -8,7 +8,7 @@ import { ServerAction } from '../../../types/Server';
 const MODULE_NAME = 'NotificationService';
 
 export default class NotificationService {
-  static async handleGetNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Filter
       const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query);

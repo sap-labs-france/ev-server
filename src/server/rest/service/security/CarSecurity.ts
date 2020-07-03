@@ -115,7 +115,7 @@ export default class CarSecurity {
     return filteredCarCatalog;
   }
 
-  public static filterCarMakersResponse(carMakers: DataResult<CarMaker>, loggedUser: UserToken) {
+  public static filterCarMakersResponse(carMakers: DataResult<CarMaker>, loggedUser: UserToken): void {
     const filteredCarConstructors: CarMaker[] = [];
     if (!carMakers) {
       return null;
@@ -131,7 +131,7 @@ export default class CarSecurity {
     carMakers.result = filteredCarConstructors;
   }
 
-  public static filterCarCatalogsResponse(carCatalogs: DataResult<CarCatalog>, loggedUser: UserToken) {
+  public static filterCarCatalogsResponse(carCatalogs: DataResult<CarCatalog>, loggedUser: UserToken): void {
     const filteredCarCatalogs = [];
 
     if (!carCatalogs.result) {
@@ -214,7 +214,7 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {
+  public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken): void {
     const filteredCars: Car[] = [];
     if (!cars.result) {
       return null;
@@ -266,7 +266,7 @@ export default class CarSecurity {
     return filteredCar;
   }
 
-  public static filterUsersCarsResponse(usersCars: DataResult<UserCar>, loggedUser: UserToken) {
+  public static filterUsersCarsResponse(usersCars: DataResult<UserCar>, loggedUser: UserToken): void {
     const filteredUsersCars: UserCar[] = [];
     if (!usersCars.result) {
       return null;

@@ -7,20 +7,17 @@ import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class OCPIEndpointSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterOcpiEndpointDeleteRequest(request: any) {
-    const filteredRequest: any = {};
+  static filterOcpiEndpointDeleteRequest(request: any): HttpOCPIEndpointsRequest {
+    const filteredRequest: HttpOCPIEndpointsRequest = {} as HttpOCPIEndpointsRequest;
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
   static filterOcpiEndpointRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
   public static filterOcpiEndpointsRequest(request: any): HttpOCPIEndpointsRequest {
     const filteredRequest: HttpOCPIEndpointsRequest = {} as HttpOCPIEndpointsRequest;
     filteredRequest.Search = sanitize(request.Search);

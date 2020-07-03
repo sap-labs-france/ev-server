@@ -16,7 +16,7 @@ export default class JsonChargingStationService {
     this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
   }
 
-  public async handleBootNotification(headers, payload) {
+  public async handleBootNotification(headers, payload): Promise<any> {
     // Forward
     const result = await this.handle('BootNotification', headers, payload);
     // Return the response
@@ -27,7 +27,7 @@ export default class JsonChargingStationService {
     };
   }
 
-  public async handleHeartbeat(headers, payload) {
+  public async handleHeartbeat(headers, payload): Promise<any> {
     // Forward
     const result = await this.handle('Heartbeat', headers, payload);
     // Return the response
@@ -36,21 +36,21 @@ export default class JsonChargingStationService {
     };
   }
 
-  public async handleStatusNotification(headers, payload) {
+  public async handleStatusNotification(headers, payload): Promise<any> {
     // Forward
     await this.handle('StatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
-  public async handleMeterValues(headers, payload) {
+  public async handleMeterValues(headers, payload): Promise<any> {
     // Forward
     await this.handle('MeterValues', headers, payload);
     // Return the response
     return {};
   }
 
-  public async handleAuthorize(headers, payload) {
+  public async handleAuthorize(headers, payload): Promise<any> {
     // Forward
     const result = await this.handle('Authorize', headers, payload);
     // Return the response
@@ -61,21 +61,21 @@ export default class JsonChargingStationService {
     };
   }
 
-  public async handleDiagnosticsStatusNotification(headers, payload) {
+  public async handleDiagnosticsStatusNotification(headers, payload): Promise<any> {
     // Forward
     await this.handle('DiagnosticsStatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
-  public async handleFirmwareStatusNotification(headers, payload) {
+  public async handleFirmwareStatusNotification(headers, payload): Promise<any> {
     // Forward
     await this.handle('FirmwareStatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
-  public async handleStartTransaction(headers, payload) {
+  public async handleStartTransaction(headers, payload): Promise<any> {
     // Forward
     const result = await this.handle('StartTransaction', headers, payload);
     // Return the response
@@ -87,7 +87,7 @@ export default class JsonChargingStationService {
     };
   }
 
-  public async handleDataTransfer(headers, payload) {
+  public async handleDataTransfer(headers, payload): Promise<any> {
     // Forward
     const result = await this.handle('DataTransfer', headers, payload);
     // Return the response
@@ -96,7 +96,7 @@ export default class JsonChargingStationService {
     };
   }
 
-  public async handleStopTransaction(headers, payload) {
+  public async handleStopTransaction(headers, payload): Promise<any> {
     // Forward
     const result = await this.handle('StopTransaction', headers, payload);
     // Return the response

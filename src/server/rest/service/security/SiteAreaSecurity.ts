@@ -110,12 +110,31 @@ export default class SiteAreaSecurity {
       }
       if (siteArea.chargingStations) {
         filteredSiteArea.chargingStations = siteArea.chargingStations.map((chargingStation) =>
-          ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, true)
+          ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser)
         );
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
         filteredSiteArea, siteArea, loggedUser);
+    }
+    return filteredSiteArea;
+  }
+
+  static filterMinimalSiteAreaResponse(siteArea: SiteArea, loggedUser: UserToken): SiteArea {
+    let filteredSiteArea: SiteArea;
+    if (!siteArea) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadSiteArea(loggedUser, siteArea.siteID)) {
+      // Set only necessary info
+      filteredSiteArea = {} as SiteArea;
+      filteredSiteArea.id = siteArea.id;
+      filteredSiteArea.name = siteArea.name;
+      filteredSiteArea.siteID = siteArea.siteID;
+      filteredSiteArea.maximumPower = siteArea.maximumPower;
+      filteredSiteArea.voltage = siteArea.voltage;
+      filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
     }
     return filteredSiteArea;
   }

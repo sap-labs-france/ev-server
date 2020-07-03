@@ -551,6 +551,7 @@ export default class TransactionStorage {
       tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
       asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Users
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
@@ -799,6 +800,7 @@ export default class TransactionStorage {
         tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id', asField: 'chargeBox',
         oneToOneCardinality: true, oneToOneCardinalityNotNull: false, pipelineMatch: { 'issuer': true }
       });
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     }
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
@@ -987,14 +989,10 @@ export default class TransactionStorage {
     aggregation.push({ $limit: 1 });
     // Add Charge Box
     DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      localField: 'chargeBoxID',
-      foreignField: '_id',
-      asField: 'chargeBox',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -1126,6 +1124,7 @@ export default class TransactionStorage {
       tenantID, aggregation, localField: 'chargeBoxID', foreignField: '_id',
       asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
     });
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
     // Format Data
     aggregation.push({
       $project: {
