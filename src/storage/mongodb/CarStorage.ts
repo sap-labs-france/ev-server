@@ -461,7 +461,7 @@ export default class CarStorage {
       licensePlate: carToSave.licensePlate,
       carCatalogID: Utils.convertToInt(carToSave.carCatalogID),
       type: carToSave.type,
-      converterType: carToSave.converterType
+      converter: carToSave.converter
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);

@@ -137,8 +137,22 @@ export interface Car extends CreatedUpdatedProps {
   userIDs?: string;
   carUsers?: UserCar[];
   type?: CarType;
-  converterType?: string;
+  converter?: Converter;
 }
+
+export interface Converter {
+  powerWatts: number;
+  powerAmps: number;
+  numberOfPhases: number;
+  type: ConverterType;
+}
+
+export enum ConverterType {
+  STANDARD = 'S',
+  OPTION = 'O',
+  ALTERNATIVE = 'A',
+}
+
 
 export interface CarUser extends CreatedUpdatedProps {
   id: string;
