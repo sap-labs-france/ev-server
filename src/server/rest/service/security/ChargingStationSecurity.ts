@@ -64,6 +64,7 @@ export default class ChargingStationSecurity {
       filteredChargingStation.inactive = chargingStation.inactive;
       filteredChargingStation.powerLimitUnit = chargingStation.powerLimitUnit;
       filteredChargingStation.lastReboot = chargingStation.lastReboot;
+      filteredChargingStation.issuer = chargingStation.issuer;
       filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
       filteredChargingStation.maximumPower = chargingStation.maximumPower;
       filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
@@ -89,6 +90,7 @@ export default class ChargingStationSecurity {
           currentTransactionID: connector.currentTransactionID,
           currentTransactionDate: connector.currentTransactionDate,
           currentTagID: connector.currentTagID,
+          amperageLimit: connector.amperageLimit,
           errorCode: connector.errorCode,
           type: connector.type,
           power: connector.power,
