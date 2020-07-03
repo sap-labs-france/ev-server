@@ -337,7 +337,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  public getChargingStation() {
+  public getChargingStation(): ChargingStation {
     return this.chargingStation;
   }
 

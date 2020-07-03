@@ -45,21 +45,6 @@ export default class AssetSecurity {
     return AssetSecurity._filterAssetRequest(request);
   }
 
-  public static _filterAssetRequest(request: any): Partial<Asset> {
-    const filteredRequest: Partial<Asset> = {};
-    filteredRequest.name = sanitize(request.name),
-    filteredRequest.siteAreaID = sanitize(request.siteAreaID),
-    filteredRequest.assetType = sanitize(request.assetType),
-    filteredRequest.image = request.image;
-    if (request.coordinates && request.coordinates.length === 2) {
-      filteredRequest.coordinates = [
-        sanitize(request.coordinates[0]),
-        sanitize(request.coordinates[1])
-      ];
-    }
-    return filteredRequest;
-  }
-
   public static filterAssetResponse(asset: Asset, loggedUser: UserToken): Asset {
     let filteredAsset: Asset;
     if (!asset) {
@@ -91,7 +76,7 @@ export default class AssetSecurity {
     return filteredAsset;
   }
 
-  public static filterAssetsResponse(assets: DataResult<Asset>, loggedUser: UserToken) {
+  public static filterAssetsResponse(assets: DataResult<Asset>, loggedUser: UserToken): void {
     const filteredAssets = [];
     if (!assets.result) {
       return null;
@@ -107,5 +92,20 @@ export default class AssetSecurity {
       }
     }
     assets.result = filteredAssets;
+  }
+
+  private static _filterAssetRequest(request: any): Partial<Asset> {
+    const filteredRequest: Partial<Asset> = {};
+    filteredRequest.name = sanitize(request.name),
+    filteredRequest.siteAreaID = sanitize(request.siteAreaID),
+    filteredRequest.assetType = sanitize(request.assetType),
+    filteredRequest.image = request.image;
+    if (request.coordinates && request.coordinates.length === 2) {
+      filteredRequest.coordinates = [
+        sanitize(request.coordinates[0]),
+        sanitize(request.coordinates[1])
+      ];
+    }
+    return filteredRequest;
   }
 }

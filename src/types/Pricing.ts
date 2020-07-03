@@ -1,4 +1,10 @@
 
+export interface Pricing {
+  timestamp: Date;
+  pricekWh: number;
+  priceUnit: string;
+}
+
 export interface PricedConsumption {
   amount: number;
   cumulatedAmount: number;

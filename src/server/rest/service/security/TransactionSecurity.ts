@@ -211,7 +211,7 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: DataResult<Transaction|TransactionInError>, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction|TransactionInError>, loggedUser: UserToken): void {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
@@ -226,8 +226,8 @@ export default class TransactionSecurity {
     transactions.result = filteredTransactions;
   }
 
-  static filterRefundReportResponse(report: RefundReport, loggedUser: UserToken) {
-    let filteredRefundReport;
+  static filterRefundReportResponse(report: RefundReport, loggedUser: UserToken): RefundReport {
+    let filteredRefundReport: RefundReport;
     if (!report) {
       return null;
     }
@@ -245,7 +245,7 @@ export default class TransactionSecurity {
     return filteredRefundReport;
   }
 
-  static filterRefundReportsResponse(reports: DataResult<RefundReport>, loggedUser: UserToken) {
+  static filterRefundReportsResponse(reports: DataResult<RefundReport>, loggedUser: UserToken): void {
     const filteredReports = [];
     if (!reports.result) {
       return null;

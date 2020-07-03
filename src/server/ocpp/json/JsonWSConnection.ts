@@ -14,6 +14,7 @@ import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
 import WebSocket from 'ws';
+import http from 'http';
 
 const MODULE_NAME = 'JsonWSConnection';
 
@@ -22,7 +23,7 @@ export default class JsonWSConnection extends WSConnection {
   private chargingStationService: JsonChargingStationService;
   private headers: OCPPHeader;
 
-  constructor(wsConnection: WebSocket, req, chargingStationConfig: ChargingStationConfiguration, wsServer: JsonCentralSystemServer) {
+  constructor(wsConnection: WebSocket, req: http.IncomingMessage, chargingStationConfig: ChargingStationConfiguration, wsServer: JsonCentralSystemServer) {
     // Call super
     super(wsConnection, req, wsServer);
     // Check Protocol (required field of OCPP spec)
@@ -71,7 +72,7 @@ export default class JsonWSConnection extends WSConnection {
         source: this.getChargingStationID(),
         action: ServerAction.WS_JSON_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
-        message: `New Json connection from '${this.getClientIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
+        message: `New Json connection from '${this.getClientIP().toString()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
     }
   }

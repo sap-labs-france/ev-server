@@ -107,9 +107,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       return false;
     };
 
-    const handleProtocols = (protocols, request): boolean | string => {
-      // Check the protocols
-      // Ensure protocol used as ocpp1.6 or nothing (should create an error)
+    const handleProtocols = (protocols: string | string[], request: http.IncomingMessage): boolean | string => {
+      // Check the protocols and ensure protocol used as ocpp1.6 or nothing (should create an error)
       if (Array.isArray(protocols)) {
         if (protocols.includes('ocpp1.6')) {
           return 'ocpp1.6';
@@ -117,7 +116,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         if (protocols.includes('rest')) {
           return 'rest';
         }
-        return false;
       } else if (protocols === 'ocpp1.6') {
         return protocols;
       } else if (protocols === 'rest') {
@@ -127,7 +125,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         tenantID: Constants.DEFAULT_TENANT,
         module: this.MODULE_NAME, method: 'handleProtocols',
         action: ServerAction.EXPRESS_SERVER,
-        message: `Invalid protocol ${protocols}`
+        message: `Invalid protocol ${protocols.toString()}`
       });
       return false;
     };
