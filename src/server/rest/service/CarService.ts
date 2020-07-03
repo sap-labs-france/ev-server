@@ -50,7 +50,8 @@ export default class CarService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
         'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-        'chargeStandardPower','chargeStandardPhase','chargeStandardPhaseAmp','chargeAlternativePower','chargeOptionPower','chargeOptionPhaseAmp','chargeAlternativePhaseAmp', 'chargePlug', 'fastChargePlug','fastChargePowerMax', 'drivetrainPowerHP']
+        'chargeStandardPower','chargeStandardPhase','chargeStandardPhaseAmp','chargeAlternativePower','chargeOptionPower',
+        'chargeOptionPhaseAmp','chargeAlternativePhaseAmp', 'chargePlug', 'fastChargePlug','fastChargePowerMax', 'drivetrainPowerHP']
     );
     // Filter
     CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
@@ -84,9 +85,10 @@ export default class CarService {
       carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID,
         ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
-          'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation', 'drivetrainPowerHP',
-          'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase','chargeAlternativePower', 'chargeAlternativePhase','chargeOptionPower', 'chargeOptionPhase', 'image']);
+          'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
+          'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase','chargeAlternativePower',
+          'chargeAlternativePhase','chargeOptionPower', 'chargeOptionPhase', 'image']);
     } else {
       // Get the car
       carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID);
@@ -469,8 +471,7 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.CAR,
+        action: Action.DELETE, entity: Entity.CAR,
         module: MODULE_NAME, method: 'handleDeleteCar',
         value: carId
       });
@@ -488,22 +489,23 @@ export default class CarService {
       carUser = car.carUsers.find((carUserToFind) => carUserToFind.user.id.toString() === req.user.id);
       // Assigned to this user?
       if (!carUser) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.NO_CAR_FOR_USER,
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
+          action: Action.DELETE, entity: Entity.CAR,
           module: MODULE_NAME, method: 'handleDeleteCar',
-          message: `User is not assigned to the car ID '${car.id}' (${Utils.buildCarName(car, true)})`,
+          value: carId
         });
       }
     }
+    // Basic User
     if (Authorizations.isBasic(req.user) && !carUser.owner) {
+      // Delete the association
       await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
-      // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
-        message: `User '${req.user.id}' has been removed successfully from the car '${car.id}'`,
+        message: `User has been unassigned successfully from the car '${Utils.buildCarName(car, true)}'`,
         action: action,
         detailedMessages: { car }
       });
@@ -511,19 +513,18 @@ export default class CarService {
     // Owner?
     if (Authorizations.isAdmin(req.user) || (Authorizations.isBasic(req.user) && carUser.owner)) {
       // Check if Transaction exist (to Be implemented later)
-      // Ok: Delete
+      // Delete all the associations
       await CarStorage.deleteCarUsersByCarID(req.user.tenantID, carId);
+      // Delete the car
       await CarStorage.deleteCar(req.user.tenantID, carId);
-      // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
-        message: `Car '${car.id}' has been deleted successfully`,
+        message: `Car '${Utils.buildCarName(car)}' has been deleted successfully`,
         action: action,
         detailedMessages: { car }
       });
     }
-    // Delete
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
