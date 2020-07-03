@@ -1798,8 +1798,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1808,8 +1807,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vin Car is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1818,8 +1816,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'License Plate is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1827,9 +1824,8 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Catalog ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        message: 'Car Catalog ID  is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1838,8 +1834,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car type is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1849,11 +1844,55 @@ export default class Utils {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pool cars can only be created by admin',
-          module: MODULE_NAME,
-          method: 'checkIfCarValid',
+          module: MODULE_NAME, method: 'checkIfCarValid',
           user: req.user.id
         });
       }
+    }
+    if (!car.converter) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.amperagePerPhase) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter amperage per phase is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.numberOfPhases) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter number of phases is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.powerWatts) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter power is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.type) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter type is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
     }
   }
 
