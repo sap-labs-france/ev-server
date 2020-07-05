@@ -862,7 +862,7 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
-                if (Utils.objectHasProperty(capabilities, 'supportChargingProfiles')) {
+                if (Utils.objectHasProperty(capabilities.capabilities, 'supportChargingProfiles')) {
                   chargingStation.excludeFromSmartCharging = capabilities.capabilities.supportChargingProfiles;
                 }
                 chargingStation.capabilities = capabilities.capabilities;
