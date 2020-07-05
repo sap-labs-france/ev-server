@@ -78,7 +78,7 @@ export default abstract class ChargingStationVendorIntegration {
       });
     }
     // Fixed the max amp per connector
-    const occpLimitAmpValue = this.convertLimitAmpPerPhase(chargingStation, chargePoint, 0, maxAmps);
+    const ocppLimitAmpValue = this.convertLimitAmpPerPhase(chargingStation, chargePoint, 0, maxAmps);
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -95,14 +95,14 @@ export default abstract class ChargingStationVendorIntegration {
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        message: `Set Power limitation via OCPP to ${occpLimitAmpValue}A`,
+        message: `Set Power limitation via OCPP to ${ocppLimitAmpValue}A`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
-        detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, occpLimitAmpValue }
+        detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, ocppLimitAmpValue: ocppLimitAmpValue }
       });
       // Change the config
       result = await chargingStationClient.changeConfiguration({
         key: chargePoint.ocppParamForPowerLimitation,
-        value: occpLimitAmpValue.toString()
+        value: ocppLimitAmpValue.toString()
       });
     } catch (error) {
       if (!error.status) {
