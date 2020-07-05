@@ -64,19 +64,19 @@ export interface CarCatalog extends CreatedUpdatedProps {
   chargeStandardChargeTime: number;
   chargeStandardChargeSpeed: number;
   chargeStandardEstimate?: boolean;
-  chargeStandardTables: CarConverter[];
+  chargeStandardTables: CarCatalogConverter[];
   chargeAlternativePower: number;
   chargeAlternativePhase: number;
   chargeAlternativePhaseAmp: number;
   chargeAlternativeChargeTime: number;
   chargeAlternativeChargeSpeed: number;
-  chargeAlternativeTables: ChargeAlternativeTable[];
+  chargeAlternativeTables: CarCatalogChargeAlternativeTable[];
   chargeOptionPower?: number;
   chargeOptionPhase?: number;
   chargeOptionPhaseAmp?: number;
   chargeOptionChargeTime?: number;
   chargeOptionChargeSpeed?: number;
-  chargeOptionTables: ChargeOptionTable[];
+  chargeOptionTables: CarCatalogChargeOptionTable[];
   fastChargePlug?: string;
   fastChargePlugEstimate?: boolean;
   fastChargePlugLocation?: string;
@@ -137,8 +137,22 @@ export interface Car extends CreatedUpdatedProps {
   userIDs?: string;
   carUsers?: UserCar[];
   type?: CarType;
-  converterType?: string;
+  converter?: CarConverter;
 }
+
+export interface CarConverter {
+  powerWatts: number;
+  amperagePerPhase: number;
+  numberOfPhases: number;
+  type: CarConverterType;
+}
+
+export enum CarConverterType {
+  STANDARD = 'S',
+  OPTION = 'O',
+  ALTERNATIVE = 'A',
+}
+
 
 export interface CarUser extends CreatedUpdatedProps {
   id: string;
@@ -152,7 +166,7 @@ export interface CarMaker {
   carMaker: string;
 }
 
-export interface ChargeOptionTable {
+export interface CarCatalogChargeOptionTable {
   type: string;
   evsePhaseVolt?: number;
   evsePhaseAmp?: number;
@@ -164,7 +178,7 @@ export interface ChargeOptionTable {
   chargeTime?: number;
   chargeSpeed?: number;
 }
-export interface ChargeAlternativeTable {
+export interface CarCatalogChargeAlternativeTable {
   type: string;
   evsePhaseVolt: number;
   evsePhaseAmp: number;
@@ -176,7 +190,7 @@ export interface ChargeAlternativeTable {
   chargeTime: number;
   chargeSpeed: number;
 }
-export interface CarConverter {
+export interface CarCatalogConverter {
   type: string;
   evsePhaseVolt: number;
   evsePhaseVoltCalculated: number;

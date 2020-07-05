@@ -724,7 +724,7 @@ export default class ChargingStationService {
     }
     const dataToExport = ChargingStationService.convertOCPPParamsToCSV(ocppParams);
     // Build export
-    const filename = 'exported-occp-params.csv';
+    const filename = 'exported-ocpp-params.csv';
     fs.writeFile(filename, dataToExport, (err) => {
       if (err) {
         throw err;
