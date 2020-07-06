@@ -7,4 +7,10 @@ export default Factory.define('car')
   .attr('carCatalogID', 1004)
   .attr('type', 'P')
   .attr('usersUpserted', [])
-  .attr('usersRemoved', []);
+  .attr('usersRemoved', [])
+  .attr('converter', {
+    'amperagePerPhase': faker.random.number(64),
+    'numberOfPhases': faker.random.number(4),
+    'type': 'S',
+    'powerWatts':  faker.random.number(32)
+  });

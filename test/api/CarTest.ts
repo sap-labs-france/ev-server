@@ -23,7 +23,7 @@ class TestData {
 }
 const testData: TestData = new TestData();
 let carID: number;
-describe('Car Service', function() {
+describe('Car Tests', function() {
   this.timeout(500000);
   before(async function() {
     // Init values
@@ -41,11 +41,11 @@ describe('Car Service', function() {
   });
   describe('Success cases', () => {
 
-    describe('Where car component is not active', () => {
+    describe('Without any component (tenant utnothing)', () => {
       describe('Where admin user', () => {
         before(async function() {
 
-          testData.centralService = new CentralServerService('utasset', {
+          testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS, {
             email: config.get('admin.username'),
             password: config.get('admin.password')
           });
@@ -78,7 +78,7 @@ describe('Car Service', function() {
       });
     });
 
-    describe('Where car component is active', () => {
+    describe('With component Car (tenant utcar)', () => {
       describe('Where admin user', () => {
 
         before(async function() {
