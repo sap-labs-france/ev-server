@@ -101,7 +101,7 @@ export default class AssetSecurity {
     return filteredAsset;
   }
 
-  public static filterAssetsResponse(assets: DataResult<Asset>, loggedUser: UserToken) {
+  public static filterAssetsResponse(assets: DataResult<Asset>, loggedUser: UserToken): void {
     const filteredAssets = [];
     if (!assets.result) {
       return null;

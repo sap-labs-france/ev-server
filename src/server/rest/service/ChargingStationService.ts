@@ -15,12 +15,15 @@ import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../utils/Constants';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../types/DataResult';
 import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
@@ -29,15 +32,12 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -244,7 +244,7 @@ export default class ChargingStationService {
     }
     // Check Charging Profile
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { chargingStationID: chargingStation.id, connectorID: 0 },
+      { chargingStationIDs: [chargingStation.id], connectorID: 0 },
       Constants.DB_PARAMS_MAX_LIMIT);
     const updatedChargingProfiles: ChargingProfile[] = Utils.cloneJSonDocument(chargingProfiles.result) as ChargingProfile[];
     for (let index = 0; index < updatedChargingProfiles.length; index++) {
@@ -321,23 +321,28 @@ export default class ChargingStationService {
 
   public static async handleGetChargingProfiles(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGetChargingProfiles', req.user);
+    const filteredRequest = ChargingStationSecurity.filterChargingProfilesRequest(req.query);
     // Check auth
-    if (!Authorizations.canReadChargingStation(req.user)) {
+    if (!Authorizations.canListChargingProfiles(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.CHARGING_STATION,
+        action: Action.LIST,
+        entity: Entity.CHARGING_PROFILES,
         module: MODULE_NAME,
-        method: 'handleGetChargingProfiles',
-        value: filteredRequest.ChargeBoxID
+        method: 'handleGetChargingProfiles'
       });
     }
+    // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { chargingStationID: filteredRequest.ChargeBoxID, connectorID: filteredRequest.ConnectorID },
+      { search: filteredRequest.Search,
+        chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        connectorID: filteredRequest.ConnectorID,
+        withChargingStation: filteredRequest.WithChargingStation,
+        withSiteArea: true },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+    // Build the result
+    ChargingStationSecurity.filterChargingProfilesResponse(chargingProfiles, req.user);
     res.json(chargingProfiles);
     next();
   }
@@ -678,8 +683,7 @@ export default class ChargingStationService {
     }
     res.json(
       // Filter
-      ChargingStationSecurity.filterChargingStationResponse(
-        chargingStation, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION))
+      ChargingStationSecurity.filterChargingStationResponse(chargingStation, req.user)
     );
     next();
   }
@@ -720,7 +724,7 @@ export default class ChargingStationService {
     }
     const dataToExport = ChargingStationService.convertOCPPParamsToCSV(ocppParams);
     // Build export
-    const filename = 'exported-occp-params.csv';
+    const filename = 'exported-ocpp-params.csv';
     fs.writeFile(filename, dataToExport, (err) => {
       if (err) {
         throw err;
@@ -806,8 +810,7 @@ export default class ChargingStationService {
       }
     );
     // Build the result
-    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user,
-      Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user);
     // Return
     res.json(chargingStations);
     next();
@@ -1175,8 +1178,7 @@ export default class ChargingStationService {
       }
     );
     // Filter
-    ChargingStationSecurity.filterChargingStationsResponse(
-      chargingStations, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user);
     return chargingStations;
   }
 

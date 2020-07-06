@@ -78,7 +78,7 @@ export default abstract class ChargingStationVendorIntegration {
       });
     }
     // Fixed the max amp per connector
-    const occpLimitAmpValue = this.convertLimitAmpPerPhase(chargingStation, chargePoint, 0, maxAmps);
+    const ocppLimitAmpValue = this.convertLimitAmpPerPhase(chargingStation, chargePoint, 0, maxAmps);
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -95,14 +95,14 @@ export default abstract class ChargingStationVendorIntegration {
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        message: `Set Power limitation via OCPP to ${occpLimitAmpValue}A`,
+        message: `Set Power limitation via OCPP to ${ocppLimitAmpValue}A`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
-        detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, occpLimitAmpValue }
+        detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, ocppLimitAmpValue: ocppLimitAmpValue }
       });
       // Change the config
       result = await chargingStationClient.changeConfiguration({
         key: chargePoint.ocppParamForPowerLimitation,
-        value: occpLimitAmpValue.toString()
+        value: ocppLimitAmpValue.toString()
       });
     } catch (error) {
       if (!error.status) {
@@ -400,7 +400,7 @@ export default abstract class ChargingStationVendorIntegration {
         // Get the current Charging Plan
         // Check the TX Charging Profiles from the DB
         let chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationID: chargingStation.id, connectorID: connectorID,
+          { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
             profilePurposeType: ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
         let result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
@@ -408,7 +408,7 @@ export default abstract class ChargingStationVendorIntegration {
         }
         // Check the TX Default Charging Profiles from the DB
         chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationID: chargingStation.id, connectorID: connectorID,
+          { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
             profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
         result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
@@ -416,7 +416,7 @@ export default abstract class ChargingStationVendorIntegration {
         }
         // Check the Max Charging Profiles from the DB
         chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationID: chargingStation.id, connectorID: connectorID,
+          { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
             profilePurposeType: ChargingProfilePurposeType.CHARGE_POINT_MAX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
         result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
@@ -474,7 +474,7 @@ export default abstract class ChargingStationVendorIntegration {
   public convertToVendorChargingProfile(chargingStation: ChargingStation,
     chargePoint: ChargePoint, chargingProfile: ChargingProfile): ChargingProfile {
     // Get vendor specific charging profile
-    const vendorSpecificChargingProfile: ChargingProfile = JSON.parse(JSON.stringify(chargingProfile));
+    const vendorSpecificChargingProfile: ChargingProfile = Utils.cloneJSonDocument(chargingProfile);
     // Check connector
     if (chargingStation.connectors && vendorSpecificChargingProfile.profile && vendorSpecificChargingProfile.profile.chargingSchedule) {
       // Convert to Watts?
@@ -541,7 +541,7 @@ export default abstract class ChargingStationVendorIntegration {
       // Get Amp per connector
       limitAmpPerPhase = this.chargePointToConnectorLimitAmps(chargePoint, limitAmpPerPhase);
     }
-    // Per pahse
+    // Per phase
     limitAmpPerPhase /= Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorID);
     return limitAmpPerPhase;
   }

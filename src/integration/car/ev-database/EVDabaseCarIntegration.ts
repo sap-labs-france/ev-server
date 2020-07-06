@@ -1,5 +1,5 @@
 import { default as Axios, default as axios } from 'axios';
-import { CarCatalog, CarConverter, ChargeAlternativeTable, ChargeOptionTable } from '../../../types/Car';
+import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter } from '../../../types/Car';
 
 import BackendError from '../../../exception/BackendError';
 import CarIntegration from '../CarIntegration';
@@ -33,11 +33,11 @@ export default class EVDabaseCarIntegration extends CarIntegration {
     }
     // Build result
     for (const data of response.data) {
-      const chargeStandardTables: CarConverter[] = [];
-      const chargeAlternativeTables: ChargeAlternativeTable[] = [];
-      const chargeOptionTables: ChargeOptionTable[] = [];
+      const chargeStandardTables: CarCatalogConverter[] = [];
+      const chargeAlternativeTables: CarCatalogChargeAlternativeTable[] = [];
+      const chargeOptionTables: CarCatalogChargeOptionTable[] = [];
       for (const chargeStandard of Object.keys(data.Charge_Standard_Table)) {
-        const chargeStandardTable: CarConverter = {
+        const chargeStandardTable: CarCatalogConverter = {
           type: chargeStandard,
           evsePhaseVolt: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
           evsePhaseAmp: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseAmp,
@@ -54,7 +54,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
       }
       if (data.Charge_Alternative_Table) {
         for (const chargeAlternative of Object.keys(data.Charge_Alternative_Table)) {
-          const chargeAlternativeTable: ChargeAlternativeTable = {
+          const chargeAlternativeTable: CarCatalogChargeAlternativeTable = {
             type: chargeAlternative,
             evsePhaseVolt: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseVolt,
             evsePhaseAmp: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseAmp,
@@ -71,7 +71,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
       }
       if (data.Charge_Option_Table) {
         for (const chargeOption of Object.keys(data.Charge_Option_Table)) {
-          const chargeAlternativeTable: ChargeOptionTable = {
+          const chargeAlternativeTable: CarCatalogChargeOptionTable = {
             type: chargeOption,
             evsePhaseVolt: data.Charge_Standard_Table[chargeOption].EVSE_PhaseVolt,
             evsePhaseAmp: data.Charge_Standard_Table[chargeOption].EVSE_PhaseAmp,

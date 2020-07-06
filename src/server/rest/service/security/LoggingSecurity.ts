@@ -9,7 +9,6 @@ import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class LoggingSecurity {
-  // eslint-disable-next-line no-unused-vars
   static filterLoggingsRequest(request: any): HttpLogsRequest {
     const filteredRequest = {} as HttpLogsRequest;
     // Get logs
@@ -28,7 +27,6 @@ export default class LoggingSecurity {
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
   static filterLoggingRequest(request: any): HttpByIDRequest {
     return {
       ID: sanitize(request.ID)

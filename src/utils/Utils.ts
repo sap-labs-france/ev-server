@@ -54,9 +54,15 @@ export default class Utils {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     let threePhases = true;
     if (currentType === CurrentType.AC &&
-        transaction.currentInstantAmpsL1 > 0 &&
+      (transaction.currentInstantAmpsL1 > 0 &&
         (transaction.currentInstantAmpsL2 === 0 ||
-         transaction.currentInstantAmpsL3 === 0)) {
+          transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL2 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 ||
+          transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL3 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 ||
+          transaction.currentInstantAmpsL2 === 0))) {
       threePhases = false;
     }
     return threePhases;
@@ -501,12 +507,12 @@ export default class Utils {
     return changedValue;
   }
 
-  public static computeSimplePrice(pricePerKWH: number, consumptionWH: number): number {
-    return Utils.convertToFloat((pricePerKWH * (consumptionWH / 1000)).toFixed(6));
+  public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
+    return Utils.convertToFloat((pricePerkWh * (consumptionWh / 1000)).toFixed(6));
   }
 
-  public static computeSimpleRoundedPrice(pricePerKWH: number, consumptionWH: number): number {
-    return Utils.convertToFloat((pricePerKWH * consumptionWH).toFixed(2));
+  public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
+    return Utils.convertToFloat((pricePerkWh * consumptionWh).toFixed(2));
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -973,7 +979,7 @@ export default class Utils {
     return message;
   }
 
-  public static getRequestIP(request: http.IncomingMessage|Partial<Request>): string | string[] {
+  public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {
     if (request['ip']) {
       return request['ip'];
     } else if (request.headers['x-forwarded-for']) {
@@ -1822,8 +1828,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1832,8 +1837,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vin Car is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1842,8 +1846,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'License Plate is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1851,9 +1854,8 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Catalog ID  is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        message: 'Car Catalog ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1862,8 +1864,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car type is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1873,11 +1874,55 @@ export default class Utils {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pool cars can only be created by admin',
-          module: MODULE_NAME,
-          method: 'checkIfCarValid',
+          module: MODULE_NAME, method: 'checkIfCarValid',
           user: req.user.id
         });
       }
+    }
+    if (!car.converter) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.amperagePerPhase) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter amperage per phase is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.numberOfPhases) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter number of phases is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.powerWatts) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter power is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.type) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter type is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
     }
   }
 

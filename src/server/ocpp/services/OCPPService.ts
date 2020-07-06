@@ -83,7 +83,7 @@ export default class OCPPService {
             source: headers.chargeBoxIdentity,
             action: ServerAction.BOOT_NOTIFICATION,
             module: MODULE_NAME, method: 'handleBootNotification',
-            message: `Registration rejected: Token is required for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            message: `Registration rejected: Token is required for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress.toString()}'`,
           });
         }
         const token: RegistrationToken = await RegistrationTokenStorage.getRegistrationToken(headers.tenantID, headers.token);
@@ -92,7 +92,7 @@ export default class OCPPService {
             source: headers.chargeBoxIdentity,
             action: ServerAction.BOOT_NOTIFICATION,
             module: MODULE_NAME, method: 'handleBootNotification',
-            message: `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            message: `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress.toString()}'`,
           });
         }
         if (token.revocationDate || moment().isAfter(token.revocationDate)) {
@@ -100,7 +100,7 @@ export default class OCPPService {
             source: headers.chargeBoxIdentity,
             action: ServerAction.BOOT_NOTIFICATION,
             module: MODULE_NAME, method: 'handleBootNotification',
-            message: `Registration rejected: Token '${headers.token}' is revoked for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            message: `Registration rejected: Token '${headers.token}' is revoked for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress.toString()}'`,
           });
         }
         // New Charging Station: Create
@@ -246,7 +246,7 @@ export default class OCPPService {
         source: chargingStation.id,
         module: MODULE_NAME, method: 'handleHeartbeat',
         action: ServerAction.HEARTBEAT,
-        message: `Heartbeat saved with IP '${chargingStation.currentIPAddress}'`
+        message: `Heartbeat saved with IP '${chargingStation.currentIPAddress.toString()}'`
       });
       // Return
       return {
@@ -851,7 +851,7 @@ export default class OCPPService {
 
   private async deleteAllTransactionTxProfile(tenantID: string, transaction: Transaction) {
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID, {
-      chargingStationID: transaction.chargeBoxID,
+      chargingStationIDs: [transaction.chargeBoxID],
       connectorID: transaction.connectorId,
       profilePurposeType: ChargingProfilePurposeType.TX_PROFILE,
       transactionId: transaction.id
@@ -884,7 +884,7 @@ export default class OCPPService {
   private async updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Get it
     let foundConnector: Connector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
-    const oldConnectorStatus = foundConnector ? foundConnector.status : null;
+    // pragma const oldConnectorStatus = foundConnector ? foundConnector.status : null;
     if (!foundConnector) {
       // Does not exist: Create
       foundConnector = {
@@ -1355,7 +1355,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'updateChargingStationWithTransaction',
         action: ServerAction.CONSUMPTION,
         user: transaction.userID,
-        message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.currentTransactionID}' > Instant: ${Utils.getRoundedNumberToTwoDecimals(foundConnector.currentInstantWatts / 1000)} kW, Total: ${Utils.getRoundedNumberToTwoDecimals(foundConnector.currentTotalConsumptionWh / 1000)} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`
+        message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.currentTransactionID}' > Instant: ${Utils.getRoundedNumberToTwoDecimals(foundConnector.currentInstantWatts / 1000)} kW, Total: ${Utils.getRoundedNumberToTwoDecimals(foundConnector.currentTotalConsumptionWh / 1000)} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge.toString() + ' %' : ''}`
       });
       // Cleanup connector transaction data
     } else if (foundConnector) {
@@ -1514,7 +1514,7 @@ export default class OCPPService {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
             // Add Attributes
-            const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+            const newLocalMeterValue = Utils.cloneJSonDocument(newMeterValue);
             newLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
             // Data is to be interpreted as integer/decimal numeric data
             if (newLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
@@ -1528,7 +1528,7 @@ export default class OCPPService {
           }
         } else {
           // Add Attributes
-          const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+          const newLocalMeterValue = Utils.cloneJSonDocument(newMeterValue);
           newLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
           // Add
           newMeterValues.values.push(newLocalMeterValue);

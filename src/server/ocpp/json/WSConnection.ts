@@ -17,7 +17,7 @@ import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'WSConnection';
 
-export default class WSConnection {
+export default abstract class WSConnection {
   public code: string;
   public message: string;
   public details: string;
@@ -234,10 +234,6 @@ export default class WSConnection {
     }
   }
 
-  public async handleRequest(messageId, commandName, commandPayload): Promise<void> {
-    // To implement in sub-class
-  }
-
   public getWSConnection(): WebSocket {
     return this.wsConnection;
   }
@@ -345,7 +341,7 @@ export default class WSConnection {
       // Ok verified
       return this.tenantID;
     }
-    // No go to the master tenant
+    // No: go to the master tenant
     return Constants.DEFAULT_TENANT;
   }
 
@@ -364,4 +360,6 @@ export default class WSConnection {
   public isWSConnectionOpen(): boolean {
     return this.wsConnection.readyState === OPEN;
   }
+
+  public abstract async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
 }

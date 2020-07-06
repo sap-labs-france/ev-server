@@ -86,8 +86,14 @@ export default class CarSecurity {
         miscTurningCircle: carCatalog.miscTurningCircle,
         miscSegment: carCatalog.miscSegment,
         miscIsofixSeats: carCatalog.miscIsofixSeats,
-        chargeStandardTables: carCatalog.chargeStandardTables,
         image: carCatalog.image,
+        chargeAlternativePower: carCatalog.chargeAlternativePower,
+        chargeAlternativePhase: carCatalog.chargeAlternativePhase,
+        chargeOptionPower: carCatalog.chargeOptionPower,
+        chargeOptionPhase: carCatalog.chargeOptionPhase,
+        chargeOptionPhaseAmp: carCatalog.chargeOptionPhaseAmp,
+        chargeAlternativePhaseAmp: carCatalog.chargeAlternativePhaseAmp,
+        chargeStandardPhaseAmp: carCatalog.chargeStandardPhaseAmp
       } as CarCatalog;
     }
     // Created By / Last Changed By
@@ -112,7 +118,7 @@ export default class CarSecurity {
     return filteredCarCatalog;
   }
 
-  public static filterCarMakersResponse(carMakers: DataResult<CarMaker>, loggedUser: UserToken) {
+  public static filterCarMakersResponse(carMakers: DataResult<CarMaker>, loggedUser: UserToken): void {
     const filteredCarConstructors: CarMaker[] = [];
     if (!carMakers) {
       return null;
@@ -128,7 +134,7 @@ export default class CarSecurity {
     carMakers.result = filteredCarConstructors;
   }
 
-  public static filterCarCatalogsResponse(carCatalogs: DataResult<CarCatalog>, loggedUser: UserToken) {
+  public static filterCarCatalogsResponse(carCatalogs: DataResult<CarCatalog>, loggedUser: UserToken): void {
     const filteredCarCatalogs = [];
 
     if (!carCatalogs.result) {
@@ -160,7 +166,13 @@ export default class CarSecurity {
           efficiencyReal: carCatalog.efficiencyReal,
           image: carCatalog.image,
           chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed,
-          chargeStandardTables: carCatalog.chargeStandardTables
+          chargeOptionPower: carCatalog.chargeOptionPower,
+          chargeAlternativePower: carCatalog.chargeAlternativePower,
+          chargeStandardPhaseAmp: carCatalog.chargeStandardPhaseAmp,
+          chargeOptionPhaseAmp: carCatalog.chargeOptionPhaseAmp,
+          chargeAlternativePhaseAmp: carCatalog.chargeAlternativePhaseAmp,
+          chargeAlternativePhase: carCatalog.chargeAlternativePhase,
+          chargeOptionPhase: carCatalog.chargeOptionPhase
         });
       }
     }
@@ -174,7 +186,12 @@ export default class CarSecurity {
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       forced: UtilsSecurity.filterBoolean(request.forced),
       type: sanitize(request.type),
-      converterType: sanitize(request.converterType),
+      converter: {
+        amperagePerPhase: sanitize(request.converter.amperagePerPhase),
+        numberOfPhases: sanitize(request.converter.numberOfPhases),
+        type: sanitize(request.converter.type),
+        powerWatts: sanitize(request.converter.powerWatts)
+      },
       usersAdded: request.usersUpserted ? request.usersUpserted.map((userUpserted: UserCar) => ({
         user: userUpserted.user,
         default: userUpserted.default,
@@ -190,7 +207,12 @@ export default class CarSecurity {
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       type: sanitize(request.type),
       id: sanitize(request.id),
-      converterType: sanitize(request.converterType),
+      converter: {
+        amperagePerPhase: sanitize(request.converter.amperagePerPhase),
+        numberOfPhases: sanitize(request.converter.numberOfPhases),
+        type: sanitize(request.converter.type),
+        powerWatts: sanitize(request.converter.powerWatts)
+      },
       usersRemoved: request.usersRemoved ? request.usersRemoved.map((userRemoved: UserCar) => ({
         id: userRemoved.id,
         user: userRemoved.user,
@@ -207,7 +229,7 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {
+  public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken): void {
     const filteredCars: Car[] = [];
     if (!cars.result) {
       return null;
@@ -242,7 +264,7 @@ export default class CarSecurity {
         licensePlate: car.licensePlate,
         carCatalogID: car.carCatalogID,
         type: car.type,
-        converterType: car.converterType,
+        converter: car.converter,
         carCatalog: car.carCatalog,
       };
     }
@@ -259,7 +281,7 @@ export default class CarSecurity {
     return filteredCar;
   }
 
-  public static filterUsersCarsResponse(usersCars: DataResult<UserCar>, loggedUser: UserToken) {
+  public static filterUsersCarsResponse(usersCars: DataResult<UserCar>, loggedUser: UserToken): void {
     const filteredUsersCars: UserCar[] = [];
     if (!usersCars.result) {
       return null;
@@ -297,6 +319,7 @@ export default class CarSecurity {
       Search: sanitize(request.Search),
       CarMaker: sanitize(request.CarMaker),
       WithUsers: UtilsSecurity.filterBoolean(request.WithUsers),
+      UserID: sanitize(request.UserID)
     } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -305,7 +328,7 @@ export default class CarSecurity {
 
   public static filterCarRequest(request: any): HttpCarByIDRequest {
     const filteredRequest: HttpCarByIDRequest = {
-      ID: sanitize(request.CarID),
+      ID: sanitize(request.ID),
     } as HttpCarByIDRequest;
     return filteredRequest;
   }
