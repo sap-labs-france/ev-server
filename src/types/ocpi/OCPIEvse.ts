@@ -7,10 +7,11 @@ export interface OCPIEvse {
   capabilities: OCPICapability[];
   connectors: OCPIConnector[];
   coordinates: {
-    latitude: string;
-    longitude: string;
+    latitude: number;
+    longitude: number;
   };
   last_updated: Date;
+  chargeBoxId?: string;
 }
 
 export enum OCPIEvseStatus {

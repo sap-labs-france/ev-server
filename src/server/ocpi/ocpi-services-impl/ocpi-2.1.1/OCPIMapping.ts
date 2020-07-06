@@ -12,6 +12,7 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import { DataResult } from '../../../../types/DataResult';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../../../types/ocpi/OCPISession';
 import OCPIUtils from '../../OCPIUtils';
@@ -50,8 +51,8 @@ export default class OCPIMapping {
       'postal_code': site.address.postalCode,
       'country': site.address.country,
       'coordinates': {
-        'latitude': site.address.coordinates[1].toString(),
-        'longitude': site.address.coordinates[0].toString()
+        'latitude': site.address.coordinates[1],
+        'longitude': site.address.coordinates[0]
       },
       'evses': await OCPIMapping.getEvsesFromSite(tenant, site, options),
       'last_updated': site.lastChangedOn ? site.lastChangedOn : site.createdOn
@@ -71,13 +72,13 @@ export default class OCPIMapping {
     } as ChargingStation;
     if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
       chargingStation.coordinates = [
-        Number.parseFloat(evse.coordinates.longitude),
-        Number.parseFloat(evse.coordinates.latitude)
+        evse.coordinates.longitude,
+        evse.coordinates.latitude
       ];
     } else if (location && location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
       chargingStation.coordinates = [
-        Number.parseFloat(location.coordinates.longitude),
-        Number.parseFloat(location.coordinates.latitude)
+        location.coordinates.longitude,
+        location.coordinates.latitude
       ];
     }
     if (evse.connectors && evse.connectors.length > 0) {
@@ -109,7 +110,7 @@ export default class OCPIMapping {
    */
   static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     // Build evses array
-    const evses: any = [];
+    const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
     siteArea.chargingStations.forEach((chargingStation) => {
       if (chargingStation.issuer === true && chargingStation.public) {
@@ -149,14 +150,14 @@ export default class OCPIMapping {
    * Get All OCPI Locations from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OCPILocation>> {
     // Result
-    const result: any = { count: 0, locations: [] };
+    const result: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
     const sites = await SiteStorage.getSites(tenant.id, { issuer: true }, { limit, skip });
     // Convert Sites to Locations
     for (const site of sites.result) {
-      result.locations.push(await OCPIMapping.convertSite2Location(tenant, site, options));
+      result.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
     }
     // Set count
     result.count = sites.count;
@@ -286,20 +287,24 @@ export default class OCPIMapping {
    * Convert ChargingStation to Multiple EVSEs
    * @param {Tenant} tenant
    * @param {*} chargingStation
-   * @return Array of OCPI EVSES
+   * @return Array of OCPI EVSEs
    */
   static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
     const evses = connectors.map((connector) => {
       const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
-      const evse: any = {
+      const evse: OCPIEvse = {
         'uid': OCPIUtils.buildEvseUID(chargingStation, connector),
         'evse_id': evseID,
         'status': OCPIMapping.convertStatus2OCPIStatus(connector.status),
-        'capabilites': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
+        'capabilities': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID)],
-        'last_updated': chargingStation.lastHeartBeat
+        'last_updated': chargingStation.lastHeartBeat,
+        'coordinates': {
+          latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1] : null,
+          longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0] : null
+        }
       };
       // Check addChargeBoxID flag
       if (options && options.addChargeBoxID) {
@@ -322,15 +327,19 @@ export default class OCPIMapping {
     const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation);
     // Get all connectors
     const connectors = chargingStation.connectors.map(
-      (connector: any) => OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID));
+      (connector: Connector) => OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID));
     // Build evse
-    const evse: any = {
+    const evse: OCPIEvse = {
       'uid': OCPIUtils.buildEvseUID(chargingStation),
       'evse_id': evseID,
       'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
       'capabilities': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
       'connectors': connectors,
-      'last_updated': chargingStation.lastHeartBeat
+      'last_updated': chargingStation.lastHeartBeat,
+      'coordinates': {
+        latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1] : null,
+        longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0] : null
+      }
     };
     // Check addChargeBoxID flag
     if (options && options.addChargeBoxID) {
@@ -358,8 +367,8 @@ export default class OCPIMapping {
       postal_code: site.address.postalCode,
       country: site.address.country,
       coordinates: {
-        latitude: site.address.coordinates[1].toString(),
-        longitude: site.address.coordinates[0].toString()
+        latitude: site.address.coordinates[1],
+        longitude: site.address.coordinates[0]
       },
       type: OCPILocationType.UNKNOWN,
       evses: [{
@@ -369,8 +378,8 @@ export default class OCPIMapping {
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
         coordinates: {
-          latitude: chargingStation.coordinates[1].toString(),
-          longitude: chargingStation.coordinates[0].toString()
+          latitude: chargingStation.coordinates[1],
+          longitude: chargingStation.coordinates[0]
         },
         last_updated: chargingStation.lastHeartBeat
       }],
@@ -620,7 +629,7 @@ export default class OCPIMapping {
    * Check if OCPI credential object contains mandatory fields
    * @param {*} credential
    */
-  static isValidOCPICredential(credential) {
+  static isValidOCPICredential(credential): boolean {
     return (!credential ||
       !credential.url ||
       !credential.token ||
@@ -659,8 +668,8 @@ export default class OCPIMapping {
   /**
    * Convert OCPI Endpoints
    */
-  static convertEndpoints(endpointsEntity) {
-    const endpoints: any = {};
+  static convertEndpoints(endpointsEntity: any): OCPIEndpoint[] {
+    const endpoints: OCPIEndpoint[] = [];
     if (endpointsEntity && endpointsEntity.endpoints) {
       for (const endpoint of endpointsEntity.endpoints) {
         endpoints[endpoint.identifier] = endpoint.url;
