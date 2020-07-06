@@ -40,12 +40,16 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
         headers: this.buildAuthHeader()
       }
     );
-    return this.filterEnergyConsumptionRequest(asset, data);
+    if (data && data.length > 0) {
+      return this.filterConsumptionRequest(asset, data);
+    }
+    return null;
   }
 
-  private filterEnergyConsumptionRequest(asset: Asset, data: any): AbstractConsumption {
+  private filterConsumptionRequest(asset: Asset, data: any): AbstractConsumption {
     let consumption = {} as AbstractConsumption;
-    consumption.consumptionWh = this.getLastConsumptionWh(asset, +data[0].Value);
+    consumption.consumptionWh = +data[0].Value * 1000;
+    consumption.lastConsumptionWh = this.getLastConsumptionWh(asset, +data[0].Value)
     consumption.instantAmpsL1 = +data[6].Value;
     consumption.instantAmpsL2 = +data[7].Value;
     consumption.instantAmpsL3 = +data[8].Value;
@@ -74,7 +78,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       `Time out error (5s) when trying to test the connection URL '${this.connection.url}/GetToken'`
     );
     // Set Token
-    if (data.access_token) {
+    if (data && data.length > 0 && data.access_token) {
       this.token = data.access_token;
     }
   }
@@ -89,10 +93,10 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
 
   private getLastConsumptionWh(asset: Asset, consumptionkWh: number): number {
     const consumptionWh = consumptionkWh * 1000;
-    if (asset.consumption.consumptionWh > consumptionWh) {
+    if (asset.consumption && consumptionWh > asset.consumption.consumptionWh) {
       return consumptionWh - asset.consumption.consumptionWh;
     }
-    return asset.consumption.consumptionWh;
+    return 0;
   }
 
   private isAssetConnectionInitialized(): void {

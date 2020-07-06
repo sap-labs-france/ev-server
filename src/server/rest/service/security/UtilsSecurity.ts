@@ -1,9 +1,10 @@
-import Address from '../../../../types/Address';
-import Authorizations from '../../../../authorization/Authorizations';
-import Constants from '../../../../utils/Constants';
-import UserToken from '../../../../types/UserToken';
-import Utils from '../../../../utils/Utils';
 import sanitize from 'mongo-sanitize';
+import Authorizations from '../../../../authorization/Authorizations';
+import Address from '../../../../types/Address';
+import { AbstractConsumption } from '../../../../types/Consumption';
+import UserToken from '../../../../types/UserToken';
+import Constants from '../../../../utils/Constants';
+import Utils from '../../../../utils/Utils';
 
 export default class UtilsSecurity {
   static filterBoolean(value): boolean {
@@ -102,6 +103,27 @@ export default class UtilsSecurity {
         filteredRequest.Skip = 0;
       }
     }
+  }
+
+  static filterAbstractConsumptionRequest(consumption: AbstractConsumption): AbstractConsumption {
+    const filteredConsumption: AbstractConsumption = {} as AbstractConsumption;
+    if (consumption) {
+      filteredConsumption.consumptionWh = sanitize(consumption.consumptionWh);
+      filteredConsumption.instantAmpsL1 = sanitize(consumption.instantAmpsL1);
+      filteredConsumption.instantAmpsL2 = sanitize(consumption.instantAmpsL2);
+      filteredConsumption.instantAmpsL3 = sanitize(consumption.instantAmpsL3);
+      filteredConsumption.instantAmps = sanitize(consumption.instantAmps);
+      filteredConsumption.instantVoltsL1 = sanitize(consumption.instantVoltsL1);
+      filteredConsumption.instantVoltsL2 = sanitize(consumption.instantVoltsL2)
+      filteredConsumption.instantVoltsL3 = sanitize(consumption.instantVoltsL3);
+      filteredConsumption.instantVolts = sanitize(consumption.instantVolts);
+      filteredConsumption.instantWattsL1 = sanitize(consumption.instantWattsL1);
+      filteredConsumption.instantWattsL2 = sanitize(consumption.instantWattsL2);
+      filteredConsumption.instantWattsL3 = sanitize(consumption.instantWattsL3);
+      filteredConsumption.instantWatts = sanitize(consumption.instantWatts);
+      filteredConsumption.lastConsumptionWh = sanitize(consumption.lastConsumptionWh);
+    }
+    return filteredConsumption;
   }
 
   static filterAddressRequest(address: Address): Address {

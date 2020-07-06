@@ -52,6 +52,7 @@ export default class AssetSecurity {
     filteredRequest.assetType = sanitize(request.assetType),
     filteredRequest.image = request.image;
     filteredRequest.dynamicAsset = UtilsSecurity.filterBoolean(request.dynamicAsset);
+    filteredRequest.consumption = UtilsSecurity.filterAbstractConsumptionRequest(request.consumption);
     if (request.coordinates && request.coordinates.length === 2) {
       filteredRequest.coordinates = [
         sanitize(request.coordinates[0]),
@@ -88,6 +89,7 @@ export default class AssetSecurity {
         filteredAsset.dynamicAsset = asset.dynamicAsset;
         filteredAsset.connectionID = asset.connectionID;
         filteredAsset.meterID = asset.meterID;
+        filteredAsset.consumption = asset.consumption;
         if (asset.siteArea) {
           filteredAsset.siteArea = SiteAreaSecurity.filterSiteAreaResponse(asset.siteArea, loggedUser);
         }
