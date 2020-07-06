@@ -6,11 +6,11 @@ export default class CarApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public async readById(id) {
+  public async readCarCatalog(id) {
     return super.read({ CarCatalogID: id }, '/client/api/CarCatalog');
   }
 
-  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+  public async readCarCatalogs(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/CarCatalogs');
   }
 
@@ -20,6 +20,26 @@ export default class CarApi extends CrudApi {
 
   public async readCarImages(id) {
     return super.read({ CarCatalogID: id }, '/client/api/CarCatalogImages');
+  }
+
+  public async readCar(id) {
+    return super.read({ ID: id }, '/client/api/Car');
+  }
+
+  public async readCars(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, '/client/api/Cars');
+  }
+
+  public async update(data) {
+    return super.update(data, '/client/api/CarUpdate');
+  }
+
+  public async create(data) {
+    return super.create(data, '/client/api/CarCreate');
+  }
+
+  public async delete(id) {
+    return super.delete(id, '/client/api/CarDelete');
   }
 
 }
