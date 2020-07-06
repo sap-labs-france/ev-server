@@ -152,17 +152,17 @@ export default class OCPIMapping {
    */
   static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OCPILocation>> {
     // Result
-    const result: DataResult<OCPILocation> = { count: 0, result: [] };
+    const OCPILocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
     const sites = await SiteStorage.getSites(tenant.id, { issuer: true }, { limit, skip });
     // Convert Sites to Locations
     for (const site of sites.result) {
-      result.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
+      OCPILocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
     }
     // Set count
-    result.count = sites.count;
+    OCPILocationsResult.count = sites.count;
     // Return locations
-    return result;
+    return OCPILocationsResult;
   }
 
   /**
