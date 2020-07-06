@@ -15,6 +15,7 @@ import validator from 'validator';
 import Authorizations from '../authorization/Authorizations';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
+import AssetFactory from '../integration/asset/AssetFactory';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import Asset from '../types/Asset';
@@ -41,6 +42,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import Logging from './Logging';
+import AssetStorage from '../storage/mongodb/AssetStorage';
 
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -1879,11 +1881,53 @@ export default class Utils {
     }
   }
 
-  public static async retrieveAssetMetrics(tenantID: string, asset: Asset) {
-    // Recup impl with factory
-    // CAll to BMS backend
-    // Assign to Asset the result
-    // Save asset
+  public static async retrieveAssetMetrics(action: ServerAction, req: Request, asset: Asset) {
+    // Get asset connection type
+    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, asset.connectionID);
+    // Asset has unknown connection type
+    if (!assetImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Asset service is not configured',
+        module: MODULE_NAME, method: 'handleRefreshMetrics',
+        action: action,
+        user: req.user
+      });
+    }
+    try {
+      // Check connection
+      await assetImpl.checkConnection();
+    } catch (error) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Connection to the asset failed',
+        module: MODULE_NAME, method: 'handleRefreshMetrics',
+        action: action,
+        user: req.user,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+    // Call to BMS backend
+    try {
+      const consumption = await assetImpl.retrieveMeterValues(asset);
+      // Store consumption to Asset
+      asset.consumption = consumption;
+    } catch (error) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Error occurred while retrieving metrics',
+        module: MODULE_NAME,
+        method: 'retrieveAssetMetrics',
+        action: action,
+        user: req.user,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+    // Save Asset
+    await AssetStorage.saveAsset(req.user.tenantID, asset);
   }
 
   private static _isUserEmailValid(email: string): boolean {

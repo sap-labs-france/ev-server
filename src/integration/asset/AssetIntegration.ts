@@ -6,13 +6,15 @@ export default abstract class AssetIntegration<T extends AssetSetting> {
   protected readonly tenantID: string;
   protected settings: T;
   protected connection: AssetConnectionSetting;
+  protected token: string;
 
   protected constructor(tenantID: string, settings: T, connection: AssetConnectionSetting) {
     this.tenantID = tenantID;
     this.settings = settings;
     this.connection = connection;
+    this.token = null;
   }
 
   async abstract checkConnection();
-  async abstract retrieveMeterValuesByID(asset: Asset, meterID: string): Promise<AbstractConsumption>;
+  async abstract retrieveMeterValues(asset: Asset): Promise<AbstractConsumption>;
 }

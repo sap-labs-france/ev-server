@@ -1,5 +1,6 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
+import { AbstractConsumption } from './Consumption';
 
 export default interface Asset extends CreatedUpdatedProps {
   id: string;
@@ -13,4 +14,5 @@ export default interface Asset extends CreatedUpdatedProps {
   dynamicAsset: boolean;
   connectionID?: string;
   meterID?: string;
+  consumption?: AbstractConsumption;
 }

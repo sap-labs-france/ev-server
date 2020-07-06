@@ -72,6 +72,7 @@ export default class AssetStorage {
     assetMDB.issuer = Utils.convertToBoolean(assetToSave.issuer);
     assetMDB.connectionID = assetToSave.connectionID;
     assetMDB.meterID = assetToSave.meterID;
+    assetMDB.consumption = assetToSave.consumption;
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(assetMDB, assetToSave);
     // Modify

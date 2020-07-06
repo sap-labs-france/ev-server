@@ -110,34 +110,7 @@ export default class AssetService {
         user: req.user
       });
     }
-    // Get asset connection type
-    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, asset.connectionID);
-    // Asset has unknown connection type
-    if (!assetImpl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset service is not configured',
-        module: MODULE_NAME, method: 'handleRefreshMetrics',
-        action: action,
-        user: req.user
-      });
-    }
-    try {
-      // Check connection
-      await assetImpl.checkConnection();
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Connection to the asset failed',
-        module: MODULE_NAME, method: 'handleRefreshMetrics',
-        action: action,
-        user: req.user,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-    Utils.retrieveAssetMetrics(req.user.tenantID, asset);
+    await Utils.retrieveAssetMetrics(action, req, asset);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

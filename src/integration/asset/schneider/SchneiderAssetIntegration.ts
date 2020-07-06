@@ -19,11 +19,8 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
   public async checkConnection() {
     // Check if connection is initialized
     this.isAssetConnectionInitialized();
-    // Set credential params
-    const params = new URLSearchParams();
-    params.append('grant_type', 'password');
-    params.append('username', this.connection.connection.user);
-    params.append('password', Cypher.decrypt(this.connection.connection.password));
+    // Get credential params
+    const params = this.getCredentialParams();
     // Send credentials to get the token
     await Utils.executePromiseWithTimeout(5000,
       axios.post(`${this.connection.url}/GetToken`, params, {
@@ -33,8 +30,69 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     );
   }
 
-  public async retrieveMeterValuesByID(asset: Asset, meterID: string): Promise<AbstractConsumption> {
-    return;
+  public async retrieveMeterValues(asset: Asset): Promise<AbstractConsumption> {
+    // Set new Token
+    await this.setToken();
+    // Get consumption
+    const { data } = await axios.get(
+      `${this.connection.url}/Containers/${Constants.DEFAULT_ASSET_SCHNEIDER_BASE_ID}${asset.meterID}/Children`,
+      {
+        headers: this.buildAuthHeader()
+      }
+    );
+    return this.filterEnergyConsumptionRequest(asset, data);
+  }
+
+  private filterEnergyConsumptionRequest(asset: Asset, data: any): AbstractConsumption {
+    let consumption = {} as AbstractConsumption;
+    consumption.consumptionWh = this.getLastConsumptionWh(asset, +data[0].Value);
+    consumption.instantAmpsL1 = +data[6].Value;
+    consumption.instantAmpsL2 = +data[7].Value;
+    consumption.instantAmpsL3 = +data[8].Value;
+    consumption.instantAmps = +data[6].Value + +data[7].Value + +data[8].Value;
+    consumption.instantVoltsL1 = +data[11].Value;
+    consumption.instantVoltsL2 = +data[13].Value;
+    consumption.instantVoltsL3 = +data[15].Value;
+    consumption.instantVolts = +data[11].Value + +data[13].Value + +data[15].Value;
+    consumption.instantWattsL1 = +data[17].Value * 1000;
+    consumption.instantWattsL2 = +data[18].Value * 1000;
+    consumption.instantWattsL3 = +data[19].Value * 1000;
+    consumption.instantWatts = (+data[17].Value + +data[18].Value + +data[19].Value) * 1000;
+    return consumption;
+  }
+
+  private async setToken() {
+    // Check if connection is initialized
+    this.isAssetConnectionInitialized();
+    // Get credential params
+    const params = this.getCredentialParams();
+    // Send credentials to get the token
+    const { data } = await Utils.executePromiseWithTimeout(5000,
+      axios.post(`${this.connection.url}/GetToken`, params, {
+        headers: this.buildFormHeaders()
+      }),
+      `Time out error (5s) when trying to test the connection URL '${this.connection.url}/GetToken'`
+    );
+    // Set Token
+    if (data.access_token) {
+      this.token = data.access_token;
+    }
+  }
+
+  private getCredentialParams(): URLSearchParams {
+    const params = new URLSearchParams();
+    params.append('grant_type', 'password');
+    params.append('username', this.connection.connection.user);
+    params.append('password', Cypher.decrypt(this.connection.connection.password));
+    return params;
+  }
+
+  private getLastConsumptionWh(asset: Asset, consumptionkWh: number): number {
+    const consumptionWh = consumptionkWh * 1000;
+    if (asset.consumption.consumptionWh > consumptionWh) {
+      return consumptionWh - asset.consumption.consumptionWh;
+    }
+    return asset.consumption.consumptionWh;
   }
 
   private isAssetConnectionInitialized(): void {
@@ -52,6 +110,12 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
   private buildFormHeaders(): any {
     return {
       'Content-Type': 'application/x-www-form-urlencoded'
+    };
+  }
+
+  private buildAuthHeader(): any {
+    return {
+      'Authorization': 'Bearer ' + this.token
     };
   }
 }
