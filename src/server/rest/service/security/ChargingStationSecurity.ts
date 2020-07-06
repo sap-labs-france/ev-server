@@ -69,6 +69,8 @@ export default class ChargingStationSecurity {
       filteredChargingStation.maximumPower = chargingStation.maximumPower;
       filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
       filteredChargingStation.chargePointModel = chargingStation.chargePointModel;
+      filteredChargingStation.public = chargingStation.public;
+      filteredChargingStation.excludeFromSmartCharging = chargingStation.excludeFromSmartCharging;
       filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
       filteredChargingStation.coordinates = chargingStation.coordinates;
       if (chargingStation.ocpiData) {

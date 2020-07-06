@@ -195,7 +195,7 @@ export default class OCPPUtils {
     }
     // Fill Power per Phase when Current is provided in Meter Values (Power per phase not Provided by Schneider)
     if (!consumption.instantWattsL1 && !consumption.instantWattsL2 && !consumption.instantWattsL3 &&
-        (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0)) {
+      (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0)) {
       if (consumption.instantVoltsL1 > 0) {
         consumption.instantWattsL1 = consumption.instantAmpsL1 * consumption.instantVoltsL1;
       } else {
@@ -862,6 +862,10 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
+                if (Utils.objectHasProperty(capabilities.capabilities, 'supportChargingProfiles') &&
+                  !capabilities.capabilities.supportChargingProfiles) {
+                  chargingStation.excludeFromSmartCharging = !capabilities.capabilities.supportChargingProfiles;
+                }
                 chargingStation.capabilities = capabilities.capabilities;
                 break;
               }
@@ -1234,26 +1238,26 @@ export default class OCPPUtils {
   static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER &&
-      (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
-        meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK));
+        (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
+          meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK));
   }
 
   static isPowerActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.POWER_ACTIVE_IMPORT &&
-       meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
+        meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
   static isCurrentImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.CURRENT_IMPORT &&
-       meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
+        meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
   static isVoltageMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.VOLTAGE &&
-       meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
+        meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
   static async checkAndGetChargingStation(chargeBoxIdentity: string, tenantID: string): Promise<ChargingStation> {

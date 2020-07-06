@@ -52,9 +52,15 @@ export default class Utils {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     let threePhases = true;
     if (currentType === CurrentType.AC &&
-        transaction.currentInstantAmpsL1 > 0 &&
+      (transaction.currentInstantAmpsL1 > 0 &&
         (transaction.currentInstantAmpsL2 === 0 ||
-         transaction.currentInstantAmpsL3 === 0)) {
+          transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL2 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 ||
+          transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL3 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 ||
+          transaction.currentInstantAmpsL2 === 0))) {
       threePhases = false;
     }
     return threePhases;
@@ -971,7 +977,7 @@ export default class Utils {
     return message;
   }
 
-  public static getRequestIP(request: http.IncomingMessage|Partial<Request>): string | string[] {
+  public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {
     if (request['ip']) {
       return request['ip'];
     } else if (request.headers['x-forwarded-for']) {
