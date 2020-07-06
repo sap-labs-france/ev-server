@@ -78,7 +78,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       `Time out error (5s) when trying to test the connection URL '${this.connection.url}/GetToken'`
     );
     // Set Token
-    if (data && data.length > 0 && data.access_token) {
+    if (data && data.access_token) {
       this.token = data.access_token;
     }
   }
