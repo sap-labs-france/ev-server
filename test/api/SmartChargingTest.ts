@@ -2,6 +2,7 @@ import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest 
 import { SapSmartChargingSetting, SettingDB, SmartChargingSetting, SmartChargingSettingsType } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
+import CPOSessionsEndpoint from '../server/ocpi/ocpi-services-impl/ocpi-2.1.1/CPOSessionsEndpoint';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -140,8 +141,6 @@ describe('Smart Charging Service', function() {
 
     after(async () => {
       await testData.chargingStationContext.cleanUpCreatedData();
-      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Available);
-      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Available);
     });
 
     it('Should connect to Smart Charging Provider', async () => {
@@ -151,14 +150,18 @@ describe('Smart Charging Service', function() {
 
     describe('Test for three phased site area', () => {
       before(async () => {
-        chargingStationConnector1Charging.status = ChargePointStatus.CHARGING;
-        chargingStationConnector1Charging.status = ChargePointStatus.CHARGING;
         testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
         testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
         testData.siteAreaContext.siteArea.voltage = 230;
         testData.siteAreaContext.siteArea.numberOfPhases = 3;
       });
+
+      after(async () => {
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Available);
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Available);
+      });
+
 
       it('Test for one car charging', async () => {
         const connectorId = 1;
@@ -168,6 +171,7 @@ describe('Smart Charging Service', function() {
         const transactionResponse = await testData.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        console.log(JSON.stringify(chargingProfiles, null, ' '));
         expect(chargingProfiles).containSubset([{
           'chargingStationID': 'cs-16-ut-site-withSmartChargingThreePhased',
           'connectorID': 1,
@@ -179,24 +183,96 @@ describe('Smart Charging Service', function() {
             'stackLevel': 2,
             'chargingSchedule': {
               'chargingRateUnit': 'A',
-              'chargingSchedulePeriod': [
-                {
-                  'startPeriod': 0,
-                  'limit': 96
-                },
-                {
-                  'startPeriod': 900,
-                  'limit': 96
-                },
-                {
-                  'startPeriod': 1800,
-                  'limit': 96
-                }
-              ],
-              'duration': 2700
+              'duration': chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod.length * 15 * 60
             }
           }
         }]);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': 96
+          },
+          {
+            'startPeriod': 900,
+            'limit': 96
+          },
+          {
+            'startPeriod': 1800,
+            'limit': 96
+          },
+          {
+            'startPeriod': 2700,
+            'limit': 96
+          },
+          {
+            'startPeriod': 3600,
+            'limit': 96
+          },
+          {
+            'startPeriod': 4500,
+            'limit': 96
+          },
+          {
+            'startPeriod': 5400,
+            'limit': 96
+          },
+          {
+            'startPeriod': 6300,
+            'limit': 96
+          },
+          {
+            'startPeriod': 7200,
+            'limit': 96
+          },
+          {
+            'startPeriod': 8100,
+            'limit': 96
+          },
+          {
+            'startPeriod': 9000,
+            'limit': 96
+          },
+          {
+            'startPeriod': 9900,
+            'limit': 96
+          },
+          {
+            'startPeriod': 10800,
+            'limit': 96
+          },
+          {
+            'startPeriod': 11700,
+            'limit': 96
+          },
+          {
+            'startPeriod': 12600,
+            'limit': 96
+          },
+          {
+            'startPeriod': 13500,
+            'limit': 96
+          },
+          {
+            'startPeriod': 14400,
+            'limit': 96
+          },
+          {
+            'startPeriod': 15300,
+            'limit': 96
+          },
+          {
+            'startPeriod': 16200,
+            'limit': 96
+          },
+          {
+            'startPeriod': 17100,
+            'limit': 96
+          },
+          {
+            'startPeriod': 18000,
+            'limit': 96
+          },
+        ]);
       });
 
       it('Test for two cars charging', async () => {
@@ -207,6 +283,7 @@ describe('Smart Charging Service', function() {
         const transactionResponse = await testData.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        console.log(JSON.stringify(chargingProfiles, null, ' '));
         expect(chargingProfiles[0]).containSubset({
           'chargingStationID': 'cs-16-ut-site-withSmartChargingThreePhased',
           'connectorID': 1,
@@ -218,24 +295,96 @@ describe('Smart Charging Service', function() {
             'stackLevel': 2,
             'chargingSchedule': {
               'chargingRateUnit': 'A',
-              'chargingSchedulePeriod': [
-                {
-                  'startPeriod': 0,
-                  'limit': 96
-                },
-                {
-                  'startPeriod': 900,
-                  'limit': 96
-                },
-                {
-                  'startPeriod': 1800,
-                  'limit': 96
-                }
-              ],
-              'duration': 2700
+              'duration': chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod.length * 15 * 60
             }
           }
         });
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': 96
+          },
+          {
+            'startPeriod': 900,
+            'limit': 96
+          },
+          {
+            'startPeriod': 1800,
+            'limit': 96
+          },
+          {
+            'startPeriod': 2700,
+            'limit': 96
+          },
+          {
+            'startPeriod': 3600,
+            'limit': 96
+          },
+          {
+            'startPeriod': 4500,
+            'limit': 96
+          },
+          {
+            'startPeriod': 5400,
+            'limit': 96
+          },
+          {
+            'startPeriod': 6300,
+            'limit': 96
+          },
+          {
+            'startPeriod': 7200,
+            'limit': 96
+          },
+          {
+            'startPeriod': 8100,
+            'limit': 96
+          },
+          {
+            'startPeriod': 9000,
+            'limit': 96
+          },
+          {
+            'startPeriod': 9900,
+            'limit': 96
+          },
+          {
+            'startPeriod': 10800,
+            'limit': 96
+          },
+          {
+            'startPeriod': 11700,
+            'limit': 96
+          },
+          {
+            'startPeriod': 12600,
+            'limit': 96
+          },
+          {
+            'startPeriod': 13500,
+            'limit': 96
+          },
+          {
+            'startPeriod': 14400,
+            'limit': 96
+          },
+          {
+            'startPeriod': 15300,
+            'limit': 96
+          },
+          {
+            'startPeriod': 16200,
+            'limit': 96
+          },
+          {
+            'startPeriod': 17100,
+            'limit': 96
+          },
+          {
+            'startPeriod': 18000,
+            'limit': 96
+          },
+        ]);
         expect(chargingProfiles[1]).containSubset({
           'chargingStationID': 'cs-16-ut-site-withSmartChargingThreePhased',
           'connectorID': 2,
@@ -247,28 +396,101 @@ describe('Smart Charging Service', function() {
             'stackLevel': 2,
             'chargingSchedule': {
               'chargingRateUnit': 'A',
-              'chargingSchedulePeriod': [
-                {
-                  'startPeriod': 0,
-                  'limit': 96
-                },
-                {
-                  'startPeriod': 900,
-                  'limit': 96
-                },
-                {
-                  'startPeriod': 1800,
-                  'limit': 96
-                }
-              ],
-              'duration': 2700
+              'duration': chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod.length * 15 * 60
             }
           }
         });
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': 96
+          },
+          {
+            'startPeriod': 900,
+            'limit': 96
+          },
+          {
+            'startPeriod': 1800,
+            'limit': 96
+          },
+          {
+            'startPeriod': 2700,
+            'limit': 96
+          },
+          {
+            'startPeriod': 3600,
+            'limit': 96
+          },
+          {
+            'startPeriod': 4500,
+            'limit': 96
+          },
+          {
+            'startPeriod': 5400,
+            'limit': 96
+          },
+          {
+            'startPeriod': 6300,
+            'limit': 96
+          },
+          {
+            'startPeriod': 7200,
+            'limit': 96
+          },
+          {
+            'startPeriod': 8100,
+            'limit': 96
+          },
+          {
+            'startPeriod': 9000,
+            'limit': 96
+          },
+          {
+            'startPeriod': 9900,
+            'limit': 96
+          },
+          {
+            'startPeriod': 10800,
+            'limit': 96
+          },
+          {
+            'startPeriod': 11700,
+            'limit': 96
+          },
+          {
+            'startPeriod': 12600,
+            'limit': 96
+          },
+          {
+            'startPeriod': 13500,
+            'limit': 96
+          },
+          {
+            'startPeriod': 14400,
+            'limit': 96
+          },
+          {
+            'startPeriod': 15300,
+            'limit': 96
+          },
+          {
+            'startPeriod': 16200,
+            'limit': 96
+          },
+          {
+            'startPeriod': 17100,
+            'limit': 96
+          },
+          {
+            'startPeriod': 18000,
+            'limit': 96
+          },
+        ]);
       });
       it('Test for two cars charging with lower site area limit', async () => {
         testData.siteAreaContext.siteArea.maximumPower = 30000;
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        console.log(JSON.stringify(chargingProfiles, null, ' '));
         expect(chargingProfiles[0]).containSubset({
           'chargingStationID': 'cs-16-ut-site-withSmartChargingThreePhased',
           'connectorID': 1,
@@ -283,18 +505,18 @@ describe('Smart Charging Service', function() {
               'chargingSchedulePeriod': [
                 {
                   'startPeriod': 0,
-                  'limit': 34
+                  'limit': 0
                 },
                 {
                   'startPeriod': 900,
-                  'limit': 34
+                  'limit': 0
                 },
                 {
                   'startPeriod': 1800,
-                  'limit': 34
+                  'limit': 0
                 }
               ],
-              'duration': 2700
+              'duration': chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod.length * 15 * 60
             }
           }
         });
@@ -309,30 +531,100 @@ describe('Smart Charging Service', function() {
             'stackLevel': 2,
             'chargingSchedule': {
               'chargingRateUnit': 'A',
-              'chargingSchedulePeriod': [
-                {
-                  'startPeriod': 0,
-                  'limit': 96
-                },
-                {
-                  'startPeriod': 900,
-                  'limit': 96
-                },
-                {
-                  'startPeriod': 1800,
-                  'limit': 96
-                }
-              ],
-              'duration': 2700
+              'duration': chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod.length * 15 * 60
             }
           }
         });
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': 96
+          },
+          {
+            'startPeriod': 900,
+            'limit': 96
+          },
+          {
+            'startPeriod': 1800,
+            'limit': 96
+          },
+          {
+            'startPeriod': 2700,
+            'limit': 96
+          },
+          {
+            'startPeriod': 3600,
+            'limit': 96
+          },
+          {
+            'startPeriod': 4500,
+            'limit': 96
+          },
+          {
+            'startPeriod': 5400,
+            'limit': 96
+          },
+          {
+            'startPeriod': 6300,
+            'limit': 96
+          },
+          {
+            'startPeriod': 7200,
+            'limit': 96
+          },
+          {
+            'startPeriod': 8100,
+            'limit': 96
+          },
+          {
+            'startPeriod': 9000,
+            'limit': 96
+          },
+          {
+            'startPeriod': 9900,
+            'limit': 96
+          },
+          {
+            'startPeriod': 10800,
+            'limit': 96
+          },
+          {
+            'startPeriod': 11700,
+            'limit': 96
+          },
+          {
+            'startPeriod': 12600,
+            'limit': 96
+          },
+          {
+            'startPeriod': 13500,
+            'limit': 96
+          },
+          {
+            'startPeriod': 14400,
+            'limit': 96
+          },
+          {
+            'startPeriod': 15300,
+            'limit': 96
+          },
+          {
+            'startPeriod': 16200,
+            'limit': 96
+          },
+          {
+            'startPeriod': 17100,
+            'limit': 96
+          },
+          {
+            'startPeriod': 18000,
+            'limit': 96
+          },
+        ]);
       });
     });
     describe('Test for single phased site area', () => {
       before(async () => {
-        chargingStationConnector1Charging.status = ChargePointStatus.CHARGING;
-        chargingStationConnector1Charging.status = ChargePointStatus.CHARGING;
         testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED);
         testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
@@ -349,6 +641,7 @@ describe('Smart Charging Service', function() {
         const transactionResponse = await testData.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        console.log(JSON.stringify(chargingProfiles, null, ' '));
         expect(chargingProfiles).containSubset([{
           'chargingStationID': 'cs-16-ut-site-withSmartChargingSinglePhased',
           'connectorID': 1,
@@ -388,6 +681,7 @@ describe('Smart Charging Service', function() {
         const transactionResponse = await testData.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        console.log(JSON.stringify(chargingProfiles, null, ' '));
         expect(chargingProfiles[0]).containSubset({
           'chargingStationID': 'cs-16-ut-site-withSmartChargingSinglePhased',
           'connectorID': 1,
@@ -450,6 +744,7 @@ describe('Smart Charging Service', function() {
       it('Test for two cars charging with lower site area limit', async () => {
         testData.siteAreaContext.siteArea.maximumPower = 10000;
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        console.log(JSON.stringify(chargingProfiles, null, ' '));
         expect(chargingProfiles[0]).containSubset({
           'chargingStationID': 'cs-16-ut-site-withSmartChargingSinglePhased',
           'connectorID': 1,
