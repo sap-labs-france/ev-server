@@ -383,8 +383,8 @@ export default class EmspOCPIClient extends OCPIClient {
       } as Site;
       if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
         site.address.coordinates = [
-          Number.parseFloat(location.coordinates.longitude),
-          Number.parseFloat(location.coordinates.latitude)
+          location.coordinates.longitude,
+          location.coordinates.latitude
         ];
       }
       site.id = await SiteStorage.saveSite(this.tenant.id, site, false);
@@ -413,8 +413,8 @@ export default class EmspOCPIClient extends OCPIClient {
       } as SiteArea;
       if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
         siteArea.address.coordinates = [
-          Number.parseFloat(location.coordinates.longitude),
-          Number.parseFloat(location.coordinates.latitude)
+          location.coordinates.longitude,
+          location.coordinates.latitude
         ];
       }
       siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant.id, siteArea, false);

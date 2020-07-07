@@ -101,7 +101,7 @@ export default class CpoOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
-        message: `${response.data.data.length} Tokens retrieved from ${tokensUrl}`,
+        message: `${response.data.data.length.toString()} Tokens retrieved from ${tokensUrl}`,
         module: MODULE_NAME, method: 'pullTokens'
       });
       for (const token of response.data.data) {
@@ -832,9 +832,9 @@ export default class CpoOCPIClient extends OCPIClient {
     };
 
     // Get all EVSES from all locations
-    const locationsResult = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
+    const locations = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
     // Loop through locations
-    for (const location of locationsResult.locations) {
+    for (const location of locations.result) {
       if (location) {
         try {
           if (await this.checkLocation(location)) {
@@ -891,10 +891,10 @@ export default class CpoOCPIClient extends OCPIClient {
       // Remove duplicates
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
     }
-    // Get all EVSES from all locations
-    const locationsResult = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
+    // Get all EVSEs from all locations
+    const locations = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
     // Loop through locations
-    for (const location of locationsResult.locations) {
+    for (const location of locations.result) {
       if (location && location.evses) {
         // Loop through EVSE
         for (const evse of location.evses) {
@@ -982,7 +982,7 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   // Get ChargeBoxIDs in failure from previous job
-  getChargeBoxIDsInFailure() {
+  getChargeBoxIDsInFailure(): string[] {
     if (this.ocpiEndpoint.lastPatchJobResult && this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure) {
       return this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure;
     }
