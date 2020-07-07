@@ -12,6 +12,7 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import { DataResult } from '../../../../types/DataResult';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../../../types/ocpi/OCPISession';
@@ -152,17 +153,17 @@ export default class OCPIMapping {
    */
   static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OCPILocation>> {
     // Result
-    const OCPILocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
+    const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
     const sites = await SiteStorage.getSites(tenant.id, { issuer: true }, { limit, skip });
     // Convert Sites to Locations
     for (const site of sites.result) {
-      OCPILocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
+      ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
     }
     // Set count
-    OCPILocationsResult.count = sites.count;
+    ocpiLocationsResult.count = sites.count;
     // Return locations
-    return OCPILocationsResult;
+    return ocpiLocationsResult;
   }
 
   /**
@@ -629,7 +630,7 @@ export default class OCPIMapping {
    * Check if OCPI credential object contains mandatory fields
    * @param {*} credential
    */
-  static isValidOCPICredential(credential): boolean {
+  static isValidOCPICredential(credential: OCPICredential): boolean {
     return (!credential ||
       !credential.url ||
       !credential.token ||
@@ -642,9 +643,9 @@ export default class OCPIMapping {
    * @param {*} tenant
    * @param {*} token
    */
-  static async buildOCPICredentialObject(tenantID: string, token: string, role: string, versionUrl?: string) {
+  static async buildOCPICredentialObject(tenantID: string, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
     // Credential
-    const credential: any = {};
+    const credential: OCPICredential = {} as OCPICredential;
     // Get ocpi service configuration
     const ocpiSetting = await SettingStorage.getOCPISettings(tenantID);
     // Define version url

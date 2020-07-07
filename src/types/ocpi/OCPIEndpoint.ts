@@ -1,4 +1,5 @@
 import CreatedUpdatedProps from '../CreatedUpdatedProps';
+import { OcpiBusinessDetails } from '../Setting';
 
 export default interface OCPIEndpoint extends CreatedUpdatedProps {
   id: string;
@@ -12,8 +13,8 @@ export default interface OCPIEndpoint extends CreatedUpdatedProps {
   backgroundPatchJob: boolean;
   status?: string;
   version?: string;
-  businessDetails?: any;
-  availableEndpoints?: any;
+  businessDetails?: OcpiBusinessDetails;
+  availableEndpoints?: OCPIEndpoint[];
   versionUrl?: string;
   lastPatchJobOn?: Date;
   lastPatchJobResult?: {
