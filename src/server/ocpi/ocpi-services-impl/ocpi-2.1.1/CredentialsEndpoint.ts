@@ -7,6 +7,7 @@ import BackendError from '../../../../exception/BackendError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
+import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from './OCPIMapping';
@@ -85,7 +86,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
    */
   async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get payload
-    const credential = req.body;
+    const credential: OCPICredential = req.body;
     // Log body
     Logging.logDebug({
       tenantID: tenant.id,
