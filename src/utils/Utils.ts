@@ -1955,22 +1955,9 @@ export default class Utils {
       });
     }
     // Call to BMS backend
-    try {
-      const consumption = await assetImpl.retrieveMeterValues(asset);
-      // Store consumption to Asset
-      asset.consumption = consumption;
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Error occurred while retrieving metrics',
-        module: MODULE_NAME,
-        method: 'retrieveAssetMetrics',
-        action: action,
-        user: req.user,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
+    const consumption = await assetImpl.retrieveMeterValues(asset);
+    // Store consumption to Asset
+    asset.consumption = consumption;
     // Save Asset
     await AssetStorage.saveAsset(req.user.tenantID, asset);
   }

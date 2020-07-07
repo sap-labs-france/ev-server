@@ -33,15 +33,26 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
   public async retrieveMeterValues(asset: Asset): Promise<AbstractConsumption> {
     // Set new Token
     await this.setToken();
-    // Get consumption
-    const { data } = await axios.get(
-      `${this.connection.url}/Containers/${Constants.DEFAULT_ASSET_SCHNEIDER_BASE_ID}${asset.meterID}/Children`,
-      {
-        headers: this.buildAuthHeader()
+    try {
+      // Get consumption
+      const { data } = await axios.get(
+        `${this.connection.url}/Containers/${Constants.DEFAULT_ASSET_SCHNEIDER_BASE_ID}${asset.meterID}/Children`,
+        {
+          headers: this.buildAuthHeader()
+        }
+      );
+      if (data && data.length > 0) {
+        return this.filterConsumptionRequest(asset, data);
       }
-    );
-    if (data && data.length > 0) {
-      return this.filterConsumptionRequest(asset, data);
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'retrieveMeterValues',
+        action: ServerAction.REFRESH_ASSET_CONNECTION,
+        message: 'Error while retrieving meter values',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
     }
     return null;
   }
