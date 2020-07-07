@@ -61,7 +61,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     let consumption = {} as AbstractConsumption;
     // Convert data value to number and get consumption
     consumption.consumptionWh = +data[0].Value * 1000;
-    consumption.lastConsumptionWh = this.getLastConsumptionWh(asset, +data[0].Value)
+    consumption.lastMetricWh = this.getlastMetricWh(asset, +data[0].Value)
     consumption.instantAmpsL1 = +data[6].Value;
     consumption.instantAmpsL2 = +data[7].Value;
     consumption.instantAmpsL3 = +data[8].Value;
@@ -74,6 +74,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     consumption.instantWattsL2 = +data[18].Value * 1000;
     consumption.instantWattsL3 = +data[19].Value * 1000;
     consumption.instantWatts = +data[20].Value * 1000;
+    consumption.lastMetric = new Date();
     return consumption;
   }
 
@@ -103,7 +104,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     return params;
   }
 
-  private getLastConsumptionWh(asset: Asset, consumptionkWh: number): number {
+  private getlastMetricWh(asset: Asset, consumptionkWh: number): number {
     const consumptionWh = consumptionkWh * 1000;
     if (asset.consumption && consumptionWh > asset.consumption.consumptionWh) {
       return consumptionWh - asset.consumption.consumptionWh;
