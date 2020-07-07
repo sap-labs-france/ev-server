@@ -6,5 +6,4 @@ export default interface OCPICredential {
   party_id: string;
   country_code: string;
   business_details?: OcpiBusinessDetails;
-  // Data?: any;
 }
