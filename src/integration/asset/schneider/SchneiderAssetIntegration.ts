@@ -48,6 +48,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
 
   private filterConsumptionRequest(asset: Asset, data: any): AbstractConsumption {
     let consumption = {} as AbstractConsumption;
+    // Convert data value to number and get consumption
     consumption.consumptionWh = +data[0].Value * 1000;
     consumption.lastConsumptionWh = this.getLastConsumptionWh(asset, +data[0].Value)
     consumption.instantAmpsL1 = +data[6].Value;
@@ -61,7 +62,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     consumption.instantWattsL1 = +data[17].Value * 1000;
     consumption.instantWattsL2 = +data[18].Value * 1000;
     consumption.instantWattsL3 = +data[19].Value * 1000;
-    consumption.instantWatts = (+data[17].Value + +data[18].Value + +data[19].Value) * 1000;
+    consumption.instantWatts = +data[20].Value * 1000;
     return consumption;
   }
 
@@ -75,7 +76,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       axios.post(`${this.connection.url}/GetToken`, params, {
         headers: this.buildFormHeaders()
       }),
-      `Time out error (5s) when trying to test the connection URL '${this.connection.url}/GetToken'`
+      `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
     );
     // Set Token
     if (data && data.access_token) {
