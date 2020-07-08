@@ -45,7 +45,7 @@ export default class AssetSecurity {
     return AssetSecurity._filterAssetRequest(request);
   }
 
-  public static _filterAssetRequest(request: any): Partial<Asset> {
+  private static _filterAssetRequest(request: any): Partial<Asset> {
     const filteredRequest: Partial<Asset> = {};
     filteredRequest.name = sanitize(request.name),
     filteredRequest.siteAreaID = sanitize(request.siteAreaID),
