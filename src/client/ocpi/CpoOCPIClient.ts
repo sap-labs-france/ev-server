@@ -219,7 +219,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return authorizationInfo.authorization_id;
   }
 
-  async startSession(ocpiToken: OCPIToken, chargingStation: ChargingStation, transaction: Transaction, authorizationId: string) {
+  async startSession(ocpiToken: OCPIToken, chargingStation: ChargingStation, transaction: Transaction, authorizationId: string): Promise<void> {
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${authorizationId}`;
     let siteID;
@@ -346,7 +346,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  async stopSession(transaction: Transaction) {
+  async stopSession(transaction: Transaction): Promise<void> {
     if (!transaction.ocpiData || !transaction.ocpiData.session) {
       throw new BackendError({
         source: transaction.chargeBoxID,
@@ -406,7 +406,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  async postCdr(transaction: Transaction) {
+  async postCdr(transaction: Transaction): Promise<void> {
     if (!transaction.ocpiData || !transaction.ocpiData.session) {
       throw new BackendError({
         source: transaction.chargeBoxID,
@@ -476,7 +476,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  async removeChargingStation(chargingStation: ChargingStation) {
+  async removeChargingStation(chargingStation: ChargingStation): Promise<void> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
         source: chargingStation.id,
@@ -505,7 +505,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
   }
 
-  async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector) {
+  async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector): Promise<void> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
         source: chargingStation.id,
@@ -543,7 +543,7 @@ export default class CpoOCPIClient extends OCPIClient {
   /**
    * PATH EVSE Status
    */
-  async patchEVSEStatus(locationId: string, evseUID: string, newStatus: OCPIEvseStatus) {
+  async patchEVSEStatus(locationId: string, evseUID: string, newStatus: OCPIEvseStatus): Promise<void> {
     // Check for input parameter
     if (!locationId || !evseUID || !newStatus) {
       throw new BackendError({
@@ -622,7 +622,7 @@ export default class CpoOCPIClient extends OCPIClient {
         detailedMessages: { response : response.data }
       });
       if (response.data.status_code === 3001) {
-        const postResponse = await axios.post(cdrsUrl, transaction.ocpiData.cdr,
+        await axios.post(cdrsUrl, transaction.ocpiData.cdr,
           {
             headers: {
               Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -1004,7 +1004,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return [];
   }
 
-  async triggerJobs(): Promise<{ tokens: any; locations: any; cdrs: any; sessions: any }> {
+  async triggerJobs(): Promise<{ tokens: any; locations: any; cdrs: OCPIJobResult; sessions: any }> {
     return {
       tokens: await this.pullTokens(false),
       locations: await this.sendEVSEStatuses(),

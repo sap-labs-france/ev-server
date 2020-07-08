@@ -16,7 +16,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     super(tenantID, settings, connection);
   }
 
-  public async checkConnection() {
+  public async checkConnection(): Promise<void> {
     // Check if connection is initialized
     this.isAssetConnectionInitialized();
     // Get credential params

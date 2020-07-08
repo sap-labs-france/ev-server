@@ -1,7 +1,9 @@
+import axios, { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
+import OCPICredential from '../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
@@ -11,7 +13,6 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import axios from 'axios';
 
 const MODULE_NAME = 'OCPIClient';
 
@@ -132,7 +133,7 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(this.tenant.subdomain);
       // Post credentials and receive response
       const respPostCredentials = await this.postCredentials();
-      const credential = respPostCredentials.data.data;
+      const credential = respPostCredentials.data;
       // Store information
       // pragma this.ocpiEndpoint.setBaseUrl(credential.url);
       this.ocpiEndpoint.token = credential.token;
@@ -210,7 +211,7 @@ export default abstract class OCPIClient {
     return respOcpiServices;
   }
 
-  async deleteCredentials() {
+  async deleteCredentials(): Promise<AxiosResponse<OCPICredential>> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
     // Log
@@ -221,7 +222,7 @@ export default abstract class OCPIClient {
       module: MODULE_NAME, method: 'postCredentials'
     });
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await axios.delete(credentialsUrl,
+    const respOcpiCredentials = await axios.delete<OCPICredential>(credentialsUrl,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -230,7 +231,7 @@ export default abstract class OCPIClient {
         timeout: 10000
       });
     // Check response
-    if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
+    if (!respOcpiCredentials.data) {
       throw new BackendError({
         action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Invalid response from delete credentials',
@@ -244,7 +245,7 @@ export default abstract class OCPIClient {
   /**
    * POST /ocpi/{role}/{version}/credentials
    */
-  async postCredentials() {
+  async postCredentials(): Promise<AxiosResponse<OCPICredential>> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
     const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
@@ -257,7 +258,7 @@ export default abstract class OCPIClient {
       detailedMessages: { credentials }
     });
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await axios.post(credentialsUrl, credentials,
+    const respOcpiCredentials = await axios.post<OCPICredential>(credentialsUrl, credentials,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -266,7 +267,7 @@ export default abstract class OCPIClient {
         timeout: 10000
       });
     // Check response
-    if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
+    if (!respOcpiCredentials.data) {
       throw new BackendError({
         action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Invalid response from post credentials',

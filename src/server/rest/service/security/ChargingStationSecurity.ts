@@ -59,6 +59,7 @@ export default class ChargingStationSecurity {
         filteredChargingStation.ocppStandardParameters = chargingStation.ocppStandardParameters;
         filteredChargingStation.ocppVendorParameters = chargingStation.ocppVendorParameters;
         filteredChargingStation.voltage = chargingStation.voltage;
+        filteredChargingStation['errorCode'] = chargingStation['errorCode'];
       }
       filteredChargingStation.id = chargingStation.id;
       filteredChargingStation.inactive = chargingStation.inactive;

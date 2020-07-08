@@ -15,6 +15,6 @@ export default abstract class AssetIntegration<T extends AssetSetting> {
     this.token = null;
   }
 
-  async abstract checkConnection();
+  async abstract checkConnection(): Promise<void>;
   async abstract retrieveMeterValues(asset: Asset): Promise<AbstractConsumption>;
 }
