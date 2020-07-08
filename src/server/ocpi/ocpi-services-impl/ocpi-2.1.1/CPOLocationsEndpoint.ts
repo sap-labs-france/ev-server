@@ -109,15 +109,15 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
       const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
       // Get all locations
-      const result = await OCPIMapping.getAllLocations(tenant, limit, offset, options);
-      payload = result.locations;
+      const locations = await OCPIMapping.getAllLocations(tenant, limit, offset, options);
+      payload = locations.result;
       // Set header
       res.set({
-        'X-Total-Count': result.count,
+        'X-Total-Count': locations.count,
         'X-Limit': RECORDS_LIMIT
       });
       // Return next link
-      const nextUrl = OCPIUtils.buildNextUrl(req, this.getBaseUrl(req), offset, limit, result.count);
+      const nextUrl = OCPIUtils.buildNextUrl(req, this.getBaseUrl(req), offset, limit, locations.count);
       if (nextUrl) {
         res.links({
           next: nextUrl
@@ -127,7 +127,5 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     // Return Payload
     return OCPIUtils.success(payload);
   }
-
-
 }
 

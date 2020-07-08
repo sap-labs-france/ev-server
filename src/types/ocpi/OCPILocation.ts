@@ -10,8 +10,8 @@ export interface OCPILocation {
   postal_code: string;
   country: string;
   coordinates: {
-    latitude: string;
-    longitude: string;
+    latitude: number;
+    longitude: number;
   };
   operator?: OCPIBusinessDetails;
   evses: OCPIEvse[];
