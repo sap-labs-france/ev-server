@@ -154,8 +154,8 @@ export default class SiteAreaService {
           value: chargingStationID
         });
       }
-      for (const connector of chargingStation.connectors) {
-        if (connector.numberOfConnectedPhase !== 1 && siteArea.numberOfPhases === 1 && action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
+      for (const chargePoints of chargingStation.chargePoints) {
+        if (chargePoints.numberOfConnectedPhase !== 1 && siteArea.numberOfPhases === 1 && action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             action: action,
