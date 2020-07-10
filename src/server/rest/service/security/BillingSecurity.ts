@@ -63,7 +63,7 @@ export default class BillingSecurity {
     // Check auth
     if (Authorizations.canReadInvoicesBilling(loggedUser)) {
       // Set only necessary info
-      filteredInvoice.userID = invoice.userID;
+      filteredInvoice.user = invoice.user;
       filteredInvoice.invoiceID = invoice.invoiceID;
       filteredInvoice.number = invoice.number;
       filteredInvoice.status = invoice.status;
