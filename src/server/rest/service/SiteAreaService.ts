@@ -41,8 +41,7 @@ export default class SiteAreaService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Asset\'s IDs must be provided',
-        module: MODULE_NAME,
-        method: 'handleAssignAssetsToSiteArea',
+        module: MODULE_NAME, method: 'handleAssignAssetsToSiteArea',
         user: req.user
       });
     }
@@ -55,10 +54,8 @@ export default class SiteAreaService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME,
-        method: 'handleAssignAssetsToSiteArea',
+        action: Action.UPDATE, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleAssignAssetsToSiteArea',
         value: filteredRequest.siteAreaID
       });
     }
@@ -73,10 +70,8 @@ export default class SiteAreaService {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Action.READ,
-          entity: Entity.ASSET,
-          module: MODULE_NAME,
-          method: 'handleAssignAssetsToSiteArea',
+          action: Action.READ, entity: Entity.ASSET,
+          module: MODULE_NAME, method: 'handleAssignAssetsToSiteArea',
           value: assetID
         });
       }
@@ -129,10 +124,8 @@ export default class SiteAreaService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME,
-        method: 'handleAssignChargingStationsToSiteArea',
+        action: Action.UPDATE, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
         value: filteredRequest.siteAreaID
       });
     }
@@ -147,10 +140,8 @@ export default class SiteAreaService {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Action.READ,
-          entity: Entity.CHARGING_STATION,
-          module: MODULE_NAME,
-          method: 'handleAssignChargingStationsToSiteArea',
+          action: Action.READ, entity: Entity.CHARGING_STATION,
+          module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
           value: chargingStationID
         });
       }
@@ -179,8 +170,7 @@ export default class SiteAreaService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
-      module: MODULE_NAME,
-      method: 'handleAssignChargingStationsToSiteArea',
+      module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
       message: 'Site Area\'s Charging Stations have been assigned successfully',
       action: action
     });
@@ -206,10 +196,8 @@ export default class SiteAreaService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME,
-        method: 'handleDeleteSiteArea',
+        action: Action.DELETE, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleDeleteSiteArea',
         value: siteAreaID
       });
     }
@@ -247,10 +235,8 @@ export default class SiteAreaService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME,
-        method: 'handleGetSiteArea',
+        action: Action.READ, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleGetSiteArea',
         value: filteredRequest.ID
       });
     }
@@ -279,10 +265,8 @@ export default class SiteAreaService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME,
-        method: 'handleGetSiteAreaImage',
+        action: Action.READ, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleGetSiteAreaImage',
         value: siteAreaID
       });
     }
@@ -304,10 +288,8 @@ export default class SiteAreaService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.SITE_AREAS,
-        module: MODULE_NAME,
-        method: 'handleGetSiteAreas'
+        action: Action.LIST, entity: Entity.SITE_AREAS,
+        module: MODULE_NAME, method: 'handleGetSiteAreas'
       });
     }
     // Filter
@@ -319,11 +301,11 @@ export default class SiteAreaService {
         search: filteredRequest.Search,
         withSite: filteredRequest.WithSite,
         withChargingStations: filteredRequest.WithChargeBoxes,
-        withAvailableChargers: filteredRequest.WithAvailableChargers,
+        withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'name', 'siteID', 'maximumPower', 'smartCharging', 'address.coordinates', 'address.city', 'address.country', 'site.id', 'site.name', 'issuer']
+      ['id', 'name', 'siteID', 'maximumPower', 'numberOfPhases', 'accessControl', 'smartCharging', 'address.coordinates', 'address.city', 'address.country', 'site.id', 'site.name', 'issuer']
     );
     // Filter
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
@@ -349,10 +331,8 @@ export default class SiteAreaService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME,
-        method: 'handleGetSiteAreaConsumption'
+        action: Action.READ, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleGetSiteAreaConsumption'
       });
     }
     // Check dates
@@ -361,8 +341,7 @@ export default class SiteAreaService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Start date and end date must be provided',
-        module: MODULE_NAME,
-        method: 'handleGetSiteAreaConsumption',
+        module: MODULE_NAME, method: 'handleGetSiteAreaConsumption',
         user: req.user,
         action: action
       });
@@ -374,9 +353,8 @@ export default class SiteAreaService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `The requested start date '${filteredRequest.StartDate}' is after the end date '${filteredRequest.EndDate}' `,
-        module: MODULE_NAME,
-        method: 'handleGetSiteAreaConsumption',
+        message: `The requested start date '${filteredRequest.StartDate.toISOString()}' is after the end date '${filteredRequest.EndDate.toISOString()}' `,
+        module: MODULE_NAME, method: 'handleGetSiteAreaConsumption',
         user: req.user,
         action: action
       });
@@ -405,10 +383,8 @@ export default class SiteAreaService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME,
-        method: 'handleCreateSiteArea'
+        action: Action.CREATE, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleCreateSiteArea'
       });
     }
     // Check Site
@@ -451,10 +427,8 @@ export default class SiteAreaService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteArea',
+        action: Action.UPDATE, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleUpdateSiteArea',
         value: filteredRequest.id
       });
     }

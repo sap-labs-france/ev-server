@@ -5,6 +5,7 @@ export interface OCPIConnector {
   power_type: OCPIPowerType;
   voltage: number;
   amperage: number;
+  tariff_id?: string;
   last_updated: Date;
 }
 

@@ -34,8 +34,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserAdmin',
+        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
         user: req.user
       });
     }
@@ -44,8 +43,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserAdmin',
+        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
         user: req.user
       });
     }
@@ -54,8 +52,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Admin value must be provided',
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserAdmin',
+        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
         user: req.user
       });
     }
@@ -64,8 +61,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot change the site Admin on the logged user',
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserAdmin',
+        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
         user: req.user,
         actionOnUser: filteredRequest.userID
       });
@@ -74,10 +70,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserAdmin',
+        action: Action.UPDATE, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
         value: filteredRequest.siteID
       });
     }
@@ -95,8 +89,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Only Users with Basic role can be Site Admin',
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserAdmin',
+        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
         user: req.user,
         actionOnUser: filteredRequest.userID
       });
@@ -120,10 +113,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteOwner'
+        action: Action.UPDATE, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleUpdateSiteOwner'
       });
     }
     // Check if component is active
@@ -137,8 +128,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteOwner',
+        module: MODULE_NAME, method: 'handleUpdateSiteOwner',
         user: req.user
       });
     }
@@ -147,8 +137,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteOwner',
+        module: MODULE_NAME, method: 'handleUpdateSiteOwner',
         user: req.user
       });
     }
@@ -157,8 +146,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Owner value must be provided',
-        module: MODULE_NAME,
-        method: 'handleUpdateSiteUserOwner',
+        module: MODULE_NAME, method: 'handleUpdateSiteUserOwner',
         user: req.user
       });
     }
@@ -194,10 +182,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleAssignUsersToSite',
+        action: Action.UPDATE, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleAssignUsersToSite',
         value: filteredRequest.siteID
       });
     }
@@ -207,8 +193,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User\'s IDs must be provided',
-        module: MODULE_NAME,
-        method: 'handleAssignUsersToSite',
+        module: MODULE_NAME, method: 'handleAssignUsersToSite',
         user: req.user
       });
     }
@@ -227,10 +212,8 @@ export default class SiteService {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Action.READ,
-          entity: Entity.USER,
-          module: MODULE_NAME,
-          method: 'handleAssignUsersToSite',
+          action: Action.READ, entity: Entity.USER,
+          module: MODULE_NAME, method: 'handleAssignUsersToSite',
           value: userID
         });
       }
@@ -265,8 +248,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleGetUsersFromSite',
+        module: MODULE_NAME, method: 'handleGetUsersFromSite',
         user: req.user
       });
     }
@@ -279,10 +261,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleGetUsersFromSite',
+        action: Action.UPDATE, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleGetUsersFromSite',
         value: site.id
       });
     }
@@ -324,10 +304,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleDeleteSite',
+        action: Action.DELETE, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleDeleteSite',
         value: siteID
       });
     }
@@ -362,10 +340,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleGetSite',
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleGetSite',
         value: filteredRequest.ID
       });
     }
@@ -390,10 +366,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.SITES,
-        module: MODULE_NAME,
-        method: 'handleGetSites'
+        action: Action.LIST, entity: Entity.SITES,
+        module: MODULE_NAME, method: 'handleGetSites'
       });
     }
     // Filter
@@ -408,7 +382,7 @@ export default class SiteService {
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withCompany: filteredRequest.WithCompany,
         excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
-        withAvailableChargers: filteredRequest.WithAvailableChargers
+        withAvailableChargingStations: filteredRequest.WithAvailableChargers
       },
       {
         limit: filteredRequest.Limit,
@@ -417,7 +391,7 @@ export default class SiteService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       ['id', 'name', 'address.coordinates', 'address.city', 'address.country', 'companyID', 'company.name',
-        'autoUserSiteAssignment', 'issuer']
+        'autoUserSiteAssignment', 'issuer', 'autoUserSiteAssignment']
     );
     // Build the result
     if (sites.result && sites.result.length > 0) {
@@ -432,7 +406,6 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSiteImage');
-
     // Filter
     const siteID = SiteSecurity.filterSiteRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'handleGetSiteImage', req.user);
@@ -441,10 +414,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleGetSiteImage',
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleGetSiteImage',
         value: siteID
       });
     }
@@ -468,10 +439,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleCreateSite'
+        action: Action.CREATE, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleCreateSite'
       });
     }
     // Filter
@@ -517,10 +486,8 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SITE,
-        module: MODULE_NAME,
-        method: 'handleUpdateSite',
+        action: Action.UPDATE, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleUpdateSite',
         value: filteredRequest.id
       });
     }
