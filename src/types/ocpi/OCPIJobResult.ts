@@ -3,6 +3,6 @@ export interface OCPIJobResult {
   failure: number;
   total: number;
   logs: string[];
-  objectIDsInFailure: string[];
-  objectIDsInSuccess: string[];
+  objectIDsInFailure?: string[];
+  objectIDsInSuccess?: string[];
 }

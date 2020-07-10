@@ -16,7 +16,6 @@ import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../../../types/ocpi/OCPISession';
-import { OCPITariff } from '../../../../types/ocpi/OCPITariff';
 import OCPIUtils from '../../OCPIUtils';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
@@ -131,7 +130,7 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    * @param {Site} site
    * @param options
-   * @return Array of OCPI EVSES
+   * @return Array of OCPI EVSEs
    */
   static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIEvse[]> {
     // Build evses array
@@ -457,6 +456,8 @@ export default class OCPIMapping {
       'voltage': voltage,
       'amperage': amperage,
       'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
+      // FIXME: add tariff id from the simple pricing settings remapping
+      'tariff_id': '1',
       'last_updated': chargingStation.lastHeartBeat
     };
   }
