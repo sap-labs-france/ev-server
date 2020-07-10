@@ -265,6 +265,7 @@ export enum ServerAction {
   ASSET_UPDATE = 'AssetUpdate',
   ASSET_DELETE = 'AssetDelete',
   CHECK_ASSET_CONNECTION = 'CheckAssetConnection',
+  RETRIEVE_ASSET_CONSUMPTION = 'RetrieveAssetConsumption',
 
   TENANT_CREATE = 'TenantCreate',
   TENANTS = 'Tenants',
