@@ -297,7 +297,7 @@ export default class SiteStorage {
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean;
-      withAvailableChargers?: boolean; withChargers?: boolean; withCompany?: boolean;
+      withAvailableChargers?: boolean; withChargingStations?: boolean; withCompany?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
@@ -413,12 +413,12 @@ export default class SiteStorage {
     if (sitesMDB && sitesMDB.length > 0) {
       // Create
       for (const siteMDB of sitesMDB) {
-        if (params.withChargers || params.withAvailableChargers) {
+        if (params.withChargingStations || params.withAvailableChargers) {
         // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
           // Skip site with no chargers if asked
-          if (params.withChargers && chargingStations.count === 0) {
+          if (params.withChargingStations && chargingStations.count === 0) {
             continue;
           }
           // Add counts of Available/Occupied Chargers/Connectors
