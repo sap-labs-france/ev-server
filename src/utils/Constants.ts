@@ -73,8 +73,6 @@ export default class Constants {
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
 
-  public static readonly DEFAULT_ASSET_SCHNEIDER_BASE_ID = "00%252FServer%25201%252FSAPInterface%252FCOMPTEURS%252F";
-
   public static readonly MONGO_USER_MASK = {
     '_id': 0,
     '__v': 0,

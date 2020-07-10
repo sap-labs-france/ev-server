@@ -1,13 +1,13 @@
+import { ObjectID } from 'mongodb';
 import Asset from '../../types/Asset';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
 import { AssetInErrorType } from '../../types/InError';
 import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'AssetStorage';
 
@@ -62,17 +62,36 @@ export default class AssetStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set
-    const assetMDB: any = {};
-    assetMDB._id = assetToSave.id ? Utils.convertToObjectID(assetToSave.id) : new ObjectID();
-    assetMDB.name = assetToSave.name;
-    assetMDB.siteAreaID = Utils.convertToObjectID(assetToSave.siteAreaID);
-    assetMDB.coordinates = assetToSave.coordinates;
-    assetMDB.assetType = assetToSave.assetType;
-    assetMDB.dynamicAsset = assetToSave.dynamicAsset;
-    assetMDB.issuer = Utils.convertToBoolean(assetToSave.issuer);
-    assetMDB.connectionID = assetToSave.connectionID;
-    assetMDB.meterID = assetToSave.meterID;
-    assetMDB.consumption = assetToSave.consumption;
+    const assetMDB: any = {
+      _id: assetToSave.id ? Utils.convertToObjectID(assetToSave.id) : new ObjectID(),
+      name: assetToSave.name,
+      siteAreaID: Utils.convertToObjectID(assetToSave.siteAreaID),
+      coordinates: assetToSave.coordinates,
+      assetType: assetToSave.assetType,
+      dynamicAsset: assetToSave.dynamicAsset,
+      issuer: Utils.convertToBoolean(assetToSave.issuer),
+      connectionID: assetToSave.connectionID,
+      meterID: assetToSave.meterID,
+      currentConsumptionWh: Utils.convertToFloat(assetToSave.currentConsumptionWh),
+      currentInstantAmps: Utils.convertToFloat(assetToSave.currentInstantAmps),
+      currentInstantAmpsL1: Utils.convertToFloat(assetToSave.currentInstantAmpsL1),
+      currentInstantAmpsL2: Utils.convertToFloat(assetToSave.currentInstantAmpsL2),
+      currentInstantAmpsL3: Utils.convertToFloat(assetToSave.currentInstantAmpsL3),
+      currentInstantVolts: Utils.convertToFloat(assetToSave.currentInstantVolts),
+      currentInstantVoltsL1: Utils.convertToFloat(assetToSave.currentInstantVoltsL1),
+      currentInstantVoltsL2: Utils.convertToFloat(assetToSave.currentInstantVoltsL2),
+      currentInstantVoltsL3: Utils.convertToFloat(assetToSave.currentInstantVoltsL3),
+      currentInstantWatts: Utils.convertToFloat(assetToSave.currentInstantWatts),
+      currentInstantWattsL1: Utils.convertToFloat(assetToSave.currentInstantWattsL1),
+      currentInstantWattsL2: Utils.convertToFloat(assetToSave.currentInstantWattsL2),
+      currentInstantWattsL3: Utils.convertToFloat(assetToSave.currentInstantWattsL3),
+    };
+    if (assetToSave.lastConsumption) {
+      assetMDB.lastConsumption = {
+        value: Utils.convertToFloat(assetToSave.lastConsumption.value),
+        timestamp: Utils.convertToDate(assetToSave.lastConsumption.timestamp)
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(assetMDB, assetToSave);
     // Modify

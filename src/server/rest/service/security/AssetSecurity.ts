@@ -45,27 +45,6 @@ export default class AssetSecurity {
     return AssetSecurity._filterAssetRequest(request);
   }
 
-  private static _filterAssetRequest(request: any): Partial<Asset> {
-    const filteredRequest: Partial<Asset> = {};
-    filteredRequest.name = sanitize(request.name),
-    filteredRequest.siteAreaID = sanitize(request.siteAreaID),
-    filteredRequest.assetType = sanitize(request.assetType),
-    filteredRequest.image = request.image;
-    filteredRequest.dynamicAsset = UtilsSecurity.filterBoolean(request.dynamicAsset);
-    filteredRequest.consumption = UtilsSecurity.filterAbstractConsumptionRequest(request.consumption);
-    if (request.coordinates && request.coordinates.length === 2) {
-      filteredRequest.coordinates = [
-        sanitize(request.coordinates[0]),
-        sanitize(request.coordinates[1])
-      ];
-    }
-    if (request.dynamicAsset) {
-      filteredRequest.connectionID = sanitize(request.connectionID);
-      filteredRequest.meterID = sanitize(request.meterID);
-    }
-    return filteredRequest;
-  }
-
   public static filterAssetResponse(asset: Asset, loggedUser: UserToken): Asset {
     let filteredAsset: Asset;
     if (!asset) {
@@ -89,7 +68,7 @@ export default class AssetSecurity {
         filteredAsset.dynamicAsset = asset.dynamicAsset;
         filteredAsset.connectionID = asset.connectionID;
         filteredAsset.meterID = asset.meterID;
-        filteredAsset.consumption = asset.consumption;
+        filteredAsset.currentInstantWatts = asset.currentInstantWatts;
         if (asset.siteArea) {
           filteredAsset.siteArea = SiteAreaSecurity.filterSiteAreaResponse(asset.siteArea, loggedUser);
         }
@@ -117,5 +96,25 @@ export default class AssetSecurity {
       }
     }
     assets.result = filteredAssets;
+  }
+
+  private static _filterAssetRequest(request: any): Partial<Asset> {
+    const filteredRequest: Partial<Asset> = {};
+    filteredRequest.name = sanitize(request.name),
+    filteredRequest.siteAreaID = sanitize(request.siteAreaID),
+    filteredRequest.assetType = sanitize(request.assetType),
+    filteredRequest.image = request.image;
+    filteredRequest.dynamicAsset = UtilsSecurity.filterBoolean(request.dynamicAsset);
+    if (request.coordinates && request.coordinates.length === 2) {
+      filteredRequest.coordinates = [
+        sanitize(request.coordinates[0]),
+        sanitize(request.coordinates[1])
+      ];
+    }
+    if (request.dynamicAsset) {
+      filteredRequest.connectionID = sanitize(request.connectionID);
+      filteredRequest.meterID = sanitize(request.meterID);
+    }
+    return filteredRequest;
   }
 }

@@ -1,11 +1,12 @@
-import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
-
-import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
+import { BillingTransactionData } from './Billing';
+import { AbstractCurrentConsumption } from './Consumption';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
+import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import { RefundTransactionData } from './Refund';
 import User from './User';
+
 
 export type InactivityStatusLevel =
  'info' |
@@ -25,26 +26,7 @@ export enum TransactionAction {
   STOP = 'stop'
 }
 
-export interface AbstractTransaction {
-  currentInstantWatts: number;
-  currentInstantWattsL1?: number;
-  currentInstantWattsL2?: number;
-  currentInstantWattsL3?: number;
-  currentInstantWattsDC?: number;
-  currentInstantVoltage?: number;
-  currentInstantVoltageL1?: number;
-  currentInstantVoltageL2?: number;
-  currentInstantVoltageL3?: number;
-  currentInstantVoltageDC?: number;
-  currentInstantAmps?: number;
-  currentInstantAmpsL1?: number;
-  currentInstantAmpsL2?: number;
-  currentInstantAmpsL3?: number;
-  currentInstantAmpsDC?: number;
-  currentConsumptionWh?: number;
-}
-
-export default interface Transaction extends AbstractTransaction {
+export default interface Transaction extends AbstractCurrentConsumption {
   id?: number;
   carID?: string;
   siteID?: string;
@@ -63,10 +45,6 @@ export default interface Transaction extends AbstractTransaction {
     userID: string;
   };
   refundData?: RefundTransactionData;
-  lastEnergyActiveImportMeterValue?: {
-    value: number;
-    timestamp: Date;
-  };
   chargeBox?: ChargingStation;
   meterStart: number;
   timestamp: Date;

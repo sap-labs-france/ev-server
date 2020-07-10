@@ -1471,8 +1471,7 @@ export default class Utils {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Asset connection is mandatory',
-          module: MODULE_NAME,
-          method: 'checkIfAssetValid',
+          module: MODULE_NAME, method: 'checkIfAssetValid',
           user: req.user.id
         });
       }
@@ -1481,8 +1480,7 @@ export default class Utils {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Asset meter ID is mandatory',
-          module: MODULE_NAME,
-          method: 'checkIfAssetValid',
+          module: MODULE_NAME, method: 'checkIfAssetValid',
           user: req.user.id
         });
       }
@@ -1924,42 +1922,6 @@ export default class Utils {
         user: req.user.id
       });
     }
-  }
-
-  public static async retrieveAssetMetrics(action: ServerAction, req: Request, asset: Asset) {
-    // Get asset connection type
-    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, asset.connectionID);
-    // Asset has unknown connection type
-    if (!assetImpl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset service is not configured',
-        module: MODULE_NAME, method: 'handleRefreshMetrics',
-        action: action,
-        user: req.user
-      });
-    }
-    try {
-      // Check connection
-      await assetImpl.checkConnection();
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Connection to the asset failed',
-        module: MODULE_NAME, method: 'handleRefreshMetrics',
-        action: action,
-        user: req.user,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-    // Call to BMS backend
-    const consumption = await assetImpl.retrieveMeterValues(asset);
-    // Store consumption to Asset
-    asset.consumption = consumption;
-    // Save Asset
-    await AssetStorage.saveAsset(req.user.tenantID, asset);
   }
 
   private static _isUserEmailValid(email: string): boolean {

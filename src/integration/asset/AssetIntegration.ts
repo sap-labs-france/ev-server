@@ -1,20 +1,19 @@
-import { AssetConnectionSetting, AssetSetting } from '../../types/Setting';
 import Asset from '../../types/Asset';
-import { AbstractConsumption } from '../../types/Consumption';
+import { AbstractCurrentConsumption } from '../../types/Consumption';
+import { AssetConnectionSetting, AssetSetting } from '../../types/Setting';
 
 export default abstract class AssetIntegration<T extends AssetSetting> {
   protected readonly tenantID: string;
   protected settings: T;
   protected connection: AssetConnectionSetting;
-  protected token: string;
 
   protected constructor(tenantID: string, settings: T, connection: AssetConnectionSetting) {
     this.tenantID = tenantID;
     this.settings = settings;
     this.connection = connection;
-    this.token = null;
   }
 
   async abstract checkConnection(): Promise<void>;
-  async abstract retrieveMeterValues(asset: Asset): Promise<AbstractConsumption>;
+
+  async abstract retrieveConsumption(asset: Asset): Promise<AbstractCurrentConsumption>;
 }

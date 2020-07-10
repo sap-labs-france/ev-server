@@ -132,7 +132,7 @@ class RequestMapper {
           [ServerAction.ASSET_IMAGE]: AssetService.handleGetAssetImage.bind(this),
           [ServerAction.ASSETS_IN_ERROR]: AssetService.handleGetAssetsInError.bind(this),
           [ServerAction.CHECK_ASSET_CONNECTION]: AssetService.handleCheckAssetConnection.bind(this),
-          [ServerAction.REFRESH_ASSET_CONNECTION]: AssetService.handleRefreshMetrics.bind(this),
+          [ServerAction.RETRIEVE_ASSET_CONSUMPTION]: AssetService.handleRetrieveConsumption.bind(this),
           [ServerAction.SITES]: SiteService.handleGetSites.bind(this),
           [ServerAction.SITE]: SiteService.handleGetSite.bind(this),
           [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
