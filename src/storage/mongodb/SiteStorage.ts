@@ -297,7 +297,7 @@ export default class SiteStorage {
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean;
-      withAvailableChargers?: boolean; withCompany?: boolean;
+      withAvailableChargers?: boolean; withChargers?: boolean; withCompany?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
@@ -413,13 +413,19 @@ export default class SiteStorage {
     if (sitesMDB && sitesMDB.length > 0) {
       // Create
       for (const siteMDB of sitesMDB) {
-        // Count Available/Occupied Chargers/Connectors
-        if (params.withAvailableChargers) {
-          // Get the chargers
+        if (params.withChargers || params.withAvailableChargers) {
+        // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
+          // Skip site with no chargers if asked
+          if (params.withChargers && chargingStations.count === 0) {
+            continue;
+          }
+          // Add counts of Available/Occupied Chargers/Connectors
+          if (params.withAvailableChargers) {
           // Set the Charging Stations' Connector statuses
-          siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
+            siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
+          }
         }
         if (!siteMDB.autoUserSiteAssignment) {
           siteMDB.autoUserSiteAssignment = false;
@@ -468,7 +474,7 @@ export default class SiteStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteSites', uniqueTimerID, { ids });
   }
 
-  public static async deleteCompanySites(tenantID: string, companyID: string) {
+  public static async deleteCompanySites(tenantID: string, companyID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteCompanySites');
     // Check Tenant

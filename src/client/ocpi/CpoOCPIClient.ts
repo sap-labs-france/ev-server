@@ -831,7 +831,7 @@ export default class CpoOCPIClient extends OCPIClient {
       partyID: this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS)
     };
 
-    // Get all EVSES from all locations
+    // Get all EVSEs from all locations
     const locations = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
     // Loop through locations
     for (const location of locations.result) {
