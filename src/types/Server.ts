@@ -316,8 +316,6 @@ export enum ServerAction {
   REFUND = 'Refund',
 
   USER_READ = 'UserRead',
-  USER_INVOICE = 'UserInvoice',
-  USER_INVOICES = 'UserInvoices',
   USER_CREATE = 'UserCreate',
   USER_DELETE = 'UserDelete',
   USER_UPDATE = 'UserUpdate',
@@ -342,6 +340,7 @@ export enum ServerAction {
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
   BILLING_TAXES = 'BillingTaxes',
   BILLING_USER_INVOICES = 'BillingUserInvoices',
+  BILLING_USER_INVOICE = 'BillingUserInvoice',
   BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
   BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
 

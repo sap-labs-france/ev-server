@@ -7,6 +7,7 @@ import { HttpBillingInvoiceRequest } from '../../../../types/requests/HttpBillin
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
+import UserSecurity from './UserSecurity';
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {
@@ -63,14 +64,13 @@ export default class BillingSecurity {
     // Check auth
     if (Authorizations.canReadInvoicesBilling(loggedUser)) {
       // Set only necessary info
-      filteredInvoice.user = invoice.user;
+      filteredInvoice.user = UserSecurity.filterMinimalUserResponse(invoice.user, loggedUser);
       filteredInvoice.invoiceID = invoice.invoiceID;
       filteredInvoice.number = invoice.number;
       filteredInvoice.status = invoice.status;
       filteredInvoice.amount = invoice.amount;
       filteredInvoice.createdOn = invoice.createdOn;
       filteredInvoice.currency = invoice.currency;
-      filteredInvoice.customerID = invoice.customerID;
     }
     return filteredInvoice;
   }
