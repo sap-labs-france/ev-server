@@ -154,8 +154,10 @@ export default class SiteAreaService {
           value: chargingStationID
         });
       }
-      for (const chargePoints of chargingStation.chargePoints) {
-        if (chargePoints.numberOfConnectedPhase !== 1 && siteArea.numberOfPhases === 1 && action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
+      for (const connector of chargingStation.connectors) {
+        const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+        const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
+        if (numberOfConnectedPhase !== 1 && siteArea.numberOfPhases === 1 && action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             action: action,
