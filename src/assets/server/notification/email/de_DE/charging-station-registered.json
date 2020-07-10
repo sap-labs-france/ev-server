@@ -4,7 +4,7 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charging Station Verbunden",
+      "title": "Ladestation Verbunden",
       "image": {
         "left": {
           "height": 60,
