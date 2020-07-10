@@ -150,11 +150,11 @@ export default class TransactionSecurity {
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
-        filteredTransaction.currentInstantVoltage = transaction.currentInstantVoltage;
-        filteredTransaction.currentInstantVoltageL1 = transaction.currentInstantVoltageL1;
-        filteredTransaction.currentInstantVoltageL2 = transaction.currentInstantVoltageL2;
-        filteredTransaction.currentInstantVoltageL3 = transaction.currentInstantVoltageL3;
-        filteredTransaction.currentInstantVoltageDC = transaction.currentInstantVoltageDC;
+        filteredTransaction.currentInstantVolts = transaction.currentInstantVolts;
+        filteredTransaction.currentInstantVoltsL1 = transaction.currentInstantVoltsL1;
+        filteredTransaction.currentInstantVoltsL2 = transaction.currentInstantVoltsL2;
+        filteredTransaction.currentInstantVoltsL3 = transaction.currentInstantVoltsL3;
+        filteredTransaction.currentInstantVoltsDC = transaction.currentInstantVoltsDC;
         filteredTransaction.currentInstantAmps = transaction.currentInstantAmps;
         filteredTransaction.currentInstantAmpsL1 = transaction.currentInstantAmpsL1;
         filteredTransaction.currentInstantAmpsL2 = transaction.currentInstantAmpsL2;
