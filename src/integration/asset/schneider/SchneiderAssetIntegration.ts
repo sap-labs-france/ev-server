@@ -60,10 +60,12 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
   private filterConsumptionRequest(asset: Asset, data: any[]): AbstractCurrentConsumption {
     const consumption = {} as AbstractCurrentConsumption;
     // Convert data value to number and get consumption
-    consumption.currentConsumptionWh = this.computeNewConsumptionWh(
-      asset, this.getPropertyValue(data, SchneiderProperty.ENERGY_ACTIVE));
+    const newConsumptionWh = this.getPropertyValue(data, SchneiderProperty.ENERGY_ACTIVE) * 1000;
+    if (asset.lastConsumption && asset.lastConsumption.value < newConsumptionWh) {
+      consumption.currentConsumptionWh = newConsumptionWh - asset.lastConsumption.value;
+    }
     consumption.lastConsumption = {
-      value: consumption.currentConsumptionWh,
+      value: newConsumptionWh,
       timestamp: new Date()
     };
     // Amperage
@@ -117,14 +119,6 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     params.append('username', this.connection.connection.user);
     params.append('password', Cypher.decrypt(this.connection.connection.password));
     return params;
-  }
-
-  private computeNewConsumptionWh(asset: Asset, newConsumptionkWh: number): number {
-    const newConsumptionWh = newConsumptionkWh * 1000;
-    if (asset.lastConsumption && asset.lastConsumption.value < newConsumptionWh) {
-      return newConsumptionWh - asset.lastConsumption.value;
-    }
-    return 0;
   }
 
   private checkConnectionIsProvided(): void {
