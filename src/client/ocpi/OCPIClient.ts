@@ -13,6 +13,7 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 
 const MODULE_NAME = 'OCPIClient';
 
@@ -324,5 +325,5 @@ export default abstract class OCPIClient {
     return `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${this.role}/${this.ocpiEndpoint.version}/${service}`;
   }
 
-  async abstract triggerJobs();
+  async abstract triggerJobs(): Promise<{ tokens: OCPIJobResult; locations: OCPIJobResult; sessions: OCPIJobResult; cdrs: OCPIJobResult }>;
 }
