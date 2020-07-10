@@ -1,47 +1,49 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { Car, CarCatalog, CarType } from '../types/Car';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
-import Transaction, { InactivityStatus } from '../types/Transaction';
-import User, { UserRole, UserStatus } from '../types/User';
-
-import { ActionsResponse } from '../types/GlobalType';
-import AppError from '../exception/AppError';
-import Asset from '../types/Asset';
-import Authorizations from '../authorization/Authorizations';
-import BackendError from '../exception/BackendError';
-import { ChargingProfile } from '../types/ChargingProfile';
-import Company from '../types/Company';
-import Configuration from './Configuration';
-import ConnectorStats from '../types/ConnectorStats';
-import Constants from './Constants';
-import Cypher from './Cypher';
-import { HTTPError } from '../types/HTTPError';
-import Logging from './Logging';
-import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import { ObjectID } from 'mongodb';
-import { Request } from 'express';
-import { ServerAction } from '../types/Server';
-import Site from '../types/Site';
-import SiteArea from '../types/SiteArea';
-import Tag from '../types/Tag';
-import Tenant from '../types/Tenant';
-import TenantComponents from '../types/TenantComponents';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
-import UserToken from '../types/UserToken';
-import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { Request } from 'express';
 import fs from 'fs';
 import http from 'http';
+import _ from 'lodash';
 import moment from 'moment';
+import { ObjectID } from 'mongodb';
 import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
+import Authorizations from '../authorization/Authorizations';
+import AppError from '../exception/AppError';
+import BackendError from '../exception/BackendError';
+import AssetFactory from '../integration/asset/AssetFactory';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
+import Asset from '../types/Asset';
+import { Car, CarCatalog, CarType } from '../types/Car';
+import { ChargingProfile } from '../types/ChargingProfile';
+import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
+import Company from '../types/Company';
+import ConnectorStats from '../types/ConnectorStats';
+import { ActionsResponse } from '../types/GlobalType';
+import { HTTPError } from '../types/HTTPError';
+import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import { ServerAction } from '../types/Server';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import Site from '../types/Site';
+import SiteArea from '../types/SiteArea';
+import Tag from '../types/Tag';
+import Tenant from '../types/Tenant';
+import TenantComponents from '../types/TenantComponents';
+import Transaction, { InactivityStatus } from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
+import UserToken from '../types/UserToken';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import Cypher from './Cypher';
+import Logging from './Logging';
+import AssetStorage from '../storage/mongodb/AssetStorage';
+
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -1462,6 +1464,26 @@ export default class Utils {
         module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
+    }
+    if (asset.dynamicAsset) {
+      if (!asset.connectionID) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Asset connection is mandatory',
+          module: MODULE_NAME, method: 'checkIfAssetValid',
+          user: req.user.id
+        });
+      }
+      if (!asset.meterID) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Asset meter ID is mandatory',
+          module: MODULE_NAME, method: 'checkIfAssetValid',
+          user: req.user.id
+        });
+      }
     }
   }
 

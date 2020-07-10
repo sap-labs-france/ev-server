@@ -590,7 +590,7 @@ export default class OCPPService {
         meterStart: startTransaction.meterStart,
         timestamp: Utils.convertToDate(startTransaction.timestamp),
         numberOfMeterValues: 0,
-        lastEnergyActiveImportMeterValue: {
+        lastConsumption: {
           value: startTransaction.meterStart,
           timestamp: Utils.convertToDate(startTransaction.timestamp)
         },
@@ -770,8 +770,8 @@ export default class OCPPService {
       // Soft Stop?
       if (isSoftStop) {
         // Yes: Add the latest Meter Value
-        if (transaction.lastEnergyActiveImportMeterValue) {
-          stopTransaction.meterStop = transaction.lastEnergyActiveImportMeterValue.value;
+        if (transaction.lastConsumption) {
+          stopTransaction.meterStop = transaction.lastConsumption.value;
         } else {
           stopTransaction.meterStop = 0;
         }
@@ -1115,11 +1115,11 @@ export default class OCPPService {
           transaction.currentInstantWattsL2 = 0;
           transaction.currentInstantWattsL3 = 0;
           transaction.currentInstantWattsDC = 0;
-          transaction.currentInstantVoltage = 0;
-          transaction.currentInstantVoltageL1 = 0;
-          transaction.currentInstantVoltageL2 = 0;
-          transaction.currentInstantVoltageL3 = 0;
-          transaction.currentInstantVoltageDC = 0;
+          transaction.currentInstantVolts = 0;
+          transaction.currentInstantVoltsL1 = 0;
+          transaction.currentInstantVoltsL2 = 0;
+          transaction.currentInstantVoltsL3 = 0;
+          transaction.currentInstantVoltsDC = 0;
           transaction.currentInstantAmps = 0;
           transaction.currentInstantAmpsL1 = 0;
           transaction.currentInstantAmpsL2 = 0;
@@ -1161,21 +1161,21 @@ export default class OCPPService {
           // AC Charging Station
           switch (currentType) {
             case CurrentType.DC:
-              transaction.currentInstantVoltageDC = voltage;
+              transaction.currentInstantVoltsDC = voltage;
               break;
             case CurrentType.AC:
               switch (meterValue.attribute.phase) {
                 case OCPPPhase.L1:
-                  transaction.currentInstantVoltageL1 = voltage;
+                  transaction.currentInstantVoltsL1 = voltage;
                   break;
                 case OCPPPhase.L2:
-                  transaction.currentInstantVoltageL2 = voltage;
+                  transaction.currentInstantVoltsL2 = voltage;
                   break;
                 case OCPPPhase.L3:
-                  transaction.currentInstantVoltageL3 = voltage;
+                  transaction.currentInstantVoltsL3 = voltage;
                   break;
                 default:
-                  transaction.currentInstantVoltage = voltage;
+                  transaction.currentInstantVolts = voltage;
                   break;
               }
               break;
@@ -1449,7 +1449,7 @@ export default class OCPPService {
   private buildCurrentTransactionDuration(transaction: Transaction): string {
     let totalDuration;
     if (!transaction.stop) {
-      totalDuration = moment.duration(moment(transaction.lastEnergyActiveImportMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     } else {
       totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
@@ -1595,8 +1595,8 @@ export default class OCPPService {
           }, {
             'chargeBoxID': activeTransaction.chargeBoxID,
             'transactionId': activeTransaction.id,
-            'meterStop': (activeTransaction.lastEnergyActiveImportMeterValue ? activeTransaction.lastEnergyActiveImportMeterValue.value : activeTransaction.meterStart),
-            'timestamp': Utils.convertToDate(activeTransaction.lastEnergyActiveImportMeterValue ? activeTransaction.lastEnergyActiveImportMeterValue.timestamp : activeTransaction.timestamp).toISOString(),
+            'meterStop': (activeTransaction.lastConsumption ? activeTransaction.lastConsumption.value : activeTransaction.meterStart),
+            'timestamp': Utils.convertToDate(activeTransaction.lastConsumption ? activeTransaction.lastConsumption.timestamp : activeTransaction.timestamp).toISOString(),
           }, false, true);
           // Check
           if (result.status === OCPPAuthorizationStatus.INVALID) {

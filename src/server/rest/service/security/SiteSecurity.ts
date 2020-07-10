@@ -98,7 +98,7 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  static filterSiteResponse(site: Site, loggedUser: UserToken): Site {
+  static filterSiteResponse(site: Site, loggedUser: UserToken, forList = false): Site {
     let filteredSite;
 
     if (!site) {
@@ -106,18 +106,14 @@ export default class SiteSecurity {
     }
     // Check auth
     if (Authorizations.canReadSite(loggedUser, site.id)) {
-      // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
-        // Yes: set all params
-        filteredSite = site;
-      } else {
-        // Set only necessary info
-        filteredSite = {};
-        filteredSite.id = site.id;
-        filteredSite.name = site.name;
-        filteredSite.companyID = site.companyID;
-      }
-      if (site.address) {
+      // Set only necessary info
+      filteredSite = {};
+      filteredSite.id = site.id;
+      filteredSite.name = site.name;
+      filteredSite.companyID = site.companyID;
+      filteredSite.autoUserSiteAssignment = site.autoUserSiteAssignment;
+      filteredSite.issuer = site.issuer;
+      if (!forList && site.address) {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
@@ -133,8 +129,7 @@ export default class SiteSecurity {
         filteredSite.connectorStats = site.connectorStats;
       }
       // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(
-        filteredSite, site, loggedUser);
+      UtilsSecurity.filterCreatedAndLastChanged(filteredSite, site, loggedUser);
     }
     return filteredSite;
   }
@@ -150,7 +145,7 @@ export default class SiteSecurity {
     }
     for (const site of sites.result) {
       // Filter
-      const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
+      const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser, true);
       if (filteredSite) {
         filteredSites.push(filteredSite);
       }
