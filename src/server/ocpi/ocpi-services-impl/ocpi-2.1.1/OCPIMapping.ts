@@ -130,7 +130,7 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    * @param {Site} site
    * @param options
-   * @return Array of OCPI EVSES
+   * @return Array of OCPI EVSEs
    */
   static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIEvse[]> {
     // Build evses array
