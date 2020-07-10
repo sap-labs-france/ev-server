@@ -200,7 +200,7 @@ export default class Authorizations {
     return { user, alternateUser };
   }
 
-  public static canListLogging(loggedUser: UserToken): boolean {
+  public static canListLoggings(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.LOGGINGS, Action.LIST);
   }
 
@@ -417,6 +417,14 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN);
   }
 
+  public static canListChargingProfiles(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILES, Action.LIST);
+  }
+
+  public static canReadChargingProfile(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILE, Action.READ);
+  }
+
   public static canListSiteAreas(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREAS, Action.LIST);
   }
@@ -497,6 +505,10 @@ export default class Authorizations {
 
   public static canUpdateCar(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.UPDATE);
+  }
+
+  public static canDeleteCar(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.DELETE);
   }
 
   public static canListAssets(loggedUser: UserToken): boolean {
@@ -589,8 +601,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE_INVOICES);
   }
 
-  public static canCheckConnectionAsset(loggedUser: UserToken): boolean {
+  public static canCheckAssetConnection(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CHECK_CONNECTION);
+  }
+
+  public static canRefreshAssetConnection(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.REFRESH_CONNECTION);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {

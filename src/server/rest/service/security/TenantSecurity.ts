@@ -24,15 +24,15 @@ export default class TenantSecurity {
     return filteredRequest;
   }
 
-  static filterTenantResponse(tenant: Tenant, loggedUser: UserToken): Partial<Tenant> {
-    let filteredTenant: Partial<Tenant>;
+  static filterTenantResponse(tenant: Tenant, loggedUser: UserToken): Tenant {
+    let filteredTenant: Tenant;
     if (!tenant) {
       return null;
     }
     // Check auth
     if (Authorizations.canReadTenant(loggedUser)) {
       // Set only necessary info
-      filteredTenant = {};
+      filteredTenant = {} as Tenant;
       filteredTenant.id = tenant.id;
       filteredTenant.name = tenant.name;
       filteredTenant.email = tenant.email;
@@ -46,8 +46,8 @@ export default class TenantSecurity {
     return filteredTenant;
   }
 
-  static filterTenantsResponse(tenants: DataResult<Tenant>, loggedUser: UserToken) {
-    const filteredTenants = [];
+  static filterTenantsResponse(tenants: DataResult<Tenant>, loggedUser: UserToken): void {
+    const filteredTenants: Tenant[] = [];
     if (!tenants.result) {
       return null;
     }

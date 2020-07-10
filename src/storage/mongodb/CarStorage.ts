@@ -1,4 +1,4 @@
-import { Car, CarCatalog, CarConverter, CarMaker, ChargeAlternativeTable, ChargeOptionTable } from '../../types/Car';
+import { Car, CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter, CarMaker } from '../../types/Car';
 import global, { Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -198,7 +198,7 @@ export default class CarStorage {
       chargeStandardChargeSpeed: Utils.convertToInt(carToSave.chargeStandardChargeSpeed),
       chargeStandardEstimate: carToSave.chargeStandardEstimate,
       chargeStandardTables: carToSave.chargeStandardTables ?
-        carToSave.chargeStandardTables.map((chargeStandardTable: CarConverter): CarConverter => ({
+        carToSave.chargeStandardTables.map((chargeStandardTable: CarCatalogConverter): CarCatalogConverter => ({
           type: chargeStandardTable.type,
           evsePhaseVolt: Utils.convertToInt(chargeStandardTable.evsePhaseVolt),
           evsePhaseAmp: Utils.convertToInt(chargeStandardTable.evsePhaseAmp),
@@ -217,7 +217,7 @@ export default class CarStorage {
       chargeAlternativeChargeTime: Utils.convertToInt(carToSave.chargeAlternativeChargeTime),
       chargeAlternativeChargeSpeed: Utils.convertToInt(carToSave.chargeAlternativeChargeSpeed),
       chargeAlternativeTables: carToSave.chargeAlternativeTables ?
-        carToSave.chargeAlternativeTables.map((chargeAlternativeTable: ChargeAlternativeTable): ChargeAlternativeTable => ({
+        carToSave.chargeAlternativeTables.map((chargeAlternativeTable: CarCatalogChargeAlternativeTable): CarCatalogChargeAlternativeTable => ({
           type: chargeAlternativeTable.type,
           evsePhaseVolt: Utils.convertToInt(chargeAlternativeTable.evsePhaseVolt),
           evsePhaseAmp: Utils.convertToInt(chargeAlternativeTable.evsePhaseAmp),
@@ -235,7 +235,7 @@ export default class CarStorage {
       chargeOptionChargeTime: Utils.convertToInt(carToSave.chargeOptionChargeTime),
       chargeOptionChargeSpeed: Utils.convertToInt(carToSave.chargeOptionChargeSpeed),
       chargeOptionTables: carToSave.chargeOptionTables ?
-        carToSave.chargeOptionTables.map((chargeOptionTables: ChargeOptionTable): ChargeOptionTable => ({
+        carToSave.chargeOptionTables.map((chargeOptionTables: CarCatalogChargeOptionTable): CarCatalogChargeOptionTable => ({
           type: chargeOptionTables.type,
           evsePhaseVolt: Utils.convertToInt(chargeOptionTables.evsePhaseVolt),
           evsePhaseAmp: Utils.convertToInt(chargeOptionTables.evsePhaseAmp),
@@ -461,7 +461,12 @@ export default class CarStorage {
       licensePlate: carToSave.licensePlate,
       carCatalogID: Utils.convertToInt(carToSave.carCatalogID),
       type: carToSave.type,
-      converterType: carToSave.converterType
+      converter: {
+        powerWatts: Utils.convertToFloat(carToSave.converter.powerWatts),
+        amperagePerPhase: Utils.convertToInt(carToSave.converter.amperagePerPhase),
+        numberOfPhases: Utils.convertToFloat(carToSave.converter.numberOfPhases),
+        type: carToSave.converter.type
+      }
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);
@@ -764,6 +769,16 @@ export default class CarStorage {
       .deleteMany({ 'carID': Utils.convertToObjectID(carID) });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteCarUserByCarID', uniqueTimerID, { carID });
+  }
+
+  public static async deleteCar(tenantID: string, carID: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteCar');
+    // Delete singular site area
+    await global.database.getCollection(tenantID, 'cars')
+      .deleteOne({ '_id': Utils.convertToObjectID(carID) });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'deleteCar', uniqueTimerID, { carID });
   }
 
   public static async deleteCarUsers(tenantID: string, ids: string[]): Promise<void> {

@@ -22,7 +22,7 @@ export default class TransactionCommonTests {
   public centralUserContext: any;
   public centralUserService: CentralServerService;
   public currentPricingSetting;
-  public priceKWH = 2;
+  public pricekWh = 2;
   public transactionUser: User;
   public transactionUserService: CentralServerService;
 
@@ -62,7 +62,7 @@ export default class TransactionCommonTests {
     const allSettings = await this.centralUserService.settingApi.readAll({});
     this.currentPricingSetting = allSettings.data.result.find((s) => s.identifier === 'pricing');
     if (this.currentPricingSetting) {
-      await this.centralUserService.updatePriceSetting(this.priceKWH, 'EUR');
+      await this.centralUserService.updatePriceSetting(this.pricekWh, 'EUR');
     }
   }
 

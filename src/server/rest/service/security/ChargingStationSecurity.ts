@@ -8,7 +8,8 @@ import { ChargingStationInError } from '../../../../types/InError';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
-import { InactivityStatus } from '../../../../types/Transaction';
+import SiteAreaSecurity from './SiteAreaSecurity';
+import TenantComponents from '../../../../types/TenantComponents';
 import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -26,43 +27,56 @@ export default class ChargingStationSecurity {
     };
   }
 
-  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): ChargingStation | ChargingStationInError {
+  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken): ChargingStation | ChargingStationInError {
     let filteredChargingStation: ChargingStation;
-    if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
+    if (!chargingStation) {
       return null;
     }
     const siteID = chargingStation.siteArea ? chargingStation.siteArea.siteID : null;
-    if (organizationIsActive && !Authorizations.canReadSiteArea(loggedUser, siteID)) {
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION) &&
+      !Authorizations.canReadSiteArea(loggedUser, siteID)) {
       return null;
     }
     // Check connectors
     Utils.checkAndUpdateConnectorsStatus(chargingStation);
     // Check Auth
-    if (Authorizations.canUpdateChargingStation(loggedUser, siteID)) {
-      // Yes: set all params
-      filteredChargingStation = chargingStation;
-      for (const connector of filteredChargingStation.connectors) {
-        if (connector) {
-          // Inactive
-          if (filteredChargingStation.inactive) {
-            connector.status = ChargePointStatus.UNAVAILABLE;
-            connector.currentInstantWatts = 0;
-            connector.currentTotalConsumptionWh = 0;
-            connector.currentTotalInactivitySecs = 0;
-            connector.currentInactivityStatus = InactivityStatus.INFO;
-            connector.currentStateOfCharge = 0;
-          }
-          // Filter User
-          if (connector.user) {
-            connector.user = UserSecurity.filterMinimalUserResponse(connector.user, loggedUser);
-          }
-        }
-      }
-    } else {
-      // Set only necessary info
+    if (Authorizations.canReadChargingStation(loggedUser)) {
       filteredChargingStation = {} as ChargingStation;
+      if (Authorizations.canUpdateChargingStation(loggedUser, siteID)) {
+        filteredChargingStation.capabilities = chargingStation.capabilities;
+        filteredChargingStation.firmwareUpdateStatus = chargingStation.firmwareUpdateStatus;
+        filteredChargingStation.firmwareVersion = chargingStation.firmwareVersion;
+        filteredChargingStation.ocppProtocol = chargingStation.ocppProtocol;
+        filteredChargingStation.ocppVersion = chargingStation.ocppVersion;
+        filteredChargingStation.chargeBoxSerialNumber = chargingStation.chargeBoxSerialNumber;
+        filteredChargingStation.chargePointSerialNumber = chargingStation.chargePointSerialNumber;
+        filteredChargingStation.ocppProtocol = chargingStation.ocppProtocol;
+        filteredChargingStation.ocppVersion = chargingStation.ocppVersion;
+        filteredChargingStation.chargingStationURL = chargingStation.chargingStationURL;
+        filteredChargingStation.currentIPAddress = chargingStation.currentIPAddress;
+        filteredChargingStation.currentServerLocalIPAddressPort = chargingStation.currentServerLocalIPAddressPort;
+        filteredChargingStation.endpoint = chargingStation.endpoint;
+        filteredChargingStation.ocppStandardParameters = chargingStation.ocppStandardParameters;
+        filteredChargingStation.ocppVendorParameters = chargingStation.ocppVendorParameters;
+        filteredChargingStation.voltage = chargingStation.voltage;
+        filteredChargingStation['errorCode'] = chargingStation['errorCode'];
+      }
       filteredChargingStation.id = chargingStation.id;
       filteredChargingStation.inactive = chargingStation.inactive;
+      filteredChargingStation.powerLimitUnit = chargingStation.powerLimitUnit;
+      filteredChargingStation.lastReboot = chargingStation.lastReboot;
+      filteredChargingStation.issuer = chargingStation.issuer;
+      filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
+      filteredChargingStation.maximumPower = chargingStation.maximumPower;
+      filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
+      filteredChargingStation.chargePointModel = chargingStation.chargePointModel;
+      filteredChargingStation.public = chargingStation.public;
+      filteredChargingStation.excludeFromSmartCharging = chargingStation.excludeFromSmartCharging;
+      filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
+      filteredChargingStation.coordinates = chargingStation.coordinates;
+      if (chargingStation.ocpiData) {
+        filteredChargingStation.ocpiData = chargingStation.ocpiData;
+      }
       filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
         if (!connector) {
           return connector;
@@ -79,6 +93,7 @@ export default class ChargingStationSecurity {
           currentTransactionID: connector.currentTransactionID,
           currentTransactionDate: connector.currentTransactionDate,
           currentTagID: connector.currentTagID,
+          amperageLimit: connector.amperageLimit,
           errorCode: connector.errorCode,
           type: connector.type,
           power: connector.power,
@@ -110,18 +125,9 @@ export default class ChargingStationSecurity {
           };
         });
       }
-      filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
-      filteredChargingStation.maximumPower = chargingStation.maximumPower;
-      filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
-      filteredChargingStation.chargePointModel = chargingStation.chargePointModel;
-      filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
-      filteredChargingStation.coordinates = chargingStation.coordinates;
-      if (chargingStation.siteArea) {
-        filteredChargingStation.siteArea = chargingStation.siteArea;
-      }
-      if (chargingStation.ocpiData) {
-        filteredChargingStation.ocpiData = chargingStation.ocpiData;
-      }
+    }
+    if (chargingStation.siteArea) {
+      filteredChargingStation.siteArea = SiteAreaSecurity.filterSiteAreaResponse(chargingStation.siteArea, loggedUser);
     }
     // Sort Connector
     filteredChargingStation.connectors.sort(
@@ -132,7 +138,31 @@ export default class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterMinimalChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken): ChargingStation | ChargingStationInError {
+    let filteredChargingStation: ChargingStation;
+    if (!chargingStation) {
+      return null;
+    }
+    const siteID = chargingStation.siteArea ? chargingStation.siteArea.siteID : null;
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION) &&
+      !Authorizations.canReadSiteArea(loggedUser, siteID)) {
+      return null;
+    }
+    // Check connectors
+    Utils.checkAndUpdateConnectorsStatus(chargingStation);
+    // Check Auth
+    if (Authorizations.canReadChargingStation(loggedUser)) {
+      filteredChargingStation = {} as ChargingStation;
+      filteredChargingStation.id = chargingStation.id;
+    }
+    if (chargingStation.siteArea) {
+      filteredChargingStation.siteArea = SiteAreaSecurity.filterMinimalSiteAreaResponse(chargingStation.siteArea, loggedUser);
+    }
+    return filteredChargingStation;
+  }
+
+  public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>,
+    loggedUser: UserToken) {
     const filteredChargingStations: ChargingStation[] | ChargingStationInError[] = [];
     // Check
     if (!chargingStations.result) {
@@ -143,12 +173,78 @@ export default class ChargingStationSecurity {
     }
     for (const chargingStation of chargingStations.result) {
       // Filter
-      const filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive);
+      const filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(
+        chargingStation, loggedUser);
       if (filteredChargingStation) {
         filteredChargingStations.push(filteredChargingStation);
       }
     }
     chargingStations.result = filteredChargingStations;
+  }
+
+  public static filterChargingProfilesResponse(chargingProfiles: DataResult<ChargingProfile>, loggedUser: UserToken): void {
+    const filteredChargingProfiles: ChargingProfile[] = [];
+    // Check
+    if (!chargingProfiles.result) {
+      return null;
+    }
+    if (!Authorizations.canListChargingProfiles(loggedUser)) {
+      return null;
+    }
+    for (const chargingProfile of chargingProfiles.result) {
+      const filteredChargingProfile = this.filterChargingProfileResponse(chargingProfile, loggedUser);
+      if (filteredChargingProfile) {
+        filteredChargingProfiles.push(filteredChargingProfile);
+      }
+    }
+    chargingProfiles.result = filteredChargingProfiles;
+  }
+
+  static filterChargingProfileResponse(chargingProfile: ChargingProfile, loggedUser: UserToken): ChargingProfile {
+    const filteredChargingProfile = {} as ChargingProfile;
+    if (!chargingProfile) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadChargingProfile(loggedUser)) {
+      filteredChargingProfile.id = chargingProfile.id;
+      filteredChargingProfile.chargingStationID = chargingProfile.chargingStationID;
+      filteredChargingProfile.chargePointID = chargingProfile.chargePointID;
+      filteredChargingProfile.connectorID = chargingProfile.connectorID;
+      filteredChargingProfile.chargingStation = chargingProfile.chargingStation;
+      if (filteredChargingProfile.chargingStation) {
+        filteredChargingProfile.chargingStation =
+          ChargingStationSecurity.filterMinimalChargingStationResponse(chargingProfile.chargingStation, loggedUser);
+      }
+      filteredChargingProfile.profile = {} as Profile;
+      filteredChargingProfile.profile.chargingProfileId = chargingProfile.profile.chargingProfileId;
+      filteredChargingProfile.profile.transactionId = chargingProfile.profile.transactionId;
+      filteredChargingProfile.profile.stackLevel = chargingProfile.profile.stackLevel;
+      filteredChargingProfile.profile.chargingProfilePurpose = chargingProfile.profile.chargingProfilePurpose;
+      filteredChargingProfile.profile.chargingProfileKind = chargingProfile.profile.chargingProfileKind;
+      filteredChargingProfile.profile.recurrencyKind = chargingProfile.profile.recurrencyKind;
+      filteredChargingProfile.profile.validFrom = chargingProfile.profile.validFrom;
+      filteredChargingProfile.profile.validTo = chargingProfile.profile.validTo;
+      if (Utils.objectHasProperty(chargingProfile.profile, 'chargingSchedule')) {
+        const chargingSchedule = {} as ChargingSchedule;
+        filteredChargingProfile.profile.chargingSchedule = chargingSchedule;
+        chargingSchedule.duration = chargingProfile.profile.chargingSchedule.duration;
+        chargingSchedule.startSchedule = chargingProfile.profile.chargingSchedule.startSchedule;
+        chargingSchedule.chargingRateUnit = chargingProfile.profile.chargingSchedule.chargingRateUnit;
+        chargingSchedule.minChargeRate = chargingProfile.profile.chargingSchedule.minChargeRate;
+        filteredChargingProfile.profile.chargingSchedule.chargingSchedulePeriod = [];
+        // Check
+        for (const chargingSchedulePeriod of chargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+          const chargingSchedulePeriodNew: ChargingSchedulePeriod = {} as ChargingSchedulePeriod;
+          chargingSchedulePeriodNew.startPeriod = sanitize(chargingSchedulePeriod.startPeriod);
+          chargingSchedulePeriodNew.limit = sanitize(chargingSchedulePeriod.limit);
+          chargingSchedulePeriodNew.numberPhases = sanitize(chargingSchedulePeriod.numberPhases);
+          // Add
+          filteredChargingProfile.profile.chargingSchedule.chargingSchedulePeriod.push(chargingSchedulePeriodNew);
+        }
+      }
+    }
+    return filteredChargingProfile;
   }
 
   public static filterStatusNotificationsResponse(statusNotifications: OCPPStatusNotificationRequestExtended[],
@@ -173,10 +269,13 @@ export default class ChargingStationSecurity {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
-  public static filterChargingStationProfilesRequest(request: any): HttpChargingProfilesRequest {
+  public static filterChargingProfilesRequest(request: any): HttpChargingProfilesRequest {
     const filteredRequest: HttpChargingProfilesRequest = {} as HttpChargingProfilesRequest;
+    filteredRequest.Search = sanitize(request.Search),
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorID = sanitize(request.ConnectorID);
+    filteredRequest.WithChargingStation = UtilsSecurity.filterBoolean(request.WithChargingStation);
+    filteredRequest.WithSiteArea = UtilsSecurity.filterBoolean(request.WithSiteArea);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -293,7 +392,7 @@ export default class ChargingStationSecurity {
       filteredRequest.chargePointID = sanitize(request.chargePointID);
     }
     if (Utils.objectHasProperty(request, 'profile')) {
-      filteredRequest.profile = ChargingStationSecurity.filterChargingProfile(request.profile);
+      filteredRequest.profile = ChargingStationSecurity.filterChargingProfileRequest(request.profile);
     }
     return filteredRequest;
   }
@@ -358,7 +457,7 @@ export default class ChargingStationSecurity {
         filteredRequest.args.transactionId = sanitize(request.args.transactionId);
       }
       if (Utils.objectHasProperty(request.args, 'csChargingProfiles')) {
-        filteredRequest.args.csChargingProfiles = ChargingStationSecurity.filterChargingProfile(request.args.csChargingProfiles);
+        filteredRequest.args.csChargingProfiles = ChargingStationSecurity.filterChargingProfileRequest(request.args.csChargingProfiles);
       }
     }
     return filteredRequest;
@@ -390,7 +489,7 @@ export default class ChargingStationSecurity {
     };
   }
 
-  private static filterChargingProfile(request: any): Profile {
+  private static filterChargingProfileRequest(request: any): Profile {
     const filteredRequest: Profile = {} as Profile;
     // Check
     if (Utils.objectHasProperty(request, 'chargingProfileId')) {

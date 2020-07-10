@@ -19,10 +19,6 @@ export default interface SiteArea extends CreatedUpdatedProps {
   smartCharging: boolean;
   accessControl: boolean;
   chargingStations: ChargingStation[];
-  availableChargers?: number;
-  totalChargers?: number;
-  availableConnectors?: number;
-  totalConnectors?: number;
   connectorStats: ConnectorStats;
   values: SiteAreaConsumption[];
 }

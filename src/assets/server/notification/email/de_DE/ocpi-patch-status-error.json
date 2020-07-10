@@ -1,10 +1,10 @@
 {
-  "subject": "OCPI - Patching of Charging Station Statuses Failed",
+  "subject": "OCPI - Der Patch für die Ladestation Status ist fehlgeschlagen.",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Patching of Charging Station Statuses Failed",
+      "title": "Der Patch für die Ladestation Status ist fehlgeschlagen.",
       "image": {
         "left": {
           "height": 60,
@@ -17,11 +17,11 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Sehr geehrter Administrator,",
       "",
-      "The transfer of the charging station's statuses has failed on location <b>'<%- location %>'</b>.",
+      "Die Übertragung der Ladestation Status an der Lokation <b>'<%- location %>'</b> ist fehlgeschlagen.",
       "",
-      "Check the logs.",
+      "Bitte überprüfen Sie die Logs.",
       ""
     ],
     "action": {
@@ -29,7 +29,7 @@
       "url": "<%- evseDashboardURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {}

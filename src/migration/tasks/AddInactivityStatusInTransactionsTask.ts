@@ -31,14 +31,10 @@ export default class AddInactivityStatusInTransactionsTask extends MigrationTask
     });
     // Add Charge Box
     DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID: tenant.id,
-      aggregation: aggregation,
-      localField: 'chargeBoxID',
-      foreignField: '_id',
-      asField: 'chargeBox',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID',
+      foreignField: '_id', asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Call
     const transactionsMDB: Transaction[] = await global.database.getCollection<any>(tenant.id, 'transactions')
       .aggregate(aggregation).toArray();

@@ -284,8 +284,8 @@ export default class UserStorage {
     const tagMDB = {
       _id: tag.id,
       userID: Utils.convertToObjectID(userID),
-      issuer: tag.issuer,
-      active: tag.active,
+      issuer: Utils.convertToBoolean(tag.issuer),
+      active: Utils.convertToBoolean(tag.active),
       ocpiToken: tag.ocpiToken,
       description: tag.description
     };
@@ -563,11 +563,6 @@ export default class UserStorage {
     DatabaseUtils.pushTagLookupInAggregation({
       tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
     });
-    if (dbParams === Constants.DB_PARAMS_SINGLE_RECORD) {
-      DatabaseUtils.pushTransactionsLookupInAggregation({
-        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'sessionsCount', countField: 'tagID'
-      });
-    }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
       filters.$or = [
@@ -583,11 +578,9 @@ export default class UserStorage {
         $match: filters
       });
     }
-    // Add post filter
+    // Add additional filters
     if (params.notAssignedToCarID) {
-      const notAssignedToCarIDFilter = {
-        '$or': []
-      };
+      const notAssignedToCarIDFilter = { '$or': [] };
       DatabaseUtils.pushUserCarLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'carUsers'
       });
@@ -602,26 +595,19 @@ export default class UserStorage {
           Utils.convertToObjectID(includeCarUserID)) };
         notAssignedToCarIDFilter.$or.push(includeCarUserIDsFilter);
       }
-      // Filters
-      if (filters) {
-        aggregation.push({
-          $match: notAssignedToCarIDFilter
-        });
-      }
+      // Add
+      aggregation.push({
+        $match: notAssignedToCarIDFilter
+      });
     }
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {
       DatabaseUtils.pushSiteUserLookupInAggregation({
-        tenantID, aggregation, localField: '_id', foreignField: 'userID',
-        asField: 'siteusers'
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'siteusers'
       });
       if (params.siteIDs) {
         aggregation.push({
-          $match: {
-            'siteusers.siteID': {
-              $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
-            }
-          }
+          $match: { 'siteusers.siteID': { $in: params.siteIDs.map((site) => Utils.convertToObjectID(site)) } }
         });
       } else if (params.excludeSiteID) {
         aggregation.push({
@@ -665,6 +651,15 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    // Add Number of Session per Badge
+    if (dbParams === Constants.DB_PARAMS_SINGLE_RECORD) {
+      // Transactions per Tag
+      DatabaseUtils.pushArrayLookupInAggregation('tags', DatabaseUtils.pushTransactionsLookupInAggregation.bind(this), {
+        tenantID, aggregation: aggregation, localField: 'tags.id', foreignField: 'tagID',
+        count: true, asField: 'tags.transactionsCount', oneToOneCardinality: false,
+        objectIDFields: ['createdBy', 'lastChangedBy']
+      });
+    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project
@@ -676,26 +671,8 @@ export default class UserStorage {
         allowDiskUse: true
       })
       .toArray();
-    // Clean user object
-    for (const userMDB of usersMDB) {
-      delete (userMDB as any).siteusers;
-      if ((userMDB as any).sessionsCount) {
-        for (const sessionCount of (userMDB as any).sessionsCount) {
-          const tag = userMDB.tags.find((value) => value.id === sessionCount.id);
-          if (tag) {
-            tag.sessionCount = sessionCount.count;
-          }
-        }
-        delete (userMDB as any).sessionsCount;
-      }
-    }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, {
-      params,
-      limit,
-      skip,
-      sort: dbParams.sort
-    });
+    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, { params });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?

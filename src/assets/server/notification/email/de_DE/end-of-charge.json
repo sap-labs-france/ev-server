@@ -1,10 +1,10 @@
 {
-  "subject": "Charge Finished",
+  "subject": "Laden abgeschlossen",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charge Finished",
+      "title": "Laden abgeschlossen",
       "image": {
         "left": {
           "height": 60,
@@ -17,32 +17,32 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle, which is connected to the charging station <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b>, has just finished charging."
+      "Ihr elektrisches Fahrzeug, welches mit der Ladestation <b>'<%- chargeBoxID %>'</b>, Ladepunkt <b>'<%- connectorId %>'</b> verbunden ist, hat den Ladevorgang abgeschlossen."
     ],
     "stats": [
       {
-        "label": "Consumption",
+        "label": "Verbrauch",
         "value": "<%- totalConsumption %> kW.h"
       },
       {
-        "label": "Estimated Duration",
+        "label": "Geschätzte Dauer",
         "value": "<%- totalDuration %>"
       },
       {
-        "label": "Battery Level",
+        "label": "Batteriestand",
         "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>"
       }
     ],
     "action": {
-      "title": "View Session",
+      "title": "Ladevorgang anzeigen",
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
-      "You can now stop the session and move your vehicle.",
+      "Sie können den Ladevorgang jetzt beenden und ihr Fahrzeug entfernen.",
       "",
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {}

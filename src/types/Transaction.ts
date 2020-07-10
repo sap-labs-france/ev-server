@@ -1,11 +1,12 @@
-import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
-
-import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
+import { BillingTransactionData } from './Billing';
+import { AbstractCurrentConsumption } from './Consumption';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
+import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import { RefundTransactionData } from './Refund';
 import User from './User';
+
 
 export type InactivityStatusLevel =
  'info' |
@@ -25,8 +26,9 @@ export enum TransactionAction {
   STOP = 'stop'
 }
 
-export default interface Transaction {
+export default interface Transaction extends AbstractCurrentConsumption {
   id?: number;
+  carID?: string;
   siteID?: string;
   siteAreaID?: string;
   issuer: boolean;
@@ -43,10 +45,6 @@ export default interface Transaction {
     userID: string;
   };
   refundData?: RefundTransactionData;
-  lastEnergyActiveImportMeterValue?: {
-    value: number;
-    timestamp: Date;
-  };
   chargeBox?: ChargingStation;
   meterStart: number;
   timestamp: Date;
@@ -62,22 +60,6 @@ export default interface Transaction {
   currentStateOfCharge: number;
   currentTotalDurationSecs?: number;
   transactionEndReceived?: boolean;
-  currentInstantWatts: number;
-  currentInstanWattsL1?: number;
-  currentInstanWattsL2?: number;
-  currentInstanWattsL3?: number;
-  currentInstanWattsDC?: number;
-  currentInstantVoltage?: number;
-  currentInstantVoltageL1?: number;
-  currentInstantVoltageL2?: number;
-  currentInstantVoltageL3?: number;
-  currentInstantVoltageDC?: number;
-  currentInstantAmps?: number;
-  currentInstantAmpsL1?: number;
-  currentInstantAmpsL2?: number;
-  currentInstantAmpsL3?: number;
-  currentInstantAmpsDC?: number;
-  currentConsumptionWh?: number;
   currentCumulatedPrice?: number;
   currentTotalConsumptionWh: number;
   currentSignedData?: string;

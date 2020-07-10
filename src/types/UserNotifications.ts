@@ -92,7 +92,6 @@ export interface OptimalChargeReachedNotification extends BaseNotification {
   evseDashboardURL: string;
 }
 
-
 export interface EndOfSessionNotification extends BaseNotification {
   user: User;
   alternateUser: User;
@@ -231,13 +230,15 @@ export interface NotificationSource {
 }
 
 export interface Notification {
+  id: string;
   userID: string;
+  user?: User;
   timestamp: Date;
   channel: string;
   sourceId: string;
   sourceDescr: string;
-  data: any;
   chargeBoxID: string;
+  data: any;
 }
 
 export interface SessionNotStartedNotification extends BaseNotification {

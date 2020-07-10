@@ -95,7 +95,5 @@ export default class OCPIChargingStationClient extends ChargingStationClient {
     };
   }
 
-  async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
-  }
-
+  async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> { }
 }
