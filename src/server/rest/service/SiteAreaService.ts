@@ -299,7 +299,7 @@ export default class SiteAreaService {
         search: filteredRequest.Search,
         withSite: filteredRequest.WithSite,
         withChargingStations: filteredRequest.WithChargeBoxes,
-        withAvailableChargers: filteredRequest.WithAvailableChargers,
+        withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
