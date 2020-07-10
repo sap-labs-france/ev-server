@@ -341,7 +341,7 @@ export enum ServerAction {
   BILLING_FORCE_SYNCHRONIZE_USER = 'BillingForceSynchronizeUser',
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
   BILLING_TAXES = 'BillingTaxes',
-  BILLING_USER_INVOICES = 'UserInvoices',
+  BILLING_USER_INVOICES = 'BillingUserInvoices',
   BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
   BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
 
