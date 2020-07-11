@@ -521,6 +521,14 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     }
   }
 
+  public async sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice> {
+    // Save generated pdf
+    if (invoice.downloadable) {
+      // Send link to the user using our notification framework (link to the front-end + download)
+    }
+    return invoice;
+  }
+
   private async checkAndGetBillingUser(user: User): Promise<BillingUser> {
     const billingUser = await this.getUserByEmail(user.email);
     if (!billingUser) {
@@ -606,8 +614,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   async abstract createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<BillingInvoiceItem>;
 
   async abstract createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
-
-  async abstract sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice>;
 
   async abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
 }

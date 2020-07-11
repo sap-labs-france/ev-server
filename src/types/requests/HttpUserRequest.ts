@@ -14,10 +14,6 @@ export interface HttpForceSynchronizeUserInvoicesRequest {
   userID?: string;
 }
 
-export interface HttpDownloadInvoiceRequest {
-  invoiceID?: string;
-}
-
 export interface HttpUserMobileTokenRequest {
   id: string;
   mobileToken: string;

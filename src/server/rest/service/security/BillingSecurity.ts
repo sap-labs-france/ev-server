@@ -1,13 +1,14 @@
-import { BillingInvoice, BillingTax } from '../../../../types/Billing';
-import { HttpDownloadInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
-
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import { BillingInvoice, BillingTax } from '../../../../types/Billing';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpBillingInvoiceRequest } from '../../../../types/requests/HttpBillingRequest';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
-import sanitize from 'mongo-sanitize';
 import UserSecurity from './UserSecurity';
+import UtilsSecurity from './UtilsSecurity';
+
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {
@@ -116,9 +117,9 @@ export default class BillingSecurity {
     };
   }
 
-  static filterDownloadInvoiceRequest(request: any): HttpDownloadInvoiceRequest {
+  static filterDownloadInvoiceRequest(request: any): HttpByIDRequest {
     return {
-      invoiceID: sanitize(request.invoiceID)
+      ID: sanitize(request.ID)
     };
   }
 }

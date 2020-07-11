@@ -387,56 +387,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  public async sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice> {
-    await this.checkConnection();
-    // Send invoice to user
-    try {
-      const stripeInvoice = await this.stripe.invoices.sendInvoice(invoice.invoiceID);
-      invoice.status = stripeInvoice.status as BillingInvoiceStatus;
-      invoice.downloadUrl = stripeInvoice.invoice_pdf;
-      invoice.id = await BillingStorage.saveInvoice(this.tenantID, invoice);
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SEND_INVOICE,
-        module: MODULE_NAME, method: 'sendInvoiceToUser',
-        message: 'Failed to send invoice',
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-    // Save generated pdf
-    if (invoice.downloadUrl && invoice.downloadUrl !== '') {
-      // Download PDF file
-      const invoiceDocument = await this.downloadInvoiceDocument(invoice);
-      // Save PDF file into database
-      try {
-        await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
-      } catch (error) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_DOWNLOAD_INVOICE,
-          module: MODULE_NAME, method: 'sendInvoiceToUser',
-          message: 'Failed to save invoice PDF in database',
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-      // Update related invoice as downloadable
-      invoice.downloadable = true;
-      try {
-        await BillingStorage.saveInvoice(this.tenantID, invoice);
-      } catch (error) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_CREATE_INVOICE,
-          module: MODULE_NAME, method: 'sendInvoiceToUser',
-          message: 'Failed to save invoice in database',
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    return invoice;
-  }
-
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
     if (invoice.downloadUrl && invoice.downloadUrl !== '') {
       // Get document
