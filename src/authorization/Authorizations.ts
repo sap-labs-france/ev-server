@@ -605,11 +605,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.DOWNLOAD);
   }
 
-  public static canCheckConnectionAsset(loggedUser: UserToken): boolean {
+  public static canCheckAssetConnection(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CHECK_CONNECTION);
   }
 
-  public static canRefreshAssetConnection(loggedUser: UserToken): boolean {
+  public static canRetrieveAssetConsumption(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 

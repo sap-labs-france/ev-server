@@ -368,12 +368,12 @@ export default class BillingService {
       });
     }
 
-    const invoicepdf = await BillingStorage.getInvoicePdf(req.user.tenantID, invoice.id);
+    const invoicepdf = await BillingStorage.getInvoiceDocument(req.user.tenantID, invoice.id);
     UtilsService.assertObjectExists(action, invoicepdf, `Invoice '${filteredRequest.invoiceID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
 
-    if (invoicepdf && invoicepdf.encodedPdf) {
-      const base64RawData = invoicepdf.encodedPdf.split(';base64,').pop();
+    if (invoicepdf && invoicepdf.content) {
+      const base64RawData = invoicepdf.content.split(';base64,').pop();
       const filename = 'invoice_' + invoice.invoiceID + '.pdf';
       fs.writeFile(filename, base64RawData, { encoding: 'base64' }, (err) => {
         if (err) {

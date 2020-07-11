@@ -1,19 +1,19 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoicePdf, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
-import User, { UserStatus } from '../../types/User';
-import { ActionsResponse } from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
-import { BillingSetting } from '../../types/Setting';
+import LockingManager from '../../locking/LockingManager';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { ActionsResponse } from '../../types/GlobalType';
+import { UserInErrorType } from '../../types/InError';
+import { LockEntity } from '../../types/Locking';
+import { ServerAction } from '../../types/Server';
+import { BillingSetting } from '../../types/Setting';
+import Transaction from '../../types/Transaction';
+import User, { UserStatus } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import { ServerAction } from '../../types/Server';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Transaction from '../../types/Transaction';
-import { UserInErrorType } from '../../types/InError';
-import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
-import LockingManager from '../../locking/LockingManager';
-import { LockEntity } from '../../types/Locking';
 
 const MODULE_NAME = 'BillingIntegration';
 
@@ -297,10 +297,10 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         for (const invoiceIDInBilling of invoiceIDsInBilling) {
           try {
             // Get billing invoice
-            const invoiceBilling = await this.getInvoice(invoiceIDInBilling);
+            const invoiceInBilling = await this.getInvoice(invoiceIDInBilling);
             // Get e-Mobility invoice
             const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(tenantID, invoiceIDInBilling);
-            if (!invoiceBilling && !invoice) {
+            if (!invoiceInBilling && !invoice) {
               actionsDone.inError++;
               Logging.logError({
                 tenantID: tenantID,
@@ -313,7 +313,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               continue;
             }
             // Delete in e-Mobility
-            if (!invoiceBilling && invoice) {
+            if (!invoiceInBilling && invoice) {
               await BillingStorage.deleteInvoiceByInvoiceID(tenantID, invoiceIDInBilling);
               Logging.logDebug({
                 tenantID: tenantID,
@@ -330,7 +330,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             let userInInvoice: User;
             if (invoice) {
               // If invoice already exists, set back its e-Mobility ID before saving
-              invoiceBilling.id = invoice.id;
+              invoiceInBilling.id = invoice.id;
             } else {
               // Associate e-Mobility user to invoice according to invoice customer ID
               if (user) {
@@ -338,11 +338,11 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
                 userInInvoice = user;
               } else {
                 // Get user
-                userInInvoice = await UserStorage.getUserByBillingID(tenantID, invoiceBilling.customerID);
+                userInInvoice = await UserStorage.getUserByBillingID(tenantID, invoiceInBilling.customerID);
               }
-              Object.assign(invoiceBilling, { user: user });
+              Object.assign(invoiceInBilling, { user: user });
             }
-            await BillingStorage.saveInvoice(tenantID, invoiceBilling);
+            await BillingStorage.saveInvoice(tenantID, invoiceInBilling);
             Logging.logDebug({
               tenantID: tenantID,
               user: user,
@@ -418,10 +418,10 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         for (const invoiceIDInBilling of invoiceIDsInBilling) {
           try {
             // Get billing invoice
-            const invoiceBilling = await this.getInvoice(invoiceIDInBilling);
+            const invoiceInBilling = await this.getInvoice(invoiceIDInBilling);
             // Get e-Mobility invoice
             const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(tenantID, invoiceIDInBilling);
-            if (!invoiceBilling && !invoice) {
+            if (!invoiceInBilling && !invoice) {
               actionsDone.inError++;
               Logging.logError({
                 tenantID: tenantID,
@@ -429,12 +429,12 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
                 source: Constants.CENTRAL_SERVER,
                 action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
                 module: MODULE_NAME, method: 'synchronizeInvoices',
-                message: `Billing invoice with ID '${invoiceIDInBilling}' does not exist anymore`
+                message: `Billing invoice with ID '${invoiceIDInBilling}' does not exist`
               });
               continue;
             }
             // Delete in e-Mobility
-            if (!invoiceBilling && invoice) {
+            if (!invoiceInBilling && invoice) {
               await BillingStorage.deleteInvoiceByInvoiceID(tenantID, invoiceIDInBilling);
               Logging.logDebug({
                 tenantID: tenantID,
@@ -451,7 +451,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             let userInInvoice: User;
             if (invoice) {
               // If invoice already exists, set back its e-Mobility ID before saving
-              invoiceBilling.id = invoice.id;
+              invoiceInBilling.id = invoice.id;
             }
             // Associate e-Mobility user to invoice according to invoice customer ID
             if (user) {
@@ -459,31 +459,26 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               userInInvoice = user;
             } else {
               // Get user
-              userInInvoice = await UserStorage.getUserByBillingID(tenantID, invoiceBilling.customerID);
+              userInInvoice = await UserStorage.getUserByBillingID(tenantID, invoiceInBilling.customerID);
             }
-            invoiceBilling.user = userInInvoice ? userInInvoice : null;
-            await BillingStorage.saveInvoice(tenantID, invoiceBilling);
-            Logging.logDebug({
-              tenantID: tenantID,
-              user: user,
-              source: Constants.CENTRAL_SERVER,
-              action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-              module: MODULE_NAME, method: 'synchronizeInvoices',
-              message: `Billing invoice with ID '${invoiceIDInBilling}' does not exist`
-            });
+            invoiceInBilling.user = userInInvoice ? userInInvoice : null;
+            // Save invoice
+            invoiceInBilling.userID = userInInvoice ? userInInvoice.id : null;
+            invoiceInBilling.id = await BillingStorage.saveInvoice(tenantID, invoiceInBilling);
+            // Download the document
+            const invoiceDocument = await this.downloadInvoiceDocument(invoiceInBilling);
+            if (invoiceDocument) {
+              // Save it in our DB
+              await BillingStorage.saveInvoiceDocument(tenantID, invoiceDocument);
+              // Update
+              invoiceInBilling.downloadable = true;
+              await BillingStorage.saveInvoice(tenantID, invoiceInBilling);
+            }
             if (userInInvoice) {
               userInInvoice.billingData.invoicesLastSynchronizedOn = new Date();
               await UserStorage.saveUserBillingData(tenantID, userInInvoice.id, userInInvoice.billingData);
             }
             actionsDone.inSuccess++;
-            invoiceBilling.userID = userInInvoice ? userInInvoice.id : null;
-            invoiceBilling.id = await BillingStorage.saveInvoice(tenantID, invoiceBilling);
-            const invoicePdf = await this.downloadInvoicePdf(invoiceBilling);
-            if (invoicePdf) {
-              await BillingStorage.saveInvoicePdf(tenantID, invoicePdf);
-              invoiceBilling.downloadable = true;
-              await BillingStorage.saveInvoice(tenantID, invoiceBilling);
-            }
             Logging.logDebug({
               tenantID: tenantID,
               user: user,
@@ -491,13 +486,8 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
               module: MODULE_NAME, method: 'synchronizeInvoices',
               message: `Invoice with ID '${invoiceIDInBilling}' has been ${invoice ? 'updated' : 'created'} in e-Mobility`,
-              detailedMessages: { invoiceBilling }
+              detailedMessages: { invoiceInBilling }
             });
-            if (userInInvoice) {
-              userInInvoice.billingData.invoicesLastSynchronizedOn = new Date();
-              await UserStorage.saveUserBillingData(tenantID, userInInvoice.id, userInInvoice.billingData);
-            }
-            actionsDone.inSuccess++;
           } catch (error) {
             actionsDone.inError++;
             Logging.logError({
@@ -619,5 +609,5 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   async abstract sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice>;
 
-  async abstract downloadInvoicePdf(invoice: BillingInvoice): Promise<BillingInvoicePdf>;
+  async abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
 }

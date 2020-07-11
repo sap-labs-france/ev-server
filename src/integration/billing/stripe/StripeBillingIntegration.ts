@@ -1,4 +1,4 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoicePdf, BillingInvoiceStatus, BillingMethod, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingMethod, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import Stripe, { IResourceObject } from 'stripe';
 
 import BackendError from '../../../exception/BackendError';
@@ -11,6 +11,7 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
+import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
@@ -406,10 +407,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Save generated pdf
     if (invoice.downloadUrl && invoice.downloadUrl !== '') {
       // Download PDF file
-      const invoicePdf = await this.downloadInvoicePdf(invoice);
+      const invoiceDocument = await this.downloadInvoiceDocument(invoice);
       // Save PDF file into database
       try {
-        await BillingStorage.saveInvoicePdf(this.tenantID, invoicePdf);
+        await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -436,12 +437,20 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return invoice;
   }
 
-  public async downloadInvoicePdf(invoice: BillingInvoice): Promise<BillingInvoicePdf> {
+  public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
     if (invoice.downloadUrl && invoice.downloadUrl !== '') {
+      // Get document
       const response = await axios.get(invoice.downloadUrl, { responseType: 'arraybuffer' });
+      // Convert
       const base64Image = Buffer.from(response.data).toString('base64');
-      const encodedPdf = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
-      return { id: invoice.id, encodedPdf: encodedPdf } as BillingInvoicePdf;
+      const content = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
+      return {
+        id: invoice.id,
+        invoiceID: invoice.invoiceID,
+        content: content,
+        type: DocumentType.PDF,
+        encoding: DocumentEncoding.BASE64
+      };
     }
   }
 

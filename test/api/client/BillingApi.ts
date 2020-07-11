@@ -26,7 +26,7 @@ export default class BillingApi extends CrudApi {
     return await super.create(params, '/client/api/BillingSynchronizeInvoices');
   }
 
-  public async downloadInvoicePdf(params?) {
+  public async downloadInvoiceDocument(params?) {
     return await super.read(params, '/client/api/BillingDownloadInvoice');
   }
 }

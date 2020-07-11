@@ -15,7 +15,6 @@ import validator from 'validator';
 import Authorizations from '../authorization/Authorizations';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
-import AssetFactory from '../integration/asset/AssetFactory';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import Asset from '../types/Asset';
@@ -42,7 +41,6 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import Logging from './Logging';
-import AssetStorage from '../storage/mongodb/AssetStorage';
 
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();

@@ -1,4 +1,4 @@
-import { ActionsResponse } from './GlobalType';
+import { ActionsResponse, DocumentEncoding, DocumentType } from './GlobalType';
 import User from './User';
 
 export interface BillingTransactionData {
@@ -64,6 +64,7 @@ export interface BillingTax {
 export interface BillingInvoice {
   id: string;
   invoiceID: string;
+  userID?: string;
   user?: User;
   number?: string;
   status?: BillingInvoiceStatus;
@@ -88,7 +89,10 @@ export enum BillingInvoiceStatus {
   DRAFT = 'draft',
 }
 
-export interface BillingInvoicePdf {
+export interface BillingInvoiceDocument {
   id: string;
-  encodedPdf: string; // Base64 format
+  invoiceID: string;
+  content: string; // Base64 format
+  type: DocumentType;
+  encoding: DocumentEncoding;
 }

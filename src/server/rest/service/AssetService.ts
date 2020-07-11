@@ -78,7 +78,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.RETRIEVE_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleRetrieveConsumption');
     // Is authorized to check connection ?
-    if (!Authorizations.canRefreshAssetConnection(req.user)) {
+    if (!Authorizations.canRetrieveAssetConsumption(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,

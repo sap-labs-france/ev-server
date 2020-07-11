@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoicePdf, BillingInvoiceStatus } from '../../types/Billing';
+import { BillingInvoice, BillingInvoiceDocument, BillingInvoiceStatus } from '../../types/Billing';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -179,39 +179,40 @@ export default class BillingStorage {
     return invoiceMDB._id.toHexString();
   }
 
-  public static async saveInvoicePdf(tenantId: string, invoicePdf: BillingInvoicePdf): Promise<BillingInvoicePdf> {
+  public static async saveInvoiceDocument(tenantId: string, invoiceDocument: BillingInvoiceDocument): Promise<BillingInvoiceDocument> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveInvoicePdf');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveInvoiceDocument');
     // Build Request
     // Properties to save
-    const invoiceFileMDB: any = {
-      _id: invoicePdf.id ? Utils.convertToObjectID(invoicePdf.id) : new ObjectID(),
-      encodedPdf: invoicePdf.encodedPdf
+    const invoiceDocumentMDB: any = {
+      _id: invoiceDocument.id,
+      type: invoiceDocument.type,
+      invoiceID: invoiceDocument.invoiceID,
+      encoding: invoiceDocument.encoding,
+      content: invoiceDocument.content
     };
     // Modify and return the modified document
-    await global.database.getCollection<BillingInvoicePdf>(tenantId, 'invoicespdf').findOneAndReplace(
-      { _id: invoiceFileMDB._id },
-      invoiceFileMDB,
+    await global.database.getCollection<BillingInvoiceDocument>(tenantId, 'invoicedocuments').findOneAndReplace(
+      { _id: invoiceDocumentMDB._id },
+      invoiceDocumentMDB,
       { upsert: true }
     );
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveInvoicePdf', uniqueTimerID, { invoiceFileMDB });
-    return invoiceFileMDB._id.toHexString();
+    Logging.traceEnd(MODULE_NAME, 'saveInvoiceDocument', uniqueTimerID, { id: invoiceDocumentMDB._id });
+    return invoiceDocumentMDB._id.toHexString();
   }
 
-  public static async getInvoicePdf(tenantID: string, id: string): Promise<BillingInvoicePdf> {
+  public static async getInvoiceDocument(tenantID: string, id: string): Promise<BillingInvoiceDocument> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getInvoicePdf');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getInvoiceDocument');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const invoicePdfMDB: { _id: string; encodedPdf: string } = await global.database.getCollection(tenantID, 'invoicespdf')
+    const invoiceDocumentMDB = await global.database.getCollection<BillingInvoiceDocument>(tenantID, 'invoicedocuments')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getInvoicePdf', uniqueTimerID, { id });
-    return {
-      id: id, encodedPdf: (invoicePdfMDB ? invoicePdfMDB.encodedPdf : null)
-    };
+    Logging.traceEnd(MODULE_NAME, 'getInvoiceDocument', uniqueTimerID, { id });
+    return invoiceDocumentMDB;
   }
 
   public static async deleteInvoice(tenantID: string, id: string): Promise<void> {
@@ -219,8 +220,11 @@ export default class BillingStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteInvoice');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Delete the Company
+    // Delete the Invoice
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices')
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+    // Delete the Invoice Document
+    await global.database.getCollection<BillingInvoice>(tenantID, 'invoicedocuments')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
@@ -231,8 +235,11 @@ export default class BillingStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteInvoice');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Delete the Company
+    // Delete the Invoice
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices')
+      .findOneAndDelete({ 'invoiceID': id });
+    // Delete the Invoice Document
+    await global.database.getCollection<BillingInvoice>(tenantID, 'invoicedocuments')
       .findOneAndDelete({ 'invoiceID': id });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
