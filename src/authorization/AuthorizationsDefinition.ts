@@ -108,7 +108,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR, action: Action.UPDATE, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.DELETE, attributes: ['*'] },
-
       {
         resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }
