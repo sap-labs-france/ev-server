@@ -32,6 +32,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.COMPANY, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -63,7 +65,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
       { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE_INVOICES, Action.DOWNLOAD], attributes: ['*'] },
-      { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.CHECK_CONNECTION], attributes: ['*'] },
+      { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -86,6 +88,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS_CARS, action: Action.ASSIGN, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.UPDATE, attributes: ['*'] },
+      { resource: Entity.CAR, action: Action.DELETE, attributes: ['*'] },
     ]
   },
   basic: {
@@ -103,6 +106,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.UPDATE, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.CAR, action: Action.DELETE, attributes: ['*'] },
 
       {
         resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
@@ -257,6 +261,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION, Action.EXPORT_PARAMS,
           Action.CHANGE_AVAILABILITY],
         attributes: ['*'],
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
+      },
+      { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {

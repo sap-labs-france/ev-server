@@ -102,7 +102,7 @@ export default class DatabaseUtils {
 
   public static pushChargingStationLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('chargingstations', {
-      objectIDFields: ['siteAreaID', 'createdBy', 'lastChangedBy'],
+      objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     }, [DatabaseUtils.buildChargingStationInactiveFlagQuery(), ...additionalPipeline]);
   }
@@ -130,7 +130,10 @@ export default class DatabaseUtils {
     lookupParams.aggregation.push(
       JSON.parse(`{
         "$group": {
-          "_id": "$_id",
+          "_id": {
+            "ïd": "$id",
+            "_ïd": "$_id"
+          },
           "root": { "$first": "$$ROOT" },
           "${arrayName}": { "$push": "$${arrayName}" }
         }
@@ -168,19 +171,17 @@ export default class DatabaseUtils {
     if (!lookupParams.pipelineMatch) {
       lookupParams.pipelineMatch = {};
     }
-    lookupParams.pipelineMatch['$expr'] = lookupParams.localField.includes('.') && !lookupParams.oneToOneCardinality ?
-      { '$in': [`$${lookupParams.foreignField}`, '$$fieldVar.' + lookupParams.localField.split('.')[1]] } :
-      { '$eq': [`$${lookupParams.foreignField}`, '$$fieldVar'] };
+    lookupParams.pipelineMatch['$expr'] = { '$eq': [`$${lookupParams.foreignField}`, '$$fieldVar'] };
     const pipeline: any[] = [
       { '$match': lookupParams.pipelineMatch }
     ];
     if (!Utils.isEmptyArray(additionalPipeline)) {
       pipeline.push(...additionalPipeline);
     }
-    if (lookupParams.countField) {
+    if (lookupParams.count) {
       pipeline.push({
         '$group': {
-          '_id': `$${lookupParams.countField}`,
+          '_id': `$${lookupParams.asField}`,
           'count': { '$sum': 1 }
         }
       });
@@ -199,9 +200,7 @@ export default class DatabaseUtils {
     lookupParams.aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(lookupParams.tenantID, collection),
-        'let': { 'fieldVar': `$${lookupParams.localField.includes('.') && !lookupParams.oneToOneCardinality ?
-          lookupParams.localField.split('.')[0] :
-          lookupParams.localField}` },
+        'let': { 'fieldVar': `$${lookupParams.localField}` },
         pipeline,
         'as': lookupParams.asField
       }
@@ -225,6 +224,20 @@ export default class DatabaseUtils {
               "if": { "$eq": [ "$${splitAsField[0]}", ${lookupParams.oneToOneCardinality ? '{}' : '[]'} ] },
               "then": null, "else": "$${splitAsField[0]}" }
           }
+        }
+      }`));
+    }
+    // Set only the count
+    if (lookupParams.count) {
+      lookupParams.aggregation.push({
+        $unwind: {
+          path: `$${lookupParams.asField}`,
+          preserveNullAndEmptyArrays: true
+        }
+      });
+      lookupParams.aggregation.push(JSON.parse(`{
+        "$addFields": {
+          "${lookupParams.asField}": "$${lookupParams.asField}.count"
         }
       }`));
     }

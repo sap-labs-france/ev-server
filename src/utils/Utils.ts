@@ -1,53 +1,73 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { Car, CarCatalog, CarType } from '../types/Car';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
-import User, { UserRole, UserStatus } from '../types/User';
-
-import { ActionsResponse } from '../types/GlobalType';
-import AppError from '../exception/AppError';
-import Asset from '../types/Asset';
-import Authorizations from '../authorization/Authorizations';
-import BackendError from '../exception/BackendError';
-import { ChargingProfile } from '../types/ChargingProfile';
-import Company from '../types/Company';
-import Configuration from './Configuration';
-import ConnectorStats from '../types/ConnectorStats';
-import Constants from './Constants';
-import Cypher from './Cypher';
-import { HTTPError } from '../types/HTTPError';
-import { InactivityStatus } from '../types/Transaction';
-import Logging from './Logging';
-import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import { ObjectID } from 'mongodb';
-import { Request } from 'express';
-import { ServerAction } from '../types/Server';
-import Site from '../types/Site';
-import SiteArea from '../types/SiteArea';
-import Tag from '../types/Tag';
-import Tenant from '../types/Tenant';
-import TenantComponents from '../types/TenantComponents';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
-import UserToken from '../types/UserToken';
-import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { Request } from 'express';
 import fs from 'fs';
 import http from 'http';
+import _ from 'lodash';
 import moment from 'moment';
+import { ObjectID } from 'mongodb';
 import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
+import Authorizations from '../authorization/Authorizations';
+import AppError from '../exception/AppError';
+import BackendError from '../exception/BackendError';
+import AssetFactory from '../integration/asset/AssetFactory';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
+import Asset from '../types/Asset';
+import { Car, CarCatalog, CarType } from '../types/Car';
+import { ChargingProfile } from '../types/ChargingProfile';
+import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
+import Company from '../types/Company';
+import ConnectorStats from '../types/ConnectorStats';
+import { ActionsResponse } from '../types/GlobalType';
+import { HTTPError } from '../types/HTTPError';
+import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import { ServerAction } from '../types/Server';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import Site from '../types/Site';
+import SiteArea from '../types/SiteArea';
+import Tag from '../types/Tag';
+import Tenant from '../types/Tenant';
+import TenantComponents from '../types/TenantComponents';
+import Transaction, { InactivityStatus } from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
+import UserToken from '../types/UserToken';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import Cypher from './Cypher';
+import Logging from './Logging';
+import AssetStorage from '../storage/mongodb/AssetStorage';
+
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
+  public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    let threePhases = true;
+    if (currentType === CurrentType.AC &&
+      (transaction.currentInstantAmpsL1 > 0 &&
+        (transaction.currentInstantAmpsL2 === 0 ||
+          transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL2 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 ||
+          transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL3 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 ||
+          transaction.currentInstantAmpsL2 === 0))) {
+      threePhases = false;
+    }
+    return threePhases;
+  }
+
   public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number): number {
     let intervalMins = 0;
     if (!chargingStation || !chargingStation.connectors) {
@@ -487,12 +507,12 @@ export default class Utils {
     return changedValue;
   }
 
-  public static computeSimplePrice(pricePerKWH: number, consumptionWH: number): number {
-    return Utils.convertToFloat((pricePerKWH * (consumptionWH / 1000)).toFixed(6));
+  public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
+    return Utils.convertToFloat((pricePerkWh * (consumptionWh / 1000)).toFixed(6));
   }
 
-  public static computeSimpleRoundedPrice(pricePerKWH: number, consumptionWH: number): number {
-    return Utils.convertToFloat((pricePerKWH * consumptionWH).toFixed(2));
+  public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
+    return Utils.convertToFloat((pricePerkWh * consumptionWh).toFixed(2));
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -534,14 +554,14 @@ export default class Utils {
     if (!chargingStation.chargePoints) {
       return null;
     }
-    return chargingStation.chargePoints.find((chargePoint) => chargePoint.chargePointID === chargePointID);
+    return chargingStation.chargePoints.find((chargePoint) => chargePoint && (chargePoint.chargePointID === chargePointID));
   }
 
   public static getConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
     if (!chargingStation.connectors) {
       return null;
     }
-    return chargingStation.connectors.find((connector) => connector.connectorId === connectorID);
+    return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
   }
 
   public static computeChargingStationTotalAmps(chargingStation: ChargingStation): number {
@@ -816,10 +836,6 @@ export default class Utils {
     return true;
   }
 
-  public static isEmptyObj(obj: any): boolean {
-    return _.isObject(obj) && _.isEmpty(obj);
-  }
-
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results: any[] = [];
@@ -963,7 +979,7 @@ export default class Utils {
     return message;
   }
 
-  public static getRequestIP(request: http.IncomingMessage|Partial<Request>): string | string[] {
+  public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {
     if (request['ip']) {
       return request['ip'];
     } else if (request.headers['x-forwarded-for']) {
@@ -1190,6 +1206,26 @@ export default class Utils {
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
     filteredRequest: ChargingProfile, req: Request): void {
+    if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Station ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!Utils.objectHasProperty(filteredRequest, 'connectorID')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Connector ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
     if (!filteredRequest.profile) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1246,16 +1282,19 @@ export default class Utils {
       });
     }
     // Check Max Limitation of each Schedule
+    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
+    const numberOfConnectors = filteredRequest.connectorID === 0 ?
+      (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
     const maxAmpLimit = Utils.getChargingStationAmperageLimit(
       chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       // Check Min
-      if (chargingSchedulePeriod.limit < StaticLimitAmps.MIN_LIMIT) {
+      if (chargingSchedulePeriod.limit < 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Schedule is below the min limitation (${StaticLimitAmps.MIN_LIMIT}A)`,
+          message: 'Charging Schedule is below the min limitation (0A)',
           module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
           user: req.user.id,
           detailedMessages: { chargingSchedulePeriod }
@@ -1282,8 +1321,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteValid',
+        module: MODULE_NAME, method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1292,8 +1330,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteValid',
+        module: MODULE_NAME, method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1302,8 +1339,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory for the Site',
-        module: MODULE_NAME,
-        method: 'checkIfSiteValid',
+        module: MODULE_NAME, method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1315,8 +1351,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1325,8 +1360,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1335,8 +1369,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1346,8 +1379,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1356,8 +1388,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage} kW`,
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1366,8 +1397,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site area number of phases must be either 1 or 3 but got ${siteArea.numberOfPhases}`,
-        module: MODULE_NAME,
-        method: 'checkIfSiteAreaValid',
+        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1379,8 +1409,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCompanyValid',
+        module: MODULE_NAME, method: 'checkIfCompanyValid',
         user: req.user.id
       });
     }
@@ -1389,8 +1418,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCompanyValid',
+        module: MODULE_NAME, method: 'checkIfCompanyValid',
         user: req.user.id
       });
     }
@@ -1406,8 +1434,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1416,8 +1443,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1426,8 +1452,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset Site Area is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1436,10 +1461,29 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset type is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfAssetValid',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
+    }
+    if (asset.dynamicAsset) {
+      if (!asset.connectionID) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Asset connection is mandatory',
+          module: MODULE_NAME, method: 'checkIfAssetValid',
+          user: req.user.id
+        });
+      }
+      if (!asset.meterID) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Asset meter ID is mandatory',
+          module: MODULE_NAME, method: 'checkIfAssetValid',
+          user: req.user.id
+        });
+      }
     }
   }
 
@@ -1448,6 +1492,7 @@ export default class Utils {
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       if (tags) {
         for (const tag of tags) {
+          // Check if exists
           const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
           if (foundUser && (!user || (foundUser.id !== user.id))) {
             // Tag already used!
@@ -1457,6 +1502,25 @@ export default class Utils {
               message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
               module: MODULE_NAME,
               method: 'checkIfUserTagsAreValid',
+              user: req.user.id
+            });
+          }
+          // Check params
+          if (!tag.id) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              errorCode: HTTPError.GENERAL_ERROR,
+              message: 'Tag ID is mandatory',
+              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
+              user: req.user.id
+            });
+          }
+          if (!Utils.objectHasProperty(tag, 'active')) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              errorCode: HTTPError.GENERAL_ERROR,
+              message: 'Tag Active property is mandatory',
+              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
               user: req.user.id
             });
           }
@@ -1762,8 +1826,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1772,8 +1835,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vin Car is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1782,8 +1844,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'License Plate is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1791,9 +1852,8 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Catalog ID  is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        message: 'Car Catalog ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1802,8 +1862,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car type is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1813,11 +1872,55 @@ export default class Utils {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pool cars can only be created by admin',
-          module: MODULE_NAME,
-          method: 'checkIfCarValid',
+          module: MODULE_NAME, method: 'checkIfCarValid',
           user: req.user.id
         });
       }
+    }
+    if (!car.converter) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.amperagePerPhase) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter amperage per phase is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.numberOfPhases) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter number of phases is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.powerWatts) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter power is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.type) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter type is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
     }
   }
 

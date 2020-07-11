@@ -1,4 +1,5 @@
 import { ActionsResponse } from './GlobalType';
+import User from './User';
 
 export interface BillingTransactionData {
   status?: string;
@@ -63,7 +64,7 @@ export interface BillingTax {
 export interface BillingInvoice {
   id: string;
   invoiceID: string;
-  userID?: string;
+  user?: User;
   number?: string;
   status?: BillingInvoiceStatus;
   amount?: number;

@@ -1,10 +1,10 @@
 {
-  "subject": "Session Finished",
+  "subject": "Ladevorgang abgeschlossen",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Session Finished",
+      "title": "Ladevorgang abgeschlossen",
       "image": {
         "left": {
           "height": 60,
@@ -17,36 +17,36 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your session on the charging station <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b> has just finished."
+      "Ihr Ladevorgang an Ladestation <b>'<%- chargeBoxID %>'</b>, Ladepunkt <b>'<%- connectorId %>'</b> wurde soeben abgeschlossen."
     ],
     "stats": [
       {
-        "label": "Consumption",
+        "label": "Verbrauch",
         "value": "<%- totalConsumption %> kW.h"
       },
       {
-        "label": "Total Duration",
+        "label": "Gesamtdauer",
         "value": "<%- totalDuration %>"
       },
       {
-        "label": "Total Inactivity",
+        "label": "Gesamtinaktivität",
         "value": "<%- totalInactivity %>"
       },
       {
-        "label": "Battery Level",
+        "label": "Batteriestand",
         "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>"
       }
     ],
     "action": {
-      "title": "View Session",
+      "title": "Ladevorgang anzeigen",
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
-      "<%- (alternateUser ? 'The user <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> has stopped your session.' : '') %>",
+      "<%- (alternateUser ? 'Der Nutzer <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> hat Ihren Ladevorgang beendet.' : '') %>",
       "",
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {}

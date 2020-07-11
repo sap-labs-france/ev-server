@@ -42,14 +42,14 @@ export default class AssetService {
       });
     }
     // Is authorized to check connection ?
-    if (!Authorizations.canCheckConnectionAsset(req.user)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Not authorized to check asset connections',
-        module: MODULE_NAME, method: 'handleCheckAssetConnection',
-        action: action,
-        user: req.user
+    if (!Authorizations.canCheckAssetConnection(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.CHECK_CONNECTION,
+        entity: Entity.ASSET,
+        module: MODULE_NAME,
+        method: 'handleCheckAssetConnection'
       });
     }
     try {
@@ -70,6 +70,73 @@ export default class AssetService {
       // Create fail response
       res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }
+    next();
+  }
+
+  public static async handleRetrieveConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.REFRESH_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleRetrieveConsumption');
+    // Is authorized to check connection ?
+    if (!Authorizations.canRefreshAssetConnection(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        entity: Entity.ASSET, action: Action.REFRESH_CONNECTION,
+        module: MODULE_NAME, method: 'handleRetrieveConsumption'
+      });
+    }
+    // Filter request
+    const assetID = AssetSecurity.filterAssetRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleRetrieveConsumption', req.user);
+    // Get
+    const asset = await AssetStorage.getAsset(req.user.tenantID, assetID);
+    UtilsService.assertObjectExists(action, asset, `Asset with ID '${assetID}' does not exist`,
+      MODULE_NAME, 'handleRetrieveConsumption', req.user);
+    // Dynamic asset ?
+    if (!asset.dynamicAsset) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        module: MODULE_NAME, method: 'handleRetrieveConsumption',
+        action: action,
+        user: req.user,
+        message: 'This Asset is not dynamic, no consumption can be retrieved',
+        detailedMessages: { asset }
+      });
+    }
+    // Get asset factory
+    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, asset.connectionID);
+    if (!assetImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Asset service is not configured',
+        module: MODULE_NAME, method: 'handleRetrieveConsumption',
+        action: ServerAction.RETRIEVE_ASSET_CONSUMPTION
+      });
+    }
+    // Retrieve consumption
+    const consumption = await assetImpl.retrieveConsumption(asset);
+    // Assign
+    asset.lastConsumption = consumption.lastConsumption;
+    asset.currentConsumptionWh = consumption.currentConsumptionWh;
+    asset.currentInstantAmps = consumption.currentInstantAmps;
+    asset.currentInstantAmpsL1 = consumption.currentInstantAmpsL1;
+    asset.currentInstantAmpsL2 = consumption.currentInstantAmpsL2;
+    asset.currentInstantAmpsL3 = consumption.currentInstantAmpsL3;
+    asset.currentInstantVolts = consumption.currentInstantVolts;
+    asset.currentInstantVoltsL1 = consumption.currentInstantVoltsL1;
+    asset.currentInstantVoltsL2 = consumption.currentInstantVoltsL2;
+    asset.currentInstantVoltsL3 = consumption.currentInstantVoltsL3;
+    asset.currentInstantWatts = consumption.currentInstantWatts;
+    asset.currentInstantWattsL1 = consumption.currentInstantWattsL1;
+    asset.currentInstantWattsL2 = consumption.currentInstantWattsL2;
+    asset.currentInstantWattsL3 = consumption.currentInstantWattsL3;
+    // Save Asset
+    await AssetStorage.saveAsset(req.user.tenantID, asset);
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -243,7 +310,7 @@ export default class AssetService {
         withNoSiteArea: filteredRequest.WithNoSiteArea
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates']
+      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates', 'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts']
     );
     // Filter
     AssetSecurity.filterAssetsResponse(assets, req.user);
@@ -279,7 +346,14 @@ export default class AssetService {
     }
     // Create asset
     const newAsset: Asset = {
-      ...filteredRequest,
+      name: filteredRequest.name,
+      siteAreaID: filteredRequest.siteAreaID,
+      assetType: filteredRequest.assetType,
+      coordinates: filteredRequest.coordinates,
+      image: filteredRequest.image,
+      dynamicAsset: filteredRequest.dynamicAsset,
+      connectionID: filteredRequest.connectionID,
+      meterID: filteredRequest.meterID,
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Asset;
@@ -310,10 +384,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleUpdateAsset',
+        entity: Entity.ASSET, action: Action.UPDATE,
+        module: MODULE_NAME, method: 'handleUpdateAsset',
         value: filteredRequest.id
       });
     }
@@ -336,6 +408,9 @@ export default class AssetService {
     asset.assetType = filteredRequest.assetType;
     asset.coordinates = filteredRequest.coordinates;
     asset.image = filteredRequest.image;
+    asset.dynamicAsset = filteredRequest.dynamicAsset;
+    asset.connectionID = filteredRequest.connectionID;
+    asset.meterID = filteredRequest.meterID;
     asset.lastChangedBy = { 'id': req.user.id };
     asset.lastChangedOn = new Date();
     // Update Asset

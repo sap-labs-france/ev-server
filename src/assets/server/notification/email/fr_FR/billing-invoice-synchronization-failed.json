@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Unbekannter Nutzer angemeldet",
-  "tenant": "",
+  "subject": "Facturation - Synchronisation des Factures a échoué",
+  "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Unbekannter Nutzer angemeldet",
+      "title": "Facturation - Synchronisation des Factures a échoué",
       "image": {
         "left": {
           "height": 60,
@@ -17,18 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Sehr geehrter Administrator,",
+      "Cher Administrateur,",
       "",
-      "An der Ladestation <b>'<%- chargeBoxID %>'</b> hat sich gerade ein unbekannter Nutzer mit der Badge-ID <b>'<%- badgeID %>'</b> angemeldet."
+      "Impossible de synchroniser <%- nbrInvoicesInError %> facture(s) avec le système de facturation."
     ],
     "action": {
-      "title": "Nutzer bearbeiten",
-      "url": "<%- evseDashboardUserURL %>"
+      "title": "Voir Réglages",
+      "url": "<%- evseDashboardBillingURL %>"
     },
     "afterActionLines": [
-      "Mit freundlichen Grüßen",
+      "Cordialement,",
       "EV Admins."
     ],
-    "footer": {}
+    "footer": {
+    }
   }
 }

@@ -175,6 +175,7 @@ describe('Billing Service', function() {
         );
         fakeUser.firstName = 'Test';
         fakeUser.name = 'Name';
+        fakeUser.issuer = true;
         await testData.userService.updateEntity(
           testData.userService.userApi,
           fakeUser,
@@ -395,7 +396,7 @@ describe('Billing Service', function() {
         );
         const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/UserInvoices');
         for (let i = 0; i < response.data.result.length - 1; i++) {
-          expect(response.data.result[i].userID).to.be.eq(basicUser.id);
+          expect(response.data.result[i].user.id).to.be.eq(basicUser.id);
         }
       });
 

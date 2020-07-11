@@ -23,7 +23,7 @@ const MODULE_NAME = 'BillingService';
 
 export default class BillingService {
 
-  public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -66,7 +66,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleSynchronizeUsers(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleSynchronizeUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canSynchronizeUsersBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -97,7 +97,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
     if (!Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
@@ -133,7 +133,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleForceSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleForceSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
     if (!Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
@@ -169,7 +169,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleGetBillingTaxes(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBillingTaxes(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canReadTaxesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -203,7 +203,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleGetUserInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetUserInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetUserInvoices');
@@ -257,7 +257,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleSynchronizeInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleSynchronizeInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canSynchronizeInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -296,7 +296,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleForceSynchronizeUserInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleForceSynchronizeUserInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canSynchronizeInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,

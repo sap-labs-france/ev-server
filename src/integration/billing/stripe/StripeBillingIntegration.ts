@@ -12,6 +12,7 @@ import { ServerAction } from '../../../types/Server';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import axios from 'axios';
 import moment from 'moment';
@@ -40,7 +41,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  public async checkConnection() {
+  public async checkConnection(): Promise<void> {
     // Check Stripe
     this.checkIfStripeIsInitialized();
     // Check Key
@@ -340,6 +341,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       nbrOfItems: stripeInvoice.lines.total_count
     } as Partial<BillingInvoice>;
     try {
+      invoice.user = await UserStorage.getUserByBillingID(this.tenantID, user.billingData.customerID);
       invoice.id = await BillingStorage.saveInvoice(this.tenantID, invoice);
       return { invoice: invoice as BillingInvoice, invoiceItem: invoiceItem };
     } catch (error) {
@@ -856,7 +858,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return this.modifyUser(user);
   }
 
-  public async deleteUser(user: User) {
+  public async deleteUser(user: User): Promise<void> {
     // Check Stripe
     await this.checkConnection();
     const customer = await this.getCustomerByEmail(user.email);
@@ -928,7 +930,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   private async modifyUser(user: User): Promise<BillingUser> {
     await this.checkConnection();
-    const fullName = Utils.buildUserFullName(user);
+    const fullName = Utils.buildUserFullName(user, false, false);
     const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
     const i18nManager = new I18nManager(user.locale);
     const description = i18nManager.translate('billing.generatedUser', { email: user.email });

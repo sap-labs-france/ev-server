@@ -12,6 +12,7 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
+import SiteAreaStorage from './SiteAreaStorage';
 import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
@@ -632,8 +633,8 @@ export default class ChargingStationStorage {
 
   public static async getChargingProfiles(tenantID: string,
     params: {
-      chargingStationID?: string; connectorID?: number; chargingProfileID?: string;
-      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number;
+      search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
+      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
@@ -646,12 +647,19 @@ export default class ChargingStationStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Query by chargingStationID
     const filters: any = {};
+    // Build filter
+    if (params.search) {
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'chargingStationID': { $regex: searchRegex, $options: 'i' } },
+      ];
+    }
     if (params.chargingProfileID) {
       filters._id = params.chargingProfileID;
     } else {
       // Charger
-      if (params.chargingStationID) {
-        filters.chargingStationID = params.chargingStationID;
+      if (params.chargingStationIDs) {
+        filters.chargingStationID = { $in: params.chargingStationIDs };
       }
       // Connector
       if (params.connectorID) {
@@ -674,6 +682,7 @@ export default class ChargingStationStorage {
         $match: filters
       });
     }
+
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
@@ -698,8 +707,10 @@ export default class ChargingStationStorage {
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = {
-        'connectorID': -1,
-        'profile.stackLevel': -1,
+        'chargingStationID': 1,
+        'connectorID': 1,
+        'profile.chargingProfilePurpose': 1,
+        'profile.stackLevel': 1,
       };
     }
     aggregation.push({
@@ -713,6 +724,21 @@ export default class ChargingStationStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    if (params.withChargingStation || params.withSiteArea) {
+      // Charging Stations
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID, aggregation, localField: 'chargingStationID', foreignField: '_id',
+        asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      // Site Areas
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
+        asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      // Convert
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
+    }
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
