@@ -22,5 +22,5 @@ export enum LockEntity {
   LOGGING = 'logging',
   TRANSACTION = 'transaction',
   CAR = 'car',
-  INVOICE = 'invoice'
+  INVOICE = 'invoice',
 }

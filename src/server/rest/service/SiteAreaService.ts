@@ -479,7 +479,7 @@ export default class SiteAreaService {
     if (filteredRequest.smartCharging) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-undef
       setTimeout(async () => {
-        const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
+        const siteAreaLock = await LockingHelper.createSiteAreaLock(req.user.tenantID, siteArea);
         if (siteAreaLock) {
           try {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);

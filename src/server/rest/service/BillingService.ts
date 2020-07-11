@@ -1,23 +1,24 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-
+import fs from 'fs';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import { BillingInvoiceStatus } from '../../../types/Billing';
-import BillingSecurity from './security/BillingSecurity';
+import LockingHelper from '../../../locking/LockingHelper';
+import LockingManager from '../../../locking/LockingManager';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { BillingInvoiceStatus, BillingUserSynchronizeAction } from '../../../types/Billing';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import User from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import BillingSecurity from './security/BillingSecurity';
 import UtilsService from './UtilsService';
-import fs from 'fs';
+
 
 const MODULE_NAME = 'BillingService';
 
@@ -78,8 +79,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_USERS, Entity.BILLING, MODULE_NAME, 'handleSynchronizeUsers');
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -90,8 +90,18 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Sync users
-    const synchronizeAction = await billingImpl.synchronizeUsers(tenant.id);
+    // Get the lock
+    let synchronizeAction: BillingUserSynchronizeAction;
+    const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    if (billingLock) {
+      try {
+        // Sync users
+        synchronizeAction = await billingImpl.synchronizeUsers(req.user.tenantID);
+      } finally {
+        // Release the lock
+        await LockingManager.release(billingLock);
+      }
+    }
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
@@ -110,8 +120,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_USERS, Entity.BILLING, MODULE_NAME, 'handleSynchronizeUser');
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -123,11 +132,20 @@ export default class BillingService {
       });
     }
     // Get user
-    const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
+    const userToSynchronize = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
-    // Sync user
-    await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
+    // Get the lock
+    const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    if (billingLock) {
+      try {
+        // Sync user
+        await billingImpl.synchronizeUser(req.user.tenantID, userToSynchronize);
+      } finally {
+        // Release the lock
+        await LockingManager.release(billingLock);
+      }
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -146,8 +164,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_USER, Entity.BILLING, MODULE_NAME, 'handleForceSynchronizeUser');
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -159,11 +176,29 @@ export default class BillingService {
       });
     }
     // Get user
-    const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' does not exist`,
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
-    // Sync user
-    await billingImpl.forceSynchronizeUser(userToSynchronize, tenant.id);
+    // Get the User lock
+    let billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    if (billingLock) {
+      try {
+        // Sync user
+        await billingImpl.forceSynchronizeUser(req.user.tenantID, user);
+      } finally {
+        await LockingManager.release(billingLock);
+      }
+    }
+    // Get the Invoice lock
+    billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
+    if (billingLock) {
+      try {
+        // Sync invoices
+        await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+      } finally {
+        await LockingManager.release(billingLock);
+      }
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -181,9 +216,8 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.TAXES, MODULE_NAME, 'handleGetBillingTaxes');
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get Billing implementation from factory
-    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -269,8 +303,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_INVOICES, Entity.BILLING, MODULE_NAME, 'handleSynchronizeInvoices');
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -289,8 +322,17 @@ export default class BillingService {
       UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
-    // Sync invoices
-    const synchronizeAction = await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+    // Get the Invoice lock
+    let synchronizeAction: BillingUserSynchronizeAction;
+    const billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
+    if (billingLock) {
+      try {
+        // Sync invoices
+        await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+      } finally {
+        await LockingManager.release(billingLock);
+      }
+    }
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
@@ -308,8 +350,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_INVOICES, Entity.BILLING, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -325,8 +366,17 @@ export default class BillingService {
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleForceSynchronizeUserInvoices', req.user);
-    // Sync user invoices
-    const synchronizeAction = await billingImpl.forceSynchronizeUserInvoices(req.user.tenantID, user);
+    // Get the Invoice lock
+    let synchronizeAction: BillingUserSynchronizeAction;
+    const billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
+    if (billingLock) {
+      try {
+        // Sync invoices
+        await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+      } finally {
+        await LockingManager.release(billingLock);
+      }
+    }
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
