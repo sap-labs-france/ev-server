@@ -294,6 +294,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           // Delete in e-Mobility
           if (!invoiceInBilling && invoice) {
             await BillingStorage.deleteInvoiceByInvoiceID(tenantID, invoiceIDInBilling);
+            actionsDone.inSuccess++;
             Logging.logDebug({
               tenantID: tenantID,
               user: user,
@@ -302,7 +303,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
               module: MODULE_NAME, method: 'synchronizeInvoices',
               message: `Billing invoice with ID '${invoiceIDInBilling}' has been deleted in e-Mobility`
             });
-            actionsDone.inSuccess++;
             continue;
           }
           // Create / Update
@@ -319,23 +319,40 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             // Get user
             userInInvoice = await UserStorage.getUserByBillingID(tenantID, invoiceInBilling.customerID);
           }
-          invoiceInBilling.user = userInInvoice ? userInInvoice : null;
+          // Check User
+          if (!userInInvoice) {
+            actionsDone.inError++;
+            Logging.logError({
+              tenantID: tenantID,
+              user: user,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+              module: MODULE_NAME, method: 'synchronizeInvoices',
+              message: `No user found for billing invoice with ID '${invoiceIDInBilling}'`
+            });
+            continue;
+          }
+          // Set user
+          invoiceInBilling.user = userInInvoice;
+          invoiceInBilling.userID = userInInvoice.id;
+          invoiceInBilling.downloadable = invoice ? invoice.downloadable : false;
           // Save invoice
-          invoiceInBilling.userID = userInInvoice ? userInInvoice.id : null;
           invoiceInBilling.id = await BillingStorage.saveInvoice(tenantID, invoiceInBilling);
-          // Download the document
-          const invoiceDocument = await this.downloadInvoiceDocument(invoiceInBilling);
-          if (invoiceDocument) {
-            // Save it in our DB
-            await BillingStorage.saveInvoiceDocument(tenantID, invoiceDocument);
-            // Update
-            invoiceInBilling.downloadable = true;
-            await BillingStorage.saveInvoice(tenantID, invoiceInBilling);
+          // Download the invoice document
+          if (!invoice || !invoiceInBilling.downloadable || (invoice.nbrOfItems !== invoiceInBilling.nbrOfItems)) {
+            const invoiceDocument = await this.downloadInvoiceDocument(invoiceInBilling);
+            if (invoiceDocument) {
+              // Save it
+              await BillingStorage.saveInvoiceDocument(tenantID, invoiceDocument);
+              // Update
+              invoiceInBilling.downloadable = true;
+              await BillingStorage.saveInvoice(tenantID, invoiceInBilling);
+            }
           }
-          if (userInInvoice) {
-            userInInvoice.billingData.invoicesLastSynchronizedOn = new Date();
-            await UserStorage.saveUserBillingData(tenantID, userInInvoice.id, userInInvoice.billingData);
-          }
+          // Save last User invoice sync
+          userInInvoice.billingData.invoicesLastSynchronizedOn = new Date();
+          await UserStorage.saveUserBillingData(tenantID, userInInvoice.id, userInInvoice.billingData);
+          // Ok
           actionsDone.inSuccess++;
           Logging.logDebug({
             tenantID: tenantID,

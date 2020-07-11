@@ -185,7 +185,7 @@ export default class BillingStorage {
     // Build Request
     // Properties to save
     const invoiceDocumentMDB: any = {
-      _id: invoiceDocument.id,
+      _id: Utils.convertToObjectID(invoiceDocument.id),
       type: invoiceDocument.type,
       invoiceID: invoiceDocument.invoiceID,
       encoding: invoiceDocument.encoding,

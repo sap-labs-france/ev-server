@@ -91,7 +91,10 @@ export default class BillingService {
       });
     }
     // Get the lock
-    let synchronizeAction: BillingUserSynchronizeAction;
+    let synchronizeAction: BillingUserSynchronizeAction = {
+      inError: 0,
+      inSuccess: 0,
+    };
     const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
     if (billingLock) {
       try {
@@ -101,6 +104,15 @@ export default class BillingService {
         // Release the lock
         await LockingManager.release(billingLock);
       }
+    } else {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Cannot aquire block',
+        module: MODULE_NAME, method: 'handleSynchronizeUsers',
+        action: action,
+        user: req.user
+      });
     }
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
@@ -145,6 +157,15 @@ export default class BillingService {
         // Release the lock
         await LockingManager.release(billingLock);
       }
+    } else {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Cannot aquire block',
+        module: MODULE_NAME, method: 'handleSynchronizeUser',
+        action: action,
+        user: req.user
+      });
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -188,6 +209,15 @@ export default class BillingService {
       } finally {
         await LockingManager.release(billingLock);
       }
+    } else {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Cannot aquire block',
+        module: MODULE_NAME, method: 'handleSynchronizeUser',
+        action: action,
+        user: req.user
+      });
     }
     // Get the Invoice lock
     billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
@@ -198,6 +228,15 @@ export default class BillingService {
       } finally {
         await LockingManager.release(billingLock);
       }
+    } else {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Cannot aquire block',
+        module: MODULE_NAME, method: 'handleSynchronizeUser',
+        action: action,
+        user: req.user
+      });
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -323,15 +362,28 @@ export default class BillingService {
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
     // Get the Invoice lock
-    let synchronizeAction: BillingUserSynchronizeAction;
+    let synchronizeAction: BillingUserSynchronizeAction = {
+      inError: 0,
+      inSuccess: 0,
+    };
     const billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync invoices
-        await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+        synchronizeAction = await billingImpl.synchronizeInvoices(req.user.tenantID, user);
       } finally {
+        // Release the lock
         await LockingManager.release(billingLock);
       }
+    } else {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Cannot aquire block',
+        module: MODULE_NAME, method: 'handleSynchronizeUserInvoices',
+        action: action,
+        user: req.user
+      });
     }
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
@@ -367,15 +419,28 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleForceSynchronizeUserInvoices', req.user);
     // Get the Invoice lock
-    let synchronizeAction: BillingUserSynchronizeAction;
+    let synchronizeAction: BillingUserSynchronizeAction = {
+      inError: 0,
+      inSuccess: 0,
+    };
     const billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync invoices
-        await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+        synchronizeAction = await billingImpl.synchronizeInvoices(req.user.tenantID, user);
       } finally {
+        // Release the lock
         await LockingManager.release(billingLock);
       }
+    } else {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Cannot aquire block',
+        module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
+        action: action,
+        user: req.user
+      });
     }
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
