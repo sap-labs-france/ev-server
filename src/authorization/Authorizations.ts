@@ -602,7 +602,7 @@ export default class Authorizations {
   }
 
   public static canDownloadInvoiceBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.DOWNLOAD);
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.DOWNLOAD);
   }
 
   public static canCheckConnectionAsset(loggedUser: UserToken): boolean {
@@ -610,7 +610,7 @@ export default class Authorizations {
   }
 
   public static canRefreshAssetConnection(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.REFRESH_CONNECTION);
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {

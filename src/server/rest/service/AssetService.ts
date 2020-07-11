@@ -76,13 +76,13 @@ export default class AssetService {
   public static async handleRetrieveConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
-      Action.REFRESH_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleRetrieveConsumption');
+      Action.RETRIEVE_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleRetrieveConsumption');
     // Is authorized to check connection ?
     if (!Authorizations.canRefreshAssetConnection(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.ASSET, action: Action.REFRESH_CONNECTION,
+        entity: Entity.ASSET, action: Action.RETRIEVE_CONSUMPTION,
         module: MODULE_NAME, method: 'handleRetrieveConsumption'
       });
     }
