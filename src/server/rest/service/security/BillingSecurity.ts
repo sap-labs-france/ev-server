@@ -65,7 +65,7 @@ export default class BillingSecurity {
     // Check auth
     if (Authorizations.canReadInvoicesBilling(loggedUser)) {
       // Set only necessary info
-      filteredInvoice.user = UserSecurity.filterMinimalUserResponse(invoice.user, loggedUser);
+      filteredInvoice.id = invoice.id;
       filteredInvoice.invoiceID = invoice.invoiceID;
       filteredInvoice.number = invoice.number;
       filteredInvoice.status = invoice.status;
@@ -74,6 +74,7 @@ export default class BillingSecurity {
       filteredInvoice.currency = invoice.currency;
       filteredInvoice.customerID = invoice.customerID;
       filteredInvoice.downloadable = invoice.downloadable;
+      filteredInvoice.user = UserSecurity.filterMinimalUserResponse(invoice.user, loggedUser);
     }
     return filteredInvoice;
   }

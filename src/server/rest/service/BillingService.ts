@@ -451,6 +451,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
+    // Check Auth
     if (!Authorizations.canDownloadInvoiceBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
