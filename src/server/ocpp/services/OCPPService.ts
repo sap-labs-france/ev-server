@@ -1737,7 +1737,7 @@ export default class OCPPService {
       // Get Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
-        const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
+        const siteAreaLock = await LockingHelper.createSiteAreaLock(tenantID, siteArea);
         if (siteAreaLock) {
           try {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);

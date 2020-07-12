@@ -1,14 +1,15 @@
-import axios from 'axios';
-import BackendError from '../../../exception/BackendError';
 import Asset, { SchneiderProperty } from '../../../types/Asset';
-import { AbstractCurrentConsumption } from '../../../types/Consumption';
-import { ServerAction } from '../../../types/Server';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+
+import { AbstractCurrentConsumption } from '../../../types/Consumption';
+import AssetIntegration from '../AssetIntegration';
+import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import Utils from '../../../utils/Utils';
-import AssetIntegration from '../AssetIntegration';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import Utils from '../../../utils/Utils';
+import axios from 'axios';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 

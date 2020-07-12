@@ -1,12 +1,12 @@
-import ChargingStation from '../types/ChargingStation';
-import { BillingTransactionData } from './Billing';
+import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
+
 import { AbstractCurrentConsumption } from './Consumption';
+import { BillingTransactionData } from './Billing';
+import ChargingStation from '../types/ChargingStation';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
-import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import { RefundTransactionData } from './Refund';
 import User from './User';
-
 
 export type InactivityStatusLevel =
  'info' |
