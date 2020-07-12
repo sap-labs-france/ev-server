@@ -1,10 +1,10 @@
 import { Action, Entity } from '../types/Authorization';
-
 import { HTTPAuthError } from '../types/HTTPError';
+import TenantComponents from '../types/TenantComponents';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
-import TenantComponents from '../types/TenantComponents';
+
 
 export default class AppAuthError extends Error {
 
