@@ -566,9 +566,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       const totalConsumptionWh = Math.round(transaction.stop.totalConsumptionWh / 100) / 10;
       const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
       if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-        description = i18nManager.translate('billing.chargingStopSiteArea', { totalConsumption: totalConsumptionWh, siteArea: chargeBox.siteArea, time: time });
+        description = i18nManager.translate('billing.chargingStopSiteArea',
+          { totalConsumption: totalConsumptionWh, siteArea: chargeBox.siteArea, time: time });
       } else {
-        description = i18nManager.translate('billing.chargingStopChargeBox', { totalConsumption: totalConsumptionWh, chargeBox: transaction.chargeBoxID, time: time });
+        description = i18nManager.translate('billing.chargingStopChargeBox',
+          { totalConsumption: totalConsumptionWh, chargeBox: transaction.chargeBoxID, time: time });
       }
       // Const taxRates: ITaxRate[] = [];
       // if (this.settings.taxID) {
@@ -587,15 +589,16 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           break;
         // Periodic
         case BillingMethod.PERIODIC:
+          // Get the draft invoice
           invoice.invoice = (await BillingStorage.getInvoices(this.tenantID, { invoiceStatus: [BillingInvoiceStatus.DRAFT] }, Constants.DB_PARAMS_SINGLE_RECORD)).result[0];
           if (invoice.invoice) {
-            // A draft invoice already exists : append a new invoice item
+            // A draft invoice already exists: append a new invoice item
             invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice.id, {
               description: description,
               amount: Math.round(transaction.stop.roundedPrice * 100)
             }, transaction.id);
           } else {
-            // No draft invoice : create a new invoice with invoice item
+            // No draft invoice: create a new invoice with invoice item
             invoice.invoice = (await this.createInvoice(billingUser, {
               description: description,
               amount: Math.round(transaction.stop.roundedPrice * 100)
@@ -752,7 +755,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeDeleted',
-        message: 'Cannot delete user: Opened invoice still exist in Stripe'
+        message: 'Opened invoice still exist in Stripe'
       });
       return false;
     }
@@ -766,7 +769,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeDeleted',
-        message: 'Cannot delete user: Draft invoice still exist in Stripe'
+        message: 'Draft invoice still exist in Stripe'
       });
       return false;
     }
@@ -780,7 +783,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeDeleted',
-        message: 'Cannot delete user: Pending invoice still exist in Stripe'
+        message: 'Pending invoice still exist in Stripe'
       });
       return false;
     }

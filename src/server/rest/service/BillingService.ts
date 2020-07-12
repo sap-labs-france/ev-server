@@ -108,7 +108,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire block',
+        message: 'Cannot aquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
         action: action,
         user: req.user
@@ -161,7 +161,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire block',
+        message: 'Cannot aquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
         action: action,
         user: req.user
@@ -213,7 +213,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire block',
+        message: 'Cannot aquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
         action: action,
         user: req.user
@@ -232,7 +232,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire block',
+        message: 'Cannot aquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
         action: action,
         user: req.user
@@ -362,7 +362,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire block',
+        message: 'Cannot aquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUserInvoices',
         action: action,
         user: req.user
@@ -419,7 +419,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire block',
+        message: 'Cannot aquire lock',
         module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
         action: action,
         user: req.user
