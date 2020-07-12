@@ -66,13 +66,13 @@ export default class BillingSecurity {
     if (Authorizations.canListInvoicesBilling(loggedUser)) {
       // Set only necessary info
       filteredInvoice.id = invoice.id;
-      filteredInvoice.invoiceID = invoice.invoiceID;
+      filteredInvoice.userID = invoice.userID;
       filteredInvoice.number = invoice.number;
       filteredInvoice.status = invoice.status;
       filteredInvoice.amount = invoice.amount;
       filteredInvoice.createdOn = invoice.createdOn;
+      filteredInvoice.nbrOfItems = invoice.nbrOfItems;
       filteredInvoice.currency = invoice.currency;
-      filteredInvoice.customerID = invoice.customerID;
       filteredInvoice.downloadable = invoice.downloadable;
       filteredInvoice.user = UserSecurity.filterMinimalUserResponse(invoice.user, loggedUser);
     }
