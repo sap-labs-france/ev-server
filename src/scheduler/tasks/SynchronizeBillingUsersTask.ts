@@ -1,5 +1,5 @@
 import BillingFactory from '../../integration/billing/BillingFactory';
-import { LockEntity } from '../../types/Locking';
+import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
@@ -12,8 +12,8 @@ import Utils from '../../utils/Utils';
 export default class SynchronizeBillingUsersTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Get the lock
-    const billingLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.USER, 'synchronize-billing');
-    if (await LockingManager.acquire(billingLock)) {
+    const billingLock = await LockingHelper.createBillingSyncUsersLock(tenant.id);
+    if (billingLock) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
         if (billingImpl) {

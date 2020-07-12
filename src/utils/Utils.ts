@@ -8,8 +8,6 @@ import User, { UserRole, UserStatus } from '../types/User';
 import { ActionsResponse } from '../types/GlobalType';
 import AppError from '../exception/AppError';
 import Asset from '../types/Asset';
-import AssetFactory from '../integration/asset/AssetFactory';
-import AssetStorage from '../storage/mongodb/AssetStorage';
 import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
 import { ChargingProfile } from '../types/ChargingProfile';
