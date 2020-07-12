@@ -260,32 +260,6 @@ export default class OCPIMapping {
     }
   }
 
-  /**
-   * Map user locale (en_US, fr_FR...) to ocpi language (en, fr...)
-   * @param locale
-   */
-  static convertLocaleToLanguage(locale: string): string {
-    if (!locale || locale.length < 2) {
-      return null;
-    }
-    return locale.substring(0, 2);
-  }
-
-  /**
-   * Map ocpi language (en, fr...) to user locale (en_US, fr_FR...)
-   * @param locale
-   */
-  static convertLanguageToLocale(language: string): string {
-    if (language === 'fr') {
-      return 'fr_FR';
-    } else if (language === 'es') {
-      return 'es_MX';
-    } else if (language === 'de') {
-      return 'de_DE';
-    }
-    return 'en_US';
-  }
-
   //
   /**
    * Convert ChargingStation to Multiple EVSEs
