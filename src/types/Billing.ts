@@ -1,4 +1,5 @@
 import { ActionsResponse, DocumentEncoding, DocumentType } from './GlobalType';
+
 import User from './User';
 
 export interface BillingTransactionData {
