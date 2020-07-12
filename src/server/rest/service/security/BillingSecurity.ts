@@ -4,10 +4,10 @@ import { HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } f
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpBillingInvoiceRequest } from '../../../../types/requests/HttpBillingRequest';
+import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
-import UserSecurity from './UserSecurity';
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {

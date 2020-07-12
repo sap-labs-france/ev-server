@@ -5,6 +5,8 @@ import BackendError from '../../exception/BackendError';
 import { BillingSetting } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
+import { LockEntity } from '../../types/Locking';
+import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
@@ -12,8 +14,6 @@ import Transaction from '../../types/Transaction';
 import { UserInErrorType } from '../../types/InError';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
-import LockingManager from '../../locking/LockingManager';
-import { LockEntity } from '../../types/Locking';
 
 const MODULE_NAME = 'BillingIntegration';
 
