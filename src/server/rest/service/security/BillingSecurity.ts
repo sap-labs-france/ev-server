@@ -63,7 +63,7 @@ export default class BillingSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadInvoicesBilling(loggedUser)) {
+    if (Authorizations.canListInvoicesBilling(loggedUser)) {
       // Set only necessary info
       filteredInvoice.id = invoice.id;
       filteredInvoice.invoiceID = invoice.invoiceID;

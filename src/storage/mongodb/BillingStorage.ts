@@ -17,7 +17,7 @@ export default class BillingStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getInvoice');
     // Query single Site
     const invoicesMDB = await BillingStorage.getInvoices(tenantID,
-      { invoiceID: id },
+      { invoiceIDs: [id] },
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getInvoice', uniqueTimerID, { id });
@@ -38,7 +38,7 @@ export default class BillingStorage {
 
   public static async getInvoices(tenantID: string,
     params: {
-      invoiceID?: string; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
+      invoiceIDs?: string[]; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
       startDateTime?: Date; endDateTime?: Date;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
@@ -52,17 +52,17 @@ export default class BillingStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Search filters
     const filters: any = {};
-    // Filter by ID
-    if (params.invoiceID) {
-      filters._id = Utils.convertToObjectID(params.invoiceID);
-      // Filter by other properties
-    } else if (params.search) {
+    // Filter by other properties
+    if (params.search) {
       filters.$or = [
         { 'number': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
     }
     // Create Aggregation
     const aggregation = [];
+    if (params.invoiceIDs) {
+      filters._id = { $in: params.invoiceIDs.map((invoiceID) => Utils.convertToObjectID(invoiceID)) };
+    }
     if (params.userIDs) {
       filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
@@ -131,6 +131,8 @@ export default class BillingStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
