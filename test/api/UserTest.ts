@@ -161,7 +161,7 @@ describe('User tests', function() {
           const startDate = moment();
           const response = await testData.chargingStationContext.startTransaction(
             connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method
+          // eslint-disable-next-line @typescript-eslint/unbound-method 
           expect(response).to.be.transactionValid;
           testData.newUser.tags = [testData.newUser.tags[1], testData.newUser.tags[2]];
           // Update
