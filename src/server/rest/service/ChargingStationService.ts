@@ -1276,7 +1276,15 @@ export default class ChargingStationService {
               });
             }
             // Refresh Configuration
-            await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
+            if (params.type) {
+              await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation, false, {
+                key: params.key,
+                value: params.value,
+                type: params.type
+              });
+            } else {
+              await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
+            }
             // Check update with Vendor
             const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
             if (chargingStationVendor) {
