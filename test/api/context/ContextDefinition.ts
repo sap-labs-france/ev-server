@@ -33,7 +33,7 @@ export default class ContextDefinition {
     TENANT_BILLING: 'utbilling', // Only billing and pricing component is active
     TENANT_ASSET: 'utasset', // Only asset component is active
     TENANT_CAR: 'utcar', // Only car component is active
-    TENANT_SMART_CHARGING: 'utsmartcharg' // Organization and Smart Charging components are active
+    TENANT_SMART_CHARGING: 'utsmartcharging' // Organization and Smart Charging components are active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -49,6 +49,7 @@ export default class ContextDefinition {
     WITHOUT_ACL: 'withoutACL', // ACL is inactive
     WITH_SMART_CHARGING_THREE_PHASED: 'withSmartChargingThreePhased', // Smart Charging is active three phased
     WITH_SMART_CHARGING_SINGLE_PHASED: 'withSmartChargingSinglePhased', // Smart Charging is active single phased
+    WITH_SMART_CHARGING_DC: 'withSmartChargingDC', // Smart Charging is active DC
   };
 
   static readonly CHARGING_STATION_CONTEXTS: any = {
@@ -581,6 +582,15 @@ export default class ContextDefinition {
       maximumPower: 100000,
       voltage: 230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+    },
+    { // With smart charging DC
+      id: '5ce249a2372f0b1c8caf5444',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`,
+      smartCharging: true,
+      numberOfPhases: 3,
+      maximumPower: 200000,
+      voltage: 230,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     }
   ];
 
@@ -599,8 +609,9 @@ export default class ContextDefinition {
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
-        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`]
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`]
     },
     {
       baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15, // Concatenated with siteAreaName

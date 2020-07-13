@@ -4,6 +4,7 @@ import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
 import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
 import BillingContext from './BillingContext';
 import CentralServerService from '../client/CentralServerService';
+import ChargingStation from '../../types/ChargingStation';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Constants from '../../../src/utils/Constants';
 import Factory from '../../factories/Factory';
@@ -303,11 +304,25 @@ export default class ContextBuilder {
               const newChargingStationContext = await newTenantContext.createSinglePhasedChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
               await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
             } else if (siteAreaModel.smartCharging && siteAreaModel.numberOfPhases === 3) {
-              const chargingStationTemplate = Factory.chargingStation.build();
-              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
-              const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+              let chargingStationTemplate: ChargingStation;
+              if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`) {
+                chargingStationTemplate = Factory.chargingStation.buildChargingStationDC();
+                chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+                console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+                const newChargingStationContext = await newTenantContext.createChargingStationDC(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+                await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+              } else if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`) {
+                chargingStationTemplate = Factory.chargingStation.build();
+                chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+                console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+                let newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+                await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+                chargingStationTemplate = Factory.chargingStation.buildChargingStationSinglePhased();
+                chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name + '-' + 'singlePhased';
+                console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+                newChargingStationContext = await newTenantContext.createSinglePhasedChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+                await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+              }
             } else {
               const chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
