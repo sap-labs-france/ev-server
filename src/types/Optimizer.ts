@@ -1,7 +1,6 @@
 export interface OptimizerChargingProfilesRequest {
-  state: OptimizerState;
   event: OptimizerEvent;
-  verbosity?: number;
+  state: OptimizerState;
 }
 
 export interface OptimizerChargingProfilesResponse {
@@ -9,19 +8,13 @@ export interface OptimizerChargingProfilesResponse {
 }
 
 export interface OptimizerState {
-  currentTimeSeconds: number;
   fuseTree?: OptimizerFuseTree;
-  chargingStations?: OptimizerChargingStationConnectorFuse[];
-  maximumSiteLimitKW?: number;
   cars: OptimizerCar[];
-  energyPriceHistory?: OptimizerEnergyPriceHistory;
   carAssignments: OptimizerCarConnectorAssignment[];
+  currentTimeSeconds: number;
 }
 
 export interface OptimizerEvent {
-  carID?: number;
-  chargingStationID?: number;
-  energyPriceHistory?: OptimizerEnergyPriceHistory;
   eventType: OptimizerEventType;
 }
 

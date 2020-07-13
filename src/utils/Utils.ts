@@ -1,7 +1,8 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
+import Transaction, { InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -16,7 +17,6 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { HTTPError } from '../types/HTTPError';
-import { InactivityStatus } from '../types/Transaction';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
@@ -48,6 +48,24 @@ const _tenants = [];
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
+  public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    let threePhases = true;
+    if (currentType === CurrentType.AC &&
+      (transaction.currentInstantAmpsL1 > 0 &&
+        (transaction.currentInstantAmpsL2 === 0 ||
+          transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL2 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 ||
+          transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL3 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 ||
+          transaction.currentInstantAmpsL2 === 0))) {
+      threePhases = false;
+    }
+    return threePhases;
+  }
+
   public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number): number {
     let intervalMins = 0;
     if (!chargingStation || !chargingStation.connectors) {
@@ -487,12 +505,12 @@ export default class Utils {
     return changedValue;
   }
 
-  public static computeSimplePrice(pricePerKWH: number, consumptionWH: number): number {
-    return Utils.convertToFloat((pricePerKWH * (consumptionWH / 1000)).toFixed(6));
+  public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
+    return Utils.convertToFloat((pricePerkWh * (consumptionWh / 1000)).toFixed(6));
   }
 
-  public static computeSimpleRoundedPrice(pricePerKWH: number, consumptionWH: number): number {
-    return Utils.convertToFloat((pricePerKWH * consumptionWH).toFixed(2));
+  public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
+    return Utils.convertToFloat((pricePerkWh * consumptionWh).toFixed(2));
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -534,14 +552,14 @@ export default class Utils {
     if (!chargingStation.chargePoints) {
       return null;
     }
-    return chargingStation.chargePoints.find((chargePoint) => chargePoint.chargePointID === chargePointID);
+    return chargingStation.chargePoints.find((chargePoint) => chargePoint && (chargePoint.chargePointID === chargePointID));
   }
 
   public static getConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
     if (!chargingStation.connectors) {
       return null;
     }
-    return chargingStation.connectors.find((connector) => connector.connectorId === connectorID);
+    return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
   }
 
   public static computeChargingStationTotalAmps(chargingStation: ChargingStation): number {
@@ -816,10 +834,6 @@ export default class Utils {
     return true;
   }
 
-  public static isEmptyObj(obj: any): boolean {
-    return _.isObject(obj) && _.isEmpty(obj);
-  }
-
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results: any[] = [];
@@ -963,7 +977,7 @@ export default class Utils {
     return message;
   }
 
-  public static getRequestIP(request: http.IncomingMessage|Partial<Request>): string | string[] {
+  public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {
     if (request['ip']) {
       return request['ip'];
     } else if (request.headers['x-forwarded-for']) {
@@ -1190,6 +1204,26 @@ export default class Utils {
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
     filteredRequest: ChargingProfile, req: Request): void {
+    if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Station ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!Utils.objectHasProperty(filteredRequest, 'connectorID')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Connector ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
     if (!filteredRequest.profile) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1246,16 +1280,19 @@ export default class Utils {
       });
     }
     // Check Max Limitation of each Schedule
+    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
+    const numberOfConnectors = filteredRequest.connectorID === 0 ?
+      (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
     const maxAmpLimit = Utils.getChargingStationAmperageLimit(
       chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       // Check Min
-      if (chargingSchedulePeriod.limit < StaticLimitAmps.MIN_LIMIT) {
+      if (chargingSchedulePeriod.limit < 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Schedule is below the min limitation (${StaticLimitAmps.MIN_LIMIT}A)`,
+          message: 'Charging Schedule is below the min limitation (0A)',
           module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
           user: req.user.id,
           detailedMessages: { chargingSchedulePeriod }
@@ -1425,6 +1462,26 @@ export default class Utils {
         module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
+    }
+    if (asset.dynamicAsset) {
+      if (!asset.connectionID) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Asset connection is mandatory',
+          module: MODULE_NAME, method: 'checkIfAssetValid',
+          user: req.user.id
+        });
+      }
+      if (!asset.meterID) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Asset meter ID is mandatory',
+          module: MODULE_NAME, method: 'checkIfAssetValid',
+          user: req.user.id
+        });
+      }
     }
   }
 
@@ -1767,8 +1824,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1777,8 +1833,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vin Car is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1787,8 +1842,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'License Plate is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1796,9 +1850,8 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Catalog ID  is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        message: 'Car Catalog ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1807,8 +1860,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car type is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfCarValid',
+        module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
@@ -1818,11 +1870,55 @@ export default class Utils {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pool cars can only be created by admin',
-          module: MODULE_NAME,
-          method: 'checkIfCarValid',
+          module: MODULE_NAME, method: 'checkIfCarValid',
           user: req.user.id
         });
       }
+    }
+    if (!car.converter) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.amperagePerPhase) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter amperage per phase is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.numberOfPhases) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter number of phases is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.powerWatts) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter power is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.converter.type) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car CarConverter type is mandatory',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
     }
   }
 

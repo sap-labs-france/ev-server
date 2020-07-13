@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Session Not Started",
+  "subject": "'<%- chargeBoxID %>' - Ladevorgang nicht gestartet",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Session Not Started",
+      "title": "Ladevorgang nicht gestartet",
       "image": {
         "left": {
           "height": 60,
@@ -17,17 +17,17 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "You haven't started the session on charging station <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b>.",
+      "Sie haben an Ladestation <b>'<%- chargeBoxID %>'</b>, Ladepunkt <b>'<%- connectorId %>'</b>. keinen Ladevorgang gestartet",
       ""
     ],
     "action": {
-      "title": "View <%- chargeBoxID %>",
+      "title": "<%- chargeBoxID %> anzeigen",
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {}

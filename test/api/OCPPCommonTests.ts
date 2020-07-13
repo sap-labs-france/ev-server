@@ -27,7 +27,7 @@ export default class OCPPCommonTests {
   public centralUserService: CentralServerService;
 
   public currentPricingSetting;
-  public priceKWH = 2;
+  public pricekWh = 2;
 
   public chargingStationConnector1: OCPPStatusNotificationRequest;
   public chargingStationConnector2: OCPPStatusNotificationRequest;
@@ -125,7 +125,7 @@ export default class OCPPCommonTests {
     const allSettings = await this.centralUserService.settingApi.readAll({});
     this.currentPricingSetting = allSettings.data.result.find((s) => s.identifier === 'pricing');
     if (this.currentPricingSetting) {
-      await this.centralUserService.updatePriceSetting(this.priceKWH, 'EUR');
+      await this.centralUserService.updatePriceSetting(this.pricekWh, 'EUR');
     }
     // Default Connector values
     this.chargingStationConnector1 = {
@@ -216,7 +216,7 @@ export default class OCPPCommonTests {
     this.energyActiveImportEndMeterValue = this.energyActiveImportStartMeterValue + this.transactionTotalConsumptionWh;
     this.transactionTotalInactivitySecs = this.energyActiveImportMeterValues.reduce(
       (sum, meterValue) => (meterValue === 0 ? sum + this.meterValueIntervalSecs : sum), 0);
-    this.totalPrice = this.priceKWH * (this.transactionTotalConsumptionWh / 1000);
+    this.totalPrice = this.pricekWh * (this.transactionTotalConsumptionWh / 1000);
     // Tags
     this.validTag = faker.random.alphaNumeric(20).toString();
     this.invalidTag = faker.random.alphaNumeric(21).toString();
@@ -495,7 +495,7 @@ export default class OCPPCommonTests {
           currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
           currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
           currentTotalInactivitySecs: this.totalInactivities[index],
-          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.priceKWH,
+          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.pricekWh,
           currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
             this.newTransaction.connectorId, this.totalInactivities[index]),
         });
@@ -507,7 +507,7 @@ export default class OCPPCommonTests {
           currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
           currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
           currentTotalInactivitySecs: this.totalInactivities[index],
-          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.priceKWH,
+          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.pricekWh,
           currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
             this.newTransaction.connectorId, this.totalInactivities[index]),
         });

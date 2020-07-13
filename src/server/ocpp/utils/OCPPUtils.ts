@@ -235,15 +235,15 @@ export default class OCPPUtils {
     // Set Consumption (currentTotalConsumptionWh, currentTotalInactivitySecs are updated in consumption creation)
     transaction.currentConsumptionWh = Utils.convertToFloat(consumption.consumptionWh);
     transaction.currentInstantWatts = Utils.convertToFloat(consumption.instantWatts);
-    transaction.currentInstanWattsL1 = Utils.convertToFloat(consumption.instantWattsL1);
-    transaction.currentInstanWattsL2 = Utils.convertToFloat(consumption.instantWattsL2);
-    transaction.currentInstanWattsL3 = Utils.convertToFloat(consumption.instantWattsL3);
-    transaction.currentInstanWattsDC = Utils.convertToFloat(consumption.instantWattsDC);
-    transaction.currentInstantVoltage = Utils.convertToFloat(consumption.instantVolts);
-    transaction.currentInstantVoltageL1 = Utils.convertToFloat(consumption.instantVoltsL1);
-    transaction.currentInstantVoltageL2 = Utils.convertToFloat(consumption.instantVoltsL2);
-    transaction.currentInstantVoltageL3 = Utils.convertToFloat(consumption.instantVoltsL3);
-    transaction.currentInstantVoltageDC = Utils.convertToFloat(consumption.instantVoltsDC);
+    transaction.currentInstantWattsL1 = Utils.convertToFloat(consumption.instantWattsL1);
+    transaction.currentInstantWattsL2 = Utils.convertToFloat(consumption.instantWattsL2);
+    transaction.currentInstantWattsL3 = Utils.convertToFloat(consumption.instantWattsL3);
+    transaction.currentInstantWattsDC = Utils.convertToFloat(consumption.instantWattsDC);
+    transaction.currentInstantVolts = Utils.convertToFloat(consumption.instantVolts);
+    transaction.currentInstantVoltsL1 = Utils.convertToFloat(consumption.instantVoltsL1);
+    transaction.currentInstantVoltsL2 = Utils.convertToFloat(consumption.instantVoltsL2);
+    transaction.currentInstantVoltsL3 = Utils.convertToFloat(consumption.instantVoltsL3);
+    transaction.currentInstantVoltsDC = Utils.convertToFloat(consumption.instantVoltsDC);
     transaction.currentInstantAmps = Utils.convertToFloat(consumption.instantAmps);
     transaction.currentInstantAmpsL1 = Utils.convertToFloat(consumption.instantAmpsL1);
     transaction.currentInstantAmpsL2 = Utils.convertToFloat(consumption.instantAmpsL2);
@@ -256,19 +256,19 @@ export default class OCPPUtils {
       transaction.stateOfCharge = Utils.convertToInt(transaction.currentStateOfCharge);
     }
     transaction.currentTotalDurationSecs = moment.duration(
-      moment(transaction.lastEnergyActiveImportMeterValue ? transaction.lastEnergyActiveImportMeterValue.timestamp : new Date()).diff(
+      moment(transaction.lastConsumption ? transaction.lastConsumption.timestamp : new Date()).diff(
         moment(transaction.timestamp))).asSeconds();
     transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
       chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs);
   }
 
-  public static async recomputeTransactionConsumptions(tenantID: string, transactionId: number): Promise<number> {
+  public static async rebuildTransactionConsumptions(tenantID: string, transactionId: number): Promise<number> {
     let consumptions: Consumption[] = [];
-    let transactionSimplePricePerKWH;
+    let transactionSimplePricePerkWh;
     if (!transactionId) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: ServerAction.REBUILD_CONSUMPTION,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
         message: 'Transaction ID must be provided',
       });
@@ -278,7 +278,7 @@ export default class OCPPUtils {
     if (!transaction) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: ServerAction.REBUILD_CONSUMPTION,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
         message: `Transaction with ID ${transactionId} does not exist`,
       });
@@ -286,14 +286,14 @@ export default class OCPPUtils {
     if (!transaction.stop) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: ServerAction.REBUILD_CONSUMPTION,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
         message: `Transaction with ID ${transactionId} is in progress`,
       });
     }
     // Check Simple Pricing
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
-      transactionSimplePricePerKWH = Utils.getRoundedNumberToTwoDecimals(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000));
+      transactionSimplePricePerkWh = Utils.getRoundedNumberToTwoDecimals(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000));
     }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,
@@ -301,7 +301,7 @@ export default class OCPPUtils {
     if (!chargingStation) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: ServerAction.REBUILD_CONSUMPTION,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
         message: `Charging Station with ID ${transaction.chargeBoxID} does not exist`,
       });
@@ -343,9 +343,9 @@ export default class OCPPUtils {
           await OCPPUtils.billTransaction(tenantID, transaction, TransactionAction.UPDATE);
         }
         // Override the price if simple pricing only
-        if (transactionSimplePricePerKWH > 0) {
-          consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerKWH, consumption.consumptionWh);
-          consumption.roundedAmount = Utils.computeSimpleRoundedPrice(transactionSimplePricePerKWH, consumption.consumptionWh);
+        if (transactionSimplePricePerkWh > 0) {
+          consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
+          consumption.roundedAmount = Utils.computeSimpleRoundedPrice(transactionSimplePricePerkWh, consumption.consumptionWh);
           consumption.pricingSource = PricingSettingsType.SIMPLE;
         }
         // Cumulated props
@@ -429,38 +429,38 @@ export default class OCPPUtils {
       });
     }
     // Add Voltage
-    if (transaction.currentInstantVoltage > 0 || transaction.currentInstantVoltageDC > 0) {
+    if (transaction.currentInstantVolts > 0 || transaction.currentInstantVoltsDC > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: (transaction.currentInstantVoltage ? transaction.currentInstantVoltage : transaction.currentInstantVoltageDC),
+        value: (transaction.currentInstantVolts ? transaction.currentInstantVolts : transaction.currentInstantVoltsDC),
         attribute: Constants.OCPP_VOLTAGE_ATTRIBUTE
       });
     }
     // Add Voltage L1
-    if (transaction.currentInstantVoltageL1 > 0) {
+    if (transaction.currentInstantVoltsL1 > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: transaction.currentInstantVoltageL1,
+        value: transaction.currentInstantVoltsL1,
         attribute: Constants.OCPP_VOLTAGE_L1_ATTRIBUTE
       });
     }
     // Add Voltage L2
-    if (transaction.currentInstantVoltageL2 > 0) {
+    if (transaction.currentInstantVoltsL2 > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: transaction.currentInstantVoltageL2,
+        value: transaction.currentInstantVoltsL2,
         attribute: Constants.OCPP_VOLTAGE_L2_ATTRIBUTE
       });
     }
     // Add Voltage L3
-    if (transaction.currentInstantVoltageL3 > 0) {
+    if (transaction.currentInstantVoltsL3 > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: transaction.currentInstantVoltageL3,
+        value: transaction.currentInstantVoltsL3,
         attribute: Constants.OCPP_VOLTAGE_L3_ATTRIBUTE
       });
     }
@@ -501,38 +501,38 @@ export default class OCPPUtils {
       });
     }
     // Add Power
-    if (transaction.currentInstantWatts > 0 || transaction.currentInstanWattsDC > 0) {
+    if (transaction.currentInstantWatts > 0 || transaction.currentInstantWattsDC > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: (transaction.currentInstantWatts ? transaction.currentInstantWatts : transaction.currentInstanWattsDC),
+        value: (transaction.currentInstantWatts ? transaction.currentInstantWatts : transaction.currentInstantWattsDC),
         attribute: Constants.OCPP_POWER_ACTIVE_IMPORT_ATTRIBUTE
       });
     }
     // Add Power L1
-    if (transaction.currentInstanWattsL1 > 0) {
+    if (transaction.currentInstantWattsL1 > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: transaction.currentInstanWattsL1,
+        value: transaction.currentInstantWattsL1,
         attribute: Constants.OCPP_POWER_ACTIVE_IMPORT_L1_ATTRIBUTE
       });
     }
     // Add Power L2
-    if (transaction.currentInstanWattsL2 > 0) {
+    if (transaction.currentInstantWattsL2 > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: transaction.currentInstanWattsL2,
+        value: transaction.currentInstantWattsL2,
         attribute: Constants.OCPP_POWER_ACTIVE_IMPORT_L2_ATTRIBUTE
       });
     }
     // Add Power L3
-    if (transaction.currentInstanWattsL3 > 0) {
+    if (transaction.currentInstantWattsL3 > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: transaction.currentInstanWattsL3,
+        value: transaction.currentInstantWattsL3,
         attribute: Constants.OCPP_POWER_ACTIVE_IMPORT_L3_ATTRIBUTE
       });
     }
@@ -550,7 +550,7 @@ export default class OCPPUtils {
       if (OCPPUtils.isValidMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption: Consumption = await this.createConsumptionFromMeterValue(
-          tenantID, chargingStation, transaction, transaction.lastEnergyActiveImportMeterValue, meterValue);
+          tenantID, chargingStation, transaction, transaction.lastConsumption, meterValue);
         if (consumption) {
           // Existing Consumption created?
           const existingConsumption = consumptions.find(
@@ -582,12 +582,12 @@ export default class OCPPUtils {
   }
 
   public static async createConsumptionFromMeterValue(tenantID: string, chargingStation: ChargingStation, transaction: Transaction,
-    lastEnergyActiveImportMeterValue: { value: number; timestamp: Date }, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
+    lastConsumption: { value: number; timestamp: Date }, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isValidMeterValue(meterValue)) {
       // First meter value: Create one based on the transaction
-      if (!lastEnergyActiveImportMeterValue) {
-        lastEnergyActiveImportMeterValue = {
+      if (!lastConsumption) {
+        lastConsumption = {
           timestamp: transaction.timestamp,
           value: transaction.meterStart,
         };
@@ -689,12 +689,12 @@ export default class OCPPUtils {
         // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
-        consumption.startedAt = Utils.convertToDate(lastEnergyActiveImportMeterValue.timestamp);
-        const diffSecs = moment(meterValue.timestamp).diff(lastEnergyActiveImportMeterValue.timestamp, 'milliseconds') / 1000;
+        consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
+        const diffSecs = moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds') / 1000;
         // Consumption
-        if (Utils.convertToFloat(meterValue.value) > lastEnergyActiveImportMeterValue.value) {
+        if (Utils.convertToFloat(meterValue.value) > lastConsumption.value) {
           // Compute consumption
-          const consumptionInMeterValue = Utils.convertToFloat(meterValue.value) - Utils.convertToFloat(lastEnergyActiveImportMeterValue.value);
+          const consumptionInMeterValue = Utils.convertToFloat(meterValue.value) - Utils.convertToFloat(lastConsumption.value);
           // Current consumption
           consumption.consumptionWh = (meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT_HOUR ?
             consumptionInMeterValue * 1000 : consumptionInMeterValue);
@@ -720,7 +720,7 @@ export default class OCPPUtils {
         // Handle current Site Area limitation
         await OCPPUtils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Keep last one
-        transaction.lastEnergyActiveImportMeterValue = {
+        transaction.lastConsumption = {
           value: Utils.convertToFloat(meterValue.value),
           timestamp: Utils.convertToDate(meterValue.timestamp)
         };
@@ -855,13 +855,19 @@ export default class OCPPUtils {
           // Handle capabilities
           chargingStation.capabilities = {} as ChargingStationCapabilities;
           if (Utils.objectHasProperty(chargingStationTemplate, 'capabilities')) {
-            let matchFirmware = true;
-            let matchOcpp = true;
+            let matchFirmware = false;
+            let matchOcpp = false;
             // Search Firmware/Ocpp match
             for (const capabilities of chargingStationTemplate.capabilities) {
               // Check Firmware version
               if (capabilities.supportedFirmwareVersions) {
-                matchFirmware = capabilities.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
+                for (const supportedFirmwareVersion of capabilities.supportedFirmwareVersions) {
+                  const regExp = new RegExp(supportedFirmwareVersion);
+                  if (regExp.test(chargingStation.firmwareVersion)) {
+                    matchFirmware = true;
+                    break;
+                  }
+                }
               }
               // Check Ocpp version
               if (capabilities.supportedOcppVersions) {
@@ -869,6 +875,10 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
+                if (Utils.objectHasProperty(capabilities.capabilities, 'supportChargingProfiles') &&
+                  !capabilities.capabilities.supportChargingProfiles) {
+                  chargingStation.excludeFromSmartCharging = !capabilities.capabilities.supportChargingProfiles;
+                }
                 chargingStation.capabilities = capabilities.capabilities;
                 break;
               }
@@ -882,19 +892,29 @@ export default class OCPPUtils {
           // Handle OCPP Standard Parameters
           chargingStation.ocppStandardParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppStandardParameters')) {
-            let matchOcpp = true;
+            let matchFirmware = false;
+            let matchOcpp = false;
             // Search Firmware/Ocpp match
             for (const ocppStandardParameters of chargingStationTemplate.ocppStandardParameters) {
+              // Check Firmware version
+              if (ocppStandardParameters.supportedFirmwareVersions) {
+                for (const supportedFirmwareVersion of ocppStandardParameters.supportedFirmwareVersions) {
+                  const regExp = new RegExp(supportedFirmwareVersion);
+                  if (regExp.test(chargingStation.firmwareVersion)) {
+                    matchFirmware = true;
+                    break;
+                  }
+                }
+              }
               // Check Ocpp version
               if (ocppStandardParameters.supportedOcppVersions) {
                 matchOcpp = ocppStandardParameters.supportedOcppVersions.includes(chargingStation.ocppVersion);
               }
               // Found?
-              if (matchOcpp) {
+              if (matchFirmware && matchOcpp) {
                 for (const parameter in ocppStandardParameters.parameters) {
                   chargingStation.ocppStandardParameters.push({
                     key: parameter,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     value: ocppStandardParameters.parameters[parameter]
                   });
                 }
@@ -910,13 +930,19 @@ export default class OCPPUtils {
           // Handle OCPP Vendor Parameters
           chargingStation.ocppVendorParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppVendorParameters')) {
-            let matchFirmware = true;
-            let matchOcpp = true;
+            let matchFirmware = false;
+            let matchOcpp = false;
             // Search Firmware/Ocpp match
             for (const ocppVendorParameters of chargingStationTemplate.ocppVendorParameters) {
               // Check Firmware version
               if (ocppVendorParameters.supportedFirmwareVersions) {
-                matchFirmware = ocppVendorParameters.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
+                for (const supportedFirmwareVersion of ocppVendorParameters.supportedFirmwareVersions) {
+                  const regExp = new RegExp(supportedFirmwareVersion);
+                  if (regExp.test(chargingStation.firmwareVersion)) {
+                    matchFirmware = true;
+                    break;
+                  }
+                }
               }
               // Check Ocpp version
               if (ocppVendorParameters.supportedOcppVersions) {
@@ -927,7 +953,6 @@ export default class OCPPUtils {
                 for (const parameter in ocppVendorParameters.parameters) {
                   chargingStation.ocppVendorParameters.push({
                     key: parameter,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     value: ocppVendorParameters.parameters[parameter]
                   });
                 }
@@ -1072,7 +1097,7 @@ export default class OCPPUtils {
     };
     for (const chargingStation of siteArea.chargingStations) {
       const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID, {
-        chargingStationID: chargingStation.id,
+        chargingStationIDs: [chargingStation.id],
         profilePurposeType: params.profilePurposeType,
         transactionId: params.transactionId
       }, Constants.DB_PARAMS_MAX_LIMIT);

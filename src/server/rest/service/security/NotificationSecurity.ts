@@ -1,13 +1,21 @@
 import Authorizations from '../../../../authorization/Authorizations';
+import { DataResult } from '../../../../types/DataResult';
+import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
+import { Notification } from '../../../../types/UserNotifications';
 import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
+interface HttpNotificationRequest extends HttpDatabaseRequest {
+  UserID: string;
+  DateFrom: Date;
+  Channel: string;
+}
+
 export default class NotificationSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterNotificationsRequest(request: any) {
-    const filteredRequest: any = {};
+  static filterNotificationsRequest(request: any): HttpNotificationRequest {
+    const filteredRequest: HttpNotificationRequest = {} as HttpNotificationRequest;
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.DateFrom = sanitize(request.DateFrom);
     filteredRequest.Channel = sanitize(request.Channel);
@@ -16,7 +24,7 @@ export default class NotificationSecurity {
     return filteredRequest;
   }
 
-  static filterNotificationsResponse(notifications, loggedUser) {
+  static filterNotificationsResponse(notifications: DataResult<Notification>, loggedUser: UserToken): void {
     const filteredNotifications = [];
 
     if (!notifications.result) {
@@ -35,7 +43,7 @@ export default class NotificationSecurity {
   }
 
   // Notification
-  static filterNotificationResponse(notification, loggedUser: UserToken) {
+  static filterNotificationResponse(notification: Notification, loggedUser: UserToken): Notification {
     let filteredNotification = null;
 
     if (!notification) {

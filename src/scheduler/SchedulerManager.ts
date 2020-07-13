@@ -17,6 +17,7 @@ import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIPatchLocationsTask from './tasks/ocpi/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import { ServerAction } from '../types/Server';
+import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
 import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
@@ -95,6 +96,9 @@ export default class SchedulerManager {
             break;
           case 'SynchronizeBillingUsersTask':
             schedulerTask = new SynchronizeBillingUsersTask();
+            break;
+          case 'SynchronizeBillingInvoicesTask':
+            schedulerTask = new SynchronizeBillingInvoicesTask();
             break;
           case 'SynchronizeCarsTask':
             schedulerTask = new SynchronizeCarsTask();

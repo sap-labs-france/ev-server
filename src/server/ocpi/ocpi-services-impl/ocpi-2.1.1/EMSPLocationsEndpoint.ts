@@ -150,10 +150,15 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStation.id);
         return;
       }
+      chargingStation.ocpiData.evse.status = evse.status;
       const status = OCPIMapping.convertOCPIStatus2Status(evse.status);
       chargingStation.connectors.forEach((connector) => {
         connector.status = status;
       });
+    }
+    if (evse.last_updated) {
+      chargingStation.lastChangedOn = evse.last_updated;
+      chargingStation.ocpiData.evse.last_updated = evse.last_updated;
     }
     const patchedChargingStation = OCPIMapping.convertEvseToChargingStation(chargingStation.id, evse);
     if (patchedChargingStation.coordinates) {

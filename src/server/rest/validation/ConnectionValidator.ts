@@ -19,7 +19,7 @@ export default class ConnectionValidator extends SchemaValidator {
     return ConnectionValidator.instance;
   }
 
-  validateConnectionCreation(content) {
+  validateConnectionCreation(content): void {
     this.validate(this.connectionCreation, content);
   }
 }

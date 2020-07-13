@@ -21,7 +21,7 @@ const MODULE_NAME = 'LoggingService';
 export default class LoggingService {
   static async handleGetLoggings(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListLogging(req.user)) {
+    if (!Authorizations.canListLoggings(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -81,7 +81,7 @@ export default class LoggingService {
 
   static async handleGetLoggingsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListLogging(req.user)) {
+    if (!Authorizations.canListLoggings(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,

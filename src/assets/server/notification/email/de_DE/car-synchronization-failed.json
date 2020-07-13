@@ -1,10 +1,10 @@
 {
-  "subject": "Car Synchronization Failed",
+  "subject": "Synchronisierung der Fahrzeuge ist fehlgeschlagen",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Car Synchronization Failed",
+      "title": "Synchronisierung der Fahrzeuge ist fehlgeschlagen",
       "image": {
         "left": {
           "height": 60,
@@ -17,9 +17,9 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Sehr geehrter Administrator,",
       "",
-      "Unable to synchronize <%- nbrCarsInError %> car(s) with the electric vehicles data provider.",
+      "Es ist nicht möglich <%- nbrCarsInError %> Fahrzeuge mit dem Fahrzeugdaten-Provider zu synchronisieren.",
       ""
     ],
     "action": {
@@ -27,7 +27,7 @@
       "url": "<%- evseDashboardURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {}

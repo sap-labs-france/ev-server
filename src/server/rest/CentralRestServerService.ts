@@ -133,6 +133,7 @@ class RequestMapper {
           [ServerAction.ASSET_IMAGE]: AssetService.handleGetAssetImage.bind(this),
           [ServerAction.ASSETS_IN_ERROR]: AssetService.handleGetAssetsInError.bind(this),
           [ServerAction.CHECK_ASSET_CONNECTION]: AssetService.handleCheckAssetConnection.bind(this),
+          [ServerAction.RETRIEVE_ASSET_CONSUMPTION]: AssetService.handleRetrieveConsumption.bind(this),
           [ServerAction.SITES]: SiteService.handleGetSites.bind(this),
           [ServerAction.SITE]: SiteService.handleGetSite.bind(this),
           [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
@@ -148,7 +149,6 @@ class RequestMapper {
           [ServerAction.USERS_IN_ERROR]: UserService.handleGetUsersInError.bind(this),
           [ServerAction.USER_IMAGE]: UserService.handleGetUserImage.bind(this),
           [ServerAction.USER]: UserService.handleGetUser.bind(this),
-          [ServerAction.USER_INVOICE]: UserService.handleGetUserInvoice.bind(this),
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
@@ -158,6 +158,7 @@ class RequestMapper {
           [ServerAction.TRANSACTIONS_ACTIVE]: TransactionService.handleGetTransactionsActive.bind(this),
           [ServerAction.TRANSACTIONS_IN_ERROR]: TransactionService.handleGetTransactionsInError.bind(this),
           [ServerAction.TRANSACTION_YEARS]: TransactionService.handleGetTransactionYears.bind(this),
+          [ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS]: TransactionService.handleRebuildTransactionConsumptions.bind(this),
           [ServerAction.UNASSIGNED_TRANSACTIONS_COUNT]: TransactionService.handleGetUnassignedTransactionsCount.bind(this),
           [ServerAction.CHARGING_STATION_CONSUMPTION_STATISTICS]: StatisticService.handleGetChargingStationConsumptionStatistics.bind(this),
           [ServerAction.CHARGING_STATION_USAGE_STATISTICS]: StatisticService.handleGetChargingStationUsageStatistics.bind(this),
@@ -179,7 +180,8 @@ class RequestMapper {
           [ServerAction.SETTING]: SettingService.handleGetSetting.bind(this),
           [ServerAction.CHECK_BILLING_CONNECTION]: BillingService.handleCheckBillingConnection.bind(this),
           [ServerAction.BILLING_TAXES]: BillingService.handleGetBillingTaxes.bind(this),
-          [ServerAction.BILLING_USER_INVOICES]: BillingService.handleGetUserInvoices.bind(this),
+          [ServerAction.BILLING_INVOICES]: BillingService.handleGetInvoices.bind(this),
+          [ServerAction.BILLING_DOWNLOAD_INVOICE]: BillingService.handleDownloadInvoice.bind(this),
           [ServerAction.OCPI_ENDPOINTS]: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           [ServerAction.OCPI_ENDPOINT]: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTIONS]: ConnectionService.handleGetConnections.bind(this),
@@ -234,6 +236,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_DELETE]: ConnectionService.handleDeleteConnection.bind(this),
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
+          [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
         });
         break;
     }

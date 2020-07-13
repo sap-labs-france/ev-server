@@ -53,7 +53,7 @@ export default class OCPIUtils {
       const query = req.query;
       query.offset = (offset + limit).toString();
       query.limit = limit.toString();
-      let queryString;
+      let queryString: string;
       for (const param in query) {
         queryString = queryString ? `${queryString}&${param}=${query[param]}` : `${param}=${query[param]}`;
       }
@@ -202,7 +202,7 @@ export default class OCPIUtils {
    * Generate a local token for a tenant subdomain
    * @param tenantSubdomain
    */
-  public static generateLocalToken(tenantSubdomain: string) {
+  public static generateLocalToken(tenantSubdomain: string): string {
     const newToken: any = {};
     // Generate random
     newToken.ak = Math.floor(Math.random() * 100);
@@ -214,7 +214,7 @@ export default class OCPIUtils {
     return OCPIUtils.btoa(JSON.stringify(newToken));
   }
 
-  public static isAuthorizationValid(authorizationDate: Date) {
+  public static isAuthorizationValid(authorizationDate: Date): boolean {
     return authorizationDate && moment(authorizationDate).isAfter(moment().subtract(2, 'minutes'));
   }
 }
