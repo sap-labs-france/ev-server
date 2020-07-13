@@ -71,7 +71,7 @@ export default class TransactionStorage {
       numberOfMeterValues: Utils.convertToInt(transactionToSave.numberOfMeterValues),
       currentStateOfCharge: Utils.convertToInt(transactionToSave.currentStateOfCharge),
       currentSignedData: transactionToSave.currentSignedData,
-      lastEnergyActiveImportMeterValue: transactionToSave.lastEnergyActiveImportMeterValue,
+      lastConsumption: transactionToSave.lastConsumption,
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
       currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
@@ -83,11 +83,11 @@ export default class TransactionStorage {
       currentInstantWattsDC: Utils.convertToFloat(transactionToSave.currentInstantWattsDC),
       currentTotalConsumptionWh: Utils.convertToFloat(transactionToSave.currentTotalConsumptionWh),
       currentTotalDurationSecs: Utils.convertToInt(transactionToSave.currentTotalDurationSecs),
-      currentInstantVoltage: Utils.convertToFloat(transactionToSave.currentInstantVoltage),
-      currentInstantVoltageL1: Utils.convertToInt(transactionToSave.currentInstantVoltageL1),
-      currentInstantVoltageL2: Utils.convertToInt(transactionToSave.currentInstantVoltageL2),
-      currentInstantVoltageL3: Utils.convertToInt(transactionToSave.currentInstantVoltageL3),
-      currentInstantVoltageDC: Utils.convertToInt(transactionToSave.currentInstantVoltageDC),
+      currentInstantVolts: Utils.convertToFloat(transactionToSave.currentInstantVolts),
+      currentInstantVoltsL1: Utils.convertToInt(transactionToSave.currentInstantVoltsL1),
+      currentInstantVoltsL2: Utils.convertToInt(transactionToSave.currentInstantVoltsL2),
+      currentInstantVoltsL3: Utils.convertToInt(transactionToSave.currentInstantVoltsL3),
+      currentInstantVoltsDC: Utils.convertToInt(transactionToSave.currentInstantVoltsDC),
       currentInstantAmps: Utils.convertToFloat(transactionToSave.currentInstantAmps),
       currentInstantAmpsL1: Utils.convertToInt(transactionToSave.currentInstantAmpsL1),
       currentInstantAmpsL2: Utils.convertToInt(transactionToSave.currentInstantAmpsL2),
@@ -127,14 +127,14 @@ export default class TransactionStorage {
       delete transactionMDB.currentTotalConsumptionWh;
       delete transactionMDB.currentTotalInactivitySecs;
       delete transactionMDB.currentInactivityStatus;
-      delete transactionMDB.lastEnergyActiveImportMeterValue;
+      delete transactionMDB.lastConsumption;
       delete transactionMDB.numberOfMeterValues;
       delete transactionMDB.currentTotalDurationSecs;
-      delete transactionMDB.currentInstantVoltage;
-      delete transactionMDB.currentInstantVoltageL1;
-      delete transactionMDB.currentInstantVoltageL2;
-      delete transactionMDB.currentInstantVoltageL3;
-      delete transactionMDB.currentInstantVoltageDC;
+      delete transactionMDB.currentInstantVolts;
+      delete transactionMDB.currentInstantVoltsL1;
+      delete transactionMDB.currentInstantVoltsL2;
+      delete transactionMDB.currentInstantVoltsL3;
+      delete transactionMDB.currentInstantVoltsDC;
       delete transactionMDB.currentInstantAmps;
       delete transactionMDB.transactionEndReceived;
       delete transactionMDB.currentInstantAmpsL1;

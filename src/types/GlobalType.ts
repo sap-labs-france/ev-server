@@ -26,6 +26,14 @@ export interface ActionsResponse {
   inError: number;
 }
 
+export enum DocumentType {
+  PDF = 'pdf',
+}
+
+export enum DocumentEncoding {
+  BASE64 = 'base64',
+}
+
 interface TSGlobal extends Global {
   database: MongoDBStorage;
   appRoot: string;

@@ -28,7 +28,7 @@ const userFactory = Factory.define('user')
     sendUserAccountInactivity: false,
     sendPreparingSessionNotStarted: false,
     sendOfflineChargingStations: false,
-    sendBillingUserSynchronizationFailed: false,
+    sendBillingSynchronizationFailed: false,
     sendSessionNotStarted: false,
     sendCarCatalogSynchronizationFailed: false
   }))

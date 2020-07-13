@@ -131,17 +131,15 @@ export default class CarService {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.SYNCHRONIZE_CAR_CATALOGS, Entity.CAR_CATALOGS, MODULE_NAME, 'handleSynchronizeCarCatalogs');
+        Action.SYNCHRONIZE, Entity.CAR_CATALOGS, MODULE_NAME, 'handleSynchronizeCarCatalogs');
     }
     // Check auth
     if (!Authorizations.canSynchronizeCarCatalogs(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.SYNCHRONIZE_CAR_CATALOGS,
-        entity: Entity.CAR_CATALOGS,
-        module: MODULE_NAME,
-        method: 'handleSynchronizeCarCatalogs'
+        action: Action.SYNCHRONIZE, entity: Entity.CAR_CATALOGS,
+        module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
       });
     }
     const carDatabaseImpl = await CarFactory.getCarImpl();
@@ -149,8 +147,7 @@ export default class CarService {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         message: 'Car service is not configured',
-        module: MODULE_NAME,
-        method: 'handleSynchronizeCarCatalogs'
+        module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
       });
     }
     const result = await carDatabaseImpl.synchronizeCarCatalogs();
@@ -169,10 +166,8 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME,
-        method: 'handleGetCarMakers'
+        action: Action.READ, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'handleGetCarMakers'
       });
     }
     // Filter

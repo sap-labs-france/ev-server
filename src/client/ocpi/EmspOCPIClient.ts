@@ -13,6 +13,7 @@ import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
@@ -47,7 +48,7 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  async sendTokens() {
+  async sendTokens(): Promise<OCPIJobResult> {
     // Result
     const sendResult = {
       success: 0,
@@ -138,7 +139,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return company;
   }
 
-  async pullLocations(partial = true) {
+  async pullLocations(partial = true): Promise<OCPIJobResult> {
     // Result
     const sendResult = {
       success: 0,
@@ -214,7 +215,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return sendResult;
   }
 
-  async pullSessions() {
+  async pullSessions(): Promise<OCPIJobResult> {
     // Result
     const sendResult = {
       success: 0,
@@ -284,7 +285,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return sendResult;
   }
 
-  async pullCdrs() {
+  async pullCdrs(): Promise<OCPIJobResult> {
     // Result
     const sendResult = {
       success: 0,
@@ -355,7 +356,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return sendResult;
   }
 
-  async processLocation(location: OCPILocation, company: Company, sites: Site[]) {
+  async processLocation(location: OCPILocation, company: Company, sites: Site[]): Promise<void> {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PULL_LOCATIONS,
@@ -685,7 +686,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return response.data.data as OCPICommandResponse;
   }
 
-  async triggerJobs() {
+  async triggerJobs(): Promise<{ tokens: OCPIJobResult; locations: OCPIJobResult; sessions: OCPIJobResult; cdrs: OCPIJobResult }> {
     return {
       tokens: await this.sendTokens(),
       locations: await this.pullLocations(false),

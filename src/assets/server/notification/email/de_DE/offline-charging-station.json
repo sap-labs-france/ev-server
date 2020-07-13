@@ -1,10 +1,10 @@
 {
-  "subject": "Offline Charging Stations",
+  "subject": "Ladestationen - Offline",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Offline Charging Stations",
+      "title": "Ladestationen - Offline",
       "image": {
         "left": {
           "height": 60,
@@ -17,9 +17,9 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Sehr geehrter Administrator,",
       "",
-      "The following charging stations are offline in your organization: <b><%- chargeBoxIDs %></b>",
+      "Die folgenden Ladestationen sind offline in Ihrer Organisation: <b><%- chargeBoxIDs %></b>",
       ""
     ],
     "action": {
@@ -27,7 +27,7 @@
       "url": "<%- evseDashboardURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {}

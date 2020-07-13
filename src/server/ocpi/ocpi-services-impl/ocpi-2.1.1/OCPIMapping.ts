@@ -1,5 +1,5 @@
 import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCPIChargingPeriod';
-import ChargingStation, { ChargePoint, Connector, ConnectorType } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType } from '../../../../types/ChargingStation';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
@@ -56,7 +56,10 @@ export default class OCPIMapping {
         'longitude': site.address.coordinates[0]
       },
       'evses': await OCPIMapping.getEvsesFromSite(tenant, site, options),
-      'last_updated': site.lastChangedOn ? site.lastChangedOn : site.createdOn
+      'last_updated': site.lastChangedOn ? site.lastChangedOn : site.createdOn,
+      'opening_times': {
+        'twentyfourseven': true,
+      }
     };
   }
 
@@ -127,7 +130,7 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    * @param {Site} site
    * @param options
-   * @return Array of OCPI EVSES
+   * @return Array of OCPI EVSEs
    */
   static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIEvse[]> {
     // Build evses array
@@ -155,7 +158,7 @@ export default class OCPIMapping {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id, { issuer: true }, { limit, skip });
+    const sites = await SiteStorage.getSites(tenant.id, { issuer: true, withChargingStations: true }, { limit, skip });
     // Convert Sites to Locations
     for (const site of sites.result) {
       ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
@@ -384,7 +387,10 @@ export default class OCPIMapping {
         },
         last_updated: chargingStation.lastHeartBeat
       }],
-      last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn
+      last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
+      opening_times: {
+        twentyfourseven: true,
+      }
     };
     return ocpiLocation;
   }
@@ -438,7 +444,11 @@ export default class OCPIMapping {
     }
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
     const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
-    const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
+    let numberOfConnectedPhase = 0;
+    // FIXME: Push down that check in Utils.getNumberOfConnectedPhases() once the callee and its callers will be able to handle AC/DC charger full specification
+    if (chargePoint.currentType === CurrentType.AC) {
+      numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
+    }
     return {
       'id': `${evseID}*${connector.connectorId}`,
       'standard': type,
@@ -446,6 +456,8 @@ export default class OCPIMapping {
       'voltage': voltage,
       'amperage': amperage,
       'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
+      // FIXME: add tariff id from the simple pricing settings remapping
+      'tariff_id': '1',
       'last_updated': chargingStation.lastHeartBeat
     };
   }

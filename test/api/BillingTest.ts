@@ -175,6 +175,7 @@ describe('Billing Service', function() {
         );
         fakeUser.firstName = 'Test';
         fakeUser.name = 'Name';
+        fakeUser.issuer = true;
         await testData.userService.updateEntity(
           testData.userService.userApi,
           fakeUser,
@@ -269,9 +270,17 @@ describe('Billing Service', function() {
 
       it('Should list filtered invoices', async () => {
         const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.data.result.length).to.be.gt(0);
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
+      });
+
+      it('Should download invoice as PDF', async () => {
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.data.result.length).to.be.gt(0);
+        const downloadResponse = await testData.userService.billingApi.downloadInvoiceDocument({ ID : response.data.result[0].id });
+        expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
       });
 
       it('Should synchronize invoices', async () => {
@@ -387,7 +396,7 @@ describe('Billing Service', function() {
         );
         const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         for (let i = 0; i < response.data.result.length - 1; i++) {
-          expect(response.data.result[i].userID).to.be.eq(basicUser.id);
+          expect(response.data.result[i].user.id).to.be.eq(basicUser.id);
         }
       });
 
@@ -396,6 +405,13 @@ describe('Billing Service', function() {
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
+      });
+
+      it('Should download invoice as PDF', async () => {
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.data.result.length).to.be.gt(0);
+        const downloadResponse = await testData.userService.billingApi.downloadInvoiceDocument({ ID : response.data.result[0].id });
+        expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
       });
     });
   });
