@@ -195,7 +195,7 @@ export default class OCPPUtils {
     }
     // Fill Power per Phase when Current is provided in Meter Values (Power per phase not Provided by Schneider)
     if (!consumption.instantWattsL1 && !consumption.instantWattsL2 && !consumption.instantWattsL3 &&
-        (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0)) {
+      (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0)) {
       if (consumption.instantVoltsL1 > 0) {
         consumption.instantWattsL1 = consumption.instantAmpsL1 * consumption.instantVoltsL1;
       } else {
@@ -251,7 +251,7 @@ export default class OCPPUtils {
 
   public static async rebuildTransactionConsumptions(tenantID: string, transactionId: number): Promise<number> {
     let consumptions: Consumption[] = [];
-    let transactionSimplePricePerKWH;
+    let transactionSimplePricePerkWh;
     if (!transactionId) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -280,7 +280,7 @@ export default class OCPPUtils {
     }
     // Check Simple Pricing
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
-      transactionSimplePricePerKWH = Utils.getRoundedNumberToTwoDecimals(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000));
+      transactionSimplePricePerkWh = Utils.getRoundedNumberToTwoDecimals(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000));
     }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,
@@ -330,9 +330,9 @@ export default class OCPPUtils {
           await OCPPUtils.billTransaction(tenantID, transaction, TransactionAction.UPDATE);
         }
         // Override the price if simple pricing only
-        if (transactionSimplePricePerKWH > 0) {
-          consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerKWH, consumption.consumptionWh);
-          consumption.roundedAmount = Utils.computeSimpleRoundedPrice(transactionSimplePricePerKWH, consumption.consumptionWh);
+        if (transactionSimplePricePerkWh > 0) {
+          consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
+          consumption.roundedAmount = Utils.computeSimpleRoundedPrice(transactionSimplePricePerkWh, consumption.consumptionWh);
           consumption.pricingSource = PricingSettingsType.SIMPLE;
         }
         // Cumulated props
@@ -862,6 +862,10 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
+                if (Utils.objectHasProperty(capabilities.capabilities, 'supportChargingProfiles') &&
+                  !capabilities.capabilities.supportChargingProfiles) {
+                  chargingStation.excludeFromSmartCharging = !capabilities.capabilities.supportChargingProfiles;
+                }
                 chargingStation.capabilities = capabilities.capabilities;
                 break;
               }
@@ -898,7 +902,6 @@ export default class OCPPUtils {
                 for (const parameter in ocppStandardParameters.parameters) {
                   chargingStation.ocppStandardParameters.push({
                     key: parameter,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     value: ocppStandardParameters.parameters[parameter]
                   });
                 }
@@ -937,7 +940,6 @@ export default class OCPPUtils {
                 for (const parameter in ocppVendorParameters.parameters) {
                   chargingStation.ocppVendorParameters.push({
                     key: parameter,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     value: ocppVendorParameters.parameters[parameter]
                   });
                 }
@@ -1082,7 +1084,7 @@ export default class OCPPUtils {
     };
     for (const chargingStation of siteArea.chargingStations) {
       const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID, {
-        chargingStationID: chargingStation.id,
+        chargingStationIDs: [chargingStation.id],
         profilePurposeType: params.profilePurposeType,
         transactionId: params.transactionId
       }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -1236,26 +1238,26 @@ export default class OCPPUtils {
   static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER &&
-      (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
-        meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK));
+        (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
+          meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK));
   }
 
   static isPowerActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.POWER_ACTIVE_IMPORT &&
-       meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
+        meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
   static isCurrentImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.CURRENT_IMPORT &&
-       meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
+        meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
   static isVoltageMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.VOLTAGE &&
-       meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
+        meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
   static async checkAndGetChargingStation(chargeBoxIdentity: string, tenantID: string): Promise<ChargingStation> {

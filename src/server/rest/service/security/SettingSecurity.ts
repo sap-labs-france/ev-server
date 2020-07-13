@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, Setting, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
@@ -188,8 +188,8 @@ export default class SettingSecurity {
     return settings;
   }
 
-  public static filterSettingResponse(setting: SettingDB, loggedUser: UserToken, contentFilter = false) {
-    let filteredSetting;
+  public static filterSettingResponse(setting: SettingDB, loggedUser: UserToken, contentFilter = false): SettingDB {
+    let filteredSetting: SettingDB;
     if (!setting) {
       return null;
     }
@@ -197,7 +197,7 @@ export default class SettingSecurity {
     if (Authorizations.canReadSetting(loggedUser, setting)) {
       filteredSetting = setting;
       if (contentFilter) {
-        filteredSetting.content = SettingSecurity._filterAuthorizedSettingContent(loggedUser, setting);
+        filteredSetting.content = SettingSecurity.filterAuthorizedSettingContent(loggedUser, setting);
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
@@ -206,8 +206,8 @@ export default class SettingSecurity {
     return filteredSetting;
   }
 
-  public static filterSettingsResponse(settings, loggedUser: UserToken, contentFilter = false) {
-    const filteredSettings = [];
+  public static filterSettingsResponse(settings, loggedUser: UserToken, contentFilter = false): SettingDB[] {
+    const filteredSettings: SettingDB[] = [];
 
     if (!settings) {
       return null;
@@ -227,7 +227,7 @@ export default class SettingSecurity {
     return filteredSettings;
   }
 
-  private static _filterAuthorizedSettingContent(loggedUser: UserToken, setting: SettingDB) {
+  private static filterAuthorizedSettingContent(loggedUser: UserToken, setting: SettingDB) {
     if (!setting.content) {
       return null;
     }

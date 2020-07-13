@@ -121,7 +121,7 @@ export default class CentralServerService {
     return this._authenticatedUser.email;
   }
 
-  public async updatePriceSetting(priceKWH, priceUnit) {
+  public async updatePriceSetting(pricekWh, priceUnit) {
     const settings = await this.settingApi.readAll({});
     let newSetting = false;
     let setting: SettingDB = settings.data.result.find((s) => s.identifier === 'pricing');
@@ -133,7 +133,7 @@ export default class CentralServerService {
     setting.content = {
       type: PricingSettingsType.SIMPLE,
       simple: {
-        price: priceKWH,
+        price: pricekWh,
         currency: priceUnit
       }
     };

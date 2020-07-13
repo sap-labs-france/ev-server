@@ -11,5 +11,5 @@ export default abstract class AssetIntegration<T extends AssetSetting> {
     this.connection = connection;
   }
 
-  async abstract checkConnection();
+  async abstract checkConnection(): Promise<void>;
 }
