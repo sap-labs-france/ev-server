@@ -628,12 +628,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         invoiceItem: null
       };
     }
-    return {
-      status: BillingStatus.BILLED,
-      invoiceID: invoice.invoice.id,
-      invoiceStatus: invoice.invoice.status,
-      invoiceItem: invoice.invoiceItem,
-    };
   }
 
   public async checkIfUserCanBeCreated(user: User): Promise<boolean> {
