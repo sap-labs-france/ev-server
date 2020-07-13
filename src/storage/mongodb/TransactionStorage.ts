@@ -165,24 +165,6 @@ export default class TransactionStorage {
         invoiceItem: transactionToSave.billingData.invoiceItem,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
       };
-      if (!transactionMDB.billingData.status) {
-        delete transactionMDB.billingData.status;
-      }
-      if (!transactionMDB.billingData.errorCode) {
-        delete transactionMDB.billingData.errorCode;
-      }
-      if (!transactionMDB.billingData.errorCodeDesc) {
-        delete transactionMDB.billingData.errorCodeDesc;
-      }
-      if (!transactionMDB.billingData.invoiceStatus) {
-        delete transactionMDB.billingData.invoiceStatus;
-      }
-      if (!transactionMDB.billingData.invoiceItem) {
-        delete transactionMDB.billingData.invoiceItem;
-      }
-      if (!transactionMDB.billingData.invoiceID) {
-        delete transactionMDB.billingData.invoiceID;
-      }
     }
     if (transactionToSave.ocpiData) {
       transactionMDB.ocpiData = {
