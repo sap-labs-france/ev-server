@@ -71,23 +71,23 @@ export default class TransactionStorage {
       numberOfMeterValues: Utils.convertToInt(transactionToSave.numberOfMeterValues),
       currentStateOfCharge: Utils.convertToInt(transactionToSave.currentStateOfCharge),
       currentSignedData: transactionToSave.currentSignedData,
-      lastEnergyActiveImportMeterValue: transactionToSave.lastEnergyActiveImportMeterValue,
+      lastConsumption: transactionToSave.lastConsumption,
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
       currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
       transactionEndReceived: Utils.convertToBoolean(transactionToSave.transactionEndReceived),
       currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
-      currentInstanWattsL1: Utils.convertToFloat(transactionToSave.currentInstanWattsL1),
-      currentInstanWattsL2: Utils.convertToFloat(transactionToSave.currentInstanWattsL2),
-      currentInstanWattsL3: Utils.convertToFloat(transactionToSave.currentInstanWattsL3),
-      currentInstanWattsDC: Utils.convertToFloat(transactionToSave.currentInstanWattsDC),
+      currentInstantWattsL1: Utils.convertToFloat(transactionToSave.currentInstantWattsL1),
+      currentInstantWattsL2: Utils.convertToFloat(transactionToSave.currentInstantWattsL2),
+      currentInstantWattsL3: Utils.convertToFloat(transactionToSave.currentInstantWattsL3),
+      currentInstantWattsDC: Utils.convertToFloat(transactionToSave.currentInstantWattsDC),
       currentTotalConsumptionWh: Utils.convertToFloat(transactionToSave.currentTotalConsumptionWh),
       currentTotalDurationSecs: Utils.convertToInt(transactionToSave.currentTotalDurationSecs),
-      currentInstantVoltage: Utils.convertToFloat(transactionToSave.currentInstantVoltage),
-      currentInstantVoltageL1: Utils.convertToInt(transactionToSave.currentInstantVoltageL1),
-      currentInstantVoltageL2: Utils.convertToInt(transactionToSave.currentInstantVoltageL2),
-      currentInstantVoltageL3: Utils.convertToInt(transactionToSave.currentInstantVoltageL3),
-      currentInstantVoltageDC: Utils.convertToInt(transactionToSave.currentInstantVoltageDC),
+      currentInstantVolts: Utils.convertToFloat(transactionToSave.currentInstantVolts),
+      currentInstantVoltsL1: Utils.convertToInt(transactionToSave.currentInstantVoltsL1),
+      currentInstantVoltsL2: Utils.convertToInt(transactionToSave.currentInstantVoltsL2),
+      currentInstantVoltsL3: Utils.convertToInt(transactionToSave.currentInstantVoltsL3),
+      currentInstantVoltsDC: Utils.convertToInt(transactionToSave.currentInstantVoltsDC),
       currentInstantAmps: Utils.convertToFloat(transactionToSave.currentInstantAmps),
       currentInstantAmpsL1: Utils.convertToInt(transactionToSave.currentInstantAmpsL1),
       currentInstantAmpsL2: Utils.convertToInt(transactionToSave.currentInstantAmpsL2),
@@ -117,24 +117,24 @@ export default class TransactionStorage {
       };
       // Remove runtime props
       delete transactionMDB.currentInstantWatts;
-      delete transactionMDB.currentInstanWattsL1;
-      delete transactionMDB.currentInstanWattsL2;
-      delete transactionMDB.currentInstanWattsL3;
-      delete transactionMDB.currentInstanWattsDC;
+      delete transactionMDB.currentInstantWattsL1;
+      delete transactionMDB.currentInstantWattsL2;
+      delete transactionMDB.currentInstantWattsL3;
+      delete transactionMDB.currentInstantWattsDC;
       delete transactionMDB.currentCumulatedPrice;
       delete transactionMDB.currentSignedData;
       delete transactionMDB.currentStateOfCharge;
       delete transactionMDB.currentTotalConsumptionWh;
       delete transactionMDB.currentTotalInactivitySecs;
       delete transactionMDB.currentInactivityStatus;
-      delete transactionMDB.lastEnergyActiveImportMeterValue;
+      delete transactionMDB.lastConsumption;
       delete transactionMDB.numberOfMeterValues;
       delete transactionMDB.currentTotalDurationSecs;
-      delete transactionMDB.currentInstantVoltage;
-      delete transactionMDB.currentInstantVoltageL1;
-      delete transactionMDB.currentInstantVoltageL2;
-      delete transactionMDB.currentInstantVoltageL3;
-      delete transactionMDB.currentInstantVoltageDC;
+      delete transactionMDB.currentInstantVolts;
+      delete transactionMDB.currentInstantVoltsL1;
+      delete transactionMDB.currentInstantVoltsL2;
+      delete transactionMDB.currentInstantVoltsL3;
+      delete transactionMDB.currentInstantVoltsDC;
       delete transactionMDB.currentInstantAmps;
       delete transactionMDB.transactionEndReceived;
       delete transactionMDB.currentInstantAmpsL1;
@@ -555,6 +555,7 @@ export default class TransactionStorage {
       tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
       asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Users
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
@@ -803,6 +804,7 @@ export default class TransactionStorage {
         tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id', asField: 'chargeBox',
         oneToOneCardinality: true, oneToOneCardinalityNotNull: false, pipelineMatch: { 'issuer': true }
       });
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     }
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
@@ -991,14 +993,10 @@ export default class TransactionStorage {
     aggregation.push({ $limit: 1 });
     // Add Charge Box
     DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      localField: 'chargeBoxID',
-      foreignField: '_id',
-      asField: 'chargeBox',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -1130,6 +1128,7 @@ export default class TransactionStorage {
       tenantID, aggregation, localField: 'chargeBoxID', foreignField: '_id',
       asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
     });
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
     // Format Data
     aggregation.push({
       $project: {

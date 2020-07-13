@@ -61,6 +61,10 @@
     "billingUserSynchronizationFailed": {
       "title": "Error de sincronización de usuario",
       "body": "No se puede sincronizar {{nbrUsersInError}} usuario (s) con el proveedor de servicios de facturación en la organización '{{tenantName}}'"
+    },
+    "billingInvoiceSynchronizationFailed": {
+      "title": "Invoice Synchro Failed",
+      "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
     }
   },
   "billing": {

@@ -1,6 +1,17 @@
 import { OCPIBusinessDetails } from './OCPIBusinessDetails';
 import { OCPIEvse } from './OCPIEvse';
 
+export interface OCPIPeriod {
+  period_begin: Date;
+  period_end: Date;
+}
+
+export interface OCPIDayPeriod {
+  weekday: number;
+  period_begin: string;
+  period_end: string;
+}
+
 export interface OCPILocation {
   id: string;
   type: OCPILocationType;
@@ -10,12 +21,20 @@ export interface OCPILocation {
   postal_code: string;
   country: string;
   coordinates: {
-    latitude: string;
-    longitude: string;
+    latitude: number;
+    longitude: number;
   };
   operator?: OCPIBusinessDetails;
   evses: OCPIEvse[];
   last_updated: Date;
+  // OCPI specify that attribute as optional but Gireve requires it
+  opening_times: {
+    regular_hours?: OCPIDayPeriod[];
+    twentyfourseven: boolean;
+    exceptional_openings?: OCPIPeriod[];
+    exceptional_closings?: OCPIPeriod[];
+  }
+  charging_when_closed?: boolean;
 }
 
 export enum OCPILocationType {

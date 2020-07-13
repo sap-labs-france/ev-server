@@ -86,7 +86,7 @@ export default class WSServer extends WebSocket.Server {
     return httpServer;
   }
 
-  public broadcastToClients(message): void {
+  public broadcastToClients(message: any): void {
     this.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(message);

@@ -38,14 +38,14 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: npm install
       run: npm ci
-    - name: npm run build:prod
+    - name: npm run build:dev
       run: |
         cp src/assets/configs-ci/config.json src/assets
-        npm run build:prod
-    - name: npm run start:prod
+        npm run build:dev
+    - name: npm run start:devbuild
       run: |
         npm run start:email &
-        npm run start:prod &
+        npm run start:devbuild &
     - name: npm run test:createContext
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
@@ -80,14 +80,14 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: npm install
       run: npm ci
-    - name: npm run build:prod
+    - name: npm run build:dev
       run: |
         cp src/assets/configs-ci/config.json src/assets
-        npm run build:prod
-    - name: npm run start:prod
+        npm run build:dev
+    - name: npm run start:devbuild
       run: |
         npm run start:email &
-        npm run start:prod &
+        npm run start:devbuild &
     - name: npm run test:createContext
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi

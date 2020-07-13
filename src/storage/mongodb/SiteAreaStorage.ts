@@ -92,7 +92,7 @@ export default class SiteAreaStorage {
         siteAreaID: id,
         withSite: params.withSite,
         withChargingStations: params.withChargingStations,
-        withAvailableChargers: true
+        withAvailableChargingStations: true
       },
       Constants.DB_PARAMS_SINGLE_RECORD
     );
@@ -144,7 +144,7 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenantID: string,
     params: {
       siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
-      withChargingStations?: boolean; smartCharging?: boolean; withAvailableChargers?: boolean;
+      withChargingStations?: boolean; smartCharging?: boolean; withAvailableChargingStations?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -228,7 +228,7 @@ export default class SiteAreaStorage {
       });
     }
     // Charging Stations
-    if (params.withChargingStations || params.withAvailableChargers) {
+    if (params.withChargingStations || params.withAvailableChargingStations) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
         asField: 'chargingStations'
@@ -259,7 +259,7 @@ export default class SiteAreaStorage {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
         // Count Available/Occupied Chargers/Connectors
-        if (params.withAvailableChargers) {
+        if (params.withAvailableChargingStations) {
           // Set the Charging Stations' Connector statuses
           siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
         }

@@ -17,7 +17,7 @@ import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'WSConnection';
 
-export default class WSConnection {
+export default abstract class WSConnection {
   public code: string;
   public message: string;
   public details: string;
@@ -234,10 +234,6 @@ export default class WSConnection {
     }
   }
 
-  public async handleRequest(messageId, commandName, commandPayload): Promise<void> {
-    // To implement in sub-class
-  }
-
   public getWSConnection(): WebSocket {
     return this.wsConnection;
   }
@@ -313,13 +309,7 @@ export default class WSConnection {
         // Error Message
         case MessageType.ERROR_MESSAGE:
           // Build Message
-          // eslint-disable-next-line no-case-declarations
-          const {
-            code,
-            message,
-            details
-          } = commandParams;
-          messageToSend = JSON.stringify([messageType, messageId, code, message, details]);
+          messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OcppErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
           break;
       }
       // Check if wsConnection is ready
@@ -351,7 +341,7 @@ export default class WSConnection {
       // Ok verified
       return this.tenantID;
     }
-    // No go to the master tenant
+    // No: go to the master tenant
     return Constants.DEFAULT_TENANT;
   }
 
@@ -370,4 +360,6 @@ export default class WSConnection {
   public isWSConnectionOpen(): boolean {
     return this.wsConnection.readyState === OPEN;
   }
+
+  public abstract async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
 }

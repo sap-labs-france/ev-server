@@ -1,10 +1,10 @@
 {
-  "subject": "Billing - User Synchronization Failed",
+  "subject": "Fakturierung - Synchronisierung der Nutzer ist fehlgeschlagen",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Billing - User Synchronization Failed",
+      "title": "Fakturierung - Synchronisierung der Nutzer ist fehlgeschlagen",
       "image": {
         "left": {
           "height": 60,
@@ -17,16 +17,16 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Sehr geehrter Administrator,",
       "",
-      "Unable to synchronize <%- nbrUsersInError %> user(s) with Billing service provider."
+      "Es ist nicht möglich <%- nbrUsersInError %> Nutzer mit dem Fakturierungsservice zu synchronisieren."
     ],
     "action": {
-      "title": "View Settings",
+      "title": "Einstellungen anzeigen",
       "url": "<%- evseDashboardBillingURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {}

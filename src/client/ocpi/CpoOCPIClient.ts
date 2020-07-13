@@ -49,7 +49,7 @@ export default class CpoOCPIClient extends OCPIClient {
   /**
    * Pull Tokens
    */
-  async pullTokens(partial = true) {
+  async pullTokens(partial = true): Promise<OCPIJobResult> {
     // Result
     const sendResult = {
       success: 0,
@@ -101,7 +101,7 @@ export default class CpoOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
-        message: `${response.data.data.length} Tokens retrieved from ${tokensUrl}`,
+        message: `${response.data.data.length.toString()} Tokens retrieved from ${tokensUrl}`,
         module: MODULE_NAME, method: 'pullTokens'
       });
       for (const token of response.data.data) {
@@ -154,10 +154,10 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Build payload
     const payload: OCPILocationReference =
-      {
-        'location_id': siteID,
-        'evse_uids': [OCPIUtils.buildEvseUID(chargingStation)]
-      };
+    {
+      'location_id': siteID,
+      'evse_uids': [OCPIUtils.buildEvseUID(chargingStation)]
+    };
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -219,7 +219,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return authorizationInfo.authorization_id;
   }
 
-  async startSession(ocpiToken: OCPIToken, chargingStation: ChargingStation, transaction: Transaction, authorizationId: string) {
+  async startSession(ocpiToken: OCPIToken, chargingStation: ChargingStation, transaction: Transaction, authorizationId: string): Promise<void> {
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${authorizationId}`;
     let siteID;
@@ -234,19 +234,19 @@ export default class CpoOCPIClient extends OCPIClient {
       site, chargingStation, transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession =
-      {
-        'id': authorizationId,
-        'start_datetime': transaction.timestamp,
-        'kwh': 0,
-        'total_cost': transaction.currentCumulatedPrice,
-        'auth_method': OCPIAuthMethod.AUTH_REQUEST,
-        'auth_id': ocpiToken.auth_id,
-        'location': ocpiLocation,
-        'currency': transaction.priceUnit,
-        'status': OCPISessionStatus.PENDING,
-        'authorization_id': authorizationId,
-        'last_updated': transaction.timestamp
-      };
+    {
+      'id': authorizationId,
+      'start_datetime': transaction.timestamp,
+      'kwh': 0,
+      'total_cost': transaction.currentCumulatedPrice,
+      'auth_method': OCPIAuthMethod.AUTH_REQUEST,
+      'auth_id': ocpiToken.auth_id,
+      'location': ocpiLocation,
+      'currency': transaction.priceUnit,
+      'status': OCPISessionStatus.PENDING,
+      'authorization_id': authorizationId,
+      'last_updated': transaction.timestamp
+    };
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -285,7 +285,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  async updateSession(transaction: Transaction) {
+  async updateSession(transaction: Transaction): Promise<void> {
     if (!transaction.ocpiData || !transaction.ocpiData.session) {
       throw new BackendError({
         source: transaction.chargeBoxID,
@@ -346,7 +346,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  async stopSession(transaction: Transaction) {
+  async stopSession(transaction: Transaction): Promise<void> {
     if (!transaction.ocpiData || !transaction.ocpiData.session) {
       throw new BackendError({
         source: transaction.chargeBoxID,
@@ -406,7 +406,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  async postCdr(transaction: Transaction) {
+  async postCdr(transaction: Transaction): Promise<void> {
     if (!transaction.ocpiData || !transaction.ocpiData.session) {
       throw new BackendError({
         source: transaction.chargeBoxID,
@@ -476,7 +476,36 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector) {
+  async removeChargingStation(chargingStation: ChargingStation): Promise<void> {
+    if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: ServerAction.OCPI_PATCH_STATUS,
+        message: 'Charging Station must be associated to a site area',
+        module: MODULE_NAME, method: 'removeChargingStation',
+      });
+    }
+    if (!chargingStation.issuer) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: ServerAction.OCPI_PATCH_STATUS,
+        message: 'Only charging Station issued locally can be exposed to IOP',
+        module: MODULE_NAME, method: 'removeChargingStation',
+      });
+    }
+    let siteID;
+    if (!chargingStation.siteArea || !chargingStation.siteArea.siteID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    } else {
+      siteID = chargingStation.siteArea.siteID;
+    }
+    for (const connector of chargingStation.connectors) {
+      await this.patchEVSEStatus(siteID, OCPIUtils.buildEvseUID(chargingStation, connector), OCPIEvseStatus.REMOVED);
+    }
+  }
+
+  async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector): Promise<void> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
         source: chargingStation.id,
@@ -514,7 +543,7 @@ export default class CpoOCPIClient extends OCPIClient {
   /**
    * PATH EVSE Status
    */
-  async patchEVSEStatus(locationId: string, evseUID: string, newStatus: OCPIEvseStatus) {
+  async patchEVSEStatus(locationId: string, evseUID: string, newStatus: OCPIEvseStatus): Promise<void> {
     // Check for input parameter
     if (!locationId || !evseUID || !newStatus) {
       throw new BackendError({
@@ -590,10 +619,10 @@ export default class CpoOCPIClient extends OCPIClient {
         action: ServerAction.OCPI_CHECK_CDRS,
         message: 'Cdr checked with result',
         module: MODULE_NAME, method: 'checkCdr',
-        detailedMessages: { response : response.data }
+        detailedMessages: { response: response.data }
       });
       if (response.data.status_code === 3001) {
-        const postResponse = await axios.post(cdrsUrl, transaction.ocpiData.cdr,
+        await axios.post(cdrsUrl, transaction.ocpiData.cdr,
           {
             headers: {
               Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -649,7 +678,7 @@ export default class CpoOCPIClient extends OCPIClient {
         action: ServerAction.OCPI_CHECK_SESSIONS,
         message: 'Session checked with result',
         module: MODULE_NAME, method: 'checkSession',
-        detailedMessages: { response : response.data }
+        detailedMessages: { response: response.data }
       });
       const session = response.data.data as OCPISession;
       if (session) {
@@ -769,7 +798,7 @@ export default class CpoOCPIClient extends OCPIClient {
         action: ServerAction.OCPI_CHECK_LOCATIONS,
         message: 'Location checked with result',
         module: MODULE_NAME, method: 'checkLocation',
-        detailedMessages: { response : response.data }
+        detailedMessages: { response: response.data }
       });
       const checkedLocation = response.data.data as OCPILocation;
       if (checkedLocation) {
@@ -802,10 +831,10 @@ export default class CpoOCPIClient extends OCPIClient {
       partyID: this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS)
     };
 
-    // Get all EVSES from all locations
-    const locationsResult = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
+    // Get all EVSEs from all locations
+    const locations = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
     // Loop through locations
-    for (const location of locationsResult.locations) {
+    for (const location of locations.result) {
       if (location) {
         try {
           if (await this.checkLocation(location)) {
@@ -832,7 +861,7 @@ export default class CpoOCPIClient extends OCPIClient {
   /**
    * Send all EVSEs
    */
-  async sendEVSEStatuses(processAllEVSEs = true) {
+  async sendEVSEStatuses(processAllEVSEs = true): Promise<OCPIJobResult> {
     // Result
     const sendResult = {
       success: 0,
@@ -862,10 +891,10 @@ export default class CpoOCPIClient extends OCPIClient {
       // Remove duplicates
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
     }
-    // Get all EVSES from all locations
-    const locationsResult = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
+    // Get all EVSEs from all locations
+    const locations = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
     // Loop through locations
-    for (const location of locationsResult.locations) {
+    for (const location of locations.result) {
       if (location && location.evses) {
         // Loop through EVSE
         for (const evse of location.evses) {
@@ -952,16 +981,8 @@ export default class CpoOCPIClient extends OCPIClient {
     return sendResult;
   }
 
-  // Get ChargeBoxIDs in failure from previous job
-  getChargeBoxIDsInFailure() {
-    if (this.ocpiEndpoint.lastPatchJobResult && this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure) {
-      return this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure;
-    }
-    return [];
-  }
-
   // Get ChargeBoxIds with new status notifications
-  async getChargeBoxIDsWithNewStatusNotifications() {
+  async getChargeBoxIDsWithNewStatusNotifications(): Promise<string[]> {
     // Get last job
     const lastPatchJobOn = this.ocpiEndpoint.lastPatchJobOn ? this.ocpiEndpoint.lastPatchJobOn : new Date();
     // Build params
@@ -975,12 +996,20 @@ export default class CpoOCPIClient extends OCPIClient {
     return [];
   }
 
-  async triggerJobs(): Promise<{ tokens: any; locations: any; cdrs: any; sessions: any }> {
+  async triggerJobs(): Promise<{ tokens: OCPIJobResult; locations: OCPIJobResult; cdrs: OCPIJobResult; sessions: OCPIJobResult }> {
     return {
       tokens: await this.pullTokens(false),
       locations: await this.sendEVSEStatuses(),
       cdrs: await this.checkCdrs(),
       sessions: await this.checkSessions()
     };
+  }
+
+  // Get ChargeBoxIDs in failure from previous job
+  private getChargeBoxIDsInFailure(): string[] {
+    if (this.ocpiEndpoint.lastPatchJobResult && this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure) {
+      return this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure;
+    }
+    return [];
   }
 }

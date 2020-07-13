@@ -75,47 +75,59 @@ export default class SiteAreaSecurity {
     return SiteAreaSecurity._filterSiteAreaRequest(request);
   }
 
-  static filterSiteAreaResponse(siteArea: SiteArea, loggedUser: UserToken): SiteArea {
+  static filterSiteAreaResponse(siteArea: SiteArea, loggedUser: UserToken, forList = false): SiteArea {
     let filteredSiteArea: SiteArea;
     if (!siteArea) {
       return null;
     }
     // Check auth
     if (Authorizations.canReadSiteArea(loggedUser, siteArea.siteID)) {
-      // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
-        // Yes: set all params
-        filteredSiteArea = siteArea;
-      } else {
-        // Set only necessary info
-        filteredSiteArea = {} as SiteArea;
-        filteredSiteArea.id = siteArea.id;
-        filteredSiteArea.name = siteArea.name;
-        filteredSiteArea.siteID = siteArea.siteID;
-        filteredSiteArea.maximumPower = siteArea.maximumPower;
-        filteredSiteArea.voltage = siteArea.voltage;
-        filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
-      }
-      if (Utils.objectHasProperty(siteArea, 'address')) {
+      filteredSiteArea = {} as SiteArea;
+      filteredSiteArea.id = siteArea.id;
+      filteredSiteArea.name = siteArea.name;
+      filteredSiteArea.issuer = siteArea.issuer;
+      filteredSiteArea.siteID = siteArea.siteID;
+      filteredSiteArea.maximumPower = siteArea.maximumPower;
+      filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
+      filteredSiteArea.voltage = siteArea.voltage;
+      filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
+      filteredSiteArea.smartCharging = siteArea.smartCharging;
+      filteredSiteArea.accessControl = siteArea.accessControl;
+      if (!forList && Utils.objectHasProperty(siteArea, 'address')) {
         filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
       }
       if (siteArea.connectorStats) {
         filteredSiteArea.connectorStats = siteArea.connectorStats;
-      }
-      if (Utils.objectHasProperty(siteArea, 'accessControl')) {
-        filteredSiteArea.accessControl = siteArea.accessControl;
       }
       if (siteArea.site) {
         filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site, loggedUser);
       }
       if (siteArea.chargingStations) {
         filteredSiteArea.chargingStations = siteArea.chargingStations.map((chargingStation) =>
-          ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, true)
+          ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser)
         );
       }
       // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(
-        filteredSiteArea, siteArea, loggedUser);
+      UtilsSecurity.filterCreatedAndLastChanged(filteredSiteArea, siteArea, loggedUser);
+    }
+    return filteredSiteArea;
+  }
+
+  static filterMinimalSiteAreaResponse(siteArea: SiteArea, loggedUser: UserToken): SiteArea {
+    let filteredSiteArea: SiteArea;
+    if (!siteArea) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadSiteArea(loggedUser, siteArea.siteID)) {
+      // Set only necessary info
+      filteredSiteArea = {} as SiteArea;
+      filteredSiteArea.id = siteArea.id;
+      filteredSiteArea.name = siteArea.name;
+      filteredSiteArea.siteID = siteArea.siteID;
+      filteredSiteArea.maximumPower = siteArea.maximumPower;
+      filteredSiteArea.voltage = siteArea.voltage;
+      filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
     }
     return filteredSiteArea;
   }
@@ -129,7 +141,7 @@ export default class SiteAreaSecurity {
       return null;
     }
     for (const siteArea of siteAreas.result) {
-      const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
+      const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser, true);
       if (filteredSiteArea) {
         filteredSiteAreas.push(filteredSiteArea);
       }

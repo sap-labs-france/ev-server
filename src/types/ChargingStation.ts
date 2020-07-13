@@ -85,7 +85,7 @@ export enum Command {
 }
 
 export enum StaticLimitAmps {
-  MIN_LIMIT = 6,
+  MIN_LIMIT_PER_PHASE = 13,
 }
 
 export interface Connector {
@@ -226,6 +226,7 @@ export interface ChargingStationTemplate {
     capabilities: ChargingStationCapabilities;
   }[];
   ocppStandardParameters: {
+    supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
     parameters: any;
   }[];

@@ -54,7 +54,7 @@ export default class OCPIServer {
   }
 
   // Start the server
-  start() {
+  start(): void {
     expressTools.startServer(this.ocpiRestConfig, expressTools.createHttpServer(this.ocpiRestConfig, this.expressApplication), 'OCPI', MODULE_NAME);
   }
 }

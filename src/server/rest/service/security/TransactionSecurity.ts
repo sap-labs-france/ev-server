@@ -1,4 +1,4 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
 
 import Authorizations from '../../../../authorization/Authorizations';
@@ -25,7 +25,7 @@ export default class TransactionSecurity {
     return { UserID: request.UserID ? sanitize(request.UserID) : null };
   }
 
-  static filterUnassignedTransactionsCountRequest(request: any) {
+  static filterUnassignedTransactionsCountRequest(request: any): HttpUnassignTransactionsToUserRequest {
     return { UserID: request.UserID ? sanitize(request.UserID) : null };
   }
 
@@ -139,10 +139,10 @@ export default class TransactionSecurity {
       }
       if (!transaction.stop) {
         filteredTransaction.currentInstantWatts = transaction.currentInstantWatts;
-        filteredTransaction.currentInstanWattsL1 = transaction.currentInstanWattsL1;
-        filteredTransaction.currentInstanWattsL2 = transaction.currentInstanWattsL2;
-        filteredTransaction.currentInstanWattsL3 = transaction.currentInstanWattsL3;
-        filteredTransaction.currentInstanWattsDC = transaction.currentInstanWattsDC;
+        filteredTransaction.currentInstantWattsL1 = transaction.currentInstantWattsL1;
+        filteredTransaction.currentInstantWattsL2 = transaction.currentInstantWattsL2;
+        filteredTransaction.currentInstantWattsL3 = transaction.currentInstantWattsL3;
+        filteredTransaction.currentInstantWattsDC = transaction.currentInstantWattsDC;
         filteredTransaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
@@ -150,11 +150,11 @@ export default class TransactionSecurity {
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
-        filteredTransaction.currentInstantVoltage = transaction.currentInstantVoltage;
-        filteredTransaction.currentInstantVoltageL1 = transaction.currentInstantVoltageL1;
-        filteredTransaction.currentInstantVoltageL2 = transaction.currentInstantVoltageL2;
-        filteredTransaction.currentInstantVoltageL3 = transaction.currentInstantVoltageL3;
-        filteredTransaction.currentInstantVoltageDC = transaction.currentInstantVoltageDC;
+        filteredTransaction.currentInstantVolts = transaction.currentInstantVolts;
+        filteredTransaction.currentInstantVoltsL1 = transaction.currentInstantVoltsL1;
+        filteredTransaction.currentInstantVoltsL2 = transaction.currentInstantVoltsL2;
+        filteredTransaction.currentInstantVoltsL3 = transaction.currentInstantVoltsL3;
+        filteredTransaction.currentInstantVoltsDC = transaction.currentInstantVoltsDC;
         filteredTransaction.currentInstantAmps = transaction.currentInstantAmps;
         filteredTransaction.currentInstantAmpsL1 = transaction.currentInstantAmpsL1;
         filteredTransaction.currentInstantAmpsL2 = transaction.currentInstantAmpsL2;
@@ -216,7 +216,7 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: DataResult<Transaction|TransactionInError>, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction|TransactionInError>, loggedUser: UserToken): void {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
@@ -231,8 +231,8 @@ export default class TransactionSecurity {
     transactions.result = filteredTransactions;
   }
 
-  static filterRefundReportResponse(report: RefundReport, loggedUser: UserToken) {
-    let filteredRefundReport;
+  static filterRefundReportResponse(report: RefundReport, loggedUser: UserToken): RefundReport {
+    let filteredRefundReport: RefundReport;
     if (!report) {
       return null;
     }
@@ -250,7 +250,7 @@ export default class TransactionSecurity {
     return filteredRefundReport;
   }
 
-  static filterRefundReportsResponse(reports: DataResult<RefundReport>, loggedUser: UserToken) {
+  static filterRefundReportsResponse(reports: DataResult<RefundReport>, loggedUser: UserToken): void {
     const filteredReports = [];
     if (!reports.result) {
       return null;

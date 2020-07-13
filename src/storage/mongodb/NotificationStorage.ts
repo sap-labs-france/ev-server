@@ -85,6 +85,7 @@ export default class NotificationStorage {
       tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
       asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Users
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
@@ -118,7 +119,7 @@ export default class NotificationStorage {
     };
   }
 
-  static async saveNotification(tenantID: string, notificationToSave: Notification): Promise<void> {
+  static async saveNotification(tenantID: string, notificationToSave: Partial<Notification>): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveNotification');
     // Check Tenant

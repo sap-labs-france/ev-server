@@ -64,10 +64,9 @@ export default class UtilsService {
     if (!active) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
-        entity: entity,
-        action: action,
-        module: module,
-        method: method,
+        entity: entity, action: action,
+        module: module, method: method,
+        inactiveComponent: component,
         user: userToken
       });
     }
