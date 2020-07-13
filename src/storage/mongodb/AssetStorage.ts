@@ -68,8 +68,30 @@ export default class AssetStorage {
       siteAreaID: Utils.convertToObjectID(assetToSave.siteAreaID),
       coordinates: assetToSave.coordinates,
       assetType: assetToSave.assetType,
+      dynamicAsset: assetToSave.dynamicAsset,
       issuer: Utils.convertToBoolean(assetToSave.issuer),
+      connectionID: assetToSave.connectionID,
+      meterID: assetToSave.meterID,
+      currentConsumptionWh: Utils.convertToFloat(assetToSave.currentConsumptionWh),
+      currentInstantAmps: Utils.convertToFloat(assetToSave.currentInstantAmps),
+      currentInstantAmpsL1: Utils.convertToFloat(assetToSave.currentInstantAmpsL1),
+      currentInstantAmpsL2: Utils.convertToFloat(assetToSave.currentInstantAmpsL2),
+      currentInstantAmpsL3: Utils.convertToFloat(assetToSave.currentInstantAmpsL3),
+      currentInstantVolts: Utils.convertToFloat(assetToSave.currentInstantVolts),
+      currentInstantVoltsL1: Utils.convertToFloat(assetToSave.currentInstantVoltsL1),
+      currentInstantVoltsL2: Utils.convertToFloat(assetToSave.currentInstantVoltsL2),
+      currentInstantVoltsL3: Utils.convertToFloat(assetToSave.currentInstantVoltsL3),
+      currentInstantWatts: Utils.convertToFloat(assetToSave.currentInstantWatts),
+      currentInstantWattsL1: Utils.convertToFloat(assetToSave.currentInstantWattsL1),
+      currentInstantWattsL2: Utils.convertToFloat(assetToSave.currentInstantWattsL2),
+      currentInstantWattsL3: Utils.convertToFloat(assetToSave.currentInstantWattsL3),
     };
+    if (assetToSave.lastConsumption) {
+      assetMDB.lastConsumption = {
+        value: Utils.convertToFloat(assetToSave.lastConsumption.value),
+        timestamp: Utils.convertToDate(assetToSave.lastConsumption.timestamp)
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(assetMDB, assetToSave);
     // Modify

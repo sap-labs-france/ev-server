@@ -226,11 +226,11 @@ export default class OCPPUtils {
     transaction.currentInstantWattsL2 = Utils.convertToFloat(consumption.instantWattsL2);
     transaction.currentInstantWattsL3 = Utils.convertToFloat(consumption.instantWattsL3);
     transaction.currentInstantWattsDC = Utils.convertToFloat(consumption.instantWattsDC);
-    transaction.currentInstantVoltage = Utils.convertToFloat(consumption.instantVolts);
-    transaction.currentInstantVoltageL1 = Utils.convertToFloat(consumption.instantVoltsL1);
-    transaction.currentInstantVoltageL2 = Utils.convertToFloat(consumption.instantVoltsL2);
-    transaction.currentInstantVoltageL3 = Utils.convertToFloat(consumption.instantVoltsL3);
-    transaction.currentInstantVoltageDC = Utils.convertToFloat(consumption.instantVoltsDC);
+    transaction.currentInstantVolts = Utils.convertToFloat(consumption.instantVolts);
+    transaction.currentInstantVoltsL1 = Utils.convertToFloat(consumption.instantVoltsL1);
+    transaction.currentInstantVoltsL2 = Utils.convertToFloat(consumption.instantVoltsL2);
+    transaction.currentInstantVoltsL3 = Utils.convertToFloat(consumption.instantVoltsL3);
+    transaction.currentInstantVoltsDC = Utils.convertToFloat(consumption.instantVoltsDC);
     transaction.currentInstantAmps = Utils.convertToFloat(consumption.instantAmps);
     transaction.currentInstantAmpsL1 = Utils.convertToFloat(consumption.instantAmpsL1);
     transaction.currentInstantAmpsL2 = Utils.convertToFloat(consumption.instantAmpsL2);
@@ -243,7 +243,7 @@ export default class OCPPUtils {
       transaction.stateOfCharge = Utils.convertToInt(transaction.currentStateOfCharge);
     }
     transaction.currentTotalDurationSecs = moment.duration(
-      moment(transaction.lastEnergyActiveImportMeterValue ? transaction.lastEnergyActiveImportMeterValue.timestamp : new Date()).diff(
+      moment(transaction.lastConsumption ? transaction.lastConsumption.timestamp : new Date()).diff(
         moment(transaction.timestamp))).asSeconds();
     transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
       chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs);
@@ -416,38 +416,38 @@ export default class OCPPUtils {
       });
     }
     // Add Voltage
-    if (transaction.currentInstantVoltage > 0 || transaction.currentInstantVoltageDC > 0) {
+    if (transaction.currentInstantVolts > 0 || transaction.currentInstantVoltsDC > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: (transaction.currentInstantVoltage ? transaction.currentInstantVoltage : transaction.currentInstantVoltageDC),
+        value: (transaction.currentInstantVolts ? transaction.currentInstantVolts : transaction.currentInstantVoltsDC),
         attribute: Constants.OCPP_VOLTAGE_ATTRIBUTE
       });
     }
     // Add Voltage L1
-    if (transaction.currentInstantVoltageL1 > 0) {
+    if (transaction.currentInstantVoltsL1 > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: transaction.currentInstantVoltageL1,
+        value: transaction.currentInstantVoltsL1,
         attribute: Constants.OCPP_VOLTAGE_L1_ATTRIBUTE
       });
     }
     // Add Voltage L2
-    if (transaction.currentInstantVoltageL2 > 0) {
+    if (transaction.currentInstantVoltsL2 > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: transaction.currentInstantVoltageL2,
+        value: transaction.currentInstantVoltsL2,
         attribute: Constants.OCPP_VOLTAGE_L2_ATTRIBUTE
       });
     }
     // Add Voltage L3
-    if (transaction.currentInstantVoltageL3 > 0) {
+    if (transaction.currentInstantVoltsL3 > 0) {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: transaction.currentInstantVoltageL3,
+        value: transaction.currentInstantVoltsL3,
         attribute: Constants.OCPP_VOLTAGE_L3_ATTRIBUTE
       });
     }
@@ -537,7 +537,7 @@ export default class OCPPUtils {
       if (OCPPUtils.isValidMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption: Consumption = await this.createConsumptionFromMeterValue(
-          tenantID, chargingStation, transaction, transaction.lastEnergyActiveImportMeterValue, meterValue);
+          tenantID, chargingStation, transaction, transaction.lastConsumption, meterValue);
         if (consumption) {
           // Existing Consumption created?
           const existingConsumption = consumptions.find(
@@ -569,12 +569,12 @@ export default class OCPPUtils {
   }
 
   public static async createConsumptionFromMeterValue(tenantID: string, chargingStation: ChargingStation, transaction: Transaction,
-    lastEnergyActiveImportMeterValue: { value: number; timestamp: Date }, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
+    lastConsumption: { value: number; timestamp: Date }, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isValidMeterValue(meterValue)) {
       // First meter value: Create one based on the transaction
-      if (!lastEnergyActiveImportMeterValue) {
-        lastEnergyActiveImportMeterValue = {
+      if (!lastConsumption) {
+        lastConsumption = {
           timestamp: transaction.timestamp,
           value: transaction.meterStart,
         };
@@ -676,12 +676,12 @@ export default class OCPPUtils {
       // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
-        consumption.startedAt = Utils.convertToDate(lastEnergyActiveImportMeterValue.timestamp);
-        const diffSecs = moment(meterValue.timestamp).diff(lastEnergyActiveImportMeterValue.timestamp, 'milliseconds') / 1000;
+        consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
+        const diffSecs = moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds') / 1000;
         // Consumption
-        if (Utils.convertToFloat(meterValue.value) > lastEnergyActiveImportMeterValue.value) {
+        if (Utils.convertToFloat(meterValue.value) > lastConsumption.value) {
           // Compute consumption
-          const consumptionInMeterValue = Utils.convertToFloat(meterValue.value) - Utils.convertToFloat(lastEnergyActiveImportMeterValue.value);
+          const consumptionInMeterValue = Utils.convertToFloat(meterValue.value) - Utils.convertToFloat(lastConsumption.value);
           // Current consumption
           consumption.consumptionWh = (meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT_HOUR ?
             consumptionInMeterValue * 1000 : consumptionInMeterValue);
@@ -707,7 +707,7 @@ export default class OCPPUtils {
         // Handle current Site Area limitation
         await OCPPUtils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Keep last one
-        transaction.lastEnergyActiveImportMeterValue = {
+        transaction.lastConsumption = {
           value: Utils.convertToFloat(meterValue.value),
           timestamp: Utils.convertToDate(meterValue.timestamp)
         };
