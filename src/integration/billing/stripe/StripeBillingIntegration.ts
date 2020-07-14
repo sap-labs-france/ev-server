@@ -408,47 +408,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     try {
       // Check Stripe
       await this.checkConnection();
-      // Check User
-      if (!transaction.userID || !transaction.user) {
-        throw new BackendError({
-          message: 'User is not provided',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
-      // Get User
+      // Check Transaction
+      this.checkStartTransaction(transaction);
+      // Checks
       const billingUser = transaction.user;
-      if (!billingUser.billingData || !billingUser.billingData.customerID || !billingUser.billingData.method) {
-        throw new BackendError({
-          message: 'Transaction user has no billing method or no customer in Stripe',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
-      if (billingUser.billingData.method !== BillingMethod.IMMEDIATE &&
-        billingUser.billingData.method !== BillingMethod.PERIODIC) {
-        throw new BackendError({
-          message: 'Transaction user is assigned to unknown billing method',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
-      if (!billingUser.billingData.subscriptionID &&
-        billingUser.billingData.method !== BillingMethod.IMMEDIATE) {
-        throw new BackendError({
-          message: 'Transaction user is not subscribed to Stripe billing plan',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
       if (billingUser.billingData.subscriptionID &&
         billingUser.billingData.method !== BillingMethod.IMMEDIATE) {
         const subscription = await this.getSubscription(billingUser.billingData.subscriptionID);
@@ -520,42 +483,15 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     try {
       // Check Stripe
       await this.checkConnection();
-      // Check User
-      if (!transaction.userID || !transaction.user) {
-        throw new BackendError({
-          message: 'User is not provided',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'stopTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
-      // Check Charging Station
-      if (!transaction.chargeBox) {
-        throw new BackendError({
-          message: 'Charging Station is not provided',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'stopTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
-      if (!transaction.user.billingData) {
-        throw new BackendError({
-          message: 'User has no Billing Data',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'stopTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
+      // Check object
+      this.checkStopTransaction(transaction);
+      // Get the user
       const billingUser = await this.getUser(transaction.user.billingData.customerID);
       if (!billingUser) {
         throw new BackendError({
           message: 'User does not exists in Stripe',
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'stopTransaction',
+          module: MODULE_NAME, method: 'stopTransaction',
           action: ServerAction.BILLING_TRANSACTION
         });
       }

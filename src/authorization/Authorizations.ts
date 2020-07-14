@@ -602,7 +602,7 @@ export default class Authorizations {
   }
 
   public static canLinkTransactionToInvoice(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LINK_INVOICE);
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.LINK);
   }
 
   public static canDownloadInvoiceBilling(loggedUser: UserToken, userId: string): boolean {

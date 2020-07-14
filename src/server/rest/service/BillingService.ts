@@ -3,12 +3,10 @@ import fs from 'fs';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import BackendError from '../../../exception/BackendError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
@@ -434,35 +432,37 @@ export default class BillingService {
     next();
   }
 
-  public static async handleLinkTransactionToInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateTransactionInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.LINK, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
+    // Check Auth
     if (!Authorizations.canLinkTransactionToInvoice(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.LINK_INVOICE,
-        module: MODULE_NAME, method: 'handleLinkInvoiceToTransaction',
+        entity: Entity.INVOICE, action: Action.LINK,
+        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
       });
     }
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LINK_INVOICE, Entity.BILLING, MODULE_NAME, 'handleLinkInvoiceToTransaction');
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
+    // Get Billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleLinkInvoiceToTransaction',
+        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
         action: action,
         user: req.user
       });
     }
-    const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
     // Get the Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, Utils.convertToInt(filteredRequest.transactionID));
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID,
+      Utils.convertToInt(filteredRequest.transactionID));
     UtilsService.assertObjectExists(action, transaction, `Transaction '${filteredRequest.transactionID}' does not exist`,
-      MODULE_NAME, 'handleLinkInvoiceToTransaction', req.user);
+      MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
     try {
       // Create an invoice for the transaction
       const billingDataStop = await billingImpl.stopTransaction(transaction);
@@ -475,11 +475,21 @@ export default class BillingService {
         lastUpdate: new Date()
       };
       await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+      // Ok
+      Logging.logInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, actionOnUser: transaction.userID,
+        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+        message: `Transaction ID '${transaction.id}' has been billed successfully`,
+        action: action,
+      });
     } catch (error) {
-      throw new BackendError({
+      throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'handleLinkTransactionToInvoice',
+        errorCode: HTTPError.GENERAL_ERROR,
+        user: req.user, actionOnUser: transaction.userID,
+        method: 'handleCreateTransactionInvoice',
         message: `Failed to link transaction ${transaction.id} to invoice`,
         detailedMessages: { error: error.message, stack: error.stack }
       });

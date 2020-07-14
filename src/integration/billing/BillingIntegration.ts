@@ -2,7 +2,7 @@ import BackendError from '../../exception/BackendError';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import { UserInErrorType } from '../../types/InError';
 import { ServerAction } from '../../types/Server';
 import { BillingSetting } from '../../types/Setting';
@@ -400,6 +400,92 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       // Send link to the user using our notification framework (link to the front-end + download)
     }
     return invoice;
+  }
+
+  public checkStopTransaction(transaction: Transaction): void {
+    // Check User
+    if (!transaction.userID || !transaction.user) {
+      throw new BackendError({
+        message: 'User is not provided',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    // Check Charging Station
+    if (!transaction.chargeBox) {
+      throw new BackendError({
+        message: 'Charging Station is not provided',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    // Check Charging Station
+    if (transaction.billingData) {
+      throw new BackendError({
+        message: 'Transaction has already billing data',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    if (!transaction.user.billingData) {
+      throw new BackendError({
+        message: 'User has no Billing Data',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+  }
+
+  public checkStartTransaction(transaction: Transaction): void {
+    // Check User
+    if (!transaction.userID || !transaction.user) {
+      throw new BackendError({
+        message: 'User is not provided',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    // Get User
+    const billingUser = transaction.user;
+    if (!billingUser.billingData || !billingUser.billingData.customerID || !billingUser.billingData.method) {
+      throw new BackendError({
+        message: 'Transaction user has no billing method or no customer in Stripe',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    if (billingUser.billingData.method !== BillingMethod.IMMEDIATE &&
+      billingUser.billingData.method !== BillingMethod.PERIODIC) {
+      throw new BackendError({
+        message: 'Transaction user is assigned to unknown billing method',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    if (!billingUser.billingData.subscriptionID &&
+      billingUser.billingData.method !== BillingMethod.IMMEDIATE) {
+      throw new BackendError({
+        message: 'Transaction user is not subscribed to Stripe billing plan',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
   }
 
   private async checkAndGetBillingUser(user: User): Promise<BillingUser> {
