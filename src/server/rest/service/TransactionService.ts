@@ -640,6 +640,10 @@ export default class TransactionService {
       });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
+    // Limit to 100
+    if (transactions.result.length > 100) {
+      transactions.result.length = 100;
+    }
     // Return
     res.json(transactions);
     next();
