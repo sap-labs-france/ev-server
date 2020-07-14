@@ -91,7 +91,6 @@ export enum Action {
   RESET = 'Reset',
   ASSIGN = 'Assign',
   CLEAR_CACHE = 'ClearCache',
-  LINK = 'Link',
   SYNCHRONIZE = 'Synchronize',
   GET_CONFIGURATION = 'GetConfiguration',
   CHANGE_CONFIGURATION = 'ChangeConfiguration',

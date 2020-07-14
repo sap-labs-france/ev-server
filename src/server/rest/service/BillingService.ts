@@ -435,13 +435,13 @@ export default class BillingService {
   public static async handleCreateTransactionInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LINK, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
+      Action.CREATE, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
     // Check Auth
-    if (!Authorizations.canLinkTransactionToInvoice(req.user)) {
+    if (!Authorizations.canCreateTransactionInvoice(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.INVOICE, action: Action.LINK,
+        entity: Entity.INVOICE, action: Action.CREATE,
         module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
       });
     }
