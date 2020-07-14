@@ -37,6 +37,7 @@ class TestData {
   public siteContext: SiteContext;
   public siteAreaContext: any;
   public chargingStationContext: ChargingStationContext;
+  public transactionUserService: CentralServerService;
   public createdUsers: User[] = [];
   public isForcedSynchro: boolean;
   public pending = false;
@@ -82,7 +83,7 @@ class TestData {
 }
 
 
-async function generateTransaction(user: User, chargingStationContext) {
+async function generateTransaction(user: User, chargingStationContext): Promise<number> {
   const connectorId = 1;
   const tagId = user.tags[0].id;
   const meterStart = 0;
@@ -92,9 +93,10 @@ async function generateTransaction(user: User, chargingStationContext) {
   const startTransactionResponse = await chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
   // eslint-disable-next-line @typescript-eslint/unbound-method
   expect(startTransactionResponse).to.be.transactionValid;
-  const transactionId1 = startTransactionResponse.transactionId;
+  const transactionId1 = startTransactionResponse.transactionId as number;
   const stopTransactionResponse = await chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
   expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+  return transactionId1;
 }
 
 const testData: TestData = new TestData();
@@ -430,6 +432,8 @@ describe('Billing Service', function() {
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.transactionUserService = new CentralServerService(
+        testData.tenantContext.getTenant().subdomain, testData.userContext);
     });
 
     describe('Where admin user', () => {
@@ -464,6 +468,13 @@ describe('Billing Service', function() {
         const response = await testData.userService.billingApi.synchronizeInvoices({});
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
         expect(response.data.inSuccess).to.be.eq(1);
+      });
+
+      it('should not delete a transaction linked to an invoice', async () => {
+        const transactionID = await generateTransaction(testData.userContext, testData.chargingStationContext);
+        const transactionDeleted = await testData.transactionUserService.transactionApi.delete(transactionID);
+        expect(transactionDeleted.data.inError).to.be.eq(1);
+        expect(transactionDeleted.data.inSuccess).to.be.eq(0);
       });
     });
 
