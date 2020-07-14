@@ -109,30 +109,66 @@ export default class OCPPUtils {
       switch (action) {
         // Start Transaction
         case TransactionAction.START:
-          // Delegate
-          await billingImpl.startTransaction(transaction);
-          // Update
-          transaction.billingData = {
-            lastUpdate: new Date()
-          };
+          try {
+            // Delegate
+            await billingImpl.startTransaction(transaction);
+            // Update
+            transaction.billingData = {
+              lastUpdate: new Date()
+            };
+          } catch (error) {
+            Logging.logError({
+              tenantID: tenantID,
+              user: transaction.userID,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message: `Failed to bill transaction ${transaction.id}`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
           break;
         // Meter Values
         case TransactionAction.UPDATE:
-          // Delegate
-          await billingImpl.updateTransaction(transaction);
-          // Update
-          transaction.billingData.lastUpdate = new Date();
+          try {
+            // Delegate
+            await billingImpl.updateTransaction(transaction);
+            // Update
+            transaction.billingData.lastUpdate = new Date();
+          } catch (error) {
+            Logging.logError({
+              tenantID: tenantID,
+              user: transaction.userID,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message: `Failed to bill transaction ${transaction.id}`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
           break;
         // Stop Transaction
         case TransactionAction.STOP:
-          // Delegate
-          billingDataStop = await billingImpl.stopTransaction(transaction);
-          // Update
-          transaction.billingData.status = billingDataStop.status;
-          transaction.billingData.invoiceID = billingDataStop.invoiceID;
-          transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
-          transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
-          transaction.billingData.lastUpdate = new Date();
+          try {
+            // Delegate
+            billingDataStop = await billingImpl.stopTransaction(transaction);
+            // Update
+            transaction.billingData.status = billingDataStop.status;
+            transaction.billingData.invoiceID = billingDataStop.invoiceID;
+            transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
+            transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
+            transaction.billingData.lastUpdate = new Date();
+          } catch (error) {
+            Logging.logError({
+              tenantID: tenantID,
+              user: transaction.userID,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message: `Failed to bill transaction ${transaction.id}`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
           break;
       }
     }
@@ -174,7 +210,7 @@ export default class OCPPUtils {
         } else {
           consumption.instantWatts = Utils.convertAmpToWatt(chargingStation, null, connectorID, consumption.instantAmps);
         }
-      // Based on provided Consumption?
+        // Based on provided Consumption?
       } else {
         // Compute average Instant Power based on consumption over a time period (usually 60s)
         const diffSecs = moment(consumption.endedAt).diff(consumption.startedAt, 'milliseconds') / 1000;
@@ -593,7 +629,7 @@ export default class OCPPUtils {
       // Handle SoC (%)
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         consumption.stateOfCharge = Utils.convertToFloat(meterValue.value);
-      // Handle Power (W/kW)
+        // Handle Power (W/kW)
       } else if (OCPPUtils.isPowerActiveImportMeterValue(meterValue)) {
         // Compute power
         const powerInMeterValue = Utils.convertToFloat(meterValue.value);
@@ -622,7 +658,7 @@ export default class OCPPUtils {
             }
             break;
         }
-      // Handle Voltage (V)
+        // Handle Voltage (V)
       } else if (OCPPUtils.isVoltageMeterValue(meterValue)) {
         const voltage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -648,7 +684,7 @@ export default class OCPPUtils {
             }
             break;
         }
-      // Handle Current (A)
+        // Handle Current (A)
       } else if (OCPPUtils.isCurrentImportMeterValue(meterValue)) {
         const amperage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -674,7 +710,7 @@ export default class OCPPUtils {
             }
             break;
         }
-      // Handle Consumption (Wh/kWh)
+        // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
@@ -689,7 +725,7 @@ export default class OCPPUtils {
           consumption.consumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.consumptionWh);
           // Cumulated Consumption
           transaction.currentTotalConsumptionWh += consumption.consumptionWh;
-        // No Consumption
+          // No Consumption
         } else {
           consumption.consumptionWh = 0;
           consumption.consumptionAmps = 0;
