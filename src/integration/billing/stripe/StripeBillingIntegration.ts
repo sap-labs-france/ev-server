@@ -608,6 +608,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       }
       return {
         status: BillingStatus.BILLED,
+        invoiceID: invoice.invoice.id,
         invoiceStatus: invoice.invoice.status,
         invoiceItem: invoice.invoiceItem,
       };
