@@ -14,7 +14,7 @@ export interface HttpForceSynchronizeUserInvoicesRequest {
   userID?: string;
 }
 
-export interface HttpLinkTransactionToInvoiceRequest {
+export interface HttpCreateTransactionInvoiceRequest {
   transactionID?: string;
 }
 

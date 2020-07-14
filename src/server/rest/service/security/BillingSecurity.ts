@@ -1,5 +1,5 @@
 import { BillingInvoice, BillingTax } from '../../../../types/Billing';
-import { HttpForceSynchronizeUserInvoicesRequest, HttpLinkTransactionToInvoiceRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpForceSynchronizeUserInvoicesRequest, HttpCreateTransactionInvoiceRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
@@ -118,7 +118,7 @@ export default class BillingSecurity {
     };
   }
 
-  static filterLinkTransactionToInvoiceRequest(request: any): HttpLinkTransactionToInvoiceRequest {
+  static filterLinkTransactionToInvoiceRequest(request: any): HttpCreateTransactionInvoiceRequest {
     return {
       transactionID: sanitize(request.transactionID)
     };
