@@ -182,6 +182,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     } else {
       user.billingData = (await this.createUser(user)).billingData;
     }
+    // Save
     await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
     Logging.logInfo({
       tenantID: tenantID,
@@ -407,29 +408,9 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     }
     // Get User
     const billingUser = transaction.user;
-    if (!billingUser.billingData || !billingUser.billingData.customerID || !billingUser.billingData.method) {
+    if (!billingUser.billingData || !billingUser.billingData.customerID) {
       throw new BackendError({
         message: 'Transaction user has no billing method or no customer in Stripe',
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'startTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
-    }
-    if (billingUser.billingData.method !== BillingMethod.IMMEDIATE &&
-      billingUser.billingData.method !== BillingMethod.PERIODIC) {
-      throw new BackendError({
-        message: 'Transaction user is assigned to unknown billing method',
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'startTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
-    }
-    if (!billingUser.billingData.subscriptionID &&
-      billingUser.billingData.method !== BillingMethod.IMMEDIATE) {
-      throw new BackendError({
-        message: 'Transaction user is not subscribed to Stripe billing plan',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'startTransaction',

@@ -39,9 +39,6 @@ export interface BillingDataTransactionStop {
 
 export interface BillingUserData {
   customerID?: string;
-  method?: string;
-  cardID?: string;
-  subscriptionID?: string;
   lastChangedOn?: Date;
   hasSynchroError?: boolean;
   invoicesLastSynchronizedOn?: Date;
