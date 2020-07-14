@@ -405,45 +405,33 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
-    try {
-      // Check Stripe
-      await this.checkConnection();
-      // Check Transaction
-      this.checkStartTransaction(transaction);
-      // Checks
-      const billingUser = transaction.user;
-      if (billingUser.billingData.subscriptionID &&
-        billingUser.billingData.method !== BillingMethod.IMMEDIATE) {
-        const subscription = await this.getSubscription(billingUser.billingData.subscriptionID);
-        if (!subscription || subscription.id !== billingUser.billingData.subscriptionID) {
-          throw new BackendError({
-            message: 'Stripe subscription ID of the transaction user is invalid',
-            source: Constants.CENTRAL_SERVER,
-            module: MODULE_NAME,
-            method: 'startTransaction',
-            action: ServerAction.BILLING_TRANSACTION
-          });
-        }
-      }
-      const customer = await this.getCustomerByEmail(billingUser.email);
-      if (!customer || customer.id !== billingUser.billingData.customerID) {
+    // Check Stripe
+    await this.checkConnection();
+    // Check Transaction
+    this.checkStartTransaction(transaction);
+    // Checks
+    const billingUser = transaction.user;
+    if (billingUser.billingData.subscriptionID &&
+      billingUser.billingData.method !== BillingMethod.IMMEDIATE) {
+      const subscription = await this.getSubscription(billingUser.billingData.subscriptionID);
+      if (!subscription || subscription.id !== billingUser.billingData.subscriptionID) {
         throw new BackendError({
-          message: 'Stripe customer ID of the transaction user is invalid',
+          message: 'Stripe subscription ID of the transaction user is invalid',
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'startTransaction',
           action: ServerAction.BILLING_TRANSACTION
         });
       }
-    } catch (error) {
-      Logging.logError({
-        tenantID: this.tenantID,
-        user: transaction.userID,
+    }
+    const customer = await this.getCustomerByEmail(billingUser.email);
+    if (!customer || customer.id !== billingUser.billingData.customerID) {
+      throw new BackendError({
+        message: 'Stripe customer ID of the transaction user is invalid',
         source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'startTransaction',
-        message: `Billing error in Start Transaction: ${error.message}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
       });
     }
     return {
@@ -452,26 +440,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate> {
-    try {
-      // Check User
-      if (!transaction.userID || !transaction.user) {
-        throw new BackendError({
-          message: 'User is not provided',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'updateTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
-    } catch (error) {
-      Logging.logError({
-        tenantID: this.tenantID,
-        user: transaction.userID,
+    // Check User
+    if (!transaction.userID || !transaction.user) {
+      throw new BackendError({
+        message: 'User is not provided',
         source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'updateTransaction',
-        message: `Billing error in Update Transaction: ${error.message}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        module: MODULE_NAME,
+        method: 'updateTransaction',
+        action: ServerAction.BILLING_TRANSACTION
       });
     }
     return {
@@ -480,90 +456,73 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
-    try {
-      // Check Stripe
-      await this.checkConnection();
-      // Check object
-      this.checkStopTransaction(transaction);
-      // Get the user
-      const billingUser = await this.getUser(transaction.user.billingData.customerID);
-      if (!billingUser) {
-        throw new BackendError({
-          message: 'User does not exists in Stripe',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'stopTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
-      const chargeBox = transaction.chargeBox;
-      // Create or update invoice in Stripe
-      let description = '';
-      const i18nManager = new I18nManager(transaction.user.locale);
-      const totalConsumptionWh = Math.round(transaction.stop.totalConsumptionWh / 100) / 10;
-      const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
-      if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-        description = i18nManager.translate('billing.chargingStopSiteArea',
-          { totalConsumption: totalConsumptionWh, siteArea: chargeBox.siteArea, time: time });
-      } else {
-        description = i18nManager.translate('billing.chargingStopChargeBox',
-          { totalConsumption: totalConsumptionWh, chargeBox: transaction.chargeBoxID, time: time });
-      }
-      // Const taxRates: ITaxRate[] = [];
-      // if (this.settings.taxID) {
-      //   taxRates.push(this.settings.taxID);
-      // }
-      let invoice = {} as { invoice: BillingInvoice; invoiceItem: BillingInvoiceItem };
-      // Billing Method
-      switch (transaction.user.billingData.method) {
-        // Immediate
-        case BillingMethod.IMMEDIATE:
-          invoice = await this.createInvoice(billingUser, {
+    // Check Stripe
+    await this.checkConnection();
+    // Check object
+    this.checkStopTransaction(transaction);
+    // Get the user
+    const billingUser = await this.getUser(transaction.user.billingData.customerID);
+    if (!billingUser) {
+      throw new BackendError({
+        message: 'User does not exists in Stripe',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'stopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    const chargeBox = transaction.chargeBox;
+    // Create or update invoice in Stripe
+    let description = '';
+    const i18nManager = new I18nManager(transaction.user.locale);
+    const totalConsumptionWh = Math.round(transaction.stop.totalConsumptionWh / 100) / 10;
+    const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
+    if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
+      description = i18nManager.translate('billing.chargingStopSiteArea',
+        { totalConsumption: totalConsumptionWh, siteArea: chargeBox.siteArea, time: time });
+    } else {
+      description = i18nManager.translate('billing.chargingStopChargeBox',
+        { totalConsumption: totalConsumptionWh, chargeBox: transaction.chargeBoxID, time: time });
+    }
+    // Const taxRates: ITaxRate[] = [];
+    // if (this.settings.taxID) {
+    //   taxRates.push(this.settings.taxID);
+    // }
+    let invoice = {} as { invoice: BillingInvoice; invoiceItem: BillingInvoiceItem };
+    // Billing Method
+    switch (transaction.user.billingData.method) {
+      // Immediate
+      case BillingMethod.IMMEDIATE:
+        invoice = await this.createInvoice(billingUser, {
+          description: description,
+          amount: Math.round(transaction.stop.roundedPrice * 100)
+        }, transaction.id);
+        await this.sendInvoiceToUser(invoice.invoice);
+        break;
+      // Periodic
+      case BillingMethod.PERIODIC:
+        // Get the draft invoice
+        invoice.invoice = (await BillingStorage.getInvoices(this.tenantID, { invoiceStatus: [BillingInvoiceStatus.DRAFT] }, Constants.DB_PARAMS_SINGLE_RECORD)).result[0];
+        if (invoice.invoice) {
+          // A draft invoice already exists: append a new invoice item
+          invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice.id, {
             description: description,
             amount: Math.round(transaction.stop.roundedPrice * 100)
           }, transaction.id);
-          await this.sendInvoiceToUser(invoice.invoice);
-          break;
-        // Periodic
-        case BillingMethod.PERIODIC:
-          // Get the draft invoice
-          invoice.invoice = (await BillingStorage.getInvoices(this.tenantID, { invoiceStatus: [BillingInvoiceStatus.DRAFT] }, Constants.DB_PARAMS_SINGLE_RECORD)).result[0];
-          if (invoice.invoice) {
-            // A draft invoice already exists: append a new invoice item
-            invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice.id, {
-              description: description,
-              amount: Math.round(transaction.stop.roundedPrice * 100)
-            }, transaction.id);
-          } else {
-            // No draft invoice: create a new invoice with invoice item
-            invoice.invoice = (await this.createInvoice(billingUser, {
-              description: description,
-              amount: Math.round(transaction.stop.roundedPrice * 100)
-            }, transaction.id)).invoice;
-          }
-          break;
-      }
-      return {
-        status: BillingStatus.BILLED,
-        invoiceID: invoice.invoice.id,
-        invoiceStatus: invoice.invoice.status,
-        invoiceItem: invoice.invoiceItem,
-      };
-    } catch (error) {
-      Logging.logError({
-        tenantID: this.tenantID,
-        user: transaction.userID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'stopTransaction',
-        message: `Billing error in Stop Transaction: ${error.message}`,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-      return {
-        status: BillingStatus.UNBILLED,
-        invoiceStatus: null,
-        invoiceItem: null
-      };
+        } else {
+          // No draft invoice: create a new invoice with invoice item
+          invoice.invoice = (await this.createInvoice(billingUser, {
+            description: description,
+            amount: Math.round(transaction.stop.roundedPrice * 100)
+          }, transaction.id)).invoice;
+        }
+        break;
     }
+    return {
+      status: BillingStatus.BILLED,
+      invoiceID: invoice.invoice.id,
+      invoiceStatus: invoice.invoice.status,
+      invoiceItem: invoice.invoiceItem,
+    };
   }
 
   public async checkIfUserCanBeCreated(user: User): Promise<boolean> {

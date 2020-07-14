@@ -109,19 +109,43 @@ export default class OCPPUtils {
       switch (action) {
         // Start Transaction
         case TransactionAction.START:
-          // Delegate
-          await billingImpl.startTransaction(transaction);
-          // Update
-          transaction.billingData = {
-            lastUpdate: new Date()
-          };
+          try {
+            // Delegate
+            await billingImpl.startTransaction(transaction);
+            // Update
+            transaction.billingData = {
+              lastUpdate: new Date()
+            };
+          } catch (error) {
+            Logging.logError({
+              tenantID: tenantID,
+              user: transaction.userID,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message: `Failed to bill transaction ${transaction.id}`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
           break;
         // Meter Values
         case TransactionAction.UPDATE:
-          // Delegate
-          await billingImpl.updateTransaction(transaction);
-          // Update
-          transaction.billingData.lastUpdate = new Date();
+          try {
+            // Delegate
+            await billingImpl.updateTransaction(transaction);
+            // Update
+            transaction.billingData.lastUpdate = new Date();
+          } catch (error) {
+            Logging.logError({
+              tenantID: tenantID,
+              user: transaction.userID,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message: `Failed to bill transaction ${transaction.id}`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
           break;
         // Stop Transaction
         case TransactionAction.STOP:

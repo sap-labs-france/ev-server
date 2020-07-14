@@ -463,37 +463,25 @@ export default class BillingService {
       Utils.convertToInt(filteredRequest.transactionID));
     UtilsService.assertObjectExists(action, transaction, `Transaction '${filteredRequest.transactionID}' does not exist`,
       MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
-    try {
-      // Create an invoice for the transaction
-      const billingDataStop = await billingImpl.stopTransaction(transaction);
-      // Update transaction
-      transaction.billingData = {
-        status: billingDataStop.status,
-        invoiceID: billingDataStop.invoiceID,
-        invoiceStatus: billingDataStop.invoiceStatus,
-        invoiceItem: billingDataStop.invoiceItem,
-        lastUpdate: new Date()
-      };
-      await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
-      // Ok
-      Logging.logInfo({
-        tenantID: req.user.tenantID,
-        user: req.user, actionOnUser: transaction.userID,
-        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-        message: `Transaction ID '${transaction.id}' has been billed successfully`,
-        action: action,
-      });
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        errorCode: HTTPError.GENERAL_ERROR,
-        user: req.user, actionOnUser: transaction.userID,
-        method: 'handleCreateTransactionInvoice',
-        message: `Failed to link transaction ${transaction.id} to invoice`,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
+    // Create an invoice for the transaction
+    const billingDataStop = await billingImpl.stopTransaction(transaction);
+    // Update transaction
+    transaction.billingData = {
+      status: billingDataStop.status,
+      invoiceID: billingDataStop.invoiceID,
+      invoiceStatus: billingDataStop.invoiceStatus,
+      invoiceItem: billingDataStop.invoiceItem,
+      lastUpdate: new Date()
+    };
+    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    // Ok
+    Logging.logInfo({
+      tenantID: req.user.tenantID,
+      user: req.user, actionOnUser: transaction.userID,
+      module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+      message: `Transaction ID '${transaction.id}' has been billed successfully`,
+      action: action,
+    });
     // Ok
     res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS));
     next();
