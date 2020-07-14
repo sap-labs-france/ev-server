@@ -100,7 +100,7 @@ describe('Locking Tests', function() {
       // Get the Site Area
       const siteArea = testData.siteAreaContext.getSiteArea();
       // Create and Aquire lock
-      testData.siteExclusiveLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(
+      testData.siteExclusiveLock = await LockingHelper.createSiteAreaLock(
         testData.tenantContext.getTenant().id, siteArea);
       expect(testData.siteExclusiveLock).not.null;
       expect(testData.siteExclusiveLock.id).not.null;

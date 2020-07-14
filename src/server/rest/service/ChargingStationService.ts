@@ -382,7 +382,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
+    const siteAreaLock = await LockingHelper.createSiteAreaLock(req.user.tenantID, siteArea);
     if (siteAreaLock) {
       try {
         // Call

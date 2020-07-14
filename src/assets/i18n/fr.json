@@ -61,6 +61,10 @@
     "billingUserSynchronizationFailed": {
       "title": "Synchro Utilisateurs",
       "body": "Impossible de synchronizer {{nbrUsersInError}} utilisateur(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
+    },
+    "billingInvoiceSynchronizationFailed": {
+      "title": "Synchro Factures",
+      "body": "Impossible de synchronizer {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     }
   },
   "billing": {

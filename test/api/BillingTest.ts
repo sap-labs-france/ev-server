@@ -37,6 +37,7 @@ class TestData {
   public siteContext: SiteContext;
   public siteAreaContext: any;
   public chargingStationContext: ChargingStationContext;
+  public transactionUserService: CentralServerService;
   public createdUsers: User[] = [];
   public isForcedSynchro: boolean;
   public pending = false;
@@ -82,7 +83,7 @@ class TestData {
 }
 
 
-async function generateTransaction(user: User, chargingStationContext) {
+async function generateTransaction(user: User, chargingStationContext): Promise<number> {
   const connectorId = 1;
   const tagId = user.tags[0].id;
   const meterStart = 0;
@@ -92,9 +93,10 @@ async function generateTransaction(user: User, chargingStationContext) {
   const startTransactionResponse = await chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
   // eslint-disable-next-line @typescript-eslint/unbound-method
   expect(startTransactionResponse).to.be.transactionValid;
-  const transactionId1 = startTransactionResponse.transactionId;
+  const transactionId1 = startTransactionResponse.transactionId as number;
   const stopTransactionResponse = await chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
   expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+  return transactionId1;
 }
 
 const testData: TestData = new TestData();
@@ -175,6 +177,7 @@ describe('Billing Service', function() {
         );
         fakeUser.firstName = 'Test';
         fakeUser.name = 'Name';
+        fakeUser.issuer = true;
         await testData.userService.updateEntity(
           testData.userService.userApi,
           fakeUser,
@@ -269,9 +272,17 @@ describe('Billing Service', function() {
 
       it('Should list filtered invoices', async () => {
         const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.data.result.length).to.be.gt(0);
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
+      });
+
+      it('Should download invoice as PDF', async () => {
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.data.result.length).to.be.gt(0);
+        const downloadResponse = await testData.userService.billingApi.downloadInvoiceDocument({ ID : response.data.result[0].id });
+        expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
       });
 
       it('Should synchronize invoices', async () => {
@@ -387,7 +398,7 @@ describe('Billing Service', function() {
         );
         const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         for (let i = 0; i < response.data.result.length - 1; i++) {
-          expect(response.data.result[i].userID).to.be.eq(basicUser.id);
+          expect(response.data.result[i].user.id).to.be.eq(basicUser.id);
         }
       });
 
@@ -396,6 +407,13 @@ describe('Billing Service', function() {
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
+      });
+
+      it('Should download invoice as PDF', async () => {
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.data.result.length).to.be.gt(0);
+        const downloadResponse = await testData.userService.billingApi.downloadInvoiceDocument({ ID : response.data.result[0].id });
+        expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
       });
     });
   });
@@ -414,6 +432,8 @@ describe('Billing Service', function() {
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.transactionUserService = new CentralServerService(
+        testData.tenantContext.getTenant().subdomain, testData.userContext);
     });
 
     describe('Where admin user', () => {
@@ -448,6 +468,13 @@ describe('Billing Service', function() {
         const response = await testData.userService.billingApi.synchronizeInvoices({});
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
         expect(response.data.inSuccess).to.be.eq(1);
+      });
+
+      it('should not delete a transaction linked to an invoice', async () => {
+        const transactionID = await generateTransaction(testData.userContext, testData.chargingStationContext);
+        const transactionDeleted = await testData.transactionUserService.transactionApi.delete(transactionID);
+        expect(transactionDeleted.data.inError).to.be.eq(1);
+        expect(transactionDeleted.data.inSuccess).to.be.eq(0);
       });
     });
 

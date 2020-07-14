@@ -1,7 +1,10 @@
-import { ActionsResponse } from './GlobalType';
+import { ActionsResponse, DocumentEncoding, DocumentType } from './GlobalType';
+
+import User from './User';
 
 export interface BillingTransactionData {
   status?: string;
+  invoiceID?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
   lastUpdate?: Date;
@@ -29,6 +32,7 @@ export enum BillingMethod {
 
 export interface BillingDataTransactionStop {
   status?: string;
+  invoiceID?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
 }
@@ -64,6 +68,7 @@ export interface BillingInvoice {
   id: string;
   invoiceID: string;
   userID?: string;
+  user?: User;
   number?: string;
   status?: BillingInvoiceStatus;
   amount?: number;
@@ -71,6 +76,8 @@ export interface BillingInvoice {
   customerID?: string;
   createdOn?: Date;
   nbrOfItems?: number;
+  downloadable?: boolean
+  downloadUrl?: string;
 }
 
 export interface BillingInvoiceItem {
@@ -83,4 +90,12 @@ export enum BillingInvoiceStatus {
   PAID = 'paid',
   OPEN = 'open',
   DRAFT = 'draft',
+}
+
+export interface BillingInvoiceDocument {
+  id: string;
+  invoiceID: string;
+  content: string; // Base64 format
+  type: DocumentType;
+  encoding: DocumentEncoding;
 }
