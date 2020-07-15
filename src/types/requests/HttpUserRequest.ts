@@ -14,6 +14,10 @@ export interface HttpForceSynchronizeUserInvoicesRequest {
   userID?: string;
 }
 
+export interface HttpCreateTransactionInvoiceRequest {
+  transactionID?: string;
+}
+
 export interface HttpUserMobileTokenRequest {
   id: string;
   mobileToken: string;

@@ -1,9 +1,11 @@
 import { BillingInvoice, BillingTax } from '../../../../types/Billing';
-import { HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpBillingInvoiceRequest } from '../../../../types/requests/HttpBillingRequest';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -61,16 +63,18 @@ export default class BillingSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadInvoicesBilling(loggedUser)) {
+    if (Authorizations.canListInvoicesBilling(loggedUser)) {
       // Set only necessary info
+      filteredInvoice.id = invoice.id;
       filteredInvoice.userID = invoice.userID;
-      filteredInvoice.invoiceID = invoice.invoiceID;
       filteredInvoice.number = invoice.number;
       filteredInvoice.status = invoice.status;
       filteredInvoice.amount = invoice.amount;
       filteredInvoice.createdOn = invoice.createdOn;
+      filteredInvoice.nbrOfItems = invoice.nbrOfItems;
       filteredInvoice.currency = invoice.currency;
-      filteredInvoice.customerID = invoice.customerID;
+      filteredInvoice.downloadable = invoice.downloadable;
+      filteredInvoice.user = UserSecurity.filterMinimalUserResponse(invoice.user, loggedUser);
     }
     return filteredInvoice;
   }
@@ -111,6 +115,18 @@ export default class BillingSecurity {
   static filterForceSynchronizeUserInvoicesRequest(request: any): HttpForceSynchronizeUserInvoicesRequest {
     return {
       userID: sanitize(request.userID)
+    };
+  }
+
+  static filterLinkTransactionToInvoiceRequest(request: any): HttpCreateTransactionInvoiceRequest {
+    return {
+      transactionID: sanitize(request.transactionID)
+    };
+  }
+
+  static filterDownloadInvoiceRequest(request: any): HttpByIDRequest {
+    return {
+      ID: sanitize(request.ID)
     };
   }
 }

@@ -209,6 +209,7 @@ export enum ServerAction {
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   OFFLINE_CHARGING_STATIONS = 'OfflineChargingStations',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
+  BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
 
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
   CAR_CATALOG_SYNCHRONIZATION = 'CarCatalogSynchronization',
@@ -315,8 +316,6 @@ export enum ServerAction {
   REFUND = 'Refund',
 
   USER_READ = 'UserRead',
-  USER_INVOICE = 'UserInvoice',
-  USER_INVOICES = 'UserInvoices',
   USER_CREATE = 'UserCreate',
   USER_DELETE = 'UserDelete',
   USER_UPDATE = 'UserUpdate',
@@ -340,9 +339,12 @@ export enum ServerAction {
   BILLING_FORCE_SYNCHRONIZE_USER = 'BillingForceSynchronizeUser',
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
   BILLING_TAXES = 'BillingTaxes',
-  BILLING_USER_INVOICES = 'BillingUserInvoices',
+  BILLING_INVOICES = 'BillingUserInvoices',
+  BILLING_USER_INVOICE = 'BillingUserInvoice',
   BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
   BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
+  BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
+  BILLING_CREATE_TRANSACTION_INVOICE = 'BillingCreateTransactionInvoice',
 
   MONGO_DB = 'MongoDB',
 

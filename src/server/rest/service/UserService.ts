@@ -862,6 +862,10 @@ export default class UserService {
     );
     // Filter
     UserSecurity.filterUsersResponse(users, req.user);
+    // Limit to 100
+    if (users.result.length > 100) {
+      users.result.length = 100;
+    }
     // Return
     res.json(users);
     next();

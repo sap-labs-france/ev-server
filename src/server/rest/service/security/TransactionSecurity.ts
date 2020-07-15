@@ -206,6 +206,11 @@ export default class TransactionSecurity {
           filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
           filteredTransaction.stop.pricingSource = transaction.stop.pricingSource;
         }
+        if (transaction.billingData) {
+          filteredTransaction.billingData = {
+            invoiceID: transaction.billingData.invoiceID
+          };
+        }
       }
     }
     return filteredTransaction;

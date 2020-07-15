@@ -7,7 +7,6 @@ import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
 import { SmartChargingSetting } from '../../types/Setting';
-
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SmartChargingIntegration';

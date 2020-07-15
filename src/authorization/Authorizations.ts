@@ -496,7 +496,7 @@ export default class Authorizations {
   }
 
   public static canSynchronizeCarCatalogs(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.SYNCHRONIZE_CAR_CATALOGS);
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.SYNCHRONIZE);
   }
 
   public static canCreateCar(loggedUser: UserToken): boolean {
@@ -582,31 +582,40 @@ export default class Authorizations {
   }
 
   public static canSynchronizeUsersBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_USERS);
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS);
   }
 
   public static canSynchronizeUserBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_USER);
+    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.SYNCHRONIZE_BILLING_USER);
   }
 
   public static canReadTaxesBilling(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.TAXES, Action.LIST);
   }
 
-  public static canReadInvoicesBilling(loggedUser: UserToken): boolean {
+  public static canListInvoicesBilling(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
   }
 
   public static canSynchronizeInvoicesBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE_INVOICES);
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE);
+  }
+
+  public static canCreateTransactionInvoice(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.CREATE);
+  }
+
+  public static canDownloadInvoiceBilling(loggedUser: UserToken, userId: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.DOWNLOAD,
+      { user: userId, owner: loggedUser.id });
   }
 
   public static canCheckAssetConnection(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CHECK_CONNECTION);
   }
 
-  public static canRefreshAssetConnection(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.REFRESH_CONNECTION);
+  public static canRetrieveAssetConsumption(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {

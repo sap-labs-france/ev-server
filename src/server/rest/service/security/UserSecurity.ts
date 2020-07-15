@@ -234,7 +234,7 @@ export default class UserSecurity {
       sendCarCatalogSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendCarCatalogSynchronizationFailed) : false,
       sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
       sendPreparingSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted) : false,
-      sendBillingUserSynchronizationFailed: false,
+      sendBillingSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingSynchronizationFailed) : false,
       sendNewRegisteredUser: false,
       sendUnknownUserBadged: false,
       sendChargingStationStatusError: false,
@@ -247,7 +247,7 @@ export default class UserSecurity {
     if (role === UserRole.ADMIN) {
       filteredNotifications = {
         ...filteredNotifications,
-        sendBillingUserSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingUserSynchronizationFailed) : false,
+        sendBillingSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingSynchronizationFailed) : false,
         sendNewRegisteredUser: notifications ? UtilsSecurity.filterBoolean(notifications.sendNewRegisteredUser) : false,
         sendUnknownUserBadged: notifications ? UtilsSecurity.filterBoolean(notifications.sendUnknownUserBadged) : false,
         sendChargingStationStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendChargingStationStatusError) : false,
