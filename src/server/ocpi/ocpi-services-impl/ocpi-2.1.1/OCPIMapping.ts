@@ -516,7 +516,7 @@ export default class OCPIMapping {
       case ChargePointStatus.SUSPENDED_EVSE:
       case ChargePointStatus.FINISHING:
         return OCPIEvseStatus.BLOCKED;
-      case 'Reserved':
+      case ChargePointStatus.RESERVED:
         return OCPIEvseStatus.RESERVED;
       default:
         return OCPIEvseStatus.UNKNOWN;
