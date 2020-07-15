@@ -4,6 +4,7 @@ import User from './User';
 
 export interface BillingTransactionData {
   status?: string;
+  invoiceID?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
   lastUpdate?: Date;
@@ -31,15 +32,13 @@ export enum BillingMethod {
 
 export interface BillingDataTransactionStop {
   status?: string;
+  invoiceID?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
 }
 
 export interface BillingUserData {
   customerID?: string;
-  method?: string;
-  cardID?: string;
-  subscriptionID?: string;
   lastChangedOn?: Date;
   hasSynchroError?: boolean;
   invoicesLastSynchronizedOn?: Date;

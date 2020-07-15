@@ -6,6 +6,8 @@ import { ActionsResponse } from '../../../types/GlobalType';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -253,8 +255,7 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.TRANSACTION,
+        action: Action.DELETE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleDeleteTransaction',
         value: transactionId.toString()
       });
@@ -618,10 +619,15 @@ export default class TransactionService {
     }
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
-    } else if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
-      filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_PRICE, TransactionInErrorType.MISSING_USER];
     } else {
-      filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_USER];
+      const types = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_USER];
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
+        types.push(TransactionInErrorType.MISSING_PRICE);
+      }
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
+        types.push(TransactionInErrorType.NO_BILLING_DATA);
+      }
+      filter.errorType = types;
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
@@ -634,6 +640,10 @@ export default class TransactionService {
       });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
+    // Limit to 100
+    if (transactions.result.length > 100) {
+      transactions.result.length = 100;
+    }
     // Return
     res.json(transactions);
     next();
@@ -667,30 +677,49 @@ export default class TransactionService {
       inSuccess: 0,
       inError: 0
     };
-    const specificError: { refunded: number; notFound: number; refundedIDs: number[]; notFoundIDs: number[] } = {
-      refunded: 0,
-      notFound: 0,
-      refundedIDs: [],
-      notFoundIDs: []
-    };
     // Check if transaction has been refunded
     const refundConnector = await RefundFactory.getRefundImpl(loggedUser.tenantID);
-    for (const transactionId of transactionsIDs) {
+    const billingImpl = await BillingFactory.getBillingImpl(loggedUser.tenantID);
+    for (const transactionID of transactionsIDs) {
       // Get
-      const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionId);
+      const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionID);
       // Not Found
       if (!transaction) {
         result.inError++;
-        specificError.notFound++;
-        specificError.notFoundIDs.push(transactionId);
+        Logging.logError({
+          tenantID: loggedUser.tenantID,
+          user: loggedUser,
+          module: MODULE_NAME, method: 'handleDeleteTransactions',
+          message: `Transaction ID '${transactionID}' does not exist`,
+          action: action,
+          detailedMessages: { transaction }
+        });
         // Already Refunded
       } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
         result.inError++;
-        specificError.refunded++;
-        specificError.refundedIDs.push(transactionId);
+        Logging.logError({
+          tenantID: loggedUser.tenantID,
+          user: loggedUser,
+          module: MODULE_NAME, method: 'handleDeleteTransactions',
+          message: `Transaction ID '${transactionID}' has been refunded and cannot be deleted`,
+          action: action,
+          detailedMessages: { transaction }
+        });
+      // Billed
+      } else if (billingImpl && transaction.billingData && transaction.billingData.invoiceID) {
+        result.inError++;
+        Logging.logError({
+          tenantID: loggedUser.tenantID,
+          user: loggedUser,
+          module: MODULE_NAME, method: 'handleDeleteTransactions',
+          message: `Transaction ID '${transactionID}' has been billed and cannot be deleted`,
+          action: action,
+          detailedMessages: { transaction }
+        });
+      // Transaction in progress
       } else if (!transaction.stop) {
         if (!transaction.chargeBox) {
-          transactionsIDsToDelete.push(transactionId);
+          transactionsIDsToDelete.push(transactionID);
         } else {
           // Check connector
           const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
@@ -700,43 +729,25 @@ export default class TransactionService {
             await ChargingStationStorage.saveChargingStation(loggedUser.tenantID, transaction.chargeBox);
           }
           // To Delete
-          transactionsIDsToDelete.push(transactionId);
+          transactionsIDsToDelete.push(transactionID);
         }
+      // Ok
       } else {
-        // To Delete
-        transactionsIDsToDelete.push(transactionId);
+        transactionsIDsToDelete.push(transactionID);
       }
     }
     // Delete All Transactions
     result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
-    // Adjust
-    result.inError += transactionsIDsToDelete.length - result.inSuccess;
     // Log
-    if (result.inError > 0) {
-      const errorDetails = [];
-      if (specificError.notFound) {
-        errorDetails.push(`${specificError.notFound} session IDs have not been found: ${specificError.notFoundIDs.join(', ')}`);
-      }
-      if (specificError.refunded) {
-        errorDetails.push(`${specificError.refunded} session IDs has been refunded and cannot be deleted: ${specificError.refundedIDs.join(', ')}`);
-      }
-      Logging.logError({
-        tenantID: loggedUser.tenantID,
-        user: loggedUser,
-        module: MODULE_NAME, method: 'handleDeleteTransactions',
-        message: `${result.inSuccess} transaction(s) have been deleted successfully and ${result.inError} encountered an error or cannot be deleted`,
-        action: action,
-        detailedMessages: { errorDetails }
-      });
-    } else {
-      Logging.logInfo({
-        tenantID: loggedUser.tenantID,
-        user: loggedUser,
-        module: MODULE_NAME, method: 'handleDeleteTransactions',
-        message: `${result.inSuccess} transaction(s) have been deleted successfully`,
-        action: action
-      });
-    }
+    // Log
+    Utils.logActionsResponse(loggedUser.tenantID,
+      ServerAction.TRANSACTIONS_DELETE,
+      MODULE_NAME, 'synchronizeCarCatalogs', result,
+      '{{inSuccess}} transaction(s) were successfully deleted',
+      '{{inError}} transaction(s) failed to be deleted',
+      '{{inSuccess}} transaction(s) were successfully deleted and {{inError}} failed to be deleted',
+      'No transactions have been deleted'
+    );
     return result;
   }
 

@@ -160,25 +160,11 @@ export default class TransactionStorage {
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
         status: transactionToSave.billingData.status,
+        invoiceID: Utils.convertToObjectID(transactionToSave.billingData.invoiceID),
         invoiceStatus: transactionToSave.billingData.invoiceStatus,
         invoiceItem: transactionToSave.billingData.invoiceItem,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
       };
-      if (!transactionMDB.billingData.status) {
-        delete transactionMDB.billingData.status;
-      }
-      if (!transactionMDB.billingData.errorCode) {
-        delete transactionMDB.billingData.errorCode;
-      }
-      if (!transactionMDB.billingData.errorCodeDesc) {
-        delete transactionMDB.billingData.errorCodeDesc;
-      }
-      if (!transactionMDB.billingData.invoiceStatus) {
-        delete transactionMDB.billingData.invoiceStatus;
-      }
-      if (!transactionMDB.billingData.invoiceItem) {
-        delete transactionMDB.billingData.invoiceItem;
-      }
     }
     if (transactionToSave.ocpiData) {
       transactionMDB.ocpiData = {
@@ -730,7 +716,7 @@ export default class TransactionStorage {
     params: {
       search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
       siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-      errorType?: (TransactionInErrorType.LONG_INACTIVITY | TransactionInErrorType.NEGATIVE_ACTIVITY | TransactionInErrorType.NEGATIVE_DURATION | TransactionInErrorType.OVER_CONSUMPTION | TransactionInErrorType.INVALID_START_DATE | TransactionInErrorType.NO_CONSUMPTION | TransactionInErrorType.MISSING_USER | TransactionInErrorType.MISSING_PRICE)[];
+      errorType?: (TransactionInErrorType.LONG_INACTIVITY | TransactionInErrorType.NEGATIVE_ACTIVITY | TransactionInErrorType.NEGATIVE_DURATION | TransactionInErrorType.OVER_CONSUMPTION | TransactionInErrorType.INVALID_START_DATE | TransactionInErrorType.NO_CONSUMPTION | TransactionInErrorType.MISSING_USER | TransactionInErrorType.MISSING_PRICE | TransactionInErrorType.NO_BILLING_DATA)[];
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
@@ -1216,6 +1202,16 @@ export default class TransactionStorage {
           },
           { $addFields: { 'errorCode': TransactionInErrorType.MISSING_USER } }
         ];
+      case TransactionInErrorType.NO_BILLING_DATA:
+        return [
+          { $match: { $or: [
+            { 'billingData': { $exists: false } },
+            { 'billingData.invoiceID': { $exists: false } },
+            { 'billingData.invoiceID': { $eq: null } }
+          ] } },
+          { $addFields: { 'errorCode': TransactionInErrorType.NO_BILLING_DATA } }
+        ];
+        break;
       default:
         return [];
     }

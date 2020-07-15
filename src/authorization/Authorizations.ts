@@ -601,6 +601,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE);
   }
 
+  public static canCreateTransactionInvoice(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.CREATE);
+  }
+
   public static canDownloadInvoiceBilling(loggedUser: UserToken, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.DOWNLOAD,
       { user: userId, owner: loggedUser.id });

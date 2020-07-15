@@ -811,6 +811,10 @@ export default class ChargingStationService {
     );
     // Build the result
     ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user);
+    // Limit to 100
+    if (chargingStations.result.length > 100) {
+      chargingStations.result.length = 100;
+    }
     // Return
     res.json(chargingStations);
     next();
