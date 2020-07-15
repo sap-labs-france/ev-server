@@ -15,8 +15,10 @@ import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
 
@@ -427,6 +429,61 @@ export default class BillingService {
     }
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+  public static async handleCreateTransactionInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CREATE, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
+    // Check Auth
+    if (!Authorizations.canCreateTransactionInvoice(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        entity: Entity.INVOICE, action: Action.CREATE,
+        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+      });
+    }
+    const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
+    // Get Billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the Transaction
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID,
+      Utils.convertToInt(filteredRequest.transactionID));
+    UtilsService.assertObjectExists(action, transaction, `Transaction '${filteredRequest.transactionID}' does not exist`,
+      MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
+    // Create an invoice for the transaction
+    const billingDataStop = await billingImpl.stopTransaction(transaction);
+    // Update transaction
+    transaction.billingData = {
+      status: billingDataStop.status,
+      invoiceID: billingDataStop.invoiceID,
+      invoiceStatus: billingDataStop.invoiceStatus,
+      invoiceItem: billingDataStop.invoiceItem,
+      lastUpdate: new Date()
+    };
+    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    // Ok
+    Logging.logInfo({
+      tenantID: req.user.tenantID,
+      user: req.user, actionOnUser: transaction.userID,
+      module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+      message: `Transaction ID '${transaction.id}' has been billed successfully`,
+      action: action,
+    });
+    // Ok
+    res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 

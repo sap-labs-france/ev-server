@@ -476,6 +476,14 @@ describe('Billing Service', function() {
         expect(transactionDeleted.data.inError).to.be.eq(1);
         expect(transactionDeleted.data.inSuccess).to.be.eq(0);
       });
+
+      it('Should set a transaction in error', async () => {
+        await TestData.setBillingSystemInvalidCredentials(testData);
+        const transactionID = await generateTransaction(testData.userContext, testData.chargingStationContext);
+        expect(transactionID).to.not.be.null;
+        const transactions = await testData.transactionUserService.transactionApi.readAllInError({});
+        expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
+      });
     });
 
     describe('Where basic user', () => {
@@ -517,6 +525,10 @@ describe('Billing Service', function() {
         const invoicesAfter = response.data.count;
         expect(invoicesAfter).to.be.eq(invoicesBefore + 1);
       });
+    });
+
+    after(async () => {
+      await TestData.setBillingSystemValidCredentials(testData);
     });
   });
 });

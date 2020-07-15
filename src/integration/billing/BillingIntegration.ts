@@ -158,89 +158,40 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   }
 
   public async synchronizeUser(tenantID: string, user: User): Promise<void> {
-    try {
-      const exists = await this.userExists(user);
-      let newUser: BillingUser;
-      if (!exists) {
-        newUser = await this.createUser(user);
-      } else {
-        newUser = await this.updateUser(user);
-      }
-      try {
-        await UserStorage.saveUserBillingData(tenantID, user.id, newUser.billingData);
-      } catch (error) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'synchronizeUser',
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-          actionOnUser: user,
-          message: 'Unable to save user Billing Data in e-Mobility',
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    } catch (error) {
-      if (!user.billingData) {
-        user.billingData = {};
-      }
-      user.billingData.hasSynchroError = true;
-      try {
-        await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
-      } catch (error2) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'synchronizeUser',
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-          actionOnUser: user,
-          message: 'Unable to save user Billing Data in e-Mobility',
-          detailedMessages: { error: error2.message, stack: error2.stack }
-        });
-      }
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'synchronizeUser',
-        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-        actionOnUser: user,
-        message: `Cannot synchronize user '${user.email}' with billing system`,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
+    const exists = await this.userExists(user);
+    let newUser: BillingUser;
+    if (!exists) {
+      newUser = await this.createUser(user);
+    } else {
+      newUser = await this.updateUser(user);
     }
+    await UserStorage.saveUserBillingData(tenantID, user.id, newUser.billingData);
   }
 
   public async forceSynchronizeUser(tenantID: string, user: User): Promise<void> {
-    let billingUser: BillingUser;
-    try {
-      billingUser = await this.getUserByEmail(user.email);
-      if (billingUser) {
-        if (user.billingData) {
-          // Only override user's customerID
-          user.billingData.customerID = billingUser.billingData.customerID;
-          user.billingData.hasSynchroError = false;
-        } else {
-          billingUser = await this.updateUser(user);
-          user.billingData = billingUser.billingData;
-        }
+    let billingUser = await this.getUserByEmail(user.email);
+    if (billingUser) {
+      if (user.billingData) {
+        // Only override user's customerID
+        user.billingData.customerID = billingUser.billingData.customerID;
+        user.billingData.hasSynchroError = false;
       } else {
-        user.billingData = (await this.createUser(user)).billingData;
+        billingUser = await this.updateUser(user);
+        user.billingData = billingUser.billingData;
       }
-      await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
-        actionOnUser: user,
-        module: MODULE_NAME, method: 'forceSynchronizeUser',
-        message: `Successfully forced the synchronization of the user '${user.email}'`,
-      });
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'forceSynchronizeUser',
-        action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
-        actionOnUser: user,
-        message: `Cannot force synchronize user '${user.email}' with billing system`,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
+    } else {
+      user.billingData = (await this.createUser(user)).billingData;
     }
+    // Save
+    await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
+    Logging.logInfo({
+      tenantID: tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
+      actionOnUser: user,
+      module: MODULE_NAME, method: 'forceSynchronizeUser',
+      message: `Successfully forced the synchronization of the user '${user.email}'`,
+    });
   }
 
   public async synchronizeInvoices(tenantID: string, user?: User): Promise<BillingUserSynchronizeAction> {
@@ -400,6 +351,72 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       // Send link to the user using our notification framework (link to the front-end + download)
     }
     return invoice;
+  }
+
+  public checkStopTransaction(transaction: Transaction): void {
+    // Check User
+    if (!transaction.userID || !transaction.user) {
+      throw new BackendError({
+        message: 'User is not provided',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    // Check Charging Station
+    if (!transaction.chargeBox) {
+      throw new BackendError({
+        message: 'Charging Station is not provided',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    // Check Charging Station
+    if (transaction.billingData) {
+      throw new BackendError({
+        message: 'Transaction has already billing data',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    if (!transaction.user.billingData) {
+      throw new BackendError({
+        message: 'User has no Billing Data',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+  }
+
+  public checkStartTransaction(transaction: Transaction): void {
+    // Check User
+    if (!transaction.userID || !transaction.user) {
+      throw new BackendError({
+        message: 'User is not provided',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    // Get User
+    const billingUser = transaction.user;
+    if (!billingUser.billingData || !billingUser.billingData.customerID) {
+      throw new BackendError({
+        message: 'Transaction user has no billing method or no customer in Stripe',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
   }
 
   private async checkAndGetBillingUser(user: User): Promise<BillingUser> {

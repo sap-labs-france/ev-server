@@ -62,7 +62,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION] },
       { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
       { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
-      { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
+      { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE], attributes: ['*'] },
       { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },

@@ -174,6 +174,10 @@ export default class AssetService {
     );
     // Filter
     AssetSecurity.filterAssetsResponse(assets, req.user);
+    // Limit to 100
+    if (assets.result.length > 100) {
+      assets.result.length = 100;
+    }
     // Return
     res.json(assets);
     next();
