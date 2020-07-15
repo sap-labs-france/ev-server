@@ -1,15 +1,15 @@
-import BackendError from '../../exception/BackendError';
-import BillingStorage from '../../storage/mongodb/BillingStorage';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
-import { UserInErrorType } from '../../types/InError';
-import { ServerAction } from '../../types/Server';
-import { BillingSetting } from '../../types/Setting';
-import Transaction from '../../types/Transaction';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
+import BackendError from '../../exception/BackendError';
+import { BillingSetting } from '../../types/Setting';
+import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import { ServerAction } from '../../types/Server';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Transaction from '../../types/Transaction';
+import { UserInErrorType } from '../../types/InError';
+import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'BillingIntegration';
