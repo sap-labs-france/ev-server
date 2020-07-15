@@ -1,16 +1,16 @@
 import chai, { assert, expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import moment from 'moment';
+
 import CentralServerService from '../api/client/CentralServerService';
-import Factory from '../factories/Factory';
-import responseHelper from '../helpers/responseHelper';
-import User from '../types/User';
 import ChargingStationContext from './context/ChargingStationContext';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
+import Factory from '../factories/Factory';
 import SiteContext from './context/SiteContext';
 import TenantContext from './context/TenantContext';
-
+import User from '../types/User';
+import chaiSubset from 'chai-subset';
+import moment from 'moment';
+import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -161,7 +161,7 @@ describe('User tests', function() {
           const startDate = moment();
           const response = await testData.chargingStationContext.startTransaction(
             connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method 
+          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(response).to.be.transactionValid;
           testData.newUser.tags = [testData.newUser.tags[1], testData.newUser.tags[2]];
           // Update
@@ -175,7 +175,7 @@ describe('User tests', function() {
             false
           )).data;
           // Check
-          const deactivatedTag = testData.newUser.tags.find(tag => tag.id === tagId);
+          const deactivatedTag = testData.newUser.tags.find((tag) => tag.id === tagId);
           expect(testData.newUser.tags).has.lengthOf(3);
           expect(deactivatedTag).to.not.be.null;
           expect(deactivatedTag.active).to.equal(false);
@@ -206,7 +206,7 @@ describe('User tests', function() {
             false
           )).data;
           // Check
-          const deactivatedTag = testData.newUser.tags.find(tag => tag.id === tagId);
+          const deactivatedTag = testData.newUser.tags.find((tag) => tag.id === tagId);
           expect(testData.newUser.tags).has.lengthOf(2);
           expect(deactivatedTag).to.be.undefined;
 

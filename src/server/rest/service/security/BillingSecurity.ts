@@ -1,5 +1,5 @@
 import { BillingInvoice, BillingTax } from '../../../../types/Billing';
-import { HttpForceSynchronizeUserInvoicesRequest, HttpCreateTransactionInvoiceRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';

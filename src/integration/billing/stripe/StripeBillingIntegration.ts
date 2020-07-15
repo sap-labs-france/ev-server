@@ -1,22 +1,22 @@
-import axios from 'axios';
-import moment from 'moment';
-import Stripe, { IResourceObject } from 'stripe';
-import BackendError from '../../../exception/BackendError';
-import BillingStorage from '../../../storage/mongodb/BillingStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
-import { ServerAction } from '../../../types/Server';
-import { StripeBillingSetting } from '../../../types/Setting';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
+import Stripe, { IResourceObject } from 'stripe';
+
+import BackendError from '../../../exception/BackendError';
+import BillingIntegration from '../BillingIntegration';
+import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import { StripeBillingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import BillingIntegration from '../BillingIntegration';
-
+import axios from 'axios';
+import moment from 'moment';
 
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;

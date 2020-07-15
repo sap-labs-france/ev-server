@@ -1,6 +1,6 @@
-import Asset from '../../types/Asset';
-import { AbstractCurrentConsumption } from '../../types/Consumption';
 import { AssetConnectionSetting, AssetSetting } from '../../types/Setting';
+import { AbstractCurrentConsumption } from '../../types/Consumption';
+import Asset from '../../types/Asset';
 
 export default abstract class AssetIntegration<T extends AssetSetting> {
   protected readonly tenantID: string;
