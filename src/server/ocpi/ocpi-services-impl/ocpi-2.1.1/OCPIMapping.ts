@@ -143,11 +143,9 @@ export default class OCPIMapping {
         issuer: true
       },
       Constants.DB_PARAMS_MAX_LIMIT);
-    if (siteAreas.count > 0) {
-      for (const siteArea of siteAreas.result) {
-        // Get charging stations from SiteArea
-        evses.push(...OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
-      }
+    for (const siteArea of siteAreas.result) {
+      // Get charging stations from SiteArea
+      evses.push(...OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
     }
     // Return evses
     return evses;
