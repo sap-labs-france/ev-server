@@ -285,7 +285,7 @@ export default {
           case ServerAction.PING:
             res.sendStatus(200);
             break;
-          // FirmwareDownload
+          // Firmware Download
           case ServerAction.FIRMWARE_DOWNLOAD:
             try {
               await ChargingStationService.handleGetFirmware(action, req, res, next);
