@@ -138,13 +138,16 @@ export default class OCPIMapping {
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
       {
         withChargingStations: true,
+        withChargingStationsAttribute: true,
         siteIDs: [site.id],
         issuer: true
       },
       Constants.DB_PARAMS_MAX_LIMIT);
-    for (const siteArea of siteAreas.result) {
-      // Get charging stations from SiteArea
-      evses.push(...OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
+    if (siteAreas.count > 0) {
+      for (const siteArea of siteAreas.result) {
+        // Get charging stations from SiteArea
+        evses.push(...OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
+      }
     }
     // Return evses
     return evses;
@@ -159,12 +162,14 @@ export default class OCPIMapping {
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
     const sites = await SiteStorage.getSites(tenant.id, { issuer: true, withChargingStations: true }, { limit, skip });
-    // Convert Sites to Locations
-    for (const site of sites.result) {
-      ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
+    if (sites.count > 0) {
+      // Convert Sites to Locations
+      for (const site of sites.result) {
+        ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
+      }
+      // Set count
+      ocpiLocationsResult.count = sites.count;
     }
-    // Set count
-    ocpiLocationsResult.count = sites.count;
     // Return locations
     return ocpiLocationsResult;
   }
@@ -181,20 +186,22 @@ export default class OCPIMapping {
       limit,
       skip
     });
+    if (tags.count > 0) {
     // Convert Sites to Locations
-    for (const tag of tags.result) {
-      const user = await UserStorage.getUser(tenant.id, tag.userID);
-      const valid = user && !user.deleted;
-      tokens.push({
-        uid: tag.id,
-        type: OCPITokenType.RFID,
-        auth_id: tag.userID,
-        visual_number: tag.userID,
-        issuer: tenant.name,
-        valid: valid,
-        whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-        last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
-      });
+      for (const tag of tags.result) {
+        const user = await UserStorage.getUser(tenant.id, tag.userID);
+        const valid = user && !user.deleted;
+        tokens.push({
+          uid: tag.id,
+          type: OCPITokenType.RFID,
+          auth_id: tag.userID,
+          visual_number: tag.userID,
+          issuer: tenant.name,
+          valid: valid,
+          whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+          last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
+        });
+      }
     }
     return {
       count: tags.count,
@@ -214,8 +221,10 @@ export default class OCPIMapping {
       limit,
       skip
     });
-    for (const transaction of transactions.result) {
-      sessions.push(transaction.ocpiData.session);
+    if (transactions.count > 0) {
+      for (const transaction of transactions.result) {
+        sessions.push(transaction.ocpiData.session);
+      }
     }
     return {
       count: transactions.count,
@@ -235,9 +244,11 @@ export default class OCPIMapping {
       limit,
       skip
     });
-    for (const transaction of transactions.result) {
-      if (transaction.ocpiData && transaction.ocpiData.cdr) {
-        cdrs.push(transaction.ocpiData.cdr);
+    if (transactions.count > 0) {
+      for (const transaction of transactions.result) {
+        if (transaction.ocpiData && transaction.ocpiData.cdr) {
+          cdrs.push(transaction.ocpiData.cdr);
+        }
       }
     }
     return {
@@ -542,7 +553,7 @@ export default class OCPIMapping {
       case ChargePointStatus.SUSPENDED_EVSE:
       case ChargePointStatus.FINISHING:
         return OCPIEvseStatus.BLOCKED;
-      case 'Reserved':
+      case ChargePointStatus.RESERVED:
         return OCPIEvseStatus.RESERVED;
       default:
         return OCPIEvseStatus.UNKNOWN;

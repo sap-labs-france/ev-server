@@ -91,7 +91,7 @@ export default class SiteAreaStorage {
       {
         siteAreaID: id,
         withSite: params.withSite,
-        withChargingStations: params.withChargingStations,
+        withChargingStationsAttribute: params.withChargingStations,
         withAvailableChargingStations: true
       },
       Constants.DB_PARAMS_SINGLE_RECORD
@@ -144,7 +144,7 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenantID: string,
     params: {
       siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
-      withChargingStations?: boolean; smartCharging?: boolean; withAvailableChargingStations?: boolean;
+      withChargingStationsAttribute?: boolean; withChargingStations?: boolean; withAvailableChargingStations?: boolean; smartCharging?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -167,7 +167,7 @@ export default class SiteAreaStorage {
       ];
     }
     // Set Site thru a filter in the dashboard
-    if (params.siteIDs && Array.isArray(params.siteIDs)) {
+    if (params.siteIDs && !Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = {
         $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
       };
@@ -228,7 +228,7 @@ export default class SiteAreaStorage {
       });
     }
     // Charging Stations
-    if (params.withChargingStations || params.withAvailableChargingStations) {
+    if (params.withChargingStationsAttribute || params.withChargingStations || params.withAvailableChargingStations) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
         asField: 'chargingStations'
@@ -247,7 +247,7 @@ export default class SiteAreaStorage {
           'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.public', 'chargingStations.inactive']);
     }
     // Read DB
-    const siteAreasMDB = await global.database.getCollection<any>(tenantID, 'siteareas')
+    const siteAreasMDB = await global.database.getCollection<SiteArea>(tenantID, 'siteareas')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
@@ -258,13 +258,17 @@ export default class SiteAreaStorage {
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        // Count Available/Occupied Chargers/Connectors
+        // Skip site area with no charging stations if asked
+        if (params.withChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
+          continue;
+        }
+        // Add counts of Available/Occupied Chargers/Connectors
         if (params.withAvailableChargingStations) {
           // Set the Charging Stations' Connector statuses
           siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
         }
-        // Chargers
-        if (!params.withChargingStations && siteAreaMDB.chargingStations) {
+        // Charging stations
+        if (!params.withChargingStationsAttribute && siteAreaMDB.chargingStations) {
           delete siteAreaMDB.chargingStations;
         }
         // Add

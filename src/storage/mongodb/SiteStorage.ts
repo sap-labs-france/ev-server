@@ -402,7 +402,7 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const sitesMDB = await global.database.getCollection<any>(tenantID, 'sites')
+    const sitesMDB = await global.database.getCollection<Site>(tenantID, 'sites')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
@@ -417,7 +417,7 @@ export default class SiteStorage {
         // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
-          // Skip site with no chargers if asked
+          // Skip site with no charging stations if asked
           if (params.withChargingStations && chargingStations.count === 0) {
             continue;
           }
