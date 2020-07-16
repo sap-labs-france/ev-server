@@ -107,7 +107,7 @@ export default class OCPIMapping {
   }
 
   /**
-   * Get Evses from SiteArea
+   * Get evses from SiteArea
    * @param {Tenant} tenant
    * @param {SiteArea} siteArea
    * @return Array of OCPI EVSES
@@ -126,7 +126,7 @@ export default class OCPIMapping {
   }
 
   /**
-   * Get Evses from Site
+   * Get evses from Site
    * @param {Tenant} tenant
    * @param {Site} site
    * @param options
@@ -162,11 +162,9 @@ export default class OCPIMapping {
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
     const sites = await SiteStorage.getSites(tenant.id, { issuer: true, withChargingStations: true }, { limit, skip });
-    if (sites.count > 0) {
-      // Convert Sites to Locations
-      for (const site of sites.result) {
-        ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
-      }
+    // Convert Sites to Locations
+    for (const site of sites.result) {
+      ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
     }
     // Set count
     ocpiLocationsResult.count = sites.count;
@@ -186,22 +184,20 @@ export default class OCPIMapping {
       limit,
       skip
     });
-    if (tags.count > 0) {
     // Convert Sites to Locations
-      for (const tag of tags.result) {
-        const user = await UserStorage.getUser(tenant.id, tag.userID);
-        const valid = user && !user.deleted;
-        tokens.push({
-          uid: tag.id,
-          type: OCPITokenType.RFID,
-          auth_id: tag.userID,
-          visual_number: tag.userID,
-          issuer: tenant.name,
-          valid: valid,
-          whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-          last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
-        });
-      }
+    for (const tag of tags.result) {
+      const user = await UserStorage.getUser(tenant.id, tag.userID);
+      const valid = user && !user.deleted;
+      tokens.push({
+        uid: tag.id,
+        type: OCPITokenType.RFID,
+        auth_id: tag.userID,
+        visual_number: tag.userID,
+        issuer: tenant.name,
+        valid: valid,
+        whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+        last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
+      });
     }
     return {
       count: tags.count,
@@ -221,10 +217,8 @@ export default class OCPIMapping {
       limit,
       skip
     });
-    if (transactions.count > 0) {
-      for (const transaction of transactions.result) {
-        sessions.push(transaction.ocpiData.session);
-      }
+    for (const transaction of transactions.result) {
+      sessions.push(transaction.ocpiData.session);
     }
     return {
       count: transactions.count,
@@ -244,11 +238,9 @@ export default class OCPIMapping {
       limit,
       skip
     });
-    if (transactions.count > 0) {
-      for (const transaction of transactions.result) {
-        if (transaction.ocpiData && transaction.ocpiData.cdr) {
-          cdrs.push(transaction.ocpiData.cdr);
-        }
+    for (const transaction of transactions.result) {
+      if (transaction.ocpiData && transaction.ocpiData.cdr) {
+        cdrs.push(transaction.ocpiData.cdr);
       }
     }
     return {
