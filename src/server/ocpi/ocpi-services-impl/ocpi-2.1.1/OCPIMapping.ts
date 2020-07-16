@@ -167,9 +167,9 @@ export default class OCPIMapping {
       for (const site of sites.result) {
         ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
       }
-      // Set count
-      ocpiLocationsResult.count = sites.count;
     }
+    // Set count
+    ocpiLocationsResult.count = sites.count;
     // Return locations
     return ocpiLocationsResult;
   }
