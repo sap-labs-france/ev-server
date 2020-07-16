@@ -41,6 +41,13 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
+    const projectFields = ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+      'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal',
+      'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
+      'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'];
+    if (filteredRequest.withImages) {
+      projectFields.push('image');
+    }
     // Get the cars
     const carCatalogs = await CarStorage.getCarCatalogs(
       {
@@ -48,10 +55,7 @@ export default class CarService {
         carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
-        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-        'chargeStandardPower','chargeStandardPhase','chargeStandardPhaseAmp','chargeAlternativePower','chargeOptionPower',
-        'chargeOptionPhaseAmp','chargeOptionPhase','chargeAlternativePhaseAmp','chargeAlternativePhase', 'chargePlug', 'fastChargePlug','fastChargePowerMax', 'drivetrainPowerHP']
+      projectFields
     );
     // Filter
     CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
@@ -87,8 +91,8 @@ export default class CarService {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase','chargeAlternativePower',
-          'chargeAlternativePhase','chargeOptionPower', 'chargeOptionPhase', 'image','chargeOptionPhaseAmp','chargeAlternativePhaseAmp']);
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower',
+          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp']);
     } else {
       // Get the car
       carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID);
@@ -207,8 +211,8 @@ export default class CarService {
     // Check Car
     const car = await CarStorage.getCarByVinLicensePlate(req.user.tenantID,
       filteredRequest.licensePlate, filteredRequest.vin, {
-        withUsers: Authorizations.isBasic(req.user) ? true : false,
-      });
+      withUsers: Authorizations.isBasic(req.user) ? true : false,
+    });
     if (car) {
       // If Admin, car already exits!
       if (Authorizations.isAdmin(req.user)) {
