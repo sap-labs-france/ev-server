@@ -91,7 +91,7 @@ export default class SiteAreaStorage {
       {
         siteAreaID: id,
         withSite: params.withSite,
-        withChargingStationsAttribute: params.withChargingStations,
+        withChargingStations: params.withChargingStations,
         withAvailableChargingStations: true
       },
       Constants.DB_PARAMS_SINGLE_RECORD
@@ -144,7 +144,7 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenantID: string,
     params: {
       siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
-      withChargingStationsAttribute?: boolean; withChargingStations?: boolean; withAvailableChargingStations?: boolean; smartCharging?: boolean;
+      withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean; smartCharging?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -228,7 +228,7 @@ export default class SiteAreaStorage {
       });
     }
     // Charging Stations
-    if (params.withChargingStationsAttribute || params.withChargingStations || params.withAvailableChargingStations) {
+    if (params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
         asField: 'chargingStations'
@@ -259,7 +259,7 @@ export default class SiteAreaStorage {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
         // Skip site area with no charging stations if asked
-        if (params.withChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
+        if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
           continue;
         }
         // Add counts of Available/Occupied Chargers/Connectors
@@ -268,7 +268,7 @@ export default class SiteAreaStorage {
           siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
         }
         // Charging stations
-        if (!params.withChargingStationsAttribute && siteAreaMDB.chargingStations) {
+        if (!params.withChargingStations && siteAreaMDB.chargingStations) {
           delete siteAreaMDB.chargingStations;
         }
         // Add
