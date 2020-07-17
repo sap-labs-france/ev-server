@@ -6,6 +6,7 @@ import { DataResult } from '../../../../types/DataResult';
 import Site from '../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
@@ -100,7 +101,6 @@ export default class SiteSecurity {
 
   static filterSiteResponse(site: Site, loggedUser: UserToken, forList = false): Site {
     let filteredSite;
-
     if (!site) {
       return null;
     }
@@ -113,8 +113,12 @@ export default class SiteSecurity {
       filteredSite.companyID = site.companyID;
       filteredSite.autoUserSiteAssignment = site.autoUserSiteAssignment;
       filteredSite.issuer = site.issuer;
-      if (!forList && site.address) {
-        filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
+      if (Utils.objectHasProperty(site, 'address')) {
+        if (forList) {
+          filteredSite.address = UtilsSecurity.filterAddressCoordinatesRequest(site.address);
+        } else {
+          filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
+        }
       }
       if (site.company) {
         filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
