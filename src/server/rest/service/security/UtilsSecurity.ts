@@ -124,6 +124,19 @@ export default class UtilsSecurity {
     return filteredAddress;
   }
 
+  static filterAddressCoordinatesRequest(address: Address): Address {
+    const filteredAddress: Address = {} as Address;
+    if (address) {
+      if (address.coordinates && address.coordinates.length === 2) {
+        filteredAddress.coordinates = [
+          sanitize(address.coordinates[0]),
+          sanitize(address.coordinates[1])
+        ];
+      }
+    }
+    return filteredAddress;
+  }
+
   static filterCreatedAndLastChanged(filteredEntity: any, entity: any, loggedUser: UserToken): void {
     if (entity.createdBy && typeof entity.createdBy === 'object' &&
       entity.createdBy.id && Authorizations.canReadUser(loggedUser, entity.createdBy.id)) {
