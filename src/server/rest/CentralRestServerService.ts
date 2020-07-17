@@ -285,6 +285,9 @@ export default {
           case ServerAction.PING:
             res.sendStatus(200);
             break;
+          case ServerAction.CAR_IMAGE:
+           await CarService.handleGetCarImage(action, req, res, next);
+            break;
           // FirmwareDownload
           case ServerAction.FIRMWARE_DOWNLOAD:
             try {

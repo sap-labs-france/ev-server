@@ -102,6 +102,18 @@ export default class CarService {
     next();
   }
 
+
+  public static async handleGetCarImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalog', req.user);
+    let carCatalog;
+    // Get the car Image
+    carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID, ['image']);
+    // Return
+    res.send(carCatalog.image);
+  }
+
   public static async handleGetCarCatalogImages(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
