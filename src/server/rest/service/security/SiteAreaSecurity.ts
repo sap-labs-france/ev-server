@@ -93,8 +93,12 @@ export default class SiteAreaSecurity {
       filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
       filteredSiteArea.smartCharging = siteArea.smartCharging;
       filteredSiteArea.accessControl = siteArea.accessControl;
-      if (!forList && Utils.objectHasProperty(siteArea, 'address')) {
-        filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
+      if (Utils.objectHasProperty(siteArea, 'address')) {
+        if (forList) {
+          filteredSiteArea.address = UtilsSecurity.filterAddressCoordinatesRequest(siteArea.address);
+        } else {
+          filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
+        }
       }
       if (siteArea.connectorStats) {
         filteredSiteArea.connectorStats = siteArea.connectorStats;
