@@ -1,14 +1,14 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
-import { DataResult } from '../../../../types/DataResult';
 import { HttpSiteAssignUsersRequest, HttpSiteOwnerRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import CompanySecurity from './CompanySecurity';
+import { DataResult } from '../../../../types/DataResult';
 import Site from '../../../../types/Site';
+import SiteAreaSecurity from './SiteAreaSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
-import CompanySecurity from './CompanySecurity';
-import SiteAreaSecurity from './SiteAreaSecurity';
 import UtilsSecurity from './UtilsSecurity';
-
+import sanitize from 'mongo-sanitize';
 
 export default class SiteSecurity {
   public static filterUpdateSiteUserAdminRequest(request: any): HttpSiteUserAdminRequest {
