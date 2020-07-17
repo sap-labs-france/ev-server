@@ -425,15 +425,15 @@ export default class OCPIMapping {
       numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     }
     return {
-      'id': `${evseID}*${connector.connectorId}`,
-      'standard': type,
-      'format': format,
-      'voltage': voltage,
-      'amperage': amperage,
-      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
+      id: `${evseID}*${connector.connectorId}`,
+      standard: type,
+      format: format,
+      voltage: voltage,
+      amperage: amperage,
+      power_type: OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
       // FIXME: add tariff id from the simple pricing settings remapping
-      'tariff_id': '1',
-      'last_updated': chargingStation.lastHeartBeat
+      tariff_id: '1',
+      last_updated: chargingStation.lastHeartBeat
     };
   }
 
@@ -490,7 +490,7 @@ export default class OCPIMapping {
   }
 
   /**
-   * Convert ID to evse ID compliant to eMI3 by replacing all non alphanumeric characters tby '*'
+   * Convert ID to evse ID compliant to eMI3 by replacing all non alphanumeric characters by '*'
    */
   static convert2evseid(id: string): string {
     if (id) {
@@ -611,7 +611,6 @@ export default class OCPIMapping {
     }
     return chargingPeriod;
   }
-
 
   /**
    * Check if OCPI credential object contains mandatory fields
