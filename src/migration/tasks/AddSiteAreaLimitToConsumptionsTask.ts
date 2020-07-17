@@ -22,7 +22,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
   async migrateTenant(tenant: Tenant) {
     let modifiedCount = 0;
     // Get Charging Stations
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargingStationsAttribute: true }, Constants.DB_PARAMS_MAX_LIMIT);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargingStations: true }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       let limitSiteAreaWatts = 0;
       let limitChargingStationsWatts = 0;
