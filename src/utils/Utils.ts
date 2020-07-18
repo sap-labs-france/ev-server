@@ -48,7 +48,7 @@ const MODULE_NAME = 'Utils';
 export default class Utils {
   private static tenants = [];
   private static centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-  private static centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+  private static centralSystemRestServer = Configuration.getCentralSystemRestServer();
 
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -917,7 +917,7 @@ export default class Utils {
   }
 
   public static buildRestServerURL() {
-    return `${Utils.centralSystemRestConfig.protocol}://${Utils.centralSystemRestConfig.host}:${Utils.centralSystemRestConfig.port}`;
+    return `${Utils.centralSystemRestServer.protocol}://${Utils.centralSystemRestServer.host}:${Utils.centralSystemRestServer.port}`;
   }
 
   public static buildEvseURL(subdomain: string = null): string {
