@@ -138,10 +138,10 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogImagesRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.CarID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
     // Get the car
     const carCatalogImages = await CarStorage.getCarCatalogImages(
-      filteredRequest.CarID,
+      filteredRequest.ID,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip }
     );
     // Return

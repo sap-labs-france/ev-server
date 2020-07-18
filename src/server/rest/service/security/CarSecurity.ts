@@ -33,7 +33,7 @@ export default class CarSecurity {
 
   public static filterCarCatalogImagesRequest(request: any): HttpCarCatalogImagesRequest {
     const filteredRequest: HttpCarCatalogImagesRequest = {
-      CarID: sanitize(request.ID),
+      ID: sanitize(request.ID),
     } as HttpCarCatalogImagesRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
