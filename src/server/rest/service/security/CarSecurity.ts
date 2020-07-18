@@ -25,7 +25,7 @@ export default class CarSecurity {
     const filteredRequest: HttpCarCatalogsRequest = {
       Search: sanitize(request.Search),
       CarMaker: sanitize(request.CarMaker),
-      withImages: UtilsSecurity.filterBoolean(request.withImages),
+      WithImages: UtilsSecurity.filterBoolean(request.WithImages),
     } as HttpCarCatalogsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

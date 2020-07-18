@@ -45,7 +45,7 @@ export default class CarService {
       'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal',
       'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
       'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'];
-    if (filteredRequest.withImages) {
+    if (filteredRequest.WithImages) {
       projectFields.push('image');
     }
     // Get the cars
@@ -223,8 +223,8 @@ export default class CarService {
     // Check Car
     const car = await CarStorage.getCarByVinLicensePlate(req.user.tenantID,
       filteredRequest.licensePlate, filteredRequest.vin, {
-      withUsers: Authorizations.isBasic(req.user) ? true : false,
-    });
+        withUsers: Authorizations.isBasic(req.user) ? true : false,
+      });
     if (car) {
       // If Admin, car already exits!
       if (Authorizations.isAdmin(req.user)) {
