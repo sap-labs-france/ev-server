@@ -529,7 +529,7 @@ export default class UserStorage {
       filters.passwordResetHash = params.passwordResetHash;
     }
     // Role
-    if (params.roles && Array.isArray(params.roles) && params.roles.length > 0) {
+    if (!Utils.isEmptyArray(params.roles)) {
       filters.role = { $in: params.roles };
     }
     // Billing Customer

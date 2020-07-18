@@ -43,11 +43,13 @@ import url from 'url';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
-const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-const _tenants = [];
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
+  private static tenants = [];
+  private static centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+  private static centralSystemRestServer = Configuration.getCentralSystemRestServer();
+
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     let threePhases = true;
@@ -373,7 +375,7 @@ export default class Utils {
       });
     }
     // Check in cache
-    if (_tenants.includes(tenantID)) {
+    if (Utils.tenants.includes(tenantID)) {
       return Promise.resolve(null);
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
@@ -397,7 +399,7 @@ export default class Utils {
         });
       }
     }
-    _tenants.push(tenantID);
+    Utils.tenants.push(tenantID);
   }
 
   static convertToBoolean(value: any): boolean {
@@ -828,6 +830,9 @@ export default class Utils {
   }
 
   public static isEmptyArray(array: any): boolean {
+    if (!array) {
+      return true;
+    }
     if (Array.isArray(array) && array.length > 0) {
       return false;
     }
@@ -911,12 +916,15 @@ export default class Utils {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
+  public static buildRestServerURL() {
+    return `${Utils.centralSystemRestServer.protocol}://${Utils.centralSystemRestServer.host}:${Utils.centralSystemRestServer.port}`;
+  }
+
   public static buildEvseURL(subdomain: string = null): string {
     if (subdomain) {
-      return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
+      return `${Utils.centralSystemFrontEndConfig.protocol}://${subdomain}.${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
     }
-    return `${_centralSystemFrontEndConfig.protocol}://${_centralSystemFrontEndConfig.host}:${
-      _centralSystemFrontEndConfig.port}`;
+    return `${Utils.centralSystemFrontEndConfig.protocol}://${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
   }
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {

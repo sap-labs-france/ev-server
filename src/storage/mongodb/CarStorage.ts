@@ -48,7 +48,6 @@ export default class CarStorage {
     const aggregation = [];
     // Limit on Car for Basic Users
     if (!Utils.isEmptyArray(params.carCatalogIDs)) {
-      // Build filter
       aggregation.push({
         $match: {
           _id: { $in: params.carCatalogIDs.map((carCatalogID) => Utils.convertToInt(carCatalogID)) }
@@ -587,9 +586,11 @@ export default class CarStorage {
     if (params.vin) {
       filters.vin = params.vin;
     }
-    // Limit on Car for Basic Users
+    // Car
     if (!Utils.isEmptyArray(params.carIDs)) {
-      filters._id = { $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID)) };
+      filters._id = {
+        $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID))
+      };
     }
     // Create Aggregation
     const aggregation = [];

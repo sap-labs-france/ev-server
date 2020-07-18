@@ -13,7 +13,7 @@ export interface HttpCarMakersRequest extends HttpDatabaseRequest {
 }
 
 export interface HttpCarCatalogImagesRequest extends HttpDatabaseRequest {
-  CarID: number;
+  ID: number;
 }
 
 export interface HttpCarCatalogByIDRequest {

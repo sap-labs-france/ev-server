@@ -1,24 +1,24 @@
+import { NextFunction, Request, Response } from 'express';
+import Authorizations from '../../../authorization/Authorizations';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import BackendError from '../../../exception/BackendError';
+import CarFactory from '../../../integration/car/CarFactory';
+import CarStorage from '../../../storage/mongodb/CarStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { Car, CarType } from '../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { NextFunction, Request, Response } from 'express';
-
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
-import BackendError from '../../../exception/BackendError';
-import CarFactory from '../../../integration/car/CarFactory';
-import CarSecurity from './security/CarSecurity';
-import CarStorage from '../../../storage/mongodb/CarStorage';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import { UserCar } from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import CarSecurity from './security/CarSecurity';
 import UtilsService from './UtilsService';
+
 
 const MODULE_NAME = 'CarService';
 
@@ -41,6 +41,10 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
+    const projectFields = ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+      'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal',
+      'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
+      'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'];
     // Get the cars
     const carCatalogs = await CarStorage.getCarCatalogs(
       {
@@ -48,10 +52,7 @@ export default class CarService {
         carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
-        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-        'chargeStandardPower','chargeStandardPhase','chargeStandardPhaseAmp','chargeAlternativePower','chargeOptionPower',
-        'chargeOptionPhaseAmp','chargeOptionPhase','chargeAlternativePhaseAmp','chargeAlternativePhase', 'chargePlug', 'fastChargePlug','fastChargePowerMax', 'drivetrainPowerHP']
+      projectFields
     );
     // Filter
     CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
@@ -87,14 +88,35 @@ export default class CarService {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase','chargeAlternativePower',
-          'chargeAlternativePhase','chargeOptionPower', 'chargeOptionPhase', 'image','chargeOptionPhaseAmp','chargeAlternativePhaseAmp']);
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower',
+          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp']);
     } else {
       // Get the car
       carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID);
     }
     // Return
     res.json(CarSecurity.filterCarCatalogResponse(carCatalog, req.user));
+    next();
+  }
+
+  public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImage', req.user);
+    // Get the car Image
+    const carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID, ['image']);
+    // Return
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (carCatalog.image.startsWith('data:image/')) {
+      header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
+      encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
+      carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
+    }
+    // Revert to binary
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(carCatalog.image, encoding));
     next();
   }
 
@@ -116,10 +138,10 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogImagesRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.CarID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
     // Get the car
     const carCatalogImages = await CarStorage.getCarCatalogImages(
-      filteredRequest.CarID,
+      filteredRequest.ID,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip }
     );
     // Return
