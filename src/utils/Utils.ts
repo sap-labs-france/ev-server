@@ -830,6 +830,9 @@ export default class Utils {
   }
 
   public static isEmptyArray(array: any): boolean {
+    if (!array) {
+      return true;
+    }
     if (Array.isArray(array) && array.length > 0) {
       return false;
     }

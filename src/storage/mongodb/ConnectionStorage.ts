@@ -128,5 +128,4 @@ export default class ConnectionStorage {
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteConnectionByUser', uniqueTimerID, { userId });
   }
-
 }

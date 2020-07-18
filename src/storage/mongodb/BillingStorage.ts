@@ -60,18 +60,24 @@ export default class BillingStorage {
     }
     // Create Aggregation
     const aggregation = [];
-    if (params.invoiceIDs) {
-      filters._id = { $in: params.invoiceIDs.map((invoiceID) => Utils.convertToObjectID(invoiceID)) };
+    if (!Utils.isEmptyArray(params.invoiceIDs)) {
+      filters._id = {
+        $in: params.invoiceIDs.map((invoiceID) => Utils.convertToObjectID(invoiceID))
+      };
     }
-    if (params.userIDs) {
-      filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = {
+        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
+      };
     }
     if (params.billingInvoiceID) {
       filters.invoiceID = { $eq: params.billingInvoiceID };
     }
     // Status
-    if (params.invoiceStatus && Array.isArray(params.invoiceStatus) && params.invoiceStatus.length > 0) {
-      filters.status = { $in: params.invoiceStatus };
+    if (!Utils.isEmptyArray(params.invoiceStatus)) {
+      filters.status = {
+        $in: params.invoiceStatus
+      };
     }
     if (params.startDateTime || params.endDateTime) {
       filters.createdOn = {};

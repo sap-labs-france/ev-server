@@ -133,15 +133,19 @@ export default class AssetStorage {
     // With no Site Area
     if (params.withNoSiteArea) {
       filters.siteAreaID = null;
-    } else if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
-      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
+    } else if (!Utils.isEmptyArray(params.siteAreaIDs)) {
+      filters.siteAreaID = {
+        $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id))
+      };
     }
     // Create Aggregation
     const aggregation = [];
     // Limit on Asset for Basic Users
-    if (params.assetIDs && params.assetIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.assetIDs)) {
       // Build filter
-      filters._id = { $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) };
+      filters._id = {
+        $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID))
+      };
     }
     // Filters
     if (!Utils.isEmptyJSon(filters)) {
@@ -234,7 +238,7 @@ export default class AssetStorage {
         { 'name': { $regex: searchRegex, $options: 'i' } },
       ];
     }
-    if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
     }
     // Create Aggregation
@@ -247,7 +251,7 @@ export default class AssetStorage {
     }
     // Build facets for each type of error if any
     const facets: any = { $facet: {} };
-    if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
+    if (!Utils.isEmptyArray(params.errorType)) {
       // Build facet only for one error type
       const array = [];
       params.errorType.forEach((type) => {

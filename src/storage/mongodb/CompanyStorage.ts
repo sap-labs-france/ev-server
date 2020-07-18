@@ -87,7 +87,7 @@ export default class CompanyStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
+    const filters: any = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -99,13 +99,11 @@ export default class CompanyStorage {
     // Create Aggregation
     const aggregation = [];
     // Limit on Company for Basic Users
-    if (params.companyIDs && params.companyIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.companyIDs)) {
       // Build filter
-      aggregation.push({
-        $match: {
-          _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
-        }
-      });
+      filters._id = {
+        $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID))
+      };
     }
     if (params.issuer === true || params.issuer === false) {
       aggregation.push({
