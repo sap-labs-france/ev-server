@@ -1,24 +1,24 @@
+import { NextFunction, Request, Response } from 'express';
+import Authorizations from '../../../authorization/Authorizations';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import BackendError from '../../../exception/BackendError';
+import CarFactory from '../../../integration/car/CarFactory';
+import CarStorage from '../../../storage/mongodb/CarStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { Car, CarType } from '../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { NextFunction, Request, Response } from 'express';
-
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
-import BackendError from '../../../exception/BackendError';
-import CarFactory from '../../../integration/car/CarFactory';
-import CarSecurity from './security/CarSecurity';
-import CarStorage from '../../../storage/mongodb/CarStorage';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import { UserCar } from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import CarSecurity from './security/CarSecurity';
 import UtilsService from './UtilsService';
+
 
 const MODULE_NAME = 'CarService';
 
@@ -45,9 +45,6 @@ export default class CarService {
       'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal',
       'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
       'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'];
-    if (filteredRequest.WithImages) {
-      projectFields.push('image');
-    }
     // Get the cars
     const carCatalogs = await CarStorage.getCarCatalogs(
       {
@@ -102,16 +99,25 @@ export default class CarService {
     next();
   }
 
-
-  public static async handleGetCarImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalog', req.user);
-    let carCatalog;
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImage', req.user);
     // Get the car Image
-    carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID, ['image']);
+    const carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID, ['image']);
     // Return
-    res.send(carCatalog.image);
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (carCatalog.image.startsWith('data:image/')) {
+      header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
+      encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
+      carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
+    }
+    // Revert to binary
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(carCatalog.image, encoding));
+    next();
   }
 
   public static async handleGetCarCatalogImages(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

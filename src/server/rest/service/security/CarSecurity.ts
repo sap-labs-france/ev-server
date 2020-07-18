@@ -25,7 +25,6 @@ export default class CarSecurity {
     const filteredRequest: HttpCarCatalogsRequest = {
       Search: sanitize(request.Search),
       CarMaker: sanitize(request.CarMaker),
-      WithImages: UtilsSecurity.filterBoolean(request.WithImages),
     } as HttpCarCatalogsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -34,7 +33,7 @@ export default class CarSecurity {
 
   public static filterCarCatalogImagesRequest(request: any): HttpCarCatalogImagesRequest {
     const filteredRequest: HttpCarCatalogImagesRequest = {
-      CarID: sanitize(request.CarCatalogID),
+      CarID: sanitize(request.ID),
     } as HttpCarCatalogImagesRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -43,7 +42,7 @@ export default class CarSecurity {
 
   public static filterCarCatalogRequest(request: any): HttpCarCatalogByIDRequest {
     const filteredRequest: HttpCarCatalogByIDRequest = {
-      ID: +sanitize(request.CarCatalogID),
+      ID: sanitize(request.ID),
     } as HttpCarCatalogByIDRequest;
     return filteredRequest;
   }
@@ -114,6 +113,7 @@ export default class CarSecurity {
         vehicleModel: carCatalog.vehicleModel,
         vehicleMake: carCatalog.vehicleMake,
         vehicleModelVersion: carCatalog.vehicleModelVersion,
+        image: `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=${carCatalog.id}`,
       } as CarCatalog;
     }
     return filteredCarCatalog;
@@ -165,7 +165,7 @@ export default class CarSecurity {
           rangeReal: carCatalog.rangeReal,
           rangeWLTP: carCatalog.rangeWLTP,
           efficiencyReal: carCatalog.efficiencyReal,
-          image: carCatalog.image,
+          image: `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=${carCatalog.id}`,
           chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed,
           chargeOptionPower: carCatalog.chargeOptionPower,
           chargeAlternativePower: carCatalog.chargeAlternativePower,

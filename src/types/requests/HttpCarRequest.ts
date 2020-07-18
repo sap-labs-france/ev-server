@@ -6,7 +6,6 @@ import { UserCar } from '../User';
 export interface HttpCarCatalogsRequest extends HttpDatabaseRequest {
   Search?: string;
   CarMaker?: string;
-  WithImages?: boolean;
 }
 
 export interface HttpCarMakersRequest extends HttpDatabaseRequest {

@@ -57,12 +57,12 @@ export enum ServerAction {
 
   CAR_CATALOGS = 'CarCatalogs',
   CAR_CATALOG = 'CarCatalog',
+  CAR_CATALOG_IMAGE = 'CarCatalogImage',
   CAR_CATALOG_IMAGES = 'CarCatalogImages',
   CAR_MAKERS = 'CarMakers',
   CAR_CREATE = 'CarCreate',
   CAR_UPDATE = 'CarUpdate',
   CAR_DELETE = 'CarDelete',
-  CAR_IMAGE = 'CarImage',
   CARS = 'Cars',
   CAR = 'Car',
   CAR_USERS = 'CarUsers',
