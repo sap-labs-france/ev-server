@@ -89,7 +89,7 @@ export default class SiteAreaStorage {
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
       tenantID,
       {
-        siteAreaID: id,
+        siteAreaIDs: [id],
         withSite: params.withSite,
         withChargingStations: params.withChargingStations,
         withAvailableChargingStations: true
@@ -123,7 +123,17 @@ export default class SiteAreaStorage {
       numberOfPhases: Utils.convertToInt(siteAreaToSave.numberOfPhases),
     };
     if (siteAreaToSave.address) {
-      siteAreaMDB.address = siteAreaToSave.address;
+      siteAreaMDB.address = {
+        address1: siteAreaToSave.address.address1,
+        address2: siteAreaToSave.address.address2,
+        postalCode: siteAreaToSave.address.postalCode,
+        city: siteAreaToSave.address.city,
+        department: siteAreaToSave.address.department,
+        region: siteAreaToSave.address.region,
+        country: siteAreaToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(siteAreaToSave.address.coordinates) ? siteAreaToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
@@ -143,7 +153,7 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreas(tenantID: string,
     params: {
-      siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
+      siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
       withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean; smartCharging?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
@@ -157,19 +167,22 @@ export default class SiteAreaStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
-    // Query by Site Area ID if available
-    if (params.siteAreaID) {
-      filters._id = Utils.convertToObjectID(params.siteAreaID);
-      // Otherwise check if search is present
-    } else if (params.search) {
+    // Otherwise check if search is present
+    if (params.search) {
       filters.$or = [
         { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
     }
-    // Set Site thru a filter in the dashboard
-    if (params.siteIDs && !Utils.isEmptyArray(params.siteIDs)) {
+    // Site Area
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
+      filters._id = {
+        $in: params.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+      };
+    }
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = {
-        $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     if (params.issuer === true || params.issuer === false) {

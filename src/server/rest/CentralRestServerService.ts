@@ -270,38 +270,45 @@ class RequestMapper {
   }
 }
 
-export default {
+export default class CentralRestServerService {
   // Util Service
-  async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = req.params.action as ServerAction;
-    // Check Context
-    switch (req.method) {
-      // Create Request
-      case 'GET':
-        // Check Context
-        switch (action) {
-          // Ping
-          case ServerAction.PING:
-            res.sendStatus(200);
-            break;
-          // Firmware Download
-          case ServerAction.FIRMWARE_DOWNLOAD:
-            try {
-              await ChargingStationService.handleGetFirmware(action, req, res, next);
-            } catch (error) {
-              Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-            }
-            break;
-          default:
-            // Delegate
-            UtilsService.handleUnknownAction(action, req, res, next);
-        }
-        break;
+    try {
+      // Check Context
+      switch (req.method) {
+        // Create Request
+        case 'GET':
+          // Check Context
+          switch (action) {
+            // Ping
+            case ServerAction.PING:
+              res.sendStatus(200);
+              break;
+            case ServerAction.CAR_CATALOG_IMAGE:
+              await CarService.handleGetCarCatalogImage(action, req, res, next);
+              break;
+            // Firmware Download
+            case ServerAction.FIRMWARE_DOWNLOAD:
+              try {
+                await ChargingStationService.handleGetFirmware(action, req, res, next);
+              } catch (error) {
+                Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+              }
+              break;
+            default:
+              // Delegate
+              UtilsService.handleUnknownAction(action, req, res, next);
+          }
+          break;
+      }
+    } catch (error) {
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
-  },
+  }
 
-  async restServiceSecured(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async restServiceSecured(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = req.params.action as ServerAction;
     // Check if User has been updated and require new login
@@ -323,4 +330,4 @@ export default {
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
-};
+}

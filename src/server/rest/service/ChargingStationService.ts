@@ -1153,10 +1153,8 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.CHARGING_STATIONS,
-        module: MODULE_NAME,
-        method: 'getChargingStations',
+        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        module: MODULE_NAME, method: 'getChargingStations',
       });
     }
     // Filter
@@ -1164,6 +1162,8 @@ export default class ChargingStationService {
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {
+        userGPSCoordinates: filteredRequest.UserGPSCoordinates,
+        userGPSMaxDistanceMeters: filteredRequest.UserGPSMaxDistanceMeters,
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,

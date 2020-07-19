@@ -103,7 +103,7 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStation');
     // Query single Charging Station
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID,
-      { chargingStationID: id, withSite: true, ...params }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { chargingStationIDs: [id], withSite: true, ...params }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getChargingStation', uniqueTimerID, { id });
     return chargingStationsMDB.result[0];
@@ -111,9 +111,10 @@ export default class ChargingStationStorage {
 
   public static async getChargingStations(tenantID: string,
     params: {
-      search?: string; chargingStationID?: string; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
+      search?: string; chargingStationIDs?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
+      userGPSCoordinates?: number[]; userGPSMaxDistanceMeters?: number;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
@@ -126,18 +127,37 @@ export default class ChargingStationStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
+    // User coordinates
+    if (Utils.containsGPSCoordinates(params.userGPSCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.userGPSCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.userGPSMaxDistanceMeters > 0 ? params.userGPSMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Set the filters
-    const filters: any = { $or: DatabaseUtils.getNotDeletedFilter() };
+    const filters: any = {
+      $or: DatabaseUtils.getNotDeletedFilter()
+    };
     // Filter
-    if (params.chargingStationID) {
-      filters._id = params.chargingStationID;
-      // Search filters
-    } else if (params.search) {
+    if (params.search) {
       filters.$or = [
         { '_id': { $regex: params.search, $options: 'i' } },
         { 'chargePointModel': { $regex: params.search, $options: 'i' } },
         { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    // Charging Stations
+    if (!Utils.isEmptyArray(params.chargingStationIDs)) {
+      filters._id = {
+        $in: params.chargingStationIDs
+      };
     }
     // Filter on last heart beat
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
@@ -149,16 +169,16 @@ export default class ChargingStationStorage {
     }
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
-    // Add in aggregation
-    aggregation.push({
-      $match: filters
-    });
     // Include deleted charging stations if requested
     if (params.includeDeleted) {
       filters.$or.push({
         'deleted': true
       });
     }
+    // Add in aggregation
+    aggregation.push({
+      $match: filters
+    });
     // Connector Status
     if (params.connectorStatuses) {
       filters['connectors.status'] = { $in: params.connectorStatuses };
@@ -201,7 +221,7 @@ export default class ChargingStationStorage {
       filters.siteAreaID = null;
     } else {
       // Query by siteAreaID
-      if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs)) {
+      if (!Utils.isEmptyArray(params.siteAreaIDs)) {
         filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
       }
       // Site Area
@@ -210,7 +230,7 @@ export default class ChargingStationStorage {
         asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
       });
       // Check Site ID
-      if (params.siteIDs && Array.isArray(params.siteIDs)) {
+      if (!Utils.isEmptyArray(params.siteIDs)) {
         // Build filter
         aggregation.push({
           $match: {
@@ -315,7 +335,7 @@ export default class ChargingStationStorage {
     // Set the filters
     const filters: any = { '$or': DatabaseUtils.getNotDeletedFilter() };
     filters.issuer = true;
-    if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
     }
     // Search filters
@@ -344,7 +364,7 @@ export default class ChargingStationStorage {
       $unwind: { 'path': '$sitearea', 'preserveNullAndEmptyArrays': true }
     });
     // Check Site ID
-    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.siteIDs)) {
       aggregation.push({
         $match: {
           'sitearea.siteID': {
@@ -355,7 +375,7 @@ export default class ChargingStationStorage {
     }
     // Build facets for each type of error if any
     const facets: any = { $facet: {} };
-    if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
+    if (!Utils.isEmptyArray(params.errorType)) {
       // Check allowed
       if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
@@ -452,7 +472,8 @@ export default class ChargingStationStorage {
         (connector) => ChargingStationStorage.connector2connectorMDB(connector)) : [],
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
         (chargePoint) => ChargingStationStorage.chargePoint2ChargePointMDB(chargePoint)) : [],
-      coordinates: chargingStationToSave.coordinates,
+      coordinates: Utils.containsGPSCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
+        (coordinate) => Utils.convertToFloat(coordinate)) : [],
       remoteAuthorizations: chargingStationToSave.remoteAuthorizations ? chargingStationToSave.remoteAuthorizations : [],
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,

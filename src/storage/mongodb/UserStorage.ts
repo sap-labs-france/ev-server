@@ -227,7 +227,7 @@ export default class UserStorage {
     }
     // Properties to save
     // eslint-disable-next-line prefer-const
-    let userMDB = {
+    const userMDB: any = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
       issuer: Utils.convertToBoolean(userToSave.issuer),
       name: userToSave.name,
@@ -236,7 +236,6 @@ export default class UserStorage {
       phone: userToSave.phone,
       mobile: userToSave.mobile,
       locale: userToSave.locale,
-      address: userToSave.address,
       iNumber: userToSave.iNumber,
       costCenter: userToSave.costCenter,
       notifications: {
@@ -260,6 +259,19 @@ export default class UserStorage {
       },
       deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false
     };
+    if (userToSave.address) {
+      userMDB.address = {
+        address1: userToSave.address.address1,
+        address2: userToSave.address.address2,
+        postalCode: userToSave.address.postalCode,
+        city: userToSave.address.city,
+        department: userToSave.address.department,
+        region: userToSave.address.region,
+        country: userToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(userToSave.address.coordinates) ? userToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
+    }
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(userMDB, userToSave);
     // Modify and return the modified document
@@ -529,7 +541,7 @@ export default class UserStorage {
       filters.passwordResetHash = params.passwordResetHash;
     }
     // Role
-    if (params.roles && Array.isArray(params.roles) && params.roles.length > 0) {
+    if (!Utils.isEmptyArray(params.roles)) {
       filters.role = { $in: params.roles };
     }
     // Billing Customer

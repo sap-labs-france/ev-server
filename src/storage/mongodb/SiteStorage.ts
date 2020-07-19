@@ -256,12 +256,24 @@ export default class SiteStorage {
     // Properties to save
     const siteMDB: any = {
       _id: siteFilter._id,
-      address: siteToSave.address,
       issuer: Utils.convertToBoolean(siteToSave.issuer),
       companyID: Utils.convertToObjectID(siteToSave.companyID),
       autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
     };
+    if (siteToSave.address) {
+      siteMDB.address = {
+        address1: siteToSave.address.address1,
+        address2: siteToSave.address.address2,
+        postalCode: siteToSave.address.postalCode,
+        city: siteToSave.address.city,
+        department: siteToSave.address.department,
+        region: siteToSave.address.region,
+        country: siteToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(siteToSave.address.coordinates) ? siteToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
     // Modify and return the modified document
@@ -317,8 +329,14 @@ export default class SiteStorage {
         { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
     }
-    // Query by companyIDs
-    if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters._id = {
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+      };
+    }
+    // Company
+    if (!Utils.isEmptyArray(params.companyIDs)) {
       filters.companyID = {
         $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
@@ -329,14 +347,6 @@ export default class SiteStorage {
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;
-    }
-    // Limit on Site for Basic Users
-    if (params.siteIDs && params.siteIDs.length > 0) {
-      aggregation.push({
-        $match: {
-          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
-        }
-      });
     }
     // Get users
     if (params.userID || params.excludeSitesOfUserID) {
