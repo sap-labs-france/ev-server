@@ -82,17 +82,6 @@ export default class CentralRestServer {
       req.query.FileName = 'r7_update_3.3.0.12_d4.epk';
       await CentralRestServerService.restServiceUtil(req, res, next);
     });
-    // Catchall for util with logging
-    this.expressApplication.all(['/client/util/*', '/client%2Futil%2F*'], (req: Request, res: Response) => {
-      Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'constructor',
-        action: ServerAction.EXPRESS_SERVER,
-        message: `Unhandled URL ${req.method} request (original URL ${req.originalUrl})`,
-        detailedMessages: 'Request: ' + util.inspect(req)
-      });
-      res.sendStatus(HttpStatusCodes.NOT_FOUND);
-    });
     // Create HTTP server to serve the express app
     CentralRestServer.restHttpServer = expressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }

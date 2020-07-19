@@ -317,8 +317,14 @@ export default class SiteStorage {
         { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
     }
-    // Query by companyIDs
-    if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters._id = {
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+      };
+    }
+    // Company
+    if (!Utils.isEmptyArray(params.companyIDs)) {
       filters.companyID = {
         $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
@@ -329,14 +335,6 @@ export default class SiteStorage {
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;
-    }
-    // Limit on Site for Basic Users
-    if (params.siteIDs && params.siteIDs.length > 0) {
-      aggregation.push({
-        $match: {
-          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
-        }
-      });
     }
     // Get users
     if (params.userID || params.excludeSitesOfUserID) {

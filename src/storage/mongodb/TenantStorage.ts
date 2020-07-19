@@ -18,7 +18,7 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTenant');
     // Delegate querying
-    const tenantsMDB = await TenantStorage.getTenants({ tenantID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const tenantsMDB = await TenantStorage.getTenants({ tenantIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTenant', uniqueTimerID, { id });
     return tenantsMDB.count > 0 ? tenantsMDB.result[0] : null;
@@ -96,7 +96,7 @@ export default class TenantStorage {
 
   // Delegate
   public static async getTenants(
-    params: { tenantID?: string; tenantName?: string; tenantSubdomain?: string; search?: string },
+    params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTenants');
@@ -106,14 +106,18 @@ export default class TenantStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
-    if (params.tenantID) {
-      filters._id = Utils.convertToObjectID(params.tenantID);
-    } else if (params.search) {
+    if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'name': { $regex: searchRegex, $options: 'i' } },
         { 'subdomain': { $regex: searchRegex, $options: 'i' } }
       ];
+    }
+    // Tenant
+    if (!Utils.isEmptyArray(params.tenantIDs)) {
+      filters._id = {
+        $in: params.tenantIDs.map((tenantID) => Utils.convertToObjectID(tenantID))
+      };
     }
     // Name
     if (params.tenantName) {
