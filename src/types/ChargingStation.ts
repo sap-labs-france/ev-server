@@ -52,6 +52,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   capabilities?: ChargingStationCapabilities;
   ocppStandardParameters?: KeyValue[];
   ocppVendorParameters?: KeyValue[];
+  distanceMeters?: number;
   ocpiData?: {
     evse?: OCPIEvse;
   };

@@ -77,6 +77,9 @@ export default class ChargingStationSecurity {
       if (chargingStation.ocpiData) {
         filteredChargingStation.ocpiData = chargingStation.ocpiData;
       }
+      if (Utils.objectHasProperty(chargingStation, 'distanceMeters')) {
+        filteredChargingStation.distanceMeters = chargingStation.distanceMeters;
+      }
       filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
         if (!connector) {
           return connector;
@@ -320,6 +323,18 @@ export default class ChargingStationSecurity {
     filteredRequest.ConnectorType = sanitize(request.ConnectorType);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
+    if (Utils.containsGPSCoordinates([request.UserGPSLongitude, request.UserGPSLatitude])) {
+      filteredRequest.UserGPSCoordinates = [
+        Utils.convertToFloat(sanitize(request.UserGPSLongitude)),
+        Utils.convertToFloat(sanitize(request.UserGPSLatitude))
+      ];
+      if (request.UserGPSMaxDistanceMeters) {
+        request.UserGPSMaxDistanceMeters = Utils.convertToInt(sanitize(request.UserGPSMaxDistanceMeters));
+        if (request.UserGPSMaxDistanceMeters > 0) {
+          filteredRequest.UserGPSMaxDistanceMeters = request.UserGPSMaxDistanceMeters;
+        }
+      }
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
