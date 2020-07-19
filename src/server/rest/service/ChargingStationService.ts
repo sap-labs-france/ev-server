@@ -1162,8 +1162,8 @@ export default class ChargingStationService {
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {
-        userGPSCoordinates: filteredRequest.UserGPSCoordinates,
-        userGPSMaxDistanceMeters: filteredRequest.UserGPSMaxDistanceMeters,
+        posCoordinates: filteredRequest.PosCoordinates,
+        posMaxDistanceMeters: filteredRequest.PosMaxDistanceMeters,
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
