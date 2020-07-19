@@ -51,6 +51,18 @@ export default class SiteAreaSecurity {
     if (request.Issuer) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
+    if (Utils.containsGPSCoordinates([request.PosLongitude, request.PosLatitude])) {
+      filteredRequest.PosCoordinates = [
+        Utils.convertToFloat(sanitize(request.PosLongitude)),
+        Utils.convertToFloat(sanitize(request.PosLatitude))
+      ];
+      if (request.PosMaxDistanceMeters) {
+        request.PosMaxDistanceMeters = Utils.convertToInt(sanitize(request.PosMaxDistanceMeters));
+        if (request.PosMaxDistanceMeters > 0) {
+          filteredRequest.PosMaxDistanceMeters = request.PosMaxDistanceMeters;
+        }
+      }
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
