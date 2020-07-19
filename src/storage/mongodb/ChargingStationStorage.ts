@@ -114,6 +114,7 @@ export default class ChargingStationStorage {
       search?: string; chargingStationIDs?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
+      userGPSCoordinates?: number[]; userGPSMaxDistanceMeters?: number;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
@@ -126,8 +127,24 @@ export default class ChargingStationStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
+    // User coordinates
+    if (Utils.containsGPSCoordinates(params.userGPSCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.userGPSCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.userGPSMaxDistanceMeters > 0 ? params.userGPSMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Set the filters
-    const filters: any = { $or: DatabaseUtils.getNotDeletedFilter() };
+    const filters: any = {
+      $or: DatabaseUtils.getNotDeletedFilter()
+    };
     // Filter
     if (params.search) {
       filters.$or = [
@@ -152,16 +169,16 @@ export default class ChargingStationStorage {
     }
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
-    // Add in aggregation
-    aggregation.push({
-      $match: filters
-    });
     // Include deleted charging stations if requested
     if (params.includeDeleted) {
       filters.$or.push({
         'deleted': true
       });
     }
+    // Add in aggregation
+    aggregation.push({
+      $match: filters
+    });
     // Connector Status
     if (params.connectorStatuses) {
       filters['connectors.status'] = { $in: params.connectorStatuses };
@@ -455,7 +472,8 @@ export default class ChargingStationStorage {
         (connector) => ChargingStationStorage.connector2connectorMDB(connector)) : [],
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
         (chargePoint) => ChargingStationStorage.chargePoint2ChargePointMDB(chargePoint)) : [],
-      coordinates: chargingStationToSave.coordinates,
+      coordinates: Utils.containsGPSCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
+        (coordinate) => Utils.convertToFloat(coordinate)) : [],
       remoteAuthorizations: chargingStationToSave.remoteAuthorizations ? chargingStationToSave.remoteAuthorizations : [],
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,

@@ -66,7 +66,8 @@ export default class AssetStorage {
       _id: assetToSave.id ? Utils.convertToObjectID(assetToSave.id) : new ObjectID(),
       name: assetToSave.name,
       siteAreaID: Utils.convertToObjectID(assetToSave.siteAreaID),
-      coordinates: assetToSave.coordinates,
+      coordinates: Utils.containsGPSCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
+        (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
       dynamicAsset: assetToSave.dynamicAsset,
       issuer: Utils.convertToBoolean(assetToSave.issuer),

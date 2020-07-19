@@ -123,7 +123,17 @@ export default class SiteAreaStorage {
       numberOfPhases: Utils.convertToInt(siteAreaToSave.numberOfPhases),
     };
     if (siteAreaToSave.address) {
-      siteAreaMDB.address = siteAreaToSave.address;
+      siteAreaMDB.address = {
+        address1: siteAreaToSave.address.address1,
+        address2: siteAreaToSave.address.address2,
+        postalCode: siteAreaToSave.address.postalCode,
+        city: siteAreaToSave.address.city,
+        department: siteAreaToSave.address.department,
+        region: siteAreaToSave.address.region,
+        country: siteAreaToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(siteAreaToSave.address.coordinates) ? siteAreaToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
