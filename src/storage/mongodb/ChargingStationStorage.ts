@@ -127,7 +127,7 @@ export default class ChargingStationStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
-    // User coordinates
+    // Position coordinates
     if (Utils.containsGPSCoordinates(params.posCoordinates)) {
       aggregation.push({
         $geoNear: {

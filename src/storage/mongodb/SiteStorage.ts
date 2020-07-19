@@ -310,6 +310,7 @@ export default class SiteStorage {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean;
       withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
+      posCoordinates?: number[]; posMaxDistanceMeters?: number;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
@@ -322,6 +323,20 @@ export default class SiteStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.posCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.posCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.posMaxDistanceMeters > 0 ? params.posMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Search filters
     const filters: any = {};
     if (params.search) {

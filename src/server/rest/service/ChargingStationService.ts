@@ -1162,8 +1162,6 @@ export default class ChargingStationService {
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {
-        posCoordinates: filteredRequest.PosCoordinates,
-        posMaxDistanceMeters: filteredRequest.PosMaxDistanceMeters,
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
@@ -1172,7 +1170,9 @@ export default class ChargingStationService {
         issuer: filteredRequest.Issuer,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
-        includeDeleted: filteredRequest.IncludeDeleted
+        includeDeleted: filteredRequest.IncludeDeleted,
+        posCoordinates: filteredRequest.PosCoordinates,
+        posMaxDistanceMeters: filteredRequest.PosMaxDistanceMeters,
       },
       {
         limit: filteredRequest.Limit,
