@@ -56,7 +56,17 @@ export default class CompanyStorage {
       issuer: Utils.convertToBoolean(companyToSave.issuer),
     };
     if (companyToSave.address) {
-      companyMDB.address = companyToSave.address;
+      companyMDB.address = {
+        address1: companyToSave.address.address1,
+        address2: companyToSave.address.address2,
+        postalCode: companyToSave.address.postalCode,
+        city: companyToSave.address.city,
+        department: companyToSave.address.department,
+        region: companyToSave.address.region,
+        country: companyToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(companyToSave.address.coordinates) ? companyToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(companyMDB, companyToSave);

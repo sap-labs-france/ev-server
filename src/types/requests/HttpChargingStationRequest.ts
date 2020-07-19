@@ -32,6 +32,8 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   SiteAreaID?: string;
   IncludeDeleted?: boolean;
   ErrorType?: string;
+  PosCoordinates?: number[];
+  PosMaxDistanceMeters?: number;
 }
 
 export interface HttpChargingStationParamsUpdateRequest {

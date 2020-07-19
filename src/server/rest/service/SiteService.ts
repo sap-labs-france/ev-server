@@ -382,7 +382,9 @@ export default class SiteService {
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withCompany: filteredRequest.WithCompany,
         excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
-        withAvailableChargingStations: filteredRequest.WithAvailableChargers
+        withAvailableChargingStations: filteredRequest.WithAvailableChargers,
+        posCoordinates: filteredRequest.PosCoordinates,
+        posMaxDistanceMeters: filteredRequest.PosMaxDistanceMeters,
       },
       {
         limit: filteredRequest.Limit,

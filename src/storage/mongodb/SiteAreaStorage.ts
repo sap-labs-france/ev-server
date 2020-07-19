@@ -123,7 +123,17 @@ export default class SiteAreaStorage {
       numberOfPhases: Utils.convertToInt(siteAreaToSave.numberOfPhases),
     };
     if (siteAreaToSave.address) {
-      siteAreaMDB.address = siteAreaToSave.address;
+      siteAreaMDB.address = {
+        address1: siteAreaToSave.address.address1,
+        address2: siteAreaToSave.address.address2,
+        postalCode: siteAreaToSave.address.postalCode,
+        city: siteAreaToSave.address.city,
+        department: siteAreaToSave.address.department,
+        region: siteAreaToSave.address.region,
+        country: siteAreaToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(siteAreaToSave.address.coordinates) ? siteAreaToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
@@ -144,7 +154,8 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenantID: string,
     params: {
       siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
-      withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean; smartCharging?: boolean;
+      withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
+      posCoordinates?: number[]; posMaxDistanceMeters?: number; smartCharging?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -155,6 +166,22 @@ export default class SiteAreaStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.posCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.posCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.posMaxDistanceMeters > 0 ? params.posMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Set the filters
     const filters: any = {};
     // Otherwise check if search is present
@@ -181,8 +208,6 @@ export default class SiteAreaStorage {
     if (params.smartCharging === true || params.smartCharging === false) {
       filters.smartCharging = params.smartCharging;
     }
-    // Create Aggregation
-    const aggregation = [];
     // Filters
     if (filters) {
       aggregation.push({

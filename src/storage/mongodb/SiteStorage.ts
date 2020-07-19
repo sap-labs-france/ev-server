@@ -256,12 +256,24 @@ export default class SiteStorage {
     // Properties to save
     const siteMDB: any = {
       _id: siteFilter._id,
-      address: siteToSave.address,
       issuer: Utils.convertToBoolean(siteToSave.issuer),
       companyID: Utils.convertToObjectID(siteToSave.companyID),
       autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
     };
+    if (siteToSave.address) {
+      siteMDB.address = {
+        address1: siteToSave.address.address1,
+        address2: siteToSave.address.address2,
+        postalCode: siteToSave.address.postalCode,
+        city: siteToSave.address.city,
+        department: siteToSave.address.department,
+        region: siteToSave.address.region,
+        country: siteToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(siteToSave.address.coordinates) ? siteToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
     // Modify and return the modified document
@@ -298,6 +310,7 @@ export default class SiteStorage {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean;
       withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
+      posCoordinates?: number[]; posMaxDistanceMeters?: number;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
@@ -310,6 +323,20 @@ export default class SiteStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.posCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.posCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.posMaxDistanceMeters > 0 ? params.posMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Search filters
     const filters: any = {};
     if (params.search) {
