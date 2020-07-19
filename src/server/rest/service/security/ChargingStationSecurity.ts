@@ -323,15 +323,15 @@ export default class ChargingStationSecurity {
     filteredRequest.ConnectorType = sanitize(request.ConnectorType);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
-    if (Utils.containsGPSCoordinates([request.UserGPSLongitude, request.UserGPSLatitude])) {
-      filteredRequest.UserGPSCoordinates = [
-        Utils.convertToFloat(sanitize(request.UserGPSLongitude)),
-        Utils.convertToFloat(sanitize(request.UserGPSLatitude))
+    if (Utils.containsGPSCoordinates([request.PosLongitude, request.PosLatitude])) {
+      filteredRequest.PosCoordinates = [
+        Utils.convertToFloat(sanitize(request.PosLongitude)),
+        Utils.convertToFloat(sanitize(request.PosLatitude))
       ];
-      if (request.UserGPSMaxDistanceMeters) {
-        request.UserGPSMaxDistanceMeters = Utils.convertToInt(sanitize(request.UserGPSMaxDistanceMeters));
-        if (request.UserGPSMaxDistanceMeters > 0) {
-          filteredRequest.UserGPSMaxDistanceMeters = request.UserGPSMaxDistanceMeters;
+      if (request.PosMaxDistanceMeters) {
+        request.PosMaxDistanceMeters = Utils.convertToInt(sanitize(request.PosMaxDistanceMeters));
+        if (request.PosMaxDistanceMeters > 0) {
+          filteredRequest.PosMaxDistanceMeters = request.PosMaxDistanceMeters;
         }
       }
     }

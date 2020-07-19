@@ -154,7 +154,8 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenantID: string,
     params: {
       siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
-      withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean; smartCharging?: boolean;
+      withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
+      posCoordinates?: number[]; posMaxDistanceMeters?: number; smartCharging?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -165,6 +166,22 @@ export default class SiteAreaStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.posCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.posCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.posMaxDistanceMeters > 0 ? params.posMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Set the filters
     const filters: any = {};
     // Otherwise check if search is present
@@ -191,8 +208,6 @@ export default class SiteAreaStorage {
     if (params.smartCharging === true || params.smartCharging === false) {
       filters.smartCharging = params.smartCharging;
     }
-    // Create Aggregation
-    const aggregation = [];
     // Filters
     if (filters) {
       aggregation.push({
