@@ -75,7 +75,7 @@ export default class Constants {
 
   public static readonly REGEX_VALIDATION_LATITUDE = /^-?([1-8]?[1-9]|[1-9]0)\.{0,1}[0-9]*$/;
   public static readonly REGEX_VALIDATION_LONGITUDE = /^-?([1]?[0-7][0-9]|[1]?[0-8][0]|[1-9]?[0-9])\.{0,1}[0-9]*$/;
-  public static readonly MAX_GPS_DISTANCE_METERS = 20000;
+  public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
 
   public static readonly MONGO_USER_MASK = {
     '_id': 0,

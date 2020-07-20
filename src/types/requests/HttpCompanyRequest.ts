@@ -5,4 +5,6 @@ export interface HttpCompaniesRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   WithSites?: boolean;
   WithLogo?: boolean;
+  LocCoordinates?: number[];
+  LocMaxDistanceMeters?: number;
 }

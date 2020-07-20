@@ -73,15 +73,15 @@ export default class SiteSecurity {
     filteredRequest.ExcludeSitesOfUserID = sanitize(request.ExcludeSitesOfUserID);
     filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
     filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);
-    if (Utils.containsGPSCoordinates([request.PosLongitude, request.PosLatitude])) {
-      filteredRequest.PosCoordinates = [
-        Utils.convertToFloat(sanitize(request.PosLongitude)),
-        Utils.convertToFloat(sanitize(request.PosLatitude))
+    if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(sanitize(request.LocLongitude)),
+        Utils.convertToFloat(sanitize(request.LocLatitude))
       ];
-      if (request.PosMaxDistanceMeters) {
-        request.PosMaxDistanceMeters = Utils.convertToInt(sanitize(request.PosMaxDistanceMeters));
-        if (request.PosMaxDistanceMeters > 0) {
-          filteredRequest.PosMaxDistanceMeters = request.PosMaxDistanceMeters;
+      if (request.LocMaxDistanceMeters) {
+        request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
+        if (request.LocMaxDistanceMeters > 0) {
+          filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;
         }
       }
     }
@@ -111,7 +111,7 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  static filterSiteResponse(site: Site, loggedUser: UserToken, forList = false): Site {
+  static filterSiteResponse(site: Site, loggedUser: UserToken): Site {
     let filteredSite;
     if (!site) {
       return null;
@@ -126,11 +126,7 @@ export default class SiteSecurity {
       filteredSite.autoUserSiteAssignment = site.autoUserSiteAssignment;
       filteredSite.issuer = site.issuer;
       if (Utils.objectHasProperty(site, 'address')) {
-        if (forList) {
-          filteredSite.address = UtilsSecurity.filterAddressCoordinatesRequest(site.address);
-        } else {
-          filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
-        }
+        filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
         filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
@@ -143,6 +139,9 @@ export default class SiteSecurity {
       }
       if (site.connectorStats) {
         filteredSite.connectorStats = site.connectorStats;
+      }
+      if (Utils.objectHasProperty(site, 'distanceMeters')) {
+        filteredSite.distanceMeters = site.distanceMeters;
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(filteredSite, site, loggedUser);
@@ -161,7 +160,7 @@ export default class SiteSecurity {
     }
     for (const site of sites.result) {
       // Filter
-      const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser, true);
+      const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
       if (filteredSite) {
         filteredSites.push(filteredSite);
       }

@@ -14,8 +14,8 @@ export interface HttpSitesRequest extends HttpDatabaseRequest {
   CompanyID: string;
   SiteID: string;
   ExcludeSitesOfUserID: boolean;
-  PosCoordinates?: number[];
-  PosMaxDistanceMeters?: number;
+  LocCoordinates?: number[];
+  LocMaxDistanceMeters?: number;
 }
 
 export interface HttpSiteAssignUsersRequest {

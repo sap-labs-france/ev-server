@@ -383,8 +383,8 @@ export default class SiteService {
         withCompany: filteredRequest.WithCompany,
         excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
-        posCoordinates: filteredRequest.PosCoordinates,
-        posMaxDistanceMeters: filteredRequest.PosMaxDistanceMeters,
+        locCoordinates: filteredRequest.LocCoordinates,
+        locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
       {
         limit: filteredRequest.Limit,
@@ -392,8 +392,8 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['id', 'name', 'address.coordinates', 'address.city', 'address.country', 'companyID', 'company.name',
-        'autoUserSiteAssignment', 'issuer', 'autoUserSiteAssignment']
+      ['id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+        'autoUserSiteAssignment', 'distanceMeters']
     );
     // Build the result
     if (sites.result && sites.result.length > 0) {

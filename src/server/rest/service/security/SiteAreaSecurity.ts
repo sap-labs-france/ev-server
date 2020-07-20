@@ -51,15 +51,15 @@ export default class SiteAreaSecurity {
     if (request.Issuer) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
-    if (Utils.containsGPSCoordinates([request.PosLongitude, request.PosLatitude])) {
-      filteredRequest.PosCoordinates = [
-        Utils.convertToFloat(sanitize(request.PosLongitude)),
-        Utils.convertToFloat(sanitize(request.PosLatitude))
+    if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(sanitize(request.LocLongitude)),
+        Utils.convertToFloat(sanitize(request.LocLatitude))
       ];
-      if (request.PosMaxDistanceMeters) {
-        request.PosMaxDistanceMeters = Utils.convertToInt(sanitize(request.PosMaxDistanceMeters));
-        if (request.PosMaxDistanceMeters > 0) {
-          filteredRequest.PosMaxDistanceMeters = request.PosMaxDistanceMeters;
+      if (request.LocMaxDistanceMeters) {
+        request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
+        if (request.LocMaxDistanceMeters > 0) {
+          filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;
         }
       }
     }
@@ -106,11 +106,7 @@ export default class SiteAreaSecurity {
       filteredSiteArea.smartCharging = siteArea.smartCharging;
       filteredSiteArea.accessControl = siteArea.accessControl;
       if (Utils.objectHasProperty(siteArea, 'address')) {
-        if (forList) {
-          filteredSiteArea.address = UtilsSecurity.filterAddressCoordinatesRequest(siteArea.address);
-        } else {
-          filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
-        }
+        filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
       }
       if (siteArea.connectorStats) {
         filteredSiteArea.connectorStats = siteArea.connectorStats;
@@ -122,6 +118,9 @@ export default class SiteAreaSecurity {
         filteredSiteArea.chargingStations = siteArea.chargingStations.map((chargingStation) =>
           ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser)
         );
+      }
+      if (Utils.objectHasProperty(siteArea, 'distanceMeters')) {
+        filteredSiteArea.distanceMeters = siteArea.distanceMeters;
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(filteredSiteArea, siteArea, loggedUser);
@@ -157,7 +156,7 @@ export default class SiteAreaSecurity {
       return null;
     }
     for (const siteArea of siteAreas.result) {
-      const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser, true);
+      const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
       if (filteredSiteArea) {
         filteredSiteAreas.push(filteredSiteArea);
       }
