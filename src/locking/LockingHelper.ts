@@ -27,4 +27,12 @@ export default class LockingHelper {
     }
     return lock;
   }
+
+  public static async createAssetLock(tenantID: string): Promise<Lock|null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASSET, 'asset-consumption');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
 }
