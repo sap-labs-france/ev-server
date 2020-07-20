@@ -144,6 +144,9 @@ export default class SiteSecurity {
       if (site.connectorStats) {
         filteredSite.connectorStats = site.connectorStats;
       }
+      if (Utils.objectHasProperty(site, 'distanceMeters')) {
+        filteredSite.distanceMeters = site.distanceMeters;
+      }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(filteredSite, site, loggedUser);
     }

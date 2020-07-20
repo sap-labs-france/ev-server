@@ -123,6 +123,9 @@ export default class SiteAreaSecurity {
           ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser)
         );
       }
+      if (Utils.objectHasProperty(siteArea, 'distanceMeters')) {
+        filteredSiteArea.distanceMeters = siteArea.distanceMeters;
+      }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(filteredSiteArea, siteArea, loggedUser);
     }

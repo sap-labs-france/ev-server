@@ -69,26 +69,22 @@ export default class CompanySecurity {
 
   public static filterCompanyResponse(company: Company, loggedUser: UserToken): Company {
     let filteredCompany;
-
     if (!company) {
       return null;
     }
     // Check auth
     if (Authorizations.canReadCompany(loggedUser, company.id)) {
-      // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
-        // Yes: set all params
-        filteredCompany = company;
-      } else {
-        // Set only necessary info
-        filteredCompany = {};
-        filteredCompany.id = company.id;
-        filteredCompany.name = company.name;
-        filteredCompany.logo = company.logo;
-        filteredCompany.address = UtilsSecurity.filterAddressRequest(company.address);
-      }
+      // Set only necessary info
+      filteredCompany = {};
+      filteredCompany.id = company.id;
+      filteredCompany.name = company.name;
+      filteredCompany.logo = company.logo;
+      filteredCompany.address = UtilsSecurity.filterAddressRequest(company.address);
       if (company.sites) {
         filteredCompany.sites = company.sites.map((site) => SiteSecurity.filterSiteResponse(site, loggedUser));
+      }
+      if (Utils.objectHasProperty(company, 'distanceMeters')) {
+        filteredCompany.distanceMeters = company.distanceMeters;
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
