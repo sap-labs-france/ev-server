@@ -506,6 +506,9 @@ export default class Utils {
     if (!value) {
       return 0;
     }
+    if (Number.isSafeInteger(value)) {
+      return value;
+    }
     // Check
     if (typeof value === 'string') {
       // Create Object

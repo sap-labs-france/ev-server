@@ -121,9 +121,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OPTIMAL_CHARGE_REACHED, title, body, user, {
-      transactionId: data.transactionId.toString() + '',
+      transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId + ''
+      connectorId: data.connectorId
     },
     severity
     );
@@ -138,9 +138,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_CHARGE, title, body, user, {
-      transactionId: data.transactionId.toString() + '',
+      transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId + ''
+      connectorId: data.connectorId
     },
     severity
     );
@@ -155,9 +155,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_SESSION, title, body, user, {
-      transactionId: data.transactionId.toString() + '',
+      transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId + ''
+      connectorId: data.connectorId
     },
     severity
     );
@@ -183,7 +183,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_STATUS_ERROR, title, body, user, {
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId + ''
+      connectorId: data.connectorId
     },
     severity
     );
@@ -248,9 +248,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_STARTED, title, body, user, {
-      'transactionId': data.transactionId.toString() + '',
+      'transactionId': data.transactionId.toString(),
       'chargeBoxID': data.chargeBoxID,
-      'connectorId': data.connectorId + ''
+      'connectorId': data.connectorId
     },
     severity
     );
@@ -291,7 +291,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { nbrUsersInError: data.nbrUsersInError, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_USER_SYNCHRONIZATION_FAILED,
-      title, body, user, { 'error': data.nbrUsersInError.toString() + '', }, severity);
+      title, body, user, { 'error': data.nbrUsersInError.toString() }, severity);
   }
 
   public async sendBillingInvoiceSynchronizationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -303,7 +303,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { nbrUsersInError: data.nbrInvoicesInError, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_INVOICE_SYNCHRONIZATION_FAILED,
-      title, body, user, { 'error': data.nbrInvoicesInError + '', }, severity);
+      title, body, user, { 'error': data.nbrInvoicesInError.toString() }, severity);
   }
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: object, severity?: NotificationSeverity) {

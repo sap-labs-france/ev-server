@@ -109,7 +109,7 @@ export default abstract class AbstractOCPIService {
    * Send Supported Endpoints
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: Function): void {
+  public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: NextFunction): void {
     const fullUrl = this.getServiceUrl(req);
     const registeredEndpointsArray = Array.from(this.getRegisteredEndpoints().values());
     // Build payload
@@ -124,7 +124,7 @@ export default abstract class AbstractOCPIService {
   /**
    * Process Endpoint action
    */
-  public async processEndpointAction(action: ServerAction, req: TenantIdHoldingRequest, res: Response, next: Function): Promise<void> {
+  public async processEndpointAction(action: ServerAction, req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const registeredEndpoints = this.getRegisteredEndpoints();
       // Get token from header
@@ -223,7 +223,7 @@ export default abstract class AbstractOCPIService {
             message: `<< OCPI Endpoint ${req.method} ${req.originalUrl} not implemented`,
             action: ServerAction.OCPI_ENDPOINT
           });
-          res.sendStatus(501);
+          res.sendStatus(HttpStatusCodes.NOT_IMPLEMENTED);
         }
       } else {
         // pragma res.sendStatus(501);

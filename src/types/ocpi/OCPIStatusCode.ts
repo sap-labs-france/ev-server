@@ -6,7 +6,7 @@ export class OCPIStatusCode {
   static readonly CODE_2000_GENERIC_CLIENT_ERROR = new OCPIStatusCode(2000, 'Generic Client Error');
   static readonly CODE_2001_INVALID_PARAMETER_ERROR = new OCPIStatusCode(2001, 'Invalid or Missing Parameters');
   static readonly CODE_2002_NOT_ENOUGH_INFORMATION_ERROR = new OCPIStatusCode(2002, 'Not enough information');
-  static readonly CODE_2003_UNKNOW_LOCATION_ERROR = new OCPIStatusCode(2003, 'Unknown Location');
+  static readonly CODE_2003_UNKNOWN_LOCATION_ERROR = new OCPIStatusCode(2003, 'Unknown Location');
 
   // 3*** SERVER ERROR
   static readonly CODE_3000_GENERIC_SERVER_ERROR = new OCPIStatusCode(3000, 'Generic Server Error');

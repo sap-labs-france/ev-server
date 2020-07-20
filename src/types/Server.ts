@@ -137,6 +137,8 @@ export enum ServerAction {
   OCPI_GET_SESSIONS = 'OcpiGetSessions',
   OCPI_GET_TOKENS = 'OcpiGetTokens',
   OCPI_GET_CDRS = 'OcpiGetCdrs',
+  OCPI_GET_TARIFF = 'OcpiGetTariffs',
+  OCPI_GET_TARIFFS = 'OcpiGetTariffs',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
   OCPI_DELETE_CREDENTIALS = 'OcpiDeleteCredentials',
   OCPI_ENDPOINT_UPDATE = 'OcpiEndpointUpdate',

@@ -176,8 +176,9 @@ export default class SettingStorage {
       if (config.simple) {
         pricingSettings.type = PricingSettingsType.SIMPLE;
         pricingSettings.simple = {
-          price: config.simple.price ? Utils.convertToFloat(config.simple.price + '') : 0,
+          price: config.simple.price ? Utils.convertToFloat(config.simple.price) : 0,
           currency: config.simple.currency ? config.simple.currency : '',
+          last_updated: settings.result[0].lastChangedOn ? Utils.convertToDate(settings.result[0].lastChangedOn) : null,
         };
       }
       // Convergent Charging
@@ -358,7 +359,7 @@ export default class SettingStorage {
     };
   }
 
-  public static async deleteSetting(tenantID: string, id: string) {
+  public static async deleteSetting(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteSetting');
     // Check Tenant

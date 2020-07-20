@@ -4,7 +4,6 @@ import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIMapping from './OCPIMapping';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../OCPIUtils';

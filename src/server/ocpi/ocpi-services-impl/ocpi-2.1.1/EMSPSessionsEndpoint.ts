@@ -18,6 +18,7 @@ import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
+
 /**
  * EMSP Tokens Endpoint
  */
@@ -59,7 +60,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'getSessionRequest',
-        errorCode: HTTPError.GENERAL_ERROR,
+        errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });

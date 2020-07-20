@@ -83,7 +83,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           module: MODULE_NAME, method: 'patchLocationRequest',
           errorCode: HttpStatusCodes.NOT_FOUND,
           message: 'Unknown EVSE with id ' + evseUid,
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
       }
       if (connectorId) {
