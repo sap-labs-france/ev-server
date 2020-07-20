@@ -114,7 +114,7 @@ export default class ChargingStationStorage {
       search?: string; chargingStationIDs?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-      posCoordinates?: number[]; posMaxDistanceMeters?: number;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
@@ -128,15 +128,15 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.posCoordinates)) {
+    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
       aggregation.push({
         $geoNear: {
           near: {
             type: 'Point',
-            coordinates: params.posCoordinates
+            coordinates: params.locCoordinates
           },
           distanceField: 'distanceMeters',
-          maxDistance: params.posMaxDistanceMeters > 0 ? params.posMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          maxDistance: params.locMaxDistanceMeters > 0 ? params.locMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
           spherical: true
         }
       });

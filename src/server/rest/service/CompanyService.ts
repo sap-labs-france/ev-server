@@ -144,10 +144,12 @@ export default class CompanyService {
         issuer: filteredRequest.Issuer,
         companyIDs: Authorizations.getAuthorizedCompanyIDs(req.user),
         withSites: filteredRequest.WithSites,
-        withLogo: filteredRequest.WithLogo
+        withLogo: filteredRequest.WithLogo,
+        locCoordinates: filteredRequest.LocCoordinates,
+        locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'logo', 'issuer']
+      [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters']
     );
     // Filter
     CompanySecurity.filterCompaniesResponse(companies, req.user);

@@ -86,7 +86,8 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean } = {},
+    params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompanies');
@@ -96,6 +97,22 @@ export default class CompanyStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.locCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.locMaxDistanceMeters > 0 ? params.locMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Set the filters
     const filters: any = {};
     if (params.search) {
@@ -106,8 +123,6 @@ export default class CompanyStorage {
         { 'address.country': { $regex: searchRegex, $options: 'i' } }
       ];
     }
-    // Create Aggregation
-    const aggregation = [];
     // Limit on Company for Basic Users
     if (!Utils.isEmptyArray(params.companyIDs)) {
       // Build filter

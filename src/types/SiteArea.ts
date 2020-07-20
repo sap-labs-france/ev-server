@@ -21,6 +21,7 @@ export default interface SiteArea extends CreatedUpdatedProps {
   chargingStations: ChargingStation[];
   connectorStats: ConnectorStats;
   values: SiteAreaConsumption[];
+  distanceMeters?: number;
 }
 
 export interface SiteAreaConsumption {
