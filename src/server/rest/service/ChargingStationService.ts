@@ -1153,10 +1153,8 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.CHARGING_STATIONS,
-        module: MODULE_NAME,
-        method: 'getChargingStations',
+        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        module: MODULE_NAME, method: 'getChargingStations',
       });
     }
     // Filter
@@ -1172,7 +1170,9 @@ export default class ChargingStationService {
         issuer: filteredRequest.Issuer,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
-        includeDeleted: filteredRequest.IncludeDeleted
+        includeDeleted: filteredRequest.IncludeDeleted,
+        posCoordinates: filteredRequest.PosCoordinates,
+        posMaxDistanceMeters: filteredRequest.PosMaxDistanceMeters,
       },
       {
         limit: filteredRequest.Limit,

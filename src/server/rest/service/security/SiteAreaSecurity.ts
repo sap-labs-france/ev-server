@@ -51,6 +51,18 @@ export default class SiteAreaSecurity {
     if (request.Issuer) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
+    if (Utils.containsGPSCoordinates([request.PosLongitude, request.PosLatitude])) {
+      filteredRequest.PosCoordinates = [
+        Utils.convertToFloat(sanitize(request.PosLongitude)),
+        Utils.convertToFloat(sanitize(request.PosLatitude))
+      ];
+      if (request.PosMaxDistanceMeters) {
+        request.PosMaxDistanceMeters = Utils.convertToInt(sanitize(request.PosMaxDistanceMeters));
+        if (request.PosMaxDistanceMeters > 0) {
+          filteredRequest.PosMaxDistanceMeters = request.PosMaxDistanceMeters;
+        }
+      }
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -93,8 +105,12 @@ export default class SiteAreaSecurity {
       filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
       filteredSiteArea.smartCharging = siteArea.smartCharging;
       filteredSiteArea.accessControl = siteArea.accessControl;
-      if (!forList && Utils.objectHasProperty(siteArea, 'address')) {
-        filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
+      if (Utils.objectHasProperty(siteArea, 'address')) {
+        if (forList) {
+          filteredSiteArea.address = UtilsSecurity.filterAddressCoordinatesRequest(siteArea.address);
+        } else {
+          filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
+        }
       }
       if (siteArea.connectorStats) {
         filteredSiteArea.connectorStats = siteArea.connectorStats;

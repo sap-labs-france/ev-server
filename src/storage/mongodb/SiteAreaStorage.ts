@@ -89,7 +89,7 @@ export default class SiteAreaStorage {
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
       tenantID,
       {
-        siteAreaID: id,
+        siteAreaIDs: [id],
         withSite: params.withSite,
         withChargingStations: params.withChargingStations,
         withAvailableChargingStations: true
@@ -123,7 +123,17 @@ export default class SiteAreaStorage {
       numberOfPhases: Utils.convertToInt(siteAreaToSave.numberOfPhases),
     };
     if (siteAreaToSave.address) {
-      siteAreaMDB.address = siteAreaToSave.address;
+      siteAreaMDB.address = {
+        address1: siteAreaToSave.address.address1,
+        address2: siteAreaToSave.address.address2,
+        postalCode: siteAreaToSave.address.postalCode,
+        city: siteAreaToSave.address.city,
+        department: siteAreaToSave.address.department,
+        region: siteAreaToSave.address.region,
+        country: siteAreaToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(siteAreaToSave.address.coordinates) ? siteAreaToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
@@ -143,8 +153,9 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreas(tenantID: string,
     params: {
-      siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
-      withChargingStations?: boolean; smartCharging?: boolean; withAvailableChargingStations?: boolean;
+      siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
+      withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
+      posCoordinates?: number[]; posMaxDistanceMeters?: number; smartCharging?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -155,21 +166,40 @@ export default class SiteAreaStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.posCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.posCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.posMaxDistanceMeters > 0 ? params.posMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Set the filters
     const filters: any = {};
-    // Query by Site Area ID if available
-    if (params.siteAreaID) {
-      filters._id = Utils.convertToObjectID(params.siteAreaID);
-      // Otherwise check if search is present
-    } else if (params.search) {
+    // Otherwise check if search is present
+    if (params.search) {
       filters.$or = [
         { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
     }
-    // Set Site thru a filter in the dashboard
-    if (params.siteIDs && Array.isArray(params.siteIDs)) {
+    // Site Area
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
+      filters._id = {
+        $in: params.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+      };
+    }
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = {
-        $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     if (params.issuer === true || params.issuer === false) {
@@ -178,8 +208,6 @@ export default class SiteAreaStorage {
     if (params.smartCharging === true || params.smartCharging === false) {
       filters.smartCharging = params.smartCharging;
     }
-    // Create Aggregation
-    const aggregation = [];
     // Filters
     if (filters) {
       aggregation.push({
@@ -228,7 +256,7 @@ export default class SiteAreaStorage {
       });
     }
     // Charging Stations
-    if (params.withChargingStations || params.withAvailableChargingStations) {
+    if (params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
         asField: 'chargingStations'
@@ -247,7 +275,7 @@ export default class SiteAreaStorage {
           'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.public', 'chargingStations.inactive']);
     }
     // Read DB
-    const siteAreasMDB = await global.database.getCollection<any>(tenantID, 'siteareas')
+    const siteAreasMDB = await global.database.getCollection<SiteArea>(tenantID, 'siteareas')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
@@ -258,12 +286,16 @@ export default class SiteAreaStorage {
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        // Count Available/Occupied Chargers/Connectors
+        // Skip site area with no charging stations if asked
+        if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
+          continue;
+        }
+        // Add counts of Available/Occupied Chargers/Connectors
         if (params.withAvailableChargingStations) {
           // Set the Charging Stations' Connector statuses
           siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
         }
-        // Chargers
+        // Charging stations
         if (!params.withChargingStations && siteAreaMDB.chargingStations) {
           delete siteAreaMDB.chargingStations;
         }

@@ -56,7 +56,17 @@ export default class CompanyStorage {
       issuer: Utils.convertToBoolean(companyToSave.issuer),
     };
     if (companyToSave.address) {
-      companyMDB.address = companyToSave.address;
+      companyMDB.address = {
+        address1: companyToSave.address.address1,
+        address2: companyToSave.address.address2,
+        postalCode: companyToSave.address.postalCode,
+        city: companyToSave.address.city,
+        department: companyToSave.address.department,
+        region: companyToSave.address.region,
+        country: companyToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(companyToSave.address.coordinates) ? companyToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(companyMDB, companyToSave);
@@ -87,7 +97,7 @@ export default class CompanyStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
+    const filters: any = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -99,13 +109,11 @@ export default class CompanyStorage {
     // Create Aggregation
     const aggregation = [];
     // Limit on Company for Basic Users
-    if (params.companyIDs && params.companyIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.companyIDs)) {
       // Build filter
-      aggregation.push({
-        $match: {
-          _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
-        }
-      });
+      filters._id = {
+        $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID))
+      };
     }
     if (params.issuer === true || params.issuer === false) {
       aggregation.push({

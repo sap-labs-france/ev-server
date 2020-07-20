@@ -256,12 +256,24 @@ export default class SiteStorage {
     // Properties to save
     const siteMDB: any = {
       _id: siteFilter._id,
-      address: siteToSave.address,
       issuer: Utils.convertToBoolean(siteToSave.issuer),
       companyID: Utils.convertToObjectID(siteToSave.companyID),
       autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
     };
+    if (siteToSave.address) {
+      siteMDB.address = {
+        address1: siteToSave.address.address1,
+        address2: siteToSave.address.address2,
+        postalCode: siteToSave.address.postalCode,
+        city: siteToSave.address.city,
+        department: siteToSave.address.department,
+        region: siteToSave.address.region,
+        country: siteToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(siteToSave.address.coordinates) ? siteToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
     // Modify and return the modified document
@@ -297,7 +309,8 @@ export default class SiteStorage {
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean;
-      withAvailableChargingStations?: boolean; withChargingStations?: boolean; withCompany?: boolean;
+      withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
+      posCoordinates?: number[]; posMaxDistanceMeters?: number;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
@@ -310,6 +323,20 @@ export default class SiteStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.posCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.posCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.posMaxDistanceMeters > 0 ? params.posMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Search filters
     const filters: any = {};
     if (params.search) {
@@ -317,8 +344,14 @@ export default class SiteStorage {
         { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
     }
-    // Query by companyIDs
-    if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters._id = {
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+      };
+    }
+    // Company
+    if (!Utils.isEmptyArray(params.companyIDs)) {
       filters.companyID = {
         $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
@@ -329,14 +362,6 @@ export default class SiteStorage {
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;
-    }
-    // Limit on Site for Basic Users
-    if (params.siteIDs && params.siteIDs.length > 0) {
-      aggregation.push({
-        $match: {
-          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
-        }
-      });
     }
     // Get users
     if (params.userID || params.excludeSitesOfUserID) {
@@ -402,7 +427,7 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const sitesMDB = await global.database.getCollection<any>(tenantID, 'sites')
+    const sitesMDB = await global.database.getCollection<Site>(tenantID, 'sites')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
@@ -413,12 +438,12 @@ export default class SiteStorage {
     if (sitesMDB && sitesMDB.length > 0) {
       // Create
       for (const siteMDB of sitesMDB) {
-        if (params.withChargingStations || params.withAvailableChargingStations) {
+        if (params.withOnlyChargingStations || params.withAvailableChargingStations) {
         // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
-          // Skip site with no chargers if asked
-          if (params.withChargingStations && chargingStations.count === 0) {
+          // Skip site with no charging stations if asked
+          if (params.withOnlyChargingStations && chargingStations.count === 0) {
             continue;
           }
           // Add counts of Available/Occupied Chargers/Connectors

@@ -67,7 +67,8 @@ export default class MongoDBStorage {
     const collections = await this.db.listCollections({ name: name }).toArray();
     // Users
     await this.handleIndexesInCollection(collections, tenantID, 'users', [
-      { fields: { email: 1 }, options: { unique: true } }
+      { fields: { email: 1 }, options: { unique: true } },
+      { fields: { 'address.coordinates': '2dsphere' } },
     ]);
     await this.handleIndexesInCollection(collections, tenantID, 'eulas');
     // Logs
@@ -111,6 +112,10 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(collections, tenantID, 'cars', [
       { fields: { vin: 1, licensePlate: 1 }, options: { unique: true } }
     ]);
+    // Cars
+    await this.handleIndexesInCollection(collections, tenantID, 'carcatalogimages', [
+      { fields: { carID: 1 } }
+    ]);
     // Transactions
     await this.handleIndexesInCollection(collections, tenantID, 'transactions', [
       { fields: { timestamp: 1 } },
@@ -132,6 +137,22 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(collections, tenantID, 'consumptions', [
       { fields: { transactionId: 1 } },
       { fields: { siteAreaID: 1, startedAt: 1 } }
+    ]);
+    // Companies
+    await this.handleIndexesInCollection(collections, tenantID, 'companies', [
+      { fields: { 'address.coordinates': '2dsphere' } },
+    ]);
+    // Sites
+    await this.handleIndexesInCollection(collections, tenantID, 'sites', [
+      { fields: { 'address.coordinates': '2dsphere' } },
+    ]);
+    // Site Area
+    await this.handleIndexesInCollection(collections, tenantID, 'siteareas', [
+      { fields: { 'address.coordinates': '2dsphere' } },
+    ]);
+    // Charging Stations
+    await this.handleIndexesInCollection(collections, tenantID, 'chargingstations', [
+      { fields: { coordinates: '2dsphere' } },
     ]);
     Logging.logDebug({
       tenantID: tenantID,

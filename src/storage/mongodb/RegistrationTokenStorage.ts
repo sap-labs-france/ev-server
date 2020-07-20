@@ -60,7 +60,7 @@ export default class RegistrationTokenStorage {
       filters._id = Utils.convertToObjectID(params.id);
     }
 
-    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.siteIDs)) {
       // Build filter
       filters['siteArea.siteID'] = {
         $in: params.siteIDs
