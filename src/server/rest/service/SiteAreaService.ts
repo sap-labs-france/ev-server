@@ -303,11 +303,12 @@ export default class SiteAreaService {
         withChargingStations: filteredRequest.WithChargeBoxes,
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        posCoordinates: filteredRequest.PosCoordinates,
-        posMaxDistanceMeters: filteredRequest.PosMaxDistanceMeters,
+        locCoordinates: filteredRequest.LocCoordinates,
+        locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'name', 'siteID', 'maximumPower', 'numberOfPhases', 'accessControl', 'smartCharging', 'address.coordinates', 'address.city', 'address.country', 'site.id', 'site.name', 'issuer']
+      ['id', 'name', 'siteID', 'maximumPower', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+        'site.id', 'site.name', 'issuer', 'distanceMeters']
     );
     // Filter
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);

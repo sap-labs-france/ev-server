@@ -310,7 +310,7 @@ export default class SiteStorage {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean;
       withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
-      posCoordinates?: number[]; posMaxDistanceMeters?: number;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
@@ -324,15 +324,15 @@ export default class SiteStorage {
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.posCoordinates)) {
+    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
       aggregation.push({
         $geoNear: {
           near: {
             type: 'Point',
-            coordinates: params.posCoordinates
+            coordinates: params.locCoordinates
           },
           distanceField: 'distanceMeters',
-          maxDistance: params.posMaxDistanceMeters > 0 ? params.posMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          maxDistance: params.locMaxDistanceMeters > 0 ? params.locMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
           spherical: true
         }
       });
