@@ -392,8 +392,8 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['id', 'name', 'address.coordinates', 'address.city', 'address.country', 'companyID', 'company.name',
-        'autoUserSiteAssignment', 'issuer', 'autoUserSiteAssignment', 'distanceMeters']
+      ['id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+        'autoUserSiteAssignment', 'distanceMeters']
     );
     // Build the result
     if (sites.result && sites.result.length > 0) {

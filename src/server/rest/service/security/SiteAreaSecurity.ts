@@ -106,11 +106,7 @@ export default class SiteAreaSecurity {
       filteredSiteArea.smartCharging = siteArea.smartCharging;
       filteredSiteArea.accessControl = siteArea.accessControl;
       if (Utils.objectHasProperty(siteArea, 'address')) {
-        if (forList) {
-          filteredSiteArea.address = UtilsSecurity.filterAddressCoordinatesRequest(siteArea.address);
-        } else {
-          filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
-        }
+        filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
       }
       if (siteArea.connectorStats) {
         filteredSiteArea.connectorStats = siteArea.connectorStats;
@@ -160,7 +156,7 @@ export default class SiteAreaSecurity {
       return null;
     }
     for (const siteArea of siteAreas.result) {
-      const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser, true);
+      const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
       if (filteredSiteArea) {
         filteredSiteAreas.push(filteredSiteArea);
       }

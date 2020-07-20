@@ -111,7 +111,7 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  static filterSiteResponse(site: Site, loggedUser: UserToken, forList = false): Site {
+  static filterSiteResponse(site: Site, loggedUser: UserToken): Site {
     let filteredSite;
     if (!site) {
       return null;
@@ -126,11 +126,7 @@ export default class SiteSecurity {
       filteredSite.autoUserSiteAssignment = site.autoUserSiteAssignment;
       filteredSite.issuer = site.issuer;
       if (Utils.objectHasProperty(site, 'address')) {
-        if (forList) {
-          filteredSite.address = UtilsSecurity.filterAddressCoordinatesRequest(site.address);
-        } else {
-          filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
-        }
+        filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
         filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
@@ -164,7 +160,7 @@ export default class SiteSecurity {
     }
     for (const site of sites.result) {
       // Filter
-      const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser, true);
+      const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
       if (filteredSite) {
         filteredSites.push(filteredSite);
       }

@@ -149,7 +149,7 @@ export default class CompanyService {
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'logo', 'issuer', 'distanceMeters']
+      [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters']
     );
     // Filter
     CompanySecurity.filterCompaniesResponse(companies, req.user);
