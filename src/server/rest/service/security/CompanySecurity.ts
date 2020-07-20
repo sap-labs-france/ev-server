@@ -1,12 +1,13 @@
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpCompaniesRequest } from '../../../../types/requests/HttpCompanyRequest';
-import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
+import SiteSecurity from './SiteSecurity';
 import UtilsSecurity from './UtilsSecurity';
-import sanitize from 'mongo-sanitize';
 
 export default class CompanySecurity {
 
@@ -28,6 +29,18 @@ export default class CompanySecurity {
     } as HttpCompaniesRequest;
     if (request.Issuer) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
+    if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(sanitize(request.LocLongitude)),
+        Utils.convertToFloat(sanitize(request.LocLatitude))
+      ];
+      if (request.LocMaxDistanceMeters) {
+        request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
+        if (request.LocMaxDistanceMeters > 0) {
+          filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;
+        }
+      }
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

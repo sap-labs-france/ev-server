@@ -383,8 +383,8 @@ export default class SiteService {
         withCompany: filteredRequest.WithCompany,
         excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
-        posCoordinates: filteredRequest.PosCoordinates,
-        posMaxDistanceMeters: filteredRequest.PosMaxDistanceMeters,
+        locCoordinates: filteredRequest.LocCoordinates,
+        locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
       {
         limit: filteredRequest.Limit,
