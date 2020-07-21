@@ -403,7 +403,7 @@ export default class Utils {
     Utils.tenants.push(tenantID);
   }
 
-  static convertToBoolean(value: any): boolean {
+  public static convertToBoolean(value: any): boolean {
     let result = false;
     // Check boolean
     if (value) {
