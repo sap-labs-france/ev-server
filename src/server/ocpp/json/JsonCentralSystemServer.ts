@@ -146,13 +146,15 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.initialize();
           // Add
           this.addRestConnection(wsConnection);
-        } else {
+        } else if (req.url.startsWith('/OCPP16')) {
           // Create a Json Web Socket connection object
           const wsConnection = new JsonWSConnection(ws, req, this.chargingStationConfig, this);
           // Init
           await wsConnection.initialize();
           // Add
           this.addJsonConnection(wsConnection);
+        } else {
+          throw Error('Wrong WebSocket client connection URI path');
         }
       } catch (error) {
         // Log

@@ -131,6 +131,7 @@ export default class JsonWSConnection extends WSConnection {
     if (this.isWSConnectionOpen()) {
       return this.chargingStationClient;
     }
+    return null;
   }
 }
 
