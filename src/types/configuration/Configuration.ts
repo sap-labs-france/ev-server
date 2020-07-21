@@ -4,6 +4,7 @@ import CentralSystemFrontEndConfiguration from './CentralSystemFrontEndConfigura
 import CentralSystemRestServiceConfiguration from './CentralSystemRestServiceConfiguration';
 import CentralSystemServerConfiguration from './CentralSystemServer';
 import ChargingStationConfiguration from './ChargingStationConfiguration';
+import ChargingStationTemplatesConfiguration from './ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from './ClusterConfiguration';
 import CryptoConfiguration from './CryptoConfiguration';
 import EVDatabaseConfiguration from './EVDatabaseAPIConfiguration';
@@ -48,4 +49,5 @@ export interface Configuration {
   HealthCheck?: HealthCheckConfiguration;
   Migration?: MigrationConfiguration;
   EVDatabase: EVDatabaseConfiguration;
+  ChargingStationTemplates: ChargingStationTemplatesConfiguration;
 }
