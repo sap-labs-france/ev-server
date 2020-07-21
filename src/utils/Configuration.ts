@@ -4,6 +4,7 @@ import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSy
 import CentralSystemRestServiceConfiguration from '../types/configuration/CentralSystemRestServiceConfiguration';
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
+import ChargingStationTemplatesConfiguration from '../types/configuration/ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
 import { Configuration as ConfigurationType } from '../types/configuration/Configuration';
 import Constants from './Constants';
@@ -303,6 +304,17 @@ export default class Configuration {
       Configuration.getConfig().Migration.active = false;
     }
     return Configuration.getConfig().Migration;
+  }
+
+  static getChargingStationTemplatesConfig(): ChargingStationTemplatesConfiguration {
+    // Read conf and set defaults values
+    if (Utils.isUndefined(Configuration.getConfig().ChargingStationTemplates)) {
+      Configuration.getConfig().ChargingStationTemplates = {} as ChargingStationTemplatesConfiguration;
+    }
+    if (Utils.isUndefined(Configuration.getConfig().ChargingStationTemplates.templatesFilePath)) {
+      Configuration.getConfig().ChargingStationTemplates.templatesFilePath = `${global.appRoot}/assets/charging-station-templates/charging-stations.json`;
+    }
+    return Configuration.getConfig().ChargingStationTemplates;
   }
 
   // Read the config file
