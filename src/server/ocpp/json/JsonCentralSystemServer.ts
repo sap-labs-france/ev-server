@@ -154,7 +154,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           // Add
           this.addJsonConnection(wsConnection);
         } else {
-          throw Error('Wrong WebSocket client connection path');
+          throw Error('Wrong WebSocket client connection URI path');
         }
       } catch (error) {
         // Log
