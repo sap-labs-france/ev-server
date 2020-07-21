@@ -4,6 +4,7 @@ import { ChargingStationInError, ChargingStationInErrorType } from '../../types/
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream } from 'mongodb';
 
 import BackendError from '../../exception/BackendError';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
@@ -12,7 +13,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
-import SiteAreaStorage from './SiteAreaStorage';
 import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
@@ -30,8 +30,7 @@ export default class ChargingStationStorage {
     // Read File
     let chargingStationTemplates: ChargingStationTemplate[];
     try {
-      chargingStationTemplates =
-        JSON.parse(fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
+      chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
     } catch (error) {
       if (error.code === 'ENOENT') {
         throw error;
