@@ -1171,8 +1171,8 @@ export default class ChargingStationService {
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         includeDeleted: filteredRequest.IncludeDeleted,
-        posCoordinates: filteredRequest.PosCoordinates,
-        posMaxDistanceMeters: filteredRequest.PosMaxDistanceMeters,
+        locCoordinates: filteredRequest.LocCoordinates,
+        locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
       {
         limit: filteredRequest.Limit,

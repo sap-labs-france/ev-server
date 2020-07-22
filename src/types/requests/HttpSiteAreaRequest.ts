@@ -13,8 +13,8 @@ export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
   WithSite?: boolean;
   WithChargeBoxes?: boolean;
   WithAvailableChargers: boolean;
-  PosCoordinates?: number[];
-  PosMaxDistanceMeters?: number;
+  LocCoordinates?: number[];
+  LocMaxDistanceMeters?: number;
 }
 
 export interface HttpSiteAreaConsumptionsRequest {

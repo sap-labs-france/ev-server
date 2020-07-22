@@ -9,4 +9,5 @@ export default interface Company extends CreatedUpdatedProps {
   address?: Address;
   logo?: string;
   sites?: Site[];
+  distanceMeters?: number;
 }

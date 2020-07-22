@@ -46,7 +46,6 @@ import Constants from './Constants';
 import Cypher from './Cypher';
 import Logging from './Logging';
 
-
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
@@ -406,7 +405,7 @@ export default class Utils {
     Utils.tenants.push(tenantID);
   }
 
-  static convertToBoolean(value: any): boolean {
+  public static convertToBoolean(value: any): boolean {
     let result = false;
     // Check boolean
     if (value) {
