@@ -91,7 +91,7 @@
     "@types/i18n-js": "^3.0.3",
     "@types/intl": "^1.2.0",
     "@types/jsonwebtoken": "^8.5.0",
-    "@types/lodash": "^4.14.157",
+    "@types/lodash": "^4.14.158",
     "@types/mocha": "^7.0.2",
     "@types/moment-duration-format": "^2.2.2",
     "@types/moment-timezone": "^0.5.13",
