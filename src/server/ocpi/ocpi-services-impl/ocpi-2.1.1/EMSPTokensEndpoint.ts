@@ -130,7 +130,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown EVSE ${locationReference.evse_uids[0]}`,
-        ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
       });
     }
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
