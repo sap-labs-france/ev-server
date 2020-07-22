@@ -259,18 +259,18 @@ export default class OCPIMapping {
     const tariffs: OCPITariff[] = [];
     if (tenant.components?.pricing?.active) {
       // Get simple pricing settings
-      const pricingSetting = await SettingStorage.getPricingSettings(tenant.id, limit, skip, dateFrom, dateTo);
-      if (pricingSetting.type === PricingSettingsType.SIMPLE && pricingSetting.simple) {
-        const tariff = OCPIMapping.convertSimplePricingSetting2OCPITariff(pricingSetting.simple);
+      const pricingSettings = await SettingStorage.getPricingSettings(tenant.id, limit, skip, dateFrom, dateTo);
+      if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
+        const tariff = OCPIMapping.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
         if (tariff.currency && tariff.elements[0].price_components[0].price > 0) {
           tariffs.push(tariff);
         } else if (tariff.currency && tariff.elements[0].price_components[0].price === 0) {
           tariff.id = '1';
-          tariff.currency = pricingSetting.simple.currency;
+          tariff.currency = pricingSettings.simple.currency;
           tariff.elements[0].price_components[0].type = OCPITariffDimensionType.FLAT;
-          tariff.elements[0].price_components[0].price = pricingSetting.simple.price;
+          tariff.elements[0].price_components[0].price = pricingSettings.simple.price;
           tariff.elements[0].price_components[0].step_size = 0;
-          tariff.last_updated = pricingSetting.simple.last_updated;
+          tariff.last_updated = pricingSettings.simple.last_updated;
           tariffs.push(tariff);
         }
       }
