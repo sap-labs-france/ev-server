@@ -160,12 +160,15 @@ export default class SettingStorage {
     return refundSettings;
   }
 
-  public static async getPricingSettings(tenantID: string): Promise<PricingSettings> {
+  public static async getPricingSettings(tenantID: string, limit?: number, skip?: number, dateFrom?: Date, dateTo?: Date): Promise<PricingSettings> {
     const pricingSettings = {
       identifier: TenantComponents.PRICING,
     } as PricingSettings;
     // Get the Pricing settings
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.PRICING }, Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.PRICING, dateFrom: dateFrom, dateTo: dateTo }, {
+      limit,
+      skip
+    });
     // Get the currency
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
@@ -293,7 +296,7 @@ export default class SettingStorage {
   }
 
   public static async getSettings(tenantID: string,
-    params: {identifier?: string; settingID?: string},
+    params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSettings');
@@ -312,6 +315,18 @@ export default class SettingStorage {
     // Identifier
     if (params.identifier) {
       filters.identifier = params.identifier;
+    }
+    // Date provided?
+    if (params.dateFrom || params.dateTo) {
+      filters.createdOn = {};
+      // Start date
+      if (params.dateFrom) {
+        filters.createdOn.$gte = Utils.convertToDate(params.dateFrom);
+      }
+      // End date
+      if (params.dateTo) {
+        filters.createdOn.$lte = Utils.convertToDate(params.dateTo);
+      }
     }
     // Create Aggregation
     const aggregation = [];

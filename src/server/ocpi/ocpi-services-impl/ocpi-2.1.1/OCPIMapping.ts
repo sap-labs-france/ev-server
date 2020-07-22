@@ -259,7 +259,7 @@ export default class OCPIMapping {
     const tariffs: OCPITariff[] = [];
     if (tenant.components?.pricing?.active) {
       // Get simple pricing settings
-      const pricingSetting = await SettingStorage.getPricingSettings(tenant.id);
+      const pricingSetting = await SettingStorage.getPricingSettings(tenant.id, limit, skip, dateFrom, dateTo);
       if (pricingSetting.type === PricingSettingsType.SIMPLE && pricingSetting.simple) {
         const tariff = OCPIMapping.convertSimplePricingSetting2OCPITariff(pricingSetting.simple);
         if (tariff.currency && tariff.elements[0].price_components[0].price > 0) {
