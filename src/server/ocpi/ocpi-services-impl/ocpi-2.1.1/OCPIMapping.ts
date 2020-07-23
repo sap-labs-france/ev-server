@@ -253,7 +253,6 @@ export default class OCPIMapping {
    * Get All OCPI Tariffs from given tenant
    * @param {Tenant} tenant
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static async getAllTariffs(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPITariff>> {
     // Result
     const tariffs: OCPITariff[] = [];
