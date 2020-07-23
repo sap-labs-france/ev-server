@@ -205,7 +205,7 @@ export default class MongoDBStorage {
       // No: Build it
       mongoUrl = mongoUriBuilder({
         host: urlencode(this.dbConfig.host),
-        port: Utils.convertToInt(urlencode(this.dbConfig.port.toString() + '')),
+        port: Utils.convertToInt(urlencode(this.dbConfig.port.toString())),
         username: urlencode(this.dbConfig.user),
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),

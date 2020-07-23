@@ -5,6 +5,7 @@ import EMSPCdrsEndpoint from './EMSPCdrsEndpoint';
 import EMSPCommandsEndpoint from './EMSPCommandsEndpoint';
 import EMSPLocationsEndpoint from './EMSPLocationsEndpoint';
 import EMSPSessionsEndpoint from './EMSPSessionsEndpoint';
+import EMSPTariffsEndpoint from './EMSPTariffsEndpoint';
 import EMSPTokensEndpoint from './EMSPTokensEndpoint';
 
 /**
@@ -24,6 +25,7 @@ export default class EMSPService extends AbstractOCPIService {
     this.registerEndpoint(new EMSPSessionsEndpoint(this));
     this.registerEndpoint(new EMSPCdrsEndpoint(this));
     this.registerEndpoint(new EMSPCommandsEndpoint(this));
+    this.registerEndpoint(new EMSPTariffsEndpoint(this));
   }
 }
 
