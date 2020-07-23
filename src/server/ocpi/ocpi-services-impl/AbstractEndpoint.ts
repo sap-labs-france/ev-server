@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 import AbstractOCPIService from '../AbstractOCPIService';
 import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
@@ -35,6 +35,6 @@ export default abstract class AbstractEndpoint {
   }
 
   // Abstract - Process endpoint
-  abstract async process(req: Request, res: Response, next: Function, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse>;
+  abstract async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse>;
 }
 

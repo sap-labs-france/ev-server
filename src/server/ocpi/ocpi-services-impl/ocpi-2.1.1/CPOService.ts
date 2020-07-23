@@ -3,6 +3,7 @@ import CPOCdrsEndpoint from './CPOCdrsEndpoint';
 import CPOCommandsEndpoint from './CPOCommandsEndpoint';
 import CPOLocationsEndpoint from './CPOLocationsEndpoint';
 import CPOSessionsEndpoint from './CPOSessionsEndpoint';
+import CPOTariffsEndpoint from './CPOTariffsEndpoint';
 import CPOTokensEndpoint from './CPOTokensEndpoint';
 import { Configuration } from '../../../../types/configuration/Configuration';
 import CredentialsEndpoint from './CredentialsEndpoint';
@@ -25,6 +26,7 @@ export default class CPOService extends AbstractOCPIService {
     this.registerEndpoint(new CPOCommandsEndpoint(this));
     this.registerEndpoint(new CPOSessionsEndpoint(this));
     this.registerEndpoint(new CPOCdrsEndpoint(this));
+    this.registerEndpoint(new CPOTariffsEndpoint(this));
   }
 }
 

@@ -1632,7 +1632,7 @@ export default class OCPPService {
       // Notify (Async)
       NotificationHandler.sendSessionStarted(
         tenantID,
-        transaction.id.toString() + '',
+        transaction.id.toString(),
         user,
         chargingStation,
         {

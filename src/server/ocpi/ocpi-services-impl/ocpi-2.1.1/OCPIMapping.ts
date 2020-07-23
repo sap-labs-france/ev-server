@@ -3,7 +3,9 @@ import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType } f
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
+import { OCPITariff, OCPITariffDimensionType } from '../../../../types/ocpi/OCPITariff';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
+import { PricingSettingsType, SimplePricingSetting } from '../../../../types/Setting';
 
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import Configuration from '../../../../utils/Configuration';
@@ -248,7 +250,39 @@ export default class OCPIMapping {
   }
 
   /**
-   * Get All OCPI Tokens from given tenant
+   * Get All OCPI Tariffs from given tenant
+   * @param {Tenant} tenant
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  static async getAllTariffs(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPITariff>> {
+    // Result
+    const tariffs: OCPITariff[] = [];
+    if (tenant.components?.pricing?.active) {
+      // Get simple pricing settings
+      const pricingSettings = await SettingStorage.getPricingSettings(tenant.id, limit, skip, dateFrom, dateTo);
+      if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
+        const tariff = OCPIMapping.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
+        if (tariff.currency && tariff.elements[0].price_components[0].price > 0) {
+          tariffs.push(tariff);
+        } else if (tariff.currency && tariff.elements[0].price_components[0].price === 0) {
+          tariff.id = '1';
+          tariff.currency = pricingSettings.simple.currency;
+          tariff.elements[0].price_components[0].type = OCPITariffDimensionType.FLAT;
+          tariff.elements[0].price_components[0].price = pricingSettings.simple.price;
+          tariff.elements[0].price_components[0].step_size = 0;
+          tariff.last_updated = pricingSettings.simple.last_updated;
+          tariffs.push(tariff);
+        }
+      }
+    }
+    return {
+      count: tariffs.length,
+      result: tariffs
+    };
+  }
+
+  /**
+   * Get OCPI Token from given tenant and token id
    * @param {Tenant} tenant
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
@@ -261,33 +295,17 @@ export default class OCPIMapping {
     }
   }
 
-  /**
-   * Map user locale (en_US, fr_FR...) to ocpi language (en, fr...)
-   * @param locale
-   */
-  static convertLocaleToLanguage(locale: string): string {
-    if (!locale || locale.length < 2) {
-      return null;
-    }
-    return locale.substring(0, 2);
+  static convertSimplePricingSetting2OCPITariff(simplePricingSetting: SimplePricingSetting): OCPITariff {
+    let tariff: OCPITariff;
+    tariff.id = '1';
+    tariff.currency = simplePricingSetting.currency;
+    tariff.elements[0].price_components[0].type = OCPITariffDimensionType.TIME;
+    tariff.elements[0].price_components[0].price = simplePricingSetting.price;
+    tariff.elements[0].price_components[0].step_size = 60;
+    tariff.last_updated = simplePricingSetting.last_updated;
+    return tariff;
   }
 
-  /**
-   * Map ocpi language (en, fr...) to user locale (en_US, fr_FR...)
-   * @param locale
-   */
-  static convertLanguageToLocale(language: string): string {
-    if (language === 'fr') {
-      return 'fr_FR';
-    } else if (language === 'es') {
-      return 'es_MX';
-    } else if (language === 'de') {
-      return 'de_DE';
-    }
-    return 'en_US';
-  }
-
-  //
   /**
    * Convert ChargingStation to Multiple EVSEs
    * @param {Tenant} tenant
@@ -451,15 +469,15 @@ export default class OCPIMapping {
       numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     }
     return {
-      'id': `${evseID}*${connector.connectorId}`,
-      'standard': type,
-      'format': format,
-      'voltage': voltage,
-      'amperage': amperage,
-      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
+      id: `${evseID}*${connector.connectorId}`,
+      standard: type,
+      format: format,
+      voltage: voltage,
+      amperage: amperage,
+      power_type: OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
       // FIXME: add tariff id from the simple pricing settings remapping
-      'tariff_id': '1',
-      'last_updated': chargingStation.lastHeartBeat
+      tariff_id: '1',
+      last_updated: chargingStation.lastHeartBeat
     };
   }
 
@@ -516,7 +534,7 @@ export default class OCPIMapping {
   }
 
   /**
-   * Convert ID to evse ID compliant to eMI3 by replacing all non alphanumeric characters tby '*'
+   * Convert ID to evse ID compliant to eMI3 by replacing all non alphanumeric characters by '*'
    */
   static convert2evseid(id: string): string {
     if (id) {
@@ -637,7 +655,6 @@ export default class OCPIMapping {
     }
     return chargingPeriod;
   }
-
 
   /**
    * Check if OCPI credential object contains mandatory fields

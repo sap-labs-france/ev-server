@@ -23,6 +23,7 @@ const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
 
 const RECORDS_LIMIT = 100;
+
 /**
  * EMSP Tokens Endpoint
  */
@@ -47,13 +48,10 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
   /**
    * Fetch information about Tokens known in the eMSP systems.
    *
-   * /tokens/?date_from=xxx&date_to=yyy
+   * /tokens/?date_from=xxx&date_to=yyy&offset=zzz&limit=www
    *
    */
   private async getTokensRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
-    const urlSegment = req.path.substring(1).split('/');
-    // Remove action
-    urlSegment.shift();
     // Get query parameters
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
     const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
@@ -130,7 +128,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown EVSE ${locationReference.evse_uids[0]}`,
-        ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
       });
     }
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);

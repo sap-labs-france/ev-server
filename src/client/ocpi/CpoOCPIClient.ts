@@ -541,7 +541,7 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   /**
-   * PATH EVSE Status
+   * PATCH EVSE Status
    */
   async patchEVSEStatus(locationId: string, evseUID: string, newStatus: OCPIEvseStatus): Promise<void> {
     // Check for input parameter
