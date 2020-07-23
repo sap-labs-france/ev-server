@@ -57,6 +57,7 @@ export enum PricingContentType {
 export interface SimplePricingSetting extends PricingSetting {
   price: number;
   currency: string;
+  last_updated?: Date;
 }
 
 export interface ConvergentChargingPricingSetting extends PricingSetting {

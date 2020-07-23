@@ -319,13 +319,32 @@ export default class Utils {
     }
   }
 
+  /**
+   * Map user locale (en_US, fr_FR...) to language (en, fr...)
+   * @param locale
+   */
   public static getLanguageFromLocale(locale: string): string {
     let language = Constants.DEFAULT_LANGUAGE;
-    // Set the User's locale
+    // Get the language
     if (locale && locale.length >= 2) {
       language = locale.substring(0, 2);
     }
     return language;
+  }
+
+  /**
+   * Map language (en, fr...) to user locale (en_US, fr_FR...)
+   * @param language
+   */
+  static getLocaleFromLanguage(language: string): string {
+    if (language === 'fr') {
+      return 'fr_FR';
+    } else if (language === 'es') {
+      return 'es_MX';
+    } else if (language === 'de') {
+      return 'de_DE';
+    }
+    return Constants.DEFAULT_LOCALE;
   }
 
   public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
@@ -486,6 +505,9 @@ export default class Utils {
     let changedValue: number = value;
     if (!value) {
       return 0;
+    }
+    if (Number.isSafeInteger(value)) {
+      return value;
     }
     // Check
     if (typeof value === 'string') {

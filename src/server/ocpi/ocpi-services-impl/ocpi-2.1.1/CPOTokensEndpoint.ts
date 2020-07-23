@@ -18,6 +18,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'CPOTokensEndpoint';
+
 /**
  * CPO Tokens Endpoint
  */

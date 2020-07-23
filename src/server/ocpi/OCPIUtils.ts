@@ -18,10 +18,10 @@ export default class OCPIUtils {
    */
   public static success(data?: any): OCPIResponse {
     return {
-      'data': data,
-      'status_code': OCPIStatusCode.CODE_1000_SUCCESS.status_code,
-      'status_message': OCPIStatusCode.CODE_1000_SUCCESS.status_message,
-      'timestamp': new Date().toISOString()
+      data: data,
+      status_code: OCPIStatusCode.CODE_1000_SUCCESS.status_code,
+      status_message: OCPIStatusCode.CODE_1000_SUCCESS.status_message,
+      timestamp: new Date().toISOString()
     };
   }
 
@@ -31,9 +31,9 @@ export default class OCPIUtils {
    */
   public static toErrorResponse(error: Error): OCPIResponse {
     return {
-      'status_message': error.message,
-      'timestamp': new Date().toISOString(),
-      'status_code': error instanceof AppError && error.params.ocpiError ?
+      status_message: error.message,
+      timestamp: new Date().toISOString(),
+      status_code: error instanceof AppError && error.params.ocpiError ?
         error.params.ocpiError.status_code : OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR.status_code
     };
   }
