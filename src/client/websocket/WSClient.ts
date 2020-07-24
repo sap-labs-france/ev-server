@@ -150,7 +150,7 @@ export default class WSClient {
     return this.ws.readyState === WebSocket.OPEN;
   }
 
-  private async reconnect(error: Error): Promise<void> {
+  private reconnect(error: Error): void {
     if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
       (this.autoReconnectRetryCount < this.autoReconnectMaxRetries || this.autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {
       this.autoReconnectRetryCount++;
