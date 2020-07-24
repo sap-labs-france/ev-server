@@ -105,6 +105,10 @@ export default class Utils {
     });
   }
 
+  public static async sleep(ms): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   public static logActionsResponse(
     tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
     messageSuccess: string, messageError: string, messageSuccessAndError: string,
