@@ -26,6 +26,7 @@ import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import moment from 'moment';
 
 const EP_IDENTIFIER = 'commands';
@@ -38,6 +39,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   /**
