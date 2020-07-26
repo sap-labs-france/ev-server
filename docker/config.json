@@ -245,12 +245,6 @@
         "active": false,
         "periodicity": "0 0 1 * *",
         "config": {}
-      },
-      {
-        "name": "AssetGetConsumptionTask",
-        "active": false,
-        "periodicity": "* * * * *",
-        "config": {}
       }
     ]
   },
