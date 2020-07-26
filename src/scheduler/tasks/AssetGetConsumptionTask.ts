@@ -54,8 +54,8 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
             await AssetStorage.saveAsset(tenant.id, asset);
             // Create Consumption
             const consumption: Consumption = {
-              id: '1234',
               startedAt: asset.lastConsumption.timestamp,
+              endedAt: new Date(),
               assetID: asset.id,
               cumulatedConsumptionWh: asset.currentConsumptionWh,
               cumulatedConsumptionAmps: Math.floor(asset.currentConsumptionWh / 230),

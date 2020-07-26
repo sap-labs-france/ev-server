@@ -14,10 +14,15 @@ export default class ConsumptionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Set the ID
-    if (!consumptionToSave.id) {
-      // Set the ID
+    if (!consumptionToSave.id ) {
       const timestamp = Utils.convertToDate(consumptionToSave.endedAt);
-      consumptionToSave.id = Cypher.hash(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`);
+      if (consumptionToSave.transactionId) {
+        consumptionToSave.id = Cypher.hash(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`);
+      } else if (consumptionToSave.assetID) {
+        consumptionToSave.id = Cypher.hash(`${consumptionToSave.assetID}~${timestamp.toISOString()}`);
+      } else {
+        throw new Error('Consumption cannot be saved: no Transaction ID and Asset ID provided');
+      }
     }
     // Transfer
     const consumptionMDB: any = {

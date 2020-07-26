@@ -44,7 +44,7 @@ export interface AbstractConsumption {
 }
 
 export default interface Consumption extends AbstractConsumption {
-  id: string;
+  id?: string;
   startedAt: Date;
   endedAt?: Date;
   transactionId?: number;
