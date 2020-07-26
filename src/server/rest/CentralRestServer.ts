@@ -9,7 +9,6 @@ import ChangeNotification from '../../types/ChangeNotification';
 import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SessionHashService from './service/SessionHashService';
@@ -22,7 +21,6 @@ import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
-import util from 'util';
 
 const MODULE_NAME = 'CentralRestServer';
 

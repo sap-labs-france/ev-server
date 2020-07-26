@@ -660,12 +660,12 @@ export default class StatisticService {
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
         if (dataType === 'Pricing') {
           if (transaction._id.unit) {
-            csv += number + Constants.CSV_SEPARATOR + `${transaction._id.unit}` + '\r\n';
+            csv += number.toString() + Constants.CSV_SEPARATOR + `${transaction._id.unit}` + '\r\n';
           } else {
-            csv += number + Constants.CSV_SEPARATOR + ' ' + '\r\n';
+            csv += number.toString() + Constants.CSV_SEPARATOR + ' ' + '\r\n';
           }
         } else {
-          csv += number + '\r\n';
+          csv += number.toString() + '\r\n';
         }
       }
     }

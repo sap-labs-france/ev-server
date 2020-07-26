@@ -23,7 +23,7 @@ const MODULE_NAME = 'EMSPSessionsEndpoint';
 
 export default class OCPISessionsService {
 
-  public static async updateTransaction(tenantId: string, session: OCPISession) {
+  public static async updateTransaction(tenantId: string, session: OCPISession): Promise<void> {
     if (!OCPISessionsService.validateSession(session)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -63,7 +63,7 @@ export default class OCPISessionsService {
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No charging station found for evse uid ${evse.uid}`,
           detailedMessages: { session },
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
       }
       if (chargingStation.issuer) {
@@ -73,7 +73,7 @@ export default class OCPISessionsService {
           errorCode: HTTPError.GENERAL_ERROR,
           message: `OCPI Session is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: { session },
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
       }
       let connectorId = 1;
@@ -164,7 +164,7 @@ export default class OCPISessionsService {
     await this.updateConnector(tenantId, transaction);
   }
 
-  public static async processCdr(tenantId: string, cdr: OCPICdr) {
+  public static async processCdr(tenantId: string, cdr: OCPICdr): Promise<void> {
     if (!OCPISessionsService.validateCdr(cdr)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -232,7 +232,7 @@ export default class OCPISessionsService {
     await this.updateConnector(tenantId, transaction);
   }
 
-  public static async updateConnector(tenantId: string, transaction: Transaction) {
+  public static async updateConnector(tenantId: string, transaction: Transaction): Promise<void> {
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantId, transaction.chargeBoxID);
     if (chargingStation && chargingStation.connectors) {
       for (const connector of chargingStation.connectors) {
@@ -264,7 +264,7 @@ export default class OCPISessionsService {
     }
   }
 
-  private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession) {
+  private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession): Promise<void> {
     const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastConsumption.value);
     const duration = moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds') / 1000;
     if (consumptionWh > 0 || duration > 0) {

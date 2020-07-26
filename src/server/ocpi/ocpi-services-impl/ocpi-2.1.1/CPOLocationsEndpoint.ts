@@ -18,7 +18,8 @@ import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'CPOLocationsEndpoint';
-const RECORDS_LIMIT = 20;
+
+const RECORDS_LIMIT = 25;
 
 /**
  * Locations Endpoint

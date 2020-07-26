@@ -237,6 +237,10 @@ export default class SiteAreaStorage {
     if (!dbParams.sort) {
       dbParams.sort = { name: 1 };
     }
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+      dbParams.sort = { distanceMeters: 1 };
+    }
     aggregation.push({
       $sort: dbParams.sort
     });

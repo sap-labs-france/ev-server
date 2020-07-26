@@ -12,6 +12,7 @@ import Tenant from '../../../../types/Tenant';
 
 const EP_IDENTIFIER = 'commands';
 const MODULE_NAME = 'EMSPCommandsEndpoint';
+
 /**
  * EMSP Tokens Endpoint
  */
