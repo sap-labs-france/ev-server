@@ -652,7 +652,7 @@ export default class OCPPService {
       chargingStation.lastHeartBeat = new Date();
       // Save
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
-      // Notifiy
+      // Notify
       await this.notifyStartTransaction(headers.tenantID, transaction, chargingStation, user);
       // Log
       if (user) {
