@@ -65,6 +65,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendOcpiPatchStatusError: true,
             sendSmtpAuthError: true,
             sendOfflineChargingStations: true,
+            sendEndUserErrorNotification: true
           };
         } else {
           user.notifications = {
@@ -84,6 +85,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendOcpiPatchStatusError: false,
             sendSmtpAuthError: false,
             sendOfflineChargingStations: false,
+            sendEndUserErrorNotification: false,
           };
         }
       } else {
@@ -104,6 +106,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
           sendOcpiPatchStatusError: false,
           sendSmtpAuthError: false,
           sendOfflineChargingStations: false,
+          sendEndUserErrorNotification: false,
         };
       }
       // Update

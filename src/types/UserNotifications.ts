@@ -19,6 +19,7 @@ export default interface UserNotifications {
   sendBillingSynchronizationFailed: boolean;
   sendCarCatalogSynchronizationFailed: boolean;
   sendSessionNotStarted: boolean;
+  sendEndUserErrorNotification: boolean;
 }
 
 export type UserNotificationKeys =
@@ -37,7 +38,8 @@ export type UserNotificationKeys =
  'sendOfflineChargingStations' |
  'sendBillingUserSynchronizationFailed' |
  'sendSessionNotStarted' |
- 'sendCarCatalogSynchronizationFailed'
+ 'sendCarCatalogSynchronizationFailed' |
+ 'sendEndUserErrorNotification'
 ;
 
 export enum UserNotificationType {
@@ -247,4 +249,14 @@ export interface SessionNotStartedNotification extends BaseNotification {
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;
 }
+
+export interface EndUserErrorNotification extends BaseNotification {
+  email: string,
+  name: string,
+  errorTitle: string,
+  errorDescription: string,
+  phone: string,
+  evseDashboardURL: string;
+}
+
 

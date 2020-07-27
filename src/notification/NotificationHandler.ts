@@ -1,5 +1,5 @@
 import User, { UserRole } from '../types/User';
-import UserNotifications, { BillingInvoiceSynchronizationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { BillingInvoiceSynchronizationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -801,6 +801,44 @@ export default class NotificationHandler {
             }
           } catch (error) {
             Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED, error);
+          }
+        }
+      }
+    }
+  }
+
+  static async sendEndUserErrorNotification(tenantID: string, sourceData: Partial<EndUserErrorNotification>): Promise<void> {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get the Tenant
+      const tenant = await TenantStorage.getTenant(tenantID);
+      // Enrich with admins
+      const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+      if (adminUsers && adminUsers.length > 0) {
+        // For each Sources
+        for (const notificationSource of NotificationHandler.notificationSources) {
+          // Active?
+          if (notificationSource.enabled) {
+            try {
+              // Check notification
+              const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+                tenantID, notificationSource.channel, ServerAction.END_USER_ERROR_NOTIFICATION);
+              // Notified?
+              if (!hasBeenNotified) {
+                // Save
+                await NotificationHandler.saveNotification(
+                  tenantID, notificationSource.channel, null, ServerAction.END_USER_ERROR_NOTIFICATION);
+                // Send
+                for (const adminUser of adminUsers) {
+                  // Enabled?
+                  if (adminUser.notificationsActive && adminUser.notifications.sendEndUserErrorNotification) {
+                    await notificationSource.notificationTask.sendEndUserErrorNotification(
+                      sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                  }
+                }
+              }
+            } catch (error) {
+              Logging.logActionExceptionMessage(tenantID, ServerAction.END_USER_ERROR_NOTIFICATION, error);
+            }
           }
         }
       }

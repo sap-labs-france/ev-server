@@ -76,7 +76,8 @@ export enum Entity {
   REGISTRATION_TOKEN = 'RegistrationToken',
   REGISTRATION_TOKENS = 'RegistrationTokens',
   CHARGING_PROFILE = 'ChargingProfile',
-  CHARGING_PROFILES = 'ChargingProfiles'
+  CHARGING_PROFILES = 'ChargingProfiles',
+  NOTIFICATION = 'Notification',
 }
 
 export enum Action {

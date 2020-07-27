@@ -1,5 +1,6 @@
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
+import { EndUserErrorNotification } from '../../../../types/UserNotifications';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { Notification } from '../../../../types/UserNotifications';
 import UserSecurity from './UserSecurity';
@@ -21,6 +22,23 @@ export default class NotificationSecurity {
     filteredRequest.Channel = sanitize(request.Channel);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  static filterEndUserErrorNotificationRequest(request: any): Partial<EndUserErrorNotification> {
+    const filteredRequest = NotificationSecurity._filterEndUserErrorNotificationRequest(request);
+    return filteredRequest;
+  }
+
+  static _filterEndUserErrorNotificationRequest(request: any): Partial<EndUserErrorNotification> {
+    const filteredRequest: Partial<EndUserErrorNotification> = {
+      email: sanitize(request.email),
+      name: sanitize(request.name),
+      errorTitle:  sanitize(request.errorTitle),
+      errorDescription: sanitize(request.errorDescription),
+      phone: sanitize(request.phone),
+    };
+
     return filteredRequest;
   }
 

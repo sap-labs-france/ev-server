@@ -17,6 +17,7 @@ import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
+import { EndUserErrorNotification } from '../types/UserNotifications';
 import { HTTPError } from '../types/HTTPError';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
@@ -1967,6 +1968,45 @@ export default class Utils {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car CarConverter type is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+  }
+
+  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: Partial<EndUserErrorNotification>, req: Request): void {
+    if (!this._isUserEmailValid(endUserErrorNotificationValid.email)){
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'E-Mail is invalid',
+        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
+        user: req.user.id
+      });
+    }
+    if (!endUserErrorNotificationValid.name){
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User name is mandatory.',
+        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
+        user: req.user.id
+      });
+    }
+    if (!endUserErrorNotificationValid.errorTitle || !endUserErrorNotificationValid.errorDescription){
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Error Title and error description are mandatory.',
+        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
+        user: req.user.id
+      });
+    }
+    if (!this._isPhoneValid(endUserErrorNotificationValid.phone)){
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Phone is invalid',
+        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
         user: req.user.id
       });
     }

@@ -1,9 +1,16 @@
-import { NextFunction, Request, Response } from 'express';
+import { Action, Entity } from '../../../types/Authorization';
+import { NextFunction, Request, Response, request } from 'express';
 
+import AppAuthError from '../../../exception/AppAuthError';
+import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import Logging from '../../../utils/Logging';
+import NotificationHandler from '../../../notification/NotificationHandler';
 import NotificationSecurity from './security/NotificationSecurity';
 import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
 import { ServerAction } from '../../../types/Server';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'NotificationService';
 
@@ -31,6 +38,30 @@ export default class NotificationService {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
+  }
+
+  static async handleEndUserErrorNotification (action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+     // Check auth
+     if (!Authorizations.canSendEndUserErrorNotification(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.CREATE,
+        entity: Entity.NOTIFICATION,
+        module: MODULE_NAME,
+        method: 'handleEndUserErrorNotification'
+      });
+    }
+    // Filter
+    const filteredRequest = NotificationSecurity.filterEndUserErrorNotificationRequest(req.body);
+    // Check if Notification is valid
+    Utils.checkIfEndUserErrorNotificationValid(filteredRequest, request);
+    filteredRequest.evseDashboardURL = Utils.buildEvseURL();
+
+    await NotificationHandler.sendEndUserErrorNotification(req.user.tenantID, filteredRequest);
+
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 }
 

@@ -1,0 +1,37 @@
+{
+  "subject": "Ein Nutzer hat einen Fehler gemeldet",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Ein Nutzer hat einen Fehler gemeldet: <%- errorTitle %>",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Sehr geehrter Administrator,",
+      "",
+      "Der Nutzer <%- name %> hat den folgenden Fehler gemeldet: <%- errorDescription %>",
+      "E-mail: <%- email %>",
+      "Telefonnummer: <%- phone %>"
+    ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
+    "afterActionLines": [
+      "Mit freundlichen Grüßen,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
