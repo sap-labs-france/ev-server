@@ -1,3 +1,4 @@
+import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { CheckOfflineChargingStationsTaskConfig } from '../../types/TaskConfig';
 import Constants from '../../utils/Constants';
@@ -26,14 +27,27 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
           offlineSince
         }, Constants.DB_PARAMS_MAX_LIMIT);
         if (chargingStations.count > 0) {
-          const chargingStationIDs: string = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
-          // Send notification
-          await NotificationHandler.sendOfflineChargingStations(
-            tenant.id, {
+          for (let i = 0; i < chargingStations.result.length; i++) {
+            const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStations.result[i]);
+            if ((await chargingStationClient.getConfiguration({})).configurationKey.length > 0) {
+              // Update Heartbeat
+              chargingStations.result[i].lastHeartBeat = new Date();
+              // Save
+              await ChargingStationStorage.saveChargingStation(tenant.id, chargingStations.result[i]);
+              // Remove from notification
+              chargingStations.result.splice(i);
+            }
+          }
+          if (chargingStations.result.length > 0) {
+            const chargingStationIDs: string = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
+            // Send notification
+            await NotificationHandler.sendOfflineChargingStations(
+              tenant.id, {
               chargeBoxIDs: chargingStationIDs,
               evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
             }
-          );
+            );
+          }
         }
       } catch (error) {
         // Log error
