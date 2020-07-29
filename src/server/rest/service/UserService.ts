@@ -385,13 +385,15 @@ export default class UserService {
     const previousTags = user.tags;
     // Clean up request
     delete filteredRequest.passwords;
-
     // Check User validity
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagsAreValid(user, filteredRequest.tags, req);
     // Update user
     user = { ...user, ...filteredRequest, tags: [] };
+    // Update
+    user.lastChangedBy = lastChangedBy;
+    user.lastChangedOn = lastChangedOn;
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
     // Check Billing
