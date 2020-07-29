@@ -105,9 +105,15 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const credentials = this.getCredentialURLParams();
     // Send credentials to get the token
     const { data } = await Utils.executePromiseWithTimeout(5000,
-      axios.post(`${this.connection.url}/GetToken`, credentials, {
-        headers: this.buildFormHeaders()
-      }),
+      axios.post(`${this.connection.url}/GetToken`,
+        credentials,
+        {
+          // @ts-ignore
+          'axios-retry': {
+            retries: 0
+          },
+          headers: this.buildFormHeaders()
+        }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
     );
     // Set Token
