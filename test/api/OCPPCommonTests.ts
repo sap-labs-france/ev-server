@@ -4,6 +4,7 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Constants from '../../src/utils/Constants';
 import Factory from '../factories/Factory';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
@@ -605,7 +606,7 @@ export default class OCPPCommonTests {
     });
   }
 
-  public async testTransactionMetrics(withSoC = false, withSignedData = false, checkNewMeterValues = false) {
+  public async testTransactionMetrics(withSoC = false, withSignedData = false, checkNewMeterValues = false, withChargingProfile = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     const response = await this.centralUserService.transactionApi.readAllConsumption({ TransactionId: this.newTransaction.id });
@@ -1075,6 +1076,10 @@ export default class OCPPCommonTests {
   private async createUser(user = Factory.user.build()) {
     const createdUser = await this.centralUserService.createEntity(this.centralUserService.userApi, user);
     return createdUser;
+  }
+
+  private async createChargingProfile(chargingProfile = Factory.chargingProfile.build()) {
+    ChargingStationStorage.saveChargingProfile(this.tenantContext.getTenant().id, chargingProfile);
   }
 
   private async testAuthorize(tagId, expectedStatus) {

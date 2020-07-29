@@ -626,6 +626,10 @@ export default class OCPPUtils {
         userID: transaction.userID,
         endedAt: Utils.convertToDate(meterValue.timestamp),
       } as Consumption;
+      // Handle current Connector limitation
+      await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
+      // Handle current Site Area limitation
+      await OCPPUtils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
       // Handle SoC (%)
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         consumption.stateOfCharge = Utils.convertToFloat(meterValue.value);
@@ -729,9 +733,12 @@ export default class OCPPUtils {
         } else {
           consumption.consumptionWh = 0;
           consumption.consumptionAmps = 0;
-          // Update inactivity
-          transaction.currentTotalInactivitySecs += diffSecs;
-          consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
+          // Check if charging plan is ongoing
+          if (consumption.limitSource != ConnectorCurrentLimitSource.CHARGING_PROFILE || consumption.limitAmps > 13 * chargingStation.chargePoints[chargingStation.connectors[transaction.connectorId - 1].connectorId - 1].numberOfConnectedPhase) {
+            // Update inactivity
+            transaction.currentTotalInactivitySecs += diffSecs;
+            consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
+          }
         }
         consumption.cumulatedConsumptionWh = transaction.currentTotalConsumptionWh;
         consumption.cumulatedConsumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, transaction.currentTotalConsumptionWh);
@@ -739,10 +746,6 @@ export default class OCPPUtils {
           moment.duration(moment(meterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
         consumption.toPrice = true;
-        // Handle current Connector limitation
-        await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
-        // Handle current Site Area limitation
-        await OCPPUtils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Keep last one
         transaction.lastConsumption = {
           value: Utils.convertToFloat(meterValue.value),
