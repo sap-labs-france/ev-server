@@ -47,7 +47,7 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay });
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   async sendTokens(): Promise<OCPIJobResult> {

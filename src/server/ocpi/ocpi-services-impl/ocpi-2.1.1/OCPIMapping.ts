@@ -5,7 +5,7 @@ import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } 
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
 import { OCPITariff, OCPITariffDimensionType } from '../../../../types/ocpi/OCPITariff';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import { PricingSettingsType, SimplePricingSetting } from '../../../../types/Setting';
+import { PricingSettings, PricingSettingsType, SimplePricingSetting } from '../../../../types/Setting';
 
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import Configuration from '../../../../utils/Configuration';
@@ -256,20 +256,16 @@ export default class OCPIMapping {
   static async getAllTariffs(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPITariff>> {
     // Result
     const tariffs: OCPITariff[] = [];
+    let tariff: OCPITariff;
     if (tenant.components?.pricing?.active) {
       // Get simple pricing settings
       const pricingSettings = await SettingStorage.getPricingSettings(tenant.id, limit, skip, dateFrom, dateTo);
       if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
-        const tariff = OCPIMapping.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
+        tariff = OCPIMapping.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
         if (tariff.currency && tariff.elements[0].price_components[0].price > 0) {
           tariffs.push(tariff);
         } else if (tariff.currency && tariff.elements[0].price_components[0].price === 0) {
-          tariff.id = '1';
-          tariff.currency = pricingSettings.simple.currency;
-          tariff.elements[0].price_components[0].type = OCPITariffDimensionType.FLAT;
-          tariff.elements[0].price_components[0].price = pricingSettings.simple.price;
-          tariff.elements[0].price_components[0].step_size = 0;
-          tariff.last_updated = pricingSettings.simple.last_updated;
+          tariff = OCPIMapping.convertPricingSettings2ZeroFlatTariff(pricingSettings);
           tariffs.push(tariff);
         }
       }
@@ -706,5 +702,25 @@ export default class OCPIMapping {
       }
     }
     return endpoints;
+  }
+
+  private static convertPricingSettings2ZeroFlatTariff(pricingSettings: PricingSettings): OCPITariff {
+    let tariff: OCPITariff;
+    tariff.id = '1';
+    tariff.elements[0].price_components[0].price = 0;
+    tariff.elements[0].price_components[0].type = OCPITariffDimensionType.FLAT;
+    tariff.elements[0].price_components[0].step_size = 0;
+    switch (pricingSettings.type) {
+      case PricingSettingsType.SIMPLE:
+        tariff.currency = pricingSettings.simple.currency;
+        tariff.last_updated = pricingSettings.simple.last_updated;
+        break;
+      default:
+        // FIXME: get currency from the TZ
+        tariff.currency = 'EUR';
+        tariff.last_updated = new Date();
+        break;
+    }
+    return tariff;
   }
 }

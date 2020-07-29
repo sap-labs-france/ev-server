@@ -31,7 +31,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   constructor(tenantId: string, settings: StripeBillingSetting) {
     super(tenantId, settings);
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay });
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
     this.settings.currency = settings.currency;
     if (this.settings.secretKey) {
       this.settings.secretKey = Cypher.decrypt(settings.secretKey);
