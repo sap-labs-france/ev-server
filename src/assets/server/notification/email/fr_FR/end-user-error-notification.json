@@ -1,10 +1,10 @@
 {
-  "subject": "A user reported an error",
+  "subject": "Un utilisateur a reporté une erreur",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "A user reported an error: <%- errorTitle %>",
+      "title": "<%- errorTitle %>",
       "image": {
         "left": {
           "height": 60,
@@ -17,18 +17,20 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Cher Administrateur,",
       "",
-      "The user <%- name %> reported the following error: <%- errorDescription %>",
+      "L'utilisateur <%- name %> a reporté l'erreur suivante: <%- errorDescription %>",
+      "",
       "E-mail: <%- email %>",
-      "Phone: <%- phone %>"
+      "Phone: <%- phone %>",
+      ""
     ],
     "action": {
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Cordialement,",
       "EV Admins."
     ],
     "footer": {

@@ -4,7 +4,7 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Ein Nutzer hat einen Fehler gemeldet: <%- errorTitle %>",
+      "title": "<%- errorTitle %>",
       "image": {
         "left": {
           "height": 60,
@@ -20,8 +20,10 @@
       "Sehr geehrter Administrator,",
       "",
       "Der Nutzer <%- name %> hat den folgenden Fehler gemeldet: <%- errorDescription %>",
+      "",
       "E-mail: <%- email %>",
-      "Telefonnummer: <%- phone %>"
+      "Telefonnummer: <%- phone %>",
+      ""
     ],
     "action": {
       "title": "e-Mobility",
