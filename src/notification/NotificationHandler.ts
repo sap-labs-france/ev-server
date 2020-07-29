@@ -819,21 +819,15 @@ export default class NotificationHandler {
           // Active?
           if (notificationSource.enabled) {
             try {
-              // Check notification
-              const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
-                tenantID, notificationSource.channel, ServerAction.END_USER_ERROR_NOTIFICATION);
-              // Notified?
-              if (!hasBeenNotified) {
-                // Save
-                await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, null, ServerAction.END_USER_ERROR_NOTIFICATION);
-                // Send
-                for (const adminUser of adminUsers) {
-                  // Enabled?
-                  if (adminUser.notificationsActive && adminUser.notifications.sendEndUserErrorNotification) {
-                    await notificationSource.notificationTask.sendEndUserErrorNotification(
-                      sourceData, adminUser, tenant, NotificationSeverity.ERROR);
-                  }
+              // Save
+              await NotificationHandler.saveNotification(
+                tenantID, notificationSource.channel, null, ServerAction.END_USER_ERROR_NOTIFICATION);
+              // Send
+              for (const adminUser of adminUsers) {
+                // Enabled?
+                if (adminUser.notificationsActive && adminUser.notifications.sendEndUserErrorNotification) {
+                  await notificationSource.notificationTask.sendEndUserErrorNotification(
+                    sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                 }
               }
             } catch (error) {

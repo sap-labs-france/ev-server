@@ -119,7 +119,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.3';
+    return '1.4';
   }
 
   getName() {
