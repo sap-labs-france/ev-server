@@ -1978,7 +1978,7 @@ export default class Utils {
   }
 
   public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: Partial<EndUserErrorNotification>, req: Request): void {
-    if (!this._isUserEmailValid(endUserErrorNotificationValid.email)){
+    if (!this._isUserEmailValid(endUserErrorNotificationValid.email)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1987,7 +1987,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!endUserErrorNotificationValid.name){
+    if (!endUserErrorNotificationValid.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1996,7 +1996,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!endUserErrorNotificationValid.errorTitle || !endUserErrorNotificationValid.errorDescription){
+    if (!endUserErrorNotificationValid.errorTitle || !endUserErrorNotificationValid.errorDescription) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -2005,7 +2005,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!this._isPhoneValid(endUserErrorNotificationValid.phone)){
+    if (!this._isPhoneValid(endUserErrorNotificationValid.phone)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,

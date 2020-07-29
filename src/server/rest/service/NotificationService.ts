@@ -46,20 +46,19 @@ export default class NotificationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.NOTIFICATION,
-        module: MODULE_NAME,
-        method: 'handleEndUserErrorNotification'
+        action: Action.CREATE, entity: Entity.NOTIFICATION,
+        module: MODULE_NAME, method: 'handleEndUserErrorNotification'
       });
     }
     // Filter
     const filteredRequest = NotificationSecurity.filterEndUserErrorNotificationRequest(req.body);
     // Check if Notification is valid
     Utils.checkIfEndUserErrorNotificationValid(filteredRequest, request);
+    // Build URL
     filteredRequest.evseDashboardURL = Utils.buildEvseURL();
-
+    // Send Notification
     await NotificationHandler.sendEndUserErrorNotification(req.user.tenantID, filteredRequest);
-
+    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
