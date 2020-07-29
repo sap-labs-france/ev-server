@@ -10,12 +10,14 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 
 export default class SchneiderAssetIntegration extends AssetIntegration<AssetSetting> {
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   public async checkConnection(): Promise<void> {

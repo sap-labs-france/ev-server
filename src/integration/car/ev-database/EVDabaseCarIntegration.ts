@@ -1,4 +1,3 @@
-import { default as Axios, default as axios } from 'axios';
 import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter } from '../../../types/Car';
 
 import BackendError from '../../../exception/BackendError';
@@ -7,10 +6,17 @@ import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import axios from 'axios';
+import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'EVDabaseCar';
 
 export default class EVDabaseCarIntegration extends CarIntegration {
+  constructor() {
+    super();
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
+  }
+
   public async getCarCatalogs(): Promise<CarCatalog[]> {
     const evDatabaseConfig = Configuration.getEVDatabaseConfig();
     if (!evDatabaseConfig) {
@@ -21,7 +27,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
       });
     }
-    const response = await Axios.get(evDatabaseConfig.url + '/' + evDatabaseConfig.key);
+    const response = await axios.get(evDatabaseConfig.url + '/' + evDatabaseConfig.key);
     const carCatalogs: CarCatalog[] = [];
     if (response.status !== 200) {
       throw new BackendError({
