@@ -1,10 +1,12 @@
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import querystring from 'querystring';
 
 export default class BaseApi {
   public baseURL: string;
 
   constructor(baseURL) {
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
     this.baseURL = baseURL;
   }
 

@@ -16,6 +16,7 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import moment from 'moment';
 
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
@@ -30,6 +31,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   constructor(tenantId: string, settings: StripeBillingSetting) {
     super(tenantId, settings);
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
     this.settings.currency = settings.currency;
     if (this.settings.secretKey) {
       this.settings.secretKey = Cypher.decrypt(settings.secretKey);
