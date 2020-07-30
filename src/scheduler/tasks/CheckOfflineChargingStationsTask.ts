@@ -27,15 +27,23 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
           offlineSince
         }, Constants.DB_PARAMS_MAX_LIMIT);
         if (chargingStations.count > 0) {
-          for (let i = 0; i < chargingStations.result.length; i++) {
-            const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStations.result[i]);
-            if ((await chargingStationClient.getConfiguration({})).configurationKey.length > 0) {
-              // Update Heartbeat
-              chargingStations.result[i].lastHeartBeat = new Date();
-              // Save
-              await ChargingStationStorage.saveChargingStation(tenant.id, chargingStations.result[i]);
+          for (let i = chargingStations.result.length - 1; i >= 0; i--) {
+            let configuration;
+            try {
+              const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStations.result[i]);
+              if (chargingStationClient) {
+                configuration = await chargingStationClient.getConfiguration({});
+              }
+            } catch (error) {
+              continue;
+            }
+            if (configuration) {
+            // Update Heartbeat
+              await ChargingStationStorage.saveChargingStationHeartBeat(tenant.id, chargingStations.result[i].id,
+                { lastHeartBeat: new Date(),
+                  currentIPAddress: chargingStations.result[i].currentIPAddress });
               // Remove from notification
-              chargingStations.result.splice(i);
+              chargingStations.result.splice(i, 1);
             }
           }
           if (chargingStations.result.length > 0) {
@@ -43,9 +51,9 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             // Send notification
             await NotificationHandler.sendOfflineChargingStations(
               tenant.id, {
-              chargeBoxIDs: chargingStationIDs,
-              evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-            }
+                chargeBoxIDs: chargingStationIDs,
+                evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
+              }
             );
           }
         }
