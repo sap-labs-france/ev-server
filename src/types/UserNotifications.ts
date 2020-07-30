@@ -59,7 +59,8 @@ export enum UserNotificationType {
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
-  SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize'
+  SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
+  END_USER_ERROR_NOTIFICATION = 'EndUserErrorNotification'
 }
 
 export enum NotificationSeverity {
@@ -251,12 +252,11 @@ export interface SessionNotStartedNotification extends BaseNotification {
 }
 
 export interface EndUserErrorNotification extends BaseNotification {
-  email: string,
-  name: string,
-  errorTitle: string,
-  errorDescription: string,
-  phone: string,
+  email: string;
+  name: string;
+  errorTitle: string;
+  errorDescription: string;
+  phone: string;
   evseDashboardURL: string;
 }
-
 

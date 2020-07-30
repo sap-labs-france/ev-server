@@ -174,8 +174,16 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   public async sendEndUserErrorNotification(data: EndUserErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Nothing to send
-    return Promise.resolve();
+    // Set the locale
+    const i18nManager = new I18nManager(user.locale);
+    // Get Message Text
+    const title = i18nManager.translate('notifications.endUserErrorNotification.title');
+    const body = i18nManager.translate('notifications.endUserErrorNotification.body',
+      { userName: data.name, errorTitle: data.errorTitle, errorDescription: data.errorDescription ,tenantName: tenant.name });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_USER_ERROR_NOTIFICATION, title, body, user, null,
+      severity
+    );
   }
 
   public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {

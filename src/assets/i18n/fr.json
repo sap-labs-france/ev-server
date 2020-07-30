@@ -65,6 +65,10 @@
     "billingInvoiceSynchronizationFailed": {
       "title": "Synchro Factures",
       "body": "Impossible de synchronizer {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
+    },
+    "endUserErrorNotification": {
+      "title": "A User reported an error",
+      "body": "The user '{{userName}}' reported the following error: '{{errorTitle}}' with the description: '{{errorDescription}}' in organization {{tenantName}}"
     }
   },
   "billing": {

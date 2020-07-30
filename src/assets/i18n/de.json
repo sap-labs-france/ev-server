@@ -65,6 +65,10 @@
     "billingInvoiceSynchronizationFailed": {
       "title": "Invoice Synchro Failed",
       "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
+    },
+    "endUserErrorNotification": {
+      "title": "Ein Nutzer hat einen Fehler gemeldet",
+      "body": "Der Nutzer '{{userName}}' hat foglenden Fehler: '{{errorTitle}}' mit der Beschreibung: '{{errorDescription}}' in Organisaion {{tenantName}} gemeldet"
     }
   },
   "billing": {
