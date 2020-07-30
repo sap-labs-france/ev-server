@@ -3,7 +3,7 @@ import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 import Stripe, { IResourceObject } from 'stripe';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, AxiosResponse } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import BillingIntegration from '../BillingIntegration';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
@@ -344,7 +344,16 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
     if (invoice.downloadUrl && invoice.downloadUrl !== '') {
       // Get document
-      const response = await this.axiosInstance.get(invoice.downloadUrl, { responseType: 'arraybuffer' });
+      let response: AxiosResponse;
+      try {
+        response = await this.axiosInstance.get(invoice.downloadUrl,
+          {
+            responseType: 'arraybuffer'
+          });
+      } catch (error) {
+        // Handle errors
+        Utils.handleAxiosError(error, invoice.downloadUrl, ServerAction.BILLING_DOWNLOAD_INVOICE, MODULE_NAME, 'downloadInvoiceDocument');
+      }
       // Convert
       const base64Image = Buffer.from(response.data).toString('base64');
       const content = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;

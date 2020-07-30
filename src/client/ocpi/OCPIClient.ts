@@ -15,6 +15,8 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import Constants from '../../utils/Constants';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'OCPIClient';
 
@@ -168,22 +170,28 @@ export default abstract class OCPIClient {
       message: `Get OCPI versions at ${this.ocpiEndpoint.baseUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
-    const respOcpiVersions = await this.axiosInstance.get(this.ocpiEndpoint.baseUrl, {
-      headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`
-      },
-      timeout: 10000
-    });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.get(this.ocpiEndpoint.baseUrl, {
+        headers: {
+          'Authorization': `Token ${this.ocpiEndpoint.token}`
+        },
+        timeout: Constants.AXIOS_TIMEOUT
+      });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, this.ocpiEndpoint.baseUrl, ServerAction.OCPI_GET_VERSIONS, MODULE_NAME, 'getVersions');
+    }
     // Check response
-    if (!respOcpiVersions.data || !respOcpiVersions.data.data) {
+    if (!response.data || !response.data.data) {
       throw new BackendError({
         action: ServerAction.OCPI_GET_VERSIONS,
         message: `Invalid response from GET ${this.ocpiEndpoint.baseUrl}`,
         module: MODULE_NAME, method: 'getVersions',
-        detailedMessages: { response: respOcpiVersions.data }
+        detailedMessages: { response: response.data }
       });
     }
-    return respOcpiVersions;
+    return response;
   }
 
   /**
@@ -197,22 +205,28 @@ export default abstract class OCPIClient {
       message: `Get OCPI services at ${this.ocpiEndpoint.versionUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
-    const respOcpiServices = await this.axiosInstance.get(this.ocpiEndpoint.versionUrl, {
-      headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`
-      },
-      timeout: 10000
-    });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.get(this.ocpiEndpoint.versionUrl, {
+        headers: {
+          'Authorization': `Token ${this.ocpiEndpoint.token}`
+        },
+        timeout: Constants.AXIOS_TIMEOUT
+      });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, this.ocpiEndpoint.versionUrl, ServerAction.OCPI_GET_VERSIONS, MODULE_NAME, 'getServices');
+    }
     // Check response
-    if (!respOcpiServices.data || !respOcpiServices.data.data) {
+    if (!response.data || !response.data.data) {
       throw new BackendError({
         action: ServerAction.OCPI_GET_VERSIONS,
         message: `Invalid response from GET ${this.ocpiEndpoint.versionUrl}`,
         module: MODULE_NAME, method: 'getServices',
-        detailedMessages: { response: respOcpiServices.data }
+        detailedMessages: { response: response.data }
       });
     }
-    return respOcpiServices;
+    return response;
   }
 
   async deleteCredentials(): Promise<AxiosResponse<OCPICredential>> {
@@ -226,24 +240,30 @@ export default abstract class OCPIClient {
       module: MODULE_NAME, method: 'postCredentials'
     });
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await this.axiosInstance.delete<OCPICredential>(credentialsUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.delete<OCPICredential>(credentialsUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, credentialsUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'deleteCredentials');
+    }
     // Check response
-    if (!respOcpiCredentials.data) {
+    if (!response.data) {
       throw new BackendError({
         action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Invalid response from delete credentials',
         module: MODULE_NAME, method: 'deleteCredentials',
-        detailedMessages: { response: respOcpiCredentials.data }
+        detailedMessages: { response: response.data }
       });
     }
-    return respOcpiCredentials;
+    return response;
   }
 
   /**
@@ -262,24 +282,30 @@ export default abstract class OCPIClient {
       detailedMessages: { credentials }
     });
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await this.axiosInstance.post<OCPICredential>(credentialsUrl, credentials,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.post<OCPICredential>(credentialsUrl, credentials,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, credentialsUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'postCredentials');
+    }
     // Check response
-    if (!respOcpiCredentials.data) {
+    if (!response.data) {
       throw new BackendError({
         action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Invalid response from post credentials',
         module: MODULE_NAME, method: 'postCredentials',
-        detailedMessages: { response: respOcpiCredentials.data }
+        detailedMessages: { response: response.data }
       });
     }
-    return respOcpiCredentials;
+    return response;
   }
 
   getLocalCountryCode(action: ServerAction): string {
