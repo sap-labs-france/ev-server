@@ -434,8 +434,8 @@ export default class CpoOCPIClient extends OCPIClient {
       total_parking_time: transaction.stop.totalInactivitySecs,
       total_time: transaction.stop.totalDurationSecs / 3600, // In hours
       total_energy: transaction.stop.totalConsumptionWh / 1000,
-      total_cost: transaction.stop.roundedPrice,
-      currency: transaction.priceUnit,
+      total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
+      currency: transaction.priceUnit ? transaction.priceUnit : '',
       auth_id: transaction.ocpiData.session.auth_id,
       authorization_id: transaction.ocpiData.session.authorization_id,
       auth_method: transaction.ocpiData.session.auth_method,

@@ -670,7 +670,6 @@ export default class Authorizations {
           message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
         });
       }
-
       // Access Control Enabled?
       if (!chargingStation.siteArea.accessControl) {
         // No control
