@@ -18,6 +18,7 @@ import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -28,6 +29,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 export default class CredentialsEndpoint extends AbstractEndpoint {
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   /**

@@ -21,6 +21,7 @@ import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
@@ -45,6 +46,8 @@ if (_centralSystemRestConfig) {
 }
 
 const MODULE_NAME = 'AuthService';
+
+axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
 
 export default class AuthService {
 

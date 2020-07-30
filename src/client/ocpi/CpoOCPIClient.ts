@@ -31,6 +31,7 @@ import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import moment from 'moment';
 
 const MODULE_NAME = 'CpoOCPIClient';
@@ -44,6 +45,7 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   /**

@@ -317,17 +317,17 @@ export default class SettingStorage {
       filters.identifier = params.identifier;
     }
     // Date provided?
-    if (params.dateFrom || params.dateTo) {
-      filters.createdOn = {};
-      // Start date
-      if (params.dateFrom) {
-        filters.createdOn.$gte = Utils.convertToDate(params.dateFrom);
-      }
-      // End date
-      if (params.dateTo) {
-        filters.createdOn.$lte = Utils.convertToDate(params.dateTo);
-      }
-    }
+    // if (params.dateFrom || params.dateTo) {
+    //   filters.createdOn = {};
+    //   // Start date
+    //   if (params.dateFrom) {
+    //     filters.createdOn.$gte = Utils.convertToDate(params.dateFrom);
+    //   }
+    //   // End date
+    //   if (params.dateTo) {
+    //     filters.createdOn.$lte = Utils.convertToDate(params.dateTo);
+    //   }
+    // }
     // Create Aggregation
     const aggregation = [];
     // Filters
