@@ -31,6 +31,7 @@ import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import moment from 'moment';
 
 const MODULE_NAME = 'CpoOCPIClient';
@@ -44,6 +45,7 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   /**
@@ -430,7 +432,7 @@ export default class CpoOCPIClient extends OCPIClient {
       start_date_time: transaction.timestamp,
       stop_date_time: transaction.stop.timestamp,
       total_parking_time: transaction.stop.totalInactivitySecs,
-      total_time: transaction.stop.totalDurationSecs,
+      total_time: transaction.stop.totalDurationSecs / 3600, // In hours
       total_energy: transaction.stop.totalConsumptionWh / 1000,
       total_cost: transaction.stop.roundedPrice,
       currency: transaction.priceUnit,

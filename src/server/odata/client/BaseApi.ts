@@ -1,14 +1,17 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
+
+import axiosRetry from 'axios-retry';
 import querystring from 'querystring';
 
 export default class BaseApi {
   public baseURL: string;
 
-  constructor(baseURL) {
+  constructor(baseURL: string) {
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
     this.baseURL = baseURL;
   }
 
-  async send(httpRequest) {
+  async send(httpRequest: AxiosRequestConfig) {
     let httpResponse;
     // Set the base URL
     httpRequest.baseURL = this.baseURL;

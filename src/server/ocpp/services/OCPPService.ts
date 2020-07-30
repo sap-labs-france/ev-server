@@ -652,7 +652,7 @@ export default class OCPPService {
       chargingStation.lastHeartBeat = new Date();
       // Save
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
-      // Notifiy
+      // Notify
       await this.notifyStartTransaction(headers.tenantID, transaction, chargingStation, user);
       // Log
       if (user) {
@@ -1135,7 +1135,7 @@ export default class OCPPService {
           transaction.signedData = meterValue.value as string;
           continue;
         } else if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
-          // Set the last Signed Data (used in the last consumtion)
+          // Set the last Signed Data (used in the last consumption)
           transaction.currentSignedData = meterValue.value as string;
           continue;
         }
@@ -1146,7 +1146,7 @@ export default class OCPPService {
         if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
           transaction.stateOfCharge = Utils.convertToFloat(meterValue.value);
           continue;
-        // Set only the last SoC (will be used in the last consumtion building in StopTransaction due to backward compat with OCPP 1.5)
+        // Set only the last SoC (will be used in the last consumption building in StopTransaction due to backward compat with OCPP 1.5)
         } else if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
           transaction.currentStateOfCharge = Utils.convertToFloat(meterValue.value);
           continue;
@@ -1154,7 +1154,7 @@ export default class OCPPService {
       }
       // Voltage
       if (meterValue.attribute.measurand === OCPPMeasurand.VOLTAGE) {
-        // Set only the last Voltage (will be used in the last consumtion building in StopTransaction due to backward compat with OCPP 1.5)
+        // Set only the last Voltage (will be used in the last consumption building in StopTransaction due to backward compat with OCPP 1.5)
         if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
           const voltage = Utils.convertToFloat(meterValue.value);
           const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -1185,7 +1185,7 @@ export default class OCPPService {
       }
       // Power
       if (meterValue.attribute.measurand === OCPPMeasurand.POWER_ACTIVE_IMPORT) {
-        // Set only the last Power (will be used in the last consumtion building in StopTransaction due to backward compat with OCPP 1.5)
+        // Set only the last Power (will be used in the last consumption building in StopTransaction due to backward compat with OCPP 1.5)
         if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
           const powerInMeterValue = Utils.convertToFloat(meterValue.value);
           const powerInMeterValueWatts = (meterValue.attribute && meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT ?
@@ -1218,7 +1218,7 @@ export default class OCPPService {
       }
       // Current
       if (meterValue.attribute.measurand === OCPPMeasurand.CURRENT_IMPORT) {
-        // Set only the last Current (will be used in the last consumtion building in StopTransaction due to backward compat with OCPP 1.5)
+        // Set only the last Current (will be used in the last consumption building in StopTransaction due to backward compat with OCPP 1.5)
         if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
           const amperage = Utils.convertToFloat(meterValue.value);
           const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
