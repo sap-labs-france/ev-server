@@ -54,6 +54,10 @@ export default class AuthenticatedApi extends BaseApi {
     const response = await super.send({
       method: 'POST',
       url: '/client/auth/Login',
+      // @ts-ignore
+      'axios-retry': {
+        retries: 0
+      },
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
