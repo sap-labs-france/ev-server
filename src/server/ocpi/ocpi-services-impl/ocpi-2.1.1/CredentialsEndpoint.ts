@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
+import AxiosFactory from '../../../../utils/AxiosFactory';
+import { AxiosInstance } from 'axios';
 import BackendError from '../../../../exception/BackendError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -17,8 +19,6 @@ import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -27,9 +27,11 @@ const MODULE_NAME = 'CredentialsEndpoint';
  * Credentials Endpoint
  */
 export default class CredentialsEndpoint extends AbstractEndpoint {
+  private axiosInstance: AxiosInstance;
+
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
+    this.axiosInstance = AxiosFactory.getAxiosInstance();
   }
 
   /**
@@ -155,7 +157,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Any error here should result in a 3001 Ocpi result exception based on the specification
     try {
       // Access versions API
-      const ocpiVersions = await axios.get(ocpiEndpoint.baseUrl, {
+      const ocpiVersions = await this.axiosInstance.get(ocpiEndpoint.baseUrl, {
         headers: {
           'Authorization': `Token ${ocpiEndpoint.token}`
         },
@@ -209,7 +211,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       }
       // Try to read endpoints
       // Access versions API
-      const endpoints = await axios.get(ocpiEndpoint.versionUrl, {
+      const endpoints = await this.axiosInstance.get(ocpiEndpoint.versionUrl, {
         headers: {
           'Authorization': `Token ${ocpiEndpoint.token}`
         }

@@ -1,30 +1,29 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { AxiosInstance, AxiosResponse } from 'axios';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
-import User, { UserRole, UserStatus } from '../../../types/User';
-
-import AppError from '../../../exception/AppError';
-import AuthSecurity from './security/AuthSecurity';
-import Authorizations from '../../../authorization/Authorizations';
-import BillingFactory from '../../../integration/billing/BillingFactory';
-import Configuration from '../../../utils/Configuration';
-import Constants from '../../../utils/Constants';
-import { HTTPError } from '../../../types/HTTPError';
-import Logging from '../../../utils/Logging';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import { ServerAction } from '../../../types/Server';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import Tag from '../../../types/Tag';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import UserToken from '../../../types/UserToken';
-import Utils from '../../../utils/Utils';
-import UtilsService from './UtilsService';
-import axios, { AxiosResponse } from 'axios';
-import axiosRetry from 'axios-retry';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import Authorizations from '../../../authorization/Authorizations';
+import AppError from '../../../exception/AppError';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import { HTTPError } from '../../../types/HTTPError';
+import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
+import { ServerAction } from '../../../types/Server';
+import Tag from '../../../types/Tag';
+import User, { UserRole, UserStatus } from '../../../types/User';
+import UserToken from '../../../types/UserToken';
+import AxiosFactory from '../../../utils/AxiosFactory';
+import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import AuthSecurity from './security/AuthSecurity';
+import UtilsService from './UtilsService';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -47,9 +46,8 @@ if (_centralSystemRestConfig) {
 
 const MODULE_NAME = 'AuthService';
 
-axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
-
 export default class AuthService {
+  private static axiosInstance: AxiosInstance = AxiosFactory.getAxiosInstance();
 
   public static initialize(): Handler {
     return passport.initialize();
@@ -196,7 +194,7 @@ export default class AuthService {
       });
     }
     // Check Captcha
-    const response = await axios.get(
+    const response = await AuthService.axiosInstance.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
     if (!response.data.success) {
       throw new AppError({
@@ -333,7 +331,7 @@ export default class AuthService {
     let response: AxiosResponse;
     const axiosURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
     try {
-      response = await axios.get(axiosURL);
+      response = await AuthService.axiosInstance.get(axiosURL);
     } catch (error) {
       // Handle errors
       Utils.handleAxiosError(error, axiosURL, action, MODULE_NAME, 'handleRegisterUser');
@@ -722,7 +720,7 @@ export default class AuthService {
     }
 
     // Is valid captcha?
-    const response = await axios.get(
+    const response = await AuthService.axiosInstance.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
     if (!response.data.success) {
       throw new AppError({

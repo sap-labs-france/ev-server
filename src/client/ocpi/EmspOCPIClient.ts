@@ -31,8 +31,6 @@ import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import _ from 'lodash';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
 import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 
@@ -47,7 +45,6 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   async sendTokens(): Promise<OCPIJobResult> {
@@ -170,7 +167,7 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullLocations'
       });
       // Call IOP
-      const response = await axios.get(locationsUrl,
+      const response = await this.axiosInstance.get(locationsUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -239,7 +236,7 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullSessions'
       });
       // Call IOP
-      const response = await axios.get(sessionsUrl,
+      const response = await this.axiosInstance.get(sessionsUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -309,7 +306,7 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullCdrs'
       });
       // Call IOP
-      const response = await axios.get(cdrsUrl,
+      const response = await this.axiosInstance.get(cdrsUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -475,7 +472,7 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { tokenUid }
     });
     // Call IOP
-    const response = await axios.get(fullUrl,
+    const response = await this.axiosInstance.get(fullUrl,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -523,7 +520,7 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { token }
     });
     // Call IOP
-    const response = await axios.put(fullUrl, token,
+    const response = await this.axiosInstance.put(fullUrl, token,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -592,7 +589,7 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    const response = await axios.post(commandUrl, payload,
+    const response = await this.axiosInstance.post(commandUrl, payload,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
@@ -653,7 +650,7 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    const response = await axios.post(commandUrl, payload,
+    const response = await this.axiosInstance.post(commandUrl, payload,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
