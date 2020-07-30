@@ -738,6 +738,14 @@ export default class OCPPService {
       OCPPValidation.getInstance().validateStopTransaction(chargingStation, stopTransaction);
       // Check Transaction ID = 0
       if (stopTransaction.transactionId === 0) {
+        Logging.logWarning({
+          tenantID: headers.tenantID,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'handleStopTransaction',
+          action: ServerAction.STOP_TRANSACTION,
+          message: 'Ignored Transaction ID = 0',
+          detailedMessages: { headers, stopTransaction }
+        });
         // Ignore it! (Cahors bug)
         return {
           'status': OCPPAuthorizationStatus.ACCEPTED
