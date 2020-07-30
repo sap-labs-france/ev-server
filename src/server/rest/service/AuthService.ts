@@ -6,6 +6,8 @@ import User, { UserRole, UserStatus } from '../../../types/User';
 import AppError from '../../../exception/AppError';
 import AuthSecurity from './security/AuthSecurity';
 import Authorizations from '../../../authorization/Authorizations';
+import AxiosFactory from '../../../utils/AxiosFactory';
+import { AxiosInstance } from 'axios';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -20,8 +22,6 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
@@ -47,9 +47,8 @@ if (_centralSystemRestConfig) {
 
 const MODULE_NAME = 'AuthService';
 
-axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
-
 export default class AuthService {
+  private static axiosInstance: AxiosInstance = AxiosFactory.getAxiosInstance();
 
   public static initialize(): Handler {
     return passport.initialize();
@@ -196,7 +195,7 @@ export default class AuthService {
       });
     }
     // Check Captcha
-    const response = await axios.get(
+    const response = await AuthService.axiosInstance.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
     if (!response.data.success) {
       throw new AppError({
@@ -330,7 +329,7 @@ export default class AuthService {
       });
     }
     // Check captcha
-    const response = await axios.get(
+    const response = await AuthService.axiosInstance.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
     // Check
     if (!response.data.success) {
@@ -716,7 +715,7 @@ export default class AuthService {
     }
 
     // Is valid captcha?
-    const response = await axios.get(
+    const response = await AuthService.axiosInstance.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
     if (!response.data.success) {
       throw new AppError({

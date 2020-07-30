@@ -22,7 +22,7 @@ export default class OCPPValidation extends SchemaValidator {
   private _stopTransactionRequest16: any;
   private _stopTransactionRequest15: any;
 
-  constructor() {
+  private constructor() {
     super('OCPPValidation');
     this._bootNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
     this._authorizeRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));

@@ -1,20 +1,22 @@
 import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter } from '../../../types/Car';
 
+import AxiosFactory from '../../../utils/AxiosFactory';
+import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import CarIntegration from '../CarIntegration';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'EVDabaseCar';
 
 export default class EVDabaseCarIntegration extends CarIntegration {
+  private axiosInstance: AxiosInstance;
+
   constructor() {
     super();
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
+    this.axiosInstance = AxiosFactory.getAxiosInstance();
   }
 
   public async getCarCatalogs(): Promise<CarCatalog[]> {
@@ -27,7 +29,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
       });
     }
-    const response = await axios.get(evDatabaseConfig.url + '/' + evDatabaseConfig.key);
+    const response = await this.axiosInstance.get(evDatabaseConfig.url + '/' + evDatabaseConfig.key);
     const carCatalogs: CarCatalog[] = [];
     if (response.status !== 200) {
       throw new BackendError({
@@ -219,7 +221,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
     if (carCatalog.imageURLs && carCatalog.imageURLs.length > 0) {
       try {
         const imageURL = this.convertToThumbImage(carCatalog.imageURLs[0]);
-        const response = await axios.get(imageURL, { responseType: 'arraybuffer' });
+        const response = await this.axiosInstance.get(imageURL, { responseType: 'arraybuffer' });
         const base64Image = Buffer.from(response.data).toString('base64');
         image = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
       } catch (error) {
@@ -241,7 +243,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
     // Retrieve all images
     for (const imageURL of carCatalog.imageURLs) {
       try {
-        const response = await axios.get(imageURL, { responseType: 'arraybuffer' });
+        const response = await this.axiosInstance.get(imageURL, { responseType: 'arraybuffer' });
         const base64Image = Buffer.from(response.data).toString('base64');
         const encodedImage = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
         images.push(encodedImage);
