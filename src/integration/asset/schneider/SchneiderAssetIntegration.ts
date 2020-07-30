@@ -3,21 +3,23 @@ import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
+import AxiosFactory from '../../../utils/AxiosFactory';
+import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 
 export default class SchneiderAssetIntegration extends AssetIntegration<AssetSetting> {
+  private axiosInstance: AxiosInstance;
+
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
+    this.axiosInstance = AxiosFactory.getAxiosInstance();
   }
 
   public async checkConnection(): Promise<void> {
@@ -30,7 +32,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const request = `${this.connection.url}/${asset.meterID}`;
     try {
       // Get consumption
-      const response = await axios.get(
+      const response = await this.axiosInstance.get(
         request,
         {
           headers: this.buildAuthHeader(token)
@@ -105,7 +107,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const credentials = this.getCredentialURLParams();
     // Send credentials to get the token
     const { data } = await Utils.executePromiseWithTimeout(5000,
-      axios.post(`${this.connection.url}/GetToken`,
+      this.axiosInstance.post(`${this.connection.url}/GetToken`,
         credentials,
         {
           // @ts-ignore

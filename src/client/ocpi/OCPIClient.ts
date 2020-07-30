@@ -1,4 +1,5 @@
-import axios, { AxiosResponse } from 'axios';
+import { AxiosInstance, AxiosResponse } from 'axios';
+import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import { HTTPError } from '../../types/HTTPError';
@@ -14,11 +15,11 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'OCPIClient';
 
 export default abstract class OCPIClient {
+  protected axiosInstance: AxiosInstance;
   protected ocpiEndpoint: OCPIEndpoint;
   protected tenant: Tenant;
   protected role: string;
@@ -31,7 +32,7 @@ export default abstract class OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
+    this.axiosInstance = AxiosFactory.getAxiosInstance();
     this.tenant = tenant;
     this.settings = settings;
     this.ocpiEndpoint = ocpiEndpoint;
@@ -167,7 +168,7 @@ export default abstract class OCPIClient {
       message: `Get OCPI versions at ${this.ocpiEndpoint.baseUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
-    const respOcpiVersions = await axios.get(this.ocpiEndpoint.baseUrl, {
+    const respOcpiVersions = await this.axiosInstance.get(this.ocpiEndpoint.baseUrl, {
       headers: {
         'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
@@ -196,7 +197,7 @@ export default abstract class OCPIClient {
       message: `Get OCPI services at ${this.ocpiEndpoint.versionUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
-    const respOcpiServices = await axios.get(this.ocpiEndpoint.versionUrl, {
+    const respOcpiServices = await this.axiosInstance.get(this.ocpiEndpoint.versionUrl, {
       headers: {
         'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
@@ -225,7 +226,7 @@ export default abstract class OCPIClient {
       module: MODULE_NAME, method: 'postCredentials'
     });
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await axios.delete<OCPICredential>(credentialsUrl,
+    const respOcpiCredentials = await this.axiosInstance.delete<OCPICredential>(credentialsUrl,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -261,7 +262,7 @@ export default abstract class OCPIClient {
       detailedMessages: { credentials }
     });
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await axios.post<OCPICredential>(credentialsUrl, credentials,
+    const respOcpiCredentials = await this.axiosInstance.post<OCPICredential>(credentialsUrl, credentials,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,

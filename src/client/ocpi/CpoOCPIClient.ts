@@ -30,8 +30,6 @@ import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
 import moment from 'moment';
 
 const MODULE_NAME = 'CpoOCPIClient';
@@ -45,7 +43,6 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   /**
@@ -77,7 +74,7 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullTokens'
       });
       // Call IOP
-      const response = await axios.get(tokensUrl,
+      const response = await this.axiosInstance.get(tokensUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -169,8 +166,7 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.post(tokensUrl, payload,
+    const response = await this.axiosInstance.post(tokensUrl, payload,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -258,8 +254,7 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload: ocpiSession }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.put(sessionsUrl, ocpiSession,
+    const response = await this.axiosInstance.put(sessionsUrl, ocpiSession,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
@@ -322,8 +317,7 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload: patchBody }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.patch(sessionsUrl, patchBody,
+    const response = await this.axiosInstance.patch(sessionsUrl, patchBody,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
@@ -382,8 +376,7 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload: transaction.ocpiData.session }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.put(tokensUrl, transaction.ocpiData.session,
+    const response = await this.axiosInstance.put(tokensUrl, transaction.ocpiData.session,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
@@ -452,8 +445,7 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload: transaction.ocpiData.cdr }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.post(cdrsUrl, transaction.ocpiData.cdr,
+    const response = await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -572,7 +564,7 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    const response = await axios.patch(fullUrl, payload,
+    const response = await this.axiosInstance.patch(fullUrl, payload,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -608,7 +600,7 @@ export default class CpoOCPIClient extends OCPIClient {
       module: MODULE_NAME, method: 'checkCdr'
     });
 
-    const response = await axios.get(`${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
+    const response = await this.axiosInstance.get(`${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -624,7 +616,7 @@ export default class CpoOCPIClient extends OCPIClient {
         detailedMessages: { response: response.data }
       });
       if (response.data.status_code === 3001) {
-        await axios.post(cdrsUrl, transaction.ocpiData.cdr,
+        await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
           {
             headers: {
               Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -667,7 +659,7 @@ export default class CpoOCPIClient extends OCPIClient {
       module: MODULE_NAME, method: 'checkSession'
     });
 
-    const response = await axios.get(sessionsUrl,
+    const response = await this.axiosInstance.get(sessionsUrl,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -787,7 +779,7 @@ export default class CpoOCPIClient extends OCPIClient {
       module: MODULE_NAME, method: 'checkLocation'
     });
     // Call IOP
-    const response = await axios.get(locationUrl,
+    const response = await this.axiosInstance.get(locationUrl,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`
