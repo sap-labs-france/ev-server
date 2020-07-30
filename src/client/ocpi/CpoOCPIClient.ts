@@ -432,7 +432,7 @@ export default class CpoOCPIClient extends OCPIClient {
       start_date_time: transaction.timestamp,
       stop_date_time: transaction.stop.timestamp,
       total_parking_time: transaction.stop.totalInactivitySecs,
-      total_time: transaction.stop.totalDurationSecs,
+      total_time: transaction.stop.totalDurationSecs / 3600, // In hours
       total_energy: transaction.stop.totalConsumptionWh / 1000,
       total_cost: transaction.stop.roundedPrice,
       currency: transaction.priceUnit,
