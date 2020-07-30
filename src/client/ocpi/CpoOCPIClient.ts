@@ -1,38 +1,38 @@
-import ChargingStation, { Connector } from '../../types/ChargingStation';
-import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
-import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
-import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
-
+import axios, { AxiosResponse } from 'axios';
+import axiosRetry from 'axios-retry';
+import _ from 'lodash';
+import moment from 'moment';
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import { OCPICdr } from '../../types/ocpi/OCPICdr';
-import OCPIClient from './OCPIClient';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
-import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import { OcpiSetting } from '../../types/Setting';
-import { ServerAction } from '../../types/Server';
-import Site from '../../types/Site';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import ChargingStation, { Connector } from '../../types/ChargingStation';
+import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
+import { OCPICdr } from '../../types/ocpi/OCPICdr';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
+import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import { ServerAction } from '../../types/Server';
+import { OcpiSetting } from '../../types/Setting';
+import Site from '../../types/Site';
+import Tenant from '../../types/Tenant';
+import Transaction from '../../types/Transaction';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import _ from 'lodash';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
-import moment from 'moment';
+import OCPIClient from './OCPIClient';
+
 
 const MODULE_NAME = 'CpoOCPIClient';
 
@@ -258,22 +258,20 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload: ocpiSession }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.put(sessionsUrl, ocpiSession,
-      {
-        headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
-    if (response.status !== 200 || !response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_PUSH_SESSIONS,
-        message: `Start session failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'startSession',
-        detailedMessages: { payload: response.data }
-      });
+    let response: AxiosResponse;
+    try {
+      response = await axios.put(sessionsUrl, ocpiSession,
+        {
+          headers: {
+            'Authorization': `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        }
+      );
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, sessionsUrl, ServerAction.OCPI_PUSH_SESSIONS, MODULE_NAME, 'startSession');
     }
     transaction.ocpiData = {
       session: ocpiSession

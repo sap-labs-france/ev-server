@@ -20,7 +20,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
@@ -330,8 +330,14 @@ export default class AuthService {
       });
     }
     // Check captcha
-    const response = await axios.get(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+    let response: AxiosResponse;
+    const axiosURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
+    try {
+      response = await axios.get(axiosURL);
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, axiosURL, action, MODULE_NAME, 'handleRegisterUser');
+    }
     // Check
     if (!response.data.success) {
       throw new AppError({
