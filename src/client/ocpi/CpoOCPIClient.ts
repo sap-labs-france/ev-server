@@ -617,7 +617,7 @@ export default class CpoOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: 10000
+          timeout: Constants.AXIOS_TIMEOUT
         });
       return false;
     }

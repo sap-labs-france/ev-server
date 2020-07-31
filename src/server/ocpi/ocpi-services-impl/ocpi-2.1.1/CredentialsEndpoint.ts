@@ -164,7 +164,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
           headers: {
             'Authorization': `Token ${ocpiEndpoint.token}`
           },
-          timeout: 10000
+          timeout: Constants.AXIOS_TIMEOUT
         });
       } catch (error) {
         // Handle errors
