@@ -1,23 +1,25 @@
-import Asset, { SchneiderProperty } from '../../../types/Asset';
-import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
-
-import { AbstractCurrentConsumption } from '../../../types/Consumption';
-import AssetIntegration from '../AssetIntegration';
+import { AxiosInstance, AxiosResponse } from 'axios';
 import BackendError from '../../../exception/BackendError';
+import Asset, { SchneiderProperty } from '../../../types/Asset';
+import { AbstractCurrentConsumption } from '../../../types/Consumption';
+import { ServerAction } from '../../../types/Server';
+import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+import AxiosFactory from '../../../utils/AxiosFactory';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
+import AssetIntegration from '../AssetIntegration';
+
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 
 export default class SchneiderAssetIntegration extends AssetIntegration<AssetSetting> {
+  private axiosInstance: AxiosInstance;
+
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
+    this.axiosInstance = AxiosFactory.getAxiosInstance();
   }
 
   public async checkConnection(): Promise<void> {
@@ -30,12 +32,18 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const request = `${this.connection.url}/${asset.meterID}`;
     try {
       // Get consumption
-      const response = await axios.get(
-        request,
-        {
-          headers: this.buildAuthHeader(token)
-        }
-      );
+      let response: AxiosResponse;
+      try {
+        response = await this.axiosInstance.get(
+          request,
+          {
+            headers: this.buildAuthHeader(token)
+          }
+        );
+      } catch (error) {
+        // Handle errors
+        Utils.handleAxiosError(error, request, ServerAction.RETRIEVE_ASSET_CONSUMPTION, MODULE_NAME, 'retrieveConsumption');
+      }
       if (response.data && response.data.length > 0) {
         Logging.logDebug({
           tenantID: this.tenantID,
@@ -104,21 +112,27 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     // Get credential params
     const credentials = this.getCredentialURLParams();
     // Send credentials to get the token
-    const { data } = await Utils.executePromiseWithTimeout(5000,
-      axios.post(`${this.connection.url}/GetToken`,
-        credentials,
-        {
-          // @ts-ignore
-          'axios-retry': {
-            retries: 0
-          },
-          headers: this.buildFormHeaders()
-        }),
-      `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
-    );
+    let response: AxiosResponse;
+    try {
+      response = await Utils.executePromiseWithTimeout(5000,
+        this.axiosInstance.post(`${this.connection.url}/GetToken`,
+          credentials,
+          {
+            // @ts-ignore
+            'axios-retry': {
+              retries: 0
+            },
+            headers: this.buildFormHeaders()
+          }),
+        `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
+      );
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, `${this.connection.url}/GetToken`, ServerAction.CHECK_ASSET_CONNECTION, MODULE_NAME, 'connect');
+    }
     // Set Token
-    if (data && data.access_token) {
-      return data.access_token;
+    if (response.data && response.data.access_token) {
+      return response.data.access_token;
     }
   }
 

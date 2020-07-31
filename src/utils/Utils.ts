@@ -1,48 +1,48 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { Car, CarCatalog, CarType } from '../types/Car';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
-import Transaction, { InactivityStatus } from '../types/Transaction';
-import User, { UserRole, UserStatus } from '../types/User';
-
-import { ActionsResponse } from '../types/GlobalType';
-import Address from '../types/Address';
-import AppError from '../exception/AppError';
-import Asset from '../types/Asset';
-import Authorizations from '../authorization/Authorizations';
-import BackendError from '../exception/BackendError';
-import { ChargingProfile } from '../types/ChargingProfile';
-import Company from '../types/Company';
-import Configuration from './Configuration';
-import ConnectorStats from '../types/ConnectorStats';
-import Constants from './Constants';
-import Cypher from './Cypher';
-import { HTTPError } from '../types/HTTPError';
-import Logging from './Logging';
-import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import { ObjectID } from 'mongodb';
-import { Request } from 'express';
-import { ServerAction } from '../types/Server';
-import Site from '../types/Site';
-import SiteArea from '../types/SiteArea';
-import Tag from '../types/Tag';
-import Tenant from '../types/Tenant';
-import TenantComponents from '../types/TenantComponents';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
-import UserToken from '../types/UserToken';
-import _ from 'lodash';
+import { AxiosError } from 'axios';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { Request } from 'express';
 import fs from 'fs';
 import http from 'http';
+import _ from 'lodash';
 import moment from 'moment';
+import { ObjectID } from 'mongodb';
 import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
+import Authorizations from '../authorization/Authorizations';
+import AppError from '../exception/AppError';
+import BackendError from '../exception/BackendError';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
+import Address from '../types/Address';
+import Asset from '../types/Asset';
+import { Car, CarCatalog, CarType } from '../types/Car';
+import { ChargingProfile } from '../types/ChargingProfile';
+import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
+import Company from '../types/Company';
+import ConnectorStats from '../types/ConnectorStats';
+import { ActionsResponse } from '../types/GlobalType';
+import { HTTPError } from '../types/HTTPError';
+import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import { ServerAction } from '../types/Server';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import Site from '../types/Site';
+import SiteArea from '../types/SiteArea';
+import Tag from '../types/Tag';
+import Tenant from '../types/Tenant';
+import TenantComponents from '../types/TenantComponents';
+import Transaction, { InactivityStatus } from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
+import UserToken from '../types/UserToken';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import Cypher from './Cypher';
+import Logging from './Logging';
 
 const MODULE_NAME = 'Utils';
 
@@ -50,6 +50,45 @@ export default class Utils {
   private static tenants = [];
   private static centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
   private static centralSystemRestServer = Configuration.getCentralSystemRestServer();
+
+  public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction,
+    module: string, method: string): void {
+    // Handle Error outside 2xx range
+    if (axiosError.response) {
+      throw new BackendError({
+        action, module, method,
+        message: `HTTP error '${axiosError.response.status}' while processing the URL '${urlRequest}'`,
+        detailedMessages: {
+          url: urlRequest,
+          status: axiosError.response.status,
+          axiosError: axiosError.toJSON(),
+        }
+      });
+    } else if (axiosError.request) {
+      // The request was made but no response was received
+      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      // http.ClientRequest in node.js
+      throw new BackendError({
+        action, module, method,
+        message: `HTTP error while processing the URL '${urlRequest}'`,
+        detailedMessages: {
+          url: urlRequest,
+          axiosError: axiosError.toJSON(),
+        }
+      });
+    } else {
+      throw new BackendError({
+        action, module, method,
+        message: `HTTP error while processing the URL '${urlRequest}'`,
+        detailedMessages: {
+          url: urlRequest,
+          message: axiosError.message,
+          stack: axiosError.stack,
+          axiosError: axiosError.toJSON(),
+        }
+      });
+    }
+  }
 
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);

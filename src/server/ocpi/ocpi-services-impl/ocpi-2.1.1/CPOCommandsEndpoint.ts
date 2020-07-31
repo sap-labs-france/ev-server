@@ -1,33 +1,34 @@
-import ChargingStation, { Connector, RemoteAuthorization } from '../../../../types/ChargingStation';
+import { AxiosInstance, AxiosResponse } from 'axios';
 import { NextFunction, Request, Response } from 'express';
-import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
-
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
+import HttpStatusCodes from 'http-status-codes';
+import moment from 'moment';
+import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import AppError from '../../../../exception/AppError';
 import BackendError from '../../../../exception/BackendError';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
-import Logging from '../../../../utils/Logging';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import ChargingStation, { Connector, RemoteAuthorization } from '../../../../types/ChargingStation';
+import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
 import { OCPICommandType } from '../../../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStartSession } from '../../../../types/ocpi/OCPIStartSession';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIStopSession } from '../../../../types/ocpi/OCPIStopSession';
-import OCPITokensService from './OCPITokensService';
-import OCPIUtils from '../../OCPIUtils';
 import { OCPPRemoteStartStopStatus } from '../../../../types/ocpp/OCPPClient';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
-import moment from 'moment';
+import AxiosFactory from '../../../../utils/AxiosFactory';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import Utils from '../../../../utils/Utils';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPITokensService from './OCPITokensService';
+
 
 const EP_IDENTIFIER = 'commands';
 const MODULE_NAME = 'CPOCommandsEndpoint';
@@ -36,10 +37,12 @@ const MODULE_NAME = 'CPOCommandsEndpoint';
  * EMSP Tokens Endpoint
  */
 export default class CPOCommandsEndpoint extends AbstractEndpoint {
+  private axiosInstance: AxiosInstance;
+
   // Create OCPI Service
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
+    this.axiosInstance = AxiosFactory.getAxiosInstance();
   }
 
   /**
@@ -326,14 +329,20 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       detailedMessages: { payload }
     });
     // Call IOP
-    const response = await axios.post(responseUrl, payload,
-      {
-        headers: {
-          Authorization: `Token ${ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.post(responseUrl, payload,
+        {
+          headers: {
+            Authorization: `Token ${ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, responseUrl, action, MODULE_NAME, 'sendCommandResponse');
+    }
     // Check response
     if (response.status !== 200 || !response.data) {
       throw new BackendError({

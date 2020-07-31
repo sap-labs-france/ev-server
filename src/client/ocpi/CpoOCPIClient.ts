@@ -1,38 +1,37 @@
-import ChargingStation, { Connector } from '../../types/ChargingStation';
-import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
-import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
-import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
-
+import axios, { AxiosResponse } from 'axios';
+import axiosRetry from 'axios-retry';
+import _ from 'lodash';
+import moment from 'moment';
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import { OCPICdr } from '../../types/ocpi/OCPICdr';
-import OCPIClient from './OCPIClient';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
-import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import { OcpiSetting } from '../../types/Setting';
-import { ServerAction } from '../../types/Server';
-import Site from '../../types/Site';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import ChargingStation, { Connector } from '../../types/ChargingStation';
+import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
+import { OCPICdr } from '../../types/ocpi/OCPICdr';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
+import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import { ServerAction } from '../../types/Server';
+import { OcpiSetting } from '../../types/Setting';
+import Site from '../../types/Site';
+import Tenant from '../../types/Tenant';
+import Transaction from '../../types/Transaction';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import _ from 'lodash';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
-import moment from 'moment';
+import OCPIClient from './OCPIClient';
 
 const MODULE_NAME = 'CpoOCPIClient';
 
@@ -45,7 +44,6 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   /**
@@ -77,13 +75,19 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullTokens'
       });
       // Call IOP
-      const response = await axios.get(tokensUrl,
-        {
-          headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`
-          },
-          timeout: 10000
-        });
+      let response: AxiosResponse;
+      try {
+        response = await this.axiosInstance.get(tokensUrl,
+          {
+            headers: {
+              Authorization: `Token ${this.ocpiEndpoint.token}`
+            },
+            timeout: Constants.AXIOS_TIMEOUT
+          });
+      } catch (error) {
+        // Handle errors
+        Utils.handleAxiosError(error, tokensUrl, ServerAction.OCPI_PULL_TOKENS, MODULE_NAME, 'pullTokens');
+      }
       // Check response
       if (response.status !== 200 || !response.data) {
         throw new BackendError({
@@ -169,15 +173,20 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.post(tokensUrl, payload,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.post(tokensUrl, payload,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, tokensUrl, ServerAction.OCPI_AUTHORIZE_TOKEN, MODULE_NAME, 'authorizeToken');
+    }
     if (response.status !== 200 || !response.data) {
       throw new BackendError({
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
@@ -258,22 +267,20 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload: ocpiSession }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.put(sessionsUrl, ocpiSession,
-      {
-        headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
-    if (response.status !== 200 || !response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_PUSH_SESSIONS,
-        message: `Start session failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'startSession',
-        detailedMessages: { payload: response.data }
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.put(sessionsUrl, ocpiSession,
+        {
+          headers: {
+            'Authorization': `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        }
+      );
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, sessionsUrl, ServerAction.OCPI_PUSH_SESSIONS, MODULE_NAME, 'startSession');
     }
     transaction.ocpiData = {
       session: ocpiSession
@@ -322,15 +329,20 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload: patchBody }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.patch(sessionsUrl, patchBody,
-      {
-        headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.patch(sessionsUrl, patchBody,
+        {
+          headers: {
+            'Authorization': `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, sessionsUrl, ServerAction.OCPI_PUSH_SESSIONS, MODULE_NAME, 'updateSession');
+    }
     if (response.status !== 200 || !response.data) {
       throw new BackendError({
         action: ServerAction.OCPI_PUSH_SESSIONS,
@@ -382,15 +394,20 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload: transaction.ocpiData.session }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.put(tokensUrl, transaction.ocpiData.session,
-      {
-        headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.put(tokensUrl, transaction.ocpiData.session,
+        {
+          headers: {
+            'Authorization': `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, tokensUrl, ServerAction.OCPI_PUSH_SESSIONS, MODULE_NAME, 'stopSession');
+    }
     if (response.status !== 200 || !response.data) {
       throw new BackendError({
         action: ServerAction.OCPI_PUSH_SESSIONS,
@@ -434,8 +451,8 @@ export default class CpoOCPIClient extends OCPIClient {
       total_parking_time: transaction.stop.totalInactivitySecs,
       total_time: transaction.stop.totalDurationSecs / 3600, // In hours
       total_energy: transaction.stop.totalConsumptionWh / 1000,
-      total_cost: transaction.stop.roundedPrice,
-      currency: transaction.priceUnit,
+      total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
+      currency: transaction.priceUnit ? transaction.priceUnit : '',
       auth_id: transaction.ocpiData.session.auth_id,
       authorization_id: transaction.ocpiData.session.authorization_id,
       auth_method: transaction.ocpiData.session.auth_method,
@@ -452,15 +469,20 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload: transaction.ocpiData.cdr }
     });
     // Call IOP
-    // eslint-disable-next-line no-case-declarations
-    const response = await axios.post(cdrsUrl, transaction.ocpiData.cdr,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, cdrsUrl, ServerAction.OCPI_PUSH_CDRS, MODULE_NAME, 'stopSession');
+    }
     if (response.status !== 200 || !response.data) {
       throw new BackendError({
         action: ServerAction.OCPI_PUSH_CDRS,
@@ -572,14 +594,20 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    const response = await axios.patch(fullUrl, payload,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.patch(fullUrl, payload,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, fullUrl, ServerAction.OCPI_PATCH_STATUS, MODULE_NAME, 'patchEVSEStatus');
+    }
     // Check response
     if (!response.data) {
       throw new BackendError({
@@ -607,14 +635,21 @@ export default class CpoOCPIClient extends OCPIClient {
       message: `Check cdr at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       module: MODULE_NAME, method: 'checkCdr'
     });
-
-    const response = await axios.get(`${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`
-        },
-        timeout: 10000
-      });
+    // Check CDR
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.get(`${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, `${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
+        ServerAction.OCPI_CHECK_CDRS, MODULE_NAME, 'checkCdr');
+    }
     if (response.status === 200 && response.data) {
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -624,7 +659,7 @@ export default class CpoOCPIClient extends OCPIClient {
         detailedMessages: { response: response.data }
       });
       if (response.data.status_code === 3001) {
-        await axios.post(cdrsUrl, transaction.ocpiData.cdr,
+        await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
           {
             headers: {
               Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -658,7 +693,6 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     }
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_CHECK_SESSIONS)}/${transaction.ocpiData.session.id}`;
-
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -666,14 +700,20 @@ export default class CpoOCPIClient extends OCPIClient {
       message: `Check session at ${sessionsUrl}`,
       module: MODULE_NAME, method: 'checkSession'
     });
-
-    const response = await axios.get(sessionsUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`
-        },
-        timeout: 10000
-      });
+    // Check
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.get(sessionsUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, sessionsUrl, ServerAction.OCPI_CHECK_SESSIONS, MODULE_NAME, 'checkSession');
+    }
     if (response.status === 200 && response.data) {
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -787,13 +827,19 @@ export default class CpoOCPIClient extends OCPIClient {
       module: MODULE_NAME, method: 'checkLocation'
     });
     // Call IOP
-    const response = await axios.get(locationUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`
-        },
-        timeout: 10000
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.get(locationUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, locationUrl, ServerAction.OCPI_CHECK_LOCATIONS, MODULE_NAME, 'checkLocation');
+    }
     if (response.status === 200 && response.data) {
       Logging.logDebug({
         tenantID: this.tenant.id,
