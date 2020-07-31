@@ -1,40 +1,40 @@
-import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
-
+import { AxiosResponse } from 'axios';
+import _ from 'lodash';
+import moment from 'moment';
+import { v4 as uuid } from 'uuid';
 import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../types/ChargingStation';
+import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
+import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import OCPIClient from './OCPIClient';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
+import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
+import ChargingStation from '../../types/ChargingStation';
+import Company from '../../types/Company';
 import { OCPICommandResponse } from '../../types/ocpi/OCPICommandResponse';
 import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
 import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
 import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
-import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import { OcpiSetting } from '../../types/Setting';
+import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
 import { ServerAction } from '../../types/Server';
+import { OcpiSetting } from '../../types/Setting';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
-import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import _ from 'lodash';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
-import moment from 'moment';
-import { v4 as uuid } from 'uuid';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import OCPIClient from './OCPIClient';
+
 
 const MODULE_NAME = 'EmspOCPIClient';
 
@@ -47,7 +47,6 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   async sendTokens(): Promise<OCPIJobResult> {
@@ -170,28 +169,18 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullLocations'
       });
       // Call IOP
-      const response = await axios.get(locationsUrl,
-        {
-          headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`
-          },
-          timeout: 10000
-        });
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_LOCATIONS,
-          message: `Invalid response code ${response.status} from Get locations`,
-          module: MODULE_NAME, method: 'pullLocations',
-        });
-      }
-      if (!response.data.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_LOCATIONS,
-          message: 'Invalid response from Get locations',
-          module: MODULE_NAME, method: 'pullLocations',
-          detailedMessages: { response: response.data }
-        });
+      let response: AxiosResponse;
+      try {
+        response = await this.axiosInstance.get(locationsUrl,
+          {
+            headers: {
+              Authorization: `Token ${this.ocpiEndpoint.token}`
+            },
+            timeout: Constants.AXIOS_TIMEOUT
+          });
+      } catch (error) {
+        // Handle errors
+        Utils.handleAxiosError(error, locationsUrl, ServerAction.OCPI_PULL_LOCATIONS, MODULE_NAME, 'pullLocations');
       }
       for (const location of response.data.data) {
         try {
@@ -239,28 +228,18 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullSessions'
       });
       // Call IOP
-      const response = await axios.get(sessionsUrl,
-        {
-          headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`
-          },
-          timeout: 10000
-        });
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_SESSIONS,
-          message: `Invalid response code ${response.status} from Get sessions`,
-          module: MODULE_NAME, method: 'pullSessions',
-        });
-      }
-      if (!response.data.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_SESSIONS,
-          message: 'Invalid response from Get sessions',
-          module: MODULE_NAME, method: 'pullSessions',
-          detailedMessages: { response: response.data }
-        });
+      let response: AxiosResponse;
+      try {
+        response = await this.axiosInstance.get(sessionsUrl,
+          {
+            headers: {
+              Authorization: `Token ${this.ocpiEndpoint.token}`
+            },
+            timeout: Constants.AXIOS_TIMEOUT
+          });
+      } catch (error) {
+        // Handle errors
+        Utils.handleAxiosError(error, sessionsUrl, ServerAction.OCPI_PULL_SESSIONS, MODULE_NAME, 'pullSessions');
       }
       for (const session of response.data.data) {
         try {
@@ -309,29 +288,18 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullCdrs'
       });
       // Call IOP
-      const response = await axios.get(cdrsUrl,
-        {
-          headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`
-          },
-          timeout: 10000
-        });
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_CDRS,
-          message: `Get cdrs failed with status ${response.status}`,
-          module: MODULE_NAME, method: 'pullCdrs',
-          detailedMessages: { response: response.data }
-        });
-      }
-      if (!response.data.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_CDRS,
-          message: 'Invalid response from Get cdrs',
-          module: MODULE_NAME, method: 'pullCdrs',
-          detailedMessages: { response: response.data }
-        });
+      let response: AxiosResponse;
+      try {
+        response = await this.axiosInstance.get(cdrsUrl,
+          {
+            headers: {
+              Authorization: `Token ${this.ocpiEndpoint.token}`
+            },
+            timeout: Constants.AXIOS_TIMEOUT
+          });
+      } catch (error) {
+        // Handle errors
+        Utils.handleAxiosError(error, cdrsUrl, ServerAction.OCPI_PULL_CDRS, MODULE_NAME, 'pullCdrs');
       }
       for (const cdr of response.data.data) {
         try {
@@ -475,25 +443,29 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { tokenUid }
     });
     // Call IOP
-    const response = await axios.get(fullUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`
-        },
-        timeout: 10000
-      });
-    if (response.status === 200 && response.data) {
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_CHECK_LOCATIONS,
-        message: 'Token checked with result',
-        module: MODULE_NAME, method: 'checkToken',
-        detailedMessages: { response : response.data }
-      });
-      const checkedToken = response.data.data as OCPILocation;
-      if (checkedToken) {
-        return true;
-      }
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.get(fullUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, fullUrl, ServerAction.OCPI_CHECK_TOKENS, MODULE_NAME, 'getToken');
+    }
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_LOCATIONS,
+      message: 'Token checked with result',
+      module: MODULE_NAME, method: 'checkToken',
+      detailedMessages: { response : response.data }
+    });
+    const checkedToken = response.data.data as OCPILocation;
+    if (checkedToken) {
+      return true;
     }
     // Check response
     if (!response.data) {
@@ -523,22 +495,19 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { token }
     });
     // Call IOP
-    const response = await axios.put(fullUrl, token,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Push token failed with status ${JSON.stringify(response)}`,
-        module: MODULE_NAME, method: 'pushToken',
-        detailedMessages: { response: response.data }
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.put(fullUrl, token,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, fullUrl, ServerAction.OCPI_PUSH_TOKENS, MODULE_NAME, 'pushToken');
     }
     return this.checkToken(token.uid);
   }
@@ -592,30 +561,19 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    const response = await axios.post(commandUrl, payload,
-      {
-        headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_START_SESSION,
-        message: `OCPI Remote Start session failed with status ${JSON.stringify(response)}`,
-        module: MODULE_NAME, method: 'remoteStartSession',
-        detailedMessages: { response: response.data }
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_START_SESSION,
-        message: 'OCPI Remote Start session response is invalid',
-        module: MODULE_NAME, method: 'remoteStartSession',
-        detailedMessages: { response: response.data }
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.post(commandUrl, payload,
+        {
+          headers: {
+            'Authorization': `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, commandUrl, ServerAction.OCPI_START_SESSION, MODULE_NAME, 'remoteStartSession');
     }
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -653,30 +611,19 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    const response = await axios.post(commandUrl, payload,
-      {
-        headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_STOP_SESSION,
-        message: `OCPI Remote Stop session failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { response: response.data }
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_STOP_SESSION,
-        message: 'OCPI Remote Stop session response is invalid',
-        module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { response: response.data }
-      });
+    let response: AxiosResponse;
+    try {
+      response = await this.axiosInstance.post(commandUrl, payload,
+        {
+          headers: {
+            'Authorization': `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: Constants.AXIOS_TIMEOUT
+        });
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, commandUrl, ServerAction.OCPI_STOP_SESSION, MODULE_NAME, 'remoteStopSession');
     }
     Logging.logDebug({
       tenantID: this.tenant.id,

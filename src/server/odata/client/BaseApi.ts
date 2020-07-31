@@ -1,13 +1,13 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-import axiosRetry from 'axios-retry';
 import querystring from 'querystring';
 
 export default class BaseApi {
   public baseURL: string;
+  private axiosInstance: AxiosInstance;
 
   constructor(baseURL: string) {
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
+
     this.baseURL = baseURL;
   }
 
@@ -21,7 +21,7 @@ export default class BaseApi {
     }
     try {
       // Execute with Axios
-      httpResponse = await axios(httpRequest);
+      httpResponse = await this.axiosInstance(httpRequest);
     } catch (error) {
       // Handle errors
       if (error.response) {

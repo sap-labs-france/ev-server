@@ -39,10 +39,10 @@ export default class OCPPValidation extends SchemaValidator {
     return OCPPValidation.instance;
   }
 
-  validateHeartbeat(heartbeat: OCPPHeartbeatRequestExtended) {
+  validateHeartbeat(heartbeat: OCPPHeartbeatRequestExtended): void {
   }
 
-  validateStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended) {
+  validateStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended): void {
     // Check non mandatory or wrong timestamp
     if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
       statusNotification.timestamp = new Date().toISOString();
@@ -50,21 +50,23 @@ export default class OCPPValidation extends SchemaValidator {
     this.validate(this._statusNotificationRequest, statusNotification);
   }
 
-  validateAuthorize(authorize: OCPPAuthorizeRequestExtended) {
+  validateAuthorize(authorize: OCPPAuthorizeRequestExtended): void {
     this.validate(this._authorizeRequest, authorize);
   }
 
-  validateBootNotification(bootNotification: OCPPBootNotificationRequestExtended) {
+  validateBootNotification(bootNotification: OCPPBootNotificationRequestExtended): void {
     this.validate(this._bootNotificationRequest, bootNotification);
   }
 
-  validateDiagnosticsStatusNotification(chargingStation: ChargingStation, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended) {
+  validateDiagnosticsStatusNotification(chargingStation: ChargingStation,
+    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
   }
 
-  validateFirmwareStatusNotification(chargingStation: ChargingStation, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended) {
+  validateFirmwareStatusNotification(chargingStation: ChargingStation,
+    firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): void {
   }
 
-  validateStartTransaction(chargingStation: ChargingStation, startTransaction) {
+  validateStartTransaction(chargingStation: ChargingStation, startTransaction): void {
     this.validate(this._startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
@@ -77,10 +79,10 @@ export default class OCPPValidation extends SchemaValidator {
     }
   }
 
-  validateDataTransfer(chargingStation: ChargingStation, dataTransfer: OCPPDataTransferRequestExtended) {
+  validateDataTransfer(chargingStation: ChargingStation, dataTransfer: OCPPDataTransferRequestExtended): void {
   }
 
-  validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended) {
+  validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended): void {
     if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
       this.validate(this._stopTransactionRequest16, stopTransaction);
     } else {
@@ -88,7 +90,7 @@ export default class OCPPValidation extends SchemaValidator {
     }
   }
 
-  validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesExtended) {
+  validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesExtended): void {
     // Always integer
     meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     // Check Connector ID
