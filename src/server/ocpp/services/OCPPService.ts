@@ -205,8 +205,9 @@ export default class OCPPService {
         'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
-      // Log error
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
       // Reject
       return {
@@ -253,8 +254,9 @@ export default class OCPPService {
         'currentTime': chargingStation.lastHeartBeat.toISOString()
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.HEARTBEAT, error);
       // Send the response
@@ -311,8 +313,9 @@ export default class OCPPService {
       // Respond
       return {};
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.STATUS_NOTIFICATION, error);
       // Return
@@ -411,8 +414,9 @@ export default class OCPPService {
         }
       }
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.METER_VALUES, error);
     }
@@ -477,8 +481,9 @@ export default class OCPPService {
         'status': OCPPAuthorizationStatus.ACCEPTED
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
       return {
@@ -510,8 +515,9 @@ export default class OCPPService {
       // Return
       return {};
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, error);
       return {};
@@ -543,8 +549,9 @@ export default class OCPPService {
       // Return
       return {};
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.FIRMWARE_STATUS_NOTIFICATION, error);
       return {};
@@ -685,8 +692,9 @@ export default class OCPPService {
         'status': OCPPAuthorizationStatus.ACCEPTED
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.START_TRANSACTION, error);
       return {
@@ -720,8 +728,9 @@ export default class OCPPService {
         'status': OCPPDataTransferStatus.ACCEPTED
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error);
       return {
@@ -866,8 +875,9 @@ export default class OCPPService {
         'status': OCPPAuthorizationStatus.ACCEPTED
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.STOP_TRANSACTION, error);
       // Error
