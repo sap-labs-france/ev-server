@@ -2,6 +2,7 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPICredential from '../../types/ocpi/OCPICredential';
@@ -15,7 +16,6 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'OCPIClient';

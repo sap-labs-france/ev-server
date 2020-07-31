@@ -1,9 +1,9 @@
+import { AxiosInstance, AxiosResponse } from 'axios';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 import Stripe, { IResourceObject } from 'stripe';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
-import { AxiosInstance, AxiosResponse } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import BillingIntegration from '../BillingIntegration';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
