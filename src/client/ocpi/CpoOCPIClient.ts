@@ -88,14 +88,6 @@ export default class CpoOCPIClient extends OCPIClient {
         // Handle errors
         Utils.handleAxiosError(error, tokensUrl, ServerAction.OCPI_PULL_TOKENS, MODULE_NAME, 'pullTokens');
       }
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_TOKENS,
-          message: `Invalid response code ${response.status} from Pull tokens`,
-          module: MODULE_NAME, method: 'pullTokens',
-        });
-      }
       if (!response.data.data) {
         throw new BackendError({
           action: ServerAction.OCPI_PULL_TOKENS,
@@ -186,14 +178,6 @@ export default class CpoOCPIClient extends OCPIClient {
     } catch (error) {
       // Handle errors
       Utils.handleAxiosError(error, tokensUrl, ServerAction.OCPI_AUTHORIZE_TOKEN, MODULE_NAME, 'authorizeToken');
-    }
-    if (response.status !== 200 || !response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
-        message: `Post authorize failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'authorizeToken',
-        detailedMessages: { payload: response.data }
-      });
     }
     if (!response.data.data) {
       throw new BackendError({
@@ -343,14 +327,6 @@ export default class CpoOCPIClient extends OCPIClient {
       // Handle errors
       Utils.handleAxiosError(error, sessionsUrl, ServerAction.OCPI_PUSH_SESSIONS, MODULE_NAME, 'updateSession');
     }
-    if (response.status !== 200 || !response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_PUSH_SESSIONS,
-        message: `Patch Session failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'updateSession',
-        detailedMessages: { payload: response.data }
-      });
-    }
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_SESSIONS,
@@ -407,14 +383,6 @@ export default class CpoOCPIClient extends OCPIClient {
     } catch (error) {
       // Handle errors
       Utils.handleAxiosError(error, tokensUrl, ServerAction.OCPI_PUSH_SESSIONS, MODULE_NAME, 'stopSession');
-    }
-    if (response.status !== 200 || !response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_PUSH_SESSIONS,
-        message: `Stop Session failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'stopSession',
-        detailedMessages: { payload: response.data }
-      });
     }
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -482,14 +450,6 @@ export default class CpoOCPIClient extends OCPIClient {
     } catch (error) {
       // Handle errors
       Utils.handleAxiosError(error, cdrsUrl, ServerAction.OCPI_PUSH_CDRS, MODULE_NAME, 'stopSession');
-    }
-    if (response.status !== 200 || !response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_PUSH_CDRS,
-        message: `Post cdr failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'postCdr',
-        detailedMessages: { payload: response.data }
-      });
     }
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -608,14 +568,6 @@ export default class CpoOCPIClient extends OCPIClient {
       // Handle errors
       Utils.handleAxiosError(error, fullUrl, ServerAction.OCPI_PATCH_STATUS, MODULE_NAME, 'patchEVSEStatus');
     }
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_PATCH_STATUS,
-        message: `Patch EVSE Status failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'patchEVSEStatus',
-      });
-    }
   }
 
   async checkCdr(transaction: Transaction): Promise<boolean> {
@@ -650,31 +602,29 @@ export default class CpoOCPIClient extends OCPIClient {
       Utils.handleAxiosError(error, `${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
         ServerAction.OCPI_CHECK_CDRS, MODULE_NAME, 'checkCdr');
     }
-    if (response.status === 200 && response.data) {
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_CHECK_CDRS,
-        message: 'Cdr checked with result',
-        module: MODULE_NAME, method: 'checkCdr',
-        detailedMessages: { response: response.data }
-      });
-      if (response.data.status_code === 3001) {
-        await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
-          {
-            headers: {
-              Authorization: `Token ${this.ocpiEndpoint.token}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 10000
-          });
-        return false;
-      }
-      const cdr = response.data.data as OCPICdr;
-      if (cdr) {
-        transaction.ocpiData.cdrCheckedOn = new Date();
-        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
-        return true;
-      }
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_CDRS,
+      message: 'Cdr checked with result',
+      module: MODULE_NAME, method: 'checkCdr',
+      detailedMessages: { response: response.data }
+    });
+    if (response.data.status_code === 3001) {
+      await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        });
+      return false;
+    }
+    const cdr = response.data.data as OCPICdr;
+    if (cdr) {
+      transaction.ocpiData.cdrCheckedOn = new Date();
+      await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+      return true;
     }
     throw new BackendError({
       action: ServerAction.OCPI_CHECK_CDRS,
@@ -714,20 +664,18 @@ export default class CpoOCPIClient extends OCPIClient {
       // Handle errors
       Utils.handleAxiosError(error, sessionsUrl, ServerAction.OCPI_CHECK_SESSIONS, MODULE_NAME, 'checkSession');
     }
-    if (response.status === 200 && response.data) {
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_CHECK_SESSIONS,
-        message: 'Session checked with result',
-        module: MODULE_NAME, method: 'checkSession',
-        detailedMessages: { response: response.data }
-      });
-      const session = response.data.data as OCPISession;
-      if (session) {
-        transaction.ocpiData.sessionCheckedOn = new Date();
-        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
-        return true;
-      }
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_SESSIONS,
+      message: 'Session checked with result',
+      module: MODULE_NAME, method: 'checkSession',
+      detailedMessages: { response: response.data }
+    });
+    const session = response.data.data as OCPISession;
+    if (session) {
+      transaction.ocpiData.sessionCheckedOn = new Date();
+      await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+      return true;
     }
     throw new BackendError({
       action: ServerAction.OCPI_CHECK_CDRS,
@@ -840,18 +788,16 @@ export default class CpoOCPIClient extends OCPIClient {
       // Handle errors
       Utils.handleAxiosError(error, locationUrl, ServerAction.OCPI_CHECK_LOCATIONS, MODULE_NAME, 'checkLocation');
     }
-    if (response.status === 200 && response.data) {
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_CHECK_LOCATIONS,
-        message: 'Location checked with result',
-        module: MODULE_NAME, method: 'checkLocation',
-        detailedMessages: { response: response.data }
-      });
-      const checkedLocation = response.data.data as OCPILocation;
-      if (checkedLocation) {
-        return true;
-      }
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_LOCATIONS,
+      message: 'Location checked with result',
+      module: MODULE_NAME, method: 'checkLocation',
+      detailedMessages: { response: response.data }
+    });
+    const checkedLocation = response.data.data as OCPILocation;
+    if (checkedLocation) {
+      return true;
     }
     throw new BackendError({
       action: ServerAction.OCPI_CHECK_LOCATIONS,

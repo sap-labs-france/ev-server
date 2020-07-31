@@ -182,22 +182,6 @@ export default class EmspOCPIClient extends OCPIClient {
         // Handle errors
         Utils.handleAxiosError(error, locationsUrl, ServerAction.OCPI_PULL_LOCATIONS, MODULE_NAME, 'pullLocations');
       }
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_LOCATIONS,
-          message: `Invalid response code ${response.status} from Get locations`,
-          module: MODULE_NAME, method: 'pullLocations',
-        });
-      }
-      if (!response.data.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_LOCATIONS,
-          message: 'Invalid response from Get locations',
-          module: MODULE_NAME, method: 'pullLocations',
-          detailedMessages: { response: response.data }
-        });
-      }
       for (const location of response.data.data) {
         try {
           await this.processLocation(location, company, sites.result);
@@ -256,22 +240,6 @@ export default class EmspOCPIClient extends OCPIClient {
       } catch (error) {
         // Handle errors
         Utils.handleAxiosError(error, sessionsUrl, ServerAction.OCPI_PULL_SESSIONS, MODULE_NAME, 'pullSessions');
-      }
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_SESSIONS,
-          message: `Invalid response code ${response.status} from Get sessions`,
-          module: MODULE_NAME, method: 'pullSessions',
-        });
-      }
-      if (!response.data.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_SESSIONS,
-          message: 'Invalid response from Get sessions',
-          module: MODULE_NAME, method: 'pullSessions',
-          detailedMessages: { response: response.data }
-        });
       }
       for (const session of response.data.data) {
         try {
@@ -332,23 +300,6 @@ export default class EmspOCPIClient extends OCPIClient {
       } catch (error) {
         // Handle errors
         Utils.handleAxiosError(error, cdrsUrl, ServerAction.OCPI_PULL_CDRS, MODULE_NAME, 'pullCdrs');
-      }
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_CDRS,
-          message: `Get cdrs failed with status ${response.status}`,
-          module: MODULE_NAME, method: 'pullCdrs',
-          detailedMessages: { response: response.data }
-        });
-      }
-      if (!response.data.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_CDRS,
-          message: 'Invalid response from Get cdrs',
-          module: MODULE_NAME, method: 'pullCdrs',
-          detailedMessages: { response: response.data }
-        });
       }
       for (const cdr of response.data.data) {
         try {
@@ -505,18 +456,16 @@ export default class EmspOCPIClient extends OCPIClient {
       // Handle errors
       Utils.handleAxiosError(error, fullUrl, ServerAction.OCPI_CHECK_TOKENS, MODULE_NAME, 'getToken');
     }
-    if (response.status === 200 && response.data) {
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_CHECK_LOCATIONS,
-        message: 'Token checked with result',
-        module: MODULE_NAME, method: 'checkToken',
-        detailedMessages: { response : response.data }
-      });
-      const checkedToken = response.data.data as OCPILocation;
-      if (checkedToken) {
-        return true;
-      }
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_LOCATIONS,
+      message: 'Token checked with result',
+      module: MODULE_NAME, method: 'checkToken',
+      detailedMessages: { response : response.data }
+    });
+    const checkedToken = response.data.data as OCPILocation;
+    if (checkedToken) {
+      return true;
     }
     // Check response
     if (!response.data) {
@@ -559,15 +508,6 @@ export default class EmspOCPIClient extends OCPIClient {
     } catch (error) {
       // Handle errors
       Utils.handleAxiosError(error, fullUrl, ServerAction.OCPI_PUSH_TOKENS, MODULE_NAME, 'pushToken');
-    }
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Push token failed with status ${JSON.stringify(response)}`,
-        module: MODULE_NAME, method: 'pushToken',
-        detailedMessages: { response: response.data }
-      });
     }
     return this.checkToken(token.uid);
   }
@@ -635,23 +575,6 @@ export default class EmspOCPIClient extends OCPIClient {
       // Handle errors
       Utils.handleAxiosError(error, commandUrl, ServerAction.OCPI_START_SESSION, MODULE_NAME, 'remoteStartSession');
     }
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_START_SESSION,
-        message: `OCPI Remote Start session failed with status ${JSON.stringify(response)}`,
-        module: MODULE_NAME, method: 'remoteStartSession',
-        detailedMessages: { response: response.data }
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_START_SESSION,
-        message: 'OCPI Remote Start session response is invalid',
-        module: MODULE_NAME, method: 'remoteStartSession',
-        detailedMessages: { response: response.data }
-      });
-    }
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
@@ -701,23 +624,6 @@ export default class EmspOCPIClient extends OCPIClient {
     } catch (error) {
       // Handle errors
       Utils.handleAxiosError(error, commandUrl, ServerAction.OCPI_STOP_SESSION, MODULE_NAME, 'remoteStopSession');
-    }
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_STOP_SESSION,
-        message: `OCPI Remote Stop session failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { response: response.data }
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_STOP_SESSION,
-        message: 'OCPI Remote Stop session response is invalid',
-        module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { response: response.data }
-      });
     }
     Logging.logDebug({
       tenantID: this.tenant.id,

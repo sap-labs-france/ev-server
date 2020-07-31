@@ -44,17 +44,15 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
         // Handle errors
         Utils.handleAxiosError(error, request, ServerAction.RETRIEVE_ASSET_CONSUMPTION, MODULE_NAME, 'retrieveConsumption');
       }
-      if (response.data && response.data.length > 0) {
-        Logging.logDebug({
-          tenantID: this.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
-          message: `${asset.name} > Schneider web service has been called successfully`,
-          module: MODULE_NAME, method: 'retrieveConsumption',
-          detailedMessages: { response: response.data }
-        });
-        return this.filterConsumptionRequest(asset, response.data);
-      }
+      Logging.logDebug({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
+        message: `${asset.name} > Schneider web service has been called successfully`,
+        module: MODULE_NAME, method: 'retrieveConsumption',
+        detailedMessages: { response: response.data }
+      });
+      return this.filterConsumptionRequest(asset, response.data);
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -130,10 +128,8 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       // Handle errors
       Utils.handleAxiosError(error, `${this.connection.url}/GetToken`, ServerAction.CHECK_ASSET_CONNECTION, MODULE_NAME, 'connect');
     }
-    // Set Token
-    if (response.data && response.data.access_token) {
-      return response.data.access_token;
-    }
+    // Return the Token
+    return response.data.access_token;
   }
 
   private getCredentialURLParams(): URLSearchParams {

@@ -343,15 +343,6 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       // Handle errors
       Utils.handleAxiosError(error, responseUrl, action, MODULE_NAME, 'sendCommandResponse');
     }
-    // Check response
-    if (response.status !== 200 || !response.data) {
-      throw new BackendError({
-        action: action,
-        message: `Post send command response failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'sendCommandResponse',
-        detailedMessages: { payload: response.data }
-      });
-    }
   }
 }
 

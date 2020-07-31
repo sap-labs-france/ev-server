@@ -38,14 +38,6 @@ export default class EVDabaseCarIntegration extends CarIntegration {
       Utils.handleAxiosError(error, evDatabaseConfig.url + '/' + evDatabaseConfig.key, ServerAction.SYNCHRONIZE_CAR_CATALOGS, MODULE_NAME, 'getCarCatalogs');
     }
     const carCatalogs: CarCatalog[] = [];
-    if (response.status !== 200) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        message: 'Error occurred while trying to retrieve the cars from EVDatabase',
-        module: MODULE_NAME, method: 'getCarCatalogs',
-        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-      });
-    }
     // Build result
     for (const data of response.data) {
       const chargeStandardTables: CarCatalogConverter[] = [];
