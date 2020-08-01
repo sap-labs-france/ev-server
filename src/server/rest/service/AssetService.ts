@@ -311,7 +311,8 @@ export default class AssetService {
         search: filteredRequest.Search,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         withSiteArea: filteredRequest.WithSiteArea,
-        withNoSiteArea: filteredRequest.WithNoSiteArea
+        withNoSiteArea: filteredRequest.WithNoSiteArea,
+        dynamicOnly: filteredRequest.DynamicOnly,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates', 'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts']

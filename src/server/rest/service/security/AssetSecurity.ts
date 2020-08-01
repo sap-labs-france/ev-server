@@ -27,6 +27,7 @@ export default class AssetSecurity {
       SiteAreaID: sanitize(request.SiteAreaID),
       WithSiteArea: !request.WithSiteArea ? false : UtilsSecurity.filterBoolean(request.WithSiteArea),
       WithNoSiteArea: !request.WithNoSiteArea ? false : UtilsSecurity.filterBoolean(request.WithNoSiteArea),
+      DynamicOnly: !request.DynamicOnly ? false : UtilsSecurity.filterBoolean(request.DynamicOnly),
       ErrorType: sanitize(request.ErrorType)
     } as HttpAssetsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);

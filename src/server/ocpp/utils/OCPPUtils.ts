@@ -1,35 +1,30 @@
-import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
+import moment from 'moment';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import BackendError from '../../../exception/BackendError';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import PricingFactory from '../../../integration/pricing/PricingFactory';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, TemplateUpdateResult } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, TemplateUpdateResult } from '../../../types/ChargingStation';
+import Consumption from '../../../types/Consumption';
+import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
-import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
-
-import BackendError from '../../../exception/BackendError';
-import { BillingDataTransactionStop } from '../../../types/Billing';
-import BillingFactory from '../../../integration/billing/BillingFactory';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import Constants from '../../../utils/Constants';
-import Consumption from '../../../types/Consumption';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import Logging from '../../../utils/Logging';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import { PricedConsumption } from '../../../types/Pricing';
-import PricingFactory from '../../../integration/pricing/PricingFactory';
-import { PricingSettingsType } from '../../../types/Setting';
 import { ServerAction } from '../../../types/Server';
+import { PricingSettingsType } from '../../../types/Setting';
 import SiteArea from '../../../types/SiteArea';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Tenant from '../../../types/Tenant';
-import TenantComponents from '../../../types/TenantComponents';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import moment from 'moment';
 
 const MODULE_NAME = 'OCPPUtils';
 
@@ -734,7 +729,7 @@ export default class OCPPUtils {
         // Handle current Connector limitation
         await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
         // Handle current Site Area limitation
-        await OCPPUtils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
+        await Utils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Keep last one
         transaction.lastConsumption = {
           value: Utils.convertToFloat(meterValue.value),
@@ -764,36 +759,6 @@ export default class OCPPUtils {
       consumption.limitAmps = connector.amperageLimit;
       consumption.limitWatts = connector.power;
       consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
-    }
-  }
-
-  public static async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption): Promise<void> {
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-      // Get limit of the site area
-      consumption.limitSiteAreaWatts = 0;
-      // Maximum power of the Site Area provided?
-      if (siteArea && siteArea.maximumPower) {
-        consumption.limitSiteAreaWatts = siteArea.maximumPower;
-        consumption.limitSiteAreaAmps = siteArea.maximumPower / siteArea.voltage;
-        consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
-      } else {
-        // Compute it for Charging Stations
-        const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_MAX_LIMIT);
-        for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
-          for (const connector of chargingStationOfSiteArea.connectors) {
-            consumption.limitSiteAreaWatts += connector.power;
-          }
-        }
-        consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / siteArea.voltage);
-        consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
-        // Save Site Area max consumption
-        if (siteArea) {
-          siteArea.maximumPower = consumption.limitSiteAreaWatts;
-          await SiteAreaStorage.saveSiteArea(tenantID, siteArea);
-        }
-      }
-      consumption.smartChargingActive = siteArea.smartCharging;
     }
   }
 
