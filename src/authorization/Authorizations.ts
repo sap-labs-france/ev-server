@@ -618,6 +618,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
+  public static canSendEndUserErrorNotification(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === UserRole.SUPER_ADMIN;
   }

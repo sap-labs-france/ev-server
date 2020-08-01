@@ -9,14 +9,14 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'MigrateOcpiSettingTask';
 
 export default class MigrateOcpiSettingTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     const setting = await global.database.getCollection<any>(tenant.id, 'settings').findOne(
       { 'identifier': 'ocpi' });
     // Process each setting
@@ -49,11 +49,11 @@ export default class MigrateOcpiSettingTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.0';
   }
 
-  getName() {
+  getName(): string {
     return 'MigrateOcpiSettingTask';
   }
 }

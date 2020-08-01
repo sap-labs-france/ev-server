@@ -9,14 +9,14 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'AddInstantAmpsToConsumptionsTask';
 
 export default class AddConsumptionAmpsToConsumptionsTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     let modifiedCount = 0;
     const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
       {
@@ -42,15 +42,15 @@ export default class AddConsumptionAmpsToConsumptionsTask extends MigrationTask 
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.0';
   }
 
-  getName() {
+  getName(): string {
     return 'AddConsumptionAmpsToConsumptionsTask';
   }
 
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 }
