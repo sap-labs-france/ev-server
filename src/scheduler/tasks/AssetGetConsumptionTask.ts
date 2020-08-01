@@ -12,6 +12,7 @@ import TenantComponents from '../../types/TenantComponents';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
+import Constants from '../../utils/Constants';
 
 const MODULE_NAME = 'AssetGetConsumptionTask';
 
@@ -19,14 +20,13 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
+      // Skip execution
       Logging.logDebug({
         tenantID: tenant.id,
-        module: MODULE_NAME,
-        method: 'processTenant',
+        module: MODULE_NAME, method: 'processTenant',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: 'Asset Inactive for this tenant. The task \'AssetGetConsumptionTask\' is skipped.'
       });
-      // Skip execution
       return;
     }
     const assetLock = await LockingHelper.createAssetRetrieveConsumptionsLock(tenant.id);
@@ -38,17 +38,16 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
             dynamicOnly: true,
             withSiteArea: true
           },
-          {
-            limit: 100,
-            skip: 0,
-          }
+          Constants.DB_PARAMS_MAX_LIMIT
         );
+        // Process them
         for (const asset of dynamicAssets.result) {
           // Get asset factory
           const assetImpl = await AssetFactory.getAssetImpl(tenant.id, asset.connectionID);
           if (assetImpl) {
-            // Retrieve consumption
+            // Retrieve Consumption
             const assetConsumption = await assetImpl.retrieveConsumption(asset);
+            // Set Consumption to Asset
             this.assignAssetConsumption(asset, assetConsumption);
             // Save Asset
             await AssetStorage.saveAsset(tenant.id, asset);
@@ -60,9 +59,10 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
               cumulatedConsumptionWh: asset.currentConsumptionWh,
               cumulatedConsumptionAmps: Math.floor(asset.currentConsumptionWh / 230),
             };
-            Utils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, consumption);
-            // Save
-            ConsumptionStorage.saveConsumption(tenant.id, consumption);
+            // Add limits
+            await Utils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, consumption);
+            // Save Consumption
+            await ConsumptionStorage.saveConsumption(tenant.id, consumption);
           }
         }
       } catch (error) {
