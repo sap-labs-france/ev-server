@@ -515,14 +515,14 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationHeartBeat(tenantID: string, id: string,
-    params: { lastHeartBeat: Date; currentIPAddress: string | string[] }): Promise<void> {
+    params: { lastHeartBeat: Date; currentIPAddress?: string | string[] }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationHeartBeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set data
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: params },
       { upsert: true });
