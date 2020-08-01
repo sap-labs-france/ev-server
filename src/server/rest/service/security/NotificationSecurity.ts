@@ -25,20 +25,14 @@ export default class NotificationSecurity {
     return filteredRequest;
   }
 
-  static filterEndUserErrorNotificationRequest(request: any): Partial<EndUserErrorNotification> {
-    const filteredRequest = NotificationSecurity._filterEndUserErrorNotificationRequest(request);
-    return filteredRequest;
-  }
-
-  static _filterEndUserErrorNotificationRequest(request: any): Partial<EndUserErrorNotification> {
-    const filteredRequest: Partial<EndUserErrorNotification> = {
+  static filterEndUserErrorNotificationRequest(request: any): EndUserErrorNotification {
+    const filteredRequest = {
       email: sanitize(request.email),
       name: sanitize(request.name),
       errorTitle:  sanitize(request.errorTitle),
       errorDescription: sanitize(request.errorDescription),
       phone: sanitize(request.phone),
-    };
-
+    } as EndUserErrorNotification;
     return filteredRequest;
   }
 

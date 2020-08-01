@@ -1,16 +1,18 @@
-import { Action, Entity } from '../../../types/Authorization';
 import { NextFunction, Request, Response, request } from 'express';
-
-import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
-import Constants from '../../../utils/Constants';
-import { HTTPAuthError } from '../../../types/HTTPError';
-import Logging from '../../../utils/Logging';
+import AppAuthError from '../../../exception/AppAuthError';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import NotificationSecurity from './security/NotificationSecurity';
 import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import { ServerAction } from '../../../types/Server';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import NotificationSecurity from './security/NotificationSecurity';
+import UtilsService from './UtilsService';
+
 
 const MODULE_NAME = 'NotificationService';
 
@@ -52,6 +54,12 @@ export default class NotificationService {
     }
     // Filter
     const filteredRequest = NotificationSecurity.filterEndUserErrorNotificationRequest(req.body);
+    // Get the User
+    const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
+    UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
+      MODULE_NAME, 'handleEndUserErrorNotification', req.user);
+    // Set
+    filteredRequest.userID = req.user.id;
     // Check if Notification is valid
     Utils.checkIfEndUserErrorNotificationValid(filteredRequest, request);
     // Build URL

@@ -31,34 +31,34 @@ export default class NotificationHandler {
     }
   ];
 
-  static async saveNotification(tenantID: string, channel: string, notificationID: string,
-    sourceDescr: ServerAction, user?: User, chargingStation?: ChargingStation, notificationData?: any): Promise<void> {
+  static async saveNotification(tenantID: string, channel: string, notificationID: string, sourceDescr: ServerAction,
+    extraParams: { user?: User, chargingStation?: ChargingStation, notificationData?: any } = {}): Promise<void> {
     // Save it
     await NotificationStorage.saveNotification(tenantID, {
       timestamp: new Date(),
       channel: channel,
       sourceId: notificationID ? notificationID : new Date().toISOString(),
       sourceDescr: sourceDescr,
-      userID: (user ? user.id : null),
-      chargeBoxID: (chargingStation ? chargingStation.id : null),
-      data: notificationData
+      userID: (extraParams.user ? extraParams.user.id : null),
+      chargeBoxID: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
+      data: extraParams.notificationData
     });
     // Success
-    if (user) {
+    if (extraParams.user) {
       // User
       Logging.logDebug({
         tenantID: tenantID,
-        source: (chargingStation ? chargingStation.id : null),
+        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
-        actionOnUser: user,
+        actionOnUser: extraParams.user,
         message: `User is being notified (${channel})`
       });
     } else {
       // Admin
       Logging.logDebug({
         tenantID: tenantID,
-        source: (chargingStation ? chargingStation.id : null),
+        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
         message: `Admin users are being notified (${channel})`
@@ -152,10 +152,13 @@ export default class NotificationHandler {
               if (user.notificationsActive && user.notifications.sendEndOfCharge) {
                 // Save
                 await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, null,
-                  ServerAction.END_OF_CHARGE, user, chargingStation, {
-                    'transactionId': sourceData.transactionId,
-                    'connectorId': sourceData.connectorId
+                  tenantID, notificationSource.channel, null, ServerAction.END_OF_CHARGE, {
+                    user,
+                    chargingStation,
+                    notificationData: {
+                      'transactionId': sourceData.transactionId,
+                      'connectorId': sourceData.connectorId
+                    }
                   }
                 );
                 // Send
@@ -188,10 +191,13 @@ export default class NotificationHandler {
               if (user.notificationsActive && user.notifications.sendOptimalChargeReached) {
                 // Save
                 await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, notificationID,
-                  ServerAction.OPTIMAL_CHARGE_REACHED, user, chargingStation, {
-                    'transactionId': sourceData.transactionId,
-                    'connectorId': sourceData.connectorId
+                  tenantID, notificationSource.channel, notificationID, ServerAction.OPTIMAL_CHARGE_REACHED, {
+                    user,
+                    chargingStation,
+                    notificationData: {
+                      'transactionId': sourceData.transactionId,
+                      'connectorId': sourceData.connectorId
+                    }
                   });
                 // Send
                 await notificationSource.notificationTask.sendOptimalChargeReached(sourceData, user, tenant, NotificationSeverity.INFO);
@@ -223,10 +229,13 @@ export default class NotificationHandler {
               if (user.notificationsActive && user.notifications.sendEndOfSession) {
                 // Save
                 await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, notificationID,
-                  ServerAction.END_OF_SESSION, user, chargingStation, {
-                    'transactionId': sourceData.transactionId,
-                    'connectorId': sourceData.connectorId
+                  tenantID, notificationSource.channel, notificationID, ServerAction.END_OF_SESSION, {
+                    user,
+                    chargingStation,
+                    notificationData: {
+                      'transactionId': sourceData.transactionId,
+                      'connectorId': sourceData.connectorId
+                    }
                   });
                 // Send
                 await notificationSource.notificationTask.sendEndOfSession(sourceData, user, tenant, NotificationSeverity.INFO);
@@ -258,10 +267,13 @@ export default class NotificationHandler {
               if (user.notificationsActive && user.notifications.sendEndOfSession) {
                 // Save notif
                 await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, notificationID,
-                  ServerAction.END_OF_SESSION, user, chargingStation, {
-                    'transactionId': sourceData.transactionId,
-                    'connectorId': sourceData.connectorId
+                  tenantID, notificationSource.channel, notificationID, ServerAction.END_OF_SESSION, {
+                    user,
+                    chargingStation,
+                    notificationData: {
+                      'transactionId': sourceData.transactionId,
+                      'connectorId': sourceData.connectorId
+                    }
                   });
                 // Send
                 await notificationSource.notificationTask.sendEndOfSignedSession(sourceData, user, tenant, NotificationSeverity.INFO);
@@ -287,7 +299,7 @@ export default class NotificationHandler {
           try {
             // Save notif
             await NotificationHandler.saveNotification(
-              tenantID, notificationSource.channel, notificationID, ServerAction.REQUEST_PASSWORD, user);
+              tenantID, notificationSource.channel, notificationID, ServerAction.REQUEST_PASSWORD, { user });
             // Send
             await notificationSource.notificationTask.sendRequestPassword(
               sourceData, user, tenant, NotificationSeverity.INFO);
@@ -313,8 +325,7 @@ export default class NotificationHandler {
             if (user.notificationsActive && user.notifications.sendUserAccountStatusChanged) {
               // Save
               await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, notificationID,
-                ServerAction.USER_ACCOUNT_STATUS_CHANGED, user);
+                tenantID, notificationSource.channel, notificationID, ServerAction.USER_ACCOUNT_STATUS_CHANGED, { user });
               // Send
               await notificationSource.notificationTask.sendUserAccountStatusChanged(
                 sourceData, user, tenant, NotificationSeverity.WARNING);
@@ -340,8 +351,7 @@ export default class NotificationHandler {
           try {
             // Save
             await NotificationHandler.saveNotification(
-              tenantID, notificationSource.channel, notificationID,
-              ServerAction.NEW_REGISTERED_USER, user);
+              tenantID, notificationSource.channel, notificationID, ServerAction.NEW_REGISTERED_USER, { user });
             // Send
             await notificationSource.notificationTask.sendNewRegisteredUser(
               sourceData, user, tenant, NotificationSeverity.INFO);
@@ -365,8 +375,7 @@ export default class NotificationHandler {
           try {
             // Save
             await NotificationHandler.saveNotification(
-              tenantID, notificationSource.channel, notificationID,
-              ServerAction.VERIFICATION_EMAIL, user);
+              tenantID, notificationSource.channel, notificationID, ServerAction.VERIFICATION_EMAIL, { user });
             // Send
             await notificationSource.notificationTask.sendVerificationEmail(
               sourceData, user, tenant, NotificationSeverity.INFO);
@@ -393,10 +402,12 @@ export default class NotificationHandler {
             try {
               // Save
               await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, notificationID,
-                ServerAction.CHARGING_STATION_STATUS_ERROR, null, chargingStation, {
-                  'connectorId': sourceData.connectorId,
-                  'error': sourceData.error
+                tenantID, notificationSource.channel, notificationID, ServerAction.CHARGING_STATION_STATUS_ERROR, {
+                  chargingStation,
+                  notificationData: {
+                    'connectorId': sourceData.connectorId,
+                    'error': sourceData.error
+                  }
                 }
               );
               // Send
@@ -428,8 +439,7 @@ export default class NotificationHandler {
             try {
               // Save
               await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, notificationID,
-                ServerAction.CHARGING_STATION_REGISTERED, null, chargingStation);
+                tenantID, notificationSource.channel, notificationID, ServerAction.CHARGING_STATION_REGISTERED, { chargingStation });
               // Send
               for (const adminUser of adminUsers) {
                 await notificationSource.notificationTask.sendChargingStationRegistered(
@@ -459,8 +469,7 @@ export default class NotificationHandler {
             try {
               // Save
               await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, notificationID,
-                ServerAction.UNKNOWN_USER_BADGED, null, chargingStation);
+                tenantID, notificationSource.channel, notificationID, ServerAction.UNKNOWN_USER_BADGED, { chargingStation });
               // Send
               for (const adminUser of adminUsers) {
                 await notificationSource.notificationTask.sendUnknownUserBadged(
@@ -494,10 +503,13 @@ export default class NotificationHandler {
               if (user.notificationsActive && user.notifications.sendSessionStarted) {
                 // Save
                 await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, notificationID, ServerAction.TRANSACTION_STARTED,
-                  user, chargingStation, {
-                    'transactionId': sourceData.transactionId,
-                    'connectorId': sourceData.connectorId
+                  tenantID, notificationSource.channel, notificationID, ServerAction.TRANSACTION_STARTED, {
+                    user,
+                    chargingStation,
+                    notificationData: {
+                      'transactionId': sourceData.transactionId,
+                      'connectorId': sourceData.connectorId
+                    }
                   }
                 );
                 // Send
@@ -573,9 +585,10 @@ export default class NotificationHandler {
                 if (notificationSource.enabled) {
                   // Save
                   await NotificationHandler.saveNotification(
-                    tenantID, notificationSource.channel,
-                    null, ServerAction.PATCH_EVSE_STATUS_ERROR, null, null, {
-                      location: sourceData.location
+                    tenantID, notificationSource.channel, null, ServerAction.PATCH_EVSE_STATUS_ERROR, {
+                      notificationData: {
+                        location: sourceData.location
+                      }
                     }
                   );
                   // Send
@@ -609,7 +622,7 @@ export default class NotificationHandler {
               null, user.id, { intervalMins: 60 * 24 * 30 });
             if (!hasBeenNotified) {
               await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, null, ServerAction.USER_ACCOUNT_INACTIVITY, user);
+                tenantID, notificationSource.channel, null, ServerAction.USER_ACCOUNT_INACTIVITY, { user });
               // Send
               await notificationSource.notificationTask.sendUserAccountInactivity(
                 sourceData, user, tenant, NotificationSeverity.INFO);
@@ -640,9 +653,12 @@ export default class NotificationHandler {
               if (user.notificationsActive && user.notifications.sendPreparingSessionNotStarted) {
                 // Save
                 await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, null,
-                  ServerAction.PREPARING_SESSION_NOT_STARTED, user, chargingStation, {
-                    'connectorId': sourceData.connectorId
+                  tenantID, notificationSource.channel, null, ServerAction.PREPARING_SESSION_NOT_STARTED, {
+                    user,
+                    chargingStation,
+                    notificationData: {
+                      'connectorId': sourceData.connectorId
+                    }
                   }
                 );
                 // Send
@@ -807,7 +823,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndUserErrorNotification(tenantID: string, sourceData: Partial<EndUserErrorNotification>): Promise<void> {
+  static async sendEndUserErrorNotification(tenantID: string, sourceData: EndUserErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -821,7 +837,11 @@ export default class NotificationHandler {
             try {
               // Save
               await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, null, ServerAction.END_USER_ERROR_NOTIFICATION);
+                tenantID, notificationSource.channel, null, ServerAction.END_USER_ERROR_NOTIFICATION, {
+                  notificationData: {
+                    'userID': sourceData.userID,
+                  }
+                });
               // Send
               for (const adminUser of adminUsers) {
                 // Enabled?
@@ -857,8 +877,10 @@ export default class NotificationHandler {
               if (sourceData.user.notificationsActive && sourceData.user.notifications.sendSessionNotStarted) {
                 // Save
                 await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, notificationID,
-                  ServerAction.SESSION_NOT_STARTED_AFTER_AUTHORIZE, sourceData.user, chargingStation);
+                  tenantID, notificationSource.channel, notificationID, ServerAction.SESSION_NOT_STARTED_AFTER_AUTHORIZE, {
+                    user: sourceData.user,
+                    chargingStation
+                  });
                 // Send
                 await notificationSource.notificationTask.sendSessionNotStarted(sourceData, sourceData.user, tenant, NotificationSeverity.INFO);
               }

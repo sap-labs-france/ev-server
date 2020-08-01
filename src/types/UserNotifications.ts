@@ -252,6 +252,7 @@ export interface SessionNotStartedNotification extends BaseNotification {
 }
 
 export interface EndUserErrorNotification extends BaseNotification {
+  userID: string;
   email: string;
   name: string;
   errorTitle: string;
