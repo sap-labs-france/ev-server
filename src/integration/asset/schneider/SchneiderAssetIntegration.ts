@@ -1,23 +1,25 @@
 import Asset, { SchneiderProperty } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+import { AxiosInstance, AxiosResponse } from 'axios';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
+import AxiosFactory from '../../../utils/AxiosFactory';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 
 export default class SchneiderAssetIntegration extends AssetIntegration<AssetSetting> {
+  private axiosInstance: AxiosInstance;
+
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
+    this.axiosInstance = AxiosFactory.getAxiosInstance();
   }
 
   public async checkConnection(): Promise<void> {
@@ -30,23 +32,27 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const request = `${this.connection.url}/${asset.meterID}`;
     try {
       // Get consumption
-      const response = await axios.get(
-        request,
-        {
-          headers: this.buildAuthHeader(token)
-        }
-      );
-      if (response.data && response.data.length > 0) {
-        Logging.logDebug({
-          tenantID: this.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
-          message: `${asset.name} > Schneider web service has been called successfully`,
-          module: MODULE_NAME, method: 'retrieveConsumption',
-          detailedMessages: { response: response.data }
-        });
-        return this.filterConsumptionRequest(asset, response.data);
+      let response: AxiosResponse;
+      try {
+        response = await this.axiosInstance.get(
+          request,
+          {
+            headers: this.buildAuthHeader(token)
+          }
+        );
+      } catch (error) {
+        // Handle errors
+        Utils.handleAxiosError(error, request, ServerAction.RETRIEVE_ASSET_CONSUMPTION, MODULE_NAME, 'retrieveConsumption');
       }
+      Logging.logDebug({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
+        message: `${asset.name} > Schneider web service has been called successfully`,
+        module: MODULE_NAME, method: 'retrieveConsumption',
+        detailedMessages: { response: response.data }
+      });
+      return this.filterConsumptionRequest(asset, response.data);
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -104,22 +110,26 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     // Get credential params
     const credentials = this.getCredentialURLParams();
     // Send credentials to get the token
-    const { data } = await Utils.executePromiseWithTimeout(5000,
-      axios.post(`${this.connection.url}/GetToken`,
-        credentials,
-        {
-          // @ts-ignore
-          'axios-retry': {
-            retries: 0
-          },
-          headers: this.buildFormHeaders()
-        }),
-      `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
-    );
-    // Set Token
-    if (data && data.access_token) {
-      return data.access_token;
+    let response: AxiosResponse;
+    try {
+      response = await Utils.executePromiseWithTimeout(5000,
+        this.axiosInstance.post(`${this.connection.url}/GetToken`,
+          credentials,
+          {
+            // @ts-ignore
+            'axios-retry': {
+              retries: 0
+            },
+            headers: this.buildFormHeaders()
+          }),
+        `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
+      );
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, `${this.connection.url}/GetToken`, ServerAction.CHECK_ASSET_CONNECTION, MODULE_NAME, 'connect');
     }
+    // Return the Token
+    return response.data.access_token;
   }
 
   private getCredentialURLParams(): URLSearchParams {

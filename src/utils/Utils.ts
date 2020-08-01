@@ -10,6 +10,7 @@ import Address from '../types/Address';
 import AppError from '../exception/AppError';
 import Asset from '../types/Asset';
 import Authorizations from '../authorization/Authorizations';
+import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
 import { ChargingProfile } from '../types/ChargingProfile';
 import Company from '../types/Company';
@@ -51,6 +52,45 @@ export default class Utils {
   private static tenants = [];
   private static centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
   private static centralSystemRestServer = Configuration.getCentralSystemRestServer();
+
+  public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction,
+    module: string, method: string): void {
+    // Handle Error outside 2xx range
+    if (axiosError.response) {
+      throw new BackendError({
+        action, module, method,
+        message: `HTTP error '${axiosError.response.status}' while processing the URL '${urlRequest}'`,
+        detailedMessages: {
+          url: urlRequest,
+          status: axiosError.response.status,
+          axiosError: axiosError.toJSON(),
+        }
+      });
+    } else if (axiosError.request) {
+      // The request was made but no response was received
+      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      // http.ClientRequest in node.js
+      throw new BackendError({
+        action, module, method,
+        message: `HTTP error while processing the URL '${urlRequest}'`,
+        detailedMessages: {
+          url: urlRequest,
+          axiosError: axiosError.toJSON(),
+        }
+      });
+    } else {
+      throw new BackendError({
+        action, module, method,
+        message: `HTTP error while processing the URL '${urlRequest}'`,
+        detailedMessages: {
+          url: urlRequest,
+          message: axiosError.message,
+          stack: axiosError.stack,
+          axiosError: axiosError.toJSON(),
+        }
+      });
+    }
+  }
 
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
