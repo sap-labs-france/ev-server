@@ -68,7 +68,7 @@
     },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",
-      "body": "L'utilisateur '{{userName}}' a reporté l'erreur suivante: '{{errorTitle}}' avec la description: '{{errorDescription}}' dans l'organisation '{{tenantName}}'"
+      "body": "'{{userName}}' a reporté: '{{errorTitle}}' - '{{errorDescription}}' dans l'organisation '{{tenantName}}'"
     }
   },
   "billing": {

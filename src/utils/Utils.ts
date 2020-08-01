@@ -32,6 +32,7 @@ import { ActionsResponse } from '../types/GlobalType';
 import { HTTPError } from '../types/HTTPError';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import { HttpEndUserErrorNotificationRequest } from '../types/requests/HttpNotificationRequest';
 import { ServerAction } from '../types/Server';
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import Site from '../types/Site';
@@ -41,7 +42,6 @@ import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
 import Transaction, { InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
-import { EndUserErrorNotification } from '../types/UserNotifications';
 import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
 import Constants from './Constants';
@@ -2049,30 +2049,12 @@ export default class Utils {
     }
   }
 
-  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: Partial<EndUserErrorNotification>, req: Request): void {
-    if (!this._isUserEmailValid(endUserErrorNotificationValid.email)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'E-Mail is invalid',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-    if (!endUserErrorNotificationValid.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User name is mandatory.',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
+  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserErrorNotificationRequest, req: Request): void {
     if (!endUserErrorNotificationValid.errorTitle || !endUserErrorNotificationValid.errorDescription) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Error Title and error description are mandatory.',
+        message: 'Error Title and Description are mandatory.',
         module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
         user: req.user.id
       });

@@ -12,6 +12,7 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import NotificationSecurity from './security/NotificationSecurity';
 import UtilsService from './UtilsService';
+import { EndUserErrorNotification } from '../../../types/UserNotifications';
 
 
 const MODULE_NAME = 'NotificationService';
@@ -58,14 +59,25 @@ export default class NotificationService {
     const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
       MODULE_NAME, 'handleEndUserErrorNotification', req.user);
+    // Save mobile number
+    if (filteredRequest.phone && (user.mobile !== filteredRequest.phone)) {
+      user.mobile = filteredRequest.phone;
+      await UserStorage.saveUserMobilePhone(req.user.tenantID, user.id, { mobile: filteredRequest.phone });
+    }
     // Set
-    filteredRequest.userID = req.user.id;
+    const endUserErrorNotification: EndUserErrorNotification = {
+      userID: user.id,
+      email: user.email,
+      phone: user.mobile,
+      name: Utils.buildUserFullName(user, false, false),
+      errorTitle: filteredRequest.errorTitle,
+      errorDescription: filteredRequest.errorDescription,
+      evseDashboardURL: Utils.buildEvseURL(),
+    };
     // Check if Notification is valid
-    Utils.checkIfEndUserErrorNotificationValid(filteredRequest, request);
-    // Build URL
-    filteredRequest.evseDashboardURL = Utils.buildEvseURL();
+    Utils.checkIfEndUserErrorNotificationValid(filteredRequest, req);
     // Send Notification
-    await NotificationHandler.sendEndUserErrorNotification(req.user.tenantID, filteredRequest);
+    await NotificationHandler.sendEndUserErrorNotification(req.user.tenantID, endUserErrorNotification);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

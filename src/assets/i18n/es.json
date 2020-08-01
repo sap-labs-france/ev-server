@@ -67,8 +67,8 @@
       "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
     },
     "endUserErrorNotification": {
-      "title": "A User reported an error",
-      "body": "The user '{{userName}}' reported the following error: '{{errorTitle}}' with the description: '{{errorDescription}}' in organization '{{tenantName}}'"
+      "title": "An user reported an error",
+      "body": "'{{userName}}' reported: '{{errorTitle}}' - '{{errorDescription}}' in organization '{{tenantName}}'"
     }
   },
   "billing": {

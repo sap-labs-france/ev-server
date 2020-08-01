@@ -157,6 +157,7 @@ export default class Authorizations {
       'id': user.id,
       'role': user.role,
       'name': user.name,
+      'mobile': user.mobile,
       'email': user.email,
       'tagIDs': user.tags ? user.tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
       'firstName': user.firstName,
