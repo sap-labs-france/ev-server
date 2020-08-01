@@ -205,8 +205,9 @@ export default class OCPPService {
         'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
-      // Log error
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
       // Reject
       return {
@@ -253,8 +254,9 @@ export default class OCPPService {
         'currentTime': chargingStation.lastHeartBeat.toISOString()
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.HEARTBEAT, error);
       // Send the response
@@ -311,8 +313,9 @@ export default class OCPPService {
       // Respond
       return {};
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.STATUS_NOTIFICATION, error);
       // Return
@@ -347,8 +350,14 @@ export default class OCPPService {
         if (meterValues.transactionId) {
           // Get the transaction
           const transaction = await TransactionStorage.getTransaction(headers.tenantID, meterValues.transactionId);
-          UtilsService.assertObjectExists(ServerAction.METER_VALUES, transaction, `Transaction with ID '${meterValues.transactionId}' doesn't exist`,
-            'OCPPService', 'handleMeterValues');
+          if (!transaction) {
+            throw new BackendError({
+              source: chargingStation.id,
+              module: MODULE_NAME, method: 'handleMeterValues',
+              message: `Transaction with ID '${meterValues.transactionId}' doesn't exist`,
+              action: ServerAction.METER_VALUES,
+            });
+          }
           // Save Meter Values
           await OCPPStorage.saveMeterValues(headers.tenantID, newMeterValues);
           // Update Transaction
@@ -405,8 +414,9 @@ export default class OCPPService {
         }
       }
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.METER_VALUES, error);
     }
@@ -425,7 +435,6 @@ export default class OCPPService {
       authorize.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation, authorize.idTag);
-
       if (user && !user.issuer) {
         const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
         if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
@@ -472,8 +481,9 @@ export default class OCPPService {
         'status': OCPPAuthorizationStatus.ACCEPTED
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
       return {
@@ -505,8 +515,9 @@ export default class OCPPService {
       // Return
       return {};
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, error);
       return {};
@@ -538,8 +549,9 @@ export default class OCPPService {
       // Return
       return {};
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.FIRMWARE_STATUS_NOTIFICATION, error);
       return {};
@@ -680,8 +692,9 @@ export default class OCPPService {
         'status': OCPPAuthorizationStatus.ACCEPTED
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.START_TRANSACTION, error);
       return {
@@ -715,8 +728,9 @@ export default class OCPPService {
         'status': OCPPDataTransferStatus.ACCEPTED
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error);
       return {
@@ -731,12 +745,33 @@ export default class OCPPService {
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.getInstance().validateStopTransaction(chargingStation, stopTransaction);
+      // Check Transaction ID = 0
+      if (stopTransaction.transactionId === 0) {
+        Logging.logWarning({
+          tenantID: headers.tenantID,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'handleStopTransaction',
+          action: ServerAction.STOP_TRANSACTION,
+          message: 'Ignored Transaction ID = 0',
+          detailedMessages: { headers, stopTransaction }
+        });
+        // Ignore it! (Cahors bug)
+        return {
+          'status': OCPPAuthorizationStatus.ACCEPTED
+        };
+      }
       // Set header
       stopTransaction.chargeBoxID = chargingStation.id;
       // Get the transaction
       const transaction = await TransactionStorage.getTransaction(headers.tenantID, stopTransaction.transactionId);
-      UtilsService.assertObjectExists(ServerAction.STOP_TRANSACTION, transaction, `Transaction with ID '${stopTransaction.transactionId}' doesn't exist`,
-        'OCPPService', 'handleStopTransaction');
+      if (!transaction) {
+        throw new BackendError({
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'handleStopTransaction',
+          message: `Transaction with ID '${stopTransaction.transactionId}' doesn't exist`,
+          action: ServerAction.STOP_TRANSACTION,
+        });
+      }
       // Get the TagID that stopped the transaction
       const tagId = this.getStopTransactionTagId(stopTransaction, transaction);
       let user: User, alternateUser: User;
@@ -840,8 +875,9 @@ export default class OCPPService {
         'status': OCPPAuthorizationStatus.ACCEPTED
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.STOP_TRANSACTION, error);
       // Error

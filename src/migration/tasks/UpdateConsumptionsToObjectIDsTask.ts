@@ -1,22 +1,23 @@
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
-import { ServerAction } from '../../types/Server';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
 
 const MODULE_NAME = 'UpdateConsumptionsToObjectIDsTask';
 
 export default class UpdateConsumptionsToObjectIDsTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     let updated = 0;
     // Create Aggregation
     const aggregation = [];
@@ -79,15 +80,15 @@ export default class UpdateConsumptionsToObjectIDsTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.0';
   }
 
-  getName() {
+  getName(): string {
     return 'UpdateConsumptionsToObjectIDs';
   }
 
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 }

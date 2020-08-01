@@ -10,7 +10,7 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'MigrateCoordinatesTask';
 
 export default class MigrateCoordinatesTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenantCompanies(tenant);
@@ -21,7 +21,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
   }
 
-  async migrateTenantCompanies(tenant: Tenant) {
+  async migrateTenantCompanies(tenant: Tenant): Promise<void> {
     let updated = 0;
     const companies = await global.database.getCollection<any>(tenant.id, 'companies').aggregate(
       []).toArray();
@@ -54,7 +54,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
   }
 
-  async migrateTenantSites(tenant: Tenant) {
+  async migrateTenantSites(tenant: Tenant): Promise<void> {
     let updated = 0;
     const sites = await global.database.getCollection<any>(tenant.id, 'sites').aggregate(
       []).toArray();
@@ -87,7 +87,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
   }
 
-  async migrateTenantSiteAreas(tenant: Tenant) {
+  async migrateTenantSiteAreas(tenant: Tenant): Promise<void> {
     let updated = 0;
     const siteareas = await global.database.getCollection<any>(tenant.id, 'siteareas').aggregate(
       []).toArray();
@@ -120,7 +120,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
   }
 
-  async migrateTenantUsers(tenant: Tenant) {
+  async migrateTenantUsers(tenant: Tenant): Promise<void> {
     let updated = 0;
     const users = await global.database.getCollection<any>(tenant.id, 'users').aggregate(
       []).toArray();
@@ -153,7 +153,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
   }
 
-  async migrateTenantChargingStations(tenant: Tenant) {
+  async migrateTenantChargingStations(tenant: Tenant): Promise<void> {
     let updated = 0;
     const chargingstations = await global.database.getCollection<any>(tenant.id, 'chargingstations').aggregate(
       []).toArray();
@@ -186,11 +186,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.1';
   }
 
-  getName() {
+  getName(): string {
     return 'MigrateCoordinatesTask';
   }
 }

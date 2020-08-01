@@ -7,7 +7,7 @@ import { ServerAction } from '../../types/Server';
 const MODULE_NAME = 'InitialCarImportTask';
 
 export default class InitialCarImportTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     try {
       const carDatabaseImpl = await CarFactory.getCarImpl();
       if (carDatabaseImpl) {
@@ -24,15 +24,15 @@ export default class InitialCarImportTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.5';
   }
 
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 
-  getName() {
+  getName(): string {
     return 'InitialCarImportTask';
   }
 }
