@@ -198,14 +198,14 @@ export default class OCPPUtils {
     }
     // Power Active Import not provided in Meter Value
     if (!consumption.instantWatts) {
-      // Based on provided Amps?
+      // Based on provided Amps/Volts
       if (consumption.instantAmps > 0) {
         if (consumption.instantVolts > 0) {
           consumption.instantWatts = consumption.instantVolts * consumption.instantAmps;
         } else {
           consumption.instantWatts = Utils.convertAmpToWatt(chargingStation, null, connectorID, consumption.instantAmps);
         }
-        // Based on provided Consumption?
+      // Based on provided Consumption
       } else {
         // Compute average Instant Power based on consumption over a time period (usually 60s)
         const diffSecs = moment(consumption.endedAt).diff(consumption.startedAt, 'milliseconds') / 1000;
@@ -562,9 +562,7 @@ export default class OCPPUtils {
     transaction: Transaction, meterValues: OCPPNormalizedMeterValue[]): Promise<Consumption[]> {
     // Build consumptions
     const consumptions: Consumption[] = [];
-    let i = 1;
     for (const meterValue of meterValues) {
-      const timeFrom = new Date().getTime();
       // Meter Value Handling
       if (OCPPUtils.isValidMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
@@ -586,12 +584,6 @@ export default class OCPPUtils {
           }
         }
       }
-      // FIXME: Remove debug log or consolidate logging in DB
-      if ((new Date().getTime() - timeFrom) > 500) {
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        console.log(i + ` - Meter Value handled in ${new Date().getTime() - timeFrom}ms : ${JSON.stringify(meterValue)}`);
-      }
-      i++;
     }
     // Add missing info
     for (const consumption of consumptions) {
@@ -624,7 +616,7 @@ export default class OCPPUtils {
       // Handle SoC (%)
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         consumption.stateOfCharge = Utils.convertToFloat(meterValue.value);
-        // Handle Power (W/kW)
+      // Handle Power (W/kW)
       } else if (OCPPUtils.isPowerActiveImportMeterValue(meterValue)) {
         // Compute power
         const powerInMeterValue = Utils.convertToFloat(meterValue.value);
@@ -653,7 +645,7 @@ export default class OCPPUtils {
             }
             break;
         }
-        // Handle Voltage (V)
+      // Handle Voltage (V)
       } else if (OCPPUtils.isVoltageMeterValue(meterValue)) {
         const voltage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -679,7 +671,7 @@ export default class OCPPUtils {
             }
             break;
         }
-        // Handle Current (A)
+      // Handle Current (A)
       } else if (OCPPUtils.isCurrentImportMeterValue(meterValue)) {
         const amperage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -705,7 +697,7 @@ export default class OCPPUtils {
             }
             break;
         }
-        // Handle Consumption (Wh/kWh)
+      // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);

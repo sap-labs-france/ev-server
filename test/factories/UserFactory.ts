@@ -30,7 +30,8 @@ const userFactory = Factory.define('user')
     sendOfflineChargingStations: false,
     sendBillingSynchronizationFailed: false,
     sendSessionNotStarted: false,
-    sendCarCatalogSynchronizationFailed: false
+    sendCarCatalogSynchronizationFailed: false,
+    sendEndUserErrorNotification: false,
   }))
   .attr('role', 'B')
   .attr('status', 'A')

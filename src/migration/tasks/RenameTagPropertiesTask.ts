@@ -9,14 +9,14 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'RenameTagPropertiesTask';
 
 export default class RenameTagPropertiesTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     // Add the status property to the refunded transactions
     const result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
       {},
@@ -34,11 +34,11 @@ export default class RenameTagPropertiesTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.1';
   }
 
-  getName() {
+  getName(): string {
     return 'RenameTagPropertiesTask';
   }
 }

@@ -12,14 +12,14 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'AddSiteAreaLimitToConsumptionsTask';
 
 export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     let modifiedCount = 0;
     // Get Charging Stations
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargingStations: true }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -75,15 +75,15 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.3';
   }
 
-  getName() {
+  getName(): string {
     return 'AddSiteAreaLimitToConsumptions';
   }
 
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 }

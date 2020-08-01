@@ -242,6 +242,7 @@ export default class UserSecurity {
       sendOcpiPatchStatusError: false,
       sendSmtpAuthError: false,
       sendOfflineChargingStations: false,
+      sendEndUserErrorNotification: false,
     };
     // Admin Notif only
     if (role === UserRole.ADMIN) {
@@ -255,6 +256,7 @@ export default class UserSecurity {
         sendOcpiPatchStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendOcpiPatchStatusError) : false,
         sendSmtpAuthError: notifications ? UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError) : false,
         sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
+        sendEndUserErrorNotification: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndUserErrorNotification) : false,
       };
     }
     return filteredNotifications;

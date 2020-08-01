@@ -24,6 +24,9 @@ export default class AuthenticationApi {
     const response = await this._baseApi.send({
       method: 'POST',
       url: '/client/auth/Login',
+      'axios-retry': {
+        retries: 0
+      },
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },

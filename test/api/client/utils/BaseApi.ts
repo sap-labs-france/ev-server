@@ -1,15 +1,19 @@
-import axios from 'axios';
+import { AxiosInstance, AxiosRequestConfig } from 'axios';
+
+import AxiosFactory from '../../../../src/utils/AxiosFactory';
 import { performance } from 'perf_hooks';
 import querystring from 'querystring';
 
 export default class BaseApi {
   private baseURL: string;
+  private axiosInstance: AxiosInstance;
 
-  public constructor(baseURL) {
+  public constructor(baseURL: string) {
+    this.axiosInstance = AxiosFactory.getAxiosInstance();
     this.baseURL = baseURL;
   }
 
-  public async send(httpRequest): Promise<any> {
+  public async send(httpRequest: AxiosRequestConfig): Promise<any> {
     let httpResponse;
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
@@ -22,7 +26,7 @@ export default class BaseApi {
     try {
       t0 = performance.now();
       // Execute with Axios
-      httpResponse = await axios(httpRequest);
+      httpResponse = await this.axiosInstance(httpRequest);
       t1 = performance.now();
     } catch (error) {
       // Handle errors

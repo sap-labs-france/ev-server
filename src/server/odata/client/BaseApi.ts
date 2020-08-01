@@ -1,14 +1,17 @@
-import axios from 'axios';
+import { AxiosInstance, AxiosRequestConfig } from 'axios';
+
 import querystring from 'querystring';
 
 export default class BaseApi {
   public baseURL: string;
+  private axiosInstance: AxiosInstance;
 
-  constructor(baseURL) {
+  constructor(baseURL: string) {
+
     this.baseURL = baseURL;
   }
 
-  async send(httpRequest) {
+  async send(httpRequest: AxiosRequestConfig) {
     let httpResponse;
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
@@ -18,7 +21,7 @@ export default class BaseApi {
     }
     try {
       // Execute with Axios
-      httpResponse = await axios(httpRequest);
+      httpResponse = await this.axiosInstance(httpRequest);
     } catch (error) {
       // Handle errors
       if (error.response) {

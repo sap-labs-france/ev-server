@@ -380,7 +380,7 @@ export default class Logging {
         // Check that every detailedMessages is parsed
         return JSON.stringify(detailedMessage, null, ' ');
       } catch (err) {
-        // Do nothing
+        return detailedMessage;
       }
     }
   }

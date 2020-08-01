@@ -87,6 +87,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.UPDATE, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.DELETE, attributes: ['*'] },
+      { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
     ]
   },
   basic: {
@@ -197,6 +198,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.CONNECTION, action: [Action.READ, Action.DELETE], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
+      { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
     ]
   },
   demo: {
