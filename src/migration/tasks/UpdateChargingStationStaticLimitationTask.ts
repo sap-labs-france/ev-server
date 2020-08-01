@@ -12,15 +12,15 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
 export default class UpdateChargingStationStaticLimitationTask extends MigrationTask {
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 
-  getName() {
+  getName(): string {
     return 'UpdateChargingStationStaticLimitationTask';
   }
 
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       // Initialize amperage limitation
@@ -28,7 +28,7 @@ export default class UpdateChargingStationStaticLimitationTask extends Migration
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.0';
   }
 

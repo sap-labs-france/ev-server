@@ -68,7 +68,7 @@
     },
     "endUserErrorNotification": {
       "title": "A User reported an error",
-      "body": "The user '{{userName}}' reported the following error: '{{errorTitle}}' with the description: '{{errorDescription}}' in organization {{tenantName}}"
+      "body": "The user '{{userName}}' reported the following error: '{{errorTitle}}' with the description: '{{errorDescription}}' in organization '{{tenantName}}'"
     }
   },
   "billing": {

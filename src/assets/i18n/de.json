@@ -68,7 +68,7 @@
     },
     "endUserErrorNotification": {
       "title": "Ein Nutzer hat einen Fehler gemeldet",
-      "body": "Der Nutzer '{{userName}}' hat foglenden Fehler: '{{errorTitle}}' mit der Beschreibung: '{{errorDescription}}' in Organisaion {{tenantName}} gemeldet"
+      "body": "Der Nutzer '{{userName}}' hat foglenden Fehler: '{{errorTitle}}' mit der Beschreibung: '{{errorDescription}}' in Organisaion '{{tenantName}}' gemeldet"
     }
   },
   "billing": {
