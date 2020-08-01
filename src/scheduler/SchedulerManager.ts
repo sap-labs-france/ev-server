@@ -112,7 +112,7 @@ export default class SchedulerManager {
             break;
           case 'AssetGetConsumptionTask':
             schedulerTask = new AssetGetConsumptionTask();
-
+            break;
           default:
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
