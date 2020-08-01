@@ -29,7 +29,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
       // Skip execution
       return;
     }
-    const assetLock = await LockingHelper.createAssetLock(tenant.id);
+    const assetLock = await LockingHelper.createAssetRetrieveConsumptionsLock(tenant.id);
     if (assetLock) {
       try {
         // Get dynamic assets only
