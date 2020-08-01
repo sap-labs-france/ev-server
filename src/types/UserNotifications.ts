@@ -36,7 +36,7 @@ export type UserNotificationKeys =
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
  'sendOfflineChargingStations' |
- 'sendBillingUserSynchronizationFailed' |
+ 'sendBillingSynchronizationFailed' |
  'sendSessionNotStarted' |
  'sendCarCatalogSynchronizationFailed' |
  'sendEndUserErrorNotification'

@@ -117,7 +117,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
   }
 
-  public async sendBillingUserSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('billing-user-synchronization-failed', data, user, tenant, severity);
   }
 

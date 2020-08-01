@@ -696,7 +696,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendBillingUserSynchronizationFailed(tenantID: string, sourceData: BillingUserSynchronizationFailedNotification): Promise<void> {
+  static async sendBillingSynchronizationFailed(tenantID: string, sourceData: BillingUserSynchronizationFailedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -720,7 +720,7 @@ export default class NotificationHandler {
                 for (const adminUser of adminUsers) {
                   // Enabled?
                   if (adminUser.notificationsActive && adminUser.notifications.sendBillingSynchronizationFailed) {
-                    await notificationSource.notificationTask.sendBillingUserSynchronizationFailed(
+                    await notificationSource.notificationTask.sendBillingSynchronizationFailed(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
