@@ -19,7 +19,7 @@ export default class SynchronizeBillingUsersTask extends SchedulerTask {
         if (billingImpl) {
           const synchronizeAction = await billingImpl.synchronizeUsers(tenant.id);
           if (synchronizeAction.inError > 0) {
-            await NotificationHandler.sendBillingUserSynchronizationFailed(
+            await NotificationHandler.sendBillingSynchronizationFailed(
               tenant.id,
               {
                 nbrUsersInError: synchronizeAction.inError,
