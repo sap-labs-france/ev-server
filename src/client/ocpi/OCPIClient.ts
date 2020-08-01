@@ -2,6 +2,7 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPICredential from '../../types/ocpi/OCPICredential';
@@ -15,7 +16,6 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'OCPIClient';
@@ -182,15 +182,6 @@ export default abstract class OCPIClient {
       // Handle errors
       Utils.handleAxiosError(error, this.ocpiEndpoint.baseUrl, ServerAction.OCPI_GET_VERSIONS, MODULE_NAME, 'getVersions');
     }
-    // Check response
-    if (!response.data || !response.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_GET_VERSIONS,
-        message: `Invalid response from GET ${this.ocpiEndpoint.baseUrl}`,
-        module: MODULE_NAME, method: 'getVersions',
-        detailedMessages: { response: response.data }
-      });
-    }
     return response;
   }
 
@@ -216,15 +207,6 @@ export default abstract class OCPIClient {
     } catch (error) {
       // Handle errors
       Utils.handleAxiosError(error, this.ocpiEndpoint.versionUrl, ServerAction.OCPI_GET_VERSIONS, MODULE_NAME, 'getServices');
-    }
-    // Check response
-    if (!response.data || !response.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_GET_VERSIONS,
-        message: `Invalid response from GET ${this.ocpiEndpoint.versionUrl}`,
-        module: MODULE_NAME, method: 'getServices',
-        detailedMessages: { response: response.data }
-      });
     }
     return response;
   }
@@ -253,15 +235,6 @@ export default abstract class OCPIClient {
     } catch (error) {
       // Handle errors
       Utils.handleAxiosError(error, credentialsUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'deleteCredentials');
-    }
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_POST_CREDENTIALS,
-        message: 'Invalid response from delete credentials',
-        module: MODULE_NAME, method: 'deleteCredentials',
-        detailedMessages: { response: response.data }
-      });
     }
     return response;
   }
@@ -295,15 +268,6 @@ export default abstract class OCPIClient {
     } catch (error) {
       // Handle errors
       Utils.handleAxiosError(error, credentialsUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'postCredentials');
-    }
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_POST_CREDENTIALS,
-        message: 'Invalid response from post credentials',
-        module: MODULE_NAME, method: 'postCredentials',
-        detailedMessages: { response: response.data }
-      });
     }
     return response;
   }

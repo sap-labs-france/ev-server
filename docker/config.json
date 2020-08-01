@@ -203,6 +203,11 @@
         }
       },
       {
+        "name": "AssetGetConsumptionTask",
+        "active": true,
+        "periodicity": "* * * * *"
+			},
+      {
         "name": "CheckUserAccountInactivityTask",
         "active": false,
         "periodicity": "0 0 * * 1",

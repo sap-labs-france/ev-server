@@ -253,9 +253,10 @@ export default class UserStorage {
         sendUserAccountInactivity: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountInactivity) : false,
         sendPreparingSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendPreparingSessionNotStarted) : false,
         sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
-        sendBillingUserSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingSynchronizationFailed) : false,
+        sendBillingSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingSynchronizationFailed) : false,
         sendSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionNotStarted) : false,
         sendCarCatalogSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendCarCatalogSynchronizationFailed) : false,
+        sendEndUserErrorNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndUserErrorNotification) : false,
       },
       deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false
     };
@@ -372,6 +373,20 @@ export default class UserStorage {
       { $set: params });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveUserMobileToken', uniqueTimerID);
+  }
+
+  public static async saveUserMobilePhone(tenantID: string, userID: string,
+    params: { mobile?: string; phone?: string; }): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserMobilePhone');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify and return the modified document
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: params });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'saveUserMobilePhone', uniqueTimerID);
   }
 
   public static async saveUserRole(tenantID: string, userID: string, role: string): Promise<void> {
@@ -1040,7 +1055,8 @@ export default class UserStorage {
         sendOfflineChargingStations: false,
         sendBillingSynchronizationFailed: false,
         sendSessionNotStarted: false,
-        sendCarCatalogSynchronizationFailed: false
+        sendCarCatalogSynchronizationFailed: false,
+        sendEndUserErrorNotification: false
       },
       role: UserRole.BASIC,
       status: UserStatus.PENDING,

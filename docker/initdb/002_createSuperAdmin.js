@@ -36,7 +36,7 @@ db.getCollection('default.users').insert({
     sendCarSynchronizationFailed: true,
     sendUserAccountInactivity: true,
     sendPreparingSessionNotStarted: false,
-    sendBillingUserSynchronizationFailed: false,
+    sendBillingSynchronizationFailed: false,
     sendNewRegisteredUser: false,
     sendUnknownUserBadged: false,
     sendChargingStationStatusError: false,

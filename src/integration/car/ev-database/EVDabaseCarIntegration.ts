@@ -1,14 +1,14 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
-import BackendError from '../../../exception/BackendError';
 import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter } from '../../../types/Car';
-import { ServerAction } from '../../../types/Server';
+
 import AxiosFactory from '../../../utils/AxiosFactory';
+import BackendError from '../../../exception/BackendError';
+import CarIntegration from '../CarIntegration';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
-import CarIntegration from '../CarIntegration';
-
 
 const MODULE_NAME = 'EVDabaseCar';
 
@@ -38,14 +38,6 @@ export default class EVDabaseCarIntegration extends CarIntegration {
       Utils.handleAxiosError(error, evDatabaseConfig.url + '/' + evDatabaseConfig.key, ServerAction.SYNCHRONIZE_CAR_CATALOGS, MODULE_NAME, 'getCarCatalogs');
     }
     const carCatalogs: CarCatalog[] = [];
-    if (response.status !== 200) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        message: 'Error occurred while trying to retrieve the cars from EVDatabase',
-        module: MODULE_NAME, method: 'getCarCatalogs',
-        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-      });
-    }
     // Build result
     for (const data of response.data) {
       const chargeStandardTables: CarCatalogConverter[] = [];

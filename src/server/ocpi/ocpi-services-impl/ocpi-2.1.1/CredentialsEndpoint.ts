@@ -1,10 +1,10 @@
+import { AxiosInstance, AxiosResponse } from 'axios';
 import { NextFunction, Request, Response } from 'express';
 
 import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
 import AxiosFactory from '../../../../utils/AxiosFactory';
-import { AxiosInstance, AxiosResponse } from 'axios';
 import BackendError from '../../../../exception/BackendError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -164,7 +164,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
           headers: {
             'Authorization': `Token ${ocpiEndpoint.token}`
           },
-          timeout: 10000
+          timeout: Constants.AXIOS_TIMEOUT
         });
       } catch (error) {
         // Handle errors

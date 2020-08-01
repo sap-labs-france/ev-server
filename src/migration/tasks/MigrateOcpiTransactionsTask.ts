@@ -9,14 +9,14 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'MigrateOcpiTransactionsTask';
 
 export default class MigrateOcpiTransactionsTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     let modifiedCount = 0;
     // Get all transactions
     const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions').find(
@@ -55,11 +55,11 @@ export default class MigrateOcpiTransactionsTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.0';
   }
 
-  getName() {
+  getName(): string {
     return 'MigrateOcpiTransactionsTask';
   }
 }
