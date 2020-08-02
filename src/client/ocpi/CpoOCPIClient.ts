@@ -2,8 +2,8 @@ import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
-import axios, { AxiosResponse } from 'axios';
 
+import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -31,7 +31,6 @@ import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
-import axiosRetry from 'axios-retry';
 import moment from 'moment';
 
 const MODULE_NAME = 'CpoOCPIClient';

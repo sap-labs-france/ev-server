@@ -1,16 +1,18 @@
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
+import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import _ from 'lodash';
 import crypto from 'crypto';
 
-const _configuration = Configuration.getCryptoConfig();
 const IV_LENGTH = 16;
 const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
-  public static getConfiguration() {
-    if (!_configuration) {
+  private static configuration = Configuration.getCryptoConfig();
+
+  public static getConfiguration(): CryptoConfiguration {
+    if (!this.configuration) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
@@ -18,7 +20,7 @@ export default class Cypher {
         message: 'Crypto configuration is missing'
       });
     }
-    return _configuration;
+    return this.configuration;
   }
 
   public static encrypt(data: string): string {
@@ -43,7 +45,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static encryptSensitiveDataInJSON(obj: Record<string, any>) {
+  public static encryptSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -77,7 +79,7 @@ export default class Cypher {
     }
   }
 
-  public static decryptSensitiveDataInJSON(obj: Record<string, any>) {
+  public static decryptSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -109,7 +111,7 @@ export default class Cypher {
     }
   }
 
-  public static hashSensitiveDataInJSON(obj: Record<string, any>) {
+  public static hashSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
