@@ -10,12 +10,14 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 
 export default class SchneiderAssetIntegration extends AssetIntegration<AssetSetting> {
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   public async checkConnection(): Promise<void> {
@@ -103,9 +105,15 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const credentials = this.getCredentialURLParams();
     // Send credentials to get the token
     const { data } = await Utils.executePromiseWithTimeout(5000,
-      axios.post(`${this.connection.url}/GetToken`, credentials, {
-        headers: this.buildFormHeaders()
-      }),
+      axios.post(`${this.connection.url}/GetToken`,
+        credentials,
+        {
+          // @ts-ignore
+          'axios-retry': {
+            retries: 0
+          },
+          headers: this.buildFormHeaders()
+        }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
     );
     // Set Token

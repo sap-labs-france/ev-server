@@ -14,6 +14,7 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'OCPIClient';
 
@@ -30,6 +31,7 @@ export default abstract class OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
     this.tenant = tenant;
     this.settings = settings;
     this.ocpiEndpoint = ocpiEndpoint;

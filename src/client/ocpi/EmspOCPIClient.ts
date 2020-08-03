@@ -32,6 +32,7 @@ import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import _ from 'lodash';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 
@@ -46,6 +47,7 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
+    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   async sendTokens(): Promise<OCPIJobResult> {

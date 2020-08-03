@@ -28,11 +28,13 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Call the charging plans
     const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea);
     if (!chargingProfiles) {
-      throw new BackendError({
+      Logging.logInfo({
+        tenantID: this.tenantID,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
         message: `No Charging Profiles have been built for Site Area '${siteArea.name}'`,
       });
+      return;
     }
     // Apply the charging plans
     for (const chargingProfile of chargingProfiles) {
