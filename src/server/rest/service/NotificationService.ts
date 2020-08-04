@@ -1,19 +1,19 @@
-import { NextFunction, Request, Response, request } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError } from '../../../types/HTTPError';
-import { ServerAction } from '../../../types/Server';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
-import NotificationSecurity from './security/NotificationSecurity';
-import UtilsService from './UtilsService';
-import { EndUserErrorNotification } from '../../../types/UserNotifications';
+import { NextFunction, Request, Response, request } from 'express';
 
+import AppAuthError from '../../../exception/AppAuthError';
+import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
+import { EndUserErrorNotification } from '../../../types/UserNotifications';
+import { HTTPAuthError } from '../../../types/HTTPError';
+import Logging from '../../../utils/Logging';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import NotificationSecurity from './security/NotificationSecurity';
+import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
+import { ServerAction } from '../../../types/Server';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'NotificationService';
 

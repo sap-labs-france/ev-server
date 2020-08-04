@@ -2,7 +2,6 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
-import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPICredential from '../../types/ocpi/OCPICredential';

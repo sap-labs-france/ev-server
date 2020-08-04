@@ -1,8 +1,9 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import axiosRetry from 'axios-retry';
-import { ServerAction } from '../types/Server';
+
 import Constants from './Constants';
 import Logging from './Logging';
+import { ServerAction } from '../types/Server';
+import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'AxiosFactory';
 
