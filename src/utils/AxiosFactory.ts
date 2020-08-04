@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
-
 import axiosRetry from 'axios-retry';
+import Constants from './Constants';
+
 
 export default class AxiosFactory {
   private static axiosInstance: AxiosInstance;
@@ -11,7 +12,10 @@ export default class AxiosFactory {
   public static getAxiosInstance(): AxiosInstance {
     AxiosFactory.setupAxiosInstance();
     if (!AxiosFactory.axiosInstance) {
+      // Create
       AxiosFactory.axiosInstance = axios.create();
+      // Time out
+      AxiosFactory.axiosInstance.defaults.timeout = Constants.AXIOS_TIMEOUT;
     }
     return AxiosFactory.axiosInstance;
   }
