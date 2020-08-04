@@ -34,7 +34,7 @@ export default abstract class OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
-    this.axiosInstance = AxiosFactory.getAxiosInstance();
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
     this.tenant = tenant;
     this.settings = settings;
     this.ocpiEndpoint = ocpiEndpoint;
@@ -176,7 +176,6 @@ export default abstract class OCPIClient {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
-        timeout: Constants.AXIOS_TIMEOUT
       });
     } catch (error) {
       // Handle errors
@@ -202,7 +201,6 @@ export default abstract class OCPIClient {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
-        timeout: Constants.AXIOS_TIMEOUT
       });
     } catch (error) {
       // Handle errors
@@ -230,7 +228,6 @@ export default abstract class OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -263,7 +260,6 @@ export default abstract class OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
