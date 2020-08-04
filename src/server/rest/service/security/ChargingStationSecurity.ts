@@ -196,9 +196,10 @@ export default class ChargingStationSecurity {
     }
     for (const chargingProfile of chargingProfiles.result) {
       const filteredChargingProfile = this.filterChargingProfileResponse(chargingProfile, loggedUser);
-      if (filteredChargingProfile) {
+      if (filteredChargingProfile && Object.entries(filteredChargingProfile).length !== 0) {
         filteredChargingProfiles.push(filteredChargingProfile);
       }
+      chargingProfiles.count = chargingProfiles.result.length;
     }
     chargingProfiles.result = filteredChargingProfiles;
   }
@@ -209,7 +210,7 @@ export default class ChargingStationSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadChargingProfile(loggedUser)) {
+    if (Authorizations.canReadChargingProfile(loggedUser, chargingProfile.chargingStation.siteArea.siteID)) {
       filteredChargingProfile.id = chargingProfile.id;
       filteredChargingProfile.chargingStationID = chargingProfile.chargingStationID;
       filteredChargingProfile.chargePointID = chargingProfile.chargePointID;
