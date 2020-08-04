@@ -329,15 +329,13 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       detailedMessages: { payload }
     });
     // Call IOP
-    let response: AxiosResponse;
     try {
-      response = await this.axiosInstance.post(responseUrl, payload,
+      await this.axiosInstance.post(responseUrl, payload,
         {
           headers: {
             Authorization: `Token ${ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
