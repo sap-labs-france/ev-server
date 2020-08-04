@@ -658,7 +658,7 @@ export default class ChargingStationStorage {
   public static async getChargingProfiles(tenantID: string,
     params: {
       search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
-      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean;
+      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean; siteIDs?: string[];
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
@@ -762,6 +762,17 @@ export default class ChargingStationStorage {
       // Convert
       DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
       DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
+      // Check Site ID
+      if (!Utils.isEmptyArray(params.siteIDs)) {
+        // Build filter
+        aggregation.push({
+          $match: {
+            'chargingStation.siteArea.siteID': {
+              $in: params.siteIDs.map((id) => id)
+            }
+          }
+        });
+      }
     }
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
