@@ -199,8 +199,8 @@ export default class ChargingStationSecurity {
       if (filteredChargingProfile && Object.entries(filteredChargingProfile).length !== 0) {
         filteredChargingProfiles.push(filteredChargingProfile);
       }
-      chargingProfiles.count = chargingProfiles.result.length;
     }
+    chargingProfiles.count = filteredChargingProfiles.length;
     chargingProfiles.result = filteredChargingProfiles;
   }
 
