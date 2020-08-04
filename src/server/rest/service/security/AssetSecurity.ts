@@ -1,12 +1,12 @@
-import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
-
-import Asset from '../../../../types/Asset';
-import Authorizations from '../../../../authorization/Authorizations';
-import { DataResult } from '../../../../types/DataResult';
-import SiteAreaSecurity from './SiteAreaSecurity';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
+import Authorizations from '../../../../authorization/Authorizations';
+import Asset from '../../../../types/Asset';
+import Consumption from '../../../../types/Consumption';
+import { DataResult } from '../../../../types/DataResult';
+import { HttpAssetConsumptionRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import UserToken from '../../../../types/UserToken';
+import SiteAreaSecurity from './SiteAreaSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class AssetSecurity {
 
@@ -79,6 +79,35 @@ export default class AssetSecurity {
       UtilsSecurity.filterCreatedAndLastChanged(
         filteredAsset, asset, loggedUser);
     }
+    return filteredAsset;
+  }
+
+  public static filterAssetConsumptionRequest(request: any): HttpAssetConsumptionRequest {
+    return {
+      AssetID: sanitize(request.AssetID),
+      StartDate: sanitize(request.StartDate),
+      EndDate: sanitize(request.EndDate)
+    };
+  }
+
+  public static filterAssetConsumptionResponse(asset: Asset, consumptions: Consumption[], loggedUser: UserToken): Asset {
+    asset.values = [];
+    if (!consumptions) {
+      consumptions = [];
+    }
+    const filteredAsset = this.filterAssetResponse(asset, loggedUser);
+    if (consumptions.length === 0) {
+      filteredAsset.values = [];
+      return filteredAsset;
+    }
+    // Clean
+    filteredAsset.values = consumptions.map((consumption) => ({
+      date: consumption.endedAt,
+      instantWatts: consumption.instantWatts,
+      instantAmps: consumption.instantAmps,
+      limitWatts: consumption.limitWatts,
+      limitAmps: consumption.limitAmps,
+    }));
     return filteredAsset;
   }
 

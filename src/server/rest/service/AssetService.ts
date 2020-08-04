@@ -1,26 +1,86 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-
+import moment from 'moment';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Asset from '../../../types/Asset';
 import AssetFactory from '../../../integration/asset/AssetFactory';
-import { AssetInErrorType } from '../../../types/InError';
-import AssetSecurity from './security/AssetSecurity';
 import AssetStorage from '../../../storage/mongodb/AssetStorage';
-import Authorizations from '../../../authorization/Authorizations';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import Asset from '../../../types/Asset';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { AssetInErrorType } from '../../../types/InError';
+import { ServerAction } from '../../../types/Server';
+import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
+import AssetSecurity from './security/AssetSecurity';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'AssetService';
 
 export default class AssetService {
+
+  public static async handleGetAssetConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssetConsumption');
+    // Filter
+    const filteredRequest = AssetSecurity.filterAssetConsumptionRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.AssetID, MODULE_NAME,
+      'handleGetAssetConsumption', req.user);
+    // Check auth
+    if (!Authorizations.canReadAsset(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ,
+        entity: Entity.ASSET,
+        module: MODULE_NAME,
+        method: 'handleGetAsset',
+        value: filteredRequest.AssetID
+      });
+    }
+    // Get it
+    const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.AssetID);
+    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.AssetID}' does not exist`,
+      MODULE_NAME, 'handleGetAssetConsumption', req.user);
+    // Check dates
+    if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Start date and end date must be provided',
+        module: MODULE_NAME, method: 'handleGetAssetConsumption',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check dates order
+    if (filteredRequest.StartDate &&
+      filteredRequest.EndDate &&
+      moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The requested start date '${filteredRequest.StartDate.toISOString()}' is after the end date '${filteredRequest.EndDate.toISOString()}' `,
+        module: MODULE_NAME, method: 'handleGetAssetConsumption',
+        user: req.user,
+        action: action
+      });
+    }
+    // Get the ConsumptionValues
+    const consumptions = await ConsumptionStorage.getAssetConsumptions(req.user.tenantID, {
+      assetID: filteredRequest.AssetID,
+      startDate: filteredRequest.StartDate,
+      endDate: filteredRequest.EndDate
+    });
+    // Return
+    res.json(AssetSecurity.filterAssetConsumptionResponse(asset, consumptions, req.user));
+    next();
+  }
 
   public static async handleCheckAssetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active

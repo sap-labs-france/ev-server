@@ -58,6 +58,8 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
               assetID: asset.id,
               cumulatedConsumptionWh: asset.currentConsumptionWh,
               cumulatedConsumptionAmps: Math.floor(asset.currentConsumptionWh / 230),
+              instantAmps: asset.currentInstantAmps,
+              instantWatts: asset.currentInstantWatts,
             };
             // Add limits
             await Utils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, consumption);
