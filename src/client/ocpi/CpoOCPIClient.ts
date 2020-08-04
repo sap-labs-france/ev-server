@@ -82,7 +82,6 @@ export default class CpoOCPIClient extends OCPIClient {
             headers: {
               Authorization: `Token ${this.ocpiEndpoint.token}`
             },
-            timeout: Constants.AXIOS_TIMEOUT
           });
       } catch (error) {
         // Handle errors
@@ -173,7 +172,6 @@ export default class CpoOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -259,7 +257,6 @@ export default class CpoOCPIClient extends OCPIClient {
             'Authorization': `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         }
       );
     } catch (error) {
@@ -321,7 +318,6 @@ export default class CpoOCPIClient extends OCPIClient {
             'Authorization': `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -378,7 +374,6 @@ export default class CpoOCPIClient extends OCPIClient {
             'Authorization': `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -445,7 +440,6 @@ export default class CpoOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -562,7 +556,6 @@ export default class CpoOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -595,7 +588,6 @@ export default class CpoOCPIClient extends OCPIClient {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -616,7 +608,6 @@ export default class CpoOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
       return false;
     }
@@ -658,7 +649,6 @@ export default class CpoOCPIClient extends OCPIClient {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -782,7 +772,6 @@ export default class CpoOCPIClient extends OCPIClient {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors

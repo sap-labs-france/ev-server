@@ -1,10 +1,10 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
 import { NextFunction, Request, Response } from 'express';
 
 import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
 import AxiosFactory from '../../../../utils/AxiosFactory';
+import { AxiosResponse } from 'axios';
 import BackendError from '../../../../exception/BackendError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -28,11 +28,8 @@ const MODULE_NAME = 'CredentialsEndpoint';
  * Credentials Endpoint
  */
 export default class CredentialsEndpoint extends AbstractEndpoint {
-  private axiosInstance: AxiosInstance;
-
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
-    this.axiosInstance = AxiosFactory.getAxiosInstance();
   }
 
   /**
@@ -160,11 +157,10 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       let response: AxiosResponse;
       try {
         // Access versions API
-        response = await this.axiosInstance.get(ocpiEndpoint.baseUrl, {
+        response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.baseUrl, {
           headers: {
             'Authorization': `Token ${ocpiEndpoint.token}`
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
       } catch (error) {
         // Handle errors
@@ -219,7 +215,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Try to read endpoints
       try {
         // Access versions API
-        response = await this.axiosInstance.get(ocpiEndpoint.versionUrl, {
+        response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.versionUrl, {
           headers: {
             'Authorization': `Token ${ocpiEndpoint.token}`
           }

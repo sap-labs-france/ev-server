@@ -95,6 +95,10 @@ export default class Utils {
     }
   }
 
+  public static isDevMode(): boolean {
+    return process.env.NODE_ENV === 'development';
+  }
+
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     let threePhases = true;
