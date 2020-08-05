@@ -32,7 +32,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   constructor(tenantId: string, settings: StripeBillingSetting) {
     super(tenantId, settings);
-    this.axiosInstance = AxiosFactory.getAxiosInstance();
+    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
     this.settings.currency = settings.currency;
     if (this.settings.secretKey) {
       this.settings.secretKey = Cypher.decrypt(settings.secretKey);
