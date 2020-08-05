@@ -1,6 +1,4 @@
-import ChargingProfileFactory from '../factories/ChargingProfileFactory';
 import ChargingStationContext from './context/ChargingStationContext';
-import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import OCPPCommonTests from './OCPPCommonTests';
@@ -1099,38 +1097,6 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Start user should not be able to delete his transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testDeleteTransaction(true);
-          });
-        });
-
-        describe('Users should be able to perform a complete transaction with ongoing charging profile', () => {
-
-          before(async () => {
-            const chargingProfile = ChargingProfileFactory.build();
-            await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfile);
-          });
-
-          after(async () => {
-            await testData.chargingStationContext.cleanUpCreatedData();
-          });
-
-          it('Start user should be able to start a new transaction (with charging profile)', async () => {
-            await testData.ocppCommonTests.testStartTransaction();
-          });
-
-          it('Charging station should send meter values (with charging profile)', async () => {
-            await testData.ocppCommonTests.testSendMeterValues(false, true);
-          });
-
-          it('Stop user should be able to stop the transaction (with charging profile)', async () => {
-            await testData.ocppCommonTests.testStopTransaction();
-          });
-
-          it('Transaction must have the right consumption metrics, pricing and inactivity (with charging profile)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true, true);
-          });
-
-          it('Start user should not be able to delete his transaction (with charging profile)', async () => {
             await testData.ocppCommonTests.testDeleteTransaction(true);
           });
 
