@@ -80,6 +80,7 @@ export interface RoamingSettings extends Setting {
 export interface OcpiSetting {
   cpo: OcpiIdentifier;
   emsp: OcpiIdentifier;
+  currency: string;
   businessDetails: OcpiBusinessDetails;
 }
 
