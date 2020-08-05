@@ -356,4 +356,7 @@ export enum ServerAction {
   SMART_CHARGING = 'SmartCharging',
 
   INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',
+
+  AXIOS_REQUEST = 'AxiosRequest',
+  AXIOS_RESPONSE = 'AxiosResponse',
 }

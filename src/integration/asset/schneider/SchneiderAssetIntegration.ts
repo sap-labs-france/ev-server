@@ -19,7 +19,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
 
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance();
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
   }
 
   public async checkConnection(): Promise<void> {

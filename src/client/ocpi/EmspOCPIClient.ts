@@ -176,7 +176,6 @@ export default class EmspOCPIClient extends OCPIClient {
             headers: {
               Authorization: `Token ${this.ocpiEndpoint.token}`
             },
-            timeout: Constants.AXIOS_TIMEOUT
           });
       } catch (error) {
         // Handle errors
@@ -235,7 +234,6 @@ export default class EmspOCPIClient extends OCPIClient {
             headers: {
               Authorization: `Token ${this.ocpiEndpoint.token}`
             },
-            timeout: Constants.AXIOS_TIMEOUT
           });
       } catch (error) {
         // Handle errors
@@ -295,7 +293,6 @@ export default class EmspOCPIClient extends OCPIClient {
             headers: {
               Authorization: `Token ${this.ocpiEndpoint.token}`
             },
-            timeout: Constants.AXIOS_TIMEOUT
           });
       } catch (error) {
         // Handle errors
@@ -450,7 +447,6 @@ export default class EmspOCPIClient extends OCPIClient {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -503,7 +499,6 @@ export default class EmspOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -569,7 +564,6 @@ export default class EmspOCPIClient extends OCPIClient {
             'Authorization': `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors
@@ -619,7 +613,6 @@ export default class EmspOCPIClient extends OCPIClient {
             'Authorization': `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
-          timeout: Constants.AXIOS_TIMEOUT
         });
     } catch (error) {
       // Handle errors

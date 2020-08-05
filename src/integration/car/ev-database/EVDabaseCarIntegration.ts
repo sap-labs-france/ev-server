@@ -17,7 +17,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
 
   constructor() {
     super();
-    this.axiosInstance = AxiosFactory.getAxiosInstance();
+    this.axiosInstance = AxiosFactory.getAxiosInstance(Constants.DEFAULT_TENANT);
   }
 
   public async getCarCatalogs(): Promise<CarCatalog[]> {
