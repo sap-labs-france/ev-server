@@ -4,7 +4,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import Promise from 'bluebird';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -14,14 +13,14 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'RecomputeAllTransactionsConsumptionsTask';
 
 export default class RecomputeAllTransactionsConsumptionsTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     const consumptionsUpdated: ActionsResponse = {
       inError: 0,
       inSuccess: 0,
@@ -88,15 +87,15 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.0';
   }
 
-  getName() {
+  getName(): string {
     return 'RecomputeAllTransactionsConsumptionsTask';
   }
 
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 }

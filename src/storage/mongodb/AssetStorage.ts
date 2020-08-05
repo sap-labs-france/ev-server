@@ -112,7 +112,7 @@ export default class AssetStorage {
 
   public static async getAssets(tenantID: string,
     params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean;
-      withNoSiteArea?: boolean; } = {},
+      withNoSiteArea?: boolean; dynamicOnly?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAssets');
@@ -138,6 +138,10 @@ export default class AssetStorage {
       filters.siteAreaID = {
         $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id))
       };
+    }
+    // Dynamic Asset
+    if (params.dynamicOnly) {
+      filters.dynamicAsset = true;
     }
     // Create Aggregation
     const aggregation = [];

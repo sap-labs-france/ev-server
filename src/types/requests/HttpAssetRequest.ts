@@ -10,5 +10,6 @@ export interface HttpAssetsRequest extends HttpDatabaseRequest {
   SiteAreaID?: string;
   WithSiteArea?: boolean;
   WithNoSiteArea?: boolean;
+  DynamicOnly?: boolean;
   ErrorType?: string;
 }

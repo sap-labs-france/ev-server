@@ -11,14 +11,14 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'AddLastChangePropertiesToBadgeTask';
 
 export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     const users = await UserStorage.getUsers(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
     const tagCollection = global.database.getCollection<any>(tenant.id, 'tags');
 
@@ -57,11 +57,11 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.0';
   }
 
-  getName() {
+  getName(): string {
     return 'AddLastChangePropertiesToBadgeTask';
   }
 }

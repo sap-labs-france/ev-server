@@ -1,3 +1,4 @@
+import { AxiosInstance, AxiosResponse } from 'axios';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
 import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
@@ -6,6 +7,7 @@ import User, { UserRole, UserStatus } from '../../../types/User';
 import AppError from '../../../exception/AppError';
 import AuthSecurity from './security/AuthSecurity';
 import Authorizations from '../../../authorization/Authorizations';
+import AxiosFactory from '../../../utils/AxiosFactory';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -20,8 +22,6 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
@@ -47,10 +47,7 @@ if (_centralSystemRestConfig) {
 
 const MODULE_NAME = 'AuthService';
 
-axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
-
 export default class AuthService {
-
   public static initialize(): Handler {
     return passport.initialize();
   }
@@ -196,8 +193,14 @@ export default class AuthService {
       });
     }
     // Check Captcha
-    const response = await axios.get(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+    let response: AxiosResponse;
+    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
+    try {
+      response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, recaptchaURL, action, MODULE_NAME, 'handleRegisterUser');
+    }
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -330,8 +333,14 @@ export default class AuthService {
       });
     }
     // Check captcha
-    const response = await axios.get(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+    let response: AxiosResponse;
+    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
+    try {
+      response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, recaptchaURL, action, MODULE_NAME, 'handleRegisterUser');
+    }
     // Check
     if (!response.data.success) {
       throw new AppError({
@@ -716,8 +725,14 @@ export default class AuthService {
     }
 
     // Is valid captcha?
-    const response = await axios.get(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
+    let response: AxiosResponse;
+    try {
+      response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
+    } catch (error) {
+      // Handle errors
+      Utils.handleAxiosError(error, recaptchaURL, action, MODULE_NAME, 'handleResendVerificationEmail');
+    }
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

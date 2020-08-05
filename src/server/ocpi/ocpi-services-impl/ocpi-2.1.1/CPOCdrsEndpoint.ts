@@ -10,8 +10,7 @@ import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'cdrs';
-const MODULE_NAME = 'CPOSessionsEndpoint';
-
+const MODULE_NAME = 'CPOCdrsEndpoint';
 const RECORDS_LIMIT = 25;
 
 /**

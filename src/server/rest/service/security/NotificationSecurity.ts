@@ -1,17 +1,11 @@
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
-import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
+import { HttpEndUserErrorNotificationRequest, HttpNotificationRequest } from '../../../../types/requests/HttpNotificationRequest';
 import { Notification } from '../../../../types/UserNotifications';
-import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
+import UserSecurity from './UserSecurity';
 import UtilsSecurity from './UtilsSecurity';
-import sanitize from 'mongo-sanitize';
-
-interface HttpNotificationRequest extends HttpDatabaseRequest {
-  UserID: string;
-  DateFrom: Date;
-  Channel: string;
-}
 
 export default class NotificationSecurity {
   static filterNotificationsRequest(request: any): HttpNotificationRequest {
@@ -21,6 +15,15 @@ export default class NotificationSecurity {
     filteredRequest.Channel = sanitize(request.Channel);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  static filterEndUserErrorNotificationRequest(request: any): HttpEndUserErrorNotificationRequest {
+    const filteredRequest: HttpEndUserErrorNotificationRequest = {
+      errorTitle:  sanitize(request.errorTitle),
+      errorDescription: sanitize(request.errorDescription),
+      phone: sanitize(request.phone),
+    };
     return filteredRequest;
   }
 

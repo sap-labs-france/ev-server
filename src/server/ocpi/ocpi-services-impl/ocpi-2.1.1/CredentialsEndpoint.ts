@@ -1,24 +1,25 @@
+import { AxiosResponse } from 'axios';
 import { NextFunction, Request, Response } from 'express';
-
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
 import BackendError from '../../../../exception/BackendError';
-import Constants from '../../../../utils/Constants';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import { HTTPError } from '../../../../types/HTTPError';
-import Logging from '../../../../utils/Logging';
 import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
-import OCPIMapping from './OCPIMapping';
 import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
+import AxiosFactory from '../../../../utils/AxiosFactory';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import Utils from '../../../../utils/Utils';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPIMapping from './OCPIMapping';
+
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -29,7 +30,6 @@ const MODULE_NAME = 'CredentialsEndpoint';
 export default class CredentialsEndpoint extends AbstractEndpoint {
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
-    axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay.bind(this) });
   }
 
   /**
@@ -154,13 +154,18 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Try to access remote ocpi service versions
     // Any error here should result in a 3001 Ocpi result exception based on the specification
     try {
-      // Access versions API
-      const ocpiVersions = await axios.get(ocpiEndpoint.baseUrl, {
-        headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`
-        },
-        timeout: 10000
-      });
+      let response: AxiosResponse;
+      try {
+        // Access versions API
+        response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.baseUrl, {
+          headers: {
+            'Authorization': `Token ${ocpiEndpoint.token}`
+          },
+        });
+      } catch (error) {
+        // Handle errors
+        Utils.handleAxiosError(error, ocpiEndpoint.baseUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'postCredentials');
+      }
       // Log available OCPI Versions
       Logging.logDebug({
         tenantID: tenant.id,
@@ -168,20 +173,20 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         message: 'Available OCPI Versions',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
-        detailedMessages: { versions: ocpiVersions.data }
+        detailedMessages: { versions: response.data }
       });
       // Check response
-      if (!ocpiVersions.data || !ocpiVersions.data.data) {
+      if (!response.data || !response.data.data) {
         throw new BackendError({
           action: ServerAction.OCPI_POST_CREDENTIALS,
           message: `Invalid response from GET ${ocpiEndpoint.baseUrl}`,
           module: MODULE_NAME, method: 'postCredentials',
-          detailedMessages: { data: ocpiVersions.data }
+          detailedMessages: { data: response.data }
         });
       }
       // Loop through versions and pick the same one
       let versionFound = false;
-      for (const version of ocpiVersions.data.data) {
+      for (const version of response.data.data) {
         if (version.version === this.getVersion()) {
           versionFound = true;
           ocpiEndpoint.version = version.version;
@@ -204,16 +209,21 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
           action: ServerAction.OCPI_POST_CREDENTIALS,
           message: `OCPI Endpoint version ${this.getVersion()} not found`,
           module: MODULE_NAME, method: 'postCredentials',
-          detailedMessages: { data: ocpiVersions.data }
+          detailedMessages: { data: response.data }
         });
       }
       // Try to read endpoints
-      // Access versions API
-      const endpoints = await axios.get(ocpiEndpoint.versionUrl, {
-        headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`
-        }
-      });
+      try {
+        // Access versions API
+        response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.versionUrl, {
+          headers: {
+            'Authorization': `Token ${ocpiEndpoint.token}`
+          }
+        });
+      } catch (error) {
+        // Handle errors
+        Utils.handleAxiosError(error, ocpiEndpoint.versionUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'postCredentials');
+      }
       // Log available OCPI services
       Logging.logDebug({
         tenantID: tenant.id,
@@ -221,19 +231,19 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         message: 'Available OCPI services',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
-        detailedMessages: { endpoints: endpoints.data }
+        detailedMessages: { endpoints: response.data }
       });
       // Check response
-      if (!endpoints.data || !endpoints.data.data) {
+      if (!response.data || !response.data.data) {
         throw new BackendError({
           action: ServerAction.OCPI_POST_CREDENTIALS,
           message: `Invalid response from GET ${ocpiEndpoint.versionUrl}`,
           module: MODULE_NAME, method: 'postCredentials',
-          detailedMessages: { data: endpoints.data }
+          detailedMessages: { data: response.data }
         });
       }
       // Set available endpoints
-      ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(endpoints.data.data);
+      ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(response.data.data);
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
