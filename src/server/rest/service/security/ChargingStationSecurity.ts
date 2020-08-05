@@ -196,10 +196,11 @@ export default class ChargingStationSecurity {
     }
     for (const chargingProfile of chargingProfiles.result) {
       const filteredChargingProfile = this.filterChargingProfileResponse(chargingProfile, loggedUser);
-      if (filteredChargingProfile) {
+      if (filteredChargingProfile && Object.entries(filteredChargingProfile).length !== 0) {
         filteredChargingProfiles.push(filteredChargingProfile);
       }
     }
+    chargingProfiles.count = filteredChargingProfiles.length;
     chargingProfiles.result = filteredChargingProfiles;
   }
 
