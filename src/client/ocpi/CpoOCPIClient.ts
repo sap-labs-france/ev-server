@@ -223,7 +223,7 @@ export default class CpoOCPIClient extends OCPIClient {
       'auth_method': OCPIAuthMethod.AUTH_REQUEST,
       'auth_id': ocpiToken.auth_id,
       'location': ocpiLocation,
-      'currency': transaction.priceUnit,
+      'currency': this.settings.currency,
       'status': OCPISessionStatus.PENDING,
       'authorization_id': authorizationId,
       'last_updated': transaction.timestamp
@@ -271,7 +271,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
     transaction.ocpiData.session.last_updated = transaction.currentTimestamp;
     transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice;
-    transaction.ocpiData.session.currency = transaction.priceUnit;
+    transaction.ocpiData.session.currency = this.settings.currency;
     transaction.ocpiData.session.status = OCPISessionStatus.ACTIVE;
     transaction.ocpiData.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
 
@@ -385,7 +385,7 @@ export default class CpoOCPIClient extends OCPIClient {
       total_time: transaction.stop.totalDurationSecs / 3600, // In hours
       total_energy: transaction.stop.totalConsumptionWh / 1000,
       total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
-      currency: transaction.priceUnit ? transaction.priceUnit : '',
+      currency: this.settings.currency,
       auth_id: transaction.ocpiData.session.auth_id,
       authorization_id: transaction.ocpiData.session.authorization_id,
       auth_method: transaction.ocpiData.session.auth_method,
