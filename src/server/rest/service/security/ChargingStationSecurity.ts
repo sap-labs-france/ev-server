@@ -209,7 +209,7 @@ export default class ChargingStationSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadChargingProfile(loggedUser, chargingProfile.chargingStation.siteArea.siteID)) {
+    if (Authorizations.canReadChargingProfile(loggedUser, chargingProfile.chargingStation.siteArea ? chargingProfile.chargingStation.siteArea.siteID : null)) {
       filteredChargingProfile.id = chargingProfile.id;
       filteredChargingProfile.chargingStationID = chargingProfile.chargingStationID;
       filteredChargingProfile.chargePointID = chargingProfile.chargePointID;
