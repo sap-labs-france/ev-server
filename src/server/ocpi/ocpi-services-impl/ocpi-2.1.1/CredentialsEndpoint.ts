@@ -1,25 +1,23 @@
-import { AxiosResponse } from 'axios';
 import { NextFunction, Request, Response } from 'express';
+
+import AbstractEndpoint from '../AbstractEndpoint';
+import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
+import AxiosFactory from '../../../../utils/AxiosFactory';
 import BackendError from '../../../../exception/BackendError';
-import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
+import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
+import Logging from '../../../../utils/Logging';
 import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
+import OCPIMapping from './OCPIMapping';
 import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
-import AxiosFactory from '../../../../utils/AxiosFactory';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
-import Utils from '../../../../utils/Utils';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import OCPIUtils from '../../OCPIUtils';
-import AbstractEndpoint from '../AbstractEndpoint';
-import OCPIMapping from './OCPIMapping';
-
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -154,18 +152,12 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Try to access remote ocpi service versions
     // Any error here should result in a 3001 Ocpi result exception based on the specification
     try {
-      let response: AxiosResponse;
-      try {
-        // Access versions API
-        response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.baseUrl, {
-          headers: {
-            'Authorization': `Token ${ocpiEndpoint.token}`
-          },
-        });
-      } catch (error) {
-        // Handle errors
-        Utils.handleAxiosError(error, ocpiEndpoint.baseUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'postCredentials');
-      }
+      // Access versions API
+      let response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.baseUrl, {
+        headers: {
+          'Authorization': `Token ${ocpiEndpoint.token}`
+        },
+      });
       // Log available OCPI Versions
       Logging.logDebug({
         tenantID: tenant.id,
@@ -213,17 +205,11 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         });
       }
       // Try to read endpoints
-      try {
-        // Access versions API
-        response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.versionUrl, {
-          headers: {
-            'Authorization': `Token ${ocpiEndpoint.token}`
-          }
-        });
-      } catch (error) {
-        // Handle errors
-        Utils.handleAxiosError(error, ocpiEndpoint.versionUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'postCredentials');
-      }
+      response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.versionUrl, {
+        headers: {
+          'Authorization': `Token ${ocpiEndpoint.token}`
+        }
+      });
       // Log available OCPI services
       Logging.logDebug({
         tenantID: tenant.id,

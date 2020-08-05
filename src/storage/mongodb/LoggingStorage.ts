@@ -78,7 +78,9 @@ export default class LoggingStorage {
       detailedMessages: logToSave.detailedMessages
     };
     // Insert
-    await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
+    if (global.database) {
+      await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
+    }
   }
 
   public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Log> {

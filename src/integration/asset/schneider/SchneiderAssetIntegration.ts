@@ -1,6 +1,6 @@
 import Asset, { SchneiderProperty } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
-import { AxiosInstance, AxiosResponse } from 'axios';
+import { AxiosInstance } from 'axios';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
@@ -32,18 +32,12 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const request = `${this.connection.url}/${asset.meterID}`;
     try {
       // Get consumption
-      let response: AxiosResponse;
-      try {
-        response = await this.axiosInstance.get(
-          request,
-          {
-            headers: this.buildAuthHeader(token)
-          }
-        );
-      } catch (error) {
-        // Handle errors
-        Utils.handleAxiosError(error, request, ServerAction.RETRIEVE_ASSET_CONSUMPTION, MODULE_NAME, 'retrieveConsumption');
-      }
+      const response = await this.axiosInstance.get(
+        request,
+        {
+          headers: this.buildAuthHeader(token)
+        }
+      );
       Logging.logDebug({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -110,24 +104,18 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     // Get credential params
     const credentials = this.getCredentialURLParams();
     // Send credentials to get the token
-    let response: AxiosResponse;
-    try {
-      response = await Utils.executePromiseWithTimeout(5000,
-        this.axiosInstance.post(`${this.connection.url}/GetToken`,
-          credentials,
-          {
-            // @ts-ignore
-            'axios-retry': {
-              retries: 0
-            },
-            headers: this.buildFormHeaders()
-          }),
-        `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
-      );
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, `${this.connection.url}/GetToken`, ServerAction.CHECK_ASSET_CONNECTION, MODULE_NAME, 'connect');
-    }
+    const response = await Utils.executePromiseWithTimeout(5000,
+      this.axiosInstance.post(`${this.connection.url}/GetToken`,
+        credentials,
+        {
+          // @ts-ignore
+          'axios-retry': {
+            retries: 0
+          },
+          headers: this.buildFormHeaders()
+        }),
+      `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
+    );
     // Return the Token
     return response.data.access_token;
   }
