@@ -25,7 +25,6 @@ import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import Utils from '../../../../utils/Utils';
 import moment from 'moment';
 
 const EP_IDENTIFIER = 'commands';
@@ -325,18 +324,13 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       detailedMessages: { payload }
     });
     // Call IOP
-    try {
-      await AxiosFactory.getAxiosInstance(tenant.id).post(responseUrl, payload,
-        {
-          headers: {
-            Authorization: `Token ${ocpiEndpoint.token}`,
-            'Content-Type': 'application/json'
-          },
-        });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, responseUrl, action, MODULE_NAME, 'sendCommandResponse');
-    }
+    await AxiosFactory.getAxiosInstance(tenant.id).post(responseUrl, payload,
+      {
+        headers: {
+          Authorization: `Token ${ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
   }
 }
 

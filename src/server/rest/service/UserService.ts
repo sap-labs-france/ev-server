@@ -44,8 +44,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleAssignSitesToUser',
+        module: MODULE_NAME, method: 'handleAssignSitesToUser',
         user: req.user,
         action: action
       });
@@ -55,8 +54,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site\'s IDs must be provided',
-        module: MODULE_NAME,
-        method: 'handleAssignSitesToUser',
+        module: MODULE_NAME, method: 'handleAssignSitesToUser',
         user: req.user,
         action: action
       });
@@ -66,10 +64,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleAssignSitesToUser',
+        action: Action.UPDATE, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleAssignSitesToUser',
         value: filteredRequest.userID
       });
     }
@@ -87,10 +83,8 @@ export default class UserService {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Action.UPDATE,
-          entity: Entity.SITE,
-          module: MODULE_NAME,
-          method: 'handleAssignSitesToUser',
+          action: Action.UPDATE, entity: Entity.SITE,
+          module: MODULE_NAME, method: 'handleAssignSitesToUser',
           value: siteID
         });
       }
@@ -121,8 +115,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleDeleteUser',
+        module: MODULE_NAME, method: 'handleDeleteUser',
         user: req.user,
         action: action
       });
@@ -132,10 +125,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleDeleteUser',
+        action: Action.DELETE, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleDeleteUser',
         value: id
       });
     }
@@ -145,8 +136,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User cannot delete himself',
-        module: MODULE_NAME,
-        method: 'handleDeleteUser',
+        module: MODULE_NAME, method: 'handleDeleteUser',
         user: req.user,
         action: action
       });
@@ -326,8 +316,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleUpdateUser',
+        module: MODULE_NAME, method: 'handleUpdateUser',
         user: req.user,
         action: action
       });
@@ -337,10 +326,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleUpdateUser',
+        action: Action.UPDATE, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleUpdateUser',
         value: filteredRequest.id
       });
     }
@@ -354,8 +341,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleUpdateUser',
+        module: MODULE_NAME, method: 'handleUpdateUser',
         user: req.user,
         action: action
       });
@@ -368,8 +354,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
-        module: MODULE_NAME,
-        method: 'handleUpdateUser',
+        module: MODULE_NAME, method: 'handleUpdateUser',
         user: req.user,
         action: action
       });
@@ -406,9 +391,8 @@ export default class UserService {
         } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
-            module: MODULE_NAME,
-            method: 'handleUpdateUser',
             action: action,
+            module: MODULE_NAME, method: 'handleUpdateUser',
             user: req.user, actionOnUser: user,
             message: 'User cannot be updated in billing system',
             detailedMessages: { error: error.message, stack: error.stack }
@@ -494,9 +478,8 @@ export default class UserService {
         } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
-            module: MODULE_NAME,
-            method: 'handleUpdateUser',
             action: action,
+            module: MODULE_NAME, method: 'handleUpdateUser',
             message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
@@ -563,8 +546,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s mobile token ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleUpdateUserMobileToken',
+        module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
         user: req.user,
         action: action
       });
@@ -574,10 +556,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleUpdateUserMobileToken',
+        action: Action.UPDATE, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
         value: filteredRequest.id
       });
     }
@@ -591,8 +571,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleUpdateUserMobileToken',
+        module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
         user: req.user,
         action: action
       });
@@ -629,8 +608,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleGetUser',
+        module: MODULE_NAME, method: 'handleGetUser',
         user: req.user,
         action: action
       });
@@ -640,10 +618,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleGetUser',
+        action: Action.READ, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleGetUser',
         value: id
       });
     }
@@ -657,8 +633,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleGetUser',
+        module: MODULE_NAME, method: 'handleGetUser',
         user: req.user,
         action: action
       });
@@ -680,8 +655,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleGetUserImage',
+        module: MODULE_NAME, method: 'handleGetUserImage',
         user: req.user,
         action: action
       });
@@ -691,10 +665,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleGetUserImage',
+        action: Action.READ, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleGetUserImage',
         value: filteredRequest.ID
       });
     }
@@ -708,8 +680,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.ID}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleGetUserImage',
+        module: MODULE_NAME, method: 'handleGetUserImage',
         user: req.user,
         action: action
       });
@@ -733,8 +704,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleGetSites',
+        module: MODULE_NAME, method: 'handleGetSites',
         user: req.user,
         action: action
       });
@@ -747,10 +717,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleGetSites',
+        action: Action.UPDATE, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleGetSites',
         value: user.id
       });
     }
@@ -785,10 +753,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.USERS,
-        module: MODULE_NAME,
-        method: 'handleGetUsers'
+        action: Action.LIST, entity: Entity.USERS,
+        module: MODULE_NAME, method: 'handleGetUsers'
       });
     }
     // Filter
@@ -835,10 +801,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.USERS,
-        module: MODULE_NAME,
-        method: 'handleGetUsersInError'
+        action: Action.LIST, entity: Entity.USERS,
+        module: MODULE_NAME, method: 'handleGetUsersInError'
       });
     }
     // Filter
@@ -879,10 +843,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleCreateUser'
+        action: Action.CREATE, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleCreateUser'
       });
     }
     // Filter
@@ -896,8 +858,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
-        module: MODULE_NAME,
-        method: 'handleCreateUser',
+        module: MODULE_NAME, method: 'handleCreateUser',
         user: req.user,
         action: action
       });
@@ -955,9 +916,8 @@ export default class UserService {
         } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
-            module: MODULE_NAME,
-            method: 'handleCreateUser',
             action: action,
+            module: MODULE_NAME, method: 'handleCreateUser',
             message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
@@ -972,8 +932,8 @@ export default class UserService {
           await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
           Logging.logInfo({
             tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleCreateUser',
             action: action,
+            module: MODULE_NAME, method: 'handleCreateUser',
             user: newUserID,
             message: 'User successfully created in billing system',
           });
@@ -1030,8 +990,7 @@ export default class UserService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
-      module: MODULE_NAME,
-      method: 'handleCreateUser',
+      module: MODULE_NAME, method: 'handleCreateUser',
       message: `User with ID '${newUserID}' has been created successfully`,
       action: action
     });
@@ -1049,8 +1008,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
+        module: MODULE_NAME, method: 'handleGetUserInvoice',
         user: req.user,
         action: action
       });
@@ -1060,10 +1018,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
+        action: Action.READ, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleGetUserInvoice',
         value: id
       });
     }
@@ -1076,11 +1032,10 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
+        module: MODULE_NAME, method: 'handleGetUserInvoice',
+        action: action,
         user: req.user,
-        action: action
+        message: `User with ID '${id}' is logically deleted`,
       });
     }
     // Get the settings
@@ -1092,11 +1047,10 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'An issue occurred while creating the invoice',
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
+        action: action,
+        module: MODULE_NAME, method: 'handleGetUserInvoice',
         user: req.user,
-        action: action
+        message: 'An issue occurred while creating the invoice',
       });
     }
     // Create services
@@ -1112,8 +1066,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'An issue occurred while creating the invoice',
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
+        module: MODULE_NAME, method: 'handleGetUserInvoice',
         user: req.user,
         action: action,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -1124,8 +1077,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: 404,
         message: 'No invoices available',
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
+        module: MODULE_NAME, method: 'handleGetUserInvoice',
         user: req.user,
         action: action
       });
@@ -1143,8 +1095,7 @@ export default class UserService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
           message: `An error occurred while requesting invoice ${invoiceNumber}`,
-          module: MODULE_NAME,
-          method: 'handleGetUserInvoice',
+          module: MODULE_NAME, method: 'handleGetUserInvoice',
           user: req.user,
           action: action
         });
@@ -1170,8 +1121,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
         message: `An error occurred while requesting invoice ${invoiceNumber}`,
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
+        module: MODULE_NAME, method: 'handleGetUserInvoice',
         user: req.user,
         action: action,
         detailedMessages: { error: error.message, stack: error.stack }

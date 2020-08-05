@@ -56,43 +56,18 @@ export default class Utils {
   private static centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
   private static centralSystemRestServer = Configuration.getCentralSystemRestServer();
 
-  public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction,
-    module: string, method: string): void {
+  public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
     if (axiosError.response) {
       throw new BackendError({
         action, module, method,
-        message: `HTTP error '${axiosError.response.status}' while processing the URL '${urlRequest}'`,
-        detailedMessages: {
-          url: urlRequest,
-          status: axiosError.response.status,
-          axiosError: axiosError.toJSON(),
-        }
-      });
-    } else if (axiosError.request) {
-      // The request was made but no response was received
-      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-      // http.ClientRequest in node.js
-      throw new BackendError({
-        action, module, method,
-        message: `HTTP error while processing the URL '${urlRequest}'`,
-        detailedMessages: {
-          url: urlRequest,
-          axiosError: axiosError.toJSON(),
-        }
-      });
-    } else {
-      throw new BackendError({
-        action, module, method,
-        message: `HTTP error while processing the URL '${urlRequest}'`,
-        detailedMessages: {
-          url: urlRequest,
-          message: axiosError.message,
-          stack: axiosError.stack,
-          axiosError: axiosError.toJSON(),
-        }
+        message: `HTTP Error '${axiosError.response.status}' while processing the URL '${urlRequest}'`,
       });
     }
+    throw new BackendError({
+      action, module, method,
+      message: `HTTP error while processing the URL '${urlRequest}'`,
+    });
   }
 
   public static isDevMode(): boolean {
