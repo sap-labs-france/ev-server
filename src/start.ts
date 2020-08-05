@@ -108,7 +108,7 @@ export default class Bootstrap {
       // Listen to promise failure
       process.on('unhandledRejection', (reason: any, p): void => {
         // eslint-disable-next-line no-console
-        console.log('Unhandled Rejection at Promise: ', p, ' reason: ', reason);
+        console.log('Unhandled Rejection: ', p, ' reason: ', reason);
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.STARTUP,

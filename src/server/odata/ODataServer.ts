@@ -1,14 +1,11 @@
+import express, { NextFunction, Request, Response } from 'express';
+
 import Configuration from '../../utils/Configuration';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
+import ExpressTools from '../ExpressTools';
 import ODataRestAdapter from './ODataRestAdapter';
 import ODataSchema from './odata-schema/ODataSchema';
 import ODataServerFactory from '../odata/ODataServerFactory';
 import ODataServiceConfiguration from '../../types/configuration/ODataServiceConfiguration';
-import { ServerAction } from '../../types/Server';
-import express from 'express';
-import expressTools from '../ExpressTools';
-import morgan from 'morgan';
 
 const MODULE_NAME = 'ODataServer';
 
@@ -17,34 +14,14 @@ export default class ODataServer {
   private expressApplication: express.Application;
 
   // Create the rest server
-  constructor(oDataServerConfig) {
+  constructor(oDataServerConfig: ODataServiceConfiguration) {
     // Keep params
     this.oDataServerConfig = oDataServerConfig;
     // Initialize express app
-    this.expressApplication = expressTools.initApplication();
-    // Log to console
-    if (this.oDataServerConfig.debug) {
-      // Log
-      this.expressApplication.use(
-        morgan('combined', {
-          'stream': {
-            write: (message) => {
-              // Log
-              Logging.logDebug({
-                tenantID: Constants.DEFAULT_TENANT,
-                module: MODULE_NAME, method: 'constructor',
-                action: ServerAction.EXPRESS_SERVER,
-                message: message
-              });
-            }
-          }
-        })
-      );
-    }
+    this.expressApplication = ExpressTools.initApplication();
     // Get URL of the CentralSystemRestServer
     const restConf = Configuration.getCentralSystemRestServer();
     const restServerUrl = `${restConf.protocol}://${restConf.host}:${restConf.port}/`;
-
     // Register ODataServer
     const oDataServerFactory = new ODataServerFactory();
     const oDataServer = oDataServerFactory.getODataServer();
@@ -54,15 +31,21 @@ export default class ODataServer {
     this.expressApplication.use(
       '/odata',
       ODataSchema.getSchema.bind(this),
-      function(req, res) {
-        oDataServer.handle(req, res);
+      (req: Request, res: Response, next: NextFunction) => {
+        try {
+          oDataServer.handle(req, res);
+        } catch (error) {
+          next(error);
+        }
       }
     );
+    // Post init
+    ExpressTools.postInitApplication(this.expressApplication);
   }
 
   // Start the server
   start() {
-    expressTools.startServer(this.oDataServerConfig, expressTools.createHttpServer(this.oDataServerConfig, this.expressApplication), 'OData', MODULE_NAME);
+    ExpressTools.startServer(this.oDataServerConfig, ExpressTools.createHttpServer(this.oDataServerConfig, this.expressApplication), 'OData', MODULE_NAME);
   }
 }
 

@@ -16,11 +16,14 @@ import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
+import jwtDecode from 'jwt-decode';
 import os from 'os';
 import { v4 as uuid } from 'uuid';
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
+
+const MODULE_NAME = 'Logging';
 
 const obs = new PerformanceObserver((items): void => {
   if (!_loggingConfig.traceLogOnlyStatistics) {
@@ -62,7 +65,7 @@ export default class Logging {
   }
 
   // Debug DB
-  public static traceStart(module, method): string {
+  public static traceStart(module: string, method: string): string {
     let uniqueID = '0';
     // Check
     if (_loggingConfig.trace) {
@@ -150,6 +153,82 @@ export default class Logging {
       action: action,
       detailedMessages: { payload }
     });
+  }
+
+  public static logExpressRequest(req: Request, res: Response, next: NextFunction): void {
+    const userToken = Logging.getUserTokenFromHttpRequest(req);
+    let tenantID: string;
+    if (userToken) {
+      tenantID = userToken.tenantID;
+    }
+    req['timestamp'] = new Date();
+    // Log
+    Logging.logDebug({
+      tenantID: tenantID,
+      action: ServerAction.HTTP_REQUEST,
+      user: userToken,
+      message: `HTTP Request << ${req.method} '${req.url}'`,
+      module: MODULE_NAME, method: 'logExpressRequest',
+      detailedMessages: {
+        url: req.url,
+        method: req.method,
+        query: req.query,
+        body: req.body,
+        locale: req.locale,
+        xhr: req.xhr,
+        ip: req.ip,
+        ips: req.ips,
+        httpVersion: req.httpVersion,
+        headers: req.headers,
+      }
+    });
+    next();
+  }
+
+  public static logExpressResponse(req: Request, res: Response, next: NextFunction): void {
+    res.on('finish', () => {
+      // Retrieve Tenant ID if available
+      let tenantID: string;
+      if (req.user) {
+        tenantID = req.user.tenantID;
+      }
+      // Compute duration
+      let durationSecs = 0;
+      if (req['timestamp']) {
+        durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
+      }
+      // Compute Length
+      let contentLengthKB = res.getHeader('content-length') as number;
+      if (contentLengthKB) {
+        contentLengthKB /= 1000;
+      }
+      Logging.logDebug({
+        tenantID: tenantID,
+        user: req.user,
+        action: ServerAction.HTTP_RESPONSE,
+        message: req['timestamp'] ?
+          `HTTP Response - ${durationSecs}s - ${!isNaN(contentLengthKB) ? contentLengthKB : '? '}kB >> ${req.method}/${res.statusCode} '${req.url}'` :
+          `HTTP Response - ${!isNaN(contentLengthKB) ? contentLengthKB : '? '}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
+        module: MODULE_NAME, method: 'logExpressResponse',
+        detailedMessages: {
+          request: req.url,
+          status: res.statusCode,
+          statusMessage: res.statusMessage,
+          headers: res.getHeaders(),
+        }
+      });
+      next();
+    });
+  }
+
+  public static logExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
+    // Rebuild the Action if possible
+    let action: ServerAction;
+    const uriAction = req.url.split('/')[3];
+    if (uriAction) {
+      action = uriAction.split('?')[0] as ServerAction;
+    }
+    Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
   }
 
   public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, args: any): void {
@@ -594,6 +673,18 @@ export default class Logging {
         return 'warning';
       case LogLevel.ERROR:
         return 'error';
+    }
+  }
+
+  private static getUserTokenFromHttpRequest(req: Request): UserToken {
+    // Retrieve Tenant ID from JWT token if available
+    try {
+      // Decode the token
+      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        return jwtDecode(req.headers.authorization.slice(7));
+      }
+    } catch (error) {
+      // Do nothing
     }
   }
 }
