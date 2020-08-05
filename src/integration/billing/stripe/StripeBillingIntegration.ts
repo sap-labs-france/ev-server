@@ -367,6 +367,22 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
+  public async finalizeInvoice(invoice: BillingInvoice): Promise<string> {
+    await this.checkConnection();
+    try {
+      const stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
+      return stripeInvoice.invoice_pdf;
+    } catch (error) {
+      throw new BackendError({
+        message: 'Failed to finalize invoice',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'finalizeInvoice',
+        action: ServerAction.BILLING_SEND_INVOICE
+      });
+    }
+  }
+
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
     // Check Stripe
     await this.checkConnection();
@@ -442,12 +458,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     };
     // Get the draft invoice
     const draftInvoices = await BillingStorage.getInvoices(this.tenantID,
-      { invoiceStatus: [BillingInvoiceStatus.DRAFT] }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { invoiceStatus: [BillingInvoiceStatus.DRAFT], userIDs: [transaction.userID] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Set
     invoice.invoice = draftInvoices.count > 0 ? draftInvoices.result[0] : null;
     if (invoice.invoice) {
       // Append a new invoice item
-      invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice.id, {
+      invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice.invoiceID, {
         description: description,
         amount: Math.round(transaction.stop.roundedPrice * 100)
       }, transaction.id);
