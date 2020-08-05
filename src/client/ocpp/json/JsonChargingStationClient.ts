@@ -88,7 +88,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     // Execute
     const result = await this.wsConnection.sendMessage(uuid(), params, messageType, commandName);
     // Log
-    Logging.logReceivedAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, result);
+    Logging.logReturnedAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, result);
     return result;
   }
 }

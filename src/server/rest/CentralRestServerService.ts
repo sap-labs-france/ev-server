@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { Action } from '../../types/Authorization';
 import AssetService from './service/AssetService';
 import BillingService from './service/BillingService';
 import CarService from './service/CarService';
@@ -29,7 +28,7 @@ class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
   // eslint-disable-next-line no-undef
   private paths = new Map<string, number>();
-  private actions = new Array<Function>();
+  private actions = new Array<(action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void>>();
 
   private constructor(httpVerb: string) {
     switch (httpVerb) {
@@ -187,7 +186,9 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT]: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTIONS]: ConnectionService.handleGetConnections.bind(this),
           [ServerAction.INTEGRATION_CONNECTION]: ConnectionService.handleGetConnection.bind(this),
-          [ServerAction.PING]: (action: Action, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
+          [ServerAction.PING]: (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
+            res.sendStatus(200);
+          },
         });
         break;
 
@@ -250,20 +251,20 @@ class RequestMapper {
     return RequestMapper.instances.get(method);
   }
 
-  public registerOneActionManyPaths(action: Function, ...paths: ServerAction[]) {
+  public registerOneActionManyPaths(action: (action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void>, ...paths: ServerAction[]) {
     const index = this.actions.push(action) - 1;
     for (const path of paths) {
       this.paths.set(path, index);
     }
   }
 
-  public registerJsonActionsPaths(dict: { [key in ServerAction]?: Function; }) {
+  public registerJsonActionsPaths(dict: { [key in ServerAction]?: (action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void>; }) {
     for (const key in dict) {
       this.registerOneActionManyPaths(dict[key], key as ServerAction);
     }
   }
 
-  public getActionFromPath(path: string): Function {
+  public getActionFromPath(path: string): (action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void> {
     if (!this.paths.has(path)) {
       return UtilsService.handleUnknownAction.bind(this);
     }
@@ -274,9 +275,9 @@ class RequestMapper {
 export default class CentralRestServerService {
   // Util Service
   public static async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Parse the action
-    const action = req.params.action as ServerAction;
     try {
+      // Parse the action
+      const action = req.params.action as ServerAction;
       // Check Context
       switch (req.method) {
         // Create Request
@@ -292,11 +293,7 @@ export default class CentralRestServerService {
               break;
             // Firmware Download
             case ServerAction.FIRMWARE_DOWNLOAD:
-              try {
-                await ChargingStationService.handleGetFirmware(action, req, res, next);
-              } catch (error) {
-                Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-              }
+              await ChargingStationService.handleGetFirmware(action, req, res, next);
               break;
             default:
               // Delegate
@@ -305,7 +302,7 @@ export default class CentralRestServerService {
           break;
       }
     } catch (error) {
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      next(error);
     }
   }
 
@@ -328,7 +325,7 @@ export default class CentralRestServerService {
       // Execute
       await handleRequest(action, req, res, next);
     } catch (error) {
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      next(error);
     }
   }
 }

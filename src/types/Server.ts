@@ -356,4 +356,7 @@ export enum ServerAction {
   SMART_CHARGING = 'SmartCharging',
 
   INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',
+
+  HTTP_REQUEST = 'HttpRequest',
+  HTTP_RESPONSE = 'HttpResponse',
 }
