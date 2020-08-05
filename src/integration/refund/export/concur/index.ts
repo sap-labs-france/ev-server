@@ -1,1 +1,1 @@
-export { default } from '../../dummy/DummyRefundIntegration';
+export { default } from '../../concur';
