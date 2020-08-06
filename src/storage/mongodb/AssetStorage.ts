@@ -202,6 +202,7 @@ export default class AssetStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteArea.siteID');
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project

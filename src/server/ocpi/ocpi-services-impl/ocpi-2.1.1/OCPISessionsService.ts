@@ -159,7 +159,6 @@ export default class OCPISessionsService {
         userID: transaction.userID
       };
     }
-
     await TransactionStorage.saveTransaction(tenantId, transaction);
     await this.updateConnector(tenantId, transaction);
   }
@@ -175,7 +174,6 @@ export default class OCPISessionsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenantId, cdr.id);
     if (!transaction) {
       throw new AppError({
@@ -187,7 +185,6 @@ export default class OCPISessionsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     if (!cdr.total_cost) {
       cdr.total_cost = 0;
     }
@@ -200,7 +197,6 @@ export default class OCPISessionsService {
     if (!cdr.total_parking_time) {
       cdr.total_parking_time = 0;
     }
-
     transaction.priceUnit = cdr.currency;
     transaction.price = cdr.total_cost;
     transaction.roundedPrice = Utils.convertToFloat(cdr.total_cost.toFixed(2));
@@ -222,11 +218,9 @@ export default class OCPISessionsService {
       inactivityStatus: transaction.currentInactivityStatus,
       userID: transaction.userID
     };
-
     if (!transaction.ocpiData) {
       transaction.ocpiData = {};
     }
-
     transaction.ocpiData.cdr = cdr;
     await TransactionStorage.saveTransaction(tenantId, transaction);
     await this.updateConnector(tenantId, transaction);

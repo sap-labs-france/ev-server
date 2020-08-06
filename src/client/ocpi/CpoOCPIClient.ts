@@ -146,8 +146,8 @@ export default class CpoOCPIClient extends OCPIClient {
     // Build payload
     const payload: OCPILocationReference =
     {
-      'location_id': siteID,
-      'evse_uids': [OCPIUtils.buildEvseUID(chargingStation)]
+      location_id: siteID,
+      evse_uids: [OCPIUtils.buildEvseUID(chargingStation)]
     };
     // Log
     Logging.logDebug({
@@ -161,7 +161,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const response = await this.axiosInstance.post(tokensUrl, payload,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
       });
@@ -216,18 +216,20 @@ export default class CpoOCPIClient extends OCPIClient {
     // Build payload
     const ocpiSession: OCPISession =
     {
-      'id': authorizationId,
-      'start_datetime': transaction.timestamp,
-      'kwh': 0,
-      'total_cost': transaction.currentCumulatedPrice,
-      'auth_method': OCPIAuthMethod.AUTH_REQUEST,
-      'auth_id': ocpiToken.auth_id,
-      'location': ocpiLocation,
-      'currency': this.settings.currency,
-      'status': OCPISessionStatus.PENDING,
-      'authorization_id': authorizationId,
-      'last_updated': transaction.timestamp
+      id: authorizationId,
+      start_datetime: transaction.timestamp,
+      kwh: 0,
+      auth_method: OCPIAuthMethod.AUTH_REQUEST,
+      auth_id: ocpiToken.auth_id,
+      location: ocpiLocation,
+      currency: this.settings.currency,
+      status: OCPISessionStatus.PENDING,
+      authorization_id: authorizationId,
+      last_updated: transaction.timestamp
     };
+    if (transaction.currentCumulatedPrice > 0) {
+      ocpiSession.total_cost = transaction.currentCumulatedPrice;
+    }
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -270,7 +272,9 @@ export default class CpoOCPIClient extends OCPIClient {
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
     transaction.ocpiData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
     transaction.ocpiData.session.last_updated = transaction.currentTimestamp;
-    transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice;
+    if (transaction.currentCumulatedPrice > 0) {
+      transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice;
+    }
     transaction.ocpiData.session.currency = this.settings.currency;
     transaction.ocpiData.session.status = OCPISessionStatus.ACTIVE;
     transaction.ocpiData.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
@@ -278,11 +282,13 @@ export default class CpoOCPIClient extends OCPIClient {
     const patchBody: Partial<OCPISession> = {
       kwh: transaction.ocpiData.session.kwh,
       last_updated: transaction.ocpiData.session.last_updated,
-      total_cost: transaction.ocpiData.session.total_cost,
       currency: transaction.ocpiData.session.currency,
       status: transaction.ocpiData.session.status,
       charging_periods: transaction.ocpiData.session.charging_periods
     };
+    if (transaction.currentCumulatedPrice > 0) {
+      patchBody.total_cost = transaction.ocpiData.session.total_cost;
+    }
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -328,7 +334,9 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
     transaction.ocpiData.session.kwh = transaction.stop.totalConsumptionWh / 1000;
-    transaction.ocpiData.session.total_cost = transaction.stop.roundedPrice;
+    if (transaction.stop.roundedPrice > 0) {
+      transaction.ocpiData.session.total_cost = transaction.stop.roundedPrice;
+    }
     transaction.ocpiData.session.end_datetime = transaction.stop.timestamp;
     transaction.ocpiData.session.last_updated = transaction.stop.timestamp;
     transaction.ocpiData.session.status = OCPISessionStatus.COMPLETED;
@@ -384,7 +392,6 @@ export default class CpoOCPIClient extends OCPIClient {
       total_parking_time: transaction.stop.totalInactivitySecs,
       total_time: transaction.stop.totalDurationSecs / 3600, // In hours
       total_energy: transaction.stop.totalConsumptionWh / 1000,
-      total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
       currency: this.settings.currency,
       auth_id: transaction.ocpiData.session.auth_id,
       authorization_id: transaction.ocpiData.session.authorization_id,
@@ -393,6 +400,9 @@ export default class CpoOCPIClient extends OCPIClient {
       charging_periods: await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction),
       last_updated: transaction.stop.timestamp
     };
+    if (transaction.stop.roundedPrice > 0) {
+      transaction.ocpiData.cdr.total_cost = transaction.stop.roundedPrice;
+    }
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -405,7 +415,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const response = await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
       });
@@ -515,7 +525,7 @@ export default class CpoOCPIClient extends OCPIClient {
     await this.axiosInstance.patch(fullUrl, payload,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
       });
@@ -542,7 +552,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const response = await this.axiosInstance.get(`${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`
+          'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
       });
     Logging.logDebug({
@@ -556,7 +566,7 @@ export default class CpoOCPIClient extends OCPIClient {
       await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
         {
           headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`,
+            'Authorization': `Token ${this.ocpiEndpoint.token}`,
             'Content-Type': 'application/json'
           },
         });
@@ -596,7 +606,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const response = await this.axiosInstance.get(sessionsUrl,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`
+          'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
       });
     Logging.logDebug({
@@ -713,7 +723,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const response = await this.axiosInstance.get(locationUrl,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`
+          'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
       });
     Logging.logDebug({
@@ -745,14 +755,12 @@ export default class CpoOCPIClient extends OCPIClient {
       objectIDsInFailure: [],
       objectIDsInSuccess: []
     };
-
     // Define get option
     const options = {
       'addChargeBoxID': true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_CHECK_LOCATIONS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS)
     };
-
     // Get all EVSEs from all locations
     const locations = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
     // Loop through locations
@@ -770,13 +778,12 @@ export default class CpoOCPIClient extends OCPIClient {
           result.failure++;
           result.objectIDsInFailure.push(String(location.id));
           result.logs.push(
-            `Failure checking location ${location.id}:${error.message}`
+            `Failure checking location ${location.id}: ${error.message}`
           );
         }
       }
       result.total++;
     }
-
     return result;
   }
 
@@ -795,7 +802,7 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     // Define get option
     const options = {
-      'addChargeBoxID': true,
+      addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_PATCH_STATUS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_PATCH_STATUS)
     };
@@ -848,8 +855,8 @@ export default class CpoOCPIClient extends OCPIClient {
               NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                 this.tenant.id,
                 {
-                  'location': location.name,
-                  'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
+                  location: location.name,
+                  evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
                 }
               );
             }
@@ -882,19 +889,19 @@ export default class CpoOCPIClient extends OCPIClient {
     // Set result
     if (sendResult) {
       this.ocpiEndpoint.lastPatchJobResult = {
-        'successNbr': sendResult.success,
-        'failureNbr': sendResult.failure,
-        'totalNbr': sendResult.total,
-        'chargeBoxIDsInFailure': _.uniq(sendResult.chargeBoxIDsInFailure),
-        'chargeBoxIDsInSuccess': _.uniq(sendResult.chargeBoxIDsInSuccess)
+        successNbr: sendResult.success,
+        failureNbr: sendResult.failure,
+        totalNbr: sendResult.total,
+        chargeBoxIDsInFailure: _.uniq(sendResult.chargeBoxIDsInFailure),
+        chargeBoxIDsInSuccess: _.uniq(sendResult.chargeBoxIDsInSuccess)
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
-        'successNbr': 0,
-        'failureNbr': 0,
-        'totalNbr': 0,
-        'chargeBoxIDsInFailure': [],
-        'chargeBoxIDsInSuccess': []
+        successNbr: 0,
+        failureNbr: 0,
+        totalNbr: 0,
+        chargeBoxIDsInFailure: [],
+        chargeBoxIDsInSuccess: []
       };
     }
     // Save
