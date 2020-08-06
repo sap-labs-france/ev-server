@@ -81,7 +81,7 @@ export default abstract class WSConnection {
     }
     Logging.logDebug({
       tenantID: this.tenantID,
-      action: ServerAction.WS_JSON_CONNECTION_OPENED,
+      action: ServerAction.WS_CONNECTION,
       module: MODULE_NAME, method: 'constructor',
       message: `Charging Station attemps to connect with URL: '${req.url}'`,
     });
@@ -95,7 +95,7 @@ export default abstract class WSConnection {
       // Log in the right Tenants
       Logging.logException(
         backendError,
-        ServerAction.WS_JSON_CONNECTION_OPENED,
+        ServerAction.WS_CONNECTION,
         Constants.CENTRAL_SERVER,
         MODULE_NAME, 'constructor',
         this.tenantID
