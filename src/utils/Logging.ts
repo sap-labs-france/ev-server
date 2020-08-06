@@ -1,7 +1,7 @@
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import { PerformanceObserver, performance } from 'perf_hooks';
-import jwtDecode from 'jwt-decode';
 
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
@@ -17,6 +17,7 @@ import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
+import jwtDecode from 'jwt-decode';
 import os from 'os';
 import { v4 as uuid } from 'uuid';
 
@@ -58,12 +59,6 @@ obs.observe({ entryTypes: ['measure'] });
 export default class Logging {
   private static traceOCPPCalls: { [key: string]: number } = {};
 
-  // Log Debug
-  public static logDebug(log: Log): void {
-    log.level = LogLevel.DEBUG;
-    Logging._log(log);
-  }
-
   // Debug DB
   public static traceStart(module: string, method: string): string {
     let uniqueID = '0';
@@ -103,6 +98,18 @@ export default class Logging {
       performance.mark(`End ${module}.${method}(${uniqueID})`);
       performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`);
     }
+  }
+
+  // Log Debug
+  public static logDebug(log: Log): void {
+    log.level = LogLevel.DEBUG;
+    Logging._log(log);
+  }
+
+  // Log Security Debug
+  public static logSecurityDebug(log: Log): void {
+    log.type = LogType.SECURITY;
+    Logging.logDebug(log);
   }
 
   // Log Info
@@ -163,11 +170,11 @@ export default class Logging {
     }
     req['timestamp'] = new Date();
     // Log
-    Logging.logDebug({
+    Logging.logSecurityDebug({
       tenantID: tenantID,
       action: ServerAction.HTTP_REQUEST,
       user: userToken,
-      message: `HTTP Request << ${req.method} '${req.url}'`,
+      message: `Express HTTP Request << ${req.method} '${req.url}'`,
       module: MODULE_NAME, method: 'logExpressRequest',
       detailedMessages: {
         url: req.url,
@@ -198,17 +205,15 @@ export default class Logging {
         durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
       }
       // Compute Length
-      let contentLengthKB = res.getHeader('content-length') as number;
-      if (contentLengthKB) {
-        contentLengthKB /= 1000;
+      let contentLengthKB = 0;
+      if (res.getHeader('content-length')) {
+        contentLengthKB = res.getHeader('content-length') as number / 1000;
       }
-      Logging.logDebug({
+      Logging.logSecurityDebug({
         tenantID: tenantID,
         user: req.user,
         action: ServerAction.HTTP_RESPONSE,
-        message: req['timestamp'] ?
-          `HTTP Response - ${durationSecs}s - ${!isNaN(contentLengthKB) ? contentLengthKB : '? '}kB >> ${req.method}/${res.statusCode} '${req.url}'` :
-          `HTTP Response - ${!isNaN(contentLengthKB) ? contentLengthKB : '? '}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
+        message: `Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
         module: MODULE_NAME, method: 'logExpressResponse',
         detailedMessages: {
           request: req.url,
@@ -222,13 +227,62 @@ export default class Logging {
   }
 
   public static logExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
-    // Rebuild the Action if possible
-    let action: ServerAction;
-    const uriAction = req.url.split('/')[3];
-    if (uriAction) {
-      action = uriAction.split('?')[0] as ServerAction;
+    // Log
+    Logging.logActionExceptionMessageAndSendResponse(ServerAction.HTTP_ERROR, error, req, res, next);
+  }
+
+  public static logAxiosRequest(tenantID: string, request: AxiosRequestConfig): void {
+    request['timestamp'] = new Date();
+    Logging.logSecurityDebug({
+      tenantID: tenantID,
+      action: ServerAction.HTTP_REQUEST,
+      message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
+      module: MODULE_NAME, method: 'interceptor',
+      detailedMessages: { request }
+    });
+  }
+
+  public static logAxiosResponse(tenantID: string, response: AxiosResponse): void {
+    // Compute duration
+    let durationSecs = 0;
+    if (response.config['timestamp']) {
+      durationSecs = (new Date().getTime() - response.config['timestamp'].getTime()) / 1000;
     }
-    Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Compute Length
+    let contentLengthKB = 0;
+    if (response.config.headers['Content-Length']) {
+      contentLengthKB = response.config.headers['Content-Length'] / 1000;
+    }
+    Logging.logSecurityDebug({
+      tenantID: tenantID,
+      action: ServerAction.HTTP_RESPONSE,
+      message: `Axios HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+      module: MODULE_NAME, method: 'interceptor',
+      detailedMessages: {
+        status: response.status,
+        statusText: response.statusText,
+        request: response.config,
+        response: response.data
+      }
+    });
+  }
+
+  public static logAxiosError(tenantID: string, error: AxiosError): void {
+    // Error handling is done outside to get the proper module information
+    Logging.logSecurityError({
+      tenantID: tenantID,
+      action: ServerAction.HTTP_ERROR,
+      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response.status} '${error.config.url}' - ${error.message}`,
+      module: MODULE_NAME, method: 'interceptor',
+      detailedMessages: {
+        url: error.config.url,
+        status: error.response.status,
+        statusText: error.response.statusText,
+        message: error.message,
+        response: error.response.data,
+        axiosError: error.toJSON(),
+      }
+    });
   }
 
   public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, args: any): void {
@@ -337,6 +391,7 @@ export default class Logging {
     // Log
     Logging.logError({
       tenantID: tenantID,
+      type: LogType.SECURITY,
       user: exception.user,
       source: exception.source,
       module: exception.module,
@@ -362,6 +417,7 @@ export default class Logging {
     // Log
     Logging.logError({
       tenantID: tenantID,
+      type: LogType.SECURITY,
       source: exception.params.source,
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
@@ -388,6 +444,7 @@ export default class Logging {
     // Log
     Logging.logError({
       tenantID: tenantID,
+      type: LogType.SECURITY,
       source: exception.params.source,
       module: exception.params.module,
       method: exception.params.method,
@@ -404,6 +461,7 @@ export default class Logging {
     // Log
     Logging.logSecurityError({
       tenantID: tenantID,
+      type: LogType.SECURITY,
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
       module: exception.params.module,
