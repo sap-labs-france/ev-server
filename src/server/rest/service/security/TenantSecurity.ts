@@ -38,6 +38,7 @@ export default class TenantSecurity {
       filteredTenant.email = tenant.email;
       filteredTenant.subdomain = tenant.subdomain;
       filteredTenant.components = tenant.components;
+      filteredTenant.address = tenant.address;
 
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

@@ -75,6 +75,21 @@ export default class TenantService {
     next();
   }
 
+  public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
+    // Charge Box is mandatory
+    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenantLogo', req.user);
+    // Get it
+    const tenantLogo = await TenantStorage.getTenantLogo(tenantID);
+    // Check
+    UtilsService.assertObjectExists(action, tenantLogo, `Tenant with ID '${tenantID}' does not exist`,
+      MODULE_NAME, 'handleGetTenantLogo', req.user);
+    // Return
+    res.json({ id: tenantLogo.id, logo: tenantLogo.logo });
+    next();
+  }
+
   public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
