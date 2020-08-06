@@ -800,7 +800,7 @@ export default class TransactionStorage {
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation({
         tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-        asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+        asField: 'siteArea', oneToOneCardinality: true
       });
     }
     // Build facets for each type of error if any

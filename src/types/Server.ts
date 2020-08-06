@@ -360,4 +360,5 @@ export enum ServerAction {
 
   HTTP_REQUEST = 'HttpRequest',
   HTTP_RESPONSE = 'HttpResponse',
+  HTTP_ERROR = 'HttpError',
 }
