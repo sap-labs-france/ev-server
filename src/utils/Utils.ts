@@ -92,6 +92,23 @@ export default class Utils {
     return threePhases;
   }
 
+  public static getNumberOfUsedPhaseInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    let nbrOfPhases = 0;
+    if (currentType === CurrentType.AC) {
+      if (transaction.currentInstantAmpsL1 > 0) {
+        nbrOfPhases++;
+      }
+      if (transaction.currentInstantAmpsL2 > 0) {
+        nbrOfPhases++;
+      }
+      if (transaction.currentInstantAmpsL3 > 0) {
+        nbrOfPhases++;
+      }
+    }
+    return nbrOfPhases;
+  }
+
   public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number): number {
     let intervalMins = 0;
     if (!chargingStation || !chargingStation.connectors) {
