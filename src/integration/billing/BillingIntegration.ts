@@ -354,13 +354,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       await BillingStorage.saveInvoice(tenantID, invoice);
       const invoicedocument = await this.downloadInvoiceDocument(invoice);
       await BillingStorage.saveInvoiceDocument(tenantID, invoicedocument);
-      Logging.logDebug({
-        message: 'Sent invoice to user',
-        action: ServerAction.BILLING_SEND_INVOICE,
-        method: 'sendInvoiceToUser',
-        module: 'Billing',
-        tenantID: tenantID
-      });
     } catch (error) {
       Logging.logError({
         tenantID: tenantID,
