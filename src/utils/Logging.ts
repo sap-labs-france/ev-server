@@ -651,35 +651,31 @@ export default class Logging {
 
   private static _anonymizeSensitiveData(message: any) {
     if (!message) {
+      // eslint-disable-next-line no-useless-return
       return;
-    }
-    if (typeof message === 'object') {
+    } else if (typeof message === 'string') {
+      // Anonymize
+      message.replace(/((repeat|)[pP]assword|captcha):(.*)/g, '$1: ' + Constants.ANONYMIZED_VALUE);
+    } else if (typeof message === 'object') {
       for (const key in message) {
-        if (message.key) {
-          const value = message[key];
-          // Another JSon?
-          if (typeof value === 'object') {
-            Logging._anonymizeSensitiveData(message[key]);
-          }
-          // Array?
-          if (Array.isArray(value)) {
-            Logging._anonymizeSensitiveData(value);
-          }
-          // String?
-          if (typeof value === 'string') {
-            if (key === 'password' ||
-                key === 'repeatPassword' ||
-                key === 'captcha') {
-              // Anonymize
-              message[key] = Constants.ANONYMIZED_VALUE;
-            }
+        const value = message[key];
+        // String?
+        if (typeof value === 'string') {
+          if (key === 'password' ||
+              key === 'repeatPassword' ||
+              key === 'captcha') {
+            // Anonymize
+            message[key] = Constants.ANONYMIZED_VALUE;
           }
         }
+        Logging._anonymizeSensitiveData(value);
       }
     } else if (Array.isArray(message)) {
       for (const item of message) {
         Logging._anonymizeSensitiveData(item);
       }
+    } else {
+      // FIXME: Log missed anonymization
     }
   }
 
