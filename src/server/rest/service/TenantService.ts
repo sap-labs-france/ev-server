@@ -78,7 +78,6 @@ export default class TenantService {
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
-    // Charge Box is mandatory
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenantLogo', req.user);
     // Get it
     const tenantLogo = await TenantStorage.getTenantLogo(tenantID);

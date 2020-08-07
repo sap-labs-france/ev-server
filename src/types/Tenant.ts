@@ -7,7 +7,7 @@ export default interface Tenant extends CreatedUpdatedProps {
   email: string;
   subdomain: string;
   address: Address;
-  logo?: string;
+  logo: string;
   components: {
     ocpi?: {
       active: boolean;
