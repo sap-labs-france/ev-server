@@ -211,7 +211,7 @@ export default class Logging {
         // Compute Length
         let contentLengthKB = 0;
         if (res.getHeader('content-length')) {
-          contentLengthKB = res.getHeader('content-length') as number / 1000;
+          contentLengthKB = res.getHeader('content-length') as number / 1024;
         }
         Logging.logSecurityDebug({
           tenantID: tenantID,
