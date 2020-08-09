@@ -207,7 +207,7 @@ export default class Logging {
       // Compute Length
       let contentLengthKB = 0;
       if (res.getHeader('content-length')) {
-        contentLengthKB = res.getHeader('content-length') as number / 1000;
+        contentLengthKB = res.getHeader('content-length') as number / 1024;
       }
       Logging.logSecurityDebug({
         tenantID: tenantID,
@@ -657,7 +657,7 @@ export default class Logging {
       // Anonymize
       message.replace(/((repeat|)[pP]assword|captcha):(.*)/g, '$1: ' + Constants.ANONYMIZED_VALUE);
     } else if (typeof message === 'object') {
-      for (const key in message) {
+      for (const key of Object.keys(message)) {
         const value = message[key];
         // String?
         if (typeof value === 'string') {
@@ -675,7 +675,16 @@ export default class Logging {
         Logging._anonymizeSensitiveData(item);
       }
     } else {
-      // FIXME: Log missed anonymization
+      // Log
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        type: LogType.SECURITY,
+        module: MODULE_NAME,
+        method: '_anonymizeSensitiveData',
+        action: ServerAction.LOGGING,
+        message: message,
+        detailedMessages: { message: message }
+      });
     }
   }
 
