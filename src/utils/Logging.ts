@@ -180,7 +180,7 @@ export default class Logging {
         url: req.url,
         method: req.method,
         query: req.query,
-        body: req.body,
+        body: Utils.cloneJSonDocument(req.body),
         locale: req.locale,
         xhr: req.xhr,
         ip: req.ip,
@@ -238,7 +238,9 @@ export default class Logging {
       action: ServerAction.HTTP_REQUEST,
       message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
       module: MODULE_NAME, method: 'interceptor',
-      detailedMessages: { request }
+      detailedMessages: {
+        request: Utils.cloneJSonDocument(request),
+      }
     });
   }
 
@@ -619,7 +621,7 @@ export default class Logging {
     // Process
     log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
     // Anonymize message
-    Logging._anonymizeSensitiveData(log.detailedMessages);
+    Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check
     if (log.detailedMessages) {
       // Array?
@@ -649,21 +651,21 @@ export default class Logging {
     }
   }
 
-  private static _anonymizeSensitiveData(message: any) {
+  private static anonymizeSensitiveData(message: any) {
     if (!message) {
       return;
     }
     if (typeof message === 'object') {
       for (const key in message) {
-        if (message.key) {
+        if (message[key]) {
           const value = message[key];
           // Another JSon?
           if (typeof value === 'object') {
-            Logging._anonymizeSensitiveData(message[key]);
+            Logging.anonymizeSensitiveData(message[key]);
           }
           // Array?
           if (Array.isArray(value)) {
-            Logging._anonymizeSensitiveData(value);
+            Logging.anonymizeSensitiveData(value);
           }
           // String?
           if (typeof value === 'string') {
@@ -678,7 +680,7 @@ export default class Logging {
       }
     } else if (Array.isArray(message)) {
       for (const item of message) {
-        Logging._anonymizeSensitiveData(item);
+        Logging.anonymizeSensitiveData(item);
       }
     }
   }
