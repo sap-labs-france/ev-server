@@ -668,12 +668,12 @@ export default class Logging {
   }
 
   private static anonymizeSensitiveData(message: any) {
-    if (!message) {
+    if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
       // eslint-disable-next-line no-useless-return
       return;
     } else if (typeof message === 'string') {
       // Anonymize
-      message.replace(/((repeat|)[pP]assword|captcha):(.*)/g, '$1: ' + Constants.ANONYMIZED_VALUE);
+      message.replace(/((repeat|)[pP]assword|captcha)(\s)(=|:)(\s)(.*)/g, '$1$3$4$5' + Constants.ANONYMIZED_VALUE);
     } else if (typeof message === 'object') {
       for (const key of Object.keys(message)) {
         const value = message[key];
@@ -685,8 +685,9 @@ export default class Logging {
             // Anonymize
             message[key] = Constants.ANONYMIZED_VALUE;
           }
+        } else {
+          Logging.anonymizeSensitiveData(value);
         }
-        Logging._anonymizeSensitiveData(value);
       }
     } else if (Array.isArray(message)) {
       for (const item of message) {
@@ -698,7 +699,7 @@ export default class Logging {
         tenantID: Constants.DEFAULT_TENANT,
         type: LogType.SECURITY,
         module: MODULE_NAME,
-        method: '_anonymizeSensitiveData',
+        method: 'anonymizeSensitiveData',
         action: ServerAction.LOGGING,
         message: 'No matching object type for log message anonymisation',
         detailedMessages: { message: message }
