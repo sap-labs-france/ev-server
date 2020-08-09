@@ -259,7 +259,7 @@ export default class Logging {
     // Compute Length
     let contentLengthKB = 0;
     if (response.config.headers['Content-Length']) {
-      contentLengthKB = response.config.headers['Content-Length'] / 1000;
+      contentLengthKB = response.config.headers['Content-Length'] / 1024;
     }
     Logging.logSecurityDebug({
       tenantID: tenantID,
@@ -664,6 +664,10 @@ export default class Logging {
     } else if (typeof message === 'string') {
       // Anonymize
       message.replace(/((repeat|)[pP]assword|captcha)(\s)(=|:)(\s)(.*)/g, '$1$3$4$5' + Constants.ANONYMIZED_VALUE);
+    } else if (Array.isArray(message)) {
+      for (const item of message) {
+        Logging.anonymizeSensitiveData(item);
+      }
     } else if (typeof message === 'object') {
       for (const key of Object.keys(message)) {
         const value = message[key];
@@ -678,10 +682,6 @@ export default class Logging {
         } else {
           Logging.anonymizeSensitiveData(value);
         }
-      }
-    } else if (Array.isArray(message)) {
-      for (const item of message) {
-        Logging.anonymizeSensitiveData(item);
       }
     } else {
       // Log
