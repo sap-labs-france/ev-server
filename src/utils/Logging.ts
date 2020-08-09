@@ -1,25 +1,26 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Log, LogLevel, LogType } from '../types/Log';
+import CFLog from 'cf-nodejs-logging-support';
+import cfenv from 'cfenv';
+import cluster from 'cluster';
 import { NextFunction, Request, Response } from 'express';
+import jwtDecode from 'jwt-decode';
+import os from 'os';
 import { PerformanceObserver, performance } from 'perf_hooks';
-
+import { v4 as uuid } from 'uuid';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
-import CFLog from 'cf-nodejs-logging-support';
-import Configuration from '../utils/Configuration';
-import Constants from './Constants';
-import { HTTPError } from '../types/HTTPError';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import { HTTPError } from '../types/HTTPError';
+import { Log, LogLevel, LogType } from '../types/Log';
 import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
+import Configuration from '../utils/Configuration';
+import Constants from './Constants';
 import Utils from './Utils';
-import cfenv from 'cfenv';
-import cluster from 'cluster';
-import jwtDecode from 'jwt-decode';
-import os from 'os';
-import { v4 as uuid } from 'uuid';
+
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
@@ -162,19 +163,16 @@ export default class Logging {
     });
   }
 
-  public static logExpressRequest(req: Request, res: Response, next: NextFunction): void {
+  public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userToken = Logging.getUserTokenFromHttpRequest(req);
-      let tenantID: string;
-      if (userToken) {
-        tenantID = userToken.tenantID;
-      }
+      const tenantID = await Logging.retrieveTenantFromHttpRequest(req);
+      // Check perfs
       req['timestamp'] = new Date();
       // Log
       Logging.logSecurityDebug({
-        tenantID: tenantID,
+        tenantID,
         action: ServerAction.HTTP_REQUEST,
-        user: userToken,
+        user: Logging.getUserTokenFromHttpRequest(req),
         message: `Express HTTP Request << ${req.method} '${req.url}'`,
         module: MODULE_NAME, method: 'logExpressRequest',
         detailedMessages: {
@@ -195,6 +193,33 @@ export default class Logging {
     }
   }
 
+  public static async retrieveTenantFromHttpRequest(req: Request): Promise<string> {
+    // Try from Token
+    const userToken = Logging.getUserTokenFromHttpRequest(req);
+    if (userToken) {
+      return userToken.tenantID;
+    }
+    // Try from body
+    if (req.body?.tenant && req.body.tenant !== '') {
+      const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
+      if (tenant) {
+        return tenant.id;
+      }
+    }
+    // Try from host header
+    if (req.headers?.host) {
+      const hostParts = req.headers.host.split('.');
+      if (hostParts.length > 1) {
+        // Try with the first param
+        const tenant = await TenantStorage.getTenantBySubdomain(hostParts[0]);
+        if (tenant) {
+          return tenant.id;
+        }
+      }
+    }
+    return Constants.DEFAULT_TENANT;
+  }
+
   public static logExpressResponse(req: Request, res: Response, next: NextFunction): void {
     res.on('finish', () => {
       try {
@@ -211,7 +236,7 @@ export default class Logging {
         // Compute Length
         let contentLengthKB = 0;
         if (res.getHeader('content-length')) {
-          contentLengthKB = res.getHeader('content-length') as number / 1024;
+          contentLengthKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
         }
         Logging.logSecurityDebug({
           tenantID: tenantID,
@@ -658,28 +683,41 @@ export default class Logging {
   }
 
   private static anonymizeSensitiveData(message: any) {
-    if (!message) {
+    if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
       return;
     }
     if (typeof message === 'object') {
       for (const key in message) {
         if (message[key]) {
-          const value = message[key];
           // Another JSon?
-          if (typeof value === 'object') {
+          if (typeof message[key] === 'object') {
             Logging.anonymizeSensitiveData(message[key]);
           }
           // Array?
-          if (Array.isArray(value)) {
-            Logging.anonymizeSensitiveData(value);
+          if (Array.isArray(message[key])) {
+            Logging.anonymizeSensitiveData(message[key]);
           }
           // String?
-          if (typeof value === 'string') {
-            if (key === 'password' ||
-                key === 'repeatPassword' ||
-                key === 'captcha') {
-              // Anonymize
-              message[key] = Constants.ANONYMIZED_VALUE;
+          if (typeof message[key] === 'string') {
+            for (const sensitiveData of Constants.SENSITIVE_DATA) {
+              if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
+                // Anonymize
+                message[key] = Constants.ANONYMIZED_VALUE;
+              }
+            }
+            // Check query string
+            const dataParts: string[] = message[key].split('&');
+            if (dataParts.length > 1) {
+              for (let i = 0; i < dataParts.length; i++) {
+                const dataPart = dataParts[i];
+                for (const sensitiveData of Constants.SENSITIVE_DATA) {
+                  if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+                    // Anonymize
+                    dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+                  }
+                }
+              }
+              message[key] = dataParts.join('&');
             }
           }
         }
