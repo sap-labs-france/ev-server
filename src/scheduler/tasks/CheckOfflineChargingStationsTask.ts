@@ -1,17 +1,17 @@
-import moment from 'moment';
 import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
-import LockingManager from '../../locking/LockingManager';
-import NotificationHandler from '../../notification/NotificationHandler';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import { LockEntity } from '../../types/Locking';
-import { OCPPGetConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
-import { ServerAction } from '../../types/Server';
 import { CheckOfflineChargingStationsTaskConfig } from '../../types/TaskConfig';
-import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
+import { LockEntity } from '../../types/Locking';
+import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import NotificationHandler from '../../notification/NotificationHandler';
+import { OCPPGetConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
 import SchedulerTask from '../SchedulerTask';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
+import Utils from '../../utils/Utils';
+import moment from 'moment';
 
 export default class CheckOfflineChargingStationsTask extends SchedulerTask {
 

@@ -166,18 +166,8 @@ export default class Logging {
     try {
       const userToken = Logging.getUserTokenFromHttpRequest(req);
       let tenantID: string;
-      if (req.user) {
-        tenantID = req.user.tenantID;
-      }
-      // Compute duration
-      let durationSecs = 0;
-      if (req['timestamp']) {
-        durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
-      }
-      // Compute Length
-      let contentLengthKB = 0;
-      if (res.getHeader('content-length')) {
-        contentLengthKB = res.getHeader('content-length') as number / 1024;
+      if (userToken) {
+        tenantID = userToken.tenantID;
       }
       req['timestamp'] = new Date();
       // Log
@@ -269,7 +259,7 @@ export default class Logging {
     // Compute Length
     let contentLengthKB = 0;
     if (response.config.headers['Content-Length']) {
-      contentLengthKB = response.config.headers['Content-Length'] / 1000;
+      contentLengthKB = response.config.headers['Content-Length'] / 1024;
     }
     Logging.logSecurityDebug({
       tenantID: tenantID,
