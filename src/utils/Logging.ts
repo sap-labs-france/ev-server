@@ -166,8 +166,18 @@ export default class Logging {
     try {
       const userToken = Logging.getUserTokenFromHttpRequest(req);
       let tenantID: string;
-      if (userToken) {
-        tenantID = userToken.tenantID;
+      if (req.user) {
+        tenantID = req.user.tenantID;
+      }
+      // Compute duration
+      let durationSecs = 0;
+      if (req['timestamp']) {
+        durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
+      }
+      // Compute Length
+      let contentLengthKB = 0;
+      if (res.getHeader('content-length')) {
+        contentLengthKB = res.getHeader('content-length') as number / 1024;
       }
       req['timestamp'] = new Date();
       // Log
@@ -665,7 +675,7 @@ export default class Logging {
       // Anonymize
       message.replace(/((repeat|)[pP]assword|captcha):(.*)/g, '$1: ' + Constants.ANONYMIZED_VALUE);
     } else if (typeof message === 'object') {
-      for (const key in message) {
+      for (const key of Object.keys(message)) {
         const value = message[key];
         // String?
         if (typeof value === 'string') {
@@ -683,7 +693,16 @@ export default class Logging {
         Logging.anonymizeSensitiveData(item);
       }
     } else {
-      // FIXME: Log missed anonymization
+      // Log
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        type: LogType.SECURITY,
+        module: MODULE_NAME,
+        method: '_anonymizeSensitiveData',
+        action: ServerAction.LOGGING,
+        message: message,
+        detailedMessages: { message: message }
+      });
     }
   }
 
