@@ -178,7 +178,7 @@ export default class Logging {
         detailedMessages: {
           url: req.url,
           method: req.method,
-          query: req.query,
+          query: Utils.cloneJSonDocument(req.query),
           body: Utils.cloneJSonDocument(req.body),
           locale: req.locale,
           xhr: req.xhr,
@@ -191,33 +191,6 @@ export default class Logging {
     } finally {
       next();
     }
-  }
-
-  public static async retrieveTenantFromHttpRequest(req: Request): Promise<string> {
-    // Try from Token
-    const userToken = Logging.getUserTokenFromHttpRequest(req);
-    if (userToken) {
-      return userToken.tenantID;
-    }
-    // Try from body
-    if (req.body?.tenant && req.body.tenant !== '') {
-      const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
-      if (tenant) {
-        return tenant.id;
-      }
-    }
-    // Try from host header
-    if (req.headers?.host) {
-      const hostParts = req.headers.host.split('.');
-      if (hostParts.length > 1) {
-        // Try with the first param
-        const tenant = await TenantStorage.getTenantBySubdomain(hostParts[0]);
-        if (tenant) {
-          return tenant.id;
-        }
-      }
-    }
-    return Constants.DEFAULT_TENANT;
   }
 
   public static logExpressResponse(req: Request, res: Response, next: NextFunction): void {
@@ -294,8 +267,8 @@ export default class Logging {
       detailedMessages: {
         status: response.status,
         statusText: response.statusText,
-        request: response.config,
-        response: response.data
+        request: Utils.cloneJSonDocument(response.config),
+        response: Utils.cloneJSonDocument(response.data)
       }
     });
   }
@@ -305,7 +278,7 @@ export default class Logging {
     Logging.logSecurityError({
       tenantID: tenantID,
       action: ServerAction.HTTP_ERROR,
-      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response.status} '${error.config.url}' - ${error.message}`,
+      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response?.status} '${error.config.url}' - ${error.message}`,
       module: MODULE_NAME, method: 'interceptor',
       detailedMessages: {
         url: error.config.url,
@@ -790,5 +763,32 @@ export default class Logging {
     } catch (error) {
       // Do nothing
     }
+  }
+
+  private static async retrieveTenantFromHttpRequest(req: Request): Promise<string> {
+    // Try from Token
+    const userToken = Logging.getUserTokenFromHttpRequest(req);
+    if (userToken) {
+      return userToken.tenantID;
+    }
+    // Try from body
+    if (req.body?.tenant && req.body.tenant !== '') {
+      const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
+      if (tenant) {
+        return tenant.id;
+      }
+    }
+    // Try from host header
+    if (req.headers?.host) {
+      const hostParts = req.headers.host.split('.');
+      if (hostParts.length > 1) {
+        // Try with the first param
+        const tenant = await TenantStorage.getTenantBySubdomain(hostParts[0]);
+        if (tenant) {
+          return tenant.id;
+        }
+      }
+    }
+    return Constants.DEFAULT_TENANT;
   }
 }
