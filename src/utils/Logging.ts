@@ -682,7 +682,7 @@ export default class Logging {
         module: MODULE_NAME,
         method: '_anonymizeSensitiveData',
         action: ServerAction.LOGGING,
-        message: message,
+        message: 'No matching object type for log message anonymisation',
         detailedMessages: { message: message }
       });
     }
