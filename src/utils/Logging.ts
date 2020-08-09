@@ -163,66 +163,72 @@ export default class Logging {
   }
 
   public static logExpressRequest(req: Request, res: Response, next: NextFunction): void {
-    const userToken = Logging.getUserTokenFromHttpRequest(req);
-    let tenantID: string;
-    if (userToken) {
-      tenantID = userToken.tenantID;
-    }
-    req['timestamp'] = new Date();
-    // Log
-    Logging.logSecurityDebug({
-      tenantID: tenantID,
-      action: ServerAction.HTTP_REQUEST,
-      user: userToken,
-      message: `Express HTTP Request << ${req.method} '${req.url}'`,
-      module: MODULE_NAME, method: 'logExpressRequest',
-      detailedMessages: {
-        url: req.url,
-        method: req.method,
-        query: req.query,
-        body: req.body,
-        locale: req.locale,
-        xhr: req.xhr,
-        ip: req.ip,
-        ips: req.ips,
-        httpVersion: req.httpVersion,
-        headers: req.headers,
+    try {
+      const userToken = Logging.getUserTokenFromHttpRequest(req);
+      let tenantID: string;
+      if (userToken) {
+        tenantID = userToken.tenantID;
       }
-    });
-    next();
+      req['timestamp'] = new Date();
+      // Log
+      Logging.logSecurityDebug({
+        tenantID: tenantID,
+        action: ServerAction.HTTP_REQUEST,
+        user: userToken,
+        message: `Express HTTP Request << ${req.method} '${req.url}'`,
+        module: MODULE_NAME, method: 'logExpressRequest',
+        detailedMessages: {
+          url: req.url,
+          method: req.method,
+          query: req.query,
+          body: Utils.cloneJSonDocument(req.body),
+          locale: req.locale,
+          xhr: req.xhr,
+          ip: req.ip,
+          ips: req.ips,
+          httpVersion: req.httpVersion,
+          headers: req.headers,
+        }
+      });
+    } finally {
+      next();
+    }
   }
 
   public static logExpressResponse(req: Request, res: Response, next: NextFunction): void {
     res.on('finish', () => {
-      // Retrieve Tenant ID if available
-      let tenantID: string;
-      if (req.user) {
-        tenantID = req.user.tenantID;
-      }
-      // Compute duration
-      let durationSecs = 0;
-      if (req['timestamp']) {
-        durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
-      }
-      // Compute Length
-      let contentLengthKB = 0;
-      if (res.getHeader('content-length')) {
-        contentLengthKB = res.getHeader('content-length') as number / 1024;
-      }
-      Logging.logSecurityDebug({
-        tenantID: tenantID,
-        user: req.user,
-        action: ServerAction.HTTP_RESPONSE,
-        message: `Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
-        module: MODULE_NAME, method: 'logExpressResponse',
-        detailedMessages: {
-          request: req.url,
-          status: res.statusCode,
-          statusMessage: res.statusMessage,
-          headers: res.getHeaders(),
+      try {
+        // Retrieve Tenant ID if available
+        let tenantID: string;
+        if (req.user) {
+          tenantID = req.user.tenantID;
         }
-      });
-      next();
+        // Compute duration
+        let durationSecs = 0;
+        if (req['timestamp']) {
+          durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
+        }
+        // Compute Length
+        let contentLengthKB = 0;
+        if (res.getHeader('content-length')) {
+          contentLengthKB = res.getHeader('content-length') as number / 1000;
+        }
+        Logging.logSecurityDebug({
+          tenantID: tenantID,
+          user: req.user,
+          action: ServerAction.HTTP_RESPONSE,
+          message: `Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
+          module: MODULE_NAME, method: 'logExpressResponse',
+          detailedMessages: {
+            request: req.url,
+            status: res.statusCode,
+            statusMessage: res.statusMessage,
+            headers: res.getHeaders(),
+          }
+        });
+      } finally {
+        next();
+      }
     });
   }
 
@@ -238,7 +244,9 @@ export default class Logging {
       action: ServerAction.HTTP_REQUEST,
       message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
       module: MODULE_NAME, method: 'interceptor',
-      detailedMessages: { request }
+      detailedMessages: {
+        request: Utils.cloneJSonDocument(request),
+      }
     });
   }
 
@@ -619,7 +627,7 @@ export default class Logging {
     // Process
     log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
     // Anonymize message
-    Logging._anonymizeSensitiveData(log.detailedMessages);
+    Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check
     if (log.detailedMessages) {
       // Array?
@@ -649,7 +657,7 @@ export default class Logging {
     }
   }
 
-  private static _anonymizeSensitiveData(message: any) {
+  private static anonymizeSensitiveData(message: any) {
     if (!message) {
       // eslint-disable-next-line no-useless-return
       return;
@@ -668,11 +676,11 @@ export default class Logging {
             message[key] = Constants.ANONYMIZED_VALUE;
           }
         }
-        Logging._anonymizeSensitiveData(value);
+        Logging.anonymizeSensitiveData(value);
       }
     } else if (Array.isArray(message)) {
       for (const item of message) {
-        Logging._anonymizeSensitiveData(item);
+        Logging.anonymizeSensitiveData(item);
       }
     } else {
       // Log
