@@ -12,6 +12,7 @@ import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { ServerAction } from '../types/Server';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
@@ -162,25 +163,22 @@ export default class Logging {
     });
   }
 
-  public static logExpressRequest(req: Request, res: Response, next: NextFunction): void {
+  public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userToken = Logging.getUserTokenFromHttpRequest(req);
-      let tenantID: string;
-      if (userToken) {
-        tenantID = userToken.tenantID;
-      }
+      const tenantID = await Logging.retrieveTenantFromHttpRequest(req);
+      // Check perfs
       req['timestamp'] = new Date();
       // Log
       Logging.logSecurityDebug({
-        tenantID: tenantID,
+        tenantID,
         action: ServerAction.HTTP_REQUEST,
-        user: userToken,
+        user: Logging.getUserTokenFromHttpRequest(req),
         message: `Express HTTP Request << ${req.method} '${req.url}'`,
         module: MODULE_NAME, method: 'logExpressRequest',
         detailedMessages: {
           url: req.url,
           method: req.method,
-          query: req.query,
+          query: Utils.cloneJSonDocument(req.query),
           body: Utils.cloneJSonDocument(req.body),
           locale: req.locale,
           xhr: req.xhr,
@@ -211,7 +209,7 @@ export default class Logging {
         // Compute Length
         let contentLengthKB = 0;
         if (res.getHeader('content-length')) {
-          contentLengthKB = res.getHeader('content-length') as number / 1000;
+          contentLengthKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
         }
         Logging.logSecurityDebug({
           tenantID: tenantID,
@@ -269,8 +267,8 @@ export default class Logging {
       detailedMessages: {
         status: response.status,
         statusText: response.statusText,
-        request: response.config,
-        response: response.data
+        request: Utils.cloneJSonDocument(response.config),
+        response: Utils.cloneJSonDocument(response.data)
       }
     });
   }
@@ -280,7 +278,7 @@ export default class Logging {
     Logging.logSecurityError({
       tenantID: tenantID,
       action: ServerAction.HTTP_ERROR,
-      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response.status} '${error.config.url}' - ${error.message}`,
+      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response?.status} '${error.config.url}' - ${error.message}`,
       module: MODULE_NAME, method: 'interceptor',
       detailedMessages: {
         url: error.config.url,
@@ -661,26 +659,36 @@ export default class Logging {
     if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
       // eslint-disable-next-line no-useless-return
       return;
-    } else if (typeof message === 'string') {
-      // Anonymize
-      message.replace(/((repeat|)[pP]assword|captcha)(\s)(=|:)(\s)(.*)/g, '$1$3$4$5' + Constants.ANONYMIZED_VALUE);
     } else if (Array.isArray(message)) {
       for (const item of message) {
         Logging.anonymizeSensitiveData(item);
       }
     } else if (typeof message === 'object') {
       for (const key of Object.keys(message)) {
-        const value = message[key];
         // String?
-        if (typeof value === 'string') {
-          if (key === 'password' ||
-              key === 'repeatPassword' ||
-              key === 'captcha') {
-            // Anonymize
-            message[key] = Constants.ANONYMIZED_VALUE;
+        if (typeof message[key] === 'string') {
+          for (const sensitiveData of Constants.SENSITIVE_DATA) {
+            if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
+              // Anonymize
+              message[key] = Constants.ANONYMIZED_VALUE;
+            }
+          }
+          // Check query string
+          const dataParts: string[] = message[key].split('&');
+          if (dataParts.length > 1) {
+            for (let i = 0; i < dataParts.length; i++) {
+              const dataPart = dataParts[i];
+              for (const sensitiveData of Constants.SENSITIVE_DATA) {
+                if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+                  // Anonymize
+                  dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+                }
+              }
+            }
+            message[key] = dataParts.join('&');
           }
         } else {
-          Logging.anonymizeSensitiveData(value);
+          Logging.anonymizeSensitiveData(message[key]);
         }
       }
     } else {
@@ -758,5 +766,32 @@ export default class Logging {
     } catch (error) {
       // Do nothing
     }
+  }
+
+  private static async retrieveTenantFromHttpRequest(req: Request): Promise<string> {
+    // Try from Token
+    const userToken = Logging.getUserTokenFromHttpRequest(req);
+    if (userToken) {
+      return userToken.tenantID;
+    }
+    // Try from body
+    if (req.body?.tenant && req.body.tenant !== '') {
+      const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
+      if (tenant) {
+        return tenant.id;
+      }
+    }
+    // Try from host header
+    if (req.headers?.host) {
+      const hostParts = req.headers.host.split('.');
+      if (hostParts.length > 1) {
+        // Try with the first param
+        const tenant = await TenantStorage.getTenantBySubdomain(hostParts[0]);
+        if (tenant) {
+          return tenant.id;
+        }
+      }
+    }
+    return Constants.DEFAULT_TENANT;
   }
 }
