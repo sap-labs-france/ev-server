@@ -663,7 +663,7 @@ export default class Logging {
       return;
     } else if (typeof message === 'string') {
       // Anonymize
-      message.replace(/((repeat|)[pP]assword|captcha)(\s)(=|:)(\s)(.*)/g, '$1$3$4$5' + Constants.ANONYMIZED_VALUE);
+      message.replace(/((repeat|)[pP]assword|captcha)(\s|)(=|:)(\s|)(.*)/g, '$1$3$4$5' + Constants.ANONYMIZED_VALUE);
     } else if (Array.isArray(message)) {
       for (const item of message) {
         Logging.anonymizeSensitiveData(item);
