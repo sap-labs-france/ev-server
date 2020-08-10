@@ -257,7 +257,7 @@ export default class Logging {
     // Compute Length
     let contentLengthKB = 0;
     if (response.config.headers['Content-Length']) {
-      contentLengthKB = response.config.headers['Content-Length'] / 1000;
+      contentLengthKB = response.config.headers['Content-Length'] / 1024;
     }
     Logging.logSecurityDebug({
       tenantID: tenantID,
