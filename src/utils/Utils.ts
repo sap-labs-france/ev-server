@@ -1082,7 +1082,7 @@ export default class Utils {
     return recordLimit;
   }
 
-  public static roundTo(number: number, scale: number): string | number {
+  public static roundTo(number: number, scale: number): number {
     return Utils.convertToFloat(number.toFixed(scale));
   }
 
