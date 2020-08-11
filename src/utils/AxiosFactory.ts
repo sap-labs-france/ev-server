@@ -13,19 +13,22 @@ export default class AxiosFactory {
   private constructor() {}
 
   // All could have been done at 'axios' level normally!
-  public static getAxiosInstance(tenantID: string, axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig): AxiosInstance {
-    if (!axiosConfig) {
-      axiosConfig = {} as AxiosRequestConfig;
+  public static getAxiosInstance(tenantID: string, instanceConfiguration?: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig }): AxiosInstance {
+    if (!instanceConfiguration) {
+      instanceConfiguration = {};
+    }
+    if (!instanceConfiguration.axiosConfig) {
+      instanceConfiguration.axiosConfig = {} as AxiosRequestConfig;
     }
     // Set timeout
-    if (!axiosConfig.timeout) {
-      axiosConfig.timeout = Constants.AXIOS_TIMEOUT;
+    if (!instanceConfiguration.axiosConfig.timeout) {
+      instanceConfiguration.axiosConfig.timeout = Constants.AXIOS_TIMEOUT;
     }
     // Get from map
     let axiosInstance = this.axiosInstances.get(tenantID);
     if (!axiosInstance) {
       // Create
-      axiosInstance = axios.create(axiosConfig);
+      axiosInstance = axios.create(instanceConfiguration.axiosConfig);
       // Add a Request interceptor
       axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
         Logging.logAxiosRequest(tenantID, request);
@@ -46,7 +49,7 @@ export default class AxiosFactory {
       this.axiosInstances.set(tenantID, axiosInstance);
     }
     // Set retry configuration
-    AxiosFactory.applyAxiosRetryConfiguration(axiosInstance, axiosRetryConfig);
+    AxiosFactory.applyAxiosRetryConfiguration(axiosInstance, instanceConfiguration.axiosRetryConfig);
     return axiosInstance;
   }
 
