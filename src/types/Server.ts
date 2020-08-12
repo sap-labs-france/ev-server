@@ -357,6 +357,7 @@ export enum ServerAction {
 
   INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',
 
-  AXIOS_REQUEST = 'AxiosRequest',
-  AXIOS_RESPONSE = 'AxiosResponse',
+  HTTP_REQUEST = 'HttpRequest',
+  HTTP_RESPONSE = 'HttpResponse',
+  HTTP_ERROR = 'HttpError',
 }

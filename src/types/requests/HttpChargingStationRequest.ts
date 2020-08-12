@@ -19,6 +19,7 @@ export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
   ConnectorID?: number;
   WithChargingStation?: boolean;
   WithSiteArea?: boolean;
+  SiteID?: string;
 }
 
 export interface HttpChargingStationsRequest extends HttpDatabaseRequest {

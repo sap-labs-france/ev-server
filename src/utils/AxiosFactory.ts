@@ -1,8 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import axiosRetry from 'axios-retry';
-import { ServerAction } from '../types/Server';
 import Constants from './Constants';
 import Logging from './Logging';
+import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'AxiosFactory';
 
@@ -28,36 +27,20 @@ export default class AxiosFactory {
       });
       // Add a Request interceptor
       axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
-        Logging.logDebug({
-          tenantID: tenantID,
-          action: ServerAction.AXIOS_REQUEST,
-          message: `Http Request sent: '${request.url}'`,
-          module: MODULE_NAME, method: 'interceptor',
-          detailedMessages: { request }
-        });
+        Logging.logAxiosRequest(tenantID, request);
         return request;
-      }, async (error: AxiosError) =>
-        // Error handling is done outside to get the proper module/stack trace
-        Promise.reject(error)
-      );
+      }, async (error: AxiosError) => {
+        Logging.logAxiosError(tenantID, error);
+        return Promise.reject(error);
+      });
       // Add a Response interceptor
       axiosInstance.interceptors.response.use((response: AxiosResponse) => {
-        Logging.logDebug({
-          tenantID: tenantID,
-          action: ServerAction.AXIOS_RESPONSE,
-          message: `Http Response received: '${response.config.url}'`,
-          module: MODULE_NAME, method: 'interceptor',
-          detailedMessages: {
-            status: response.status,
-            request: response.config,
-            response: response.data
-          }
-        });
+        Logging.logAxiosResponse(tenantID, response);
         return response;
-      }, async (error: AxiosError) =>
-        // Error handling is done outside to get the proper module/stack trace
-        Promise.reject(error)
-      );
+      }, async (error: AxiosError) => {
+        Logging.logAxiosError(tenantID, error);
+        return Promise.reject(error);
+      });
       // Add
       this.axiosInstances.set(tenantID, axiosInstance);
     }

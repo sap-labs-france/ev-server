@@ -95,7 +95,7 @@ export default class DatabaseUtils {
 
   public static pushSiteAreaLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('siteareas', {
-      objectIDFields: ['siteID', 'createdBy', 'lastChangedBy'],
+      objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     }, additionalPipeline);
   }

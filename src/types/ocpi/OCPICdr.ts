@@ -13,7 +13,7 @@ export interface OCPICdr {
   meter_id?: string;
   currency: string;
   charging_periods: OCPIChargingPeriod[];
-  total_cost: number;
+  total_cost?: number;
   total_energy: number;
   total_time: number;
   total_parking_time?: number;

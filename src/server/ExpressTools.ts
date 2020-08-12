@@ -51,7 +51,16 @@ export default class ExpressTools {
       // Bind to express app
       app.use(CFLog.logNetwork);
     }
+    // Log Express Request
+    app.use(Logging.logExpressRequest.bind(this));
     return app;
+  }
+
+  public static postInitApplication(app: express.Application): void {
+    // Log Express Response
+    app.use(Logging.logExpressResponse.bind(this));
+    // Error Handling
+    app.use(Logging.logExpressError.bind(this));
   }
 
   public static createHttpServer(serverConfig: CentralSystemServerConfiguration, expressApp: express.Application): http.Server {

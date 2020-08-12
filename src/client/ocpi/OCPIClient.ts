@@ -1,22 +1,20 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
-import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
-import Configuration from '../../utils/Configuration';
-import Constants from '../../utils/Constants';
+import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { HTTPError } from '../../types/HTTPError';
-import Logging from '../../utils/Logging';
 import OCPICredential from '../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
+import { OcpiSetting } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
-import Utils from '../../utils/Utils';
+import AxiosFactory from '../../utils/AxiosFactory';
+import Configuration from '../../utils/Configuration';
+import Logging from '../../utils/Logging';
 
 const MODULE_NAME = 'OCPIClient';
 
@@ -170,17 +168,11 @@ export default abstract class OCPIClient {
       message: `Get OCPI versions at ${this.ocpiEndpoint.baseUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
-    let response: AxiosResponse;
-    try {
-      response = await this.axiosInstance.get(this.ocpiEndpoint.baseUrl, {
-        headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`
-        },
-      });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, this.ocpiEndpoint.baseUrl, ServerAction.OCPI_GET_VERSIONS, MODULE_NAME, 'getVersions');
-    }
+    const response = await this.axiosInstance.get(this.ocpiEndpoint.baseUrl, {
+      headers: {
+        'Authorization': `Token ${this.ocpiEndpoint.token}`
+      },
+    });
     return response;
   }
 
@@ -195,17 +187,11 @@ export default abstract class OCPIClient {
       message: `Get OCPI services at ${this.ocpiEndpoint.versionUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
-    let response: AxiosResponse;
-    try {
-      response = await this.axiosInstance.get(this.ocpiEndpoint.versionUrl, {
-        headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`
-        },
-      });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, this.ocpiEndpoint.versionUrl, ServerAction.OCPI_GET_VERSIONS, MODULE_NAME, 'getServices');
-    }
+    const response = await this.axiosInstance.get(this.ocpiEndpoint.versionUrl, {
+      headers: {
+        'Authorization': `Token ${this.ocpiEndpoint.token}`
+      },
+    });
     return response;
   }
 
@@ -220,19 +206,13 @@ export default abstract class OCPIClient {
       module: MODULE_NAME, method: 'postCredentials'
     });
     // Call eMSP with CPO credentials
-    let response: AxiosResponse;
-    try {
-      response = await this.axiosInstance.delete<OCPICredential>(credentialsUrl,
-        {
-          headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`,
-            'Content-Type': 'application/json'
-          },
-        });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, credentialsUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'deleteCredentials');
-    }
+    const response = await this.axiosInstance.delete<OCPICredential>(credentialsUrl,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
     return response;
   }
 
@@ -252,19 +232,13 @@ export default abstract class OCPIClient {
       detailedMessages: { credentials }
     });
     // Call eMSP with CPO credentials
-    let response: AxiosResponse;
-    try {
-      response = await this.axiosInstance.post<OCPICredential>(credentialsUrl, credentials,
-        {
-          headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`,
-            'Content-Type': 'application/json'
-          },
-        });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, credentialsUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'postCredentials');
-    }
+    const response = await this.axiosInstance.post<OCPICredential>(credentialsUrl, credentials,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
     return response;
   }
 
