@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 import AbstractOCPIService from './AbstractOCPIService';
 import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
@@ -26,18 +26,26 @@ export default class OCPIServices {
   /**
    * Get all implemented versions of OCPI
    */
-  public getCPOVersions(req: Request, res: Response): void {
-    // Get all the versions
-    const versions = this.cpoServices.map((ocpiService) => ({ 'version': ocpiService.getVersion(), 'url': ocpiService.getServiceUrl(req) }));
-    // Send available versions
-    res.json(OCPIUtils.success(versions));
+  public getCPOVersions(req: Request, res: Response, next: NextFunction): void {
+    try {
+      // Get all the versions
+      const versions = this.cpoServices.map((ocpiService) => ({ 'version': ocpiService.getVersion(), 'url': ocpiService.getServiceUrl(req) }));
+      // Send available versions
+      res.json(OCPIUtils.success(versions));
+    } catch (error) {
+      next(error);
+    }
   }
 
-  public getEMSPVersions(req: Request, res: Response): void {
-    // Get all the versions
-    const versions = this.emspServices.map((ocpiService) => ({ 'version': ocpiService.getVersion(), 'url': ocpiService.getServiceUrl(req) }));
-    // Send available versions
-    res.json(OCPIUtils.success(versions));
+  public getEMSPVersions(req: Request, res: Response, next: NextFunction): void {
+    try {
+      // Get all the versions
+      const versions = this.emspServices.map((ocpiService) => ({ 'version': ocpiService.getVersion(), 'url': ocpiService.getServiceUrl(req) }));
+      // Send available versions
+      res.json(OCPIUtils.success(versions));
+    } catch (error) {
+      next(error);
+    }
   }
 
   // Return all OCPI Service Implementation

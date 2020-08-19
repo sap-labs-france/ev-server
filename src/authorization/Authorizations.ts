@@ -186,7 +186,7 @@ export default class Authorizations {
   }
 
   public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation,
-    transaction: Transaction, tagId: string): Promise<{ user: User, alternateUser: User }> {
+    transaction: Transaction, tagId: string): Promise<{ user: User; alternateUser: User }> {
     let user: User, alternateUser: User;
     // Check if same user
     if (tagId !== transaction.tagID) {
@@ -442,8 +442,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILES, Action.LIST);
   }
 
-  public static canReadChargingProfile(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILE, Action.READ);
+  public static canReadChargingProfile(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILE, Action.READ,{
+      site: siteID,
+      sitesAdmin: loggedUser.sitesAdmin
+    });
   }
 
   public static canListSiteAreas(loggedUser: UserToken): boolean {

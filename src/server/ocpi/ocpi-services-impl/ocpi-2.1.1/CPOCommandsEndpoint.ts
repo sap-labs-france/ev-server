@@ -1,4 +1,3 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
 import ChargingStation, { Connector, RemoteAuthorization } from '../../../../types/ChargingStation';
 import { NextFunction, Request, Response } from 'express';
 import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
@@ -7,7 +6,6 @@ import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
 import AxiosFactory from '../../../../utils/AxiosFactory';
-import BackendError from '../../../../exception/BackendError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
@@ -27,7 +25,6 @@ import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import Utils from '../../../../utils/Utils';
 import moment from 'moment';
 
 const EP_IDENTIFIER = 'commands';
@@ -37,12 +34,10 @@ const MODULE_NAME = 'CPOCommandsEndpoint';
  * EMSP Tokens Endpoint
  */
 export default class CPOCommandsEndpoint extends AbstractEndpoint {
-  private axiosInstance: AxiosInstance;
 
   // Create OCPI Service
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
-    this.axiosInstance = AxiosFactory.getAxiosInstance();
   }
 
   /**
@@ -329,20 +324,13 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       detailedMessages: { payload }
     });
     // Call IOP
-    let response: AxiosResponse;
-    try {
-      response = await this.axiosInstance.post(responseUrl, payload,
-        {
-          headers: {
-            Authorization: `Token ${ocpiEndpoint.token}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: Constants.AXIOS_TIMEOUT
-        });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, responseUrl, action, MODULE_NAME, 'sendCommandResponse');
-    }
+    await AxiosFactory.getAxiosInstance(tenant.id).post(responseUrl, payload,
+      {
+        headers: {
+          Authorization: `Token ${ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
   }
 }
 

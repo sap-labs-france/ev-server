@@ -109,6 +109,7 @@ export default class ContextDefinition {
         content: {
           type: RoamingSettingsType.GIREVE,
           ocpi: {
+            currency: 'EUR',
             cpo: {
               countryCode: 'FR',
               partyID: 'UT',
@@ -243,6 +244,7 @@ export default class ContextDefinition {
               countryCode: 'FR',
               partyID: 'UT',
             },
+            currency: 'EUR',
             businessDetails: {
               name: 'Test OCPI',
               website: 'http://www.uttest.net'

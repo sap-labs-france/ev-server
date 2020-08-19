@@ -1,6 +1,5 @@
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
 
-import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
@@ -31,7 +30,6 @@ import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
-import Utils from '../../utils/Utils';
 import _ from 'lodash';
 import moment from 'moment';
 import { v4 as uuid } from 'uuid';
@@ -169,19 +167,12 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullLocations'
       });
       // Call IOP
-      let response: AxiosResponse;
-      try {
-        response = await this.axiosInstance.get(locationsUrl,
-          {
-            headers: {
-              Authorization: `Token ${this.ocpiEndpoint.token}`
-            },
-            timeout: Constants.AXIOS_TIMEOUT
-          });
-      } catch (error) {
-        // Handle errors
-        Utils.handleAxiosError(error, locationsUrl, ServerAction.OCPI_PULL_LOCATIONS, MODULE_NAME, 'pullLocations');
-      }
+      const response = await this.axiosInstance.get(locationsUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+        });
       for (const location of response.data.data) {
         try {
           await this.processLocation(location, company, sites.result);
@@ -228,19 +219,12 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullSessions'
       });
       // Call IOP
-      let response: AxiosResponse;
-      try {
-        response = await this.axiosInstance.get(sessionsUrl,
-          {
-            headers: {
-              Authorization: `Token ${this.ocpiEndpoint.token}`
-            },
-            timeout: Constants.AXIOS_TIMEOUT
-          });
-      } catch (error) {
-        // Handle errors
-        Utils.handleAxiosError(error, sessionsUrl, ServerAction.OCPI_PULL_SESSIONS, MODULE_NAME, 'pullSessions');
-      }
+      const response = await this.axiosInstance.get(sessionsUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+        });
       for (const session of response.data.data) {
         try {
           await OCPISessionsService.updateTransaction(this.tenant.id, session);
@@ -288,19 +272,12 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'pullCdrs'
       });
       // Call IOP
-      let response: AxiosResponse;
-      try {
-        response = await this.axiosInstance.get(cdrsUrl,
-          {
-            headers: {
-              Authorization: `Token ${this.ocpiEndpoint.token}`
-            },
-            timeout: Constants.AXIOS_TIMEOUT
-          });
-      } catch (error) {
-        // Handle errors
-        Utils.handleAxiosError(error, cdrsUrl, ServerAction.OCPI_PULL_CDRS, MODULE_NAME, 'pullCdrs');
-      }
+      const response = await this.axiosInstance.get(cdrsUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+        });
       for (const cdr of response.data.data) {
         try {
           await OCPISessionsService.processCdr(this.tenant.id, cdr);
@@ -443,19 +420,12 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { tokenUid }
     });
     // Call IOP
-    let response: AxiosResponse;
-    try {
-      response = await this.axiosInstance.get(fullUrl,
-        {
-          headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`
-          },
-          timeout: Constants.AXIOS_TIMEOUT
-        });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, fullUrl, ServerAction.OCPI_CHECK_TOKENS, MODULE_NAME, 'getToken');
-    }
+    const response = await this.axiosInstance.get(fullUrl,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`
+        },
+      });
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CHECK_LOCATIONS,
@@ -495,20 +465,13 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { token }
     });
     // Call IOP
-    let response: AxiosResponse;
-    try {
-      response = await this.axiosInstance.put(fullUrl, token,
-        {
-          headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: Constants.AXIOS_TIMEOUT
-        });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, fullUrl, ServerAction.OCPI_PUSH_TOKENS, MODULE_NAME, 'pushToken');
-    }
+    await this.axiosInstance.put(fullUrl, token,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
     return this.checkToken(token.uid);
   }
 
@@ -561,20 +524,13 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    let response: AxiosResponse;
-    try {
-      response = await this.axiosInstance.post(commandUrl, payload,
-        {
-          headers: {
-            'Authorization': `Token ${this.ocpiEndpoint.token}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: Constants.AXIOS_TIMEOUT
-        });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, commandUrl, ServerAction.OCPI_START_SESSION, MODULE_NAME, 'remoteStartSession');
-    }
+    const response = await this.axiosInstance.post(commandUrl, payload,
+      {
+        headers: {
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
@@ -611,20 +567,13 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { payload }
     });
     // Call IOP
-    let response: AxiosResponse;
-    try {
-      response = await this.axiosInstance.post(commandUrl, payload,
-        {
-          headers: {
-            'Authorization': `Token ${this.ocpiEndpoint.token}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: Constants.AXIOS_TIMEOUT
-        });
-    } catch (error) {
-      // Handle errors
-      Utils.handleAxiosError(error, commandUrl, ServerAction.OCPI_STOP_SESSION, MODULE_NAME, 'remoteStopSession');
-    }
+    const response = await this.axiosInstance.post(commandUrl, payload,
+      {
+        headers: {
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,

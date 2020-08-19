@@ -237,7 +237,7 @@ export default abstract class AbstractOCPIService {
         });
       }
     } catch (error) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: action,

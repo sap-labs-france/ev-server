@@ -98,6 +98,9 @@ export default class SettingSecurity {
               partyID: sanitize(request.content.ocpi.emsp.partyID)
             };
           }
+          if (request.content.ocpi.currency) {
+            settings.content.ocpi.currency = request.content.ocpi.currency;
+          }
           break;
         case RefundSettingsType.CONCUR:
           if (!Utils.isEmptyJSon(request.content.concur)) {
