@@ -32,6 +32,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.TAGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.TAG, action: Action.CREATE, attributes: ['*'] },
+      { resource: Entity.TAG, action: Action.UPDATE, attributes: ['*'] },
+      { resource: Entity.TAG, action: Action.DELETE, attributes: ['*'] },
+      { resource: Entity.TAG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.COMPANY, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },

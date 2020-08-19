@@ -328,6 +328,12 @@ export enum ServerAction {
   USER_SITES = 'UserSites',
   USERS_IN_ERROR = 'UsersInError',
   USER_IMAGE = 'UserImage',
+  TAGS = 'Tags',
+  TAG = 'Tag',
+  TAG_CREATE = 'TagCreate',
+  TAG_UPDATE = 'TagUpdate',
+  TAG_UPDATE_STATUS = 'TagUpdateStatus',
+  TAG_DELETE = 'TagDelete',
   USER = 'User',
 
   NOTIFICATIONS = 'Notifications',

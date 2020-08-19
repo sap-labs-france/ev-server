@@ -47,6 +47,11 @@ export interface HttpUserSitesRequest extends HttpDatabaseRequest {
   UserID: string;
 }
 
+export interface HttpTagsRequest extends HttpDatabaseRequest {
+  Search: string;
+  UserID?: string;
+}
+
 export interface HttpLoginRequest {
   email: string;
   password: string;
@@ -86,4 +91,9 @@ export interface HttpResendVerificationMailRequest {
   email: string;
   tenant: string;
   captcha: string;
+}
+
+export interface HttpTagStatusRequest {
+  id: string;
+  status: boolean;
 }

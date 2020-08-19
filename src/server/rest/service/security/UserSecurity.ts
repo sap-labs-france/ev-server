@@ -1,4 +1,4 @@
-import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpSitesAssignUserRequest, HttpTagStatusRequest, HttpTagsRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
 import Authorizations from '../../../../authorization/Authorizations';
@@ -86,6 +86,16 @@ export default class UserSecurity {
 
   public static filterUserCreateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
     return UserSecurity.filterUserRequest(request, loggedUser);
+  }
+
+  public static filterTagsRequest(request: any): HttpTagsRequest {
+    const filteredRequest: HttpTagsRequest = {
+      Search: sanitize(request.Search),
+      UserID: sanitize(request.UserID),
+    } as HttpTagsRequest;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
   }
 
   // User
@@ -206,18 +216,49 @@ export default class UserSecurity {
     users.result = filteredUsers;
   }
 
-  static filterTagRequest(tag: Tag): Tag {
+  static filterTagsResponse(tags: DataResult<Tag>, loggedUser: UserToken): void {
+    const filteredTags = [];
+    if (!tags.result) {
+      return null;
+    }
+    if (!Authorizations.canListTags(loggedUser)) {
+      return null;
+    }
+    for (const tag of tags.result) {
+      // Filter
+      const filteredTag = UserSecurity.filterTagResponse(tag, loggedUser);
+      if (filteredTag) {
+        filteredTags.push(filteredTag);
+      }
+    }
+    tags.result = filteredTags;
+  }
+
+  public static filterTagRequest(tag: Tag): Tag {
     let filteredTag: Tag;
     if (tag) {
       filteredTag = {
         id: sanitize(tag.id),
         issuer: UtilsSecurity.filterBoolean(tag.issuer),
         description: sanitize(tag.description),
-        active: UtilsSecurity.filterBoolean(tag.active)
+        active: UtilsSecurity.filterBoolean(tag.active),
+        userID: sanitize(tag.userID)
       };
     }
-    if (filteredTag.issuer) {
-      filteredTag.ocpiToken = tag.ocpiToken;
+    return filteredTag;
+  }
+
+  static filterTagResponse(tag: Tag, loggedUser: UserToken): Tag {
+    let filteredTag: Tag = {} as Tag;
+    if (tag) {
+      filteredTag.id = tag.id;
+      filteredTag.issuer = tag.issuer;
+      filteredTag.description = tag.description;
+      filteredTag.active = tag.active;
+      filteredTag.transactionsCount = tag.transactionsCount;
+      if (tag.user) {
+        filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser)
+      }
     }
     return filteredTag;
   }
@@ -260,6 +301,17 @@ export default class UserSecurity {
       };
     }
     return filteredNotifications;
+  }
+
+  public static filterTagStatusRequest(request: any): HttpTagStatusRequest {
+    return {
+      id: sanitize(request.id),
+      status: UtilsSecurity.filterBoolean(request.status),
+    };
+  }
+
+  public static filterTagRequestByID(request: any): string {
+    return sanitize(request.ID);
   }
 
   private static filterUserRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
@@ -308,16 +360,6 @@ export default class UserSecurity {
       // Ok to set the sensitive data
       if (request.status) {
         filteredRequest.status = sanitize(request.status);
-      }
-      if (request.tags) {
-        filteredRequest.tags = [];
-        for (const tag of request.tags) {
-          // Filter
-          const filteredTag = UserSecurity.filterTagRequest(tag);
-          if (filteredTag) {
-            filteredRequest.tags.push(filteredTag);
-          }
-        }
       }
       if (request.plateID) {
         filteredRequest.plateID = sanitize(request.plateID);

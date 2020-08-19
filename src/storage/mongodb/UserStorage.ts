@@ -307,8 +307,7 @@ export default class UserStorage {
     // Save
     await global.database.getCollection<any>(tenantID, 'tags').findOneAndUpdate(
       {
-        '_id': tag.id,
-        'userID': Utils.convertToObjectID(userID)
+        '_id': tag.id
       },
       { $set: tagMDB },
       { upsert: true, returnOriginal: false });
@@ -615,8 +614,10 @@ export default class UserStorage {
       // Bypass Car ID if users has been removed in UI
       if (params.includeCarUserIDs) {
         const includeCarUserIDsFilter = {};
-        includeCarUserIDsFilter['carUsers.userID'] = { $in: params.includeCarUserIDs.map((includeCarUserID) =>
-          Utils.convertToObjectID(includeCarUserID)) };
+        includeCarUserIDsFilter['carUsers.userID'] = {
+          $in: params.includeCarUserIDs.map((includeCarUserID) =>
+            Utils.convertToObjectID(includeCarUserID))
+        };
         notAssignedToCarIDFilter.$or.push(includeCarUserIDsFilter);
       }
       // Add
@@ -716,7 +717,7 @@ export default class UserStorage {
   }
 
   public static async getTags(tenantID: string,
-    params: { issuer?: boolean; tagID?: string; userID?: string; dateFrom?: Date; dateTo?: Date },
+    params: { issuer?: boolean; tagID?: string;  userIDs?: string[]; dateFrom?: Date; dateTo?: Date, search?: string },
     dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
@@ -729,11 +730,19 @@ export default class UserStorage {
     const aggregation = [];
     if (params) {
       const filters: any = {};
+      // Filter by other properties
+      if (params.search) {
+        const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+        filters.$or = [
+          { '_id': { $regex: searchRegex, $options: 'i' } },
+          { 'description': { $regex: searchRegex, $options: 'i' } }
+        ];
+      }
       if (params.tagID) {
         filters._id = params.tagID;
       }
-      if (params.userID) {
-        filters.userID = Utils.convertToObjectID(params.userID);
+      if (!Utils.isEmptyArray(params.userIDs)) {
+        filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
       }
       if (params.issuer === true || params.issuer === false) {
         filters.issuer = params.issuer;
@@ -768,7 +777,7 @@ export default class UserStorage {
     // Remove the limit
     aggregation.pop();
     if (!dbParams.sort) {
-      dbParams.sort = { lastChangedOn: 1 };
+      dbParams.sort = { createdOn: -1 };
     }
     aggregation.push({
       $sort: dbParams.sort
@@ -781,6 +790,25 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    DatabaseUtils.pushTransactionsLookupInAggregation({
+      tenantID,
+      aggregation: aggregation,
+      localField: '_id',
+      foreignField: 'tagID',
+      count: true,
+      asField: 'transactionsCount',
+      oneToOneCardinality: false,
+      objectIDFields: ['createdBy', 'lastChangedBy']
+    });
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID,
+      aggregation: aggregation,
+      asField: 'user',
+      localField: 'userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false
+    });
     aggregation.push({
       $project: {
         id: '$_id',
@@ -790,7 +818,9 @@ export default class UserStorage {
         active: 1,
         ocpiToken: 1,
         description: 1,
-        issuer: 1
+        issuer: 1,
+        user: 1,
+        transactionsCount: 1
       }
     });
     // Read DB
@@ -925,6 +955,21 @@ export default class UserStorage {
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteUser', uniqueTimerID, { id });
+  }
+
+  public static async clearUserTagIssuer(tenantID: string, userID: string): Promise<void> {
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'clearUserTagIssuer');
+    await Utils.checkTenant(tenantID);
+
+    await global.database.getCollection<any>(tenantID, 'tags').updateMany(
+      {
+        userID: Utils.convertToObjectID(userID),
+        issuer: true
+      },
+      {
+        $set: { issuer: false }
+      });
+    Logging.traceEnd(MODULE_NAME, 'clearUserTagIssuer', uniqueTimerID, { userID });
   }
 
   public static async getUserSites(tenantID: string,

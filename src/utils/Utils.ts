@@ -1,52 +1,53 @@
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { Car, CarCatalog, CarType } from '../types/Car';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, SiteAreaLimitSource } from '../types/ChargingStation';
+import Transaction, { InactivityStatus } from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
+
+import { ActionsResponse } from '../types/GlobalType';
+import Address from '../types/Address';
+import AppError from '../exception/AppError';
+import Asset from '../types/Asset';
+import Authorizations from '../authorization/Authorizations';
 import { AxiosError } from 'axios';
+import BackendError from '../exception/BackendError';
+import { ChargingProfile } from '../types/ChargingProfile';
+import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
+import Company from '../types/Company';
+import Configuration from './Configuration';
+import ConnectorStats from '../types/ConnectorStats';
+import Constants from './Constants';
+import Consumption from '../types/Consumption';
+import Cypher from './Cypher';
+import { HTTPError } from '../types/HTTPError';
+import { HttpEndUserErrorNotificationRequest } from '../types/requests/HttpNotificationRequest';
+import Logging from './Logging';
+import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { ObjectID } from 'mongodb';
+import { Request } from 'express';
+import { ServerAction } from '../types/Server';
+import Site from '../types/Site';
+import SiteArea from '../types/SiteArea';
+import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
+import Tag from '../types/Tag';
+import Tenant from '../types/Tenant';
+import TenantComponents from '../types/TenantComponents';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
+import UserToken from '../types/UserToken';
+import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { Request } from 'express';
 import fs from 'fs';
 import http from 'http';
-import _ from 'lodash';
 import moment from 'moment';
-import { ObjectID } from 'mongodb';
 import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
-import Authorizations from '../authorization/Authorizations';
-import AppError from '../exception/AppError';
-import BackendError from '../exception/BackendError';
-import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
-import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
-import Address from '../types/Address';
-import Asset from '../types/Asset';
-import { Car, CarCatalog, CarType } from '../types/Car';
-import { ChargingProfile } from '../types/ChargingProfile';
-import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, SiteAreaLimitSource } from '../types/ChargingStation';
-import Company from '../types/Company';
-import ConnectorStats from '../types/ConnectorStats';
-import Consumption from '../types/Consumption';
-import { ActionsResponse } from '../types/GlobalType';
-import { HTTPError } from '../types/HTTPError';
-import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import { HttpEndUserErrorNotificationRequest } from '../types/requests/HttpNotificationRequest';
-import { ServerAction } from '../types/Server';
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import Site from '../types/Site';
-import SiteArea from '../types/SiteArea';
-import Tag from '../types/Tag';
-import Tenant from '../types/Tenant';
-import TenantComponents from '../types/TenantComponents';
-import Transaction, { InactivityStatus } from '../types/Transaction';
-import User, { UserRole, UserStatus } from '../types/User';
-import UserToken from '../types/UserToken';
-import Configuration from './Configuration';
-import Constants from './Constants';
-import Cypher from './Cypher';
-import Logging from './Logging';
 
 const MODULE_NAME = 'Utils';
 
@@ -667,7 +668,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.power) {
               totalPower += chargePointOfCS.power;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power) {
               if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
                 // Check Connector ID
@@ -794,7 +795,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.currentType) {
               return chargePointOfCS.currentType;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
@@ -1199,7 +1200,7 @@ export default class Utils {
     if (coordinates && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude
       if (new RegExp(Constants.REGEX_VALIDATION_LONGITUDE).test(coordinates[0].toString()) &&
-          new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
+        new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
         return true;
       }
     }
@@ -1582,14 +1583,23 @@ export default class Utils {
     }
   }
 
-  public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request): Promise<void> {
+  public static async checkIfUserTagIsValid(tag: Tag, req: Request): Promise<void> {
     // Check that the Badge ID is not already used
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      if (tags) {
-        for (const tag of tags) {
-          // Check if exists
+      if (tag) {
+        // Check params
+        if (!tag.id) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: 'Tag ID is mandatory',
+            module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
+            user: req.user.id
+          });
+        }
+        if (req.method === 'POST') {
           const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
-          if (foundUser && (!user || (foundUser.id !== user.id))) {
+          if (foundUser) {
             // Tag already used!
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
@@ -1600,29 +1610,39 @@ export default class Utils {
               user: req.user.id
             });
           }
-          // Check params
-          if (!tag.id) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.GENERAL_ERROR,
-              message: 'Tag ID is mandatory',
-              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-          if (!Utils.objectHasProperty(tag, 'active')) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.GENERAL_ERROR,
-              message: 'Tag Active property is mandatory',
-              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
+        }
+        if (!tag.userID) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: 'User ID is mandatory',
+            module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+            user: req.user.id
+          });
+        }
+        const user = await UserStorage.getUser(req.user.tenantID, tag.userID);
+        if (!user) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+            message: `User '${tag.userID}' does not exist`,
+            module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+            user: req.user.id
+          });
+        }
+        if (!Utils.objectHasProperty(tag, 'active')) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: 'Tag Active property is mandatory',
+            module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
+            user: req.user.id
+          });
         }
       }
     }
   }
+
 
   public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request): void {
     const tenantID = req.user.tenantID;

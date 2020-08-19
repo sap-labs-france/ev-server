@@ -294,6 +294,26 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.LIST);
   }
 
+  public static canListTags(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.LIST);
+  }
+
+  public static canReadTag(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.READ);
+  }
+
+  public static canDeleteTag(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.DELETE);
+  }
+
+  public static canCreateTag(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.CREATE);
+  }
+
+  public static canUpdateTag(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.UPDATE);
+  }
+
   public static canReadUser(loggedUser: UserToken, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.READ,
       { user: userId, owner: loggedUser.id });
