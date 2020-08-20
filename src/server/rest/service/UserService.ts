@@ -242,7 +242,36 @@ export default class UserService {
       // Physically
       await UserStorage.deleteUser(req.user.tenantID, user.id);
     }
-
+    // Synchronize badges with IOP
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          for (const tag of user.tags) {
+            await ocpiClient.pushToken({
+              uid: tag.id,
+              type: OCPITokenType.RFID,
+              'auth_id': tag.id,
+              'visual_number': user.id,
+              issuer: tenant.name,
+              valid: false,
+              whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+              'last_updated': new Date()
+            });
+          }
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME,
+          method: 'handleUpdateTag',
+          action: action,
+          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
     // Delete billing user
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
@@ -1077,7 +1106,8 @@ export default class UserService {
     const tag = await UserStorage.getTag(req.user.tenantID, tagId);
     UtilsService.assertObjectExists(action, tag, `Tag ID '${tagId}' does not exist`,
       MODULE_NAME, 'handleDeleteTag', req.user);
-    if (Authorizations.isBasic(req.user) && tag.userID !== req.user.id) {
+    // Only current organizations tags can be deleted
+    if (!tag.issuer) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -1099,6 +1129,33 @@ export default class UserService {
     }
     // Delete the Tag
     await UserStorage.deleteUserTag(req.user.tenantID, tag.userID, tag);
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          await ocpiClient.pushToken({
+            uid: tag.id,
+            type: OCPITokenType.RFID,
+            'auth_id': tag.userID,
+            'visual_number': tag.userID,
+            issuer: tenant.name,
+            valid: false,
+            whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+            'last_updated': new Date()
+          });
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME,
+          method: 'handleUpdateTag',
+          action: action,
+          message: `Unable to synchronize tokens of user ${tag.userID} with IOP`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -1129,44 +1186,26 @@ export default class UserService {
     let newTag = {
       id: filteredRequest.id,
       description: filteredRequest.description,
-      issuer: filteredRequest.issuer,
+      issuer: true,
       active: true,
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       userID: filteredRequest.userID
     } as Tag;
-    const previousTags = (await UserStorage.getUser(req.user.tenantID, filteredRequest.userID)).tags;
-    if (newTag.issuer) {
-      await UserStorage.clearUserTagIssuer(req.user.tenantID, filteredRequest.userID);
-    }
     await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.userID, newTag);
     // Synchronize badges with IOP
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) && newTag.issuer) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       const tenant = await TenantStorage.getTenant(req.user.tenantID);
       try {
         const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (ocpiClient) {
-          for (const previousTag of previousTags) {
-            if (previousTag.issuer) {
-              await ocpiClient.pushToken({
-                uid: previousTag.id,
-                type: OCPITokenType.RFID,
-                'auth_id': filteredRequest.userID,
-                'visual_number': filteredRequest.userID,
-                issuer: tenant.name,
-                valid: false,
-                whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-                'last_updated': new Date()
-              });
-            }
-          }
           await ocpiClient.pushToken({
-            uid: filteredRequest.id,
+            uid: newTag.id,
             type: OCPITokenType.RFID,
-            'auth_id': filteredRequest.userID,
-            'visual_number': filteredRequest.userID,
+            'auth_id': newTag.userID,
+            'visual_number': newTag.userID,
             issuer: tenant.name,
-            valid: filteredRequest.active,
+            valid: newTag.issuer,
             whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
             'last_updated': new Date()
           });
@@ -1177,7 +1216,7 @@ export default class UserService {
           module: MODULE_NAME,
           method: 'handleUpdateTag',
           action: action,
-          message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
+          message: `Unable to synchronize tokens of user ${filteredRequest.userID} with IOP`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
@@ -1209,78 +1248,52 @@ export default class UserService {
     const previousTag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, previousTag, `Tag '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
-    let previousTagsToDeactivate: Tag[] = [], SynchronizeIOP = false;;
+    // Only current organizations tags can be updated
+    if (!previousTag.issuer) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleUpdateTag',
+        value: previousTag.id
+      });
+    }
     let tag = {
       id: filteredRequest.id,
       description: filteredRequest.description,
-      issuer: filteredRequest.issuer,
+      issuer: true,
       active: filteredRequest.active,
       lastChangedBy: { id: req.user.id },
       lastChangedOn: new Date(),
       userID: filteredRequest.userID
     } as Tag;
-    if (previousTag.userID !== filteredRequest.userID) {
-      // Handle the old user badges
-      if (previousTag.issuer) {
-        previousTagsToDeactivate.push(previousTag);
-        await UserStorage.clearUserTagIssuer(req.user.tenantID, previousTag.userID);
-      }
-      // Handle the new user badges
-      if (filteredRequest.issuer) {
-        SynchronizeIOP = true;
-        const tagToDeactivate = (await UserStorage.getUser(req.user.tenantID, filteredRequest.userID)).tags.find(tag => tag.issuer);
-        if (tagToDeactivate) {
-          previousTagsToDeactivate.push(tagToDeactivate);
-        }
-        await UserStorage.clearUserTagIssuer(req.user.tenantID, filteredRequest.userID);
-      }
-    } else {
-      if (filteredRequest.issuer !== previousTag.issuer) {
-        if (filteredRequest.issuer) {
-          SynchronizeIOP = true;
-          const tagToDeactivate = (await UserStorage.getUser(req.user.tenantID, filteredRequest.userID)).tags.find((tag => tag.issuer));
-          if (tagToDeactivate) {
-            previousTagsToDeactivate.push(tagToDeactivate);
-          }
-        } else {
-          previousTagsToDeactivate.push(previousTag);
-        }
-      }
-      await UserStorage.clearUserTagIssuer(req.user.tenantID, filteredRequest.userID);
-    }
     await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.userID, tag);
     // Synchronize badges with IOP
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) && (!Utils.isEmptyArray(previousTagsToDeactivate)) || SynchronizeIOP) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) && (filteredRequest.userID !== previousTag.userID)) {
       const tenant = await TenantStorage.getTenant(req.user.tenantID);
       try {
         const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (ocpiClient) {
-          for (const previousTag of previousTagsToDeactivate) {
-            if (previousTag.issuer) {
-              await ocpiClient.pushToken({
-                uid: previousTag.id,
-                type: OCPITokenType.RFID,
-                'auth_id': previousTag.userID,
-                'visual_number': previousTag.userID,
-                issuer: tenant.name,
-                valid: false,
-                whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-                'last_updated': new Date()
-              });
-            }
-          }
-          if (filteredRequest.issuer && SynchronizeIOP) {
-            await ocpiClient.pushToken({
-              uid: filteredRequest.id,
-              type: OCPITokenType.RFID,
-              'auth_id': filteredRequest.userID,
-              'visual_number': filteredRequest.userID,
-              issuer: tenant.name,
-              valid: filteredRequest.active,
-              whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-              'last_updated': new Date()
-            });
-          }
+          await ocpiClient.pushToken({
+            uid: previousTag.id,
+            type: OCPITokenType.RFID,
+            'auth_id': previousTag.userID,
+            'visual_number': previousTag.userID,
+            issuer: tenant.name,
+            valid: false,
+            whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+            'last_updated': new Date()
+          });
+          await ocpiClient.pushToken({
+            uid: filteredRequest.id,
+            type: OCPITokenType.RFID,
+            'auth_id': filteredRequest.userID,
+            'visual_number': filteredRequest.userID,
+            issuer: tenant.name,
+            valid: filteredRequest.active,
+            whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+            'last_updated': new Date()
+          });
         }
       } catch (error) {
         Logging.logError({
@@ -1288,7 +1301,7 @@ export default class UserService {
           module: MODULE_NAME,
           method: 'handleUpdateTag',
           action: action,
-          message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
+          message: `Unable to synchronize tokens of user ${filteredRequest.userID} with IOP`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
@@ -1321,10 +1334,48 @@ export default class UserService {
     const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, tag, `Tag '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTagStatus', req.user);
+    // Only current organizations tags can be updated
+    if (!tag.issuer) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleUpdateTagStatus',
+        value: tag.id
+      });
+    }
     tag.lastChangedOn = new Date();
     tag.lastChangedBy = { id: req.user.id };
     tag.active = filteredRequest.status;
     await UserStorage.saveUserTag(req.user.tenantID, tag.userID, tag);
+    // Synchronize badges with IOP
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          await ocpiClient.pushToken({
+            uid: tag.id,
+            type: OCPITokenType.RFID,
+            'auth_id': tag.userID,
+            'visual_number': tag.userID,
+            issuer: tenant.name,
+            valid: filteredRequest.status,
+            whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+            'last_updated': new Date()
+          });
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME,
+          method: 'handleUpdateTag',
+          action: action,
+          message: `Unable to synchronize tokens of user ${tag.userID} with IOP`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateTagStatus',

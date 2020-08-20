@@ -957,21 +957,6 @@ export default class UserStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteUser', uniqueTimerID, { id });
   }
 
-  public static async clearUserTagIssuer(tenantID: string, userID: string): Promise<void> {
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'clearUserTagIssuer');
-    await Utils.checkTenant(tenantID);
-
-    await global.database.getCollection<any>(tenantID, 'tags').updateMany(
-      {
-        userID: Utils.convertToObjectID(userID),
-        issuer: true
-      },
-      {
-        $set: { issuer: false }
-      });
-    Logging.traceEnd(MODULE_NAME, 'clearUserTagIssuer', uniqueTimerID, { userID });
-  }
-
   public static async getUserSites(tenantID: string,
     params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {

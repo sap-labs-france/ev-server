@@ -239,11 +239,10 @@ export default class UserSecurity {
     if (tag) {
       filteredTag = {
         id: sanitize(tag.id),
-        issuer: UtilsSecurity.filterBoolean(tag.issuer),
         description: sanitize(tag.description),
         active: UtilsSecurity.filterBoolean(tag.active),
         userID: sanitize(tag.userID)
-      };
+      } as Tag;
     }
     return filteredTag;
   }
