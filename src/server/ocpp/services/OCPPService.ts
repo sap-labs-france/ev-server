@@ -1327,7 +1327,7 @@ export default class OCPPService {
         message: `OCPI component requires at least one CPO endpoint to ${transactionAction} transactions`
       });
     }
-    let authorizationId = '';
+    let authorizationId;
     let authorizations: DataResult<OCPPAuthorizeRequestExtended>;
     switch (transactionAction) {
       case TransactionAction.START:
@@ -1342,7 +1342,7 @@ export default class OCPPService {
             message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing ocpiToken`
           });
         }
-        // Retrieve authorization id
+        // Retrieve Authorization ID
         authorizations = await OCPPStorage.getAuthorizes(tenant.id, {
           dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
           chargeBoxID: transaction.chargeBoxID,
@@ -1361,12 +1361,12 @@ export default class OCPPService {
               }
             }
           }
-        } else {
+        }
+        if (!authorizationId) {
           throw new BackendError({
             user: user,
             action: action,
-            module: MODULE_NAME,
-            method: 'updateOCPITransaction',
+            module: MODULE_NAME, method: 'updateOCPITransaction',
             message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing Authorization`
           });
         }
