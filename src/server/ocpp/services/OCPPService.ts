@@ -11,6 +11,7 @@ import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
+import { DataResult } from '../../../types/DataResult';
 import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -34,7 +35,6 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import UtilsService from '../../rest/service/UtilsService';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
@@ -1327,6 +1327,8 @@ export default class OCPPService {
         message: `OCPI component requires at least one CPO endpoint to ${transactionAction} transactions`
       });
     }
+    let authorizationId = '';
+    let authorizations: DataResult<OCPPAuthorizeRequestExtended>;
     switch (transactionAction) {
       case TransactionAction.START:
         // eslint-disable-next-line no-case-declarations
@@ -1341,16 +1343,32 @@ export default class OCPPService {
           });
         }
         // Retrieve authorization id
-        // eslint-disable-next-line no-case-declarations
-        const authorizes = await OCPPStorage.getAuthorizes(tenant.id, {
+        authorizations = await OCPPStorage.getAuthorizes(tenant.id, {
           dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
           chargeBoxID: transaction.chargeBoxID,
           tagID: transaction.tagID
-        }, Constants.DB_PARAMS_SINGLE_RECORD);
-        // eslint-disable-next-line no-case-declarations
-        let authorizationId = '';
-        if (authorizes && authorizes.result && authorizes.result.length > 0) {
-          authorizationId = authorizes.result[0].authorizationId;
+        }, Constants.DB_PARAMS_MAX_LIMIT);
+        // Found ID?
+        if (authorizations && authorizations.result && authorizations.result.length > 0) {
+          // Get the first non used Authorization OCPI ID
+          for (const authorization of authorizations.result) {
+            if (authorization.authorizationId) {
+              const ocpiTransaction = await TransactionStorage.getOCPITransaction(tenant.id, authorization.authorizationId);
+              // OCPI ID not used yet
+              if (!ocpiTransaction) {
+                authorizationId = authorization.authorizationId;
+                break;
+              }
+            }
+          }
+        } else {
+          throw new BackendError({
+            user: user,
+            action: action,
+            module: MODULE_NAME,
+            method: 'updateOCPITransaction',
+            message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing Authorization`
+          });
         }
         await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
         break;
