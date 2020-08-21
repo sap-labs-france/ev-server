@@ -213,8 +213,8 @@ export default class OCPISessionsService {
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,
       totalConsumptionWh: cdr.total_energy * 1000,
-      totalDurationSecs: cdr.total_time,
-      totalInactivitySecs: cdr.total_parking_time,
+      totalDurationSecs: cdr.total_time * 3600,
+      totalInactivitySecs: cdr.total_parking_time * 3600,
       inactivityStatus: transaction.currentInactivityStatus,
       userID: transaction.userID
     };
