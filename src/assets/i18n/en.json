@@ -66,6 +66,10 @@
       "title": "Invoice Synchro Failed",
       "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
     },
+    "billingNewInvoice": {
+      "title": "New invoice",
+      "body": "A new invoice is now available"
+    },
     "endUserErrorNotification": {
       "title": "An user reported an error",
       "body": "'{{userName}}' reported: '{{errorTitle}}' - '{{errorDescription}}' in organization '{{tenantName}}'"

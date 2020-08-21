@@ -5,8 +5,10 @@ import { BillingSetting } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import NotificationHandler from '../../notification/NotificationHandler';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import { UserInErrorType } from '../../types/InError';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -350,6 +352,36 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     if (invoice.downloadable) {
       // Send link to the user using our notification framework (link to the front-end + download)
     }
+    const tenant = await TenantStorage.getTenant(this.tenantID);
+    // Send async notification
+    await NotificationHandler.sendBillingNewInvoiceNotification(
+      this.tenantID,
+      Utils.generateGUID(),
+      invoice.user,
+      {
+        user: invoice.user,
+        evseDashboardInvoiceURL: await Utils.buildEvseBillingInvoicesURL(this.tenantID),
+        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+        invoiceDownloadUrl: await Utils.buildEvseBillingDownloadInvoicesURL(this.tenantID, invoice.id),
+        invoice: invoice
+      }
+    );
+    //     .then(() => {
+    //   Logging.logDebug({
+    //     module: 'BillingIntegration',
+    //     method: 'sendInvoiceToUser',
+    //     message: 'Sent email to user',
+    //     tenantID: this.tenantID
+    //   });
+    // }).catch((e) => {
+    //   Logging.logError({
+    //     module: 'BillingIntegration',
+    //     method: 'sendInvoiceToUser',
+    //     message: 'Failed to send email to user',
+    //     detailedMessages: { e },
+    //     tenantID: this.tenantID
+    //   });
+    // });
     return invoice;
   }
 
