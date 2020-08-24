@@ -1,20 +1,20 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
+import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
-import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import Configuration from '../../utils/Configuration';
 import { HTTPError } from '../../types/HTTPError';
+import Logging from '../../utils/Logging';
 import OCPICredential from '../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
+import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import { ServerAction } from '../../types/Server';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import AxiosFactory from '../../utils/AxiosFactory';
-import Configuration from '../../utils/Configuration';
-import Logging from '../../utils/Logging';
 
 const MODULE_NAME = 'OCPIClient';
 
