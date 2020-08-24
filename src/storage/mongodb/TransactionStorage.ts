@@ -253,7 +253,7 @@ export default class TransactionStorage {
       transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: string[];
-      ocpiSessionId?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
+      ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
       ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean;
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
@@ -290,15 +290,18 @@ export default class TransactionStorage {
       });
     }
     // Filter?
-    if (params.ocpiSessionId) {
-      filters['ocpiData.session.id'] = params.ocpiSessionId;
-    } else if (params.search) {
+    if (params.search) {
       // Build filter
       filters.$or = [
         { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
-        { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
+        { 'chargeBoxID': { $regex: params.search, $options: 'i' } },
+        { 'ocpiData.session.id': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    // OCPI ID
+    if (params.ocpiSessionID) {
+      filters['ocpiData.session.id'] = params.ocpiSessionID;
     }
     // Transaction
     if (!Utils.isEmptyArray(params.transactionIDs)) {
@@ -885,15 +888,15 @@ export default class TransactionStorage {
     return null;
   }
 
-  public static async getOCPITransaction(tenantID: string, sessionId: string): Promise<Transaction> {
+  public static async getOCPITransaction(tenantID: string, sessionID: string): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOCPITransaction');
     // Check
     await Utils.checkTenant(tenantID);
     // Delegate work
-    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionId: sessionId }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getOCPITransaction', uniqueTimerID, { sessionId });
+    Logging.traceEnd(MODULE_NAME, 'getOCPITransaction', uniqueTimerID, { sessionID });
     // Found?
     if (transactionsMDB && transactionsMDB.count > 0) {
       return transactionsMDB.result[0];
