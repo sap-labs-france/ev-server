@@ -1,5 +1,4 @@
 import { ChargingProfile, ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
-
 import { OcppParameter } from '../ChargingStation';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -29,7 +28,7 @@ export enum OCPPResetType {
   SOFT = 'Soft'
 }
 
-export enum OCPPTypeStatus {
+export enum OCPPCustomStatus {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected'
 }
@@ -61,14 +60,14 @@ export interface OCPPChangeConfigurationCommandResult {
   status: OCPPConfigurationStatus;
 }
 
-export interface OCPPTypeConfigurationParam extends OCPPCommandParam {
+export interface OCPPCustomConfigurationParam extends OCPPCommandParam {
   key: string;
   value: string;
-  type: string;
+  isCustom: boolean;
 }
 
-export interface OCPPTypeConfigurationResult {
-  status: OCPPTypeStatus;
+export interface OCPPCustomConfigurationResult {
+  status: OCPPCustomStatus;
 }
 
 export enum OCPPConfigurationStatus {

@@ -1,35 +1,35 @@
-import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
-import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPTypeConfigurationParam, OCPPTypeConfigurationResult } from '../../../types/ocpp/OCPPClient';
-import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
-import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
+import moment from 'moment';
 
-import BackendError from '../../../exception/BackendError';
-import { BillingDataTransactionStop } from '../../../types/Billing';
-import BillingFactory from '../../../integration/billing/BillingFactory';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import BackendError from '../../../exception/BackendError';
+import BillingFactory from '../../../integration/billing/BillingFactory';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import Constants from '../../../utils/Constants';
-import Consumption from '../../../types/Consumption';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import Logging from '../../../utils/Logging';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import { PricedConsumption } from '../../../types/Pricing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
-import { PricingSettingsType } from '../../../types/Setting';
-import { ServerAction } from '../../../types/Server';
-import SiteArea from '../../../types/SiteArea';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Tenant from '../../../types/Tenant';
-import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { BillingDataTransactionStop } from '../../../types/Billing';
+import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, TemplateUpdateResult } from '../../../types/ChargingStation';
+import Consumption from '../../../types/Consumption';
+import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
+import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPCustomConfigurationParam, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPTypeConfigurationResult } from '../../../types/ocpp/OCPPClient';
+import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
+import { PricedConsumption } from '../../../types/Pricing';
+import { ServerAction } from '../../../types/Server';
+import { PricingSettingsType } from '../../../types/Setting';
+import SiteArea from '../../../types/SiteArea';
+import Tenant from '../../../types/Tenant';
+import TenantComponents from '../../../types/TenantComponents';
+import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import moment from 'moment';
 
 const MODULE_NAME = 'OCPPUtils';
 
@@ -1331,7 +1331,7 @@ export default class OCPPUtils {
   }
 
   public static async requestAndSaveChargingStationOcppParameters(tenantID: string,
-    chargingStation: ChargingStation, forceUpdateOcppParametersWithTemplate = false, typedParameter?: OCPPTypeConfigurationParam): Promise<OCPPChangeConfigurationCommandResult> {
+    chargingStation: ChargingStation, forceUpdateOcppParametersWithTemplate = false, typedParameter?: OCPPCustomConfigurationParam): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Client
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);

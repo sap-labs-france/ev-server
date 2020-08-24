@@ -1,43 +1,44 @@
-import { Action, Entity } from '../../../types/Authorization';
-import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { NextFunction, Request, Response } from 'express';
-import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import fs from 'fs';
 
+import { NextFunction, Request, Response } from 'express';
+
+import Authorizations from '../../../authorization/Authorizations';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
-import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
-import { ChargingStationInErrorType } from '../../../types/InError';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import Constants from '../../../utils/Constants';
-import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
-import { DataResult } from '../../../types/DataResult';
-import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
-import I18nManager from '../../../utils/I18nManager';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
-import Logging from '../../../utils/Logging';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import { ServerAction } from '../../../types/Server';
-import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
-import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { ChargingProfile } from '../../../types/ChargingProfile';
+import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
+import { DataResult } from '../../../types/DataResult';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ChargingStationInErrorType } from '../../../types/InError';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
+import { ServerAction } from '../../../types/Server';
+import SiteArea from '../../../types/SiteArea';
+import TenantComponents from '../../../types/TenantComponents';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import fs from 'fs';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -1284,7 +1285,7 @@ export default class ChargingStationService {
               await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation, false, {
                 key: params.key,
                 value: params.value,
-                type: params.type
+                isCustom: params.isCustom
               });
             } else {
               await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
