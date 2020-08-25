@@ -46,6 +46,7 @@ export default class ODataTransactions extends AbstractODataEntities {
       delete transaction['tagID'];
     }
     if (transaction.stop) {
+      transaction.stop.totalConsumption = transaction.stop.totalConsumptionWh;
       if (Utils.objectHasProperty(transaction.stop, 'timestamp') && transaction.stop.timestamp) {
         // Convert timestamp and build date object
         transaction.stop.timestamp = this.convertTimestamp(transaction.stop.timestamp, req);
