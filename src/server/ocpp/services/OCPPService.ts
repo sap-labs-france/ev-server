@@ -1593,12 +1593,12 @@ export default class OCPPService {
           for (const currentValue of value['value']) {
             newMeterValue.value = Utils.convertToFloat(currentValue['$value']);
             newMeterValue.attribute = currentValue.attributes;
-            newMeterValues.values.push(JSON.parse(JSON.stringify(newMeterValue)));
+            newMeterValues.values.push(Utils.cloneJSonDocument(newMeterValue));
           }
         } else {
           newMeterValue.value = Utils.convertToFloat(value['value']['$value']);
           newMeterValue.attribute = value['value'].attributes;
-          newMeterValues.values.push(newMeterValue);
+          newMeterValues.values.push(Utils.cloneJSonDocument(newMeterValue));
         }
       }
     }

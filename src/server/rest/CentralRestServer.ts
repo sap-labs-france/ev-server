@@ -17,7 +17,6 @@ import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 import http from 'http';
-import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
