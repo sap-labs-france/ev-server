@@ -515,10 +515,12 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     const filters: any = {
       '$or': DatabaseUtils.getNotDeletedFilter()
     };
@@ -669,11 +671,11 @@ export default class UserStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Add Number of Session per Badge
     if (dbParams === Constants.DB_PARAMS_SINGLE_RECORD) {
@@ -721,10 +723,12 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     if (params) {
@@ -775,11 +779,11 @@ export default class UserStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     aggregation.push({
       $project: {
@@ -817,10 +821,12 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Mongodb aggregation creation
     const aggregation = [];
     // Mongodb filter block ($match)
@@ -882,11 +888,11 @@ export default class UserStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
@@ -898,7 +904,7 @@ export default class UserStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, { params, limit, skip, sort: dbParams.sort });
+    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, { params });
     // Ok
     return {
       count: usersMDB.length,
@@ -934,10 +940,12 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Filter
@@ -996,11 +1004,11 @@ export default class UserStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
