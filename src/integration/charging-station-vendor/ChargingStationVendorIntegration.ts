@@ -1,4 +1,4 @@
-import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, ChargingSchedulePeriod } from '../../types/ChargingProfile';
+import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, ChargingSchedulePeriod, RecurrencyKindType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 
@@ -408,8 +408,13 @@ export default abstract class ChargingStationVendorIntegration {
         }
         // Check the TX Default Charging Profiles from the DB
         chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
+          { chargingStationIDs: [chargingStation.id], connectorID: 0,
             profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+        if (chargingProfiles.result.length === 0) {
+          chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
+            { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
+              profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+        }
         result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
           return result;
@@ -580,35 +585,78 @@ export default abstract class ChargingStationVendorIntegration {
     connectorID: number, chargingProfiles: ChargingProfile[]): ConnectorCurrentLimit {
     // Profiles should already be sorted by connectorID and Stack Level (highest stack level has prio)
     for (const chargingProfile of chargingProfiles) {
-      // Check type (only Absolute)
-      if (chargingProfile.profile.chargingProfileKind === ChargingProfileKindType.ABSOLUTE) {
-        const chargingSchedule = chargingProfile.profile.chargingSchedule;
-        // Check if the profile is still valid (must be)
-        const now = moment();
-        if (moment(chargingSchedule.startSchedule).add(chargingSchedule.duration, 's').isAfter(now)) {
-          let lastButOneSchedule: ChargingSchedulePeriod;
-          // Search
-          for (const schedulePeriod of chargingSchedule.chargingSchedulePeriod) {
-            // First schedule period is always 0 then first one is always bypassed
-            if (moment(chargingSchedule.startSchedule).add(schedulePeriod.startPeriod, 's').isAfter(now)) {
-              // Found the schedule: Last but one is the correct one
-              const result: ConnectorCurrentLimit = {
-                limitAmps: Utils.convertToInt(lastButOneSchedule.limit),
-                limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(lastButOneSchedule.limit)),
-                limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
-              };
-              Logging.logDebug({
-                tenantID: tenantID,
-                source: chargingStation.id,
-                action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-                message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
-                module: MODULE_NAME, method: 'getCurrentConnectorLimit',
-                detailedMessages: { result }
-              });
-              return result;
-            }
-            // Keep it
-            lastButOneSchedule = schedulePeriod;
+      // Set helpers
+      const now = moment();
+      const chargingSchedule = chargingProfile.profile.chargingSchedule;
+      // Check type (Recurring) and if it is already active
+      if (chargingProfile.profile.chargingProfileKind === ChargingProfileKindType.RECURRING &&
+        chargingProfile.profile.recurrencyKind === RecurrencyKindType.DAILY &&
+        moment(now).isAfter(chargingSchedule.startSchedule)) {
+        const currentDate = new Date;
+        chargingSchedule.startSchedule = (new Date(chargingSchedule.startSchedule));
+        chargingSchedule.startSchedule.setFullYear(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+        // Check if the start of the schedule is yesterday (only works for 24h profiles)
+        if (moment(chargingSchedule.startSchedule).isAfter(now)) {
+          chargingSchedule.startSchedule.setDate(currentDate.getDate() - 1);
+        }
+      }
+      if (moment(chargingSchedule.startSchedule).add(chargingSchedule.duration, 's').isAfter(now)) {
+        let lastButOneSchedule: ChargingSchedulePeriod;
+        // Search
+        for (const schedulePeriod of chargingSchedule.chargingSchedulePeriod) {
+          // Handle if schedule contains only one period
+          if (chargingSchedule.chargingSchedulePeriod.length === 1 && schedulePeriod.startPeriod === 0) {
+            const result: ConnectorCurrentLimit = {
+              limitAmps: Utils.convertToInt(schedulePeriod.limit),
+              limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(schedulePeriod.limit)),
+              limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
+            };
+            Logging.logDebug({
+              tenantID: tenantID,
+              source: chargingStation.id,
+              action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+              message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
+              module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+              detailedMessages: { result }
+            });
+            return result;
+          }
+          // Handle the middle of the Schedule
+          if (moment(chargingSchedule.startSchedule).add(schedulePeriod.startPeriod, 's').isAfter(now)) {
+            // Found the schedule: Last but one is the correct one
+            const result: ConnectorCurrentLimit = {
+              limitAmps: Utils.convertToInt(lastButOneSchedule.limit),
+              limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(lastButOneSchedule.limit)),
+              limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
+            };
+            Logging.logDebug({
+              tenantID: tenantID,
+              source: chargingStation.id,
+              action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+              message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
+              module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+              detailedMessages: { result }
+            });
+            return result;
+          }
+          // Keep it
+          lastButOneSchedule = schedulePeriod;
+          // Handle the last schedule period
+          if (schedulePeriod.startPeriod === chargingSchedule.chargingSchedulePeriod[chargingSchedule.chargingSchedulePeriod.length - 1].startPeriod) {
+            const result: ConnectorCurrentLimit = {
+              limitAmps: Utils.convertToInt(lastButOneSchedule.limit),
+              limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(lastButOneSchedule.limit)),
+              limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
+            };
+            Logging.logDebug({
+              tenantID: tenantID,
+              source: chargingStation.id,
+              action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+              message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
+              module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+              detailedMessages: { result }
+            });
+            return result;
           }
         }
       }
