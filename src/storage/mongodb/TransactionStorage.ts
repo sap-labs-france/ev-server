@@ -202,8 +202,6 @@ export default class TransactionStorage {
       $set: {
         userID: Utils.convertToObjectID(user.id)
       }
-    }, {
-      upsert: false
     });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'assignTransactionsToUser', uniqueTimerID);
@@ -269,6 +267,8 @@ export default class TransactionStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactions');
     // Check
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -590,6 +590,8 @@ export default class TransactionStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactions');
     // Check
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -728,6 +730,8 @@ export default class TransactionStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactionsInError');
     // Check
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip

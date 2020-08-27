@@ -41,8 +41,7 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
         $unset: {
           'amperage': '',
         }
-      },
-      { upsert: false }
+      }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {
@@ -73,8 +72,7 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
           'amperageL3': 'instantAmpsL3',
           'amperageDC': 'instantAmpsDC',
         }
-      },
-      { upsert: false }
+      }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {

@@ -20,8 +20,7 @@ export default class RenameChargingStationPropertiesTask extends MigrationTask {
     // Add the status property to the refunded transactions
     const result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
       {},
-      { $rename: { 'private': 'public' } },
-      { upsert: false }
+      { $rename: { 'private': 'public' } }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {

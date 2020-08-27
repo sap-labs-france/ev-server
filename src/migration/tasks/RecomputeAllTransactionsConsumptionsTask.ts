@@ -4,6 +4,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import Promise from 'bluebird';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -13,31 +14,40 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'RecomputeAllTransactionsConsumptionsTask';
 
 export default class RecomputeAllTransactionsConsumptionsTask extends MigrationTask {
-  async migrate(): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async migrateTenant(tenant: Tenant) {
     const consumptionsUpdated: ActionsResponse = {
       inError: 0,
       inSuccess: 0,
     };
     const timeTotalFrom = new Date().getTime();
-    // Get all transactions
-    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
+    // Get transactions
+    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
       .aggregate([
-        { $match: { instantVolts: { $exists: false } } },
-        { $group: { _id: '$transactionId' } }
+        {
+          $match: {
+            'stop.extraInactivitySecs': { $gt: 0 },
+            'stop.extraInactivityComputed': false
+          }
+        },
+        {
+          $project: { '_id': 1 }
+        }
       ]).toArray();
     if (transactionsMDB.length > 0) {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${transactionsMDB.length} Transaction are going to be recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')...`,
+        message: `${transactionsMDB.length} Transaction(s) are going to be recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')...`,
       });
       await Promise.map(transactionsMDB, async (transactionMDB) => {
         try {
@@ -88,7 +98,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
   }
 
   getVersion(): string {
-    return '1.0';
+    return '1.1';
   }
 
   getName(): string {

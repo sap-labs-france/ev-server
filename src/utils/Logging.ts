@@ -282,10 +282,10 @@ export default class Logging {
       module: MODULE_NAME, method: 'interceptor',
       detailedMessages: {
         url: error.config.url,
-        status: error.response.status,
-        statusText: error.response.statusText,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
         message: error.message,
-        response: error.response.data,
+        response: error.response?.data,
         axiosError: error.toJSON(),
       }
     });
