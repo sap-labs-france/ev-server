@@ -378,7 +378,7 @@ export default class OCPPService {
             await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
           }
           // Handle OCPI
-          await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
+          await this.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station
@@ -635,7 +635,7 @@ export default class OCPPService {
       // Billing
       await OCPPUtils.billTransaction(headers.tenantID, transaction, TransactionAction.START);
       // OCPI
-      await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
+      await this.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Clean up Charging Station's connector transaction info
@@ -831,7 +831,7 @@ export default class OCPPService {
         await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
       }
       // OCPI
-      await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
+      await this.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       // Save the transaction
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Notify User
@@ -1027,6 +1027,8 @@ export default class OCPPService {
             lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
           // Build extra inactivity consumption
           await OCPPUtils.buildExtraConsumptionInactivity(tenantID, lastTransaction);
+          // OCPI: post CDR
+          await this.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransaction(tenantID, lastTransaction);
           // Log
@@ -1062,6 +1064,8 @@ export default class OCPPService {
       if (lastTransaction && lastTransaction.stop && !lastTransaction.stop.extraInactivityComputed) {
         // Marked done
         lastTransaction.stop.extraInactivityComputed = true;
+        // OCPI: post CDR
+        await this.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
         // Save
         await TransactionStorage.saveTransaction(tenantID, lastTransaction);
         // Log
@@ -1293,7 +1297,7 @@ export default class OCPPService {
     }
   }
 
-  private async updateOCPITransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, transactionAction: TransactionAction) {
+  private async processOCPITransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, transactionAction: TransactionAction) {
     if (!transaction.user || transaction.user.issuer) {
       return;
     }
@@ -1316,7 +1320,7 @@ export default class OCPPService {
         user: user,
         action: action,
         module: MODULE_NAME,
-        method: 'updateOCPITransaction',
+        method: 'processOCPITransaction',
         message: `Unable to ${transactionAction} transaction for user '${user.id}' not issued locally`
       });
     }
@@ -1326,7 +1330,7 @@ export default class OCPPService {
         user: user,
         action: action,
         module: MODULE_NAME,
-        method: 'updateOCPITransaction',
+        method: 'processOCPITransaction',
         message: `OCPI component requires at least one CPO endpoint to ${transactionAction} transactions`
       });
     }
@@ -1341,7 +1345,7 @@ export default class OCPPService {
             user: user,
             action: action,
             module: MODULE_NAME,
-            method: 'updateOCPITransaction',
+            method: 'processOCPITransaction',
             message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing ocpiToken`
           });
         }
@@ -1369,7 +1373,7 @@ export default class OCPPService {
           throw new BackendError({
             user: user,
             action: action,
-            module: MODULE_NAME, method: 'updateOCPITransaction',
+            module: MODULE_NAME, method: 'processOCPITransaction',
             message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing Authorization`
           });
         }
@@ -1380,6 +1384,8 @@ export default class OCPPService {
         break;
       case TransactionAction.STOP:
         await ocpiClient.stopSession(transaction);
+        break;
+      case TransactionAction.END:
         await ocpiClient.postCdr(transaction);
         break;
     }
