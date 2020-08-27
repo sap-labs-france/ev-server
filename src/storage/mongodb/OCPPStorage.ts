@@ -477,8 +477,6 @@ export default class OCPPStorage {
     const meterValuesCountMDB = await global.database.getCollection<any>(tenantID, 'metervalues')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { timestamp: 1 };
