@@ -677,8 +677,8 @@ export default class UserStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add Number of Session per Badge
-    if (dbParams === Constants.DB_PARAMS_SINGLE_RECORD) {
+    // Add Number of Session per Badge if one user only is requested
+    if (dbParams.limit === 1) {
       // Transactions per Tag
       DatabaseUtils.pushArrayLookupInAggregation('tags', DatabaseUtils.pushTransactionsLookupInAggregation.bind(this), {
         tenantID, aggregation: aggregation, localField: 'tags.id', foreignField: 'tagID',
