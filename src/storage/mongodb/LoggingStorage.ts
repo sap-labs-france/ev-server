@@ -101,6 +101,8 @@ export default class LoggingStorage {
   } = {}, dbParams: DbParams): Promise<DataResult<Log>> {
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip

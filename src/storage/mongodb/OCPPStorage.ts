@@ -40,6 +40,8 @@ export default class OCPPStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAuthorizes');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -125,6 +127,8 @@ export default class OCPPStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getStatusNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -312,15 +316,17 @@ export default class OCPPStorage {
   }
 
   public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string},
-    { limit, skip, sort }: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
+    dbParams: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getBootNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     // Set the filters
@@ -342,24 +348,19 @@ export default class OCPPStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (sort) {
-      // Sort
-      aggregation.push({
-        $sort: sort
-      });
-    } else {
-      // Default
-      aggregation.push({
-        $sort: { _id: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Read DB
     const bootNotificationsMDB = await global.database.getCollection<any>(tenantID, 'bootnotifications')
@@ -450,15 +451,17 @@ export default class OCPPStorage {
   }
 
   public static async getMeterValues(tenantID: string, params: { transactionId: number },
-    { limit, skip, sort }: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
+    dbParams: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getMeterValues');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     const filters: any = {};
@@ -477,22 +480,19 @@ export default class OCPPStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (sort) {
-      aggregation.push({
-        $sort: sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { timestamp: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Read DB
     const meterValuesMDB = await global.database.getCollection<any>(tenantID, 'metervalues')

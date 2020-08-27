@@ -1,11 +1,13 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPP15MeterValuesRequest, OCPP15TransactionData, OCPPAuthorizeResponse, OCPPBootNotificationResponse, OCPPDataTransferResponse, OCPPFirmwareStatus, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPReadingContext, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPP15MeterValuesRequest, OCPP15TransactionData, OCPPAuthorizeResponse, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPFirmwareStatus, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPReadingContext, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
 
+import { AxiosResponse } from 'axios';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import OCPPService from '../ocpp/OCPPService';
 import TenantContext from './TenantContext';
+import Transaction from '../../types/Transaction';
 import Utils from '../../../src/utils/Utils';
 import faker from 'faker';
 
@@ -32,21 +34,21 @@ export default class ChargingStationContext {
   private chargingStation: ChargingStation;
   private ocppService: OCPPService;
   private tenantContext: TenantContext;
-  private transactionsStarted: OCPPStartTransactionResponse[] = [];
-  private transactionsStopped: OCPPStopTransactionResponse[] = [];
+  private transactionsStarted: Map<number, OCPPStartTransactionResponse> = new Map();
+  private transactionsStopped: Map<number, OCPPStopTransactionResponse> = new Map();
 
-  constructor(chargingStation, tenantContext) {
+  constructor(chargingStation: ChargingStation, tenantContext: TenantContext) {
     this.chargingStation = chargingStation;
     this.tenantContext = tenantContext;
   }
 
-  async initialize(token: string = null) {
+  public async initialize(token: string = null): Promise<void> {
     this.ocppService = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion, token);
   }
 
-  async cleanUpCreatedData() {
+  public async cleanUpCreatedData(): Promise<void> {
     // Clean up transactions
-    for (const transaction of this.transactionsStarted) {
+    for (const transaction of this.transactionsStarted.values()) {
       if (transaction.transactionId) {
         const transactionResponse = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transaction.transactionId);
         if (transactionResponse.status === 200) {
@@ -54,51 +56,44 @@ export default class ChargingStationContext {
         }
       }
     }
+    this.transactionsStarted.clear();
   }
 
-  getChargingStation() {
+  public getChargingStation(): ChargingStation {
     return this.chargingStation;
   }
 
-  addTransactionStarted(transaction) {
-    this.transactionsStarted.push(transaction);
-  }
-
-  addTransactionStopped(transaction) {
-    this.transactionsStopped.push(transaction);
-  }
-
-  async authorize(tagId: string): Promise<OCPPAuthorizeResponse> {
+  public async authorize(tagId: string): Promise<OCPPAuthorizeResponse> {
     return this.ocppService.executeAuthorize(this.chargingStation.id, {
       idTag: tagId
     });
   }
 
-  async readChargingStation(userService?: CentralServerService) {
+  public async readChargingStation(userService?: CentralServerService): Promise<AxiosResponse<ChargingStation>> {
     if (!userService) {
       userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN));
     }
     return await userService.chargingStationApi.readById(this.chargingStation.id);
   }
 
-  async sendHeartbeat(): Promise<OCPPHeartbeatResponse> {
+  public async sendHeartbeat(): Promise<OCPPHeartbeatResponse> {
     return await this.ocppService.executeHeartbeat(this.chargingStation.id, {});
   }
 
-  async startTransaction(connectorId: number, tagId: string, meterStart: number, startDate: Date): Promise<OCPPStartTransactionResponse> {
+  public async startTransaction(connectorId: number, tagId: string, meterStart: number, startDate: Date): Promise<OCPPStartTransactionResponse> {
     const response = await this.ocppService.executeStartTransaction(this.chargingStation.id, {
       connectorId: connectorId,
       idTag: tagId,
       meterStart: meterStart,
       timestamp: startDate.toISOString()
     });
-    if (response) {
+    if (response && response.transactionId > 0) {
       this.addTransactionStarted(response);
     }
     return response;
   }
 
-  async stopTransaction(transactionId: number, tagId: string, meterStop: number, stopDate: Date, transactionData?: OCPPMeterValue[] | OCPP15TransactionData): Promise<OCPPStopTransactionResponse> {
+  public async stopTransaction(transactionId: number, tagId: string, meterStop: number, stopDate: Date, transactionData?: OCPPMeterValue[] | OCPP15TransactionData): Promise<OCPPStopTransactionResponse> {
     // Check props
     const response = await this.ocppService.executeStopTransaction(this.chargingStation.id, {
       transactionId: transactionId,
@@ -107,23 +102,14 @@ export default class ChargingStationContext {
       timestamp: stopDate.toISOString(),
       transactionData: transactionData
     });
-    if (response) {
-      this.addTransactionStopped(response);
-    }
     return response;
   }
 
-  public removeTransaction(transactionId: number) {
-    for (let i = 0; i < this.transactionsStarted.length; i++) {
-      const transaction = this.transactionsStarted[i];
-      if (transaction.transactionId === transactionId) {
-        this.transactionsStarted.splice(i, 1);
-        break;
-      }
-    }
+  public removeTransaction(transactionId: number): void {
+    this.transactionsStarted.delete(transactionId);
   }
 
-  async sendConsumptionMeterValue(connectorId: number, transactionId: number, timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
+  public async sendConsumptionMeterValue(connectorId: number, transactionId: number, timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
     let meterValueRequest: OCPPMeterValuesRequest | OCPP15MeterValuesRequest;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
@@ -251,17 +237,19 @@ export default class ChargingStationContext {
     return this.ocppService.executeMeterValues(this.chargingStation.id, meterValueRequest);
   }
 
-  async sendBeginMeterValue(connectorId: number, transactionId: number, timestamp: Date, meterValues: MeterValueParams) {
+  public async sendBeginMeterValue(connectorId: number, transactionId: number,
+    timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
     return this.sendBeginEndMeterValue(
       OCPPReadingContext.TRANSACTION_BEGIN, connectorId, transactionId, timestamp, meterValues);
   }
 
-  async sendEndMeterValue(connectorId: number, transactionId: number, timestamp: Date, meterValues: MeterValueParams) {
+  public async sendEndMeterValue(connectorId: number, transactionId: number,
+    timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
     return this.sendBeginEndMeterValue(
       OCPPReadingContext.TRANSACTION_END, connectorId, transactionId, timestamp, meterValues);
   }
 
-  async sendBeginEndMeterValue(context: OCPPReadingContext.TRANSACTION_BEGIN | OCPPReadingContext.TRANSACTION_END,
+  public async sendBeginEndMeterValue(context: OCPPReadingContext.TRANSACTION_BEGIN | OCPPReadingContext.TRANSACTION_END,
     connectorId: number, transactionId: number, timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
     let meterValueRequest: OCPPMeterValuesRequest | OCPP15MeterValuesRequest;
     // OCPP 1.6?
@@ -397,7 +385,7 @@ export default class ChargingStationContext {
     return this.ocppService.executeMeterValues(this.chargingStation.id, meterValueRequest);
   }
 
-  async sendClockMeterValue(connectorId: number, transactionId: number, timestamp: Date, energyActiveImportMeterValue: number): Promise<OCPPMeterValuesResponse> {
+  public async sendClockMeterValue(connectorId: number, transactionId: number, timestamp: Date, energyActiveImportMeterValue: number): Promise<OCPPMeterValuesResponse> {
     let response: OCPPMeterValuesResponse;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
@@ -433,7 +421,7 @@ export default class ChargingStationContext {
     return response;
   }
 
-  async setConnectorStatus(connector: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
+  public async setConnectorStatus(connector: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
     if (!Utils.objectHasProperty(connector, 'connectorId')) {
       connector.connectorId = 1;
     }
@@ -452,11 +440,11 @@ export default class ChargingStationContext {
     return response;
   }
 
-  async transferData(data): Promise<OCPPDataTransferResponse> {
+  public async transferData(data: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
     return this.ocppService.executeDataTransfer(this.chargingStation.id, data);
   }
 
-  async sendBootNotification(): Promise<OCPPBootNotificationResponse> {
+  public async sendBootNotification(): Promise<OCPPBootNotificationResponse> {
     return this.ocppService.executeBootNotification(
       this.chargingStation.id, {
         chargeBoxSerialNumber: this.chargingStation.chargeBoxSerialNumber,
@@ -468,13 +456,13 @@ export default class ChargingStationContext {
     );
   }
 
-  async sendFirmwareStatusNotification(status: OCPPFirmwareStatus): Promise<OCPPFirmwareStatusNotificationResponse> {
+  public async sendFirmwareStatusNotification(status: OCPPFirmwareStatus): Promise<OCPPFirmwareStatusNotificationResponse> {
     return this.ocppService.executeFirmwareStatusNotification(
       this.chargingStation.id, { status: status }
     );
   }
 
-  getConfiguration() {
+  private getConfiguration() {
     const configuration: any = {
       'stationTemplate': {
         'baseName': 'CS-' + faker.random.alphaNumeric(10),
@@ -513,5 +501,9 @@ export default class ChargingStationContext {
       };
     });
     return configuration;
+  }
+
+  private addTransactionStarted(ocppStartTransactionResponse: OCPPStartTransactionResponse): void {
+    this.transactionsStarted.set(ocppStartTransactionResponse.transactionId, ocppStartTransactionResponse);
   }
 }

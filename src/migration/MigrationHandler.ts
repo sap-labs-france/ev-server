@@ -27,6 +27,7 @@ import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
 import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
+import UnmarkTransactionExtraInactivitiesTask from './tasks/UnmarkTransactionExtraInactivitiesTask';
 import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjectIDsTask';
@@ -80,9 +81,10 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
         currentMigrationTasks.push(new RenameTransactionsAndConsumptionsTask());
         currentMigrationTasks.push(new AddConsumptionAmpsToConsumptionsTask());
-        currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
         currentMigrationTasks.push(new RenameChargingStationPropertiesTask());
         currentMigrationTasks.push(new CleanupSiteAreasTask());
+        currentMigrationTasks.push(new UnmarkTransactionExtraInactivitiesTask());
+        currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

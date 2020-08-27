@@ -44,10 +44,12 @@ export default class RegistrationTokenStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRegistrationTokens');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Build filter
@@ -105,12 +107,12 @@ export default class RegistrationTokenStorage {
       $sort: dbParams.sort
     });
     // Skip
-    if (skip > 0) {
-      aggregation.push({ $skip: skip });
+    if (dbParams.skip > 0) {
+      aggregation.push({ $skip: dbParams.skip });
     }
     // Limit
     aggregation.push({
-      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Read DB
     const registrationTokens = await global.database.getCollection<any>(tenantID, 'registrationtokens')
