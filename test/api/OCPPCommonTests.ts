@@ -326,8 +326,6 @@ export default class OCPPCommonTests {
       'vendorId': 'Schneider Electric',
       'messageId': 'Detection loop',
       'data': '{\\"connectorId\\":2,\\"name\\":\\"Vehicle\\",\\"state\\":\\"0\\",\\"timestamp\\":\\"2018-08-08T10:21:11Z:\\"}',
-      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
-      'timestamp': new Date().toDateString()
     });
     // Check
     expect(response).to.have.property('status');

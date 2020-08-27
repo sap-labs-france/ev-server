@@ -13,8 +13,9 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
-export default class CheckOfflineChargingStationsTask extends SchedulerTask {
+const MODULE_NAME = 'CheckOfflineChargingStationsTask';
 
+export default class CheckOfflineChargingStationsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: CheckOfflineChargingStationsTaskConfig): Promise<void> {
     // Get the lock
     const offlineChargingStationLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'offline-charging-station');
