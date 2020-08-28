@@ -23,7 +23,8 @@ export enum InactivityStatus {
 export enum TransactionAction {
   START = 'start',
   UPDATE = 'update',
-  STOP = 'stop'
+  STOP = 'stop',
+  END = 'end'
 }
 
 export default interface Transaction extends AbstractCurrentConsumption {

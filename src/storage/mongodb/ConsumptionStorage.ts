@@ -191,7 +191,9 @@ export default class ConsumptionStorage {
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     // Sort
-    aggregation.push({ $sort: { endedAt: 1 } });
+    aggregation.push({
+      $sort: { startedAt: 1 }
+    });
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -199,6 +201,45 @@ export default class ConsumptionStorage {
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptionsMDB;
+  }
+
+  static async getLastTransactionConsumption(tenantID: string, params: { transactionId: number }): Promise<Consumption> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLastTransactionConsumption');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {
+        transactionId: Utils.convertToInt(params.transactionId)
+      }
+    });
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Sort
+    aggregation.push({
+      $sort: { startedAt: -1 }
+    });
+    // Limit
+    aggregation.push({
+      $limit: 1
+    });
+    let consumption: Consumption = null;
+    // Read DB
+    const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
+      .aggregate(aggregation, { allowDiskUse: true })
+      .toArray();
+    if (consumptionsMDB && consumptionsMDB.length > 0) {
+      consumption = consumptionsMDB[0];
+    }
+    // Debug
+    Logging.traceEnd('ConsumptionStorage', 'getLastTransactionConsumption', uniqueTimerID, { transactionId: params.transactionId });
+    return consumption;
   }
 
   static async getOptimizedTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
@@ -240,7 +281,6 @@ export default class ConsumptionStorage {
     const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-    // Do the optimization in the code!!!
     // TODO: Handle this coding into MongoDB request
     const consumptions: Consumption[] = [];
     for (const consumptionMDB of consumptionsMDB) {
@@ -251,7 +291,8 @@ export default class ConsumptionStorage {
         if (!lastConsumption) {
           lastConsumption = consumptionMDB.consumptions[i];
         }
-        if (lastConsumption.endedAt.getTime() === consumptionMDB.consumptions[i + 1].startedAt.getTime()) {
+        if (lastConsumption.endedAt && consumptionMDB.consumptions[i + 1].startedAt &&
+            lastConsumption.endedAt.getTime() === consumptionMDB.consumptions[i + 1].startedAt.getTime()) {
           // Remove
           lastConsumption = consumptionMDB.consumptions[i + 1];
           consumptionMDB.consumptions.splice(i + 1, 1);

@@ -93,10 +93,12 @@ export default class CompanyStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
@@ -194,12 +196,12 @@ export default class CompanyStorage {
       $sort: dbParams.sort
     });
     // Skip
-    if (skip > 0) {
-      aggregation.push({ $skip: skip });
+    if (dbParams.skip > 0) {
+      aggregation.push({ $skip: dbParams.skip });
     }
     // Limit
     aggregation.push({
-      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
