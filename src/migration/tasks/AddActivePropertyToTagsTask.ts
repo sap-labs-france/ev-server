@@ -20,8 +20,7 @@ export default class AddActivePropertyToTagsTask extends MigrationTask {
     // Add the active property to tags
     const result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
       {},
-      { $set: { 'active': true } },
-      { upsert: false }
+      { $set: { 'active': true } }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {
@@ -35,8 +34,7 @@ export default class AddActivePropertyToTagsTask extends MigrationTask {
     // Remove deleted property from tags
     await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
       { },
-      { $unset: { 'deleted': '' } },
-      { upsert: false }
+      { $unset: { 'deleted': '' } }
     );
   }
 

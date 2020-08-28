@@ -1,8 +1,8 @@
+import Transaction, { InactivityStatus } from '../../src/types/Transaction';
 import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
-import { InactivityStatus } from '../../src/types/Transaction';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
 import User from '../../src/types/User';
@@ -592,6 +592,9 @@ export default class TransactionCommonTests {
       );
       expect(meterValueResponse).to.eql({});
     }
+    const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
+    expect(transactionResponse.status).to.equal(200);
+    const transaction = transactionResponse.data as Transaction;
     const consumptions = await this.transactionUserService.transactionApi.readAllConsumption(
       { TransactionId: transactionId });
     expect(consumptions.status).to.equal(200);
@@ -599,7 +602,7 @@ export default class TransactionCommonTests {
       id: transactionId,
       values: [
         {
-          date: meterValues[0].timestamp.toISOString(),
+          date: transaction.timestamp,
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -608,7 +611,7 @@ export default class TransactionCommonTests {
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
-          date: meterValues[1].timestamp.toISOString(),
+          date: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
