@@ -310,7 +310,7 @@ export default class TransactionSecurity {
     // Clean
     filteredTransaction.values = consumptions.map((consumption) => {
       const newConsumption: TransactionConsumption = {
-        date: consumption.endedAt,
+        date: consumption.startedAt,
         instantWatts: consumption.instantWatts,
         instantWattsL1: consumption.instantWattsL1,
         instantWattsL2: consumption.instantWattsL2,
@@ -335,6 +335,13 @@ export default class TransactionSecurity {
       };
       return newConsumption;
     });
+    // Add the last point (duration of the last consumption)
+    if (consumptions.length > 0) {
+      filteredTransaction.values.push({
+        ...filteredTransaction.values[filteredTransaction.values.length - 1],
+        date: consumptions[consumptions.length - 1].endedAt,
+      });
+    }
     return filteredTransaction;
   }
 }
