@@ -5,17 +5,17 @@ import Constants from '../../utils/Constants';
 import { ServerAction } from '../../types/Server';
 import UtilsService from './service/UtilsService';
 
-export default {
+export default class CentralRestServerAuthentication {
   // Init Passport
-  initialize(): Handler {
+  static initialize(): Handler {
     return AuthService.initialize();
-  },
+  }
 
-  authenticate(): RequestHandler {
+  static authenticate(): RequestHandler {
     return AuthService.authenticate();
-  },
+  }
 
-  async authService(req: Request, res: Response, next: NextFunction): Promise<void> {
+  static async authService(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Parse the action
       const action = req.params.action as ServerAction;
@@ -102,4 +102,4 @@ export default {
       next(error);
     }
   }
-};
+}
