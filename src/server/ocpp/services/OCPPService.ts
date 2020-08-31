@@ -1496,7 +1496,7 @@ export default class OCPPService {
 
   // Build Inactivity
   private buildTransactionInactivity(transaction: Transaction, i18nHourShort = 'h') {
-    const i18nManager = new I18nManager(transaction.user.locale);
+    const i18nManager = new I18nManager(transaction.user?.locale);
     // Get total
     const totalInactivitySecs = transaction.stop.totalInactivitySecs;
     // None?
