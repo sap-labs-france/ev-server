@@ -591,7 +591,8 @@ export default class OCPIMapping {
       return [];
     }
     const chargingPeriods: OCPIChargingPeriod[] = [];
-    const consumptions = await ConsumptionStorage.getTransactionConsumptions(tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
+    const consumptions = await ConsumptionStorage.getTransactionConsumptions(
+      tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
     if (consumptions.result) {
       for (const consumption of consumptions.result) {
         const chargingPeriod = this.buildChargingPeriod(consumption);
