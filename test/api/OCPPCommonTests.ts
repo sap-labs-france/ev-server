@@ -326,8 +326,6 @@ export default class OCPPCommonTests {
       'vendorId': 'Schneider Electric',
       'messageId': 'Detection loop',
       'data': '{\\"connectorId\\":2,\\"name\\":\\"Vehicle\\",\\"state\\":\\"0\\",\\"timestamp\\":\\"2018-08-08T10:21:11Z:\\"}',
-      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
-      'timestamp': new Date().toDateString()
     });
     // Check
     expect(response).to.have.property('status');
@@ -642,11 +640,9 @@ export default class OCPPCommonTests {
     const transactionCurrentTime = moment(this.newTransaction.timestamp);
     let transactionCumulatedConsumption = this.energyActiveImportStartMeterValue;
     // Check Consumption
-    for (let i = 0; i < response.data.values.length; i++) {
+    for (let i = 0; i < response.data.values.length - 1; i++) {
       // Get the value
       const value = response.data.values[i];
-      // Add time
-      transactionCurrentTime.add(this.meterValueIntervalSecs, 's');
       // Sum
       transactionCumulatedConsumption += this.energyActiveImportMeterValues[i];
       // Check
@@ -688,6 +684,8 @@ export default class OCPPCommonTests {
             null, this.newTransaction.connectorId, transactionCumulatedConsumption)
         });
       }
+      // Add time
+      transactionCurrentTime.add(this.meterValueIntervalSecs, 's');
     }
   }
 
