@@ -42,7 +42,12 @@ export default abstract class WSConnection {
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
-
+    Logging.logDebug({
+      tenantID: Constants.DEFAULT_TENANT,
+      action: ServerAction.WS_JSON_CONNECTION_OPENED,
+      module: MODULE_NAME, method: 'constructor',
+      message: `Charging Station attemps to connect with URL: '${req.url}'`,
+    });
     // Default
     this.tenantIsValid = false;
     // Check URL: remove starting and trailing '/'
@@ -70,19 +75,32 @@ export default abstract class WSConnection {
       // Error
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'constructor',
+        module: MODULE_NAME, method: 'constructor',
         message: `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`
       });
     }
-
+    Logging.logDebug({
+      tenantID: this.tenantID,
+      action: ServerAction.WS_CONNECTION,
+      module: MODULE_NAME, method: 'constructor',
+      message: `Charging Station attemps to connect with URL: '${req.url}'`,
+    });
     if (!Utils.isChargingStationIDValid(this.chargingStationID)) {
-      throw new BackendError({
+      const backendError = new BackendError({
         source: this.chargingStationID,
         module: MODULE_NAME,
         method: 'constructor',
-        message: 'The Charging Station ID is invalid'
+        message: `The Charging Station ID is invalid: '${this.chargingStationID}'`
       });
+      // Log in the right Tenants
+      Logging.logException(
+        backendError,
+        ServerAction.WS_CONNECTION,
+        Constants.CENTRAL_SERVER,
+        MODULE_NAME, 'constructor',
+        this.tenantID
+      );
+      throw backendError;
     }
     // Handle incoming messages
     this.wsConnection.onmessage = this.onMessage.bind(this);

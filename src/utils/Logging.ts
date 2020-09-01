@@ -1,3 +1,4 @@
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import { PerformanceObserver, performance } from 'perf_hooks';
@@ -11,16 +12,20 @@ import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { ServerAction } from '../types/Server';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
+import jwtDecode from 'jwt-decode';
 import os from 'os';
 import { v4 as uuid } from 'uuid';
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
+
+const MODULE_NAME = 'Logging';
 
 const obs = new PerformanceObserver((items): void => {
   if (!_loggingConfig.traceLogOnlyStatistics) {
@@ -55,14 +60,8 @@ obs.observe({ entryTypes: ['measure'] });
 export default class Logging {
   private static traceOCPPCalls: { [key: string]: number } = {};
 
-  // Log Debug
-  public static logDebug(log: Log): void {
-    log.level = LogLevel.DEBUG;
-    Logging._log(log);
-  }
-
   // Debug DB
-  public static traceStart(module, method): string {
+  public static traceStart(module: string, method: string): string {
     let uniqueID = '0';
     // Check
     if (_loggingConfig.trace) {
@@ -100,6 +99,18 @@ export default class Logging {
       performance.mark(`End ${module}.${method}(${uniqueID})`);
       performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`);
     }
+  }
+
+  // Log Debug
+  public static logDebug(log: Log): void {
+    log.level = LogLevel.DEBUG;
+    Logging._log(log);
+  }
+
+  // Log Security Debug
+  public static logSecurityDebug(log: Log): void {
+    log.type = LogType.SECURITY;
+    Logging.logDebug(log);
   }
 
   // Log Info
@@ -149,6 +160,134 @@ export default class Logging {
       message: `>> OCPP Request '${action}' Received`,
       action: action,
       detailedMessages: { payload }
+    });
+  }
+
+  public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const tenantID = await Logging.retrieveTenantFromHttpRequest(req);
+      // Check perfs
+      req['timestamp'] = new Date();
+      // Log
+      Logging.logSecurityDebug({
+        tenantID,
+        action: ServerAction.HTTP_REQUEST,
+        user: Logging.getUserTokenFromHttpRequest(req),
+        message: `Express HTTP Request << ${req.method} '${req.url}'`,
+        module: MODULE_NAME, method: 'logExpressRequest',
+        detailedMessages: {
+          url: req.url,
+          method: req.method,
+          query: Utils.cloneJSonDocument(req.query),
+          body: Utils.cloneJSonDocument(req.body),
+          locale: req.locale,
+          xhr: req.xhr,
+          ip: req.ip,
+          ips: req.ips,
+          httpVersion: req.httpVersion,
+          headers: req.headers,
+        }
+      });
+    } finally {
+      next();
+    }
+  }
+
+  public static logExpressResponse(req: Request, res: Response, next: NextFunction): void {
+    res.on('finish', () => {
+      try {
+        // Retrieve Tenant ID if available
+        let tenantID: string;
+        if (req.user) {
+          tenantID = req.user.tenantID;
+        }
+        // Compute duration
+        let durationSecs = 0;
+        if (req['timestamp']) {
+          durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
+        }
+        // Compute Length
+        let contentLengthKB = 0;
+        if (res.getHeader('content-length')) {
+          contentLengthKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
+        }
+        Logging.logSecurityDebug({
+          tenantID: tenantID,
+          user: req.user,
+          action: ServerAction.HTTP_RESPONSE,
+          message: `Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
+          module: MODULE_NAME, method: 'logExpressResponse',
+          detailedMessages: {
+            request: req.url,
+            status: res.statusCode,
+            statusMessage: res.statusMessage,
+            headers: res.getHeaders(),
+          }
+        });
+      } finally {
+        next();
+      }
+    });
+  }
+
+  public static logExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
+    // Log
+    Logging.logActionExceptionMessageAndSendResponse(ServerAction.HTTP_ERROR, error, req, res, next);
+  }
+
+  public static logAxiosRequest(tenantID: string, request: AxiosRequestConfig): void {
+    request['timestamp'] = new Date();
+    Logging.logSecurityDebug({
+      tenantID: tenantID,
+      action: ServerAction.HTTP_REQUEST,
+      message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
+      module: MODULE_NAME, method: 'interceptor',
+      detailedMessages: {
+        request: Utils.cloneJSonDocument(request),
+      }
+    });
+  }
+
+  public static logAxiosResponse(tenantID: string, response: AxiosResponse): void {
+    // Compute duration
+    let durationSecs = 0;
+    if (response.config['timestamp']) {
+      durationSecs = (new Date().getTime() - response.config['timestamp'].getTime()) / 1000;
+    }
+    // Compute Length
+    let contentLengthKB = 0;
+    if (response.config.headers['Content-Length']) {
+      contentLengthKB = response.config.headers['Content-Length'] / 1000;
+    }
+    Logging.logSecurityDebug({
+      tenantID: tenantID,
+      action: ServerAction.HTTP_RESPONSE,
+      message: `Axios HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+      module: MODULE_NAME, method: 'interceptor',
+      detailedMessages: {
+        status: response.status,
+        statusText: response.statusText,
+        request: Utils.cloneJSonDocument(response.config),
+        response: Utils.cloneJSonDocument(response.data)
+      }
+    });
+  }
+
+  public static logAxiosError(tenantID: string, error: AxiosError): void {
+    // Error handling is done outside to get the proper module information
+    Logging.logSecurityError({
+      tenantID: tenantID,
+      action: ServerAction.HTTP_ERROR,
+      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response?.status} '${error.config.url}' - ${error.message}`,
+      module: MODULE_NAME, method: 'interceptor',
+      detailedMessages: {
+        url: error.config.url,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message,
+        response: error.response?.data,
+        axiosError: error.toJSON(),
+      }
     });
   }
 
@@ -258,6 +397,7 @@ export default class Logging {
     // Log
     Logging.logError({
       tenantID: tenantID,
+      type: LogType.SECURITY,
       user: exception.user,
       source: exception.source,
       module: exception.module,
@@ -283,6 +423,7 @@ export default class Logging {
     // Log
     Logging.logError({
       tenantID: tenantID,
+      type: LogType.SECURITY,
       source: exception.params.source,
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
@@ -309,6 +450,7 @@ export default class Logging {
     // Log
     Logging.logError({
       tenantID: tenantID,
+      type: LogType.SECURITY,
       source: exception.params.source,
       module: exception.params.module,
       method: exception.params.method,
@@ -325,6 +467,7 @@ export default class Logging {
     // Log
     Logging.logSecurityError({
       tenantID: tenantID,
+      type: LogType.SECURITY,
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
       module: exception.params.module,
@@ -482,7 +625,7 @@ export default class Logging {
     // Process
     log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
     // Anonymize message
-    Logging._anonymizeSensitiveData(log.detailedMessages);
+    Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check
     if (log.detailedMessages) {
       // Array?
@@ -512,36 +655,49 @@ export default class Logging {
     }
   }
 
-  private static _anonymizeSensitiveData(message: any) {
-    if (!message) {
+  private static anonymizeSensitiveData(message: any) {
+    if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
       return;
     }
     if (typeof message === 'object') {
       for (const key in message) {
-        if (message.key) {
-          const value = message[key];
+        if (message[key]) {
           // Another JSon?
-          if (typeof value === 'object') {
-            Logging._anonymizeSensitiveData(message[key]);
+          if (typeof message[key] === 'object') {
+            Logging.anonymizeSensitiveData(message[key]);
           }
           // Array?
-          if (Array.isArray(value)) {
-            Logging._anonymizeSensitiveData(value);
+          if (Array.isArray(message[key])) {
+            Logging.anonymizeSensitiveData(message[key]);
           }
           // String?
-          if (typeof value === 'string') {
-            if (key === 'password' ||
-                key === 'repeatPassword' ||
-                key === 'captcha') {
-              // Anonymize
-              message[key] = Constants.ANONYMIZED_VALUE;
+          if (typeof message[key] === 'string') {
+            for (const sensitiveData of Constants.SENSITIVE_DATA) {
+              if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
+                // Anonymize
+                message[key] = Constants.ANONYMIZED_VALUE;
+              }
+            }
+            // Check query string
+            const dataParts: string[] = message[key].split('&');
+            if (dataParts.length > 1) {
+              for (let i = 0; i < dataParts.length; i++) {
+                const dataPart = dataParts[i];
+                for (const sensitiveData of Constants.SENSITIVE_DATA) {
+                  if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+                    // Anonymize
+                    dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+                  }
+                }
+              }
+              message[key] = dataParts.join('&');
             }
           }
         }
       }
     } else if (Array.isArray(message)) {
       for (const item of message) {
-        Logging._anonymizeSensitiveData(item);
+        Logging.anonymizeSensitiveData(item);
       }
     }
   }
@@ -595,5 +751,44 @@ export default class Logging {
       case LogLevel.ERROR:
         return 'error';
     }
+  }
+
+  private static getUserTokenFromHttpRequest(req: Request): UserToken {
+    // Retrieve Tenant ID from JWT token if available
+    try {
+      // Decode the token
+      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        return jwtDecode(req.headers.authorization.slice(7));
+      }
+    } catch (error) {
+      // Do nothing
+    }
+  }
+
+  private static async retrieveTenantFromHttpRequest(req: Request): Promise<string> {
+    // Try from Token
+    const userToken = Logging.getUserTokenFromHttpRequest(req);
+    if (userToken) {
+      return userToken.tenantID;
+    }
+    // Try from body
+    if (req.body?.tenant && req.body.tenant !== '') {
+      const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
+      if (tenant) {
+        return tenant.id;
+      }
+    }
+    // Try from host header
+    if (req.headers?.host) {
+      const hostParts = req.headers.host.split('.');
+      if (hostParts.length > 1) {
+        // Try with the first param
+        const tenant = await TenantStorage.getTenantBySubdomain(hostParts[0]);
+        if (tenant) {
+          return tenant.id;
+        }
+      }
+    }
+    return Constants.DEFAULT_TENANT;
   }
 }

@@ -38,17 +38,18 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationTokens(tenantID: string,
-    params: { id?: string; siteIDs?: string; siteAreaID?: string } = {}, dbParams: DbParams):
+    params: { id?: string; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams):
     Promise<DataResult<RegistrationToken>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRegistrationTokens');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
-
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Build filter
@@ -59,34 +60,24 @@ export default class RegistrationTokenStorage {
     if (params.id) {
       filters._id = Utils.convertToObjectID(params.id);
     }
-
     if (!Utils.isEmptyArray(params.siteIDs)) {
       // Build filter
       filters['siteArea.siteID'] = {
-        $in: params.siteIDs
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
-
     // Create Aggregation
     const aggregation = [];
-
-    DatabaseUtils.pushSiteAreaLookupInAggregation(
-      {
-        tenantID,
-        aggregation,
-        localField: 'siteAreaID',
-        foreignField: '_id',
-        asField: 'siteArea',
-        oneToOneCardinality: true
-      });
-
+    DatabaseUtils.pushSiteAreaLookupInAggregation({
+      tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
+      asField: 'siteArea', oneToOneCardinality: true
+    });
     // Filters
     if (filters) {
       aggregation.push({
         $match: filters
       });
     }
-
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -106,7 +97,6 @@ export default class RegistrationTokenStorage {
     }
     // Remove the limit
     aggregation.pop();
-
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
@@ -117,19 +107,17 @@ export default class RegistrationTokenStorage {
       $sort: dbParams.sort
     });
     // Skip
-    if (skip > 0) {
-      aggregation.push({ $skip: skip });
+    if (dbParams.skip > 0) {
+      aggregation.push({ $skip: dbParams.skip });
     }
     // Limit
     aggregation.push({
-      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
-
     // Read DB
     const registrationTokens = await global.database.getCollection<any>(tenantID, 'registrationtokens')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getRegistrationTokens', uniqueTimerID,
       { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });

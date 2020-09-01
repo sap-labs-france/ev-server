@@ -20,13 +20,6 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
-      // Skip execution
-      Logging.logDebug({
-        tenantID: tenant.id,
-        module: MODULE_NAME, method: 'processTenant',
-        action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
-        message: 'Asset Inactive for this tenant. The task \'AssetGetConsumptionTask\' is skipped.'
-      });
       return;
     }
     const assetLock = await LockingHelper.createAssetRetrieveConsumptionsLock(tenant.id);
@@ -66,13 +59,13 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
             // Save Consumption
             await ConsumptionStorage.saveConsumption(tenant.id, consumption);
           }
+        } catch (error) {
+          // Log error
+          Logging.logActionExceptionMessage(tenant.id, ServerAction.RETRIEVE_ASSET_CONSUMPTION, error);
+        } finally {
+          // Release the lock
+          await LockingManager.release(assetLock);
         }
-      } catch (error) {
-        // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.RETRIEVE_ASSET_CONSUMPTION, error);
-      } finally {
-        // Release the lock
-        await LockingManager.release(assetLock);
       }
     }
   }

@@ -1,4 +1,3 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
 import { NextFunction, Request, Response } from 'express';
 
 import AbstractEndpoint from '../AbstractEndpoint';
@@ -19,7 +18,6 @@ import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
-import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -28,11 +26,8 @@ const MODULE_NAME = 'CredentialsEndpoint';
  * Credentials Endpoint
  */
 export default class CredentialsEndpoint extends AbstractEndpoint {
-  private axiosInstance: AxiosInstance;
-
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
-    this.axiosInstance = AxiosFactory.getAxiosInstance();
   }
 
   /**
@@ -157,18 +152,12 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Try to access remote ocpi service versions
     // Any error here should result in a 3001 Ocpi result exception based on the specification
     try {
-      let response: AxiosResponse;
-      try {
-        // Access versions API
-        response = await this.axiosInstance.get(ocpiEndpoint.baseUrl, {
-          headers: {
-            'Authorization': `Token ${ocpiEndpoint.token}`
-          },
-        });
-      } catch (error) {
-        // Handle errors
-        Utils.handleAxiosError(error, ocpiEndpoint.baseUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'postCredentials');
-      }
+      // Access versions API
+      let response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.baseUrl, {
+        headers: {
+          'Authorization': `Token ${ocpiEndpoint.token}`
+        },
+      });
       // Log available OCPI Versions
       Logging.logDebug({
         tenantID: tenant.id,
@@ -216,17 +205,11 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         });
       }
       // Try to read endpoints
-      try {
-        // Access versions API
-        response = await this.axiosInstance.get(ocpiEndpoint.versionUrl, {
-          headers: {
-            'Authorization': `Token ${ocpiEndpoint.token}`
-          }
-        });
-      } catch (error) {
-        // Handle errors
-        Utils.handleAxiosError(error, ocpiEndpoint.versionUrl, ServerAction.OCPI_POST_CREDENTIALS, MODULE_NAME, 'postCredentials');
-      }
+      response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.versionUrl, {
+        headers: {
+          'Authorization': `Token ${ocpiEndpoint.token}`
+        }
+      });
       // Log available OCPI services
       Logging.logDebug({
         tenantID: tenant.id,

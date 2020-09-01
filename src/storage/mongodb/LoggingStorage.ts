@@ -78,7 +78,9 @@ export default class LoggingStorage {
       detailedMessages: logToSave.detailedMessages
     };
     // Insert
-    await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
+    if (global.database) {
+      await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
+    }
   }
 
   public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Log> {
@@ -99,6 +101,8 @@ export default class LoggingStorage {
   } = {}, dbParams: DbParams): Promise<DataResult<Log>> {
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip

@@ -120,6 +120,8 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -226,7 +228,7 @@ export default class ChargingStationStorage {
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation({
         tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-        asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+        asField: 'siteArea', oneToOneCardinality: true
       });
       // Check Site ID
       if (!Utils.isEmptyArray(params.siteIDs)) {
@@ -327,6 +329,8 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -658,13 +662,15 @@ export default class ChargingStationStorage {
   public static async getChargingProfiles(tenantID: string,
     params: {
       search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
-      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean;
+      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean; siteIDs?: string[];
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingProfiles');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -706,7 +712,29 @@ export default class ChargingStationStorage {
         $match: filters
       });
     }
-
+    if (params.withChargingStation || params.withSiteArea || !Utils.isEmptyArray(params.siteIDs)) {
+      // Charging Stations
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID, aggregation, localField: 'chargingStationID', foreignField: '_id',
+        asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      // Site Areas
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
+        asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      // Check Site ID
+      if (!Utils.isEmptyArray(params.siteIDs)) {
+        // Build filter
+        aggregation.push({
+          $match: {
+            'chargingStation.siteArea.siteID': {
+              $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+            }
+          }
+        });
+      }
+    }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
@@ -748,21 +776,9 @@ export default class ChargingStationStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    if (params.withChargingStation || params.withSiteArea) {
-      // Charging Stations
-      DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID, aggregation, localField: 'chargingStationID', foreignField: '_id',
-        asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-      });
-      // Site Areas
-      DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
-        asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-      });
-      // Convert
-      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
-      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
-    }
+    // Convert
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

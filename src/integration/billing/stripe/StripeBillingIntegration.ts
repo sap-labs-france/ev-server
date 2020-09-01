@@ -1,9 +1,9 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 import Stripe, { IResourceObject } from 'stripe';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
+import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import BillingIntegration from '../BillingIntegration';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
@@ -32,7 +32,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   constructor(tenantId: string, settings: StripeBillingSetting) {
     super(tenantId, settings);
-    this.axiosInstance = AxiosFactory.getAxiosInstance();
+    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
     this.settings.currency = settings.currency;
     if (this.settings.secretKey) {
       this.settings.secretKey = Cypher.decrypt(settings.secretKey);
@@ -344,16 +344,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
     if (invoice.downloadUrl && invoice.downloadUrl !== '') {
       // Get document
-      let response: AxiosResponse;
-      try {
-        response = await this.axiosInstance.get(invoice.downloadUrl,
-          {
-            responseType: 'arraybuffer'
-          });
-      } catch (error) {
-        // Handle errors
-        Utils.handleAxiosError(error, invoice.downloadUrl, ServerAction.BILLING_DOWNLOAD_INVOICE, MODULE_NAME, 'downloadInvoiceDocument');
-      }
+      const response = await this.axiosInstance.get(invoice.downloadUrl,
+        {
+          responseType: 'arraybuffer'
+        });
       // Convert
       const base64Image = Buffer.from(response.data).toString('base64');
       const content = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;

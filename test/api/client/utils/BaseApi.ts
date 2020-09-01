@@ -6,15 +6,14 @@ import querystring from 'querystring';
 
 export default class BaseApi {
   private baseURL: string;
-  private axiosInstance: AxiosInstance;
 
   public constructor(baseURL: string) {
-    this.axiosInstance = AxiosFactory.getAxiosInstance();
     this.baseURL = baseURL;
   }
 
   public async send(httpRequest: AxiosRequestConfig): Promise<any> {
     let httpResponse;
+    const axiosInstance = AxiosFactory.getAxiosInstance('default');
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
     // Set the Query String
@@ -26,7 +25,7 @@ export default class BaseApi {
     try {
       t0 = performance.now();
       // Execute with Axios
-      httpResponse = await this.axiosInstance(httpRequest);
+      httpResponse = await axiosInstance(httpRequest);
       t1 = performance.now();
     } catch (error) {
       // Handle errors
