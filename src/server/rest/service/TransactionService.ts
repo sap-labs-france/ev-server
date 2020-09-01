@@ -389,7 +389,8 @@ export default class TransactionService {
     // Get the consumption
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
-      consumptions = await ConsumptionStorage.getTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
+      const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
+      consumptions = consumptionsMDB.result;
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     }

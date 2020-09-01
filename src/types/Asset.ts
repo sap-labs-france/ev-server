@@ -14,6 +14,15 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   dynamicAsset: boolean;
   connectionID?: string;
   meterID?: string;
+  values: AssetConsumption[],
+}
+
+export interface AssetConsumption {
+  date: Date;
+  instantWatts: number;
+  instantAmps: number;
+  limitWatts: number;
+  limitAmps: number;
 }
 
 export enum SchneiderProperty {
