@@ -9,6 +9,7 @@ import ChargingStationConfiguration from '../../../types/configuration/ChargingS
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../types/DataResult';
@@ -1480,10 +1481,20 @@ export default class OCPPService {
       // Has consumption?
       if (transaction.numberOfMeterValues > 1 && transaction.currentTotalConsumptionWh > 0) {
         // End of charge?
-        if (this.chargingStationConfig.notifEndOfChargeEnabled &&
-          ((transaction.currentTotalConsumptionWh > 0 && transaction.currentTotalInactivitySecs >= 120) || transaction.currentStateOfCharge === 100)) {
-          // Send Notification
-          await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
+        if (this.chargingStationConfig.notifEndOfChargeEnabled && transaction.currentTotalConsumptionWh > 0) {
+          // Battery full
+          if (transaction.currentStateOfCharge === 100) {
+            // Send Notification
+            await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
+          } else {
+            // Check last 5 consumptions
+            const consumptions = await ConsumptionStorage.getTransactionConsumptions(
+              tenantID, { transactionId: transaction.id }, { limit: 5, skip: 0, sort: { startedAt: -1 } });
+            if (consumptions.result.every((consumption) => consumption.consumptionWh === 0)) {
+              // Send Notification
+              await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
+            }
+          }
           // Optimal Charge? (SoC)
         } else if (this.chargingStationConfig.notifBeforeEndOfChargeEnabled &&
           transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
@@ -1495,8 +1506,8 @@ export default class OCPPService {
   }
 
   // Build Inactivity
-  private buildTransactionInactivity(transaction: Transaction, i18nHourShort = 'h') {
-    const i18nManager = new I18nManager(transaction.user.locale);
+  private buildTransactionInactivity(transaction: Transaction, user: User, i18nHourShort = 'h') {
+    const i18nManager = new I18nManager(user ? user.locale : Constants.DEFAULT_LANGUAGE);
     // Get total
     const totalInactivitySecs = transaction.stop.totalInactivitySecs;
     // None?
@@ -1751,7 +1762,7 @@ export default class OCPPService {
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'totalConsumption': i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
           'totalDuration': this.buildTransactionDuration(transaction),
-          'totalInactivity': this.buildTransactionInactivity(transaction),
+          'totalInactivity': this.buildTransactionInactivity(transaction, user),
           'stateOfCharge': transaction.stop.stateOfCharge,
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)

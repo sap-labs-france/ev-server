@@ -83,7 +83,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
             detailedMessages: { error: error.message, stack: error.stack }
           });
         }
-      }, { concurrency: 1 }).then(() => { // Concurrency = 1 to keep SCP up and running
+      }, { concurrency: 5 }).then(() => {
         const totalDurationSecs = Math.trunc((new Date().getTime() - timeTotalFrom) / 1000);
         // Log in the default tenant
         Utils.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
