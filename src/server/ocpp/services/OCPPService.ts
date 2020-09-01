@@ -1499,8 +1499,8 @@ export default class OCPPService {
   }
 
   // Build Inactivity
-  private buildTransactionInactivity(transaction: Transaction, i18nHourShort = 'h') {
-    const i18nManager = new I18nManager(transaction.user.locale);
+  private buildTransactionInactivity(transaction: Transaction, user: User, i18nHourShort = 'h') {
+    const i18nManager = new I18nManager(user ? user.locale : Constants.DEFAULT_LANGUAGE);
     // Get total
     const totalInactivitySecs = transaction.stop.totalInactivitySecs;
     // None?
@@ -1755,7 +1755,7 @@ export default class OCPPService {
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'totalConsumption': i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
           'totalDuration': this.buildTransactionDuration(transaction),
-          'totalInactivity': this.buildTransactionInactivity(transaction),
+          'totalInactivity': this.buildTransactionInactivity(transaction, user),
           'stateOfCharge': transaction.stop.stateOfCharge,
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
