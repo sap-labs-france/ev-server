@@ -1481,9 +1481,13 @@ export default class OCPPService {
       if (transaction.numberOfMeterValues > 1 && transaction.currentTotalConsumptionWh > 0) {
         // End of charge?
         if (this.chargingStationConfig.notifEndOfChargeEnabled &&
-          ((transaction.currentTotalConsumptionWh > 0 && transaction.currentTotalInactivitySecs >= 120) || transaction.currentStateOfCharge === 100)) {
-          // Send Notification
-          await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
+          ((transaction.currentTotalConsumptionWh > 0) && (transaction.currentTotalInactivitySecs >= 300) || transaction.currentStateOfCharge === 100)) {
+          // Check last 5 consumptions
+          const consumptions = await ConsumptionStorage.getTransactionConsumptions(tenantID, { transactionId: transaction.id }, { limit: 5, skip: 0, sort: { startedAt: -1 } });
+          if (consumptions.result.every((element) => element.instantAmps === 0)) {
+            // Send Notification
+            await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
+          }
           // Optimal Charge? (SoC)
         } else if (this.chargingStationConfig.notifBeforeEndOfChargeEnabled &&
           transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
