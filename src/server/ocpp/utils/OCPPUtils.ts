@@ -614,10 +614,6 @@ export default class OCPPUtils {
         userID: transaction.userID,
         endedAt: Utils.convertToDate(meterValue.timestamp),
       } as Consumption;
-      // Handle current Connector limitation
-      await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
-      // Handle current Site Area limitation
-      await Utils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
       // Handle SoC (%)
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         consumption.stateOfCharge = Utils.convertToFloat(meterValue.value);
@@ -707,6 +703,10 @@ export default class OCPPUtils {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
         const diffSecs = moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds') / 1000;
+        // Handle current Connector limitation
+        await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
+        // Handle current Site Area limitation
+        await Utils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Consumption
         if (Utils.convertToFloat(meterValue.value) > lastConsumption.value) {
           // Compute consumption
