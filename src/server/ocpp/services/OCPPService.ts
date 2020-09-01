@@ -1,6 +1,6 @@
 import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargerVendor, Connector, ConnectorType, CurrentType } from '../../../types/ChargingStation';
+import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import Authorizations from '../../../authorization/Authorizations';
@@ -1443,7 +1443,7 @@ export default class OCPPService {
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'totalConsumption': i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
           'stateOfCharge': transaction.currentStateOfCharge,
-          'totalDuration': this.buildCurrentTransactionDuration(transaction),
+          'totalDuration': this.transactionDurationToString(transaction),
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         }
@@ -1489,8 +1489,10 @@ export default class OCPPService {
           } else {
             // Check last 5 consumptions
             const consumptions = await ConsumptionStorage.getTransactionConsumptions(
-              tenantID, { transactionId: transaction.id }, { limit: 5, skip: 0, sort: { startedAt: -1 } });
-            if (consumptions.result.every((consumption) => consumption.consumptionWh === 0)) {
+              tenantID, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
+            if (consumptions.result.every((consumption) => consumption.consumptionWh === 0 &&
+                (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
+                 consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)))) {
               // Send Notification
               await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
             }
@@ -1506,7 +1508,7 @@ export default class OCPPService {
   }
 
   // Build Inactivity
-  private buildTransactionInactivity(transaction: Transaction, user: User, i18nHourShort = 'h') {
+  private transactionInactivityToString(transaction: Transaction, user: User, i18nHourShort = 'h') {
     const i18nManager = new I18nManager(user ? user.locale : Constants.DEFAULT_LANGUAGE);
     // Get total
     const totalInactivitySecs = transaction.stop.totalInactivitySecs;
@@ -1520,7 +1522,7 @@ export default class OCPPService {
   }
 
   // Build duration
-  private buildCurrentTransactionDuration(transaction: Transaction): string {
+  private transactionDurationToString(transaction: Transaction): string {
     let totalDuration;
     if (!transaction.stop) {
       totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
@@ -1762,7 +1764,7 @@ export default class OCPPService {
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'totalConsumption': i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
           'totalDuration': this.buildTransactionDuration(transaction),
-          'totalInactivity': this.buildTransactionInactivity(transaction, user),
+          'totalInactivity': this.transactionInactivityToString(transaction, user),
           'stateOfCharge': transaction.stop.stateOfCharge,
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
