@@ -1,6 +1,6 @@
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, TemplateUpdateResult } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
@@ -737,6 +737,10 @@ export default class OCPPUtils {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
         const diffSecs = moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds') / 1000;
+        // Handle current Connector limitation
+        await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
+        // Handle current Site Area limitation
+        await Utils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Consumption
         if (Utils.convertToFloat(meterValue.value) > lastConsumption.value) {
           // Compute consumption
@@ -751,9 +755,12 @@ export default class OCPPUtils {
         } else {
           consumption.consumptionWh = 0;
           consumption.consumptionAmps = 0;
+          if (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
+            consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)) {
           // Update inactivity
-          transaction.currentTotalInactivitySecs += diffSecs;
-          consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
+            transaction.currentTotalInactivitySecs += diffSecs;
+            consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
+          }
         }
         consumption.cumulatedConsumptionWh = transaction.currentTotalConsumptionWh;
         consumption.cumulatedConsumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, transaction.currentTotalConsumptionWh);
@@ -761,10 +768,6 @@ export default class OCPPUtils {
           moment.duration(moment(meterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
         consumption.toPrice = true;
-        // Handle current Connector limitation
-        await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
-        // Handle current Site Area limitation
-        await Utils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Keep last one
         transaction.lastConsumption = {
           value: Utils.convertToFloat(meterValue.value),
