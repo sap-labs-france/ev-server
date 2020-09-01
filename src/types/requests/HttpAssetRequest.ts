@@ -13,3 +13,9 @@ export interface HttpAssetsRequest extends HttpDatabaseRequest {
   DynamicOnly?: boolean;
   ErrorType?: string;
 }
+
+export interface HttpAssetConsumptionRequest {
+  AssetID: string;
+  StartDate: Date;
+  EndDate: Date;
+}

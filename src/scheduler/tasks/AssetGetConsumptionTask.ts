@@ -1,18 +1,19 @@
+import Consumption, { AbstractCurrentConsumption } from '../../types/Consumption';
+
+import Asset from '../../types/Asset';
 import AssetFactory from '../../integration/asset/AssetFactory';
+import AssetStorage from '../../storage/mongodb/AssetStorage';
+import Constants from '../../utils/Constants';
+import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
-import AssetStorage from '../../storage/mongodb/AssetStorage';
-import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
-import Asset from '../../types/Asset';
-import Consumption, { AbstractCurrentConsumption } from '../../types/Consumption';
+import Logging from '../../utils/Logging';
+import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import SchedulerTask from '../SchedulerTask';
-import Constants from '../../utils/Constants';
 
 const MODULE_NAME = 'AssetGetConsumptionTask';
 
@@ -49,6 +50,8 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                 assetID: asset.id,
                 cumulatedConsumptionWh: asset.currentConsumptionWh,
                 cumulatedConsumptionAmps: Math.floor(asset.currentConsumptionWh / 230),
+                instantAmps: asset.currentInstantAmps,
+                instantWatts: asset.currentInstantWatts,
               };
               // Add limits
               await Utils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, consumption);
