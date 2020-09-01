@@ -1,12 +1,13 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
+import { HttpAssetConsumptionRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+
 import Asset from '../../../../types/Asset';
+import Authorizations from '../../../../authorization/Authorizations';
 import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpAssetConsumptionRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
-import UserToken from '../../../../types/UserToken';
 import SiteAreaSecurity from './SiteAreaSecurity';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class AssetSecurity {
 
@@ -102,12 +103,19 @@ export default class AssetSecurity {
     }
     // Clean
     filteredAsset.values = consumptions.map((consumption) => ({
-      date: consumption.endedAt,
+      date: consumption.startedAt,
       instantWatts: consumption.instantWatts,
       instantAmps: consumption.instantAmps,
       limitWatts: consumption.limitWatts,
       limitAmps: consumption.limitAmps,
     }));
+    // Add the last point (duration of the last consumption)
+    if (consumptions.length > 0) {
+      filteredAsset.values.push({
+        ...filteredAsset.values[filteredAsset.values.length - 1],
+        date: consumptions[consumptions.length - 1].endedAt,
+      });
+    }
     return filteredAsset;
   }
 

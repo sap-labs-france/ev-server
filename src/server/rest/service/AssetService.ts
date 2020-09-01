@@ -1,23 +1,24 @@
-import { NextFunction, Request, Response } from 'express';
-import moment from 'moment';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
-import AssetFactory from '../../../integration/asset/AssetFactory';
-import AssetStorage from '../../../storage/mongodb/AssetStorage';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Asset from '../../../types/Asset';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { NextFunction, Request, Response } from 'express';
+
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Asset from '../../../types/Asset';
+import AssetFactory from '../../../integration/asset/AssetFactory';
 import { AssetInErrorType } from '../../../types/InError';
-import { ServerAction } from '../../../types/Server';
-import TenantComponents from '../../../types/TenantComponents';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
 import AssetSecurity from './security/AssetSecurity';
+import AssetStorage from '../../../storage/mongodb/AssetStorage';
+import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import TenantComponents from '../../../types/TenantComponents';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import moment from 'moment';
 
 const MODULE_NAME = 'AssetService';
 
@@ -36,10 +37,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleGetAsset',
+        action: Action.READ, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleGetAsset',
         value: filteredRequest.AssetID
       });
     }
@@ -59,9 +58,8 @@ export default class AssetService {
       });
     }
     // Check dates order
-    if (filteredRequest.StartDate &&
-      filteredRequest.EndDate &&
-      moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
+    if (filteredRequest.StartDate && filteredRequest.EndDate &&
+        moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -106,10 +104,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CHECK_CONNECTION,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleCheckAssetConnection'
+        action: Action.CHECK_CONNECTION, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleCheckAssetConnection'
       });
     }
     try {
@@ -209,10 +205,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.ASSETS,
-        module: MODULE_NAME,
-        method: 'handleGetAssetsInError'
+        action: Action.LIST, entity: Entity.ASSETS,
+        module: MODULE_NAME, method: 'handleGetAssetsInError'
       });
     }
     // Filter
@@ -256,10 +250,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleDeleteAsset',
+        action: Action.DELETE, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleDeleteAsset',
         value: filteredRequest.ID
       });
     }
@@ -298,10 +290,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleGetAsset',
+        action: Action.READ, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleGetAsset',
         value: filteredRequest.ID
       });
     }
@@ -331,10 +321,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleGetAssetImage',
+        action: Action.READ, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleGetAssetImage',
         value: assetID
       });
     }
@@ -357,10 +345,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.ASSETS,
-        module: MODULE_NAME,
-        method: 'handleGetAssets'
+        action: Action.LIST, entity: Entity.ASSETS,
+        module: MODULE_NAME, method: 'handleGetAssets'
       });
     }
     // Filter
@@ -393,10 +379,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleCreateAsset'
+        action: Action.CREATE, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleCreateAsset'
       });
     }
     // Filter
