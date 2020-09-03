@@ -12,6 +12,7 @@ import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { ServerAction } from '../types/Server';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
@@ -162,67 +163,70 @@ export default class Logging {
     });
   }
 
-  public static logExpressRequest(req: Request, res: Response, next: NextFunction): void {
-    const userToken = Logging.getUserTokenFromHttpRequest(req);
-    let tenantID: string;
-    if (userToken) {
-      tenantID = userToken.tenantID;
+  public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const tenantID = await Logging.retrieveTenantFromHttpRequest(req);
+      // Check perfs
+      req['timestamp'] = new Date();
+      // Log
+      Logging.logSecurityDebug({
+        tenantID,
+        action: ServerAction.HTTP_REQUEST,
+        user: Logging.getUserTokenFromHttpRequest(req),
+        message: `Express HTTP Request << ${req.method} '${req.url}'`,
+        module: MODULE_NAME, method: 'logExpressRequest',
+        detailedMessages: {
+          url: req.url,
+          method: req.method,
+          query: Utils.cloneJSonDocument(req.query),
+          body: Utils.cloneJSonDocument(req.body),
+          locale: req.locale,
+          xhr: req.xhr,
+          ip: req.ip,
+          ips: req.ips,
+          httpVersion: req.httpVersion,
+          headers: req.headers,
+        }
+      });
+    } finally {
+      next();
     }
-    req['timestamp'] = new Date();
-    // Log
-    Logging.logSecurityDebug({
-      tenantID: tenantID,
-      action: ServerAction.HTTP_REQUEST,
-      user: userToken,
-      message: `Express HTTP Request << ${req.method} '${req.url}'`,
-      module: MODULE_NAME, method: 'logExpressRequest',
-      detailedMessages: {
-        url: req.url,
-        method: req.method,
-        query: req.query,
-        body: req.body,
-        locale: req.locale,
-        xhr: req.xhr,
-        ip: req.ip,
-        ips: req.ips,
-        httpVersion: req.httpVersion,
-        headers: req.headers,
-      }
-    });
-    next();
   }
 
   public static logExpressResponse(req: Request, res: Response, next: NextFunction): void {
     res.on('finish', () => {
-      // Retrieve Tenant ID if available
-      let tenantID: string;
-      if (req.user) {
-        tenantID = req.user.tenantID;
-      }
-      // Compute duration
-      let durationSecs = 0;
-      if (req['timestamp']) {
-        durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
-      }
-      // Compute Length
-      let contentLengthKB = 0;
-      if (res.getHeader('content-length')) {
-        contentLengthKB = res.getHeader('content-length') as number / 1000;
-      }
-      Logging.logSecurityDebug({
-        tenantID: tenantID,
-        user: req.user,
-        action: ServerAction.HTTP_RESPONSE,
-        message: `Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
-        module: MODULE_NAME, method: 'logExpressResponse',
-        detailedMessages: {
-          request: req.url,
-          status: res.statusCode,
-          statusMessage: res.statusMessage,
-          headers: res.getHeaders(),
+      try {
+        // Retrieve Tenant ID if available
+        let tenantID: string;
+        if (req.user) {
+          tenantID = req.user.tenantID;
         }
-      });
-      next();
+        // Compute duration
+        let durationSecs = 0;
+        if (req['timestamp']) {
+          durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
+        }
+        // Compute Length
+        let contentLengthKB = 0;
+        if (res.getHeader('content-length')) {
+          contentLengthKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
+        }
+        Logging.logSecurityDebug({
+          tenantID: tenantID,
+          user: req.user,
+          action: ServerAction.HTTP_RESPONSE,
+          message: `Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
+          module: MODULE_NAME, method: 'logExpressResponse',
+          detailedMessages: {
+            request: req.url,
+            status: res.statusCode,
+            statusMessage: res.statusMessage,
+            headers: res.getHeaders(),
+          }
+        });
+      } finally {
+        next();
+      }
     });
   }
 
@@ -238,7 +242,9 @@ export default class Logging {
       action: ServerAction.HTTP_REQUEST,
       message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
       module: MODULE_NAME, method: 'interceptor',
-      detailedMessages: { request }
+      detailedMessages: {
+        request: Utils.cloneJSonDocument(request),
+      }
     });
   }
 
@@ -261,8 +267,8 @@ export default class Logging {
       detailedMessages: {
         status: response.status,
         statusText: response.statusText,
-        request: response.config,
-        response: response.data
+        request: Utils.cloneJSonDocument(response.config),
+        response: Utils.cloneJSonDocument(response.data)
       }
     });
   }
@@ -272,14 +278,14 @@ export default class Logging {
     Logging.logSecurityError({
       tenantID: tenantID,
       action: ServerAction.HTTP_ERROR,
-      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response.status} '${error.config.url}' - ${error.message}`,
+      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response?.status} '${error.config.url}' - ${error.message}`,
       module: MODULE_NAME, method: 'interceptor',
       detailedMessages: {
         url: error.config.url,
-        status: error.response.status,
-        statusText: error.response.statusText,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
         message: error.message,
-        response: error.response.data,
+        response: error.response?.data,
         axiosError: error.toJSON(),
       }
     });
@@ -619,7 +625,7 @@ export default class Logging {
     // Process
     log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
     // Anonymize message
-    Logging._anonymizeSensitiveData(log.detailedMessages);
+    Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check
     if (log.detailedMessages) {
       // Array?
@@ -649,36 +655,49 @@ export default class Logging {
     }
   }
 
-  private static _anonymizeSensitiveData(message: any) {
-    if (!message) {
+  private static anonymizeSensitiveData(message: any) {
+    if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
       return;
     }
     if (typeof message === 'object') {
       for (const key in message) {
-        if (message.key) {
-          const value = message[key];
+        if (message[key]) {
           // Another JSon?
-          if (typeof value === 'object') {
-            Logging._anonymizeSensitiveData(message[key]);
+          if (typeof message[key] === 'object') {
+            Logging.anonymizeSensitiveData(message[key]);
           }
           // Array?
-          if (Array.isArray(value)) {
-            Logging._anonymizeSensitiveData(value);
+          if (Array.isArray(message[key])) {
+            Logging.anonymizeSensitiveData(message[key]);
           }
           // String?
-          if (typeof value === 'string') {
-            if (key === 'password' ||
-                key === 'repeatPassword' ||
-                key === 'captcha') {
-              // Anonymize
-              message[key] = Constants.ANONYMIZED_VALUE;
+          if (typeof message[key] === 'string') {
+            for (const sensitiveData of Constants.SENSITIVE_DATA) {
+              if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
+                // Anonymize
+                message[key] = Constants.ANONYMIZED_VALUE;
+              }
+            }
+            // Check query string
+            const dataParts: string[] = message[key].split('&');
+            if (dataParts.length > 1) {
+              for (let i = 0; i < dataParts.length; i++) {
+                const dataPart = dataParts[i];
+                for (const sensitiveData of Constants.SENSITIVE_DATA) {
+                  if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+                    // Anonymize
+                    dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+                  }
+                }
+              }
+              message[key] = dataParts.join('&');
             }
           }
         }
       }
     } else if (Array.isArray(message)) {
       for (const item of message) {
-        Logging._anonymizeSensitiveData(item);
+        Logging.anonymizeSensitiveData(item);
       }
     }
   }
@@ -744,5 +763,32 @@ export default class Logging {
     } catch (error) {
       // Do nothing
     }
+  }
+
+  private static async retrieveTenantFromHttpRequest(req: Request): Promise<string> {
+    // Try from Token
+    const userToken = Logging.getUserTokenFromHttpRequest(req);
+    if (userToken) {
+      return userToken.tenantID;
+    }
+    // Try from body
+    if (req.body?.tenant && req.body.tenant !== '') {
+      const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
+      if (tenant) {
+        return tenant.id;
+      }
+    }
+    // Try from host header
+    if (req.headers?.host) {
+      const hostParts = req.headers.host.split('.');
+      if (hostParts.length > 1) {
+        // Try with the first param
+        const tenant = await TenantStorage.getTenantBySubdomain(hostParts[0]);
+        if (tenant) {
+          return tenant.id;
+        }
+      }
+    }
+    return Constants.DEFAULT_TENANT;
   }
 }

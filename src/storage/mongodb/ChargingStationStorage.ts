@@ -120,6 +120,8 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -327,6 +329,8 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -666,6 +670,8 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingProfiles');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
