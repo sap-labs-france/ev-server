@@ -100,10 +100,12 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSitesUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation: any[] = [];
     // Filter
@@ -169,11 +171,11 @@ export default class SiteStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
@@ -317,10 +319,12 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
@@ -409,11 +413,11 @@ export default class SiteStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Add Company
     if (params.withCompany) {

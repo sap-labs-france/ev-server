@@ -119,6 +119,8 @@ export default class TenantStorage {
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTenants');
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
