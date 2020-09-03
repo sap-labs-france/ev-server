@@ -101,6 +101,9 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
       chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     }
+    if (Utils.objectHasProperty(filteredRequest, 'forceInactive')) {
+      chargingStation.forceInactive = filteredRequest.forceInactive;
+    }
     // Update Site Area
     if (siteArea) {
       chargingStation.siteAreaID = siteArea.id;
