@@ -107,7 +107,7 @@ export default class ExpressTools {
     // Default listen callback
     function defaultListenCb(): void {
       // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerPort(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}'`;
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerAddress(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}'`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'startServer',

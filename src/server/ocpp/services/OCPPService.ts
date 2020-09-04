@@ -9,7 +9,6 @@ import ChargingStationConfiguration from '../../../types/configuration/ChargingS
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../types/DataResult';
