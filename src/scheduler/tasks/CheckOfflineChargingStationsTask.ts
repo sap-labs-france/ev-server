@@ -13,8 +13,9 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
-export default class CheckOfflineChargingStationsTask extends SchedulerTask {
+const MODULE_NAME = 'CheckOfflineChargingStationsTask';
 
+export default class CheckOfflineChargingStationsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: CheckOfflineChargingStationsTaskConfig): Promise<void> {
     // Get the lock
     const offlineChargingStationLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'offline-charging-station');
@@ -29,22 +30,35 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
         }, Constants.DB_PARAMS_MAX_LIMIT);
         if (chargingStations.count > 0) {
           for (let i = chargingStations.result.length - 1; i >= 0; i--) {
+            const chargingStation = chargingStations.result[i];
             let configuration: OCPPGetConfigurationCommandResult;
             // Check if charging station is still connected
             try {
-              const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStations.result[i]);
+              const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
               if (chargingStationClient) {
                 configuration = await chargingStationClient.getConfiguration({});
               }
             } catch (error) {
+              // Charging Station is offline!
               continue;
             }
             // Charging Station is still connected: ignore it
             if (configuration) {
+              Logging.logInfo({
+                tenantID: tenant.id,
+                source: chargingStation.id,
+                action: ServerAction.MIGRATION,
+                module: MODULE_NAME, method: 'processTenant',
+                message: 'Offline charging station responded successfuly to an OCPP command and will be ignored',
+              });
               // Update Heartbeat
-              await ChargingStationStorage.saveChargingStationHeartBeat(tenant.id, chargingStations.result[i].id,
+              await ChargingStationStorage.saveChargingStationHeartBeat(tenant.id, chargingStation.id,
                 { lastHeartBeat: new Date() }
               );
+              // Remove charging station from notification
+              chargingStations.result.splice(i, 1);
+            // Check if inactive
+            } else if (chargingStation.forceInactive) {
               // Remove charging station from notification
               chargingStations.result.splice(i, 1);
             }

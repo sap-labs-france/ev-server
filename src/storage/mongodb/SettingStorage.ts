@@ -302,6 +302,8 @@ export default class SettingStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSettings');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
