@@ -208,6 +208,8 @@ export default class TransactionService {
     }
     // Post CDR
     await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+    // Save
+    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
