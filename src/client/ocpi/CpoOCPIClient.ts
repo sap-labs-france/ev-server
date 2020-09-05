@@ -699,7 +699,6 @@ export default class CpoOCPIClient extends OCPIClient {
     // Read configuration to retrieve
     const countryCode = this.getLocalCountryCode(ServerAction.OCPI_CHECK_LOCATIONS);
     const partyID = this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS);
-
     const locationUrl = locationsUrl + `/${countryCode}/${partyID}/${location.id}`;
     // Log
     Logging.logDebug({
