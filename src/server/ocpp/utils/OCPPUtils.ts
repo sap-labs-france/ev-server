@@ -1,8 +1,8 @@
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
+import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
-import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
 import BackendError from '../../../exception/BackendError';
@@ -14,13 +14,20 @@ import ChargingStationVendorFactory from '../../../integration/charging-station-
 import Constants from '../../../utils/Constants';
 import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
+import { DataResult } from '../../../types/DataResult';
 import Logging from '../../../utils/Logging';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import { PricedConsumption } from '../../../types/Pricing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import { PricingSettingsType } from '../../../types/Setting';
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
+import Tenant from '../../../types/Tenant';
+import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
@@ -30,6 +37,100 @@ import moment from 'moment';
 const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
+  public static async processOCPITransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, transactionAction: TransactionAction) {
+    if (!transaction.user || transaction.user.issuer) {
+      return;
+    }
+    const user: User = transaction.user;
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+    let action: ServerAction;
+    switch (transactionAction) {
+      case TransactionAction.START:
+        action = ServerAction.START_TRANSACTION;
+        break;
+      case TransactionAction.UPDATE:
+        action = ServerAction.UPDATE_TRANSACTION;
+        break;
+      case TransactionAction.STOP:
+        action = ServerAction.STOP_TRANSACTION;
+        break;
+    }
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+      throw new BackendError({
+        user: user,
+        action: action,
+        module: MODULE_NAME,
+        method: 'processOCPITransaction',
+        message: `Unable to ${transactionAction} transaction for user '${user.id}' not issued locally`
+      });
+    }
+    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+    if (!ocpiClient) {
+      throw new BackendError({
+        user: user,
+        action: action,
+        module: MODULE_NAME,
+        method: 'processOCPITransaction',
+        message: `OCPI component requires at least one CPO endpoint to ${transactionAction} transactions`
+      });
+    }
+    let authorizationId;
+    let authorizations: DataResult<OCPPAuthorizeRequestExtended>;
+    switch (transactionAction) {
+      case TransactionAction.START:
+        // eslint-disable-next-line no-case-declarations
+        const tag = user.tags.find(((value) => value.id === transaction.tagID));
+        if (!tag.ocpiToken) {
+          throw new BackendError({
+            user: user,
+            action: action,
+            module: MODULE_NAME,
+            method: 'processOCPITransaction',
+            message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing ocpiToken`
+          });
+        }
+        // Retrieve Authorization ID
+        authorizations = await OCPPStorage.getAuthorizes(tenant.id, {
+          dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
+          chargeBoxID: transaction.chargeBoxID,
+          tagID: transaction.tagID
+        }, Constants.DB_PARAMS_MAX_LIMIT);
+        // Found ID?
+        if (authorizations && authorizations.result && authorizations.result.length > 0) {
+          // Get the first non used Authorization OCPI ID
+          for (const authorization of authorizations.result) {
+            if (authorization.authorizationId) {
+              const ocpiTransaction = await TransactionStorage.getOCPITransaction(tenant.id, authorization.authorizationId);
+              // OCPI ID not used yet
+              if (!ocpiTransaction) {
+                authorizationId = authorization.authorizationId;
+                break;
+              }
+            }
+          }
+        }
+        if (!authorizationId) {
+          throw new BackendError({
+            user: user,
+            action: action,
+            module: MODULE_NAME, method: 'processOCPITransaction',
+            message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing Authorization`
+          });
+        }
+        await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
+        break;
+      case TransactionAction.UPDATE:
+        await ocpiClient.updateSession(transaction);
+        break;
+      case TransactionAction.STOP:
+        await ocpiClient.stopSession(transaction);
+        break;
+      case TransactionAction.END:
+        await ocpiClient.postCdr(transaction);
+        break;
+    }
+  }
+
   public static async buildExtraConsumptionInactivity(tenantID: string, transaction: Transaction): Promise<boolean> {
     // Extra inactivity
     if (transaction.stop.extraInactivitySecs > 0) {
