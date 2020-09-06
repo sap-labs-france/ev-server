@@ -208,7 +208,17 @@ export default class TransactionService {
     }
     // Post CDR
     await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+    // Save
+    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
     // Ok
+    Logging.logInfo({
+      tenantID: req.user.tenantID,
+      action: action,
+      user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+      module: MODULE_NAME, method: 'handlePushTransactionCdr',
+      message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+      detailedMessages: { cdr: transaction.ocpiData.cdr }
+    });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
