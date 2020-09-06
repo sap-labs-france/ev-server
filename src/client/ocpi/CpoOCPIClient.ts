@@ -745,7 +745,7 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     // Define get option
     const options = {
-      'addChargeBoxID': true,
+      addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_CHECK_LOCATIONS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS)
     };
