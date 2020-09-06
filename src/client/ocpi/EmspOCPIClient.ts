@@ -7,6 +7,7 @@ import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import { OCPICdr } from '../../types/ocpi/OCPICdr';
 import OCPIClient from './OCPIClient';
 import { OCPICommandResponse } from '../../types/ocpi/OCPICommandResponse';
 import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
@@ -17,6 +18,7 @@ import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPISession } from '../../types/ocpi/OCPISession';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
 import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
 import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
@@ -41,7 +43,7 @@ export default class EmspOCPIClient extends OCPIClient {
     super(tenant, settings, ocpiEndpoint, OCPIRole.EMSP);
     if (ocpiEndpoint.role !== OCPIRole.EMSP) {
       throw new BackendError({
-        message: `EmspOCPIClient requires Ocpi Endpoint with role ${OCPIRole.EMSP}`,
+        message: `EmspOCPIClient requires OCPI Endpoint with role ${OCPIRole.EMSP}`,
         module: MODULE_NAME, method: 'constructor',
       });
     }
@@ -68,13 +70,13 @@ export default class EmspOCPIClient extends OCPIClient {
         sendResult.success++;
         sendResult.tokenIDsInSuccess.push(token.uid);
         sendResult.logs.push(
-          `Token ${token.uid} successfully updated`
+          `Token ID '${token.uid}' successfully updated`
         );
       } catch (error) {
         sendResult.failure++;
         sendResult.tokenIDsInFailure.push(token.uid);
         sendResult.logs.push(
-          `Failure updating token:${token.uid}:${error.message}`
+          `Failed to update Token ID '${token.uid}': ${error.message}`
         );
       }
     }
@@ -163,7 +165,7 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_LOCATIONS,
-        message: `Retrieve locations at ${locationsUrl}`,
+        message: `Retrieve locations from ${locationsUrl}`,
         module: MODULE_NAME, method: 'pullLocations'
       });
       // Call IOP
@@ -173,17 +175,17 @@ export default class EmspOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
         });
-      for (const location of response.data.data) {
+      for (const location of response.data.data as OCPILocation[]) {
         try {
           await this.processLocation(location, company, sites.result);
           sendResult.success++;
           sendResult.logs.push(
-            `Location ${location.name} successfully updated`
+            `Location '${location.name}' successfully updated`
           );
         } catch (error) {
           sendResult.failure++;
           sendResult.logs.push(
-            `Failure updating location:${location.name}:${error.message}`
+            `Failed to update Location '${location.name}': ${error.message}`
           );
         }
       }
@@ -215,7 +217,7 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_SESSIONS,
-        message: `Retrieve sessions at ${sessionsUrl}`,
+        message: `Retrieve OCPI Sessions from ${sessionsUrl}`,
         module: MODULE_NAME, method: 'pullSessions'
       });
       // Call IOP
@@ -225,17 +227,17 @@ export default class EmspOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
         });
-      for (const session of response.data.data) {
+      for (const session of response.data.data as OCPISession[]) {
         try {
           await OCPISessionsService.updateTransaction(this.tenant.id, session);
           sendResult.success++;
           sendResult.logs.push(
-            `Session ${session.id} successfully updated`
+            `OCPI Session '${session.id}' successfully updated`
           );
         } catch (error) {
           sendResult.failure++;
           sendResult.logs.push(
-            `Failure updating session:${session.id}:${error.message}`
+            `Failed to update OCPI Session ID '${session.id}': ${error.message}`
           );
         }
       }
@@ -268,7 +270,7 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_CDRS,
-        message: `Retrieve cdrs at ${cdrsUrl}`,
+        message: `Retrieve CDRs from ${cdrsUrl}`,
         module: MODULE_NAME, method: 'pullCdrs'
       });
       // Call IOP
@@ -278,17 +280,17 @@ export default class EmspOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
         });
-      for (const cdr of response.data.data) {
+      for (const cdr of response.data.data as OCPICdr[]) {
         try {
           await OCPISessionsService.processCdr(this.tenant.id, cdr);
           sendResult.success++;
           sendResult.logs.push(
-            `Cdr ${cdr.id} successfully updated`
+            `CDR ID '${cdr.id}' successfully updated`
           );
         } catch (error) {
           sendResult.failure++;
           sendResult.logs.push(
-            `Failure updating cdr:${cdr.id}:${error.message}`
+            `Failed to update CDR ID '${cdr.id}': ${error.message}`
           );
         }
       }
@@ -307,7 +309,7 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PULL_LOCATIONS,
-      message: `Processing location ${location.name} with id ${location.id}`,
+      message: `Processing Location '${location.name}' with ID '${location.id}'`,
       module: MODULE_NAME, method: 'processLocation',
       detailedMessages: location
     });
@@ -374,7 +376,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Missing evse uid of location ${location.name}`,
+            message: `Missing Evse UID in Location '${location.name}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
@@ -382,7 +384,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Delete removed evse ${chargingStationId} of location ${location.name}`,
+            message: `Removed Evse ID '${chargingStationId}' in Location '${location.name}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
@@ -391,7 +393,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Update evse ${chargingStationId} of location ${location.name}`,
+            message: `Updated Evse ID '${chargingStationId}' in Location '${location.name}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
@@ -415,7 +417,7 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CHECK_TOKENS,
-      message: `Get token at ${fullUrl}`,
+      message: `Get Token ID '${tokenUid}' from ${fullUrl}`,
       module: MODULE_NAME, method: 'getToken',
       detailedMessages: { tokenUid }
     });
@@ -429,7 +431,7 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CHECK_LOCATIONS,
-      message: 'Token checked with result',
+      message: `Token ID '${tokenUid}' checked successfully`,
       module: MODULE_NAME, method: 'checkToken',
       detailedMessages: { response : response.data }
     });
@@ -441,7 +443,7 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!response.data) {
       throw new BackendError({
         action: ServerAction.OCPI_CHECK_TOKENS,
-        message: `Get token failed with status ${JSON.stringify(response)}`,
+        message: `Get Token ID '${tokenUid}' failed with status ${JSON.stringify(response)}`,
         module: MODULE_NAME, method: 'getToken',
         detailedMessages: { response: response.data }
       });
@@ -460,7 +462,7 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_TOKENS,
-      message: `Put token at ${fullUrl}`,
+      message: `Push Token ID '${token.uid}' to ${fullUrl}`,
       module: MODULE_NAME, method: 'pushToken',
       detailedMessages: { token }
     });
@@ -483,7 +485,8 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!user || user.deleted || !user.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        message: `OCPI Remote Start session is not available for user with tag id ${tagId}`,
+        source: chargingStation.id,
+        message: `OCPI Remote Start Session is not available for user with Tag ID '${tagId}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { user: user }
       });
@@ -492,7 +495,8 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!tag || !tag.issuer || !tag.active) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        message: `OCPI Remote Start session is not available for tag id ${tagId}`,
+        source: chargingStation.id,
+        message: `Connector '${connectorId}' > OCPI Remote Start Session is not available for Tag ID '${tagId}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { tag: tag }
       });
@@ -519,7 +523,8 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
-      message: `OCPI Remote Start session at ${commandUrl}`,
+      source: chargingStation.id,
+      message: `Connector '${connectorId}' > OCPI Remote Start Session with Tad ID '${tagId}' at ${commandUrl}`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { payload }
     });
@@ -534,7 +539,8 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
-      message: `OCPI Remote Start session response status ${response.status}`,
+      source: chargingStation.id,
+      message: `Connector '${connectorId}' > OCPI Remote Start session response status ${response.status}`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { response: response.data }
     });
@@ -549,7 +555,8 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction || !transaction.ocpiData || !transaction.ocpiData.session || transaction.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        message: `OCPI Remote Stop session is not available for the transaction ${transactionId}`,
+        source: transaction ? transaction.chargeBoxID : null,
+        message: `OCPI Remote Stop Session is not available for the Session ID '${transactionId}'`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction: transaction }
       });
@@ -562,7 +569,8 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
-      message: `OCPI Remote Stop session at ${commandUrl}`,
+      source: transaction.chargeBoxID,
+      message: `Connector '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' at ${commandUrl}`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { payload }
     });
@@ -577,7 +585,8 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
-      message: `OCPI Remote Stop session response status ${response.status}`,
+      source: transaction.chargeBoxID,
+      message: `Connector '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' response status ${response.status}`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { response: response.data }
     });

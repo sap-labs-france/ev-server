@@ -1,5 +1,6 @@
 import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
 import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
+import CheckChargingStationTemplateTask from './tasks/CheckChargingStationTemplateTask';
 import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
 import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
@@ -112,6 +113,9 @@ export default class SchedulerManager {
             break;
           case 'AssetGetConsumptionTask':
             schedulerTask = new AssetGetConsumptionTask();
+            break;
+          case 'CheckChargingStationTemplateTask':
+            schedulerTask = new CheckChargingStationTemplateTask();
             break;
           default:
             Logging.logError({
