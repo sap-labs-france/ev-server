@@ -1,4 +1,6 @@
 import Constants from '../../../utils/Constants';
+import LockingHelper from '../../../locking/LockingHelper';
+import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
@@ -41,41 +43,53 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
   }
 
   // eslint-disable-next-line no-unused-vars
-  async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint) {
-    // Check if OCPI endpoint is registered
-    if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-      Logging.logDebug({
-        tenantID: tenant.id,
-        module: MODULE_NAME, method: 'run',
-        action: ServerAction.OCPI_PATCH_LOCATIONS,
-        message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
-      });
-      return;
-    } else if (!ocpiEndpoint.backgroundPatchJob) {
-      Logging.logDebug({
-        tenantID: tenant.id,
-        module: MODULE_NAME, method: 'run',
-        action: ServerAction.OCPI_PATCH_LOCATIONS,
-        message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
-      });
-      return;
+  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'patch-locations');
+    if (ocpiLock) {
+      try {
+        // Check if OCPI endpoint is registered
+        if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
+          Logging.logDebug({
+            tenantID: tenant.id,
+            module: MODULE_NAME, method: 'run',
+            action: ServerAction.OCPI_PATCH_LOCATIONS,
+            message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
+          });
+          return;
+        } else if (!ocpiEndpoint.backgroundPatchJob) {
+          Logging.logDebug({
+            tenantID: tenant.id,
+            module: MODULE_NAME, method: 'run',
+            action: ServerAction.OCPI_PATCH_LOCATIONS,
+            message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
+          });
+          return;
+        }
+        Logging.logInfo({
+          tenantID: tenant.id,
+          module: MODULE_NAME, method: 'patch',
+          action: ServerAction.OCPI_PATCH_LOCATIONS,
+          message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
+        });
+        // Build OCPI Client
+        const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+        // Send EVSE statuses
+        const sendResult = await ocpiClient.sendEVSEStatuses(false);
+        Logging.logInfo({
+          tenantID: tenant.id,
+          module: MODULE_NAME, method: 'patch',
+          action: ServerAction.OCPI_PATCH_LOCATIONS,
+          message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
+        });
+      } catch (error) {
+        // Log error
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PATCH_LOCATIONS, error);
+      } finally {
+        // Release the lock
+        await LockingManager.release(ocpiLock);
+      }
     }
-    Logging.logInfo({
-      tenantID: tenant.id,
-      module: MODULE_NAME, method: 'patch',
-      action: ServerAction.OCPI_PATCH_LOCATIONS,
-      message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
-    });
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-    // Send EVSE statuses
-    const sendResult = await ocpiClient.sendEVSEStatuses(false);
-    Logging.logInfo({
-      tenantID: tenant.id,
-      module: MODULE_NAME, method: 'patch',
-      action: ServerAction.OCPI_PATCH_LOCATIONS,
-      message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
-    });
   }
 }
 
