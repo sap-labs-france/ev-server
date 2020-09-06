@@ -125,6 +125,7 @@ export default class SiteSecurity {
       filteredSite.name = site.name;
       filteredSite.companyID = site.companyID;
       filteredSite.autoUserSiteAssignment = site.autoUserSiteAssignment;
+      filteredSite.public = site.public;
       filteredSite.issuer = site.issuer;
       if (Utils.objectHasProperty(site, 'address')) {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
