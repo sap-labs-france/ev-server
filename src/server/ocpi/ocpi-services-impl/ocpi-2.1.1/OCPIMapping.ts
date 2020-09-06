@@ -162,32 +162,14 @@ export default class OCPIMapping {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id, { issuer: true, withOnlyChargingStations: true }, { limit, skip });
+    const sites = await SiteStorage.getSites(tenant.id,
+      { issuer: true, withOnlyChargingStations: true, onlyPublicSite: true }, { limit, skip });
     // Convert Sites to Locations
     for (const site of sites.result) {
-      let foundPublicChargingStation = false;
-      // Site with Charging Station only
-      const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargingStations: true }, Constants.DB_PARAMS_MAX_LIMIT);
-      if (siteAreas) {
-        for (const siteArea of siteAreas.result) {
-          if (siteArea.chargingStations) {
-            for (const chargingStation of siteArea.chargingStations) {
-              // Take into account this site?
-              if (chargingStation.public) {
-                foundPublicChargingStation = true;
-                ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
-                break;
-              }
-            }
-          }
-          if (foundPublicChargingStation) {
-            break;
-          }
-        }
-      }
+      ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
     }
     // Set count
-    ocpiLocationsResult.count = ocpiLocationsResult.result.length;
+    ocpiLocationsResult.count = sites.count;
     // Return locations
     return ocpiLocationsResult;
   }

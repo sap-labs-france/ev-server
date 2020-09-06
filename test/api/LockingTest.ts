@@ -108,7 +108,7 @@ describe('Locking Tests', function() {
       expect(testData.siteExclusiveLock.timestamp).not.null;
       expect(testData.siteExclusiveLock.tenantID).to.eql(testData.tenantContext.getTenant().id);
       expect(testData.siteExclusiveLock.entity).to.eql(LockEntity.SITE_AREA);
-      expect(testData.siteExclusiveLock.key).to.eql(siteArea.id);
+      expect(testData.siteExclusiveLock.key).to.eql(siteArea.id + '-smart-charging');
       expect(testData.siteExclusiveLock.type).to.eql(LockType.EXCLUSIVE);
     });
 

@@ -105,6 +105,7 @@ export default class SiteSecurity {
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     filteredRequest.image = sanitize(request.image);
+    filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
     filteredRequest.autoUserSiteAssignment =
       UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
     filteredRequest.companyID = sanitize(request.companyID);
@@ -124,6 +125,7 @@ export default class SiteSecurity {
       filteredSite.name = site.name;
       filteredSite.companyID = site.companyID;
       filteredSite.autoUserSiteAssignment = site.autoUserSiteAssignment;
+      filteredSite.public = site.public;
       filteredSite.issuer = site.issuer;
       if (Utils.objectHasProperty(site, 'address')) {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
