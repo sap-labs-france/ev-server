@@ -269,6 +269,7 @@ export default class ContextBuilder {
         });
         siteTemplate.name = siteContextDef.name;
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
+        siteTemplate.public = siteContextDef.public;
         siteTemplate.id = siteContextDef.id;
         siteTemplate.issuer = true;
         site = siteTemplate;
