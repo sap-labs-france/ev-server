@@ -434,7 +434,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Site id \'5abeba9e4bae1457eb565e67\' not found');
+        expect(locationResponse.data).to.have.property('status_message', 'Site ID \'5abeba9e4bae1457eb565e67\' not found');
       });
 
       // Invalid evse uid
@@ -445,7 +445,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'EVSE uid not found \'NonExistingSite\' on location id \'5ce249a2372f0b1c8caf9294\'');
+        expect(locationResponse.data).to.have.property('status_message', 'Charging Station ID not found \'NonExistingSite\' on Location ID \'5ce249a2372f0b1c8caf9294\'');
       });
 
       // Invalid connector id
@@ -456,7 +456,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Connector id \'0\' not found on EVSE uid \'cs-15-ut-site-withoutACL\' and location id \'5ce249a2372f0b1c8caf9294\'');
+        expect(locationResponse.data).to.have.property('status_message', 'Connector ID \'0\' not found on Charging Station ID \'cs-15-ut-site-withoutACL\' and Location ID \'5ce249a2372f0b1c8caf9294\'');
       });
     });
   });
