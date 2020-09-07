@@ -34,7 +34,7 @@ export default class OCPITokensService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateToken',
           errorCode: HttpStatusCodes.CONFLICT,
-          message: `The token ${token.uid} is already assigned to internal user`,
+          message: `The Token ID '${token.uid}' is already assigned to internal User`,
           detailedMessages: { token },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
@@ -107,7 +107,7 @@ export default class OCPITokensService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateToken',
           errorCode: HttpStatusCodes.CONFLICT,
-          message: `The token ${token.uid} does not belongs to OCPI`,
+          message: `The Token ID '${token.uid}' does not belongs to OCPI`,
           detailedMessages: token,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });

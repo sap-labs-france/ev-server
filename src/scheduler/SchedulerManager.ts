@@ -17,6 +17,7 @@ import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIPatchLocationsTask from './tasks/ocpi/OCPIPatchLocationsTask';
+import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
 import SchedulerTask from './SchedulerTask';
 import { ServerAction } from '../types/Server';
 import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
@@ -92,6 +93,9 @@ export default class SchedulerManager {
             break;
           case 'OCPIGetTokensTask':
             schedulerTask = new OCPIGetTokensTask();
+            break;
+          case 'OCPIPushCdrsTask':
+            schedulerTask = new OCPIPushCdrsTask();
             break;
           case 'SynchronizeRefundTransactionsTask':
             schedulerTask = new SynchronizeRefundTransactionsTask();

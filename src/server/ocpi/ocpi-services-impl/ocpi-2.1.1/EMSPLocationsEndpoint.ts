@@ -82,7 +82,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'patchLocationRequest',
           errorCode: HttpStatusCodes.NOT_FOUND,
-          message: 'Unknown EVSE with id ' + evseUid,
+          message: `Unknown Charging Station ID '${evseUid}'`,
           ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
       }
@@ -95,7 +95,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATIONS,
-        message: `Patching of location ${locationId} is not supported currently`,
+        message: `Patching of Location ID '${locationId}' is not supported currently`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchLocationRequest',
         detailedMessages: location
@@ -199,7 +199,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATIONS,
-        message: `Patching of connector ${connectorId} of evse ${chargingStation.id} failed because connector was not found`,
+        message: `Patching of Connector ID '${connectorId}' of Charging Station '${chargingStation.id}' failed because connector was not found`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchConnector',
         detailedMessages: { location }
@@ -213,7 +213,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATIONS,
-        message: `Delete removed evse ${evseUid} of location ${locationId}`,
+        message: `Delete removed Charging Station '${evseUid}' of Location ID '${locationId}'`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateLocation',
         detailedMessages: location
@@ -223,7 +223,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATIONS,
-        message: `Update evse ${evseUid} of location ${locationId}`,
+        message: `Update Charging Station '${evseUid}' of Location ID '${locationId}'`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateLocation',
         detailedMessages: location
@@ -239,7 +239,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATIONS,
-        message: `Unable to update connector of non existing evse ${evseUid} of location ${locationId}`,
+        message: `Unable to update connector of non existing Charging Station '${evseUid}' of Location ID '${locationId}'`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateLocation',
         detailedMessages: { location }

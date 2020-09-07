@@ -162,8 +162,7 @@ export default class OCPIMapping {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id,
-      { issuer: true, withOnlyChargingStations: true, onlyPublicSite: true }, { limit, skip });
+    const sites = await SiteStorage.getSites(tenant.id, { issuer: true, onlyPublicSite: true }, { limit, skip });
     // Convert Sites to Locations
     for (const site of sites.result) {
       ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));

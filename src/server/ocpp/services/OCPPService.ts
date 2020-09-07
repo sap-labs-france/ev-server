@@ -277,39 +277,18 @@ export default class OCPPService {
       statusNotification.chargeBoxID = chargingStation.id;
       statusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-      if (statusNotification.connectorId === 0) {
-        // Ignore EBEE Charging Station
-        if (chargingStation.chargePointVendor !== ChargerVendor.EBEE) {
-          // Log
-          Logging.logInfo({
-            tenantID: headers.tenantID,
-            source: chargingStation.id,
-            action: ServerAction.STATUS_NOTIFICATION,
-            module: MODULE_NAME, method: 'handleStatusNotification',
-            message: `Connector '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
-          });
-          // Get the connectors
-          const connectors = chargingStation.connectors;
-          // Update ALL connectors
-          for (let i = 0; i < connectors.length; i++) {
-            // Update message with proper connectorId
-            statusNotification.connectorId = connectors[i].connectorId;
-            // Update
-            await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
-          }
-        } else {
-          // Do not take connector '0' into account for EBEE
-          Logging.logWarning({
-            tenantID: headers.tenantID,
-            source: chargingStation.id,
-            module: MODULE_NAME, method: 'handleStatusNotification',
-            action: ServerAction.STATUS_NOTIFICATION,
-            message: `Connector '0' > Ignored EBEE with with Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
-          });
-        }
-      } else {
-        // Update only the given connectorId
+      if (statusNotification.connectorId > 0) {
+        // Update only the given Connector ID
         await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
+      } else {
+        // Log
+        Logging.logInfo({
+          tenantID: headers.tenantID,
+          source: chargingStation.id,
+          action: ServerAction.STATUS_NOTIFICATION,
+          module: MODULE_NAME, method: 'handleStatusNotification',
+          message: `Connector '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+        });
       }
       // Respond
       return {};
