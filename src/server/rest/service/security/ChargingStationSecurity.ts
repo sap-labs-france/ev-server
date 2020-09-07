@@ -54,7 +54,6 @@ export default class ChargingStationSecurity {
         filteredChargingStation.ocppVersion = chargingStation.ocppVersion;
         filteredChargingStation.chargingStationURL = chargingStation.chargingStationURL;
         filteredChargingStation.currentIPAddress = chargingStation.currentIPAddress;
-        filteredChargingStation.currentServerLocalIPAddressPort = chargingStation.currentServerLocalIPAddressPort;
         filteredChargingStation.endpoint = chargingStation.endpoint;
         filteredChargingStation.ocppStandardParameters = chargingStation.ocppStandardParameters;
         filteredChargingStation.ocppVendorParameters = chargingStation.ocppVendorParameters;
