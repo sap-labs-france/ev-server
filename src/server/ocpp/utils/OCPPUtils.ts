@@ -62,7 +62,7 @@ export default class OCPPUtils {
         action: action,
         module: MODULE_NAME,
         method: 'processOCPITransaction',
-        message: `Unable to ${transactionAction} a Session for User '${user.id}' not issued locally`
+        message: `Unable to ${transactionAction} a Transaction for User '${user.id}' not issued locally`
       });
     }
     const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
@@ -87,7 +87,7 @@ export default class OCPPUtils {
             action: action,
             module: MODULE_NAME,
             method: 'processOCPITransaction',
-            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Session thought OCPI protocol due to missing OCPI Token`
+            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Transaction thought OCPI protocol due to missing OCPI Token`
           });
         }
         // Retrieve Authorization ID
@@ -115,7 +115,7 @@ export default class OCPPUtils {
             user: user,
             action: action,
             module: MODULE_NAME, method: 'processOCPITransaction',
-            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} Session thought OCPI protocol due to missing Authorization`
+            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} Transaction thought OCPI protocol due to missing Authorization`
           });
         }
         await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
@@ -257,7 +257,7 @@ export default class OCPPUtils {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Session ID '${transaction.id}'`,
+              message: `Failed to bill the Transaction ID '${transaction.id}'`,
               detailedMessages: { error: error.message, stack: error.stack }
             });
           }
@@ -276,7 +276,7 @@ export default class OCPPUtils {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Session ID '${transaction.id}'`,
+              message: `Failed to bill the Transaction ID '${transaction.id}'`,
               detailedMessages: { error: error.message, stack: error.stack }
             });
           }
@@ -299,7 +299,7 @@ export default class OCPPUtils {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Session ID '${transaction.id}'`,
+              message: `Failed to bill the Transaction ID '${transaction.id}'`,
               detailedMessages: { error: error.message, stack: error.stack }
             });
           }

@@ -231,7 +231,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_SESSIONS,
-      message: `Start OCPI Session ID '${ocpiSession.id}' (ID '${transaction.id}') at ${sessionsUrl}`,
+      message: `Start OCPI Transaction ID '${ocpiSession.id}' (ID '${transaction.id}') at ${sessionsUrl}`,
       module: MODULE_NAME, method: 'startSession',
       detailedMessages: { payload: ocpiSession }
     });
@@ -250,7 +250,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_SESSIONS,
-      message: `Start OCPI Session ID '${ocpiSession.id}' (ID '${transaction.id}') response received from ${sessionsUrl}`,
+      message: `Start OCPI Transaction ID '${ocpiSession.id}' (ID '${transaction.id}') response received from ${sessionsUrl}`,
       module: MODULE_NAME, method: 'startSession',
       detailedMessages: { response: response.data }
     });
@@ -344,7 +344,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_SESSIONS,
-      message: `Stop OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${tokensUrl}`,
+      message: `Stop OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${tokensUrl}`,
       module: MODULE_NAME, method: 'stopSession',
       detailedMessages: { payload: transaction.ocpiData.session }
     });
@@ -359,7 +359,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_SESSIONS,
-      message: `Push OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') response retrieved from ${tokensUrl}`,
+      message: `Push OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') response retrieved from ${tokensUrl}`,
       module: MODULE_NAME, method: 'stopSession',
       detailedMessages: { response: response.data }
     });
@@ -412,7 +412,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_CDRS,
-      message: `Post CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}`,
+      message: `Post CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}`,
       module: MODULE_NAME, method: 'stopSession',
       detailedMessages: { payload: transaction.ocpiData.cdr }
     });
@@ -427,7 +427,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_CDRS,
-      message: `Push CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') response retrieved from ${cdrsUrl}`,
+      message: `Push CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') response retrieved from ${cdrsUrl}`,
       module: MODULE_NAME, method: 'postCdr',
       detailedMessages: { response: response.data }
     });
@@ -498,7 +498,7 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   /**
-   * PATCH EVSE Status
+   * PATCH Charging Station Status
    */
   async patchEVSEStatus(locationId: string, evseUID: string, newStatus: OCPIEvseStatus): Promise<void> {
     // Check for input parameter
@@ -522,7 +522,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PATCH_STATUS,
-      message: `Patch Evse ID '${evseUID}' status at ${fullUrl}`,
+      message: `Patch Charging Station ID '${evseUID}' status at ${fullUrl}`,
       module: MODULE_NAME, method: 'patchEVSEStatus',
       detailedMessages: { payload }
     });
@@ -556,7 +556,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CHECK_CDRS,
-      message: `Check CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
+      message: `Check CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       module: MODULE_NAME, method: 'checkCdr'
     });
     // Check CDR
@@ -569,7 +569,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CHECK_CDRS,
-      message: `CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') checked successfully`,
+      message: `CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') checked successfully`,
       module: MODULE_NAME, method: 'checkCdr',
       detailedMessages: { response: response.data }
     });
@@ -591,7 +591,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     throw new BackendError({
       action: ServerAction.OCPI_CHECK_CDRS,
-      message: `Failed to check CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
+      message: `Failed to check CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       module: MODULE_NAME, method: 'checkCdr',
       detailedMessages: { data: response.data }
     });
@@ -617,7 +617,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CHECK_SESSIONS,
-      message: `Check OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${sessionsUrl}`,
+      message: `Check OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${sessionsUrl}`,
       module: MODULE_NAME, method: 'checkSession'
     });
     // Check
@@ -642,7 +642,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     throw new BackendError({
       action: ServerAction.OCPI_CHECK_CDRS,
-      message: `Failed to check OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${sessionsUrl}`,
+      message: `Failed to check OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${sessionsUrl}`,
       module: MODULE_NAME, method: 'checkSession',
       detailedMessages: { data: response.data }
     });
@@ -676,7 +676,7 @@ export default class CpoOCPIClient extends OCPIClient {
         result.failure++;
         result.objectIDsInFailure.push(String(transaction.id));
         result.logs.push(
-          `Failed to check CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}'): ${error.message}`
+          `Failed to check CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}'): ${error.message}`
         );
       }
       result.total++;
@@ -713,7 +713,7 @@ export default class CpoOCPIClient extends OCPIClient {
           result.failure++;
           result.objectIDsInFailure.push(String(transaction.id));
           result.logs.push(
-            `Failed to check OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}'): ${error.message}`
+            `Failed to check OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}'): ${error.message}`
           );
         }
       }
@@ -846,7 +846,7 @@ export default class CpoOCPIClient extends OCPIClient {
         for (const evse of location.evses) {
           // Total amount of EVSEs
           sendResult.total++;
-          // Check if EVSE should be processed
+          // Check if Charging Station should be processed
           if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.chargeBoxId)) {
             continue;
           }
@@ -857,13 +857,13 @@ export default class CpoOCPIClient extends OCPIClient {
               sendResult.success++;
               sendResult.chargeBoxIDsInSuccess.push(evse.chargeBoxId);
               sendResult.logs.push(
-                `Updated successfully status for Location ID '${location.id}', Evse ID '${evse.evse_id}'`
+                `Updated successfully status for Location ID '${location.id}', Charging Station ID '${evse.evse_id}'`
               );
             } catch (error) {
               sendResult.failure++;
               sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
               sendResult.logs.push(
-                `Failed to update the status of Location ID '${location.id}', Evse ID '${evse.evse_id}': ${error.message}`
+                `Failed to update the status of Location ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
               );
             }
             if (sendResult.failure > 0) {
@@ -887,7 +887,7 @@ export default class CpoOCPIClient extends OCPIClient {
       Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PATCH_STATUS,
-        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
+        message: `Patching of ${sendResult.logs.length} Charging Station statuses has been done with errors (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendEVSEStatuses'
       });
@@ -896,7 +896,7 @@ export default class CpoOCPIClient extends OCPIClient {
       Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PATCH_STATUS,
-        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
+        message: `Patching of ${sendResult.logs.length} Charging Station statuses has been done successfully (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendEVSEStatuses'
       });
