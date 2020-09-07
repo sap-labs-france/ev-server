@@ -37,7 +37,8 @@ import moment from 'moment';
 const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
-  public static async processOCPITransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, transactionAction: TransactionAction) {
+  public static async processOCPITransaction(tenantID: string, transaction: Transaction,
+    chargingStation: ChargingStation, transactionAction: TransactionAction) {
     if (!transaction.user || transaction.user.issuer) {
       return;
     }
@@ -61,7 +62,7 @@ export default class OCPPUtils {
         action: action,
         module: MODULE_NAME,
         method: 'processOCPITransaction',
-        message: `Unable to ${transactionAction} transaction for user '${user.id}' not issued locally`
+        message: `Unable to ${transactionAction} a Session for User '${user.id}' not issued locally`
       });
     }
     const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
@@ -71,7 +72,7 @@ export default class OCPPUtils {
         action: action,
         module: MODULE_NAME,
         method: 'processOCPITransaction',
-        message: `OCPI component requires at least one CPO endpoint to ${transactionAction} transactions`
+        message: `OCPI component requires at least one CPO endpoint to ${transactionAction} a Session`
       });
     }
     let authorizationId;
@@ -86,7 +87,7 @@ export default class OCPPUtils {
             action: action,
             module: MODULE_NAME,
             method: 'processOCPITransaction',
-            message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing ocpiToken`
+            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Session thought OCPI protocol due to missing OCPI Token`
           });
         }
         // Retrieve Authorization ID
@@ -114,7 +115,7 @@ export default class OCPPUtils {
             user: user,
             action: action,
             module: MODULE_NAME, method: 'processOCPITransaction',
-            message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing Authorization`
+            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} Session thought OCPI protocol due to missing Authorization`
           });
         }
         await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
@@ -256,7 +257,7 @@ export default class OCPPUtils {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill transaction ${transaction.id}`,
+              message: `Failed to bill the Session ID '${transaction.id}'`,
               detailedMessages: { error: error.message, stack: error.stack }
             });
           }
@@ -275,7 +276,7 @@ export default class OCPPUtils {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill transaction ${transaction.id}`,
+              message: `Failed to bill the Session ID '${transaction.id}'`,
               detailedMessages: { error: error.message, stack: error.stack }
             });
           }
@@ -298,7 +299,7 @@ export default class OCPPUtils {
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill transaction ${transaction.id}`,
+              message: `Failed to bill the Session ID '${transaction.id}'`,
               detailedMessages: { error: error.message, stack: error.stack }
             });
           }
@@ -427,7 +428,7 @@ export default class OCPPUtils {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
-        message: 'Transaction ID must be provided',
+        message: 'Session ID must be provided',
       });
     }
     // Get the Transaction
@@ -437,7 +438,7 @@ export default class OCPPUtils {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
-        message: `Transaction with ID ${transactionId} does not exist`,
+        message: `Session ID '${transactionId}' does not exist`,
       });
     }
     if (!transaction.stop) {
@@ -445,7 +446,7 @@ export default class OCPPUtils {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
-        message: `Transaction with ID ${transactionId} is in progress`,
+        message: `Session ID '${transactionId}' is in progress`,
       });
     }
     // Check Simple Pricing
@@ -460,7 +461,7 @@ export default class OCPPUtils {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
-        message: `Charging Station with ID ${transaction.chargeBoxID} does not exist`,
+        message: `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       });
     }
     // Get the Meter Values
