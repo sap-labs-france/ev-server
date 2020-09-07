@@ -237,7 +237,7 @@ export default class EmspOCPIClient extends OCPIClient {
         } catch (error) {
           sendResult.failure++;
           sendResult.logs.push(
-            `Failed to update OCPI Session ID '${session.id}': ${error.message}`
+            `Failed to update OCPI Transaction ID '${session.id}': ${error.message}`
           );
         }
       }
@@ -376,7 +376,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Missing Evse UID in Location '${location.name}'`,
+            message: `Missing Charging Station ID in Location '${location.name}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
@@ -384,7 +384,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Removed Evse ID '${chargingStationId}' in Location '${location.name}'`,
+            message: `Removed Charging Station ID '${chargingStationId}' in Location '${location.name}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
@@ -393,7 +393,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Updated Evse ID '${chargingStationId}' in Location '${location.name}'`,
+            message: `Updated Charging Station ID '${chargingStationId}' in Location '${location.name}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
@@ -586,7 +586,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
       source: transaction.chargeBoxID,
-      message: `Connector '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' response status ${response.status}`,
+      message: `Connector ID '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' response status ${response.status}`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { response: response.data }
     });
