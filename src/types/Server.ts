@@ -271,6 +271,7 @@ export enum ServerAction {
   ASSET_DELETE = 'AssetDelete',
   CHECK_ASSET_CONNECTION = 'CheckAssetConnection',
   RETRIEVE_ASSET_CONSUMPTION = 'RetrieveAssetConsumption',
+  ASSET_CONSUMPTION = 'AssetConsumption',
 
   TENANT_CREATE = 'TenantCreate',
   TENANTS = 'Tenants',
@@ -305,7 +306,8 @@ export enum ServerAction {
   SITE_AREA_UPDATE = 'SiteAreaUpdate',
   SITE_AREA_DELETE = 'SiteAreaDelete',
 
-  TRANSACTION_REFUND = 'TransactionsRefund',
+  TRANSACTIONS_REFUND = 'TransactionsRefund',
+  TRANSACTION_PUSH_CDR = 'TransactionPushCdr',
   SYNCHRONIZE_REFUNDED_TRANSACTIONS = 'SynchronizeRefundedTransactions',
 
   SETTING_CREATE = 'SettingCreate',

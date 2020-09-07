@@ -20,8 +20,7 @@ export default class RenameTagPropertiesTask extends MigrationTask {
     // Add the status property to the refunded transactions
     const result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
       {},
-      { $rename: { 'internal': 'issuer', 'provider': 'description' } },
-      { upsert: false }
+      { $rename: { 'internal': 'issuer', 'provider': 'description' } }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {

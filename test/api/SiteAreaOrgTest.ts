@@ -181,6 +181,87 @@ describe('Site Area tests', function() {
       });
 
     });
+    describe('Where basic user', () => {
+
+      before(async () => {
+        // Create the entity
+        testData.newSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({ siteID: testData.siteContext.getSite().id })
+        );
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        if (testData.userContext === testData.centralUserContext) {
+          // Reuse the central user service (to avoid double login)
+          testData.userService = testData.centralUserService;
+        } else {
+          testData.userService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.userContext
+          );
+        }
+      });
+
+      it('Should not be able to create a new site area', async () => {
+        // Create the entity
+        const response = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({ siteID: testData.siteContext.getSite().id }), false
+        );
+        expect(response.status).to.equal(560);
+      });
+
+      it('Should not be able to update the site area', async () => {
+        // Change entity
+        testData.newSiteArea.name = 'New Name';
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea, false
+        );
+        expect(response.status).to.equal(560);
+      });
+
+      it('Should not be able to delete the created site area', async () => {
+        // Delete the created entity
+        const response = await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea,
+          false
+        );
+        expect(response.status).to.equal(560);
+      });
+
+      it('Should not be able to create a site area without a site', async () => {
+        // Try to create the entity
+        const response = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build(),
+          false
+        );
+        expect(response.status).to.equal(500);
+      });
+
+      it('Should not be able to read consumption without site Area ID', async () => {
+        // Try to call Consumptions without Site Area ID
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
+        expect(response.status).to.equal(500);
+        expect(response.data.message).to.equal('The ID must be provided');
+      });
+
+      it('Should not be able to read consumption without start and end date', async () => {
+        // Try to call Consumptions without start and end date
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
+        expect(response.status).to.equal(500);
+        expect(response.data.message).to.equal('Start date and end date must be provided');
+      });
+
+      it('Should not be able to read consumption with end date before start date', async () => {
+        // Try to call Consumptions with end date before start date
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, new Date(), new Date(new Date().getTime() - (24 * 60 * 60 * 1000)));
+        expect(response.status).to.equal(500);
+      });
+
+    });
 
   });
 

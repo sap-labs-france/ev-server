@@ -1806,7 +1806,7 @@ export default class Utils {
 
   public static async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption): Promise<void> {
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && siteArea) {
       // Get limit of the site area
       consumption.limitSiteAreaWatts = 0;
       // Maximum power of the Site Area provided?
