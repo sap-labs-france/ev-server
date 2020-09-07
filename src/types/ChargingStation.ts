@@ -286,4 +286,5 @@ export enum ChargerVendor {
   DELTA = 'DELTA',
   ABB = 'ABB',
   LEGRAND = 'Legrand',
+  ATESS = 'ATESS',
 }
