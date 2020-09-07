@@ -8,6 +8,7 @@ import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/
 import { PricingSettings, PricingSettingsType, SimplePricingSetting } from '../../../../types/Setting';
 
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
@@ -161,7 +162,7 @@ export default class OCPIMapping {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id, { issuer: true, withOnlyChargingStations: true }, { limit, skip });
+    const sites = await SiteStorage.getSites(tenant.id, { issuer: true, onlyPublicSite: true }, { limit, skip });
     // Convert Sites to Locations
     for (const site of sites.result) {
       ocpiLocationsResult.result.push(await OCPIMapping.convertSite2Location(tenant, site, options));
@@ -459,8 +460,8 @@ export default class OCPIMapping {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
     const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
     let numberOfConnectedPhase = 0;
-    // FIXME: Push down that check in Utils.getNumberOfConnectedPhases() once the callee and its callers will be able to handle AC/DC charger full specification
-    if (chargePoint.currentType === CurrentType.AC) {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, chargePoint, connector.connectorId);
+    if (currentType === CurrentType.AC) {
       numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     }
     return {

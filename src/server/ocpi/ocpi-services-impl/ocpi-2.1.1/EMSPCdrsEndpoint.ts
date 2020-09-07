@@ -66,7 +66,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `The CDR ${id} does not exist or does not belong to the requester`,
+        message: `The CDR ID '${id}' does not exist or does not belong to the requester`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }

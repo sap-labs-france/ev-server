@@ -16,6 +16,7 @@ export default interface Site extends CreatedUpdatedProps {
   siteAreas?: SiteArea[];
   company?: Company;
   distanceMeters?: number;
+  public?: boolean;
 }
 
 export interface SiteUser {

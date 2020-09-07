@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Transaction, { TransactionAction } from '../../../types/Transaction';
 
 import { ActionsResponse } from '../../../types/GlobalType';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -24,7 +25,6 @@ import { ServerAction } from '../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import Transaction from '../../../types/Transaction';
 import { TransactionInErrorType } from '../../../types/InError';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
@@ -147,6 +147,79 @@ export default class TransactionService {
       response.inError = notRefundedTransactions;
     }
     res.json(response);
+    next();
+  }
+
+  public static async handlePushTransactionCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = TransactionSecurity.filterPushTransactionCdrRequest(req.body);
+    // Check Mandatory fields
+    UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
+    // Check auth
+    if (!Authorizations.canUpdateTransaction(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        value: filteredRequest.transactionId.toString()
+      });
+    }
+    // Check Transaction
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.transactionId);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionId}' does not exist`,
+      MODULE_NAME, 'handlePushTransactionCdr', req.user);
+    // Check Charging Station
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
+      MODULE_NAME, 'handlePushTransactionCdr', req.user);
+    // Check Issuer
+    if (!transaction.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TRANSACTION_NOT_FROM_TENANT,
+        message: `The transaction ID '${transaction.id}' belongs to an external organization`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check OCPI
+    if (!transaction.ocpiData) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
+        message: `The transaction ID '${transaction.id}' has no OCPI data`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user,
+        action: action
+      });
+    }
+    // CDR already pushed
+    if (transaction.ocpiData.cdr?.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
+        message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user,
+        action: action
+      });
+    }
+    // Post CDR
+    await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+    // Save
+    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    // Ok
+    Logging.logInfo({
+      tenantID: req.user.tenantID,
+      action: action,
+      user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+      module: MODULE_NAME, method: 'handlePushTransactionCdr',
+      message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+      detailedMessages: { cdr: transaction.ocpiData.cdr }
+    });
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
