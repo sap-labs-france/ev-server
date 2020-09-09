@@ -1970,6 +1970,16 @@ export default class Utils {
         user: req.user.id
       });
     }
+    if (!Utils._isPlateIDValid(car.licensePlate)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Car License Plate ID '${car.licensePlate}' is not valid`,
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id,
+        actionOnUser: car.id
+      });
+    }
     if (!car.carCatalogID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
