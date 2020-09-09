@@ -123,7 +123,9 @@ export default class SiteAreaSecurity {
         filteredSiteArea.distanceMeters = siteArea.distanceMeters;
       }
       // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(filteredSiteArea, siteArea, loggedUser);
+      if (Authorizations.canUpdateSiteArea(loggedUser, siteArea.siteID)) {
+        UtilsSecurity.filterCreatedAndLastChanged(filteredSiteArea, siteArea, loggedUser);
+      }
     }
     return filteredSiteArea;
   }

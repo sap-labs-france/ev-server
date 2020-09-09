@@ -278,6 +278,7 @@ export enum ServerAction {
   TENANT = 'Tenant',
   TENANT_UPDATE = 'TenantUpdate',
   TENANT_DELETE = 'TenantDelete',
+  TENANT_LOGO = 'TenantLogo',
 
   COMPANY_CREATE = 'CompanyCreate',
   COMPANIES = 'Companies',

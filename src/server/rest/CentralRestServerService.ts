@@ -142,6 +142,7 @@ class RequestMapper {
           [ServerAction.SITE_USERS]: SiteService.handleGetUsers.bind(this),
           [ServerAction.TENANTS]: TenantService.handleGetTenants.bind(this),
           [ServerAction.TENANT]: TenantService.handleGetTenant.bind(this),
+          [ServerAction.TENANT_LOGO]: TenantService.handleGetTenantLogo.bind(this),
           [ServerAction.SITE_AREAS]: SiteAreaService.handleGetSiteAreas.bind(this),
           [ServerAction.SITE_AREA]: SiteAreaService.handleGetSiteArea.bind(this),
           [ServerAction.SITE_AREA_IMAGE]: SiteAreaService.handleGetSiteAreaImage.bind(this),
