@@ -1,4 +1,4 @@
-import { ConnectorType, CurrentType } from '../ChargingStation';
+import { ConnectorType, CurrentType, phaseAssignmentToGrid } from '../ChargingStation';
 
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -54,6 +54,7 @@ export interface HttpChargingStationParamsUpdateRequest {
     voltage: number;
     currentType: CurrentType;
     numberOfConnectedPhase: number;
+    phaseAssignmentToGrid: phaseAssignmentToGrid;
   }[];
 }
 

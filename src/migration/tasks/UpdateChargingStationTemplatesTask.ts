@@ -5,6 +5,7 @@ import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
+import { OCPPPhase } from '../../types/ocpp/OCPPServer';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -51,6 +52,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     }
     // Get the charging stations
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
+      withSite: true,
       issuer: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
     // Update
@@ -64,6 +66,18 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
         for (const connector of chargingStation.connectors) {
           if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
             connector.amperageLimit = connector.amperage;
+            chargingStationUpdated = true;
+          }
+          if (!Utils.objectHasProperty(connector, 'phaseAssignmentToGrid')) {
+            if (chargingStation.siteArea?.numberOfPhases === 3) {
+              if (connector.numberOfConnectedPhase === 1) {
+                connector.phaseAssignmentToGrid = { cSPhaseL1: OCPPPhase.L1, cSPhaseL2: null, cSPhaseL3: null } ;
+              } else {
+                connector.phaseAssignmentToGrid = { cSPhaseL1: OCPPPhase.L1, cSPhaseL2: OCPPPhase.L2, cSPhaseL3: OCPPPhase.L3 } ;
+              }
+            } else {
+              connector.phaseAssignmentToGrid = null;
+            }
             chargingStationUpdated = true;
           }
         }

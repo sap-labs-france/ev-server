@@ -148,6 +148,16 @@ export default class ChargingStationService {
         connector.voltage = filteredConnector.voltage;
         connector.currentType = filteredConnector.currentType;
         connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
+        connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+      }
+    } else if (siteArea?.numberOfPhases === 3 && filteredRequest.connectors) {
+      // Assign Phases
+      for (const filteredConnector of filteredRequest.connectors) {
+        // Set
+        const connector = Utils.getConnectorFromID(chargingStation, filteredConnector.connectorId);
+        if (filteredConnector.phaseAssignmentToGrid) {
+          connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+        }
       }
     }
     // Update timestamp
