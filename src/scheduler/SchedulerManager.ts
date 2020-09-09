@@ -1,15 +1,13 @@
-import cron from 'node-cron';
-import { ServerAction } from '../types/Server';
-import Configuration from '../utils/Configuration';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
-import SchedulerTask from './SchedulerTask';
 import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
 import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
+import CheckChargingStationTemplateTask from './tasks/CheckChargingStationTemplateTask';
 import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
 import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
+import Configuration from '../utils/Configuration';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
 import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
 import OCPICheckLocationsTask from './tasks/ocpi/OCPICheckLocationsTask';
@@ -19,10 +17,14 @@ import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIPatchLocationsTask from './tasks/ocpi/OCPIPatchLocationsTask';
+import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
+import SchedulerTask from './SchedulerTask';
+import { ServerAction } from '../types/Server';
 import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
 import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
+import cron from 'node-cron';
 
 const MODULE_NAME = 'SchedulerManager';
 
@@ -92,6 +94,9 @@ export default class SchedulerManager {
           case 'OCPIGetTokensTask':
             schedulerTask = new OCPIGetTokensTask();
             break;
+          case 'OCPIPushCdrsTask':
+            schedulerTask = new OCPIPushCdrsTask();
+            break;
           case 'SynchronizeRefundTransactionsTask':
             schedulerTask = new SynchronizeRefundTransactionsTask();
             break;
@@ -112,6 +117,9 @@ export default class SchedulerManager {
             break;
           case 'AssetGetConsumptionTask':
             schedulerTask = new AssetGetConsumptionTask();
+            break;
+          case 'CheckChargingStationTemplateTask':
+            schedulerTask = new CheckChargingStationTemplateTask();
             break;
           default:
             Logging.logError({

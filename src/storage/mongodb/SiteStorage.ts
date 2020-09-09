@@ -100,10 +100,12 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSitesUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation: any[] = [];
     // Filter
@@ -169,11 +171,11 @@ export default class SiteStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
@@ -257,6 +259,7 @@ export default class SiteStorage {
     const siteMDB: any = {
       _id: siteFilter._id,
       issuer: Utils.convertToBoolean(siteToSave.issuer),
+      public: Utils.convertToBoolean(siteToSave.public),
       companyID: Utils.convertToObjectID(siteToSave.companyID),
       autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
@@ -308,7 +311,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean;
+      userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean;
       withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number;
     } = {},
@@ -317,10 +320,12 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
@@ -356,8 +361,13 @@ export default class SiteStorage {
         $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
     }
+    // Issuer
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
+    }
+    // Public Site
+    if (params.onlyPublicSite) {
+      filters.public = params.onlyPublicSite;
     }
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
@@ -409,11 +419,11 @@ export default class SiteStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Add Company
     if (params.withCompany) {

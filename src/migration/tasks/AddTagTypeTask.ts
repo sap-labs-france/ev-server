@@ -22,8 +22,7 @@ export default class AddTagTypeTask extends MigrationTask {
       {
         'internal': { $exists: false }
       },
-      { $set: { 'internal': false, 'deleted': false } },
-      { upsert: false }
+      { $set: { 'internal': false, 'deleted': false } }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {
