@@ -115,7 +115,7 @@ export default class TenantStorage {
 
   // Delegate
   public static async getTenants(
-    params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string },
+    params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string, withLogo?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTenants');
@@ -190,6 +190,17 @@ export default class TenantStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Company Logo
+    if (params.withLogo) {
+      DatabaseUtils.pushCollectionLookupInAggregation('tenantlogos',
+        {
+          tenantID: null, aggregation, localField: '_id', foreignField: '_id',
+          asField: 'tenantlogos', oneToOneCardinality: true
+        }
+      );
+      // Rename
+      DatabaseUtils.pushRenameField(aggregation, 'tenantlogos.logo', 'logo');
+    }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Add Created By / Last Changed By

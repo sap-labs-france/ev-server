@@ -137,8 +137,12 @@ export default class TenantService {
     const filteredRequest = TenantSecurity.filterTenantsRequest(req.query);
     // Get the tenants
     const tenants = await TenantStorage.getTenants(
-      { search: filteredRequest.Search },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+      {
+        search: filteredRequest.Search,
+        withLogo: filteredRequest.WithLogo,
+      },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      [ 'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']);
     // Filter
     TenantSecurity.filterTenantsResponse(tenants, req.user);
     // Return

@@ -19,6 +19,7 @@ export default class TenantSecurity {
   public static filterTenantsRequest(request: any): HttpTenantsRequest {
     const filteredRequest: HttpTenantsRequest = {} as HttpTenantsRequest;
     filteredRequest.Search = sanitize(request.Search);
+    filteredRequest.WithLogo = UtilsSecurity.filterBoolean(request.WithLogo);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -39,7 +40,7 @@ export default class TenantSecurity {
       filteredTenant.subdomain = tenant.subdomain;
       filteredTenant.components = tenant.components;
       filteredTenant.address = tenant.address;
-
+      filteredTenant.logo = tenant.logo;
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
         filteredTenant, tenant, loggedUser);
