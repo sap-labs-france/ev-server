@@ -305,7 +305,7 @@ export default class SiteAreaService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'name', 'siteID', 'maximumPower', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
-        'site.id', 'site.name', 'issuer', 'distanceMeters']
+        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']
     );
     // Filter
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);

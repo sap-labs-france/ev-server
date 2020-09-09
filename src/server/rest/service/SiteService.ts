@@ -393,7 +393,7 @@ export default class SiteService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       ['id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-        'autoUserSiteAssignment', 'distanceMeters', 'public']
+        'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']
     );
     // Build the result
     if (sites.result && sites.result.length > 0) {
