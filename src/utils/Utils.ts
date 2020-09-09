@@ -1719,7 +1719,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Email ${filteredRequest.email} is not valid`,
+        message: `User Email '${filteredRequest.email}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1741,7 +1741,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Phone ${filteredRequest.phone} is not valid`,
+        message: `User Phone '${filteredRequest.phone}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1752,7 +1752,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Mobile ${filteredRequest.mobile} is not valid`,
+        message: `User Mobile '${filteredRequest.mobile}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1764,7 +1764,7 @@ export default class Utils {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags ${JSON.stringify(filteredRequest.tags)} is/are not valid`,
+          message: `User Tags '${JSON.stringify(filteredRequest.tags)}' is/are not valid`,
           module: MODULE_NAME,
           method: 'checkIfUserValid',
           user: req.user.id,
@@ -1776,7 +1776,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Plate ID ${filteredRequest.plateID} is not valid`,
+        message: `User Plate ID '${filteredRequest.plateID}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -2080,7 +2080,7 @@ export default class Utils {
   }
 
   private static _isPlateIDValid(plateID): boolean {
-    return /^[A-Z0-9-]*$/.test(plateID);
+    return /^[A-Z0-9- ]*$/.test(plateID);
   }
 
   private static _normalizeOneSOAPParam(headers: any, name: string) {
