@@ -10,7 +10,8 @@ const MODULE_NAME = 'SchedulerTask';
 
 export default abstract class SchedulerTask {
   private name: string;
-  async run(name: string, config: TaskConfig): Promise<void> {
+
+  public async run(name: string, config: TaskConfig): Promise<void> {
     this.name = name;
     const startMigrationTime = moment();
     Logging.logInfo({

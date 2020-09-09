@@ -277,39 +277,18 @@ export default class OCPPService {
       statusNotification.chargeBoxID = chargingStation.id;
       statusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-      if (statusNotification.connectorId === 0) {
-        // Ignore EBEE Charging Station
-        if (chargingStation.chargePointVendor !== ChargerVendor.EBEE) {
-          // Log
-          Logging.logInfo({
-            tenantID: headers.tenantID,
-            source: chargingStation.id,
-            action: ServerAction.STATUS_NOTIFICATION,
-            module: MODULE_NAME, method: 'handleStatusNotification',
-            message: `Connector '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
-          });
-          // Get the connectors
-          const connectors = chargingStation.connectors;
-          // Update ALL connectors
-          for (let i = 0; i < connectors.length; i++) {
-            // Update message with proper connectorId
-            statusNotification.connectorId = connectors[i].connectorId;
-            // Update
-            await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
-          }
-        } else {
-          // Do not take connector '0' into account for EBEE
-          Logging.logWarning({
-            tenantID: headers.tenantID,
-            source: chargingStation.id,
-            module: MODULE_NAME, method: 'handleStatusNotification',
-            action: ServerAction.STATUS_NOTIFICATION,
-            message: `Connector '0' > Ignored EBEE with with Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
-          });
-        }
-      } else {
-        // Update only the given connectorId
+      if (statusNotification.connectorId > 0) {
+        // Update only the given Connector ID
         await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
+      } else {
+        // Log
+        Logging.logInfo({
+          tenantID: headers.tenantID,
+          source: chargingStation.id,
+          action: ServerAction.STATUS_NOTIFICATION,
+          module: MODULE_NAME, method: 'handleStatusNotification',
+          message: `Connector '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+        });
       }
       // Respond
       return {};
@@ -379,7 +358,7 @@ export default class OCPPService {
             await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
           }
           // Handle OCPI
-          await this.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
+          await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station
@@ -636,7 +615,7 @@ export default class OCPPService {
       // Billing
       await OCPPUtils.billTransaction(headers.tenantID, transaction, TransactionAction.START);
       // OCPI
-      await this.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
+      await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Clean up Charging Station's connector transaction info
@@ -832,7 +811,7 @@ export default class OCPPService {
         await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
       }
       // OCPI
-      await this.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
+      await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       // Save the transaction
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Notify User
@@ -958,7 +937,7 @@ export default class OCPPService {
       return;
     }
     // Check for inactivity
-    await this.checkStatusNotificationInactivity(tenantID, chargingStation, statusNotification, foundConnector);
+    await this.checkStatusNotificationInactivityAndPushCdr(tenantID, chargingStation, statusNotification, foundConnector);
     // Set connector data
     foundConnector.connectorId = statusNotification.connectorId;
     foundConnector.status = statusNotification.status;
@@ -1006,7 +985,7 @@ export default class OCPPService {
     }
   }
 
-  private async checkStatusNotificationInactivity(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+  private async checkStatusNotificationInactivityAndPushCdr(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check Inactivity
     // OCPP 1.6: Finishing --> Available
     if (connector.status === ChargePointStatus.FINISHING &&
@@ -1029,7 +1008,7 @@ export default class OCPPService {
           // Build extra inactivity consumption
           await OCPPUtils.buildExtraConsumptionInactivity(tenantID, lastTransaction);
           // OCPI: post CDR
-          await this.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
+          await OCPPUtils.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransaction(tenantID, lastTransaction);
           // Log
@@ -1037,7 +1016,7 @@ export default class OCPPService {
             tenantID: tenantID,
             source: chargingStation.id,
             user: lastTransaction.userID,
-            module: MODULE_NAME, method: 'checkStatusNotificationInactivity',
+            module: MODULE_NAME, method: 'checkStatusNotificationInactivityAndPushCdr',
             action: ServerAction.EXTRA_INACTIVITY,
             message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
             detailedMessages: [statusNotification, lastTransaction]
@@ -1048,7 +1027,7 @@ export default class OCPPService {
             tenantID: tenantID,
             source: chargingStation.id,
             user: lastTransaction.userID,
-            module: MODULE_NAME, method: 'checkStatusNotificationInactivity',
+            module: MODULE_NAME, method: 'checkStatusNotificationInactivityAndPushCdr',
             action: ServerAction.EXTRA_INACTIVITY,
             message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity has already been computed`,
             detailedMessages: [statusNotification, lastTransaction]
@@ -1066,7 +1045,7 @@ export default class OCPPService {
         // Marked done
         lastTransaction.stop.extraInactivityComputed = true;
         // OCPI: post CDR
-        await this.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
+        await OCPPUtils.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
         // Save
         await TransactionStorage.saveTransaction(tenantID, lastTransaction);
         // Log
@@ -1074,7 +1053,7 @@ export default class OCPPService {
           tenantID: tenantID,
           source: chargingStation.id,
           user: lastTransaction.userID,
-          module: MODULE_NAME, method: 'checkStatusNotificationInactivity',
+          module: MODULE_NAME, method: 'checkStatusNotificationInactivityAndPushCdr',
           action: ServerAction.EXTRA_INACTIVITY,
           message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > No Extra Inactivity has been added`,
           detailedMessages: [statusNotification, lastTransaction]
@@ -1295,100 +1274,6 @@ export default class OCPPService {
       if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         transaction.numberOfMeterValues++;
       }
-    }
-  }
-
-  private async processOCPITransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, transactionAction: TransactionAction) {
-    if (!transaction.user || transaction.user.issuer) {
-      return;
-    }
-    const user: User = transaction.user;
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    let action: ServerAction;
-    switch (transactionAction) {
-      case TransactionAction.START:
-        action = ServerAction.START_TRANSACTION;
-        break;
-      case TransactionAction.UPDATE:
-        action = ServerAction.UPDATE_TRANSACTION;
-        break;
-      case TransactionAction.STOP:
-        action = ServerAction.STOP_TRANSACTION;
-        break;
-    }
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-      throw new BackendError({
-        user: user,
-        action: action,
-        module: MODULE_NAME,
-        method: 'processOCPITransaction',
-        message: `Unable to ${transactionAction} transaction for user '${user.id}' not issued locally`
-      });
-    }
-    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-    if (!ocpiClient) {
-      throw new BackendError({
-        user: user,
-        action: action,
-        module: MODULE_NAME,
-        method: 'processOCPITransaction',
-        message: `OCPI component requires at least one CPO endpoint to ${transactionAction} transactions`
-      });
-    }
-    let authorizationId;
-    let authorizations: DataResult<OCPPAuthorizeRequestExtended>;
-    switch (transactionAction) {
-      case TransactionAction.START:
-        // eslint-disable-next-line no-case-declarations
-        const tag = user.tags.find(((value) => value.id === transaction.tagID));
-        if (!tag.ocpiToken) {
-          throw new BackendError({
-            user: user,
-            action: action,
-            module: MODULE_NAME,
-            method: 'processOCPITransaction',
-            message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing ocpiToken`
-          });
-        }
-        // Retrieve Authorization ID
-        authorizations = await OCPPStorage.getAuthorizes(tenant.id, {
-          dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
-          chargeBoxID: transaction.chargeBoxID,
-          tagID: transaction.tagID
-        }, Constants.DB_PARAMS_MAX_LIMIT);
-        // Found ID?
-        if (authorizations && authorizations.result && authorizations.result.length > 0) {
-          // Get the first non used Authorization OCPI ID
-          for (const authorization of authorizations.result) {
-            if (authorization.authorizationId) {
-              const ocpiTransaction = await TransactionStorage.getOCPITransaction(tenant.id, authorization.authorizationId);
-              // OCPI ID not used yet
-              if (!ocpiTransaction) {
-                authorizationId = authorization.authorizationId;
-                break;
-              }
-            }
-          }
-        }
-        if (!authorizationId) {
-          throw new BackendError({
-            user: user,
-            action: action,
-            module: MODULE_NAME, method: 'processOCPITransaction',
-            message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing Authorization`
-          });
-        }
-        await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
-        break;
-      case TransactionAction.UPDATE:
-        await ocpiClient.updateSession(transaction);
-        break;
-      case TransactionAction.STOP:
-        await ocpiClient.stopSession(transaction);
-        break;
-      case TransactionAction.END:
-        await ocpiClient.postCdr(transaction);
-        break;
     }
   }
 
@@ -1813,7 +1698,7 @@ export default class OCPPService {
       // Get Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
-        const siteAreaLock = await LockingHelper.createSiteAreaLock(tenantID, siteArea);
+        const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenantID, siteArea);
         if (siteAreaLock) {
           try {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);

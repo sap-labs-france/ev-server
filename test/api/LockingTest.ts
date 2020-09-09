@@ -100,7 +100,7 @@ describe('Locking Tests', function() {
       // Get the Site Area
       const siteArea = testData.siteAreaContext.getSiteArea();
       // Create and Aquire lock
-      testData.siteExclusiveLock = await LockingHelper.createSiteAreaLock(
+      testData.siteExclusiveLock = await LockingHelper.createSiteAreaSmartChargingLock(
         testData.tenantContext.getTenant().id, siteArea);
       expect(testData.siteExclusiveLock).not.null;
       expect(testData.siteExclusiveLock.id).not.null;
@@ -108,7 +108,7 @@ describe('Locking Tests', function() {
       expect(testData.siteExclusiveLock.timestamp).not.null;
       expect(testData.siteExclusiveLock.tenantID).to.eql(testData.tenantContext.getTenant().id);
       expect(testData.siteExclusiveLock.entity).to.eql(LockEntity.SITE_AREA);
-      expect(testData.siteExclusiveLock.key).to.eql(siteArea.id);
+      expect(testData.siteExclusiveLock.key).to.eql(siteArea.id + '-smart-charging');
       expect(testData.siteExclusiveLock.type).to.eql(LockType.EXCLUSIVE);
     });
 
