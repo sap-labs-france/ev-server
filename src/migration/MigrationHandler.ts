@@ -8,6 +8,7 @@ import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTa
 import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsumptionsTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
+import AddUserInTransactionsTask from './tasks/AddUserInTransactionsTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import CleanupSiteAreasTask from './tasks/CleanupSiteAreasTask';
@@ -85,6 +86,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new CleanupSiteAreasTask());
         currentMigrationTasks.push(new UnmarkTransactionExtraInactivitiesTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
+        currentMigrationTasks.push(new AddUserInTransactionsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
