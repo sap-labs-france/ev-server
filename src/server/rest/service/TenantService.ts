@@ -35,10 +35,8 @@ export default class TenantService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.TENANT,
-        module: MODULE_NAME,
-        method: 'handleDeleteTenant',
+        action: Action.DELETE, entity: Entity.TENANT,
+        module: MODULE_NAME, method: 'handleDeleteTenant',
         value: id
       });
     }
@@ -52,8 +50,7 @@ export default class TenantService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
-        module: MODULE_NAME,
-        method: 'handleDeleteTenant',
+        module: MODULE_NAME, method: 'handleDeleteTenant',
         user: req.user,
         action: action
       });
@@ -79,13 +76,24 @@ export default class TenantService {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenantLogo', req.user);
-    // Get it
-    const tenantLogo = await TenantStorage.getTenantLogo(tenantID);
-    // Check
-    UtilsService.assertObjectExists(action, tenantLogo, `Tenant with ID '${tenantID}' does not exist`,
+    // Check auth
+    if (!Authorizations.canReadTenant(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.TENANT,
+        module: MODULE_NAME, method: 'handleGetTenantLogo',
+        value: tenantID
+      });
+    }
+    // Get Tenant
+    const tenant = await TenantStorage.getTenant(tenantID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
       MODULE_NAME, 'handleGetTenantLogo', req.user);
+    // Get Logo
+    const tenantLogo = await TenantStorage.getTenantLogo(tenantID);
     // Return
-    res.json({ id: tenantLogo.id, logo: tenantLogo.logo });
+    res.json(tenantLogo);
     next();
   }
 
@@ -98,10 +106,8 @@ export default class TenantService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.TENANT,
-        module: MODULE_NAME,
-        method: 'handleGetTenant',
+        action: Action.READ, entity: Entity.TENANT,
+        module: MODULE_NAME, method: 'handleGetTenant',
         value: tenantID
       });
     }
@@ -112,8 +118,7 @@ export default class TenantService {
     // Return
     res.json(
       // Filter
-      TenantSecurity.filterTenantResponse(
-        tenant, req.user)
+      TenantSecurity.filterTenantResponse(tenant, req.user)
     );
     next();
   }
@@ -124,10 +129,8 @@ export default class TenantService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.TENANTS,
-        module: MODULE_NAME,
-        method: 'handleGetTenants'
+        action: Action.LIST, entity: Entity.TENANTS,
+        module: MODULE_NAME, method: 'handleGetTenants'
       });
     }
     // Filter
@@ -151,10 +154,8 @@ export default class TenantService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.TENANT,
-        module: MODULE_NAME,
-        method: 'handleCreateTenant'
+        action: Action.CREATE, entity: Entity.TENANT,
+        module: MODULE_NAME, method: 'handleCreateTenant'
       });
     }
     // Check the Tenant's name
@@ -164,8 +165,7 @@ export default class TenantService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with name '${filteredRequest.name}' already exists`,
-        module: MODULE_NAME,
-        method: 'handleCreateTenant',
+        module: MODULE_NAME, method: 'handleCreateTenant',
         user: req.user,
         action: action
       });
@@ -177,8 +177,7 @@ export default class TenantService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
-        module: MODULE_NAME,
-        method: 'handleCreateTenant',
+        module: MODULE_NAME, method: 'handleCreateTenant',
         user: req.user,
         action: action
       });
@@ -246,10 +245,8 @@ export default class TenantService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.TENANT,
-        module: MODULE_NAME,
-        method: 'handleUpdateTenant',
+        action: Action.UPDATE, entity: Entity.TENANT,
+        module: MODULE_NAME, method: 'handleUpdateTenant',
         value: tenantUpdate.id
       });
     }
@@ -274,7 +271,6 @@ export default class TenantService {
         });
       }
     }
-
     // Update timestamp
     tenantUpdate.lastChangedBy = { 'id': req.user.id };
     tenantUpdate.lastChangedOn = new Date();

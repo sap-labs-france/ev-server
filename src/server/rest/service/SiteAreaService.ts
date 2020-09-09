@@ -254,14 +254,9 @@ export default class SiteAreaService {
       Action.READ, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteAreaImage');
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
-    // Charge Box is mandatory
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'handleGetSiteAreaImage', req.user);
-    // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteAreaImage', req.user);
     // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
+    if (!Authorizations.canReadSiteArea(req.user, siteAreaID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -271,11 +266,13 @@ export default class SiteAreaService {
       });
     }
     // Get it
-    const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(action, siteAreaImage, `Site Area Image with ID '${siteAreaID}' does not exist`,
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
       MODULE_NAME, 'handleGetSiteAreaImage', req.user);
+    // Get it
+    const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
     // Return
-    res.json({ id: siteAreaImage.id, image: siteAreaImage.image });
+    res.json(siteAreaImage);
     next();
   }
 

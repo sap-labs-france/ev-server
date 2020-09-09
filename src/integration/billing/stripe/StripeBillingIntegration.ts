@@ -23,7 +23,7 @@ import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 import IInvoice = Stripe.invoices.IInvoice;
 
-const MODULE_NAME = 'StripeBilling';
+const MODULE_NAME = 'StripeBillingIntegration';
 
 export default class StripeBillingIntegration extends BillingIntegration<StripeBillingSetting> {
   private static readonly STRIPE_MAX_LIST = 100;
