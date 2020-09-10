@@ -36,6 +36,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   lastHeartBeat: Date;
   deleted: boolean;
   inactive: boolean;
+  forceInactive: boolean;
   lastReboot: Date;
   chargingStationURL: string;
   maximumPower: number;
@@ -285,4 +286,5 @@ export enum ChargerVendor {
   DELTA = 'DELTA',
   ABB = 'ABB',
   LEGRAND = 'Legrand',
+  ATESS = 'ATESS',
 }

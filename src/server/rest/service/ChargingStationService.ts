@@ -101,6 +101,9 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
       chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     }
+    if (Utils.objectHasProperty(filteredRequest, 'forceInactive')) {
+      chargingStation.forceInactive = filteredRequest.forceInactive;
+    }
     // Update Site Area
     if (siteArea) {
       chargingStation.siteAreaID = siteArea.id;
@@ -383,7 +386,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    const siteAreaLock = await LockingHelper.createSiteAreaLock(req.user.tenantID, siteArea);
+    const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(req.user.tenantID, siteArea);
     if (siteAreaLock) {
       try {
         // Call

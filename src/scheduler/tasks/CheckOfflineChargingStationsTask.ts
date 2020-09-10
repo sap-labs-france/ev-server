@@ -57,6 +57,10 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
               );
               // Remove charging station from notification
               chargingStations.result.splice(i, 1);
+            // Check if inactive
+            } else if (chargingStation.forceInactive) {
+              // Remove charging station from notification
+              chargingStations.result.splice(i, 1);
             }
           }
           // Notify users with the rest of the Charging Stations

@@ -72,6 +72,7 @@ export default class ChargingStationSecurity {
       filteredChargingStation.chargePointModel = chargingStation.chargePointModel;
       filteredChargingStation.public = chargingStation.public;
       filteredChargingStation.excludeFromSmartCharging = chargingStation.excludeFromSmartCharging;
+      filteredChargingStation.forceInactive = chargingStation.forceInactive;
       filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
       filteredChargingStation.coordinates = chargingStation.coordinates;
       if (chargingStation.ocpiData) {
@@ -360,6 +361,9 @@ export default class ChargingStationSecurity {
     }
     if (Utils.objectHasProperty(request, 'excludeFromSmartCharging')) {
       filteredRequest.excludeFromSmartCharging = UtilsSecurity.filterBoolean(request.excludeFromSmartCharging);
+    }
+    if (Utils.objectHasProperty(request, 'forceInactive')) {
+      filteredRequest.forceInactive = UtilsSecurity.filterBoolean(request.forceInactive);
     }
     if (Utils.objectHasProperty(request, 'public')) {
       filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
