@@ -1,4 +1,4 @@
-import { HttpSitesAssignUserRequest, HttpTagStatusRequest, HttpTagsRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpSitesAssignUserRequest, HttpTagsRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
 import Authorizations from '../../../../authorization/Authorizations';
@@ -301,13 +301,6 @@ export default class UserSecurity {
       };
     }
     return filteredNotifications;
-  }
-
-  public static filterTagStatusRequest(request: any): HttpTagStatusRequest {
-    return {
-      id: sanitize(request.id),
-      status: UtilsSecurity.filterBoolean(request.status),
-    };
   }
 
   public static filterTagRequestByID(request: any): string {

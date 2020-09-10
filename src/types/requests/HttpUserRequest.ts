@@ -92,8 +92,3 @@ export interface HttpResendVerificationMailRequest {
   tenant: string;
   captcha: string;
 }
-
-export interface HttpTagStatusRequest {
-  id: string;
-  status: boolean;
-}
