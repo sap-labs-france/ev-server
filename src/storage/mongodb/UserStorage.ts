@@ -534,13 +534,21 @@ export default class UserStorage {
         { 'plateID': { $regex: searchRegex, $options: 'i' } }
       ];
     }
-    // Limit on Car for Basic Users
+    // Create Aggregation
+    const aggregation = [];
+    // Add Tags
+    DatabaseUtils.pushTagLookupInAggregation({
+      tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
+    });
+    // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
+    // Issuer
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
     }
+    // Exclude Users
     if (!Utils.isEmptyArray(params.excludeUserIDs)) {
       filters._id = { $nin: params.excludeUserIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
@@ -572,22 +580,16 @@ export default class UserStorage {
     if (params.notificationsActive) {
       filters.notificationsActive = params.notificationsActive;
     }
-    // Filter on last login to detect inactive user accounts
-    if (params.noLoginSince && moment(params.noLoginSince).isValid()) {
-      filters.eulaAcceptedOn = { $lte: params.noLoginSince };
-      filters.role = UserRole.BASIC;
-    }
     if (params.notifications) {
       for (const key in params.notifications) {
         filters[`notifications.${key}`] = params.notifications[key];
       }
     }
-    // Create Aggregation
-    const aggregation = [];
-    // Add Tags
-    DatabaseUtils.pushTagLookupInAggregation({
-      tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
-    });
+    // Filter on last login to detect inactive user accounts
+    if (params.noLoginSince && moment(params.noLoginSince).isValid()) {
+      filters.eulaAcceptedOn = { $lte: params.noLoginSince };
+      filters.role = UserRole.BASIC;
+    }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
       filters.$or = [
@@ -597,12 +599,10 @@ export default class UserStorage {
         { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
       ];
     }
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
+    // Add filters
+    aggregation.push({
+      $match: filters
+    });
     // Add additional filters
     if (params.notAssignedToCarID) {
       const notAssignedToCarIDFilter = { '$or': [] };
@@ -642,8 +642,6 @@ export default class UserStorage {
         });
       }
     }
-    // Change ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -681,12 +679,16 @@ export default class UserStorage {
     // Add Number of Session per Badge if one user only is requested
     if (dbParams.limit === 1) {
       // Transactions per Tag
-      DatabaseUtils.pushArrayLookupInAggregation('tags', DatabaseUtils.pushTransactionsLookupInAggregation.bind(this), {
-        tenantID, aggregation: aggregation, localField: 'tags.id', foreignField: 'tagID',
-        count: true, asField: 'tags.transactionsCount', oneToOneCardinality: false,
-        objectIDFields: ['createdBy', 'lastChangedBy']
-      });
+      DatabaseUtils.pushArrayLookupInAggregation('tags',
+        DatabaseUtils.pushTransactionsLookupInAggregation.bind(this), {
+          tenantID, aggregation: aggregation, localField: 'tags.id', foreignField: 'tagID',
+          count: true, asField: 'tags.transactionsCount', oneToOneCardinality: false,
+          objectIDFields: ['createdBy', 'lastChangedBy']
+        }
+      );
     }
+    // Change ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project
@@ -719,7 +721,7 @@ export default class UserStorage {
   }
 
   public static async getTags(tenantID: string,
-    params: { issuer?: boolean; tagID?: string;  userIDs?: string[]; dateFrom?: Date; dateTo?: Date, search?: string },
+    params: { issuer?: boolean; tagID?: string; userIDs?: string[]; dateFrom?: Date; dateTo?: Date, search?: string },
     dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant

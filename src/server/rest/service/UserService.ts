@@ -210,6 +210,7 @@ export default class UserService {
       user.mobile = '';
       user.phone = '';
       user.address = {} as Address;
+      // Save
       await UserStorage.saveUser(req.user.tenantID, user);
       await UserStorage.saveUserPassword(req.user.tenantID, user.id,
         {
@@ -227,7 +228,7 @@ export default class UserService {
       await UserStorage.saveUserStatus(req.user.tenantID, user.id, UserStatus.INACTIVE);
       await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
         { verificationToken: null, verifiedAt: null });
-
+      // Disable/Delete Tags
       for (const tag of user.tags) {
         if (tag.transactionsCount > 0) {
           tag.active = false;
@@ -252,12 +253,12 @@ export default class UserService {
             await ocpiClient.pushToken({
               uid: tag.id,
               type: OCPITokenType.RFID,
-              'auth_id': tag.id,
-              'visual_number': user.id,
+              auth_id: tag.id,
+              visual_number: user.id,
               issuer: tenant.name,
               valid: false,
               whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-              'last_updated': new Date()
+              last_updated: new Date()
             });
           }
         }
@@ -1159,7 +1160,6 @@ export default class UserService {
   }
 
 
-
   public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
     if (!Authorizations.canCreateTag(req.user)) {
@@ -1173,7 +1173,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterTagRequest(req.body);
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
-    let newTag = {
+    const newTag = {
       id: filteredRequest.id,
       description: filteredRequest.description,
       issuer: true,
@@ -1248,7 +1248,7 @@ export default class UserService {
         value: previousTag.id
       });
     }
-    let tag = {
+    const tag = {
       id: filteredRequest.id,
       description: filteredRequest.description,
       issuer: true,
