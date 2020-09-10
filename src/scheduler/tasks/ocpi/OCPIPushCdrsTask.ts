@@ -31,7 +31,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                 {
                   $match: {
                     'ocpiData': { $exists: true },
-                    'ocpiData.cdr': { $exists: false }
+                    'ocpiData.cdr': null
                   }
                 },
                 {

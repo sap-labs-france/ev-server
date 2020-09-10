@@ -31,10 +31,8 @@ export default class CompanyService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.COMPANY,
-        module: MODULE_NAME,
-        method: 'handleDeleteCompany',
+        action: Action.DELETE, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'handleDeleteCompany',
         value: companyID
       });
     }
@@ -71,10 +69,8 @@ export default class CompanyService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.COMPANY,
-        module: MODULE_NAME,
-        method: 'handleGetCompany',
+        action: Action.READ, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'handleGetCompany',
         value: filteredRequest.ID
       });
     }
@@ -96,27 +92,25 @@ export default class CompanyService {
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompanyLogo');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
-    // Charge Box is mandatory
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Check auth
     if (!Authorizations.canReadCompany(req.user, companyID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.COMPANY,
-        module: MODULE_NAME,
-        method: 'handleGetCompanyLogo',
+        action: Action.READ, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'handleGetCompanyLogo',
         value: companyID
       });
     }
-    // Get it
-    const companyLogo = await CompanyStorage.getCompanyLogo(req.user.tenantID, companyID);
-    // Check
-    UtilsService.assertObjectExists(action, companyLogo, `Company with ID '${companyID}' does not exist`,
+    // Get Company
+    const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
+    UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`,
       MODULE_NAME, 'handleGetCompanyLogo', req.user);
+    // Get the Logo
+    const companyLogo = await CompanyStorage.getCompanyLogo(req.user.tenantID, companyID);
     // Return
-    res.json({ id: companyLogo.id, logo: companyLogo.logo });
+    res.json(companyLogo);
     next();
   }
 
@@ -129,10 +123,8 @@ export default class CompanyService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.COMPANIES,
-        module: MODULE_NAME,
-        method: 'handleGetCompanies'
+        action: Action.LIST, entity: Entity.COMPANIES,
+        module: MODULE_NAME, method: 'handleGetCompanies'
       });
     }
     // Filter
@@ -149,7 +141,7 @@ export default class CompanyService {
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters']
+      [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']
     );
     // Filter
     CompanySecurity.filterCompaniesResponse(companies, req.user);
@@ -167,10 +159,8 @@ export default class CompanyService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.COMPANY,
-        module: MODULE_NAME,
-        method: 'handleCreateCompany'
+        action: Action.CREATE, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'handleCreateCompany'
       });
     }
     // Filter
@@ -210,17 +200,14 @@ export default class CompanyService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.COMPANY,
-        module: MODULE_NAME,
-        method: 'handleUpdateCompany',
+        action: Action.UPDATE, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'handleUpdateCompany',
         value: filteredRequest.id
       });
     }
-    // Check email
+    // Get Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
-    // Check
-    UtilsService.assertObjectExists(action, company, `Site Area with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check Mandatory fields
     Utils.checkIfCompanyValid(filteredRequest, req);
