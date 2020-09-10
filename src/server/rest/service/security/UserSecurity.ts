@@ -255,6 +255,7 @@ export default class UserSecurity {
       filteredTag.description = tag.description;
       filteredTag.active = tag.active;
       filteredTag.transactionsCount = tag.transactionsCount;
+      filteredTag.userID = tag.userID;
       if (tag.user) {
         filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser);
       }

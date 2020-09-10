@@ -1581,61 +1581,51 @@ export default class Utils {
 
   public static async checkIfUserTagIsValid(tag: Tag, req: Request): Promise<void> {
     // Check that the Badge ID is not already used
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      if (tag) {
-        // Check params
-        if (!tag.id) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'Tag ID is mandatory',
-            module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-            user: req.user.id
-          });
-        }
-        if (req.method === 'POST') {
-          const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
-          if (foundUser) {
-            // Tag already used!
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
-              message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
-              module: MODULE_NAME,
-              method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-        }
-        if (!tag.userID) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'User ID is mandatory',
-            module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-            user: req.user.id
-          });
-        }
-        const user = await UserStorage.getUser(req.user.tenantID, tag.userID);
-        if (!user) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-            message: `User '${tag.userID}' does not exist`,
-            module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-            user: req.user.id
-          });
-        }
-        if (!Utils.objectHasProperty(tag, 'active')) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'Tag Active property is mandatory',
-            module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-            user: req.user.id
-          });
-        }
-      }
+    if (!Authorizations.isAdmin(req.user)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Only Admins can change/create the Tags',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    // Check params
+    if (!tag.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    if (!tag.description) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag description is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    if (!tag.userID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    if (!Utils.objectHasProperty(tag, 'active')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag Active property is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
     }
   }
 

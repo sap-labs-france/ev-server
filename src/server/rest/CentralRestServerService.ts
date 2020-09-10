@@ -223,7 +223,6 @@ class RequestMapper {
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: UserService.handleUpdateTag.bind(this),
-          [ServerAction.TAG_UPDATE_STATUS]: UserService.handleUpdateTagStatus.bind(this),
         });
         break;
 
