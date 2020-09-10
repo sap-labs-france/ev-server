@@ -3,7 +3,6 @@ import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthori
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
 
-import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
