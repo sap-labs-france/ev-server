@@ -157,6 +157,17 @@ export default class UserService {
         user: req.user
       });
     }
+    // OCPI User
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'OCPI User cannot be deleted',
+        module: MODULE_NAME, method: 'handleDeleteUser',
+        user: req.user,
+        action: action
+      });
+    }
     // Check Billing
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       try {
@@ -196,7 +207,8 @@ export default class UserService {
         });
       }
     }
-    const userTransactions = await TransactionStorage.getTransactions(req.user.tenantID, { userIDs: [id] }, Constants.DB_PARAMS_COUNT_ONLY);
+    const userTransactions = await TransactionStorage.getTransactions(
+      req.user.tenantID, { userIDs: [id] }, Constants.DB_PARAMS_COUNT_ONLY);
     // Delete user
     if (userTransactions.count > 0) {
       // Logically
@@ -285,39 +297,6 @@ export default class UserService {
           module: MODULE_NAME, method: 'handleDeleteUser',
           message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
           user: req.user, actionOnUser: user,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    // Synchronize badges with IOP
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      const tenant = await TenantStorage.getTenant(req.user.tenantID);
-      try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          // Invalidate no more used tags
-          for (const tag of user.tags) {
-            if (tag.issuer) {
-              await ocpiClient.pushToken({
-                uid: tag.id,
-                type: OCPITokenType.RFID,
-                'auth_id': user.id,
-                'visual_number': user.id,
-                issuer: tenant.name,
-                valid: false,
-                whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-                'last_updated': new Date()
-              });
-            }
-          }
-        }
-      } catch (error) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME, method: 'handleUpdateUser',
-          action: action,
-          user: req.user, actionOnUser: user,
-          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
