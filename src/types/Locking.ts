@@ -24,4 +24,5 @@ export enum LockEntity {
   CAR = 'car',
   INVOICE = 'invoice',
   ASSET = 'asset',
+  OCPI_ENDPOINT = 'ocpi-endpoint',
 }

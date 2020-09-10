@@ -1,10 +1,11 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import RefundReport from '../../../../types/Refund';
 import { TransactionInError } from '../../../../types/InError';
 import UserSecurity from './UserSecurity';
@@ -44,6 +45,12 @@ export default class TransactionSecurity {
   public static filterTransactionRequest(request: any): HttpTransactionRequest {
     return {
       ID: Utils.convertToInt(sanitize(request.ID))
+    };
+  }
+
+  public static filterPushTransactionCdrRequest(request: any): HttpPushTransactionCdrRequest {
+    return {
+      transactionId: Utils.convertToInt(sanitize(request.transactionId))
     };
   }
 
@@ -170,11 +177,14 @@ export default class TransactionSecurity {
       filteredTransaction.refundData = transaction.refundData;
       if (transaction.ocpiData) {
         filteredTransaction.ocpiData = {
-          session: transaction.ocpiData.session,
           sessionCheckedOn: transaction.ocpiData.sessionCheckedOn,
-          cdr: transaction.ocpiData.cdr,
-          cdrCheckedOn: transaction.ocpiData.cdrCheckedOn
+          cdrCheckedOn: transaction.ocpiData.cdrCheckedOn,
         };
+        if (transaction.ocpiData.cdr) {
+          filteredTransaction.ocpiData.cdr = {
+            id: transaction.ocpiData.cdr.id,
+          } as OCPICdr;
+        }
       }
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {

@@ -1,40 +1,43 @@
 import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../types/ocpp/OCPPClient';
 
-import { ActionsResponse } from './../../types/GlobalType';
+import { ActionsResponse } from '../../types/GlobalType';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
+import { LockEntity } from '../../types/Locking';
+import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
+import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
-const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
+const MODULE_NAME = 'CheckChargingStationTemplateTask';
 
-export default class UpdateChargingStationTemplatesTask extends MigrationTask {
-  isAsynchronous(): boolean {
-    return true;
-  }
-
-  getName(): string {
-    return 'UpdateChargingStationTemplatesTask';
-  }
-
-  async migrate(): Promise<void> {
+export default class CheckChargingStationTemplateTask extends SchedulerTask {
+  public async run(name: string, config: TaskConfig): Promise<void> {
     // Update Template
     await this.updateChargingStationTemplate();
-    // Update Charging Stations
-    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const tenant of tenants.result) {
-      // Update current Charging Station with Template
-      await this.applyTemplateToChargingStations(tenant);
-    }
+    // Call default implementation
+    await super.run(name, config);
   }
 
-  getVersion(): string {
-    return '3.15';
+  public async processTenant(tenant: Tenant): Promise<void> {
+    // Get the lock
+    const offlineChargingStationLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'check-template');
+    if (await LockingManager.acquire(offlineChargingStationLock)) {
+      try {
+        // Update
+        await this.applyTemplateToChargingStations(tenant);
+      } catch (error) {
+        // Log error
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE, error);
+      } finally {
+        // Release the lock
+        await LockingManager.release(offlineChargingStationLock);
+      }
+    }
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {
@@ -42,7 +45,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     // Bypass perf tenant
     if (tenant.subdomain === 'testperf') {
       Logging.logWarning({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: tenant.id,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
         message: `Bypassed tenant '${tenant.name}' ('${tenant.subdomain}')`
@@ -83,7 +86,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
             sectionsUpdated.push('Capabilities');
           }
           Logging.logInfo({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: tenant.id,
             source: chargingStation.id,
             action: ServerAction.MIGRATION,
             module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -96,7 +99,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           // Retrieve OCPP params and update them if needed
           if (chargingStationTemplateUpdated.ocppUpdated) {
             Logging.logDebug({
-              tenantID: Constants.DEFAULT_TENANT,
+              tenantID: tenant.id,
               action: ServerAction.MIGRATION,
               source: chargingStation.id,
               module: MODULE_NAME, method: 'applyTemplateToChargingStations',
@@ -108,7 +111,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
               'Time out error (60s) in requesting OCPP params');
             if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
               Logging.logError({
-                tenantID: Constants.DEFAULT_TENANT,
+                tenantID: tenant.id,
                 action: ServerAction.MIGRATION,
                 source: chargingStation.id,
                 module: MODULE_NAME, method: 'applyTemplateToChargingStations',
@@ -121,7 +124,9 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
               60 * 1000, OCPPUtils.updateChargingStationTemplateOcppParameters(tenant.id, chargingStation),
               'Time out error (60s) in updating OCPP Parameters');
             // Log
-            Utils.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
+            Utils.logActionsResponse(
+              tenant.id,
+              ServerAction.MIGRATION,
               MODULE_NAME, 'applyTemplateToChargingStations', updatedOcppParameters,
               `{{inSuccess}} OCPP Parameter(s) were successfully synchronized, check details in the Tenant '${tenant.name}' ('${tenant.subdomain}')`,
               `{{inError}} OCPP Parameter(s) failed to be synchronized, check details in the Tenant '${tenant.name}' ('${tenant.subdomain}')`,
@@ -132,7 +137,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
         }
       } catch (error) {
         Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: tenant.id,
           action: ServerAction.MIGRATION,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
@@ -143,7 +148,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     }
     if (updated > 0) {
       Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: tenant.id,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
         message: `${updated} Charging Stations have been processed with Template in Tenant '${tenant.name}' ('${tenant.subdomain}')`
@@ -159,3 +164,4 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
       });
   }
 }
+

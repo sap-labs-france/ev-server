@@ -489,6 +489,7 @@ export default class ContextDefinition {
       id: '5ce249a2372f0b1c8caf9294',
       name: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
       autoUserSiteAssignment: false,
+      public: true,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
     { // Site with other user stop
@@ -496,6 +497,7 @@ export default class ContextDefinition {
       id: '5ce249a2372f0b1c8caf8367',
       name: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
       autoUserSiteAssignment: false,
+      public: true,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
     { // Site with auto user assignment
@@ -503,6 +505,7 @@ export default class ContextDefinition {
       id: '5ce249a2372f0b1c8caf6532',
       name: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
       autoUserSiteAssignment: true,
+      public: true,
       companyID: '5ce249a2372f0b1c8caf928f'
     }
   ];

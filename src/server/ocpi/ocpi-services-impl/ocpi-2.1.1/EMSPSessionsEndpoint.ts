@@ -72,7 +72,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `No transaction found for ocpi session ${sessionId}`,
+        message: `No Transaction found for ocpi session ${sessionId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
@@ -109,7 +109,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: HttpStatusCodes.BAD_REQUEST,
-        message: `Session id ${session.id} does not match request parameter ${sessionId}`,
+        message: `Transaction ID '${session.id}' does not match request parameter '${sessionId}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
@@ -147,7 +147,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `No transaction found for ocpi session ${sessionId}`,
+        message: `No Transaction found for OCPI Transaction ID '${sessionId}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }

@@ -107,7 +107,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Missing EVSE Id.',
+        message: 'Missing Charging Station ID',
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
@@ -116,7 +116,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid or missing parameters : does not support authorization request on multiple EVSE',
+        message: 'Invalid or missing parameters : does not support authorization request on multiple Charging Stations',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
@@ -127,7 +127,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Unknown EVSE ${locationReference.evse_uids[0]}`,
+        message: `Unknown Charging Station '${locationReference.evse_uids[0]}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
       });
     }

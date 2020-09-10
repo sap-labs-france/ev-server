@@ -164,6 +164,25 @@ export default class CompanyStorage {
     }
     // Remove the limit
     aggregation.pop();
+    // Sort
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
+    }
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+      dbParams.sort = { distanceMeters: 1 };
+    }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    // Skip
+    if (dbParams.skip > 0) {
+      aggregation.push({ $skip: dbParams.skip });
+    }
+    // Limit
+    aggregation.push({
+      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+    });
     // Site
     if (params.withSites) {
       DatabaseUtils.pushSiteLookupInAggregation(
@@ -184,25 +203,6 @@ export default class CompanyStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
-    // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { name: 1 };
-    }
-    // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
-      dbParams.sort = { distanceMeters: 1 };
-    }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
-    // Skip
-    if (dbParams.skip > 0) {
-      aggregation.push({ $skip: dbParams.skip });
-    }
-    // Limit
-    aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
-    });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
