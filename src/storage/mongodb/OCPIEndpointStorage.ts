@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -7,7 +9,6 @@ import Logging from '../../utils/Logging';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'OCPIEndpointStorage';
 
@@ -102,7 +103,7 @@ export default class OCPIEndpointStorage {
     // Create Aggregation
     const aggregation: any[] = [];
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Source?
     if (params.id) {
       filters._id = Utils.convertToObjectID(params.id);

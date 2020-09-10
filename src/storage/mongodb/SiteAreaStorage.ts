@@ -1,4 +1,4 @@
-import global, { Image } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -181,7 +181,7 @@ export default class SiteAreaStorage {
       });
     }
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Otherwise check if search is present
     if (params.search) {
       filters.$or = [

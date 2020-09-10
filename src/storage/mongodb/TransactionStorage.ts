@@ -1,5 +1,6 @@
 import RefundReport, { RefundStatus } from '../../types/Refund';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
+import global, { FilterParams } from './../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import ConsumptionStorage from './ConsumptionStorage';
@@ -12,7 +13,6 @@ import { ServerAction } from '../../types/Server';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
-import global from './../../types/GlobalType';
 import moment from 'moment';
 
 const MODULE_NAME = 'TransactionStorage';
@@ -189,7 +189,7 @@ export default class TransactionStorage {
     return transactionToSave.id;
   }
 
-  public static async assignTransactionsToUser(tenantID: string, user: User) {
+  public static async assignTransactionsToUser(tenantID: string, user: User): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'assignTransactionsToUser');
     // Assign transactions
@@ -275,7 +275,7 @@ export default class TransactionStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Build filter
     const ownerMatch = { $or: [] };
-    const filters: any = {};
+    const filters: FilterParams = {};
     // User / Site Admin
     if (params.ownerID) {
       ownerMatch.$or.push({
@@ -719,11 +719,11 @@ export default class TransactionStorage {
     };
   }
 
-  static async getTransactionsInError(tenantID,
+  static async getTransactionsInError(tenantID: string,
     params: {
       search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
-      siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-      errorType?: (TransactionInErrorType.LONG_INACTIVITY | TransactionInErrorType.NEGATIVE_ACTIVITY | TransactionInErrorType.NEGATIVE_DURATION | TransactionInErrorType.OVER_CONSUMPTION | TransactionInErrorType.INVALID_START_DATE | TransactionInErrorType.NO_CONSUMPTION | TransactionInErrorType.MISSING_USER | TransactionInErrorType.MISSING_PRICE | TransactionInErrorType.NO_BILLING_DATA)[];
+      siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
+      withChargeBoxes?: boolean; errorType?: TransactionInErrorType[];
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug

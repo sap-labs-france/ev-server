@@ -1,6 +1,6 @@
 import Site, { SiteUser } from '../../types/Site';
 import User, { UserSite } from '../../types/User';
-import global, { Image } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
@@ -343,7 +343,7 @@ export default class SiteStorage {
       });
     }
     // Search filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }

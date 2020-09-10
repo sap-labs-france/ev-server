@@ -248,7 +248,7 @@ export default class UserSecurity {
   }
 
   static filterTagResponse(tag: Tag, loggedUser: UserToken): Tag {
-    let filteredTag: Tag = {} as Tag;
+    const filteredTag = {} as Tag;
     if (tag) {
       filteredTag.id = tag.id;
       filteredTag.issuer = tag.issuer;
@@ -256,7 +256,7 @@ export default class UserSecurity {
       filteredTag.active = tag.active;
       filteredTag.transactionsCount = tag.transactionsCount;
       if (tag.user) {
-        filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser)
+        filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser);
       }
     }
     return filteredTag;

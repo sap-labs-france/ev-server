@@ -1,7 +1,7 @@
 import Site, { SiteUser } from '../../types/Site';
 import User, { UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
-import global, { Image } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
@@ -520,7 +520,7 @@ export default class UserStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
-    const filters: any = {
+    const filters: FilterParams = {
       '$or': DatabaseUtils.getNotDeletedFilter()
     };
     // Filter by other properties
@@ -714,15 +714,15 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTag');
     // Get tag
-    const tag = await UserStorage.getTags(tenantID, { tagID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const tag = await UserStorage.getTags(tenantID, { tagIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTag', uniqueTimerID, { id });
     return tag.count > 0 ? tag.result[0] : null;
   }
 
   public static async getTags(tenantID: string,
-    params: { issuer?: boolean; tagID?: string; userIDs?: string[]; dateFrom?: Date; dateTo?: Date, search?: string },
-    dbParams: DbParams): Promise<DataResult<Tag>> {
+    params: { issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date, search?: string },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -734,34 +734,32 @@ export default class UserStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
-    if (params) {
-      const filters: any = {};
-      // Filter by other properties
-      if (params.search) {
-        const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
-        filters.$or = [
-          { '_id': { $regex: searchRegex, $options: 'i' } },
-          { 'description': { $regex: searchRegex, $options: 'i' } }
-        ];
-      }
-      if (params.tagID) {
-        filters._id = params.tagID;
-      }
-      if (!Utils.isEmptyArray(params.userIDs)) {
-        filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
-      }
-      if (params.issuer === true || params.issuer === false) {
-        filters.issuer = params.issuer;
-      }
-      if (params.dateFrom && moment(params.dateFrom).isValid()) {
-        filters.lastChangedOn = { $gte: new Date(params.dateFrom) };
-      }
-      if (params.dateTo && moment(params.dateTo).isValid()) {
-        filters.lastChangedOn = { $lte: new Date(params.dateTo) };
-      }
-      if (!Utils.isEmptyJSon(filters)) {
-        aggregation.push({ $match: filters });
-      }
+    const filters: FilterParams = {};
+    // Filter by other properties
+    if (params.search) {
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { '_id': { $regex: searchRegex, $options: 'i' } },
+        { 'description': { $regex: searchRegex, $options: 'i' } }
+      ];
+    }
+    if (!Utils.isEmptyArray(params.tagIDs)) {
+      filters._id = { $in: params.tagIDs };
+    }
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+    }
+    if (params.issuer === true || params.issuer === false) {
+      filters.issuer = params.issuer;
+    }
+    if (params.dateFrom && moment(params.dateFrom).isValid()) {
+      filters.lastChangedOn = { $gte: new Date(params.dateFrom) };
+    }
+    if (params.dateTo && moment(params.dateTo).isValid()) {
+      filters.lastChangedOn = { $lte: new Date(params.dateTo) };
+    }
+    if (!Utils.isEmptyJSon(filters)) {
+      aggregation.push({ $match: filters });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -796,39 +794,23 @@ export default class UserStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Transactions
     DatabaseUtils.pushTransactionsLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      localField: '_id',
-      foreignField: 'tagID',
-      count: true,
-      asField: 'transactionsCount',
-      oneToOneCardinality: false,
+      tenantID, aggregation: aggregation, localField: '_id', foreignField: 'tagID',
+      count: true, asField: 'transactionsCount', oneToOneCardinality: false,
       objectIDFields: ['createdBy', 'lastChangedBy']
     });
+    // Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'user',
-      localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
-    aggregation.push({
-      $project: {
-        id: '$_id',
-        _id: 0,
-        userID: { $toString: '$userID' },
-        lastChangedOn: 1,
-        active: 1,
-        ocpiToken: 1,
-        description: 1,
-        issuer: 1,
-        user: 1,
-        transactionsCount: 1
-      }
-    });
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
       .aggregate(aggregation, {
@@ -979,7 +961,7 @@ export default class UserStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Filter
     if (params.userID) {
       filters.userID = Utils.convertToObjectID(params.userID);

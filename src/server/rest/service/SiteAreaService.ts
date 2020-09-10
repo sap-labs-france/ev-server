@@ -225,13 +225,8 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteArea', req.user);
-    // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
-      { withSite: filteredRequest.WithSite, withChargingStations: filteredRequest.WithChargingStations });
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
+    if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -240,6 +235,11 @@ export default class SiteAreaService {
         value: filteredRequest.ID
       });
     }
+    // Get it
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
+      { withSite: filteredRequest.WithSite, withChargingStations: filteredRequest.WithChargingStations });
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
+      MODULE_NAME, 'handleGetSiteArea', req.user);
     // Return
     res.json(
       // Filter

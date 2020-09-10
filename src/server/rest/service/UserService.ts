@@ -440,7 +440,6 @@ export default class UserService {
             adminData.notifications = filteredRequest.notifications;
           }
         }
-        // Save User Admin data
         await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
       }
     }
@@ -534,38 +533,28 @@ export default class UserService {
 
   public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const id = UserSecurity.filterUserByIDRequest(req.query);
-    // User mandatory
-    if (!id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUser',
-        user: req.user,
-        action: action
-      });
-    }
+    const userID = UserSecurity.filterUserByIDRequest(req.query);
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, id)) {
+    if (!Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.READ, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetUser',
-        value: id
+        value: userID
       });
     }
     // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, id);
-    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`,
+    const user = await UserStorage.getUser(req.user.tenantID, userID);
+    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' is logically deleted`,
+        message: `User with ID '${userID}' is logically deleted`,
         module: MODULE_NAME, method: 'handleGetUser',
         user: req.user,
         action: action
@@ -620,18 +609,8 @@ export default class UserService {
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
-    // Check Mandatory fields
-    if (!filteredRequest.UserID) {
-      // Not Found!
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetSites',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
+    // Get User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleGetSites', req.user);
@@ -938,7 +917,7 @@ export default class UserService {
     // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition, see https://github.com/LucasBrazi06/ev-dashboard/issues/1542
     // const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     // const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    let invoiceNumber;
+    let invoiceNumber: string;
     try {
       // pragma await ratingService.loadChargedItemsToInvoicing();
       // invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
@@ -1020,10 +999,12 @@ export default class UserService {
         module: MODULE_NAME, method: 'handleGetTag'
       });
     }
-    const id = UserSecurity.filterTagRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleGetTag', req.user);
+    const tagID = UserSecurity.filterTagRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, tagID, MODULE_NAME, 'handleGetTag', req.user);
     // Get the tag
-    const tag = await UserStorage.getTag(req.user.tenantID, id);
+    const tag = await UserStorage.getTag(req.user.tenantID, tagID);
+    UtilsService.assertObjectExists(action, tag, `Tag with ID '${tagID}' does not exist`,
+      MODULE_NAME, 'handleGetTag', req.user);
     // Return
     res.json(UserSecurity.filterTagResponse(tag, req.user));
     next();
@@ -1035,10 +1016,8 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.TAGS,
-        module: MODULE_NAME,
-        method: 'handleGetTags'
+        action: Action.LIST, entity: Entity.TAGS,
+        module: MODULE_NAME, method: 'handleGetTags'
       });
     }
     // Filter
@@ -1049,7 +1028,9 @@ export default class UserService {
         search: filteredRequest.Search,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      [ 'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        'transactionsCount', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy' ],
     );
     // Filter
     UserSecurity.filterTagsResponse(tags, req.user);

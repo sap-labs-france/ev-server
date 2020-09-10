@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import Company from '../../types/Company';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -7,7 +9,6 @@ import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import SiteStorage from './SiteStorage';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'CompanyStorage';
 
@@ -116,7 +117,7 @@ export default class CompanyStorage {
       });
     }
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [

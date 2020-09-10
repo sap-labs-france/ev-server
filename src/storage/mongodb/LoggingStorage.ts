@@ -1,3 +1,5 @@
+import global, { FilterParams } from './../../types/GlobalType';
+
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -8,7 +10,6 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
-import global from './../../types/GlobalType';
 import os from 'os';
 
 const MODULE_NAME = 'LoggingStorage';
@@ -18,7 +19,7 @@ export default class LoggingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Do Not Delete Security Logs
     filters.type = {};
     filters.type.$ne = 'S';
@@ -40,7 +41,7 @@ export default class LoggingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Delete Only Security Logs
     filters.type = {};
     filters.type.$eq = 'S';
@@ -108,7 +109,7 @@ export default class LoggingStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
       filters.timestamp = {};

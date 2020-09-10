@@ -1,4 +1,5 @@
 import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -9,7 +10,6 @@ import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'SettingStorage';
 
@@ -309,7 +309,7 @@ export default class SettingStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Source?
     if (params.settingID) {
       filters._id = Utils.convertToObjectID(params.settingID);
