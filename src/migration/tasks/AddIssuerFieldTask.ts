@@ -27,8 +27,7 @@ export default class AddIssuerFieldTask extends MigrationTask {
       {
         'issuer': { $exists: false }
       },
-      { $set: { 'issuer': true } },
-      { upsert: false }
+      { $set: { 'issuer': true } }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {

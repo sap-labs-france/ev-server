@@ -48,7 +48,7 @@ export default class OCPISessionsService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `No user found for auth_id ${session.auth_id}`,
+          message: `No User found for auth_id ${session.auth_id}`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
@@ -61,7 +61,7 @@ export default class OCPISessionsService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `No charging station found for evse uid ${evse.uid}`,
+          message: `No Charging Station found for ID '${evse.uid}'`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
@@ -71,7 +71,7 @@ export default class OCPISessionsService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `OCPI Session is not authorized on charging station ${evse.uid} issued locally`,
+          message: `OCPI Transaction is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
@@ -180,7 +180,7 @@ export default class OCPISessionsService {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `No transaction found for ocpi session ${cdr.id}`,
+        message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
         detailedMessages: { cdr },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
@@ -213,8 +213,8 @@ export default class OCPISessionsService {
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,
       totalConsumptionWh: cdr.total_energy * 1000,
-      totalDurationSecs: cdr.total_time,
-      totalInactivitySecs: cdr.total_parking_time,
+      totalDurationSecs: cdr.total_time * 3600,
+      totalInactivitySecs: cdr.total_parking_time * 3600,
       inactivityStatus: transaction.currentInactivityStatus,
       userID: transaction.userID
     };

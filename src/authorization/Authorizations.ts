@@ -672,6 +672,7 @@ export default class Authorizations {
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
     transaction: Transaction, tagID: string, action: Action): Promise<User> {
+    let user: User = null;
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
@@ -700,8 +701,11 @@ export default class Authorizations {
       }
       // Access Control Enabled?
       if (!chargingStation.siteArea.accessControl) {
-        // No control
-        return;
+        // No ACL: Always try to get the user
+        if (tagID) {
+          user = await UserStorage.getUserByTagId(tenantID, tagID);
+        }
+        return user;
       }
       // Site -----------------------------------------------------
       chargingStation.siteArea.site = chargingStation.siteArea.site ?
@@ -717,8 +721,6 @@ export default class Authorizations {
         });
       }
     }
-    // Get user
-    let user: User = null;
     // Get the user
     if (tagID) {
       user = await Authorizations.checkAndGetUserTagIDOnChargingStation(

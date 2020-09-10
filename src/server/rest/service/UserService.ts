@@ -601,45 +601,35 @@ export default class UserService {
 
   public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = { ID: UserSecurity.filterUserByIDRequest(req.query) };
-    // User mandatory
-    if (!filteredRequest.ID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUserImage',
-        user: req.user,
-        action: action
-      });
-    }
+    const userID = UserSecurity.filterUserByIDRequest(req.query);
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+    if (!Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.READ, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetUserImage',
-        value: filteredRequest.ID
+        value: userID
       });
     }
     // Get the logged user
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.ID}' does not exist`,
+    const user = await UserStorage.getUser(req.user.tenantID, userID);
+    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUserImage', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.ID}' is logically deleted`,
+        message: `User with ID '${userID}' is logically deleted`,
         module: MODULE_NAME, method: 'handleGetUserImage',
         user: req.user,
         action: action
       });
     }
     // Get the user image
-    const userImage = await UserStorage.getUserImage(req.user.tenantID, filteredRequest.ID);
+    const userImage = await UserStorage.getUserImage(req.user.tenantID, userID);
     // Ok
     res.json(userImage);
     next();

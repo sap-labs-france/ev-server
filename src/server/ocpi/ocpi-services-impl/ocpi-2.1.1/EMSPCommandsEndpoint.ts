@@ -47,7 +47,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
             Logging.logDebug({
               tenantID: tenant.id,
               action: this.getAction(command),
-              message: `OCPI command response received for action ${command} with id ${commandId}` ,
+              message: `OCPI command response received for action '${command}' with ID '${commandId}'` ,
               module: MODULE_NAME, method: 'process',
               detailedMessages: { response : req.body }
             });

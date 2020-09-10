@@ -1738,7 +1738,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Email ${filteredRequest.email} is not valid`,
+        message: `User Email '${filteredRequest.email}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1760,7 +1760,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Phone ${filteredRequest.phone} is not valid`,
+        message: `User Phone '${filteredRequest.phone}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1771,7 +1771,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Mobile ${filteredRequest.mobile} is not valid`,
+        message: `User Mobile '${filteredRequest.mobile}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1783,7 +1783,7 @@ export default class Utils {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags ${JSON.stringify(filteredRequest.tags)} is/are not valid`,
+          message: `User Tags '${JSON.stringify(filteredRequest.tags)}' is/are not valid`,
           module: MODULE_NAME,
           method: 'checkIfUserValid',
           user: req.user.id,
@@ -1795,7 +1795,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Plate ID ${filteredRequest.plateID} is not valid`,
+        message: `User Plate ID '${filteredRequest.plateID}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1806,7 +1806,7 @@ export default class Utils {
 
   public static async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption): Promise<void> {
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && siteArea) {
       // Get limit of the site area
       consumption.limitSiteAreaWatts = 0;
       // Maximum power of the Site Area provided?
@@ -1989,6 +1989,16 @@ export default class Utils {
         user: req.user.id
       });
     }
+    if (!Utils._isPlateIDValid(car.licensePlate)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Car License Plate ID '${car.licensePlate}' is not valid`,
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id,
+        actionOnUser: car.id
+      });
+    }
     if (!car.carCatalogID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -2099,7 +2109,7 @@ export default class Utils {
   }
 
   private static _isPlateIDValid(plateID): boolean {
-    return /^[A-Z0-9-]*$/.test(plateID);
+    return /^[A-Z0-9- ]*$/.test(plateID);
   }
 
   private static _normalizeOneSOAPParam(headers: any, name: string) {

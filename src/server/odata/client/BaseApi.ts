@@ -1,8 +1,8 @@
-import { AxiosRequestConfig } from 'axios';
-import querystring from 'querystring';
 import AxiosFactory from '../../../utils/AxiosFactory';
+import { AxiosRequestConfig } from 'axios';
 import Constants from '../../../utils/Constants';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import querystring from 'querystring';
 
 export default class BaseApi {
   public baseURL: string;
