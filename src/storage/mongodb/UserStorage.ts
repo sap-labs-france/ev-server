@@ -95,10 +95,10 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByTagId');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { tagID: tagID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, { tagIDs: [tagID] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByTagId', uniqueTimerID, { tagID });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
   public static async getUserByEmail(tenantID: string, email: string): Promise<User> {
@@ -112,7 +112,7 @@ export default class UserStorage {
     const user = await UserStorage.getUsers(tenantID, { email: email }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByEmail', uniqueTimerID, { email });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
   public static async getUserByPasswordResetHash(tenantID: string, passwordResetHash: string): Promise<User> {
@@ -122,7 +122,7 @@ export default class UserStorage {
     const user = await UserStorage.getUsers(tenantID, { passwordResetHash: passwordResetHash }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByPasswordResetHash', uniqueTimerID, { passwordResetHash });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
   public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<User> {
@@ -132,7 +132,7 @@ export default class UserStorage {
     const user = await UserStorage.getUsers(tenantID, { userIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUser', uniqueTimerID, { id });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
   public static async getUserByBillingID(tenantID: string, billingID: string): Promise<User> {
@@ -142,7 +142,7 @@ export default class UserStorage {
     const user = await UserStorage.getUsers(tenantID, { billingUserID: billingID }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByBillingID', uniqueTimerID, { customerID: billingID });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
   public static async getUserImage(tenantID: string, id: string): Promise<Image> {
@@ -505,9 +505,9 @@ export default class UserStorage {
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
       includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
-      userIDs?: string[]; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
+      userIDs?: string[]; tagIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-      notifications?: any; noLoginSince?: Date;
+      notifications?: any; noLoginSince?: Date; withTag?: boolean;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -523,7 +523,15 @@ export default class UserStorage {
     const filters: FilterParams = {
       '$or': DatabaseUtils.getNotDeletedFilter()
     };
-    // Filter by other properties
+    // Create Aggregation
+    const aggregation = [];
+    // Tags
+    if (params.withTag) {
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
+      });
+    }
+    // Filter
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -534,18 +542,12 @@ export default class UserStorage {
         { 'plateID': { $regex: searchRegex, $options: 'i' } }
       ];
     }
-    // Create Aggregation
-    const aggregation = [];
-    // Add Tags
-    DatabaseUtils.pushTagLookupInAggregation({
-      tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
-    });
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer')) {
       filters.issuer = params.issuer;
     }
     // Exclude Users
@@ -557,8 +559,8 @@ export default class UserStorage {
       filters.email = params.email;
     }
     // TagID
-    if (params.tagID) {
-      filters['tags.id'] = params.tagID;
+    if (!Utils.isEmptyArray(params.tagIDs)) {
+      filters['tags.id'] = { $in: params.tagIDs };
     }
     // Password Reset Hash
     if (params.passwordResetHash) {
@@ -677,7 +679,7 @@ export default class UserStorage {
       $limit: dbParams.limit
     });
     // Add Number of Session per Badge if one user only is requested
-    if (dbParams.limit === 1) {
+    if (params.withTag && dbParams.limit === 1) {
       // Transactions per Tag
       DatabaseUtils.pushArrayLookupInAggregation('tags',
         DatabaseUtils.pushTransactionsLookupInAggregation.bind(this), {
@@ -717,7 +719,7 @@ export default class UserStorage {
     const tag = await UserStorage.getTags(tenantID, { tagIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTag', uniqueTimerID, { id });
-    return tag.count > 0 ? tag.result[0] : null;
+    return tag.count === 1 ? tag.result[0] : null;
   }
 
   public static async getTags(tenantID: string,
@@ -749,7 +751,7 @@ export default class UserStorage {
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer')) {
       filters.issuer = params.issuer;
     }
     if (params.dateFrom && moment(params.dateFrom).isValid()) {

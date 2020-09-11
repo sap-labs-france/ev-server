@@ -21,7 +21,7 @@ export default class BillingStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getInvoice', uniqueTimerID, { id });
-    return invoicesMDB.count > 0 ? invoicesMDB.result[0] : null;
+    return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
   public static async getInvoiceByBillingInvoiceID(tenantID: string, billingInvoiceID: string): Promise<BillingInvoice> {
@@ -33,7 +33,7 @@ export default class BillingStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getInvoice', uniqueTimerID, { billingInvoiceID });
-    return invoicesMDB.count > 0 ? invoicesMDB.result[0] : null;
+    return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
   public static async getInvoices(tenantID: string,

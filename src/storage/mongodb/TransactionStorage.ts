@@ -310,7 +310,7 @@ export default class TransactionStorage {
       };
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer')) {
       filters.issuer = params.issuer;
     }
     // Charge Box
@@ -747,7 +747,7 @@ export default class TransactionStorage {
       ];
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer')) {
       match.issuer = params.issuer;
     }
     // User / Site Admin

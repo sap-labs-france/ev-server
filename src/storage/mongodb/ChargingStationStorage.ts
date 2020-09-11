@@ -165,7 +165,7 @@ export default class ChargingStationStorage {
       filters.lastHeartBeat = { $lte: params.offlineSince };
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer')) {
       filters.issuer = params.issuer;
     }
     // Add Charging Station inactive flag
@@ -657,7 +657,7 @@ export default class ChargingStationStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getChargingProfile', uniqueTimerID, { id });
-    return chargingProfilesMDB.count > 0 ? chargingProfilesMDB.result[0] : null;
+    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
   }
 
   public static async getChargingProfiles(tenantID: string,

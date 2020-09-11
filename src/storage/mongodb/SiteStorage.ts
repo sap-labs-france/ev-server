@@ -26,7 +26,7 @@ export default class SiteStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getSite', uniqueTimerID, { id });
-    return sitesMDB.count > 0 ? sitesMDB.result[0] : null;
+    return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }
 
   public static async getSiteImage(tenantID: string, id: string): Promise<Image> {
@@ -362,7 +362,7 @@ export default class SiteStorage {
       };
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer')) {
       filters.issuer = params.issuer;
     }
     // Public Site

@@ -93,7 +93,7 @@ export default class LoggingStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getLog', uniqueTimerID, { id });
-    return logsMDB.count > 0 ? logsMDB.result[0] : null;
+    return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 
   public static async getLogs(tenantID: string, params: {

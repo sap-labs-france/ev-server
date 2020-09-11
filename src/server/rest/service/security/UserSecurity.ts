@@ -125,7 +125,6 @@ export default class UserSecurity {
         filteredUser.status = user.status;
         filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
         filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
-        filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
         if (Utils.objectHasProperty(user, 'errorCode')) {
@@ -160,7 +159,6 @@ export default class UserSecurity {
         }
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
-        filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
         if (Utils.objectHasProperty(user, 'errorCode')) {

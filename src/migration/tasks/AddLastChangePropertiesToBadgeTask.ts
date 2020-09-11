@@ -21,7 +21,6 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
   async migrateTenant(tenant: Tenant): Promise<void> {
     const users = await UserStorage.getUsers(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
     const tagCollection = global.database.getCollection<any>(tenant.id, 'tags');
-
     let counter = 0;
     for (const user of users.result) {
       if (user.tags) {

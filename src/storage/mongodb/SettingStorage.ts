@@ -21,13 +21,13 @@ export default class SettingStorage {
     const settingMDB = await SettingStorage.getSettings(tenantID, { settingID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getSetting', uniqueTimerID, { id });
-    return settingMDB.count > 0 ? settingMDB.result[0] : null;
+    return settingMDB.count === 1 ? settingMDB.result[0] : null;
   }
 
   public static async getSettingByIdentifier(tenantID: string, identifier: string = Constants.UNKNOWN_STRING_ID): Promise<SettingDB> {
     const settingResult = await SettingStorage.getSettings(
       tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return settingResult.count > 0 ? settingResult.result[0] : null;
+    return settingResult.count === 1 ? settingResult.result[0] : null;
   }
 
   public static async saveSettings(tenantID: string, settingToSave: Partial<SettingDB>): Promise<string> {

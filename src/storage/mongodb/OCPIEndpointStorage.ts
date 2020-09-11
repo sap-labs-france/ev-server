@@ -21,7 +21,7 @@ export default class OCPIEndpointStorage {
 
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getOcpiEndpoint', uniqueTimerID, { id });
-    return endpointsMDB.count > 0 ? endpointsMDB.result[0] : null;
+    return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
   static async getOcpiEndpointByLocalToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
@@ -31,7 +31,7 @@ export default class OCPIEndpointStorage {
 
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getOcpiEndpoinByLocalToken', uniqueTimerID, { token });
-    return endpointsMDB.count > 0 ? endpointsMDB.result[0] : null;
+    return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
   static async saveOcpiEndpoint(tenantID: string, ocpiEndpointToSave: OCPIEndpoint): Promise<string> {
