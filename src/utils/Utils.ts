@@ -1579,6 +1579,14 @@ export default class Utils {
     }
   }
 
+  public static isDevelopmentEnv(): boolean {
+    return process.env.NODE_ENV === 'development';
+  }
+
+  public static isProductionEnv(): boolean {
+    return process.env.NODE_ENV === 'production';
+  }
+
   public static async checkIfUserTagIsValid(tag: Tag, req: Request): Promise<void> {
     // Check that the Badge ID is not already used
     if (!Authorizations.isAdmin(req.user)) {
