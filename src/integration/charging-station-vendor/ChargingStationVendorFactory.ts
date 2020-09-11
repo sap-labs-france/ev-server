@@ -17,6 +17,7 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.EBEE:
       case ChargerVendor.WEBASTO:
+      case ChargerVendor.MENNEKES:
         chargingStationVendorImpl = new EbeeChargingStationVendorIntegration(chargingStation);
         break;
       case ChargerVendor.DELTA:
