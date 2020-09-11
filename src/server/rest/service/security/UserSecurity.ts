@@ -47,6 +47,9 @@ export default class UserSecurity {
     if (request.ExcludeSiteID) {
       request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }
+    if (request.TagID) {
+      request.TagID = sanitize(request.TagID);
+    }
     if (request.ExcludeUserIDs) {
       request.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
     }

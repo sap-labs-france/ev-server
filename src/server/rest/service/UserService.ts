@@ -682,7 +682,8 @@ export default class UserService {
         excludeSiteID: filteredRequest.ExcludeSiteID,
         excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
         includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
-        notAssignedToCarID: filteredRequest.NotAssignedToCarID
+        notAssignedToCarID: filteredRequest.NotAssignedToCarID,
+        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
       },
       {
         limit: filteredRequest.Limit,

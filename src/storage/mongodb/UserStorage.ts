@@ -541,7 +541,7 @@ export default class UserStorage {
     // Create Aggregation
     const aggregation = [];
     // Tags
-    if (params.withTag) {
+    if (params.withTag || !Utils.isEmptyArray(params.tagIDs)) {
       DatabaseUtils.pushTagLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
       });
