@@ -195,6 +195,26 @@ export default class CentralRestServer {
     });
   }
 
+  public notifyTag(tenantID: string, action: Action, data: NotificationData): void {
+    // On Tag change rebuild userHashID
+    if (data && data.id) {
+      SessionHashService.rebuildUserHashIDFromTagID(tenantID, data.id).catch(() => { });
+    }
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.TAG,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.TAGS,
+      'action': action
+    });
+  }
+
   public notifyTenant(tenantID: string, action: Action, data: NotificationData): void {
     // On Tenant change rebuild tenantHashID
     if (data && data.id) {

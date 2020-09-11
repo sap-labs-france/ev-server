@@ -16,6 +16,7 @@ import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../../types/Server';
+import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import Tag from '../../../types/Tag';
@@ -1026,7 +1027,8 @@ export default class UserService {
     const tags = await UserStorage.getTags(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        withUser: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'user.id', 'user.name', 'user.firstName', 'user.email',
@@ -1200,21 +1202,12 @@ export default class UserService {
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
     const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, tag, `Tag '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
-    // Check User
-    const user = await UserStorage.getUser(req.user.tenantID, tag.userID);
-    if (user && (user.id !== filteredRequest.userID)) {
-      // Tag already used!
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
-        message: `The Tag ID '${filteredRequest.id}' is already used by User '${Utils.buildUserFullName(user)}'`,
-        module: MODULE_NAME,
-        method: 'handleUpdateTag',
-        user: req.user.id
-      });
-    }
+    // Get User
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    UtilsService.assertObjectExists(action, tag, `User ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleUpdateTag', req.user);
     // Only current organizations tags can be updated
     if (!tag.issuer) {
       throw new AppError({
@@ -1225,6 +1218,11 @@ export default class UserService {
         user: req.user, actionOnUser: user,
         action: action
       });
+    }
+    // Check User reassignment
+    if (tag.userID !== filteredRequest.userID) {
+      // Recompute the former User's Hash (trigger unlog)
+      await SessionHashService.rebuildUserHashID(req.user.tenantID, tag.userID);
     }
     // Update
     tag.description = filteredRequest.description;

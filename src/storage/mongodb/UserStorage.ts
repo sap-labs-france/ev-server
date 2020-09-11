@@ -125,11 +125,16 @@ export default class UserStorage {
     return user.count === 1 ? user.result[0] : null;
   }
 
-  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<User> {
+  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withTag?: boolean } = {}): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { userIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID,
+      {
+        userIDs: [id],
+        withTag: params.withTag
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUser', uniqueTimerID, { id });
     return user.count === 1 ? user.result[0] : null;
@@ -712,18 +717,23 @@ export default class UserStorage {
     };
   }
 
-  public static async getTag(tenantID: string, id: string): Promise<Tag> {
+  public static async getTag(tenantID: string, id: string,
+    params: { withUser?: boolean } = {}): Promise<Tag> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTag');
     // Get tag
-    const tag = await UserStorage.getTags(tenantID, { tagIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const tag = await UserStorage.getTags(tenantID, {
+      tagIDs: [id],
+      withUser: params.withUser,
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTag', uniqueTimerID, { id });
     return tag.count === 1 ? tag.result[0] : null;
   }
 
   public static async getTags(tenantID: string,
-    params: { issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date, search?: string },
+    params: { issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date,
+      withUser?: boolean, search?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
@@ -803,10 +813,12 @@ export default class UserStorage {
       objectIDFields: ['createdBy', 'lastChangedBy']
     });
     // Users
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-    });
+    if (params.withUser) {
+      DatabaseUtils.pushUserLookupInAggregation({
+        tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+    }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string

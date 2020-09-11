@@ -118,6 +118,9 @@ export default class MongoDBStorageNotification {
 
   private handleCollectionChange(tenantID: string, collection: string, documentID: string, action: Action, changeEvent) {
     switch (collection) {
+      case 'tags':
+        this.centralRestServer.notifyTag(tenantID, action, { id: documentID });
+        break;
       case 'users':
       case 'userimages':
         this.centralRestServer.notifyUser(tenantID, action, { id: documentID });
