@@ -92,6 +92,7 @@ export default class UserSecurity {
     const filteredRequest: HttpTagsRequest = {
       Search: sanitize(request.Search),
       UserID: sanitize(request.UserID),
+      Issuer: UtilsSecurity.filterBoolean(request.Issuer),
     } as HttpTagsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

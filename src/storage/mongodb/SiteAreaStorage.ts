@@ -200,7 +200,7 @@ export default class SiteAreaStorage {
         $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
-    if (Utils.objectHasProperty(params, 'issuer')) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     if (params.smartCharging === true || params.smartCharging === false) {

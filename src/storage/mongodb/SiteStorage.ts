@@ -362,7 +362,7 @@ export default class SiteStorage {
       };
     }
     // Issuer
-    if (Utils.objectHasProperty(params, 'issuer')) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Public Site

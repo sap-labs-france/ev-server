@@ -165,7 +165,7 @@ export default class ChargingStationStorage {
       filters.lastHeartBeat = { $lte: params.offlineSince };
     }
     // Issuer
-    if (Utils.objectHasProperty(params, 'issuer')) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Add Charging Station inactive flag

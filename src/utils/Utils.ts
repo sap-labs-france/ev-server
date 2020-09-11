@@ -213,6 +213,10 @@ export default class Utils {
     return _.has(object, key);
   }
 
+  public static isBooleanValue(value: boolean): boolean {
+    return _.isBoolean(value);
+  }
+
   public static generateGUID(): string {
     return uuid();
   }
@@ -1624,6 +1628,16 @@ export default class Utils {
         message: 'User ID is mandatory',
         module: MODULE_NAME, method: 'checkIfUserTagIsValid',
         user: req.user.id
+      });
+    }
+    // Only current organization Tag can be updated
+    if (!tag.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Tag ID '${tag.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user
       });
     }
     if (!Utils.objectHasProperty(tag, 'active')) {

@@ -95,7 +95,10 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByTagId');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { tagIDs: [tagID] }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, {
+      tagIDs: [tagID],
+      withTag: true
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByTagId', uniqueTimerID, { tagID });
     return user.count === 1 ? user.result[0] : null;
@@ -109,7 +112,10 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByEmail');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { email: email }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, {
+      email: email,
+      withTag: true
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByEmail', uniqueTimerID, { email });
     return user.count === 1 ? user.result[0] : null;
@@ -119,7 +125,9 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByPasswordResetHash');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { passwordResetHash: passwordResetHash }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, {
+      passwordResetHash: passwordResetHash
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByPasswordResetHash', uniqueTimerID, { passwordResetHash });
     return user.count === 1 ? user.result[0] : null;
@@ -144,7 +152,9 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByBillingID');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { billingUserID: billingID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, {
+      billingUserID: billingID
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByBillingID', uniqueTimerID, { customerID: billingID });
     return user.count === 1 ? user.result[0] : null;
@@ -552,7 +562,7 @@ export default class UserStorage {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     // Issuer
-    if (Utils.objectHasProperty(params, 'issuer')) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Exclude Users
@@ -683,8 +693,8 @@ export default class UserStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add Number of Session per Badge if one user only is requested
-    if (params.withTag && dbParams.limit === 1) {
+    // Add Number of Session per Badge
+    if (params.withTag) {
       // Transactions per Tag
       DatabaseUtils.pushArrayLookupInAggregation('tags',
         DatabaseUtils.pushTransactionsLookupInAggregation.bind(this), {
@@ -718,13 +728,14 @@ export default class UserStorage {
   }
 
   public static async getTag(tenantID: string, id: string,
-    params: { withUser?: boolean } = {}): Promise<Tag> {
+    params: { withUser?: boolean; withNbrTransactions?: boolean } = {}): Promise<Tag> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTag');
     // Get tag
     const tag = await UserStorage.getTags(tenantID, {
       tagIDs: [id],
       withUser: params.withUser,
+      withNbrTransactions: params.withNbrTransactions,
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTag', uniqueTimerID, { id });
@@ -732,8 +743,8 @@ export default class UserStorage {
   }
 
   public static async getTags(tenantID: string,
-    params: { issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date,
-      withUser?: boolean, search?: string },
+    params: { issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
+      withUser?: boolean; withNbrTransactions?: boolean; search?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
@@ -761,7 +772,7 @@ export default class UserStorage {
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
-    if (Utils.objectHasProperty(params, 'issuer')) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     if (params.dateFrom && moment(params.dateFrom).isValid()) {
@@ -807,11 +818,13 @@ export default class UserStorage {
       $limit: dbParams.limit
     });
     // Transactions
-    DatabaseUtils.pushTransactionsLookupInAggregation({
-      tenantID, aggregation: aggregation, localField: '_id', foreignField: 'tagID',
-      count: true, asField: 'transactionsCount', oneToOneCardinality: false,
-      objectIDFields: ['createdBy', 'lastChangedBy']
-    });
+    if (params.withNbrTransactions) {
+      DatabaseUtils.pushTransactionsLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: '_id', foreignField: 'tagID',
+        count: true, asField: 'transactionsCount', oneToOneCardinality: false,
+        objectIDFields: ['createdBy', 'lastChangedBy']
+      });
+    }
     // Users
     if (params.withUser) {
       DatabaseUtils.pushUserLookupInAggregation({

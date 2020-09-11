@@ -50,6 +50,7 @@ export interface HttpUserSitesRequest extends HttpDatabaseRequest {
 export interface HttpTagsRequest extends HttpDatabaseRequest {
   Search: string;
   UserID?: string;
+  Issuer?: boolean;
 }
 
 export interface HttpLoginRequest {

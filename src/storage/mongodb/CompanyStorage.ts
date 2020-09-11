@@ -133,7 +133,7 @@ export default class CompanyStorage {
         $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID))
       };
     }
-    if (Utils.objectHasProperty(params, 'issuer')) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       aggregation.push({
         $match: {
           'issuer': params.issuer

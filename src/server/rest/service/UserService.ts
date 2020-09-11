@@ -1028,11 +1028,12 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        issuer: filteredRequest.Issuer,
         withUser: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'user.id', 'user.name', 'user.firstName', 'user.email',
-        'transactionsCount', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy' ],
+        'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy' ],
     );
     // Filter
     UserSecurity.filterTagsResponse(tags, req.user);
@@ -1056,7 +1057,7 @@ export default class UserService {
       });
     }
     // Get Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, tagId);
+    const tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${tagId}' does not exist`,
       MODULE_NAME, 'handleDeleteTag', req.user);
     // Only current organizations tags can be deleted
@@ -1074,8 +1075,8 @@ export default class UserService {
     if (tag.transactionsCount > 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tags with transactions cannot be deleted but only deactivated',
+        errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
+        message: `Cannot delete Tag ID '${tag.id}' which has '${tag.transactionsCount}' transaction(s)`,
         module: MODULE_NAME, method: 'handleDeleteTag',
         user: req.user,
         action: action
@@ -1136,6 +1137,33 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterTagRequest(req.body);
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
+    // Check Tag
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id);
+    if (tag) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
+        message: `Tag with ID '${filteredRequest.id}' already exists`,
+        module: MODULE_NAME, method: 'handleCreateTag',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check User
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleCreateTag', req.user);
+    // Only current organization User can be assigned to Tag
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `User ID '${user.id}' not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
+        module: MODULE_NAME, method: 'handleCreateTag',
+        user: req.user,
+        action: action
+      });
+    }
     // Create
     const newTag: Tag = {
       id: filteredRequest.id,
@@ -1169,7 +1197,7 @@ export default class UserService {
         Logging.logError({
           tenantID: req.user.tenantID,
           action: action,
-          module: MODULE_NAME, method: 'handleUpdateTag',
+          module: MODULE_NAME, method: 'handleCreateTag',
           message: `Unable to synchronize tokens of user ${filteredRequest.userID} with IOP`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
@@ -1177,9 +1205,10 @@ export default class UserService {
     }
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleCreateTag',
-      message: `Tag with ID '${newTag.id}'has been created successfully`,
       action: action,
+      user: req.user, actionOnUser: user,
+      module: MODULE_NAME, method: 'handleCreateTag',
+      message: `Tag with ID '${newTag.id}'has been created successfully`,
       detailedMessages: { tag: newTag }
     });
     res.json(Object.assign({ id: newTag.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -1201,26 +1230,37 @@ export default class UserService {
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id);
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
     // Get User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, tag, `User ID '${filteredRequest.userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
-    // Only current organizations tags can be updated
-    if (!tag.issuer) {
+    // Only current organization User can be assigned to Tag
+    if (!user.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Tag ID '${tag.id}' not issued by the organization cannot be deleted`,
-        module: MODULE_NAME, method: 'handleDeleteTag',
-        user: req.user, actionOnUser: user,
+        message: `User ID '${user.id}' not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
+        module: MODULE_NAME, method: 'handleUpdateTag',
+        user: req.user,
         action: action
       });
     }
     // Check User reassignment
     if (tag.userID !== filteredRequest.userID) {
+      // Has transactions
+      if (tag.transactionsCount > 0) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
+          message: `Cannot change the User of the Tag ID '${tag.id}' which has '${tag.transactionsCount}' transaction(s)`,
+          module: MODULE_NAME, method: 'handleUpdateTag',
+          user: req.user,
+          action: action
+        });
+      }
       // Recompute the former User's Hash (trigger unlog)
       await SessionHashService.rebuildUserHashID(req.user.tenantID, tag.userID);
     }
