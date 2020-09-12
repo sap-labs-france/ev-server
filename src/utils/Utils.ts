@@ -1591,7 +1591,7 @@ export default class Utils {
     return process.env.NODE_ENV === 'production';
   }
 
-  public static async checkIfUserTagIsValid(tag: Tag, req: Request): Promise<void> {
+  public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
     // Check that the Badge ID is not already used
     if (!Authorizations.isAdmin(req.user)) {
       throw new AppError({
@@ -1628,16 +1628,6 @@ export default class Utils {
         message: 'User ID is mandatory',
         module: MODULE_NAME, method: 'checkIfUserTagIsValid',
         user: req.user.id
-      });
-    }
-    // Only current organization Tag can be updated
-    if (!tag.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Tag ID '${tag.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user
       });
     }
     if (!Utils.objectHasProperty(tag, 'active')) {

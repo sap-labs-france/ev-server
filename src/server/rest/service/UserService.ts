@@ -1004,7 +1004,7 @@ export default class UserService {
     const tagID = UserSecurity.filterTagRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, tagID, MODULE_NAME, 'handleGetTag', req.user);
     // Get the tag
-    const tag = await UserStorage.getTag(req.user.tenantID, tagID);
+    const tag = await UserStorage.getTag(req.user.tenantID, tagID, { withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag with ID '${tagID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
     // Return
@@ -1135,7 +1135,7 @@ export default class UserService {
       });
     }
     // Filter
-    const filteredRequest = UserSecurity.filterTagRequest(req.body);
+    const filteredRequest = UserSecurity.filterTagCreateRequest(req.body, req.user);
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Check Tag
@@ -1227,13 +1227,23 @@ export default class UserService {
       });
     }
     // Filter
-    const filteredRequest = UserSecurity.filterTagRequest(req.body);
+    const filteredRequest = UserSecurity.filterTagUpdateRequest(req.body, req.user);
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
     const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
+    // Only current organization Tag can be updated
+    if (!tag.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Tag ID '${tag.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateTag',
+        user: req.user
+      });
+    }
     // Get User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,

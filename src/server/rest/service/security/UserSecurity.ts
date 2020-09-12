@@ -235,13 +235,22 @@ export default class UserSecurity {
     tags.result = filteredTags;
   }
 
-  public static filterTagRequest(tag: Tag): Tag {
+  public static filterTagUpdateRequest(request: any, loggedUser: UserToken): Partial<Tag> {
+    return UserSecurity.filterTagRequest(request, loggedUser);
+  }
+
+  public static filterTagCreateRequest(request: any, loggedUser: UserToken): Partial<Tag> {
+    return UserSecurity.filterTagRequest(request, loggedUser);
+  }
+
+  public static filterTagRequest(tag: Tag, loggedUser: UserToken): Tag {
     let filteredTag: Tag;
     if (tag) {
       filteredTag = {
         id: sanitize(tag.id),
         description: sanitize(tag.description),
         active: UtilsSecurity.filterBoolean(tag.active),
+        issuer: UtilsSecurity.filterBoolean(tag.issuer),
         userID: sanitize(tag.userID)
       } as Tag;
     }
