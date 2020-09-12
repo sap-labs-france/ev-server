@@ -36,6 +36,7 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   Role: string;
   Status: string;
   ErrorType?: string;
+  TagID?: string;
   ExcludeSiteID: string;
   ExcludeUserIDs: string;
   IncludeCarUserIDs: string;
@@ -45,6 +46,12 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
 export interface HttpUserSitesRequest extends HttpDatabaseRequest {
   Search: string;
   UserID: string;
+}
+
+export interface HttpTagsRequest extends HttpDatabaseRequest {
+  Search: string;
+  UserID?: string;
+  Issuer?: boolean;
 }
 
 export interface HttpLoginRequest {

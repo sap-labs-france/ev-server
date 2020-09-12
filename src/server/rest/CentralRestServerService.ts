@@ -98,6 +98,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
+          [ServerAction.TAG_CREATE]: UserService.handleCreateTag.bind(this),
           [ServerAction.END_USER_ERROR_NOTIFICATION]: NotificationService.handleEndUserErrorNotification.bind(this),
         });
         break;
@@ -153,6 +154,8 @@ class RequestMapper {
           [ServerAction.USER_IMAGE]: UserService.handleGetUserImage.bind(this),
           [ServerAction.USER]: UserService.handleGetUser.bind(this),
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
+          [ServerAction.TAGS]: UserService.handleGetTags.bind(this),
+          [ServerAction.TAG]: UserService.handleGetTag.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND_EXPORT]: TransactionService.handleGetTransactionsToRefundExport.bind(this),
@@ -219,6 +222,7 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_UNREGISTER]: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
+          [ServerAction.TAG_UPDATE]: UserService.handleUpdateTag.bind(this),
         });
         break;
 
@@ -242,6 +246,7 @@ class RequestMapper {
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
           [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
+          [ServerAction.TAG_DELETE]: UserService.handleDeleteTag.bind(this),
         });
         break;
     }

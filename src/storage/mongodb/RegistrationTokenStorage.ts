@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
@@ -6,7 +8,6 @@ import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import RegistrationToken from '../../types/RegistrationToken';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'RegistrationTokenStorage';
 
@@ -51,7 +52,7 @@ export default class RegistrationTokenStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Build filter
     if (params.siteAreaID) {
       filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);

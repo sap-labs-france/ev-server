@@ -145,7 +145,8 @@ export default class ContextBuilder {
     await UserStorage.saveUserPassword(buildTenant.id, userId, { password: await Utils.hashPasswordBcrypt(config.get('admin.password')) });
     if (ContextDefinition.TENANT_USER_LIST[0].tags) {
       for (const tag of ContextDefinition.TENANT_USER_LIST[0].tags) {
-        await UserStorage.saveUserTag(buildTenant.id, ContextDefinition.TENANT_USER_LIST[0].id, tag);
+        tag.userID = ContextDefinition.TENANT_USER_LIST[0].id;
+        await UserStorage.saveTag(buildTenant.id, tag);
       }
     }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, ContextDefinition.TENANT_USER_LIST[0].id);
@@ -231,7 +232,8 @@ export default class ContextBuilder {
       await UserStorage.saveUserPassword(buildTenant.id, user.id, { password: newPasswordHashed });
       if (userDef.tags) {
         for (const tag of userDef.tags) {
-          await UserStorage.saveUserTag(buildTenant.id, user.id, tag);
+          tag.userID = user.id;
+          await UserStorage.saveTag(buildTenant.id, tag);
         }
       }
       const userModel = await UserStorage.getUser(buildTenant.id, user.id);

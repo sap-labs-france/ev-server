@@ -1,7 +1,6 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
-import { PerformanceObserver, performance } from 'perf_hooks';
 
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
@@ -10,6 +9,7 @@ import CFLog from 'cf-nodejs-logging-support';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
+import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { ServerAction } from '../types/Server';
 import TenantStorage from '../storage/mongodb/TenantStorage';
@@ -20,90 +20,33 @@ import cfenv from 'cfenv';
 import cluster from 'cluster';
 import jwtDecode from 'jwt-decode';
 import os from 'os';
-import { v4 as uuid } from 'uuid';
-
-const _loggingConfig = Configuration.getLoggingConfig();
-let _traceStatistics = null;
 
 const MODULE_NAME = 'Logging';
 
-const obs = new PerformanceObserver((items): void => {
-  if (!_loggingConfig.traceLogOnlyStatistics) {
-    // eslint-disable-next-line no-console
-    console.log(`Performance ${items.getEntries()[0].name}) ${items.getEntries()[0].duration} ms`);
-  }
-
-  // Add statistics
-  if (!_traceStatistics) {
-    _traceStatistics = {};
-    // Start interval to display statistics
-    if (_loggingConfig.traceStatisticInterval) {
-      setInterval((): void => {
-        const date = new Date();
-        // eslint-disable-next-line no-console
-        console.log(date.toISOString().substr(0, 19) + ' STATISTICS START');
-        // eslint-disable-next-line no-console
-        console.log(JSON.stringify(_traceStatistics, null, ' '));
-        // eslint-disable-next-line no-console
-        console.log(date.toISOString().substr(0, 19) + ' STATISTICS END');
-      }, _loggingConfig.traceStatisticInterval * 1000);
-    }
-  }
-  Logging.addStatistic(items.getEntries()[0].name, items.getEntries()[0].duration);
-  if (performance.clearMeasures) {
-    performance.clearMeasures(); // Does not seem to exist in node 10. It's strange because then we have no way to remove measures and we will reach the maximum quickly
-  }
-  performance.clearMarks();
-});
-obs.observe({ entryTypes: ['measure'] });
-
 export default class Logging {
   private static traceOCPPCalls: { [key: string]: number } = {};
+  private static loggingConfig: LoggingConfiguration;
+
+  public static getConfiguration(): LoggingConfiguration {
+    if (!this.loggingConfig) {
+      this.loggingConfig = Configuration.getLoggingConfig();
+    }
+    return this.loggingConfig;
+  }
 
   // Debug DB
   public static traceStart(module: string, method: string): string {
-    let uniqueID = '0';
-    // Check
-    if (_loggingConfig.trace) {
-      uniqueID = uuid();
-      // Log
-      // eslint-disable-next-line no-console
-      console.time(`${module}.${method}(${uniqueID})`);
-      performance.mark(`Start ${module}.${method}(${uniqueID})`);
-    }
-    return uniqueID;
-  }
-
-  public static addStatistic(name: string, duration: number): void {
-    let currentStatistics;
-    if (_traceStatistics[name]) {
-      currentStatistics = _traceStatistics[name];
-    } else {
-      _traceStatistics[name] = {};
-      currentStatistics = _traceStatistics[name];
-    }
-
-    // Update current statistics timers
-    if (currentStatistics) {
-      currentStatistics.countTime = (currentStatistics.countTime ? currentStatistics.countTime + 1 : 1);
-      currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) : duration);
-      currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) : duration);
-      currentStatistics.totalTime = (currentStatistics.totalTime ? currentStatistics.totalTime + duration : duration);
-      currentStatistics.avgTime = currentStatistics.totalTime / currentStatistics.countTime;
-    }
+    return '';
   }
 
   // Debug DB
   public static traceEnd(module: string, method: string, uniqueID: string, params = {}): void {
-    if (_loggingConfig.trace) {
-      performance.mark(`End ${module}.${method}(${uniqueID})`);
-      performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`);
-    }
   }
 
   // Log Debug
   public static logDebug(log: Log): void {
     log.level = LogLevel.DEBUG;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logging._log(log);
   }
 
@@ -116,6 +59,7 @@ export default class Logging {
   // Log Info
   public static logInfo(log: Log): void {
     log.level = LogLevel.INFO;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logging._log(log);
   }
 
@@ -128,6 +72,7 @@ export default class Logging {
   // Log Warning
   public static logWarning(log: Log): void {
     log.level = LogLevel.WARNING;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logging._log(log);
   }
 
@@ -140,6 +85,7 @@ export default class Logging {
   // Log Error
   public static logError(log: Log): void {
     log.level = LogLevel.ERROR;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logging._log(log);
   }
 
@@ -531,16 +477,17 @@ export default class Logging {
   // Log
   private static async _log(log: Log): Promise<void> {
     let moduleConfig = null;
+    const loggingConfig = Logging.getConfiguration();
     // Default Log Level
-    let logLevel = _loggingConfig.logLevel ? _loggingConfig.logLevel : LogLevel.DEBUG;
+    let logLevel = loggingConfig.logLevel ? loggingConfig.logLevel : LogLevel.DEBUG;
     // Default Console Level
-    let consoleLogLevel = _loggingConfig.consoleLogLevel ? _loggingConfig.consoleLogLevel : LogLevel.NONE;
+    let consoleLogLevel = loggingConfig.consoleLogLevel ? loggingConfig.consoleLogLevel : LogLevel.NONE;
     // Module Provided?
-    if (log.module && _loggingConfig.moduleDetails) {
+    if (log.module && loggingConfig.moduleDetails) {
       // Yes: Check the Module
-      if (_loggingConfig.moduleDetails[log.module]) {
+      if (loggingConfig.moduleDetails[log.module]) {
         // Get Modules Config
-        moduleConfig = _loggingConfig.moduleDetails[log.module];
+        moduleConfig = loggingConfig.moduleDetails[log.module];
         // Check Module Log Level
         if (moduleConfig.logLevel) {
           if (moduleConfig.logLevel !== LogLevel.DEFAULT) {
@@ -657,48 +604,55 @@ export default class Logging {
 
   private static anonymizeSensitiveData(message: any) {
     if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
+      // eslint-disable-next-line no-useless-return
       return;
-    }
-    if (typeof message === 'object') {
-      for (const key in message) {
-        if (message[key]) {
-          // Another JSon?
-          if (typeof message[key] === 'object') {
-            Logging.anonymizeSensitiveData(message[key]);
-          }
-          // Array?
-          if (Array.isArray(message[key])) {
-            Logging.anonymizeSensitiveData(message[key]);
-          }
-          // String?
-          if (typeof message[key] === 'string') {
-            for (const sensitiveData of Constants.SENSITIVE_DATA) {
-              if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
-                // Anonymize
-                message[key] = Constants.ANONYMIZED_VALUE;
-              }
-            }
-            // Check query string
-            const dataParts: string[] = message[key].split('&');
-            if (dataParts.length > 1) {
-              for (let i = 0; i < dataParts.length; i++) {
-                const dataPart = dataParts[i];
-                for (const sensitiveData of Constants.SENSITIVE_DATA) {
-                  if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
-                    // Anonymize
-                    dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
-                  }
-                }
-              }
-              message[key] = dataParts.join('&');
-            }
-          }
-        }
-      }
+    // FIXME: Commented out until an agreement is found on the implementation
+    // } else if (typeof message === 'string') {
+    //   // Anonymize
+    //   message.replace(/((repeat|)[pP]assword|captcha|email)(\s|)(=|:)(\s|)(.*)/g, '$1$3$4$5' + Constants.ANONYMIZED_VALUE);
     } else if (Array.isArray(message)) {
       for (const item of message) {
         Logging.anonymizeSensitiveData(item);
       }
+    } else if (typeof message === 'object') {
+      for (const key of Object.keys(message)) {
+        // String?
+        if (typeof message[key] === 'string') {
+          for (const sensitiveData of Constants.SENSITIVE_DATA) {
+            if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
+              // Anonymize
+              message[key] = Constants.ANONYMIZED_VALUE;
+            }
+          }
+          // Check query string
+          const dataParts: string[] = message[key].split('&');
+          if (dataParts.length > 1) {
+            for (let i = 0; i < dataParts.length; i++) {
+              const dataPart = dataParts[i];
+              for (const sensitiveData of Constants.SENSITIVE_DATA) {
+                if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+                  // Anonymize
+                  dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+                }
+              }
+            }
+            message[key] = dataParts.join('&');
+          }
+        } else {
+          Logging.anonymizeSensitiveData(message[key]);
+        }
+      }
+    } else {
+      // Log
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        type: LogType.SECURITY,
+        module: MODULE_NAME,
+        method: 'anonymizeSensitiveData',
+        action: ServerAction.LOGGING,
+        message: 'No matching object type for log message anonymisation',
+        detailedMessages: { message: message }
+      });
     }
   }
 

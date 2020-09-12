@@ -9,16 +9,19 @@ const IV_LENGTH = 16;
 const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
-  private static configuration = Configuration.getCryptoConfig();
+  private static configuration: CryptoConfiguration;
 
   public static getConfiguration(): CryptoConfiguration {
     if (!this.configuration) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getConfiguration',
-        message: 'Crypto configuration is missing'
-      });
+      this.configuration = Configuration.getCryptoConfig();
+      if (!this.configuration) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'getConfiguration',
+          message: 'Crypto configuration is missing'
+        });
+      }
     }
     return this.configuration;
   }
