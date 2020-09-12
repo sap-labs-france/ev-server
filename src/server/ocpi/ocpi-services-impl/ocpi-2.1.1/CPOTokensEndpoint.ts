@@ -227,7 +227,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    await UserStorage.saveUserTag(tenant.id, user.id, tag);
+    tag.userID = user.id;
+    await UserStorage.saveTag(tenant.id, tag);
     return OCPIUtils.success();
   }
 }

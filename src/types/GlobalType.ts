@@ -21,6 +21,10 @@ export interface Image {
   image: string;
 }
 
+export interface FilterParams {
+  [param: string]: any | string[];
+}
+
 export interface ActionsResponse {
   inSuccess: number;
   inError: number;

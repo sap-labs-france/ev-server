@@ -3,6 +3,7 @@ import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
+import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
@@ -414,7 +415,9 @@ export default class OCPPService {
       authorize.timestamp = new Date();
       authorize.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check
-      const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation, authorize.idTag);
+      const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
+        authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
+      // OCPI User
       if (user && !user.issuer) {
         const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
         if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
@@ -445,6 +448,7 @@ export default class OCPPService {
         }
         authorize.authorizationId = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
       }
+      // Set
       authorize.user = user;
       // Save
       await OCPPStorage.saveAuthorize(headers.tenantID, authorize);
@@ -551,7 +555,7 @@ export default class OCPPService {
       startTransaction.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check Authorization with Tag ID
       const user = await Authorizations.isAuthorizedToStartTransaction(
-        headers.tenantID, chargingStation, startTransaction.tagID);
+        headers.tenantID, chargingStation, startTransaction.tagID, ServerAction.START_TRANSACTION);
       if (user) {
         startTransaction.userID = user.id;
       }
@@ -759,7 +763,7 @@ export default class OCPPService {
       if (!stoppedByCentralSystem) {
         // Check and get users
         const users = await Authorizations.isAuthorizedToStopTransaction(
-          headers.tenantID, chargingStation, transaction, tagId);
+          headers.tenantID, chargingStation, transaction, tagId, ServerAction.STOP_TRANSACTION);
         user = users.user;
         alternateUser = users.alternateUser;
       } else {

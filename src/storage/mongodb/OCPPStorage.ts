@@ -1,4 +1,5 @@
 import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
+import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -8,7 +9,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'OCPPStorage';
 
@@ -47,7 +47,7 @@ export default class OCPPStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Date from provided?
     if (params.dateFrom) {
       filters.timestamp = {};
@@ -134,7 +134,7 @@ export default class OCPPStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Date from provided?
     if (params.dateFrom) {
       filters.timestamp = {};
@@ -200,7 +200,7 @@ export default class OCPPStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Date before provided?
     if (params.dateBefore) {
       filters.timestamp = {};
@@ -330,7 +330,7 @@ export default class OCPPStorage {
     // Create Aggregation
     const aggregation = [];
     // Set the filters
-    const filters: any = {
+    const filters: FilterParams = {
       '$or': DatabaseUtils.getNotDeletedFilter()
     };
     // Charging Station ID
@@ -464,7 +464,7 @@ export default class OCPPStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Charging Station ID
     if (params.transactionId) {
       filters.transactionId = params.transactionId;

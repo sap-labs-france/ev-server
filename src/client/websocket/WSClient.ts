@@ -219,13 +219,15 @@ export default class WSClient {
         break;
       default:
         if (this.dbLogging) {
-          // Error message
-          Logging.logError({
-            tenantID: this.logTenantID,
-            module: MODULE_NAME, method: 'onError',
-            action: ServerAction.WS_CLIENT_ERROR,
-            message: `Connection error to '${this.url}': ${error}`
-          });
+          if (Utils.isProductionEnv()) {
+            // Error message
+            Logging.logError({
+              tenantID: this.logTenantID,
+              module: MODULE_NAME, method: 'onError',
+              action: ServerAction.WS_CLIENT_ERROR,
+              message: `Connection error to '${this.url}': ${error}`
+            });
+          }
         } else {
           // eslint-disable-next-line no-console
           console.log(`Connection error to '${this.url}':`, error);
@@ -242,13 +244,15 @@ export default class WSClient {
         break;
       default: // Abnormal close
         if (this.dbLogging) {
-          // Error message
-          Logging.logError({
-            tenantID: this.logTenantID,
-            module: MODULE_NAME, method: 'onClose',
-            action: ServerAction.WS_CLIENT_ERROR,
-            message: `Connection closing error to '${this.url}': ${error}`
-          });
+          if (Utils.isProductionEnv()) {
+            // Error message
+            Logging.logError({
+              tenantID: this.logTenantID,
+              module: MODULE_NAME, method: 'onClose',
+              action: ServerAction.WS_CLIENT_ERROR,
+              message: `Connection closing error to '${this.url}': ${error}`
+            });
+          }
         } else {
           // eslint-disable-next-line no-console
           console.log(`Connection closing error to '${this.url}':`, error);
