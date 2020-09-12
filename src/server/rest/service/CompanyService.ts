@@ -1,13 +1,14 @@
 import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Company from '../../../types/Company';
 import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
-import { HTTPAuthError } from '../../../types/HTTPError';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
@@ -38,9 +39,19 @@ export default class CompanyService {
     }
     // Get
     const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
-    // Found?
     UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`,
       MODULE_NAME, 'handleDeleteCompany', req.user);
+    // OCPI Company
+    if (!company.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleDeleteCompany',
+        user: req.user,
+        action: action
+      });
+    }
     // Delete
     await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
     // Log
@@ -211,6 +222,17 @@ export default class CompanyService {
       MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check Mandatory fields
     Utils.checkIfCompanyValid(filteredRequest, req);
+    // OCPI Company
+    if (!company.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateCompany',
+        user: req.user,
+        action: action
+      });
+    }
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;

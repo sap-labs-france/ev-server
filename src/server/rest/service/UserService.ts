@@ -75,6 +75,28 @@ export default class UserService {
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleAssignSitesToUser', req.user);
+    // Deleted
+    if (user.deleted) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
+        module: MODULE_NAME, method: 'handleAssignSitesToUser',
+        user: req.user
+      });
+    }
+    // OCPI User
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleAssignSitesToUser',
+        user: req.user, actionOnUser: user,
+        action: action
+      });
+    }
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
       const site = await SiteStorage.getSite(req.user.tenantID, siteID);
@@ -88,6 +110,17 @@ export default class UserService {
           action: Action.UPDATE, entity: Entity.SITE,
           module: MODULE_NAME, method: 'handleAssignSitesToUser',
           value: siteID
+        });
+      }
+      // OCPI Site
+      if (!site.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'handleAssignSitesToUser',
+          user: req.user,
+          action: action
         });
       }
     }
@@ -153,7 +186,7 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' is already deleted`,
+        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
         module: MODULE_NAME, method: 'handleDeleteUser',
         user: req.user
       });
@@ -163,7 +196,7 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization cannot be deleted`,
+        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization`,
         module: MODULE_NAME, method: 'handleDeleteUser',
         user: req.user, actionOnUser: user,
         action: action
@@ -351,7 +384,18 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.id}' is logically deleted`,
+        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
+        module: MODULE_NAME, method: 'handleUpdateUser',
+        user: req.user,
+        action: action
+      });
+    }
+    // OCPI User
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization`,
         module: MODULE_NAME, method: 'handleUpdateUser',
         user: req.user,
         action: action
@@ -503,7 +547,7 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.id}' is logically deleted`,
+        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
         module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
         user: req.user,
         action: action
@@ -555,7 +599,7 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${userID}' is logically deleted`,
+        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
         module: MODULE_NAME, method: 'handleGetUser',
         user: req.user,
         action: action
@@ -592,7 +636,7 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${userID}' is logically deleted`,
+        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
         module: MODULE_NAME, method: 'handleGetUserImage',
         user: req.user,
         action: action
@@ -811,7 +855,6 @@ export default class UserService {
         }
       }
     }
-
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
       if (filteredRequest.status) {
@@ -895,9 +938,9 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         module: MODULE_NAME, method: 'handleGetUserInvoice',
+        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
         action: action,
         user: req.user,
-        message: `User with ID '${id}' is logically deleted`,
       });
     }
     // Get the settings
@@ -1066,7 +1109,7 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Tag ID '${tag.id}' not issued by the organization cannot be deleted`,
+        message: `Tag ID '${tag.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'handleDeleteTag',
         user: req.user,
         action: action
@@ -1159,7 +1202,7 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User ID '${user.id}' not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
+        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
         module: MODULE_NAME, method: 'handleCreateTag',
         user: req.user,
         action: action
@@ -1253,7 +1296,7 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User ID '${user.id}' not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
+        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
         module: MODULE_NAME, method: 'handleUpdateTag',
         user: req.user,
         action: action
