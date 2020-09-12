@@ -304,14 +304,14 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
-  public static async saveUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
+  public static async saveTag(tenantID: string, tag: Tag): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserTag');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveTag');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const tagMDB = {
       _id: tag.id,
-      userID: Utils.convertToObjectID(userID),
+      userID: Utils.convertToObjectID(tag.userID),
       issuer: Utils.convertToBoolean(tag.issuer),
       active: Utils.convertToBoolean(tag.active),
       ocpiToken: tag.ocpiToken,
@@ -327,12 +327,12 @@ export default class UserStorage {
       { $set: tagMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveUserTag', uniqueTimerID, { id: userID, tag: tag });
+    Logging.traceEnd(MODULE_NAME, 'saveTag', uniqueTimerID, { id: tag.id });
   }
 
-  public static async deleteUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
+  public static async deleteTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteUserTag');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteTag');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete
@@ -342,7 +342,7 @@ export default class UserStorage {
         'userID': Utils.convertToObjectID(userID)
       });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteUserTag', uniqueTimerID, { id: userID, tag: tag });
+    Logging.traceEnd(MODULE_NAME, 'deleteTag', uniqueTimerID, { id: userID, tag: tag });
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
@@ -1077,7 +1077,7 @@ export default class UserStorage {
   }
 
   // Alternative system of registering new users by badging should be found - for now, an empty user is created and saved.
-  public static getEmptyUser(): Partial<User> {
+  public static createNewUser(): Partial<User> {
     return {
       id: new ObjectID().toHexString(),
       issuer: true,

@@ -317,9 +317,9 @@ export default class TransactionService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization`,
+        message: 'User not issued by the organization',
         module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }

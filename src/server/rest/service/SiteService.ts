@@ -99,8 +99,9 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
-      message: `The User '${Utils.buildUserFullName(user)}' has been ${filteredRequest.siteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.name}'`,
+      user: req.user, actionOnUser: user,
+      module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
+      message: `The User has been ${filteredRequest.siteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.name}'`,
       action: action
     });
     // Ok
@@ -163,8 +164,9 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteUserOwner',
-      message: `The User '${Utils.buildUserFullName(user)}' has been granted Site Owner on site '${site.name}'`,
+      user: req.user, actionOnUser: user,
+      module: MODULE_NAME, method: 'handleUpdateSiteUserOwner',
+      message: `The User has been granted Site Owner on Site '${site.name}'`,
       action: action
     });
     // Ok
@@ -233,7 +235,7 @@ export default class SiteService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `User '${Utils.buildUserFullName(user)}' not issued by the organization`,
+          message: 'User not issued by the organization',
           module: MODULE_NAME, method: 'handleAssignUsersToSite',
           user: req.user, actionOnUser: user,
           action: action

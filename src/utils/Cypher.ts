@@ -1,24 +1,29 @@
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
+import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import _ from 'lodash';
 import crypto from 'crypto';
 
-const _configuration = Configuration.getCryptoConfig();
 const IV_LENGTH = 16;
 const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
-  public static getConfiguration() {
-    if (!_configuration) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getConfiguration',
-        message: 'Crypto configuration is missing'
-      });
+  private static configuration: CryptoConfiguration;
+
+  public static getConfiguration(): CryptoConfiguration {
+    if (!this.configuration) {
+      this.configuration = Configuration.getCryptoConfig();
+      if (!this.configuration) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'getConfiguration',
+          message: 'Crypto configuration is missing'
+        });
+      }
     }
-    return _configuration;
+    return this.configuration;
   }
 
   public static encrypt(data: string): string {

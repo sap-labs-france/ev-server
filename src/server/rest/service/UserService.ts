@@ -81,9 +81,9 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        user: req.user
+        user: req.user, actionOnUser: user,
       });
     }
     // OCPI User
@@ -91,7 +91,7 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization`,
+        message: 'User not issued by the organization',
         module: MODULE_NAME, method: 'handleAssignSitesToUser',
         user: req.user, actionOnUser: user,
         action: action
@@ -186,9 +186,9 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleDeleteUser',
-        user: req.user
+        user: req.user, actionOnUser: user,
       });
     }
     // OCPI User
@@ -196,7 +196,7 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization`,
+        message: 'User not issued by the organization',
         module: MODULE_NAME, method: 'handleDeleteUser',
         user: req.user, actionOnUser: user,
         action: action
@@ -280,9 +280,10 @@ export default class UserService {
           tag.active = false;
           tag.lastChangedOn = new Date();
           tag.lastChangedBy = { id: req.user.id };
-          await UserStorage.saveUserTag(req.user.tenantID, user.id, tag);
+          tag.userID = user.id;
+          await UserStorage.saveTag(req.user.tenantID, tag);
         } else {
-          await UserStorage.deleteUserTag(req.user.tenantID, user.id, tag);
+          await UserStorage.deleteTag(req.user.tenantID, user.id, tag);
         }
       }
     } else {
@@ -384,9 +385,9 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -395,9 +396,9 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization`,
+        message: 'User not issued by the organization',
         module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -547,9 +548,9 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -599,9 +600,9 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleGetUser',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -636,9 +637,9 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleGetUserImage',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -937,10 +938,10 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        message: `User '${Utils.buildUserFullName(user)}' is logically deleted`,
         action: action,
-        user: req.user,
+        module: MODULE_NAME, method: 'handleGetUserInvoice',
+        message: 'User is logically deleted',
+        user: req.user, actionOnUser: user,
       });
     }
     // Get the settings
@@ -1127,7 +1128,7 @@ export default class UserService {
       });
     }
     // Delete the Tag
-    await UserStorage.deleteUserTag(req.user.tenantID, tag.userID, tag);
+    await UserStorage.deleteTag(req.user.tenantID, tag.userID, tag);
     // OCPI
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {
@@ -1202,9 +1203,9 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
+        message: `User not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
         module: MODULE_NAME, method: 'handleCreateTag',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -1219,7 +1220,7 @@ export default class UserService {
       userID: filteredRequest.userID
     } as Tag;
     // Save
-    await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.userID, newTag);
+    await UserStorage.saveTag(req.user.tenantID, newTag);
     // Synchronize badges with IOP
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {
@@ -1296,9 +1297,9 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User '${Utils.buildUserFullName(user)}' not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
+        message: `User not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
         module: MODULE_NAME, method: 'handleUpdateTag',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -1325,7 +1326,7 @@ export default class UserService {
     tag.lastChangedBy = { id: req.user.id };
     tag.lastChangedOn = new Date();
     // Save
-    await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.userID, tag);
+    await UserStorage.saveTag(req.user.tenantID, tag);
     // Synchronize badges with IOP
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) && (filteredRequest.userID !== tag.userID)) {
       try {
