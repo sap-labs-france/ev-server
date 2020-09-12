@@ -196,7 +196,7 @@ export default class TenantService {
     // Create DB collections
     await TenantStorage.createTenantDB(filteredRequest.id);
     // Create Admin user in tenant
-    const tenantUser: User = UserStorage.getEmptyUser() as User;
+    const tenantUser: User = UserStorage.createNewUser() as User;
     tenantUser.name = filteredRequest.name;
     tenantUser.firstName = 'Admin';
     tenantUser.email = filteredRequest.email;

@@ -99,8 +99,9 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
-      message: `The User '${Utils.buildUserFullName(user)}' has been ${filteredRequest.siteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.name}'`,
+      user: req.user, actionOnUser: user,
+      module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
+      message: `The User has been ${filteredRequest.siteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.name}'`,
       action: action
     });
     // Ok
@@ -163,8 +164,9 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteUserOwner',
-      message: `The User '${Utils.buildUserFullName(user)}' has been granted Site Owner on site '${site.name}'`,
+      user: req.user, actionOnUser: user,
+      module: MODULE_NAME, method: 'handleUpdateSiteUserOwner',
+      message: `The User has been granted Site Owner on Site '${site.name}'`,
       action: action
     });
     // Ok
@@ -201,6 +203,17 @@ export default class SiteService {
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     UtilsService.assertObjectExists(action, site, `Site '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleAssignUsersToSite', req.user);
+    // OCPI Site
+    if (!site.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleAssignUsersToSite',
+        user: req.user,
+        action: action
+      });
+    }
     // Get Users
     for (const userID of filteredRequest.userIDs) {
       // Check the user
@@ -215,6 +228,17 @@ export default class SiteService {
           action: Action.READ, entity: Entity.USER,
           module: MODULE_NAME, method: 'handleAssignUsersToSite',
           value: userID
+        });
+      }
+      // OCPI User
+      if (!user.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'User not issued by the organization',
+          module: MODULE_NAME, method: 'handleAssignUsersToSite',
+          user: req.user, actionOnUser: user,
+          action: action
         });
       }
     }
@@ -313,6 +337,17 @@ export default class SiteService {
     const site = await SiteStorage.getSite(req.user.tenantID, siteID);
     UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`,
       MODULE_NAME, 'handleDeleteSite', req.user);
+    // OCPI Site
+    if (!site.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleDeleteSite',
+        user: req.user,
+        action: action
+      });
+    }
     // Delete
     await SiteStorage.deleteSite(req.user.tenantID, site.id);
     // Log
@@ -453,6 +488,17 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
       MODULE_NAME, 'handleCreateSite', req.user);
+    // OCPI Company
+    if (!company.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleCreateSite',
+        user: req.user,
+        action: action
+      });
+    }
     // Create site
     const site: Site = {
       ...filteredRequest,
@@ -497,10 +543,32 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
       MODULE_NAME, 'handleUpdateSite', req.user);
+    // OCPI Company
+    if (!company.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleCreateSite',
+        user: req.user,
+        action: action
+      });
+    }
     // Get Site
     const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateSite', req.user);
+    // OCPI Site
+    if (!company.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateSite',
+        user: req.user,
+        action: action
+      });
+    }
     // Update
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();

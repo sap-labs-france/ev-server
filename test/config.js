@@ -292,6 +292,23 @@ const config = convict({
       format: Boolean,
       default: ''
     }
+  },
+  smartCharging: {
+    optimizerUrl: {
+      doc: 'Smart charging url',
+      format: String,
+      default: ''
+    },
+    user: {
+      doc: 'Smart charging user',
+      format: String,
+      default: ''
+    },
+    password: {
+      doc: 'Smart charging password',
+      format: String,
+      default: ''
+    },
   }
 });
 

@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import Cypher from '../../utils/Cypher';
@@ -6,7 +8,6 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'ConsumptionStorage';
 
@@ -103,7 +104,7 @@ export default class ConsumptionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Create filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // ID
     if (params.assetID) {
       filters.assetID = Utils.convertToObjectID(params.assetID);
@@ -180,7 +181,7 @@ export default class ConsumptionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Create filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // ID
     if (params.siteAreaID) {
       filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);

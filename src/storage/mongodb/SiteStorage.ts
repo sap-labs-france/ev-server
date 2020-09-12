@@ -1,6 +1,6 @@
 import Site, { SiteUser } from '../../types/Site';
 import User, { UserSite } from '../../types/User';
-import global, { Image } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
@@ -26,7 +26,7 @@ export default class SiteStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getSite', uniqueTimerID, { id });
-    return sitesMDB.count > 0 ? sitesMDB.result[0] : null;
+    return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }
 
   public static async getSiteImage(tenantID: string, id: string): Promise<Image> {
@@ -343,7 +343,7 @@ export default class SiteStorage {
       });
     }
     // Search filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
@@ -362,7 +362,7 @@ export default class SiteStorage {
       };
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Public Site
