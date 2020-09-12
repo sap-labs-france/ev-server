@@ -48,7 +48,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static encryptSensitiveDataInJSON(obj: Record<string, any>) {
+  public static encryptSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -82,7 +82,7 @@ export default class Cypher {
     }
   }
 
-  public static decryptSensitiveDataInJSON(obj: Record<string, any>) {
+  public static decryptSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -114,7 +114,7 @@ export default class Cypher {
     }
   }
 
-  public static hashSensitiveDataInJSON(obj: Record<string, any>) {
+  public static hashSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
