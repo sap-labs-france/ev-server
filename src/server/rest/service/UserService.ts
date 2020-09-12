@@ -2,6 +2,7 @@ import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
+import User, { UserStatus } from '../../../types/User';
 
 import Address from '../../../types/Address';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -26,7 +27,6 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import { UserInErrorType } from '../../../types/InError';
 import UserNotifications from '../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
-import { UserStatus } from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -428,10 +428,15 @@ export default class UserService {
     // Check User validity
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Update user
-    user = { ...user, ...filteredRequest, tags: [] };
-    // Update
-    user.lastChangedBy = lastChangedBy;
-    user.lastChangedOn = lastChangedOn;
+    user = {
+      ...user,
+      ...filteredRequest,
+      name: filteredRequest.name.toUpperCase(),
+      email: filteredRequest.email.toLowerCase(),
+      lastChangedBy: lastChangedBy,
+      lastChangedOn: lastChangedOn,
+      tags: []
+    };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
     // Check Billing
@@ -814,13 +819,21 @@ export default class UserService {
     }
     // Clean request
     delete filteredRequest.passwords;
-    filteredRequest.issuer = true;
+    // Create
+    const newUser: User = {
+      ...filteredRequest,
+      name: filteredRequest.name.toUpperCase(),
+      email: filteredRequest.email.toLowerCase(),
+      createdBy: { id: req.user.id },
+      createdOn: new Date(),
+      issuer: true,
+    } as User;
     // Create the User
-    const newUserID = await UserStorage.saveUser(req.user.tenantID, filteredRequest, true);
+    newUser.id = await UserStorage.saveUser(req.user.tenantID, newUser, true);
     // Save password
-    if (filteredRequest.password) {
-      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
-      await UserStorage.saveUserPassword(req.user.tenantID, newUserID,
+    if (newUser.password) {
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(newUser.password);
+      await UserStorage.saveUserPassword(req.user.tenantID, newUser.id,
         {
           password: newPasswordHashed,
           passwordWrongNbrTrials: 0,
@@ -834,14 +847,14 @@ export default class UserService {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       if (billingImpl) {
         try {
-          const user = await UserStorage.getUser(req.user.tenantID, newUserID);
+          const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
           const billingUser = await billingImpl.createUser(user);
           await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
           Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
             module: MODULE_NAME, method: 'handleCreateUser',
-            user: newUserID,
+            user: newUser.id,
             message: 'User successfully created in billing system',
           });
         } catch (error) {
@@ -849,7 +862,7 @@ export default class UserService {
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleCreateUser',
             action: action,
-            user: newUserID,
+            user: newUser.id,
             message: 'User cannot be created in billing system',
             detailedMessages: { error: error.message, stack: error.stack }
           });
@@ -858,27 +871,27 @@ export default class UserService {
     }
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
-      if (filteredRequest.status) {
-        await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);
+      if (newUser.status) {
+        await UserStorage.saveUserStatus(req.user.tenantID, newUser.id, newUser.status);
       }
       // Save User Role
-      if (filteredRequest.role) {
-        await UserStorage.saveUserRole(req.user.tenantID, newUserID, filteredRequest.role);
+      if (newUser.role) {
+        await UserStorage.saveUserRole(req.user.tenantID, newUser.id, newUser.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID || Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
+      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive')) {
         const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
-        if (filteredRequest.plateID) {
-          adminData.plateID = filteredRequest.plateID;
+        if (newUser.plateID) {
+          adminData.plateID = newUser.plateID;
         }
-        if (Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
-          adminData.notificationsActive = filteredRequest.notificationsActive;
-          if (filteredRequest.notifications) {
-            adminData.notifications = filteredRequest.notifications;
+        if (Utils.objectHasProperty(newUser, 'notificationsActive')) {
+          adminData.notificationsActive = newUser.notificationsActive;
+          if (newUser.notifications) {
+            adminData.notifications = newUser.notifications;
           }
         }
         // Save User Admin data
-        await UserStorage.saveUserAdminData(req.user.tenantID, newUserID, adminData);
+        await UserStorage.saveUserAdminData(req.user.tenantID, newUser.id, adminData);
       }
     }
     // Assign user to all sites with auto-assign flag set
@@ -889,7 +902,7 @@ export default class UserService {
     if (sites.count > 0) {
       const siteIDs = sites.result.map((site) => site.id);
       if (siteIDs && siteIDs.length > 0) {
-        await UserStorage.addSitesToUser(req.user.tenantID, newUserID, siteIDs);
+        await UserStorage.addSitesToUser(req.user.tenantID, newUser.id, siteIDs);
       }
     }
     // Log
@@ -897,11 +910,11 @@ export default class UserService {
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
       module: MODULE_NAME, method: 'handleCreateUser',
-      message: `User with ID '${newUserID}' has been created successfully`,
+      message: `User with ID '${newUser.id}' has been created successfully`,
       action: action
     });
     // Ok
-    res.json(Object.assign({ id: newUserID }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: newUser.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 

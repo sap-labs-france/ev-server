@@ -675,7 +675,7 @@ export default class CarStorage {
       DatabaseUtils.pushArrayLookupInAggregation('carUsers', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
         tenantID, aggregation: aggregation, localField: 'carUsers.userID', foreignField: '_id',
         asField: 'carUsers.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-      }, { pipeline: carUsersPipeline });
+      }, { pipeline: carUsersPipeline, sort: dbParams.sort });
     }
     // Add Car Catalog
     DatabaseUtils.pushCarCatalogLookupInAggregation({

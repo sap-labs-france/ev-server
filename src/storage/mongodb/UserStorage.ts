@@ -701,7 +701,7 @@ export default class UserStorage {
           tenantID, aggregation: aggregation, localField: 'tags.id', foreignField: 'tagID',
           count: true, asField: 'tags.transactionsCount', oneToOneCardinality: false,
           objectIDFields: ['createdBy', 'lastChangedBy']
-        }
+        }, { sort: dbParams.sort }
       );
     }
     // Change ID
