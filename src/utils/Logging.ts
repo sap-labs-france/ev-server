@@ -203,7 +203,7 @@ export default class Logging {
     // Compute Length
     let contentLengthKB = 0;
     if (response.config.headers['Content-Length']) {
-      contentLengthKB = response.config.headers['Content-Length'] / 1000;
+      contentLengthKB = Utils.roundTo(response.config.headers['Content-Length'] / 1024, 2);
     }
     Logging.logSecurityDebug({
       tenantID: tenantID,
@@ -604,48 +604,55 @@ export default class Logging {
 
   private static anonymizeSensitiveData(message: any) {
     if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
+      // eslint-disable-next-line no-useless-return
       return;
-    }
-    if (typeof message === 'object') {
-      for (const key in message) {
-        if (message[key]) {
-          // Another JSon?
-          if (typeof message[key] === 'object') {
-            Logging.anonymizeSensitiveData(message[key]);
-          }
-          // Array?
-          if (Array.isArray(message[key])) {
-            Logging.anonymizeSensitiveData(message[key]);
-          }
-          // String?
-          if (typeof message[key] === 'string') {
-            for (const sensitiveData of Constants.SENSITIVE_DATA) {
-              if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
-                // Anonymize
-                message[key] = Constants.ANONYMIZED_VALUE;
-              }
-            }
-            // Check query string
-            const dataParts: string[] = message[key].split('&');
-            if (dataParts.length > 1) {
-              for (let i = 0; i < dataParts.length; i++) {
-                const dataPart = dataParts[i];
-                for (const sensitiveData of Constants.SENSITIVE_DATA) {
-                  if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
-                    // Anonymize
-                    dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
-                  }
-                }
-              }
-              message[key] = dataParts.join('&');
-            }
-          }
-        }
-      }
+    // FIXME: Commented out until an agreement is found on the implementation
+    // } else if (typeof message === 'string') {
+    //   // Anonymize
+    //   message.replace(/((repeat|)[pP]assword|captcha|email)(\s|)(=|:)(\s|)(.*)/g, '$1$3$4$5' + Constants.ANONYMIZED_VALUE);
     } else if (Array.isArray(message)) {
       for (const item of message) {
         Logging.anonymizeSensitiveData(item);
       }
+    } else if (typeof message === 'object') {
+      for (const key of Object.keys(message)) {
+        // String?
+        if (typeof message[key] === 'string') {
+          for (const sensitiveData of Constants.SENSITIVE_DATA) {
+            if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
+              // Anonymize
+              message[key] = Constants.ANONYMIZED_VALUE;
+            }
+          }
+          // Check query string
+          const dataParts: string[] = message[key].split('&');
+          if (dataParts.length > 1) {
+            for (let i = 0; i < dataParts.length; i++) {
+              const dataPart = dataParts[i];
+              for (const sensitiveData of Constants.SENSITIVE_DATA) {
+                if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+                  // Anonymize
+                  dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+                }
+              }
+            }
+            message[key] = dataParts.join('&');
+          }
+        } else {
+          Logging.anonymizeSensitiveData(message[key]);
+        }
+      }
+    } else {
+      // Log
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        type: LogType.SECURITY,
+        module: MODULE_NAME,
+        method: 'anonymizeSensitiveData',
+        action: ServerAction.LOGGING,
+        message: 'No matching object type for log message anonymisation',
+        detailedMessages: { message: message }
+      });
     }
   }
 
