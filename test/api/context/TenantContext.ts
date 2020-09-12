@@ -253,11 +253,13 @@ export default class TenantContext {
     for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
       createdChargingStation.connectors[i] = {
         connectorId: i + 1,
-        status: (connectorsDef && connectorsDef.status ? connectorsDef.status : 'Available'),
-        errorCode: (connectorsDef && connectorsDef.errorCode ? connectorsDef.errorCode : 'NoError'),
-        timestamp: (connectorsDef && connectorsDef.timestamp ? connectorsDef.timestamp : new Date().toISOString()),
-        type: (connectorsDef && connectorsDef.type ? connectorsDef.type : 'U'),
-        power: (connectorsDef && connectorsDef.power ? connectorsDef.power : 22080)
+        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : 'Available'),
+        errorCode: (connectorsDef && connectorsDef[i].errorCode ? connectorsDef[i].errorCode : 'NoError'),
+        timestamp: (connectorsDef && connectorsDef[i].timestamp ? connectorsDef[i].timestamp : new Date().toISOString()),
+        type: (connectorsDef && connectorsDef[i].type ? connectorsDef[i].type : 'U'),
+        power: (connectorsDef && connectorsDef[i].power ? connectorsDef[i].power : 22170),
+        numberOfConnectedPhase: (connectorsDef && connectorsDef[i].numberOfConnectedPhase ? connectorsDef[i].numberOfConnectedPhase : 3),
+        amperage: (connectorsDef && connectorsDef[i].amperage ? connectorsDef[i].amperage : 96),
       };
     }
     for (const connector of createdChargingStation.connectors) {
@@ -296,6 +298,154 @@ export default class TenantContext {
       `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot be excluded from power limitation`);
     expect(createdChargingStation.chargePoints[0].ocppParamForPowerLimitation).to.eql('maxintensitysocket',
       `Charge Point ID 1 of charging station ${createdChargingStation.id} must have OCPP param 'maxintensitysocket'`);
+    // Assign to Site Area
+    if (siteArea) {
+      createdChargingStation.siteAreaID = siteArea.id;
+      await this.getAdminCentralServerService().updateEntity(
+        this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
+    }
+    const createdCS = new ChargingStationContext(createdChargingStation, this);
+    await createdCS.initialize();
+    this.context.createdChargingStations.push(createdCS);
+    return createdCS;
+  }
+
+  async createSinglePhasedChargingStation(ocppVersion, chargingStation = Factory.chargingStation.buildChargingStationSinglePhased({
+    id: faker.random.alphaNumeric(12)
+  }), connectorsDef = null, siteArea = null) {
+    const ocppService = await this.getOCPPService(ocppVersion);
+    const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    // Check
+    expect(response).to.not.be.null;
+    expect(response.status).to.eql('Accepted');
+    expect(response).to.have.property('currentTime');
+    let createdChargingStation = await this.getAdminCentralServerService().getEntityById(
+      this.getAdminCentralServerService().chargingStationApi, chargingStation);
+    expect(createdChargingStation.maximumPower).to.eql(14720);
+    expect(createdChargingStation.powerLimitUnit).to.eql('A');
+    for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
+      createdChargingStation.connectors[i] = {
+        connectorId: i + 1,
+        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : 'Available'),
+        errorCode: (connectorsDef && connectorsDef[i].errorCode ? connectorsDef[i].errorCode : 'NoError'),
+        timestamp: (connectorsDef && connectorsDef[i].timestamp ? connectorsDef[i].timestamp : new Date().toISOString()),
+        type: (connectorsDef && connectorsDef[i].type ? connectorsDef[i].type : 'U'),
+        power: (connectorsDef && connectorsDef[i].power ? connectorsDef[i].power : 7360),
+        numberOfConnectedPhase: (connectorsDef && connectorsDef[i].numberOfConnectedPhase ? connectorsDef[i].numberOfConnectedPhase : 1),
+        amperage: (connectorsDef && connectorsDef[i].amperage ? connectorsDef[i].amperage : 654),
+      };
+    }
+    for (const connector of createdChargingStation.connectors) {
+      await ocppService.executeStatusNotification(createdChargingStation.id, connector);
+    }
+    createdChargingStation = await this.getAdminCentralServerService().getEntityById(
+      this.getAdminCentralServerService().chargingStationApi, chargingStation);
+    // Charging Station
+    expect(createdChargingStation.voltage).to.eql(230);
+    // Connectors
+    expect(createdChargingStation.connectors.length).to.eql(2,
+      `Number of connector of charging station ${createdChargingStation.id} must be 2`);
+    expect(createdChargingStation.connectors[0].power).to.eql(7360,
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have 7360 W`);
+    expect(createdChargingStation.connectors[0].amperage).to.eql(32,
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have 32 A`);
+    expect(createdChargingStation.connectors[0].type).to.eql('T2',
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    expect(createdChargingStation.connectors[1].power).to.eql(7360,
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have 7360 W`);
+    expect(createdChargingStation.connectors[1].amperage).to.eql(32,
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have 32 A`);
+    expect(createdChargingStation.connectors[1].type).to.eql('T2',
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    // Charge Points
+    expect(createdChargingStation.chargePoints.length).to.eql(1,
+      `Number of charge point of charging station ${createdChargingStation.id} must be 1`);
+    expect(createdChargingStation.chargePoints[0].currentType).to.eql('AC');
+    expect(createdChargingStation.chargePoints[0].numberOfConnectedPhase).to.eql(1,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} must have 1 phases`);
+    expect(createdChargingStation.chargePoints[0].cannotChargeInParallel).to.eql(false,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot charge in parallel`);
+    expect(createdChargingStation.chargePoints[0].sharePowerToAllConnectors).to.eql(false,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot share power`);
+    expect(createdChargingStation.chargePoints[0].excludeFromPowerLimitation).to.eql(false,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot be excluded from power limitation`);
+    expect(createdChargingStation.chargePoints[0].ocppParamForPowerLimitation).to.eql('maxintensitysocket',
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} must have OCPP param 'maxintensitysocket'`);
+    // Assign to Site Area
+    if (siteArea) {
+      createdChargingStation.siteAreaID = siteArea.id;
+      await this.getAdminCentralServerService().updateEntity(
+        this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
+    }
+    const createdCS = new ChargingStationContext(createdChargingStation, this);
+    await createdCS.initialize();
+    this.context.createdChargingStations.push(createdCS);
+    return createdCS;
+  }
+
+  async createChargingStationDC(ocppVersion, chargingStation = Factory.chargingStation.build({
+    id: faker.random.alphaNumeric(12)
+  }), connectorsDef = null, siteArea = null) {
+    const ocppService = await this.getOCPPService(ocppVersion);
+    const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    // Check
+    expect(response).to.not.be.null;
+    expect(response.status).to.eql('Accepted');
+    expect(response).to.have.property('currentTime');
+    let createdChargingStation = await this.getAdminCentralServerService().getEntityById(
+      this.getAdminCentralServerService().chargingStationApi, chargingStation);
+    expect(createdChargingStation.maximumPower).to.eql(150000);
+    expect(createdChargingStation.powerLimitUnit).to.eql('W');
+    for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
+      createdChargingStation.connectors[i] = {
+        connectorId: i + 1,
+        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : 'Available'),
+        errorCode: (connectorsDef && connectorsDef[i].errorCode ? connectorsDef[i].errorCode : 'NoError'),
+        timestamp: (connectorsDef && connectorsDef[i].timestamp ? connectorsDef[i].timestamp : new Date().toISOString()),
+        type: (connectorsDef && connectorsDef[i].type ? connectorsDef[i].type : 'CCS'),
+        power: (connectorsDef && connectorsDef[i].power ? connectorsDef[i].power : 150000),
+        numberOfConnectedPhase: (connectorsDef && connectorsDef[i].numberOfConnectedPhase ? connectorsDef[i].numberOfConnectedPhase : 3),
+        amperage: (connectorsDef && connectorsDef[i].amperage ? connectorsDef[i].amperage : 96),
+      };
+    }
+    for (const connector of createdChargingStation.connectors) {
+      await ocppService.executeStatusNotification(createdChargingStation.id, connector);
+    }
+    createdChargingStation = await this.getAdminCentralServerService().getEntityById(
+      this.getAdminCentralServerService().chargingStationApi, chargingStation);
+    // Charging Station
+    expect(createdChargingStation.voltage).to.eql(230);
+    // Connectors
+    expect(createdChargingStation.connectors.length).to.eql(2,
+      `Number of connector of charging station ${createdChargingStation.id} must be 2`);
+    expect(createdChargingStation.connectors[0].power).to.eql(150000,
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have 150000 W`);
+    // Expect(createdChargingStation.connectors[0].amperage).to.eql(654,
+    //   `Connector ID 1 of charging station ${createdChargingStation.id} must have 654 A`);
+    expect(createdChargingStation.connectors[0].type).to.eql('CCS',
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have CCS connector`);
+    expect(createdChargingStation.connectors[1].power).to.eql(150000,
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have 150000 W`);
+    // Expect(createdChargingStation.connectors[1].amperage).to.eql(654,
+    //   `Connector ID 2 of charging station ${createdChargingStation.id} must have 654 A`);
+    expect(createdChargingStation.connectors[1].type).to.eql('CCS',
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have CCS connector`);
+    // Charge Points
+    expect(createdChargingStation.chargePoints.length).to.eql(1,
+      `Number of charge point of charging station ${createdChargingStation.id} must be 1`);
+    expect(createdChargingStation.chargePoints[0].currentType).to.eql('DC');
+    expect(createdChargingStation.chargePoints[0].numberOfConnectedPhase).to.eql(3,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} must have 3 phases`);
+    expect(createdChargingStation.chargePoints[0].cannotChargeInParallel).to.eql(false,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot charge in parallel`);
+    expect(createdChargingStation.chargePoints[0].sharePowerToAllConnectors).to.eql(true,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot share power`);
+    expect(createdChargingStation.chargePoints[0].excludeFromPowerLimitation).to.eql(false,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot be excluded from power limitation`);
+    expect(createdChargingStation.chargePoints[0].ocppParamForPowerLimitation).to.eql('Device/GridCurrent',
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} must have OCPP param 'Device/GridCurrent'`);
+    expect(createdChargingStation.chargePoints[0].efficiency).to.eql(95,
+      `Charge Point ID 1 of charging station ${createdChargingStation.id} must have efficiency 95`);
     // Assign to Site Area
     if (siteArea) {
       createdChargingStation.siteAreaID = siteArea.id;
