@@ -173,8 +173,7 @@ export default class UserSecurity {
         }
       }
       // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(
-        filteredUser, user, loggedUser);
+      UtilsSecurity.filterCreatedAndLastChanged(filteredUser, user, loggedUser);
     }
     return filteredUser;
   }
@@ -251,7 +250,11 @@ export default class UserSecurity {
 
   static filterTagResponse(tag: Tag, loggedUser: UserToken): Tag {
     const filteredTag = {} as Tag;
-    if (tag) {
+    if (!tag) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadTag(loggedUser)) {
       filteredTag.id = tag.id;
       filteredTag.issuer = tag.issuer;
       filteredTag.description = tag.description;
@@ -260,6 +263,10 @@ export default class UserSecurity {
       filteredTag.userID = tag.userID;
       if (tag.user) {
         filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser);
+      }
+      // Created By / Last Changed By
+      if (Authorizations.canUpdateTag(loggedUser)) {
+        UtilsSecurity.filterCreatedAndLastChanged(filteredTag, tag, loggedUser);
       }
     }
     return filteredTag;
