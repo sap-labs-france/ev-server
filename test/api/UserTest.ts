@@ -154,7 +154,7 @@ describe('User tests', function() {
           );
         });
 
-        // it('Should not be able to delete a badge that has already been used', async () => {
+        // pragma it('Should not be able to delete a badge that has already been used', async () => {
         //   const connectorId = 1;
         //   const tagId = testData.newUser.tags[0].id;
         //   const meterStart = 180;
