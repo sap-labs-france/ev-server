@@ -171,8 +171,10 @@ export default class ChargingStationService {
           connector.currentType = filteredConnector.currentType;
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
         }
-        // Always update
-        connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+        // Phase Assignment
+        if (siteArea?.numberOfPhases === 3) {
+          connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+        }
       }
     }
     // Update timestamp
