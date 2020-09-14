@@ -30,7 +30,6 @@ import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UnmarkTransactionExtraInactivitiesTask from './tasks/UnmarkTransactionExtraInactivitiesTask';
 import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
-import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjectIDsTask';
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
 import cluster from 'cluster';
@@ -39,7 +38,7 @@ import moment from 'moment';
 const MODULE_NAME = 'MigrationHandler';
 
 export default class MigrationHandler {
-  public static async migrate(processAsyncTasksOnly = false) {
+  public static async migrate(processAsyncTasksOnly = false): Promise<void> {
     // Check we're on the master nodejs process
     if (!cluster.isMaster) {
       return;
@@ -76,7 +75,6 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDsTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
-        currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
         currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
