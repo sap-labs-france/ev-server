@@ -249,7 +249,7 @@ export default class TransactionService {
       });
     }
     // Get the user
-    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID, { withTag: true });
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
@@ -310,9 +310,19 @@ export default class TransactionService {
       });
     }
     // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID, { withTag: true });
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User not issued by the organization',
+        module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
+        user: req.user, actionOnUser: user,
+        action: action
+      });
+    }
     // Assign
     await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user);
     res.json(Constants.REST_RESPONSE_SUCCESS);

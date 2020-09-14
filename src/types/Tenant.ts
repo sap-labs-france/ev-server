@@ -1,3 +1,4 @@
+import Address from './Address';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface Tenant extends CreatedUpdatedProps {
@@ -5,6 +6,8 @@ export default interface Tenant extends CreatedUpdatedProps {
   name: string;
   email: string;
   subdomain: string;
+  address: Address;
+  logo: string;
   components: {
     ocpi?: {
       active: boolean;

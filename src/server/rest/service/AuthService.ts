@@ -227,7 +227,7 @@ export default class AuthService {
     // Generate a password
     const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
-    const newUser = UserStorage.getEmptyUser() as User;
+    const newUser = UserStorage.createNewUser() as User;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
@@ -250,9 +250,10 @@ export default class AuthService {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt().toString(),
       active: true,
       issuer: true,
+      userID: newUser.id,
       lastChangedOn: new Date()
     };
-    await UserStorage.saveUserTag(req.user.tenantID, newUser.id, tag);
+    await UserStorage.saveTag(req.user.tenantID, tag);
 
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,

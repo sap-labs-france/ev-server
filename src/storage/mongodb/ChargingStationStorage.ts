@@ -2,6 +2,7 @@ import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } fro
 import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorMDB, ConnectorType, OcppParameter } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream } from 'mongodb';
+import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -17,7 +18,6 @@ import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
 import fs from 'fs';
-import global from '../../types/GlobalType';
 import moment from 'moment';
 
 const MODULE_NAME = 'ChargingStationStorage';
@@ -143,7 +143,7 @@ export default class ChargingStationStorage {
       });
     }
     // Set the filters
-    const filters: any = {
+    const filters: FilterParams = {
       $or: DatabaseUtils.getNotDeletedFilter()
     };
     // Filter
@@ -165,7 +165,7 @@ export default class ChargingStationStorage {
       filters.lastHeartBeat = { $lte: params.offlineSince };
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Add Charging Station inactive flag
@@ -340,7 +340,7 @@ export default class ChargingStationStorage {
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
     // Set the filters
-    const filters: any = { '$or': DatabaseUtils.getNotDeletedFilter() };
+    const filters: FilterParams = { '$or': DatabaseUtils.getNotDeletedFilter() };
     filters.issuer = true;
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
@@ -657,7 +657,7 @@ export default class ChargingStationStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getChargingProfile', uniqueTimerID, { id });
-    return chargingProfilesMDB.count > 0 ? chargingProfilesMDB.result[0] : null;
+    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
   }
 
   public static async getChargingProfiles(tenantID: string,
@@ -677,7 +677,7 @@ export default class ChargingStationStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Query by chargingStationID
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Build filter
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);

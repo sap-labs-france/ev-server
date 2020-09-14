@@ -3,6 +3,7 @@ import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
+import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
@@ -277,39 +278,18 @@ export default class OCPPService {
       statusNotification.chargeBoxID = chargingStation.id;
       statusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-      if (statusNotification.connectorId === 0) {
-        // Ignore EBEE Charging Station
-        if (chargingStation.chargePointVendor !== ChargerVendor.EBEE) {
-          // Log
-          Logging.logInfo({
-            tenantID: headers.tenantID,
-            source: chargingStation.id,
-            action: ServerAction.STATUS_NOTIFICATION,
-            module: MODULE_NAME, method: 'handleStatusNotification',
-            message: `Connector '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
-          });
-          // Get the connectors
-          const connectors = chargingStation.connectors;
-          // Update ALL connectors
-          for (let i = 0; i < connectors.length; i++) {
-            // Update message with proper connectorId
-            statusNotification.connectorId = connectors[i].connectorId;
-            // Update
-            await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
-          }
-        } else {
-          // Do not take connector '0' into account for EBEE
-          Logging.logWarning({
-            tenantID: headers.tenantID,
-            source: chargingStation.id,
-            module: MODULE_NAME, method: 'handleStatusNotification',
-            action: ServerAction.STATUS_NOTIFICATION,
-            message: `Connector '0' > Ignored EBEE with with Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
-          });
-        }
-      } else {
-        // Update only the given connectorId
+      if (statusNotification.connectorId > 0) {
+        // Update only the given Connector ID
         await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
+      } else {
+        // Log
+        Logging.logInfo({
+          tenantID: headers.tenantID,
+          source: chargingStation.id,
+          action: ServerAction.STATUS_NOTIFICATION,
+          module: MODULE_NAME, method: 'handleStatusNotification',
+          message: `Connector '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+        });
       }
       // Respond
       return {};
@@ -435,7 +415,9 @@ export default class OCPPService {
       authorize.timestamp = new Date();
       authorize.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check
-      const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation, authorize.idTag);
+      const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
+        authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
+      // OCPI User
       if (user && !user.issuer) {
         const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
         if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
@@ -466,6 +448,7 @@ export default class OCPPService {
         }
         authorize.authorizationId = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
       }
+      // Set
       authorize.user = user;
       // Save
       await OCPPStorage.saveAuthorize(headers.tenantID, authorize);
@@ -572,7 +555,7 @@ export default class OCPPService {
       startTransaction.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check Authorization with Tag ID
       const user = await Authorizations.isAuthorizedToStartTransaction(
-        headers.tenantID, chargingStation, startTransaction.tagID);
+        headers.tenantID, chargingStation, startTransaction.tagID, ServerAction.START_TRANSACTION);
       if (user) {
         startTransaction.userID = user.id;
       }
@@ -780,7 +763,7 @@ export default class OCPPService {
       if (!stoppedByCentralSystem) {
         // Check and get users
         const users = await Authorizations.isAuthorizedToStopTransaction(
-          headers.tenantID, chargingStation, transaction, tagId);
+          headers.tenantID, chargingStation, transaction, tagId, ServerAction.STOP_TRANSACTION);
         user = users.user;
         alternateUser = users.alternateUser;
       } else {
@@ -1521,12 +1504,12 @@ export default class OCPPService {
           for (const currentValue of value['value']) {
             newMeterValue.value = Utils.convertToFloat(currentValue['$value']);
             newMeterValue.attribute = currentValue.attributes;
-            newMeterValues.values.push(JSON.parse(JSON.stringify(newMeterValue)));
+            newMeterValues.values.push(Utils.cloneJSonDocument(newMeterValue));
           }
         } else {
           newMeterValue.value = Utils.convertToFloat(value['value']['$value']);
           newMeterValue.attribute = value['value'].attributes;
-          newMeterValues.values.push(newMeterValue);
+          newMeterValues.values.push(Utils.cloneJSonDocument(newMeterValue));
         }
       }
     }

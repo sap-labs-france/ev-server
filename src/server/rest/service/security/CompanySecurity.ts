@@ -87,8 +87,9 @@ export default class CompanySecurity {
         filteredCompany.distanceMeters = company.distanceMeters;
       }
       // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(
-        filteredCompany, company, loggedUser);
+      if (Authorizations.canUpdateCompany(loggedUser)) {
+        UtilsSecurity.filterCreatedAndLastChanged(filteredCompany, company, loggedUser);
+      }
     }
     return filteredCompany;
   }

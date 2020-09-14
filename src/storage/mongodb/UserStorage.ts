@@ -1,7 +1,7 @@
 import Site, { SiteUser } from '../../types/Site';
 import User, { UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
-import global, { Image } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
@@ -95,10 +95,13 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByTagId');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { tagID: tagID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, {
+      tagIDs: [tagID],
+      withTag: true
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByTagId', uniqueTimerID, { tagID });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
   public static async getUserByEmail(tenantID: string, email: string): Promise<User> {
@@ -109,40 +112,52 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByEmail');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { email: email }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, {
+      email: email,
+      withTag: true
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByEmail', uniqueTimerID, { email });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
   public static async getUserByPasswordResetHash(tenantID: string, passwordResetHash: string): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByPasswordResetHash');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { passwordResetHash: passwordResetHash }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, {
+      passwordResetHash: passwordResetHash
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByPasswordResetHash', uniqueTimerID, { passwordResetHash });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
-  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<User> {
+  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withTag?: boolean } = {}): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { userIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID,
+      {
+        userIDs: [id],
+        withTag: params.withTag
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUser', uniqueTimerID, { id });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
   public static async getUserByBillingID(tenantID: string, billingID: string): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByBillingID');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { billingUserID: billingID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, {
+      billingUserID: billingID
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByBillingID', uniqueTimerID, { customerID: billingID });
-    return user.count > 0 ? user.result[0] : null;
+    return user.count === 1 ? user.result[0] : null;
   }
 
   public static async getUserImage(tenantID: string, id: string): Promise<Image> {
@@ -289,14 +304,14 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
-  public static async saveUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
+  public static async saveTag(tenantID: string, tag: Tag): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserTag');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveTag');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const tagMDB = {
       _id: tag.id,
-      userID: Utils.convertToObjectID(userID),
+      userID: Utils.convertToObjectID(tag.userID),
       issuer: Utils.convertToBoolean(tag.issuer),
       active: Utils.convertToBoolean(tag.active),
       ocpiToken: tag.ocpiToken,
@@ -312,12 +327,12 @@ export default class UserStorage {
       { $set: tagMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveUserTag', uniqueTimerID, { id: userID, tag: tag });
+    Logging.traceEnd(MODULE_NAME, 'saveTag', uniqueTimerID, { id: tag.id });
   }
 
-  public static async deleteUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
+  public static async deleteTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteUserTag');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteTag');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete
@@ -327,7 +342,7 @@ export default class UserStorage {
         'userID': Utils.convertToObjectID(userID)
       });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteUserTag', uniqueTimerID, { id: userID, tag: tag });
+    Logging.traceEnd(MODULE_NAME, 'deleteTag', uniqueTimerID, { id: userID, tag: tag });
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
@@ -505,9 +520,9 @@ export default class UserStorage {
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
       includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
-      userIDs?: string[]; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
+      userIDs?: string[]; tagIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-      notifications?: any; noLoginSince?: Date;
+      notifications?: any; noLoginSince?: Date; withTag?: boolean;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -520,10 +535,18 @@ export default class UserStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
-    const filters: any = {
+    const filters: FilterParams = {
       '$or': DatabaseUtils.getNotDeletedFilter()
     };
-    // Filter by other properties
+    // Create Aggregation
+    const aggregation = [];
+    // Tags
+    if (params.withTag || !Utils.isEmptyArray(params.tagIDs)) {
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
+      });
+    }
+    // Filter
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -534,13 +557,15 @@ export default class UserStorage {
         { 'plateID': { $regex: searchRegex, $options: 'i' } }
       ];
     }
-    // Limit on Car for Basic Users
+    // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
-    if (params.issuer === true || params.issuer === false) {
+    // Issuer
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
+    // Exclude Users
     if (!Utils.isEmptyArray(params.excludeUserIDs)) {
       filters._id = { $nin: params.excludeUserIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
@@ -549,8 +574,8 @@ export default class UserStorage {
       filters.email = params.email;
     }
     // TagID
-    if (params.tagID) {
-      filters['tags.id'] = params.tagID;
+    if (!Utils.isEmptyArray(params.tagIDs)) {
+      filters['tags.id'] = { $in: params.tagIDs };
     }
     // Password Reset Hash
     if (params.passwordResetHash) {
@@ -572,22 +597,16 @@ export default class UserStorage {
     if (params.notificationsActive) {
       filters.notificationsActive = params.notificationsActive;
     }
-    // Filter on last login to detect inactive user accounts
-    if (params.noLoginSince && moment(params.noLoginSince).isValid()) {
-      filters.eulaAcceptedOn = { $lte: params.noLoginSince };
-      filters.role = UserRole.BASIC;
-    }
     if (params.notifications) {
       for (const key in params.notifications) {
         filters[`notifications.${key}`] = params.notifications[key];
       }
     }
-    // Create Aggregation
-    const aggregation = [];
-    // Add Tags
-    DatabaseUtils.pushTagLookupInAggregation({
-      tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
-    });
+    // Filter on last login to detect inactive user accounts
+    if (params.noLoginSince && moment(params.noLoginSince).isValid()) {
+      filters.eulaAcceptedOn = { $lte: params.noLoginSince };
+      filters.role = UserRole.BASIC;
+    }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
       filters.$or = [
@@ -597,12 +616,10 @@ export default class UserStorage {
         { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
       ];
     }
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
+    // Add filters
+    aggregation.push({
+      $match: filters
+    });
     // Add additional filters
     if (params.notAssignedToCarID) {
       const notAssignedToCarIDFilter = { '$or': [] };
@@ -642,8 +659,6 @@ export default class UserStorage {
         });
       }
     }
-    // Change ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -678,15 +693,19 @@ export default class UserStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add Number of Session per Badge if one user only is requested
-    if (dbParams.limit === 1) {
+    // Add Number of Session per Badge
+    if (params.withTag) {
       // Transactions per Tag
-      DatabaseUtils.pushArrayLookupInAggregation('tags', DatabaseUtils.pushTransactionsLookupInAggregation.bind(this), {
-        tenantID, aggregation: aggregation, localField: 'tags.id', foreignField: 'tagID',
-        count: true, asField: 'tags.transactionsCount', oneToOneCardinality: false,
-        objectIDFields: ['createdBy', 'lastChangedBy']
-      });
+      DatabaseUtils.pushArrayLookupInAggregation('tags',
+        DatabaseUtils.pushTransactionsLookupInAggregation.bind(this), {
+          tenantID, aggregation: aggregation, localField: 'tags.id', foreignField: 'tagID',
+          count: true, asField: 'tags.transactionsCount', oneToOneCardinality: false,
+          objectIDFields: ['createdBy', 'lastChangedBy']
+        }, { sort: dbParams.sort }
+      );
     }
+    // Change ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project
@@ -708,19 +727,25 @@ export default class UserStorage {
     };
   }
 
-  public static async getTag(tenantID: string, id: string): Promise<Tag> {
+  public static async getTag(tenantID: string, id: string,
+    params: { withUser?: boolean; withNbrTransactions?: boolean } = {}): Promise<Tag> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTag');
     // Get tag
-    const tag = await UserStorage.getTags(tenantID, { tagID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const tag = await UserStorage.getTags(tenantID, {
+      tagIDs: [id],
+      withUser: params.withUser,
+      withNbrTransactions: params.withNbrTransactions,
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTag', uniqueTimerID, { id });
-    return tag.count > 0 ? tag.result[0] : null;
+    return tag.count === 1 ? tag.result[0] : null;
   }
 
   public static async getTags(tenantID: string,
-    params: { issuer?: boolean; tagID?: string;  userIDs?: string[]; dateFrom?: Date; dateTo?: Date, search?: string },
-    dbParams: DbParams): Promise<DataResult<Tag>> {
+    params: { issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
+      withUser?: boolean; withNbrTransactions?: boolean; search?: string },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -732,34 +757,32 @@ export default class UserStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
-    if (params) {
-      const filters: any = {};
-      // Filter by other properties
-      if (params.search) {
-        const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
-        filters.$or = [
-          { '_id': { $regex: searchRegex, $options: 'i' } },
-          { 'description': { $regex: searchRegex, $options: 'i' } }
-        ];
-      }
-      if (params.tagID) {
-        filters._id = params.tagID;
-      }
-      if (!Utils.isEmptyArray(params.userIDs)) {
-        filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
-      }
-      if (params.issuer === true || params.issuer === false) {
-        filters.issuer = params.issuer;
-      }
-      if (params.dateFrom && moment(params.dateFrom).isValid()) {
-        filters.lastChangedOn = { $gte: new Date(params.dateFrom) };
-      }
-      if (params.dateTo && moment(params.dateTo).isValid()) {
-        filters.lastChangedOn = { $lte: new Date(params.dateTo) };
-      }
-      if (!Utils.isEmptyJSon(filters)) {
-        aggregation.push({ $match: filters });
-      }
+    const filters: FilterParams = {};
+    // Filter by other properties
+    if (params.search) {
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { '_id': { $regex: searchRegex, $options: 'i' } },
+        { 'description': { $regex: searchRegex, $options: 'i' } }
+      ];
+    }
+    if (!Utils.isEmptyArray(params.tagIDs)) {
+      filters._id = { $in: params.tagIDs };
+    }
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+    }
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
+      filters.issuer = params.issuer;
+    }
+    if (params.dateFrom && moment(params.dateFrom).isValid()) {
+      filters.lastChangedOn = { $gte: new Date(params.dateFrom) };
+    }
+    if (params.dateTo && moment(params.dateTo).isValid()) {
+      filters.lastChangedOn = { $lte: new Date(params.dateTo) };
+    }
+    if (!Utils.isEmptyJSon(filters)) {
+      aggregation.push({ $match: filters });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -794,39 +817,29 @@ export default class UserStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    DatabaseUtils.pushTransactionsLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      localField: '_id',
-      foreignField: 'tagID',
-      count: true,
-      asField: 'transactionsCount',
-      oneToOneCardinality: false,
-      objectIDFields: ['createdBy', 'lastChangedBy']
-    });
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'user',
-      localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
-    });
-    aggregation.push({
-      $project: {
-        id: '$_id',
-        _id: 0,
-        userID: { $toString: '$userID' },
-        lastChangedOn: 1,
-        active: 1,
-        ocpiToken: 1,
-        description: 1,
-        issuer: 1,
-        user: 1,
-        transactionsCount: 1
-      }
-    });
+    // Transactions
+    if (params.withNbrTransactions) {
+      DatabaseUtils.pushTransactionsLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: '_id', foreignField: 'tagID',
+        count: true, asField: 'transactionsCount', oneToOneCardinality: false,
+        objectIDFields: ['createdBy', 'lastChangedBy']
+      });
+    }
+    // Users
+    if (params.withUser) {
+      DatabaseUtils.pushUserLookupInAggregation({
+        tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+    }
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
       .aggregate(aggregation, {
@@ -977,7 +990,7 @@ export default class UserStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Filter
     if (params.userID) {
       filters.userID = Utils.convertToObjectID(params.userID);
@@ -1064,7 +1077,7 @@ export default class UserStorage {
   }
 
   // Alternative system of registering new users by badging should be found - for now, an empty user is created and saved.
-  public static getEmptyUser(): Partial<User> {
+  public static createNewUser(): Partial<User> {
     return {
       id: new ObjectID().toHexString(),
       issuer: true,

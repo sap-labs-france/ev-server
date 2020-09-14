@@ -9,15 +9,14 @@ import ChangeNotification from '../../types/ChangeNotification';
 import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import ExpressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SessionHashService from './service/SessionHashService';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
-import ExpressTools from '../ExpressTools';
 import http from 'http';
-import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
@@ -191,6 +190,26 @@ export default class CentralRestServer {
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.USERS,
+      'action': action
+    });
+  }
+
+  public notifyTag(tenantID: string, action: Action, data: NotificationData): void {
+    // On Tag change rebuild userHashID
+    if (data && data.id) {
+      SessionHashService.rebuildUserHashIDFromTagID(tenantID, data.id).catch(() => { });
+    }
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.TAG,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.TAGS,
       'action': action
     });
   }

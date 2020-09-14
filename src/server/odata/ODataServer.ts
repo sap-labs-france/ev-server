@@ -1,10 +1,11 @@
 import express, { NextFunction, Request, Response } from 'express';
-import ODataServiceConfiguration from '../../types/configuration/ODataServiceConfiguration';
+
 import Configuration from '../../utils/Configuration';
 import ExpressTools from '../ExpressTools';
-import ODataServerFactory from '../odata/ODataServerFactory';
-import ODataSchema from './odata-schema/ODataSchema';
 import ODataRestAdapter from './ODataRestAdapter';
+import ODataSchema from './odata-schema/ODataSchema';
+import ODataServerFactory from '../odata/ODataServerFactory';
+import ODataServiceConfiguration from '../../types/configuration/ODataServiceConfiguration';
 
 const MODULE_NAME = 'ODataServer';
 

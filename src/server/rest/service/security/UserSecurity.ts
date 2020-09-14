@@ -1,4 +1,4 @@
-import { HttpSitesAssignUserRequest, HttpTagStatusRequest, HttpTagsRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpSitesAssignUserRequest, HttpTagsRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
 import Authorizations from '../../../../authorization/Authorizations';
@@ -47,6 +47,9 @@ export default class UserSecurity {
     if (request.ExcludeSiteID) {
       request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }
+    if (request.TagID) {
+      request.TagID = sanitize(request.TagID);
+    }
     if (request.ExcludeUserIDs) {
       request.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
     }
@@ -92,6 +95,7 @@ export default class UserSecurity {
     const filteredRequest: HttpTagsRequest = {
       Search: sanitize(request.Search),
       UserID: sanitize(request.UserID),
+      Issuer: UtilsSecurity.filterBoolean(request.Issuer),
     } as HttpTagsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -125,7 +129,6 @@ export default class UserSecurity {
         filteredUser.status = user.status;
         filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
         filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
-        filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
         if (Utils.objectHasProperty(user, 'errorCode')) {
@@ -160,7 +163,6 @@ export default class UserSecurity {
         }
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
-        filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
         if (Utils.objectHasProperty(user, 'errorCode')) {
@@ -171,8 +173,7 @@ export default class UserSecurity {
         }
       }
       // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(
-        filteredUser, user, loggedUser);
+      UtilsSecurity.filterCreatedAndLastChanged(filteredUser, user, loggedUser);
     }
     return filteredUser;
   }
@@ -234,13 +235,22 @@ export default class UserSecurity {
     tags.result = filteredTags;
   }
 
-  public static filterTagRequest(tag: Tag): Tag {
+  public static filterTagUpdateRequest(request: any, loggedUser: UserToken): Partial<Tag> {
+    return UserSecurity.filterTagRequest(request, loggedUser);
+  }
+
+  public static filterTagCreateRequest(request: any, loggedUser: UserToken): Partial<Tag> {
+    return UserSecurity.filterTagRequest(request, loggedUser);
+  }
+
+  public static filterTagRequest(tag: Tag, loggedUser: UserToken): Tag {
     let filteredTag: Tag;
     if (tag) {
       filteredTag = {
         id: sanitize(tag.id),
         description: sanitize(tag.description),
         active: UtilsSecurity.filterBoolean(tag.active),
+        issuer: UtilsSecurity.filterBoolean(tag.issuer),
         userID: sanitize(tag.userID)
       } as Tag;
     }
@@ -248,15 +258,24 @@ export default class UserSecurity {
   }
 
   static filterTagResponse(tag: Tag, loggedUser: UserToken): Tag {
-    let filteredTag: Tag = {} as Tag;
-    if (tag) {
+    const filteredTag = {} as Tag;
+    if (!tag) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadTag(loggedUser)) {
       filteredTag.id = tag.id;
       filteredTag.issuer = tag.issuer;
       filteredTag.description = tag.description;
       filteredTag.active = tag.active;
       filteredTag.transactionsCount = tag.transactionsCount;
+      filteredTag.userID = tag.userID;
       if (tag.user) {
-        filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser)
+        filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser);
+      }
+      // Created By / Last Changed By
+      if (Authorizations.canUpdateTag(loggedUser)) {
+        UtilsSecurity.filterCreatedAndLastChanged(filteredTag, tag, loggedUser);
       }
     }
     return filteredTag;
@@ -300,13 +319,6 @@ export default class UserSecurity {
       };
     }
     return filteredNotifications;
-  }
-
-  public static filterTagStatusRequest(request: any): HttpTagStatusRequest {
-    return {
-      id: sanitize(request.id),
-      status: UtilsSecurity.filterBoolean(request.status),
-    };
   }
 
   public static filterTagRequestByID(request: any): string {

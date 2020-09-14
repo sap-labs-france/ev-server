@@ -71,9 +71,9 @@ export default class BillingContext {
       await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic' + (i + 1), amount: 100 });
     }
     let invoice = await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin3', amount: 100 });
-    await billingImpl.sendInvoiceToUser(invoice.invoice);
+    await billingImpl.sendInvoiceToUser(this.tenantContext.getTenant().id, invoice.invoice);
     invoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic3', amount: 100 });
-    await billingImpl.sendInvoiceToUser(invoice.invoice);
+    await billingImpl.sendInvoiceToUser(this.tenantContext.getTenant().id, invoice.invoice);
   }
 
   private async saveBillingSettings(stripeSettings) {

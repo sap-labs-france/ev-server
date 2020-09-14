@@ -21,20 +21,12 @@ export default class OCPIGetTokensTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
-      if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-        Logging.logDebug({
-          tenantID: tenant.id,
-          module: MODULE_NAME, method: 'run',
-          action: ServerAction.OCPI_GET_TOKENS,
-          message: 'OCPI Inactive for this tenant. The task \'OCPIPatchLocationsTask\' is skipped.'
-        });
-        // Skip execution
-        return;
-      }
-      // Get all available endpoints
-      const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
-      for (const ocpiEndpoint of ocpiEndpoints.result) {
-        await this.processOCPIEndpoint(tenant, ocpiEndpoint);
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+        // Get all available endpoints
+        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+        for (const ocpiEndpoint of ocpiEndpoints.result) {
+          await this.processOCPIEndpoint(tenant, ocpiEndpoint);
+        }
       }
     } catch (error) {
       // Log error

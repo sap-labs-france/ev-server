@@ -34,7 +34,6 @@ import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
@@ -53,8 +52,6 @@ const MODULE_NAME = 'Utils';
 
 export default class Utils {
   private static tenants = [];
-  private static centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-  private static centralSystemRestServer = Configuration.getCentralSystemRestServer();
 
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
@@ -211,6 +208,10 @@ export default class Utils {
 
   public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
+  }
+
+  public static isBooleanValue(value: boolean): boolean {
+    return _.isBoolean(value);
   }
 
   public static generateGUID(): string {
@@ -983,15 +984,17 @@ export default class Utils {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  public static buildRestServerURL() {
-    return `${Utils.centralSystemRestServer.protocol}://${Utils.centralSystemRestServer.host}:${Utils.centralSystemRestServer.port}`;
+  public static buildRestServerURL(): string {
+    const centralSystemRestServer = Configuration.getCentralSystemRestServer();
+    return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
   }
 
   public static buildEvseURL(subdomain: string = null): string {
+    const centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     if (subdomain) {
-      return `${Utils.centralSystemFrontEndConfig.protocol}://${subdomain}.${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
+      return `${centralSystemFrontEndConfig.protocol}://${subdomain}.${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
     }
-    return `${Utils.centralSystemFrontEndConfig.protocol}://${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
+    return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
@@ -1579,63 +1582,61 @@ export default class Utils {
     }
   }
 
-  public static async checkIfUserTagIsValid(tag: Tag, req: Request): Promise<void> {
+  public static isDevelopmentEnv(): boolean {
+    return process.env.NODE_ENV === 'development';
+  }
+
+  public static isProductionEnv(): boolean {
+    return process.env.NODE_ENV === 'production';
+  }
+
+  public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
     // Check that the Badge ID is not already used
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      if (tag) {
-        // Check params
-        if (!tag.id) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'Tag ID is mandatory',
-            module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-            user: req.user.id
-          });
-        }
-        if (req.method === 'POST') {
-          const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
-          if (foundUser) {
-            // Tag already used!
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
-              message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
-              module: MODULE_NAME,
-              method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-        }
-        if (!tag.userID) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'User ID is mandatory',
-            module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-            user: req.user.id
-          });
-        }
-        const user = await UserStorage.getUser(req.user.tenantID, tag.userID);
-        if (!user) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-            message: `User '${tag.userID}' does not exist`,
-            module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-            user: req.user.id
-          });
-        }
-        if (!Utils.objectHasProperty(tag, 'active')) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'Tag Active property is mandatory',
-            module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-            user: req.user.id
-          });
-        }
-      }
+    if (!Authorizations.isAdmin(req.user)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Only Admins can change/create the Tags',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    // Check params
+    if (!tag.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    if (!tag.description) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag description is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    if (!tag.userID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    if (!Utils.objectHasProperty(tag, 'active')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag Active property is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
     }
   }
 
@@ -1738,7 +1739,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Email ${filteredRequest.email} is not valid`,
+        message: `User Email '${filteredRequest.email}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1760,7 +1761,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Phone ${filteredRequest.phone} is not valid`,
+        message: `User Phone '${filteredRequest.phone}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1771,7 +1772,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Mobile ${filteredRequest.mobile} is not valid`,
+        message: `User Mobile '${filteredRequest.mobile}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1783,7 +1784,7 @@ export default class Utils {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags ${JSON.stringify(filteredRequest.tags)} is/are not valid`,
+          message: `User Tags '${JSON.stringify(filteredRequest.tags)}' is/are not valid`,
           module: MODULE_NAME,
           method: 'checkIfUserValid',
           user: req.user.id,
@@ -1795,7 +1796,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Plate ID ${filteredRequest.plateID} is not valid`,
+        message: `User Plate ID '${filteredRequest.plateID}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1989,6 +1990,16 @@ export default class Utils {
         user: req.user.id
       });
     }
+    if (!Utils._isPlateIDValid(car.licensePlate)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Car License Plate ID '${car.licensePlate}' is not valid`,
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id,
+        actionOnUser: car.id
+      });
+    }
     if (!car.carCatalogID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -2099,7 +2110,7 @@ export default class Utils {
   }
 
   private static _isPlateIDValid(plateID): boolean {
-    return /^[A-Z0-9-]*$/.test(plateID);
+    return /^[A-Z0-9- ]*$/.test(plateID);
   }
 
   private static _normalizeOneSOAPParam(headers: any, name: string) {
