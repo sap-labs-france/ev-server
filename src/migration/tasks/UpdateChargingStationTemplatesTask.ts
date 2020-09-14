@@ -71,9 +71,9 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           if (!Utils.objectHasProperty(connector, 'phaseAssignmentToGrid')) {
             if (chargingStation.siteArea?.numberOfPhases === 3) {
               if (connector.numberOfConnectedPhase === 1) {
-                connector.phaseAssignmentToGrid = { cSPhaseL1: OCPPPhase.L1, cSPhaseL2: null, cSPhaseL3: null } ;
+                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null } ;
               } else {
-                connector.phaseAssignmentToGrid = { cSPhaseL1: OCPPPhase.L1, cSPhaseL2: OCPPPhase.L2, cSPhaseL3: OCPPPhase.L3 } ;
+                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 } ;
               }
             } else {
               connector.phaseAssignmentToGrid = null;

@@ -149,9 +149,9 @@ export interface ConnectorMDB {
 }
 
 export interface PhaseAssignmentToGrid {
-  cSPhaseL1: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
-  cSPhaseL2: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
-  cSPhaseL3: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
+  csPhaseL1: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
+  csPhaseL2: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
+  csPhaseL3: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
 }
 
 export interface RemoteAuthorization {
