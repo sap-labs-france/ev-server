@@ -146,7 +146,9 @@ export default class SiteSecurity {
         filteredSite.distanceMeters = site.distanceMeters;
       }
       // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(filteredSite, site, loggedUser);
+      if (Authorizations.canUpdateSite(loggedUser, site.id)) {
+        UtilsSecurity.filterCreatedAndLastChanged(filteredSite, site, loggedUser);
+      }
     }
     return filteredSite;
   }

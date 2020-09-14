@@ -1,11 +1,11 @@
-import { Application, NextFunction, Request, Response } from 'express';
-import { Configuration } from '../../types/configuration/Configuration';
-import ExpressTools from '../ExpressTools';
 import AbstractOCPIService, { TenantIdHoldingRequest } from './AbstractOCPIService';
-import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
-import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
-import OCPIServices from './OCPIServices';
+import { Application, NextFunction, Request, Response } from 'express';
 
+import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
+import { Configuration } from '../../types/configuration/Configuration';
+import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
+import ExpressTools from '../ExpressTools';
+import OCPIServices from './OCPIServices';
 
 const MODULE_NAME = 'OCPIServer';
 

@@ -2,6 +2,7 @@ import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
+import User, { UserStatus } from '../../../types/User';
 
 import Address from '../../../types/Address';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -16,15 +17,16 @@ import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../../types/Server';
+import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import Tag from '../../../types/Tag';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import { UserInErrorType } from '../../../types/InError';
 import UserNotifications from '../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
-import { UserStatus } from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -73,6 +75,28 @@ export default class UserService {
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleAssignSitesToUser', req.user);
+    // Deleted
+    if (user.deleted) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        message: 'User is logically deleted',
+        module: MODULE_NAME, method: 'handleAssignSitesToUser',
+        user: req.user, actionOnUser: user,
+      });
+    }
+    // OCPI User
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User not issued by the organization',
+        module: MODULE_NAME, method: 'handleAssignSitesToUser',
+        user: req.user, actionOnUser: user,
+        action: action
+      });
+    }
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
       const site = await SiteStorage.getSite(req.user.tenantID, siteID);
@@ -86,6 +110,17 @@ export default class UserService {
           action: Action.UPDATE, entity: Entity.SITE,
           module: MODULE_NAME, method: 'handleAssignSitesToUser',
           value: siteID
+        });
+      }
+      // OCPI Site
+      if (!site.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'handleAssignSitesToUser',
+          user: req.user,
+          action: action
         });
       }
     }
@@ -151,9 +186,20 @@ export default class UserService {
         source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' is already deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleDeleteUser',
-        user: req.user
+        user: req.user, actionOnUser: user,
+      });
+    }
+    // OCPI User
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User not issued by the organization',
+        module: MODULE_NAME, method: 'handleDeleteUser',
+        user: req.user, actionOnUser: user,
+        action: action
       });
     }
     // Check Billing
@@ -195,7 +241,8 @@ export default class UserService {
         });
       }
     }
-    const userTransactions = await TransactionStorage.getTransactions(req.user.tenantID, { userIDs: [id] }, Constants.DB_PARAMS_COUNT_ONLY);
+    const userTransactions = await TransactionStorage.getTransactions(
+      req.user.tenantID, { userIDs: [id] }, Constants.DB_PARAMS_COUNT_ONLY);
     // Delete user
     if (userTransactions.count > 0) {
       // Logically
@@ -209,6 +256,7 @@ export default class UserService {
       user.mobile = '';
       user.phone = '';
       user.address = {} as Address;
+      // Save
       await UserStorage.saveUser(req.user.tenantID, user);
       await UserStorage.saveUserPassword(req.user.tenantID, user.id,
         {
@@ -226,22 +274,52 @@ export default class UserService {
       await UserStorage.saveUserStatus(req.user.tenantID, user.id, UserStatus.INACTIVE);
       await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
         { verificationToken: null, verifiedAt: null });
-
+      // Disable/Delete Tags
       for (const tag of user.tags) {
         if (tag.transactionsCount > 0) {
           tag.active = false;
           tag.lastChangedOn = new Date();
           tag.lastChangedBy = { id: req.user.id };
-          await UserStorage.saveUserTag(req.user.tenantID, user.id, tag);
+          tag.userID = user.id;
+          await UserStorage.saveTag(req.user.tenantID, tag);
         } else {
-          await UserStorage.deleteUserTag(req.user.tenantID, user.id, tag);
+          await UserStorage.deleteTag(req.user.tenantID, user.id, tag);
         }
       }
     } else {
       // Physically
       await UserStorage.deleteUser(req.user.tenantID, user.id);
     }
-
+    // Synchronize badges with IOP
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      try {
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          for (const tag of user.tags) {
+            await ocpiClient.pushToken({
+              uid: tag.id,
+              type: OCPITokenType.RFID,
+              auth_id: tag.id,
+              visual_number: user.id,
+              issuer: tenant.name,
+              valid: false,
+              whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+              last_updated: new Date()
+            });
+          }
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME,
+          method: 'handleUpdateTag',
+          action: action,
+          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
     // Delete billing user
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
@@ -254,39 +332,6 @@ export default class UserService {
           module: MODULE_NAME, method: 'handleDeleteUser',
           message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
           user: req.user, actionOnUser: user,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    // Synchronize badges with IOP
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      const tenant = await TenantStorage.getTenant(req.user.tenantID);
-      try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          // Invalidate no more used tags
-          for (const tag of user.tags) {
-            if (tag.issuer) {
-              await ocpiClient.pushToken({
-                uid: tag.id,
-                type: OCPITokenType.RFID,
-                'auth_id': user.id,
-                'visual_number': user.id,
-                issuer: tenant.name,
-                valid: false,
-                whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-                'last_updated': new Date()
-              });
-            }
-          }
-        }
-      } catch (error) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME, method: 'handleUpdateUser',
-          action: action,
-          user: req.user, actionOnUser: user,
-          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
@@ -306,7 +351,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let statusHasChanged = false;
     // Filter
     const filteredRequest = UserSecurity.filterUserUpdateRequest(req.body, req.user);
@@ -340,9 +385,20 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.id}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user,
+        user: req.user, actionOnUser: user,
+        action: action
+      });
+    }
+    // OCPI User
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User not issued by the organization',
+        module: MODULE_NAME, method: 'handleUpdateUser',
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -367,18 +423,20 @@ export default class UserService {
     // Update timestamp
     const lastChangedBy = { id: req.user.id };
     const lastChangedOn = new Date();
-    const previousTags = user.tags;
     // Clean up request
     delete filteredRequest.passwords;
     // Check User validity
     Utils.checkIfUserValid(filteredRequest, user, req);
-    // Check if Tag IDs are valid
-    await Utils.checkIfUserTagsAreValid(user, filteredRequest.tags, req);
     // Update user
-    user = { ...user, ...filteredRequest, tags: [] };
-    // Update
-    user.lastChangedBy = lastChangedBy;
-    user.lastChangedOn = lastChangedOn;
+    user = {
+      ...user,
+      ...filteredRequest,
+      name: filteredRequest.name.toUpperCase(),
+      email: filteredRequest.email.toLowerCase(),
+      lastChangedBy: lastChangedBy,
+      lastChangedOn: lastChangedOn,
+      tags: []
+    };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
     // Check Billing
@@ -412,80 +470,6 @@ export default class UserService {
           passwordBlockedUntil: null
         });
     }
-    // Save Admin info
-    if (Authorizations.isAdmin(req.user)) {
-      // Save Tags
-      for (const previousTag of previousTags) {
-        const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
-        if (!foundTag) {
-          // Tag not found in the current tag list, will be deleted or deactivated.
-          if (previousTag.transactionsCount > 0) {
-            if (previousTag.active) {
-              previousTag.active = false;
-              previousTag.lastChangedOn = lastChangedOn;
-              previousTag.lastChangedBy = lastChangedBy;
-              await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.id, previousTag);
-            }
-          } else {
-            await UserStorage.deleteUserTag(req.user.tenantID, filteredRequest.id, previousTag);
-          }
-        }
-      }
-      for (const tag of filteredRequest.tags) {
-        tag.lastChangedOn = lastChangedOn;
-        tag.lastChangedBy = lastChangedBy;
-        await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.id, tag);
-      }
-      // Synchronize badges with IOP
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-        const tenant = await TenantStorage.getTenant(req.user.tenantID);
-        try {
-          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-          if (ocpiClient) {
-            // Invalidate no more used tags
-            for (const previousTag of previousTags) {
-              const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
-              if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
-                await ocpiClient.pushToken({
-                  uid: previousTag.id,
-                  type: OCPITokenType.RFID,
-                  'auth_id': filteredRequest.id,
-                  'visual_number': filteredRequest.id,
-                  issuer: tenant.name,
-                  valid: false,
-                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-                  'last_updated': new Date()
-                });
-              }
-            }
-            // Push new valid tags
-            for (const currentTag of filteredRequest.tags) {
-              const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
-              if (currentTag.issuer && (!foundTag || !foundTag.issuer || foundTag.active !== currentTag.active)) {
-                await ocpiClient.pushToken({
-                  uid: currentTag.id,
-                  type: OCPITokenType.RFID,
-                  'auth_id': filteredRequest.id,
-                  'visual_number': filteredRequest.id,
-                  issuer: tenant.name,
-                  valid: currentTag.active,
-                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-                  'last_updated': new Date()
-                });
-              }
-            }
-          }
-        } catch (error) {
-          Logging.logError({
-            tenantID: req.user.tenantID,
-            action: action,
-            module: MODULE_NAME, method: 'handleUpdateUser',
-            message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-        }
-      }
-    }
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
       if (filteredRequest.status) {
@@ -507,7 +491,6 @@ export default class UserService {
             adminData.notifications = filteredRequest.notifications;
           }
         }
-        // Save User Admin data
         await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
       }
     }
@@ -530,7 +513,7 @@ export default class UserService {
           'user': user,
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
         }
-      ).catch(() => {});
+      ).catch(() => { });
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -570,9 +553,9 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.id}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -601,40 +584,30 @@ export default class UserService {
 
   public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const id = UserSecurity.filterUserByIDRequest(req.query);
-    // User mandatory
-    if (!id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUser',
-        user: req.user,
-        action: action
-      });
-    }
+    const userID = UserSecurity.filterUserByIDRequest(req.query);
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, id)) {
+    if (!Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.READ, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetUser',
-        value: id
+        value: userID
       });
     }
     // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, id);
-    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`,
+    const user = await UserStorage.getUser(req.user.tenantID, userID);
+    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleGetUser',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
@@ -648,45 +621,35 @@ export default class UserService {
 
   public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = { ID: UserSecurity.filterUserByIDRequest(req.query) };
-    // User mandatory
-    if (!filteredRequest.ID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUserImage',
-        user: req.user,
-        action: action
-      });
-    }
+    const userID = UserSecurity.filterUserByIDRequest(req.query);
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+    if (!Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.READ, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetUserImage',
-        value: filteredRequest.ID
+        value: userID
       });
     }
     // Get the logged user
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.ID}' does not exist`,
+    const user = await UserStorage.getUser(req.user.tenantID, userID);
+    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUserImage', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.ID}' is logically deleted`,
+        message: 'User is logically deleted',
         module: MODULE_NAME, method: 'handleGetUserImage',
-        user: req.user,
+        user: req.user, actionOnUser: user,
         action: action
       });
     }
     // Get the user image
-    const userImage = await UserStorage.getUserImage(req.user.tenantID, filteredRequest.ID);
+    const userImage = await UserStorage.getUserImage(req.user.tenantID, userID);
     // Ok
     res.json(userImage);
     next();
@@ -697,18 +660,8 @@ export default class UserService {
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
-    // Check Mandatory fields
-    if (!filteredRequest.UserID) {
-      // Not Found!
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetSites',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
+    // Get User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleGetSites', req.user);
@@ -779,7 +732,8 @@ export default class UserService {
         excludeSiteID: filteredRequest.ExcludeSiteID,
         excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
         includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
-        notAssignedToCarID: filteredRequest.NotAssignedToCarID
+        notAssignedToCarID: filteredRequest.NotAssignedToCarID,
+        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
       },
       {
         limit: filteredRequest.Limit,
@@ -863,20 +817,23 @@ export default class UserService {
         action: action
       });
     }
-    // Check if Tag IDs are valid
-    await Utils.checkIfUserTagsAreValid(null, filteredRequest.tags, req);
     // Clean request
     delete filteredRequest.passwords;
-    filteredRequest.issuer = true;
-    // Set timestamp
-    const createdBy = { id: req.user.id };
-    const createdOn = new Date();
+    // Create
+    const newUser: User = {
+      ...filteredRequest,
+      name: filteredRequest.name.toUpperCase(),
+      email: filteredRequest.email.toLowerCase(),
+      createdBy: { id: req.user.id },
+      createdOn: new Date(),
+      issuer: true,
+    } as User;
     // Create the User
-    const newUserID = await UserStorage.saveUser(req.user.tenantID, filteredRequest, true);
+    newUser.id = await UserStorage.saveUser(req.user.tenantID, newUser, true);
     // Save password
-    if (filteredRequest.password) {
-      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
-      await UserStorage.saveUserPassword(req.user.tenantID, newUserID,
+    if (newUser.password) {
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(newUser.password);
+      await UserStorage.saveUserPassword(req.user.tenantID, newUser.id,
         {
           password: newPasswordHashed,
           passwordWrongNbrTrials: 0,
@@ -886,55 +843,18 @@ export default class UserService {
     }
     // Save Admin Data
     if (Authorizations.isAdmin(req.user)) {
-      // Save the Tag IDs
-      for (const tag of filteredRequest.tags) {
-        tag.lastChangedOn = createdOn;
-        tag.lastChangedBy = createdBy;
-        await UserStorage.saveUserTag(req.user.tenantID, newUserID, tag);
-      }
-      // Synchronize badges with IOP
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-        const tenant = await TenantStorage.getTenant(req.user.tenantID);
-        try {
-          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-          if (ocpiClient) {
-            for (const tag of filteredRequest.tags) {
-              if (tag.issuer) {
-                await ocpiClient.pushToken({
-                  uid: tag.id,
-                  type: OCPITokenType.RFID,
-                  'auth_id': newUserID,
-                  'visual_number': newUserID,
-                  issuer: tenant.name,
-                  valid: true,
-                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-                  'last_updated': new Date()
-                });
-              }
-            }
-          }
-        } catch (error) {
-          Logging.logError({
-            tenantID: req.user.tenantID,
-            action: action,
-            module: MODULE_NAME, method: 'handleCreateUser',
-            message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-        }
-      }
       // For integration with billing
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       if (billingImpl) {
         try {
-          const user = await UserStorage.getUser(req.user.tenantID, newUserID);
+          const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
           const billingUser = await billingImpl.createUser(user);
           await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
           Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
             module: MODULE_NAME, method: 'handleCreateUser',
-            user: newUserID,
+            user: newUser.id,
             message: 'User successfully created in billing system',
           });
         } catch (error) {
@@ -942,37 +862,36 @@ export default class UserService {
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleCreateUser',
             action: action,
-            user: newUserID,
+            user: newUser.id,
             message: 'User cannot be created in billing system',
             detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
     }
-
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
-      if (filteredRequest.status) {
-        await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);
+      if (newUser.status) {
+        await UserStorage.saveUserStatus(req.user.tenantID, newUser.id, newUser.status);
       }
       // Save User Role
-      if (filteredRequest.role) {
-        await UserStorage.saveUserRole(req.user.tenantID, newUserID, filteredRequest.role);
+      if (newUser.role) {
+        await UserStorage.saveUserRole(req.user.tenantID, newUser.id, newUser.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID || Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
+      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive')) {
         const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
-        if (filteredRequest.plateID) {
-          adminData.plateID = filteredRequest.plateID;
+        if (newUser.plateID) {
+          adminData.plateID = newUser.plateID;
         }
-        if (Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
-          adminData.notificationsActive = filteredRequest.notificationsActive;
-          if (filteredRequest.notifications) {
-            adminData.notifications = filteredRequest.notifications;
+        if (Utils.objectHasProperty(newUser, 'notificationsActive')) {
+          adminData.notificationsActive = newUser.notificationsActive;
+          if (newUser.notifications) {
+            adminData.notifications = newUser.notifications;
           }
         }
         // Save User Admin data
-        await UserStorage.saveUserAdminData(req.user.tenantID, newUserID, adminData);
+        await UserStorage.saveUserAdminData(req.user.tenantID, newUser.id, adminData);
       }
     }
     // Assign user to all sites with auto-assign flag set
@@ -983,7 +902,7 @@ export default class UserService {
     if (sites.count > 0) {
       const siteIDs = sites.result.map((site) => site.id);
       if (siteIDs && siteIDs.length > 0) {
-        await UserStorage.addSitesToUser(req.user.tenantID, newUserID, siteIDs);
+        await UserStorage.addSitesToUser(req.user.tenantID, newUser.id, siteIDs);
       }
     }
     // Log
@@ -991,11 +910,11 @@ export default class UserService {
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
       module: MODULE_NAME, method: 'handleCreateUser',
-      message: `User with ID '${newUserID}' has been created successfully`,
+      message: `User with ID '${newUser.id}' has been created successfully`,
       action: action
     });
     // Ok
-    res.json(Object.assign({ id: newUserID }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: newUser.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -1032,10 +951,10 @@ export default class UserService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
         action: action,
-        user: req.user,
-        message: `User with ID '${id}' is logically deleted`,
+        module: MODULE_NAME, method: 'handleGetUserInvoice',
+        message: 'User is logically deleted',
+        user: req.user, actionOnUser: user,
       });
     }
     // Get the settings
@@ -1057,7 +976,7 @@ export default class UserService {
     // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition, see https://github.com/LucasBrazi06/ev-dashboard/issues/1542
     // const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     // const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    let invoiceNumber;
+    let invoiceNumber: string;
     try {
       // pragma await ratingService.loadChargedItemsToInvoicing();
       // invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
@@ -1127,5 +1046,337 @@ export default class UserService {
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
+  }
+
+  public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canReadTag(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleGetTag'
+      });
+    }
+    const tagID = UserSecurity.filterTagRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, tagID, MODULE_NAME, 'handleGetTag', req.user);
+    // Get the tag
+    const tag = await UserStorage.getTag(req.user.tenantID, tagID, { withUser: true });
+    UtilsService.assertObjectExists(action, tag, `Tag with ID '${tagID}' does not exist`,
+      MODULE_NAME, 'handleGetTag', req.user);
+    // Return
+    res.json(UserSecurity.filterTagResponse(tag, req.user));
+    next();
+  }
+
+  public static async handleGetTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canListTags(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST, entity: Entity.TAGS,
+        module: MODULE_NAME, method: 'handleGetTags'
+      });
+    }
+    // Filter
+    const filteredRequest = UserSecurity.filterTagsRequest(req.query);
+    // Get the tags
+    const tags = await UserStorage.getTags(req.user.tenantID,
+      {
+        search: filteredRequest.Search,
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        issuer: filteredRequest.Issuer,
+        withUser: true,
+      },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      [ 'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy' ],
+    );
+    // Filter
+    UserSecurity.filterTagsResponse(tags, req.user);
+    // Return
+    res.json(tags);
+    next();
+  }
+
+  public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const tagId = UserSecurity.filterTagRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, tagId, MODULE_NAME, 'handleDeleteTag', req.user);
+    // Check auth
+    if (!Authorizations.canDeleteTag(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.DELETE, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleDeleteTag',
+        value: tagId
+      });
+    }
+    // Get Tag
+    const tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true });
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${tagId}' does not exist`,
+      MODULE_NAME, 'handleDeleteTag', req.user);
+    // Only current organizations tags can be deleted
+    if (!tag.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Tag ID '${tag.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleDeleteTag',
+        user: req.user,
+        action: action
+      });
+    }
+    // Has transactions
+    if (tag.transactionsCount > 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
+        message: `Cannot delete Tag ID '${tag.id}' which has '${tag.transactionsCount}' transaction(s)`,
+        module: MODULE_NAME, method: 'handleDeleteTag',
+        user: req.user,
+        action: action
+      });
+    }
+    // Delete the Tag
+    await UserStorage.deleteTag(req.user.tenantID, tag.userID, tag);
+    // OCPI
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      try {
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          await ocpiClient.pushToken({
+            uid: tag.id,
+            type: OCPITokenType.RFID,
+            auth_id: tag.userID,
+            visual_number: tag.userID,
+            issuer: tenant.name,
+            valid: false,
+            whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+            last_updated: new Date()
+          });
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME, method: 'handleUpdateTag',
+          action: action,
+          message: `Unable to synchronize tokens of user ${tag.userID} with IOP`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteTag',
+      message: `Tag '${tag.id}' has been deleted successfully`,
+      action: action,
+      detailedMessages: { tag }
+    });
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check
+    if (!Authorizations.canCreateTag(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.CREATE, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleCreateTag'
+      });
+    }
+    // Filter
+    const filteredRequest = UserSecurity.filterTagCreateRequest(req.body, req.user);
+    // Check
+    await Utils.checkIfUserTagIsValid(filteredRequest, req);
+    // Check Tag
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id);
+    if (tag) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
+        message: `Tag with ID '${filteredRequest.id}' already exists`,
+        module: MODULE_NAME, method: 'handleCreateTag',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check User
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleCreateTag', req.user);
+    // Only current organization User can be assigned to Tag
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `User not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
+        module: MODULE_NAME, method: 'handleCreateTag',
+        user: req.user, actionOnUser: user,
+        action: action
+      });
+    }
+    // Create
+    const newTag: Tag = {
+      id: filteredRequest.id,
+      description: filteredRequest.description,
+      issuer: true,
+      active: true,
+      createdBy: { id: req.user.id },
+      createdOn: new Date(),
+      userID: filteredRequest.userID
+    } as Tag;
+    // Save
+    await UserStorage.saveTag(req.user.tenantID, newTag);
+    // Synchronize badges with IOP
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      try {
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          await ocpiClient.pushToken({
+            uid: newTag.id,
+            type: OCPITokenType.RFID,
+            auth_id: newTag.userID,
+            visual_number: newTag.userID,
+            issuer: tenant.name,
+            valid: true,
+            whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+            last_updated: new Date()
+          });
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          action: action,
+          module: MODULE_NAME, method: 'handleCreateTag',
+          message: `Unable to synchronize tokens of user ${filteredRequest.userID} with IOP`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      action: action,
+      user: req.user, actionOnUser: user,
+      module: MODULE_NAME, method: 'handleCreateTag',
+      message: `Tag with ID '${newTag.id}'has been created successfully`,
+      detailedMessages: { tag: newTag }
+    });
+    res.json(Object.assign({ id: newTag.id }, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+  public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check
+    if (!Authorizations.canUpdateTag(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleUpdateTag'
+      });
+    }
+    // Filter
+    const filteredRequest = UserSecurity.filterTagUpdateRequest(req.body, req.user);
+    // Check
+    await Utils.checkIfUserTagIsValid(filteredRequest, req);
+    // Get Tag
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true });
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
+      MODULE_NAME, 'handleUpdateTag', req.user);
+    // Only current organization Tag can be updated
+    if (!tag.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Tag ID '${tag.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateTag',
+        user: req.user
+      });
+    }
+    // Get User
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleUpdateTag', req.user);
+    // Only current organization User can be assigned to Tag
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `User not issued by the organization cannot be assigned to Tag ID '${tag.id}'`,
+        module: MODULE_NAME, method: 'handleUpdateTag',
+        user: req.user, actionOnUser: user,
+        action: action
+      });
+    }
+    // Check User reassignment
+    if (tag.userID !== filteredRequest.userID) {
+      // Has transactions
+      if (tag.transactionsCount > 0) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
+          message: `Cannot change the User of the Tag ID '${tag.id}' which has '${tag.transactionsCount}' transaction(s)`,
+          module: MODULE_NAME, method: 'handleUpdateTag',
+          user: req.user,
+          action: action
+        });
+      }
+      // Recompute the former User's Hash (trigger unlog)
+      await SessionHashService.rebuildUserHashID(req.user.tenantID, tag.userID);
+    }
+    // Update
+    tag.description = filteredRequest.description;
+    tag.active = filteredRequest.active;
+    tag.userID = filteredRequest.userID;
+    tag.lastChangedBy = { id: req.user.id };
+    tag.lastChangedOn = new Date();
+    // Save
+    await UserStorage.saveTag(req.user.tenantID, tag);
+    // Synchronize badges with IOP
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) && (filteredRequest.userID !== tag.userID)) {
+      try {
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          await ocpiClient.pushToken({
+            uid: tag.id,
+            type: OCPITokenType.RFID,
+            auth_id: tag.userID,
+            visual_number: tag.userID,
+            issuer: tenant.name,
+            valid: tag.active,
+            whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+            last_updated: new Date()
+          });
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          action: action,
+          module: MODULE_NAME, method: 'handleUpdateTag',
+          user: req.user, actionOnUser: user,
+          message: `Unable to synchronize tokens of user ${filteredRequest.userID} with IOP`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      action: action,
+      module: MODULE_NAME, method: 'handleUpdateTag',
+      message: `Tag with ID '${tag.id}'has been updated successfully`,
+      user: req.user, actionOnUser: user,
+      detailedMessages: { tag: tag }
+    });
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 }

@@ -59,6 +59,17 @@ export default class SiteAreaService {
         value: filteredRequest.siteAreaID
       });
     }
+    // OCPI Site Area
+    if (!siteArea.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleAssignAssetsToSiteArea',
+        user: req.user,
+        action: action
+      });
+    }
     // Get Assets
     for (const assetID of filteredRequest.assetIDs) {
       // Check the asset
@@ -119,6 +130,17 @@ export default class SiteAreaService {
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
     UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist`,
       MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
+    // OCPI Site Area
+    if (!siteArea.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
+        user: req.user,
+        action: action
+      });
+    }
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -143,6 +165,17 @@ export default class SiteAreaService {
           action: Action.READ, entity: Entity.CHARGING_STATION,
           module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
           value: chargingStationID
+        });
+      }
+      // OCPI Charging Station
+      if (!chargingStation.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Charging Station '${chargingStation.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
+          user: req.user,
+          action: action
         });
       }
       for (const connector of chargingStation.connectors) {
@@ -201,6 +234,17 @@ export default class SiteAreaService {
         value: siteAreaID
       });
     }
+    // OCPI Site Area
+    if (!siteArea.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateSiteArea',
+        user: req.user,
+        action: action
+      });
+    }
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
     // Log
@@ -225,13 +269,8 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteArea', req.user);
-    // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
-      { withSite: filteredRequest.WithSite, withChargingStations: filteredRequest.WithChargingStations });
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
+    if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -240,6 +279,11 @@ export default class SiteAreaService {
         value: filteredRequest.ID
       });
     }
+    // Get it
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
+      { withSite: filteredRequest.WithSite, withChargingStations: filteredRequest.WithChargingStations });
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
+      MODULE_NAME, 'handleGetSiteArea', req.user);
     // Return
     res.json(
       // Filter
@@ -254,14 +298,9 @@ export default class SiteAreaService {
       Action.READ, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteAreaImage');
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
-    // Charge Box is mandatory
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'handleGetSiteAreaImage', req.user);
-    // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteAreaImage', req.user);
     // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
+    if (!Authorizations.canReadSiteArea(req.user, siteAreaID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -271,11 +310,13 @@ export default class SiteAreaService {
       });
     }
     // Get it
-    const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(action, siteAreaImage, `Site Area Image with ID '${siteAreaID}' does not exist`,
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
       MODULE_NAME, 'handleGetSiteAreaImage', req.user);
+    // Get it
+    const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
     // Return
-    res.json({ id: siteAreaImage.id, image: siteAreaImage.image });
+    res.json(siteAreaImage);
     next();
   }
 
@@ -308,7 +349,7 @@ export default class SiteAreaService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'name', 'siteID', 'maximumPower', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
-        'site.id', 'site.name', 'issuer', 'distanceMeters']
+        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']
     );
     // Filter
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
@@ -394,7 +435,18 @@ export default class SiteAreaService {
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleCreateSiteArea', req.user);
-    // Create site
+    // OCPI Site
+    if (!site.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleCreateSiteArea',
+        user: req.user,
+        action: action
+      });
+    }
+    // Create Site Area
     const newSiteArea: SiteArea = {
       ...filteredRequest,
       issuer: true,
@@ -425,6 +477,17 @@ export default class SiteAreaService {
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, { withChargingStations: true });
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteArea', req.user);
+    // OCPI Site Area
+    if (!siteArea.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateSiteArea',
+        user: req.user,
+        action: action
+      });
+    }
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -441,6 +504,17 @@ export default class SiteAreaService {
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteArea', req.user);
+    // OCPI Site
+    if (!site.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleCreateSiteArea',
+        user: req.user,
+        action: action
+      });
+    }
     // Update
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;

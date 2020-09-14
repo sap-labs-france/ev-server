@@ -1,11 +1,12 @@
-import sanitize from 'mongo-sanitize';
+import { HttpEndUserErrorNotificationRequest, HttpNotificationRequest } from '../../../../types/requests/HttpNotificationRequest';
+
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpEndUserErrorNotificationRequest, HttpNotificationRequest } from '../../../../types/requests/HttpNotificationRequest';
 import { Notification } from '../../../../types/UserNotifications';
-import UserToken from '../../../../types/UserToken';
 import UserSecurity from './UserSecurity';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class NotificationSecurity {
   static filterNotificationsRequest(request: any): HttpNotificationRequest {

@@ -1,10 +1,10 @@
 import Asset, { SchneiderProperty } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
-import { AxiosInstance } from 'axios';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
 import AxiosFactory from '../../../utils/AxiosFactory';
+import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';

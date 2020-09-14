@@ -78,6 +78,8 @@ export enum Entity {
   CHARGING_PROFILE = 'ChargingProfile',
   CHARGING_PROFILES = 'ChargingProfiles',
   NOTIFICATION = 'Notification',
+  TAGS = 'Tags',
+  TAG = 'Tag',
 }
 
 export enum Action {

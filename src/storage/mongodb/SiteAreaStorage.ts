@@ -1,4 +1,4 @@
-import global, { Image } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -181,7 +181,7 @@ export default class SiteAreaStorage {
       });
     }
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Otherwise check if search is present
     if (params.search) {
       filters.$or = [
@@ -200,7 +200,7 @@ export default class SiteAreaStorage {
         $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     if (params.smartCharging === true || params.smartCharging === false) {

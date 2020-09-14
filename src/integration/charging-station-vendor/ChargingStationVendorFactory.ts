@@ -1,5 +1,6 @@
 import ChargingStation, { ChargerVendor } from '../../types/ChargingStation';
 
+import AtessChargingStationVendorIntegration from './atess/AtessChargingStationVendorIntegration';
 import ChargingStationVendorIntegration from './ChargingStationVendorIntegration';
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
 import EbeeChargingStationVendorIntegration from './ebee/EbeeChargingStationVendorIntegration';
@@ -16,6 +17,7 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.EBEE:
       case ChargerVendor.WEBASTO:
+      case ChargerVendor.MENNEKES:
         chargingStationVendorImpl = new EbeeChargingStationVendorIntegration(chargingStation);
         break;
       case ChargerVendor.DELTA:
@@ -23,6 +25,9 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.LEGRAND:
         chargingStationVendorImpl = new LegrandChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.ATESS:
+        chargingStationVendorImpl = new AtessChargingStationVendorIntegration(chargingStation);
         break;
     }
     return chargingStationVendorImpl;

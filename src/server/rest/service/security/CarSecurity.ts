@@ -255,9 +255,6 @@ export default class CarSecurity {
     }
     // Admin?
     if (Authorizations.canUpdateCar(loggedUser)) {
-      // Yes: set all params
-      filteredCar = car;
-    } else {
       // Set only necessary info
       filteredCar = {
         id: car.id,
@@ -268,17 +265,17 @@ export default class CarSecurity {
         converter: car.converter,
         carCatalog: car.carCatalog,
       };
+      if (filteredCar.carUsers) {
+        filteredCar.carUsers = car.carUsers.map((carUser) => ({
+          ...carUser, user: UserSecurity.filterMinimalUserResponse(carUser.user, loggedUser)
+        }));
+      }
+      if (filteredCar.carCatalog) {
+        filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
+          this.filterCarCatalogResponse(car.carCatalog, loggedUser);
+      }
+      UtilsSecurity.filterCreatedAndLastChanged(filteredCar, car, loggedUser);
     }
-    if (filteredCar.carUsers) {
-      filteredCar.carUsers = car.carUsers.map((carUser) => ({
-        ...carUser, user: UserSecurity.filterMinimalUserResponse(carUser.user, loggedUser)
-      }));
-    }
-    if (filteredCar.carCatalog) {
-      filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
-        this.filterCarCatalogResponse(car.carCatalog, loggedUser);
-    }
-    UtilsSecurity.filterCreatedAndLastChanged(filteredCar, car, loggedUser);
     return filteredCar;
   }
 

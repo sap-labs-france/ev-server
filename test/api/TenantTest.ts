@@ -42,6 +42,7 @@ describe('Tenant tests', function() {
     it('Should update the tenant', async () => {
       // Change entity
       testData.newTenant.name = 'New Name';
+      testData.newTenant.address.address1 = 'New Address1';
       // Update
       await CentralServerService.defaultInstance.updateEntity(
         CentralServerService.defaultInstance.tenantApi, testData.newTenant);
