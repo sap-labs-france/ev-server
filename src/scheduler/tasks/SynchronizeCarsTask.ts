@@ -15,7 +15,7 @@ export default class SynchronizeCarsTask extends SchedulerTask {
     const carLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.CAR, 'synchronize-cars');
     if (await LockingManager.acquire(carLock)) {
       try {
-        const carDatabaseImpl = await CarFactory.getCarImpl();
+        const carDatabaseImpl = await CarFactory.getCarIntegrationImpl();
         if (carDatabaseImpl) {
           const synchronizeAction = await carDatabaseImpl.synchronizeCarCatalogs();
           if (synchronizeAction.inError > 0) {
