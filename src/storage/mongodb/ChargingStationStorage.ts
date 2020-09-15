@@ -930,6 +930,12 @@ export default class ChargingStationStorage {
       numberOfConnectedPhase: connector.numberOfConnectedPhase,
       currentType: connector.currentType,
       chargePointID: connector.chargePointID,
+      phaseAssignmentToGrid: connector.phaseAssignmentToGrid ?
+        {
+          csPhaseL1: connector.phaseAssignmentToGrid.csPhaseL1,
+          csPhaseL2: connector.phaseAssignmentToGrid.csPhaseL2,
+          csPhaseL3: connector.phaseAssignmentToGrid.csPhaseL3,
+        } : null,
     };
   }
 

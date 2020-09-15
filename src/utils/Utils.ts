@@ -1612,13 +1612,7 @@ export default class Utils {
       });
     }
     if (!tag.description) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag description is mandatory',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user.id
-      });
+      tag.description = `Tag ID '${tag.id}'`;
     }
     if (!tag.userID) {
       throw new AppError({

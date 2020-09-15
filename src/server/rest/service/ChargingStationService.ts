@@ -158,18 +158,23 @@ export default class ChargingStationService {
         filteredRequest.coordinates[1]
       ];
     }
-    // No charge point
-    if ((!chargingStation.chargePoints || chargingStation.chargePoints.length === 0) && filteredRequest.connectors) {
-      // Update Connectors
+    // Existing Connectors
+    if (!Utils.isEmptyArray(filteredRequest.connectors)) {
       for (const filteredConnector of filteredRequest.connectors) {
-        // Set
         const connector = Utils.getConnectorFromID(chargingStation, filteredConnector.connectorId);
-        connector.type = filteredConnector.type;
-        connector.power = filteredConnector.power;
-        connector.amperage = filteredConnector.amperage;
-        connector.voltage = filteredConnector.voltage;
-        connector.currentType = filteredConnector.currentType;
-        connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
+        // Update Connectors only if no Charge Point is defined
+        if (connector && Utils.isEmptyArray(chargingStation.chargePoints)) {
+          connector.type = filteredConnector.type;
+          connector.power = filteredConnector.power;
+          connector.amperage = filteredConnector.amperage;
+          connector.voltage = filteredConnector.voltage;
+          connector.currentType = filteredConnector.currentType;
+          connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
+        }
+        // Phase Assignment
+        if (siteArea?.numberOfPhases === 3) {
+          connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+        }
       }
     }
     // Update timestamp
