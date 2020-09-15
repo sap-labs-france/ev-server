@@ -9,7 +9,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 
-const MODULE_NAME = 'EVDatabaseCar';
+const MODULE_NAME = 'EVDatabaseCarIntegration';
 
 export default class EVDatabaseCarIntegration extends CarIntegration {
   private axiosInstance: AxiosInstance;
