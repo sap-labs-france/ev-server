@@ -9,7 +9,7 @@ const MODULE_NAME = 'InitialCarImportTask';
 export default class InitialCarImportTask extends MigrationTask {
   async migrate(): Promise<void> {
     try {
-      const carDatabaseImpl = await CarFactory.getCarIntegrationImpl();
+      const carDatabaseImpl = await CarFactory.getCarImpl();
       if (carDatabaseImpl) {
         await carDatabaseImpl.synchronizeCarCatalogs();
       }
