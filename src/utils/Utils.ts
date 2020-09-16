@@ -717,7 +717,7 @@ export default class Utils {
             if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.numberOfConnectedPhase) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.numberOfConnectedPhase) {
+              if (connector?.numberOfConnectedPhase) {
                 return connector.numberOfConnectedPhase;
               }
               return chargePointOfCS.numberOfConnectedPhase;
