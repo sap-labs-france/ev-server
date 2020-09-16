@@ -287,7 +287,8 @@ export type OCPPParams = {
 };
 
 export enum ChargerVendor {
-  EBEE = 'Bender GmbH Co. KG',
+  BENDER = 'Bender GmbH Co. KG',
+  EBEE = 'Ebee',
   SCHNEIDER = 'Schneider Electric',
   WEBASTO = 'Webasto',
   DELTA = 'DELTA',
