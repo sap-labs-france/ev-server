@@ -164,7 +164,7 @@ export default class CarService {
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
       });
     }
-    const carDatabaseImpl = await CarFactory.getCarIntegrationImpl();
+    const carDatabaseImpl = await CarFactory.getCarImpl();
     if (!carDatabaseImpl) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
