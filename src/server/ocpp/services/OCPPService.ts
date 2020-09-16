@@ -10,10 +10,8 @@ import ChargingStationConfiguration from '../../../types/configuration/ChargingS
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
-import { DataResult } from '../../../types/DataResult';
 import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -277,7 +275,7 @@ export default class OCPPService {
       // Set Header
       statusNotification.chargeBoxID = chargingStation.id;
       statusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
-      // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
+      // Skip connectorId = 0 case
       if (statusNotification.connectorId > 0) {
         // Update only the given Connector ID
         await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
