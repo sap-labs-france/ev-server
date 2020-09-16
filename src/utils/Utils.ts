@@ -112,18 +112,20 @@ export default class Utils {
       return 0;
     }
     const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-    if (connector.power <= 3680) {
-      // Notify every 120 mins
-      intervalMins = 120;
-    } else if (connector.power <= 7360) {
-      // Notify every 60 mins
-      intervalMins = 60;
-    } else if (connector.power < 50000) {
-      // Notify every 30 mins
-      intervalMins = 30;
-    } else if (connector.power >= 50000) {
-      // Notify every 15 mins
-      intervalMins = 15;
+    if (connector) {
+      if (connector.power <= 3680) {
+        // Notify every 120 mins
+        intervalMins = 120;
+      } else if (connector.power <= 7360) {
+        // Notify every 60 mins
+        intervalMins = 60;
+      } else if (connector.power < 50000) {
+        // Notify every 30 mins
+        intervalMins = 30;
+      } else if (connector.power >= 50000) {
+        // Notify every 15 mins
+        intervalMins = 15;
+      }
     }
     return intervalMins;
   }
@@ -670,7 +672,7 @@ export default class Utils {
               if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
                 // Check Connector ID
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-                if (connector.power) {
+                if (connector?.power) {
                   return connector.power;
                 }
                 return chargePointOfCS.power;
@@ -759,7 +761,7 @@ export default class Utils {
             if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.voltage) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.voltage) {
+              if (connector?.voltage) {
                 return connector.voltage;
               }
               return chargePointOfCS.voltage;
@@ -796,7 +798,7 @@ export default class Utils {
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.currentType) {
+              if (connector?.currentType) {
                 return connector.currentType;
               }
               return chargePointOfCS.currentType;
@@ -835,7 +837,7 @@ export default class Utils {
                 // Same power for all connectors
                 // Check Connector ID first
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-                if (connector.amperage) {
+                if (connector?.amperage) {
                   return connector.amperage;
                 }
                 return chargePointOfCS.amperage;
@@ -865,7 +867,7 @@ export default class Utils {
     let amperageLimit = 0;
     if (chargingStation) {
       if (connectorId > 0) {
-        return Utils.getConnectorFromID(chargingStation, connectorId).amperageLimit;
+        return Utils.getConnectorFromID(chargingStation, connectorId)?.amperageLimit;
       }
       // Check at charge point level
       if (chargingStation.chargePoints) {
@@ -877,11 +879,11 @@ export default class Utils {
             if (chargePointOfCS.cannotChargeInParallel ||
               chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
-              amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
+              amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0])?.amperageLimit;
             } else {
               // Add limit amp of all connectors
               for (const connectorID of chargePointOfCS.connectorIDs) {
-                amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID).amperageLimit;
+                amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID)?.amperageLimit;
               }
             }
           }

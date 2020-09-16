@@ -888,7 +888,7 @@ export default class OCPPUtils {
     if (chargingStationVendor) {
       // Get current limitation
       const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-      const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+      const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
       const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(
         tenantID, chargingStation, chargePoint, connectorID);
       consumption.limitAmps = connectorLimit.limitAmps;
@@ -897,8 +897,8 @@ export default class OCPPUtils {
     } else {
       // Default
       const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-      consumption.limitAmps = connector.amperageLimit;
-      consumption.limitWatts = connector.power;
+      consumption.limitAmps = connector?.amperageLimit;
+      consumption.limitWatts = connector?.power;
       consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
     }
   }
