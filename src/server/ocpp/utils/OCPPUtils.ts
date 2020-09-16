@@ -915,8 +915,7 @@ export default class OCPPUtils {
       // Browse filter for extra matching
       for (const filter in chargingStationTemplate.extraFilters) {
         // Check
-        if (Utils.objectHasProperty(chargingStationTemplate.extraFilters, filter)) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        if (Utils.objectHasProperty(chargingStation, filter)) {
           const filterValue: string = chargingStationTemplate.extraFilters[filter];
           if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
             foundTemplate = null;
@@ -1184,7 +1183,7 @@ export default class OCPPUtils {
             } else {
               delete connector.numberOfConnectedPhase;
             }
-            break;
+            return true;
           }
         }
       }

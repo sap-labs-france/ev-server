@@ -16,6 +16,7 @@ export default class ChargingStationVendorFactory {
         chargingStationVendorImpl = new SchneiderChargingStationVendorIntegration(chargingStation);
         break;
       case ChargerVendor.EBEE:
+      case ChargerVendor.BENDER:
       case ChargerVendor.WEBASTO:
       case ChargerVendor.MENNEKES:
         chargingStationVendorImpl = new EbeeChargingStationVendorIntegration(chargingStation);
