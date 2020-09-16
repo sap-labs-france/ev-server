@@ -939,7 +939,7 @@ export default class OCPPService {
       return;
     }
     // Check for inactivity
-    await this.checkStatusNotificationInactivityAndPushCdr(tenantID, chargingStation, statusNotification, foundConnector);
+    await this.checkStatusNotificationExtraInactivity(tenantID, chargingStation, statusNotification, foundConnector);
     // Set connector data
     foundConnector.connectorId = statusNotification.connectorId;
     foundConnector.status = statusNotification.status;
@@ -987,7 +987,8 @@ export default class OCPPService {
     }
   }
 
-  private async checkStatusNotificationInactivityAndPushCdr(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+  private async checkStatusNotificationExtraInactivity(tenantID: string, chargingStation: ChargingStation,
+    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check Inactivity
     // OCPP 1.6: Finishing --> Available
     if (connector.status === ChargePointStatus.FINISHING &&
@@ -1018,7 +1019,7 @@ export default class OCPPService {
             tenantID: tenantID,
             source: chargingStation.id,
             user: lastTransaction.userID,
-            module: MODULE_NAME, method: 'checkStatusNotificationInactivityAndPushCdr',
+            module: MODULE_NAME, method: 'checkStatusNotificationExtraInactivity',
             action: ServerAction.EXTRA_INACTIVITY,
             message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
             detailedMessages: [statusNotification, lastTransaction]
@@ -1029,7 +1030,7 @@ export default class OCPPService {
             tenantID: tenantID,
             source: chargingStation.id,
             user: lastTransaction.userID,
-            module: MODULE_NAME, method: 'checkStatusNotificationInactivityAndPushCdr',
+            module: MODULE_NAME, method: 'checkStatusNotificationExtraInactivity',
             action: ServerAction.EXTRA_INACTIVITY,
             message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity has already been computed`,
             detailedMessages: [statusNotification, lastTransaction]
@@ -1055,7 +1056,7 @@ export default class OCPPService {
           tenantID: tenantID,
           source: chargingStation.id,
           user: lastTransaction.userID,
-          module: MODULE_NAME, method: 'checkStatusNotificationInactivityAndPushCdr',
+          module: MODULE_NAME, method: 'checkStatusNotificationExtraInactivity',
           action: ServerAction.EXTRA_INACTIVITY,
           message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > No Extra Inactivity has been added`,
           detailedMessages: [statusNotification, lastTransaction]
