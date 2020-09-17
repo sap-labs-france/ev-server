@@ -35,27 +35,7 @@ const userFactory = Factory.define('user')
   }))
   .attr('role', 'B')
   .attr('status', 'A')
-  .attr('locale', 'en_US')
-  .attr('tags', () => [
-    {
-      id: faker.random.alphaNumeric(8).toUpperCase(),
-      description: '',
-      issuer: true,
-      active: true
-    },
-    {
-      id: faker.random.alphaNumeric(8).toUpperCase(),
-      description: '',
-      issuer: true,
-      active: true
-    },
-    {
-      id: faker.random.alphaNumeric(8).toUpperCase(),
-      description: '',
-      issuer: true,
-      active: true
-    }
-  ]);
+  .attr('locale', 'en_US');
 
 const registerUserFactory = Factory.define('user')
   .attr('firstName', () => faker.name.firstName())

@@ -3,16 +3,15 @@ import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
+import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
-import { DataResult } from '../../../types/DataResult';
 import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -276,7 +275,7 @@ export default class OCPPService {
       // Set Header
       statusNotification.chargeBoxID = chargingStation.id;
       statusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
-      // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
+      // Skip connectorId = 0 case
       if (statusNotification.connectorId > 0) {
         // Update only the given Connector ID
         await this.updateConnectorStatus(headers.tenantID, chargingStation, statusNotification);
@@ -414,7 +413,9 @@ export default class OCPPService {
       authorize.timestamp = new Date();
       authorize.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check
-      const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation, authorize.idTag);
+      const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
+        authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
+      // OCPI User
       if (user && !user.issuer) {
         const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
         if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
@@ -445,6 +446,7 @@ export default class OCPPService {
         }
         authorize.authorizationId = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
       }
+      // Set
       authorize.user = user;
       // Save
       await OCPPStorage.saveAuthorize(headers.tenantID, authorize);
@@ -551,7 +553,7 @@ export default class OCPPService {
       startTransaction.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check Authorization with Tag ID
       const user = await Authorizations.isAuthorizedToStartTransaction(
-        headers.tenantID, chargingStation, startTransaction.tagID);
+        headers.tenantID, chargingStation, startTransaction.tagID, ServerAction.START_TRANSACTION);
       if (user) {
         startTransaction.userID = user.id;
       }
@@ -759,7 +761,7 @@ export default class OCPPService {
       if (!stoppedByCentralSystem) {
         // Check and get users
         const users = await Authorizations.isAuthorizedToStopTransaction(
-          headers.tenantID, chargingStation, transaction, tagId);
+          headers.tenantID, chargingStation, transaction, tagId, ServerAction.STOP_TRANSACTION);
         user = users.user;
         alternateUser = users.alternateUser;
       } else {
@@ -937,7 +939,7 @@ export default class OCPPService {
       return;
     }
     // Check for inactivity
-    await this.checkStatusNotificationInactivityAndPushCdr(tenantID, chargingStation, statusNotification, foundConnector);
+    await this.checkStatusNotificationExtraInactivity(tenantID, chargingStation, statusNotification, foundConnector);
     // Set connector data
     foundConnector.connectorId = statusNotification.connectorId;
     foundConnector.status = statusNotification.status;
@@ -985,7 +987,8 @@ export default class OCPPService {
     }
   }
 
-  private async checkStatusNotificationInactivityAndPushCdr(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+  private async checkStatusNotificationExtraInactivity(tenantID: string, chargingStation: ChargingStation,
+    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check Inactivity
     // OCPP 1.6: Finishing --> Available
     if (connector.status === ChargePointStatus.FINISHING &&
@@ -1016,7 +1019,7 @@ export default class OCPPService {
             tenantID: tenantID,
             source: chargingStation.id,
             user: lastTransaction.userID,
-            module: MODULE_NAME, method: 'checkStatusNotificationInactivityAndPushCdr',
+            module: MODULE_NAME, method: 'checkStatusNotificationExtraInactivity',
             action: ServerAction.EXTRA_INACTIVITY,
             message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
             detailedMessages: [statusNotification, lastTransaction]
@@ -1027,7 +1030,7 @@ export default class OCPPService {
             tenantID: tenantID,
             source: chargingStation.id,
             user: lastTransaction.userID,
-            module: MODULE_NAME, method: 'checkStatusNotificationInactivityAndPushCdr',
+            module: MODULE_NAME, method: 'checkStatusNotificationExtraInactivity',
             action: ServerAction.EXTRA_INACTIVITY,
             message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity has already been computed`,
             detailedMessages: [statusNotification, lastTransaction]
@@ -1053,7 +1056,7 @@ export default class OCPPService {
           tenantID: tenantID,
           source: chargingStation.id,
           user: lastTransaction.userID,
-          module: MODULE_NAME, method: 'checkStatusNotificationInactivityAndPushCdr',
+          module: MODULE_NAME, method: 'checkStatusNotificationExtraInactivity',
           action: ServerAction.EXTRA_INACTIVITY,
           message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > No Extra Inactivity has been added`,
           detailedMessages: [statusNotification, lastTransaction]
@@ -1500,12 +1503,12 @@ export default class OCPPService {
           for (const currentValue of value['value']) {
             newMeterValue.value = Utils.convertToFloat(currentValue['$value']);
             newMeterValue.attribute = currentValue.attributes;
-            newMeterValues.values.push(JSON.parse(JSON.stringify(newMeterValue)));
+            newMeterValues.values.push(Utils.cloneJSonDocument(newMeterValue));
           }
         } else {
           newMeterValue.value = Utils.convertToFloat(value['value']['$value']);
           newMeterValue.attribute = value['value'].attributes;
-          newMeterValues.values.push(newMeterValue);
+          newMeterValues.values.push(Utils.cloneJSonDocument(newMeterValue));
         }
       }
     }

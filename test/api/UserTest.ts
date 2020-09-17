@@ -154,63 +154,63 @@ describe('User tests', function() {
           );
         });
 
-        it('Should not be able to delete a badge that has already been used', async () => {
-          const connectorId = 1;
-          const tagId = testData.newUser.tags[0].id;
-          const meterStart = 180;
-          const startDate = moment();
-          const response = await testData.chargingStationContext.startTransaction(
-            connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(response).to.be.transactionValid;
-          testData.newUser.tags = [testData.newUser.tags[1], testData.newUser.tags[2]];
-          // Update
-          await testData.userService.updateEntity(
-            testData.userService.userApi,
-            testData.newUser
-          );
-          testData.newUser = (await testData.userService.getEntityById(
-            testData.userService.userApi,
-            testData.newUser,
-            false
-          )).data;
-          // Check
-          const deactivatedTag = testData.newUser.tags.find((tag) => tag.id === tagId);
-          expect(testData.newUser.tags).has.lengthOf(3);
-          expect(deactivatedTag).to.not.be.null;
-          expect(deactivatedTag.active).to.equal(false);
-        });
+        // pragma it('Should not be able to delete a badge that has already been used', async () => {
+        //   const connectorId = 1;
+        //   const tagId = testData.newUser.tags[0].id;
+        //   const meterStart = 180;
+        //   const startDate = moment();
+        //   const response = await testData.chargingStationContext.startTransaction(
+        //     connectorId, tagId, meterStart, startDate.toDate());
+        //   // eslint-disable-next-line @typescript-eslint/unbound-method
+        //   expect(response).to.be.transactionValid;
+        //   testData.newUser.tags = [testData.newUser.tags[1], testData.newUser.tags[2]];
+        //   // Update
+        //   await testData.userService.updateEntity(
+        //     testData.userService.userApi,
+        //     testData.newUser
+        //   );
+        //   testData.newUser = (await testData.userService.getEntityById(
+        //     testData.userService.userApi,
+        //     testData.newUser,
+        //     false
+        //   )).data;
+        //   // Check
+        //   const deactivatedTag = testData.newUser.tags.find((tag) => tag.id === tagId);
+        //   expect(testData.newUser.tags).has.lengthOf(3);
+        //   expect(deactivatedTag).to.not.be.null;
+        //   expect(deactivatedTag.active).to.equal(false);
+        // });
 
-        it('Should not be able to start a transaction with a deactivated badge', async () => {
-          const connectorId = 1;
-          const tagId = testData.newUser.tags[0].id;
-          const meterStart = 180;
-          const startDate = moment();
-          const response = await testData.chargingStationContext.startTransaction(
-            connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(response).to.be.transactionStatus('Invalid');
-        });
+        // it('Should not be able to start a transaction with a deactivated badge', async () => {
+        //   const connectorId = 1;
+        //   const tagId = testData.newUser.tags[0].id;
+        //   const meterStart = 180;
+        //   const startDate = moment();
+        //   const response = await testData.chargingStationContext.startTransaction(
+        //     connectorId, tagId, meterStart, startDate.toDate());
+        //   // eslint-disable-next-line @typescript-eslint/unbound-method
+        //   expect(response).to.be.transactionStatus('Invalid');
+        // });
 
-        it('Should be able to delete a badge that has not been used', async () => {
-          const tagId = testData.newUser.tags[1].id;
-          testData.newUser.tags = [testData.newUser.tags[2]];
-          // Update
-          await testData.userService.updateEntity(
-            testData.userService.userApi,
-            testData.newUser
-          );
-          testData.newUser = (await testData.userService.getEntityById(
-            testData.userService.userApi,
-            testData.newUser,
-            false
-          )).data;
-          // Check
-          const deactivatedTag = testData.newUser.tags.find((tag) => tag.id === tagId);
-          expect(testData.newUser.tags).has.lengthOf(2);
-          expect(deactivatedTag).to.be.undefined;
+        // it('Should be able to delete a badge that has not been used', async () => {
+        //   const tagId = testData.newUser.tags[1].id;
+        //   testData.newUser.tags = [testData.newUser.tags[2]];
+        //   // Update
+        //   await testData.userService.updateEntity(
+        //     testData.userService.userApi,
+        //     testData.newUser
+        //   );
+        //   testData.newUser = (await testData.userService.getEntityById(
+        //     testData.userService.userApi,
+        //     testData.newUser,
+        //     false
+        //   )).data;
+        //   // Check
+        //   const deactivatedTag = testData.newUser.tags.find((tag) => tag.id === tagId);
+        //   expect(testData.newUser.tags).has.lengthOf(2);
+        //   expect(deactivatedTag).to.be.undefined;
 
-        });
+        // });
 
         it('Should find the updated user by id', async () => {
           // Check if the updated entity can be retrieved with its id

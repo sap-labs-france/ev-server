@@ -74,11 +74,19 @@ export default class SessionHashService {
   // Rebuild and store User Hash ID
   static async rebuildUserHashID(tenantID: string, userID: string): Promise<void> {
     // Build User hash
-    const user = await UserStorage.getUser(tenantID, userID);
+    const user = await UserStorage.getUser(tenantID, userID, { withTag: true });
     if (user) {
       global.userHashMapIDs.set(`${tenantID}#${userID}`, SessionHashService.buildUserHashID(user));
     } else {
       global.userHashMapIDs.delete(`${tenantID}#${userID}`);
+    }
+  }
+
+  static async rebuildUserHashIDFromTagID(tenantID: string, tagID: string): Promise<void> {
+    // Build User hash
+    const tag = await UserStorage.getTag(tenantID, tagID);
+    if (tag?.userID) {
+      await this.rebuildUserHashID(tenantID, tag.userID);
     }
   }
 

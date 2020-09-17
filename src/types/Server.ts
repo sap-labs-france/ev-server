@@ -278,6 +278,7 @@ export enum ServerAction {
   TENANT = 'Tenant',
   TENANT_UPDATE = 'TenantUpdate',
   TENANT_DELETE = 'TenantDelete',
+  TENANT_LOGO = 'TenantLogo',
 
   COMPANY_CREATE = 'CompanyCreate',
   COMPANIES = 'Companies',
@@ -330,6 +331,11 @@ export enum ServerAction {
   USER_SITES = 'UserSites',
   USERS_IN_ERROR = 'UsersInError',
   USER_IMAGE = 'UserImage',
+  TAGS = 'Tags',
+  TAG = 'Tag',
+  TAG_CREATE = 'TagCreate',
+  TAG_UPDATE = 'TagUpdate',
+  TAG_DELETE = 'TagDelete',
   USER = 'User',
 
   NOTIFICATIONS = 'Notifications',

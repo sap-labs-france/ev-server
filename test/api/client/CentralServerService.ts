@@ -17,6 +17,7 @@ import RegistrationTokenApi from './RegistrationTokenApi';
 import SettingApi from './SettingApi';
 import SiteApi from './SiteApi';
 import SiteAreaApi from './SiteAreaApi';
+import SmartChargingApi from './SmartChargingApi';
 import StatisticsApi from './StatisticsApi';
 import TenantApi from './TenantApi';
 import TenantComponents from '../../../src/types/TenantComponents';
@@ -53,6 +54,7 @@ export default class CentralServerService {
   public logsApi: LogsApi;
   public statisticsApi: StatisticsApi;
   public billingApi: BillingApi;
+  public smartChargingApi: SmartChargingApi;
   public _baseApi: BaseApi;
   private _baseURL: string;
   private _authenticatedUser: any;
@@ -103,6 +105,7 @@ export default class CentralServerService {
     this.billingApi = new BillingApi(this.authenticatedApi);
     this.assetApi = new AssetApi(this.authenticatedApi);
     this.carApi = new CarApi(this.authenticatedApi);
+    this.smartChargingApi = new SmartChargingApi(this.authenticatedApi);
     this.carApiSuperTenant = new CarApi(this.authenticatedSuperAdminApi);
   }
 

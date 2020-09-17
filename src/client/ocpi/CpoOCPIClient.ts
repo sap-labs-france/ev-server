@@ -396,7 +396,7 @@ export default class CpoOCPIClient extends OCPIClient {
       id: transaction.ocpiData.session.id,
       start_date_time: transaction.timestamp,
       stop_date_time: transaction.stop.timestamp,
-      total_parking_time: transaction.stop.totalInactivitySecs / 3600, // In hours
+      total_parking_time: (transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs) / 3600, // In hours
       total_time: transaction.stop.totalDurationSecs / 3600, // In hours
       total_energy: transaction.stop.totalConsumptionWh / 1000, // In kW.h
       currency: this.settings.currency,
@@ -591,7 +591,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     throw new BackendError({
       action: ServerAction.OCPI_CHECK_CDRS,
-      message: `FAiled to check CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
+      message: `Failed to check CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       module: MODULE_NAME, method: 'checkCdr',
       detailedMessages: { data: response.data }
     });
