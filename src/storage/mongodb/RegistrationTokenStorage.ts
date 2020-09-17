@@ -19,16 +19,16 @@ export default class RegistrationTokenStorage {
     await Utils.checkTenant(tenantID);
     // Set
     const registrationTokenMDB = {
-      _id: !registrationToken.id ? new ObjectID() : Utils.convertToObjectID(registrationToken.id),
+      _id: registrationToken.id ? Utils.convertToObjectID(registrationToken.id) : new ObjectID(),
       description: registrationToken.description,
-      siteAreaID: registrationToken.siteAreaID ? Utils.convertToObjectID(registrationToken.siteAreaID) : null,
-      expirationDate: registrationToken.expirationDate,
-      revocationDate: registrationToken.revocationDate
+      siteAreaID: Utils.convertToObjectID(registrationToken.siteAreaID),
+      expirationDate: Utils.convertToDate(registrationToken.expirationDate),
+      revocationDate: Utils.convertToDate(registrationToken.revocationDate)
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(registrationTokenMDB, registrationToken);
     // Modify
-    await global.database.getCollection<RegistrationTokenStorage>(tenantID, 'registrationtokens').findOneAndUpdate(
+    await global.database.getCollection(tenantID, 'registrationtokens').findOneAndUpdate(
       { _id: registrationTokenMDB._id },
       { $set: registrationTokenMDB },
       { upsert: true, returnOriginal: false }
@@ -39,7 +39,7 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationTokens(tenantID: string,
-    params: { id?: string; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams):
+    params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams):
     Promise<DataResult<RegistrationToken>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRegistrationTokens');
@@ -51,6 +51,13 @@ export default class RegistrationTokenStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Add Site Area
+    DatabaseUtils.pushSiteAreaLookupInAggregation({
+      tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
+      asField: 'siteArea', oneToOneCardinality: true
+    });
     // Set the filters
     const filters: FilterParams = {};
     // Build filter
@@ -58,21 +65,17 @@ export default class RegistrationTokenStorage {
       filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
     }
     // Build filter
-    if (params.id) {
-      filters._id = Utils.convertToObjectID(params.id);
+    if (!Utils.isEmptyArray(params.tokenIDs)) {
+      filters._id = {
+        $in: params.tokenIDs.map((tokenID) => Utils.convertToObjectID(tokenID))
+      };
     }
+    // Sites
     if (!Utils.isEmptyArray(params.siteIDs)) {
-      // Build filter
       filters['siteArea.siteID'] = {
         $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
-    // Create Aggregation
-    const aggregation = [];
-    DatabaseUtils.pushSiteAreaLookupInAggregation({
-      tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
-      asField: 'siteArea', oneToOneCardinality: true
-    });
     // Filters
     if (filters) {
       aggregation.push({
@@ -134,15 +137,11 @@ export default class RegistrationTokenStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRegistrationToken');
     // Reuse
-    const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(tenantID, { id: id }, Constants.DB_PARAMS_SINGLE_RECORD);
-    let registrationToken: RegistrationToken = null;
-    // Check
-    if (registrationTokens && registrationTokens.count > 0) {
-      registrationToken = registrationTokens.result[0];
-    }
+    const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(
+      tenantID, { tokenIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getRegistrationToken', uniqueTimerID, { id });
-    return registrationToken;
+    return registrationTokensMDB.count === 1 ? registrationTokensMDB.result[0] : null;
   }
 
   static async deleteRegistrationToken(tenantID: string, id: string): Promise<void> {

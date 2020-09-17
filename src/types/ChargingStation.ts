@@ -48,7 +48,6 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   connectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string|string[];
-  currentServerLocalIPAddressPort?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;
   ocppStandardParameters?: KeyValue[];
@@ -288,7 +287,8 @@ export type OCPPParams = {
 };
 
 export enum ChargerVendor {
-  EBEE = 'Bender GmbH Co. KG',
+  BENDER = 'Bender GmbH Co. KG',
+  EBEE = 'Ebee',
   SCHNEIDER = 'Schneider Electric',
   WEBASTO = 'Webasto',
   DELTA = 'DELTA',

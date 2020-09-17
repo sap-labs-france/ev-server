@@ -284,7 +284,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.TOKENS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.TOKEN,
-        action: [Action.CREATE, Action.READ],
+        action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
         attributes: ['*'],
         args: { 'sites': '$.site' }
       },

@@ -1087,7 +1087,7 @@ export default class ChargingStationService {
       } else {
         // Connector ID > 0
         const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
-        const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+        const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
         result = await chargingStationVendor.getCompositeSchedule(
           req.user.tenantID, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration);
       }
