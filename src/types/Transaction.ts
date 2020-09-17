@@ -79,9 +79,9 @@ export default interface Transaction extends AbstractCurrentConsumption {
 }
 
 export interface CSPhasesUsed {
-  CSPhase1: boolean;
-  CSPhase2: boolean;
-  CSPhase3: boolean;
+  csPhase1: boolean;
+  csPhase2: boolean;
+  csPhase3: boolean;
 }
 
 export interface TransactionStop {

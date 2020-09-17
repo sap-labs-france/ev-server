@@ -93,24 +93,24 @@ export default class Utils {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     if (currentType === CurrentType.AC && transaction.currentInstantAmps > 0) {
       const cSPhasesUsed = {
-        CSPhase1: false,
-        CSPhase2: false,
-        CSPhase3: false } as CSPhasesUsed;
+        csPhase1: false,
+        csPhase2: false,
+        csPhase3: false } as CSPhasesUsed;
       if (transaction.currentInstantAmpsL1 > 0) {
-        cSPhasesUsed.CSPhase1 = true;
+        cSPhasesUsed.csPhase1 = true;
       }
       if (transaction.currentInstantAmpsL2 > 0) {
-        cSPhasesUsed.CSPhase2 = true;
+        cSPhasesUsed.csPhase2 = true;
       }
       if (transaction.currentInstantAmpsL3 > 0) {
-        cSPhasesUsed.CSPhase3 = true;
+        cSPhasesUsed.csPhase3 = true;
       }
       return cSPhasesUsed;
     } else if (currentType === CurrentType.DC) {
       return {
-        CSPhase1: true,
-        CSPhase2: true,
-        CSPhase3: true };
+        csPhase1: true,
+        csPhase2: true,
+        csPhase3: true };
     }
     return null;
   }
@@ -119,13 +119,13 @@ export default class Utils {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     let nbrOfPhases = 0;
     if (currentType === CurrentType.AC && transaction.phasesUsed) {
-      if (transaction.phasesUsed.CSPhase1) {
+      if (transaction.phasesUsed.csPhase1) {
         nbrOfPhases++;
       }
-      if (transaction.phasesUsed.CSPhase2) {
+      if (transaction.phasesUsed.csPhase2) {
         nbrOfPhases++;
       }
-      if (transaction.phasesUsed.CSPhase3) {
+      if (transaction.phasesUsed.csPhase3) {
         nbrOfPhases++;
       }
     }
