@@ -93,6 +93,7 @@ export default class TransactionStorage {
       currentInstantAmpsL2: Utils.convertToInt(transactionToSave.currentInstantAmpsL2),
       currentInstantAmpsL3: Utils.convertToInt(transactionToSave.currentInstantAmpsL3),
       currentInstantAmpsDC: Utils.convertToInt(transactionToSave.currentInstantAmpsDC),
+      phasesUsed: transactionToSave.phasesUsed,
     };
     if (transactionToSave.stop) {
       // Add stop

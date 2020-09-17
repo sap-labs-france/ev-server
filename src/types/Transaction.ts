@@ -30,6 +30,7 @@ export enum TransactionAction {
 export default interface Transaction extends AbstractCurrentConsumption {
   id?: number;
   carID?: string;
+  phasesUsed?: CSPhasesUsed;
   siteID?: string;
   siteAreaID?: string;
   issuer: boolean;
@@ -75,6 +76,12 @@ export default interface Transaction extends AbstractCurrentConsumption {
     sessionCheckedOn?: Date;
     cdrCheckedOn?: Date;
   };
+}
+
+export interface CSPhasesUsed {
+  CSPhase1: boolean;
+  CSPhase2: boolean;
+  CSPhase3: boolean;
 }
 
 export interface TransactionStop {

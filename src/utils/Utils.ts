@@ -2,7 +2,7 @@ import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingS
 import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, SiteAreaLimitSource } from '../types/ChargingStation';
-import Transaction, { InactivityStatus } from '../types/Transaction';
+import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -89,17 +89,43 @@ export default class Utils {
     return threePhases;
   }
 
+  public static getUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): CSPhasesUsed {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    if (currentType === CurrentType.AC && transaction.currentInstantAmps > 0) {
+      const cSPhasesUsed = {
+        CSPhase1: false,
+        CSPhase2: false,
+        CSPhase3: false } as CSPhasesUsed;
+      if (transaction.currentInstantAmpsL1 > 0) {
+        cSPhasesUsed.CSPhase1 = true;
+      }
+      if (transaction.currentInstantAmpsL2 > 0) {
+        cSPhasesUsed.CSPhase2 = true;
+      }
+      if (transaction.currentInstantAmpsL3 > 0) {
+        cSPhasesUsed.CSPhase3 = true;
+      }
+      return cSPhasesUsed;
+    } else if (currentType === CurrentType.DC) {
+      return {
+        CSPhase1: true,
+        CSPhase2: true,
+        CSPhase3: true };
+    }
+    return null;
+  }
+
   public static getNumberOfUsedPhaseInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     let nbrOfPhases = 0;
-    if (currentType === CurrentType.AC) {
-      if (transaction.currentInstantAmpsL1 > 0) {
+    if (currentType === CurrentType.AC && transaction.phasesUsed) {
+      if (transaction.phasesUsed.CSPhase1) {
         nbrOfPhases++;
       }
-      if (transaction.currentInstantAmpsL2 > 0) {
+      if (transaction.phasesUsed.CSPhase2) {
         nbrOfPhases++;
       }
-      if (transaction.currentInstantAmpsL3 > 0) {
+      if (transaction.phasesUsed.CSPhase3) {
         nbrOfPhases++;
       }
     }
