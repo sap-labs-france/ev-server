@@ -188,6 +188,8 @@ describe('User tests', function () {
           testData.newTag.active = false;
           const response = await testData.userService.userApi.updateTag(testData.newTag);
           expect(response.status).to.equal(200);
+          const tag = (await testData.userService.userApi.readTag(testData.newTag.id)).data;
+          expect(tag.active).to.equal(false);
         });
 
         it('Should not be able to start a transaction with a deactivated badge', async () => {
@@ -206,6 +208,7 @@ describe('User tests', function () {
           let response = await testData.userService.userApi.createTag(testData.newTag);
           expect(response.status).to.equal(200);
           response = await testData.userService.userApi.deleteTag(testData.newTag.id);
+          expect(response.status).to.equal(200);
           response = (await testData.userService.userApi.readTag(testData.newTag.id));
           expect(response.status).to.equal(550);
         });
