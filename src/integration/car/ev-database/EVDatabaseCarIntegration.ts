@@ -9,9 +9,9 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 
-const MODULE_NAME = 'EVDabaseCar';
+const MODULE_NAME = 'EVDatabaseCarIntegration';
 
-export default class EVDabaseCarIntegration extends CarIntegration {
+export default class EVDatabaseCarIntegration extends CarIntegration {
   private axiosInstance: AxiosInstance;
 
   constructor() {

@@ -54,7 +54,6 @@ export default class ChargingStationSecurity {
         filteredChargingStation.ocppVersion = chargingStation.ocppVersion;
         filteredChargingStation.chargingStationURL = chargingStation.chargingStationURL;
         filteredChargingStation.currentIPAddress = chargingStation.currentIPAddress;
-        filteredChargingStation.currentServerLocalIPAddressPort = chargingStation.currentServerLocalIPAddressPort;
         filteredChargingStation.endpoint = chargingStation.endpoint;
         filteredChargingStation.ocppStandardParameters = chargingStation.ocppStandardParameters;
         filteredChargingStation.ocppVendorParameters = chargingStation.ocppVendorParameters;
@@ -105,7 +104,8 @@ export default class ChargingStationSecurity {
           currentType: connector.currentType,
           voltage: connector.voltage,
           amperage: connector.amperage,
-          user: UserSecurity.filterMinimalUserResponse(connector.user, loggedUser)
+          user: UserSecurity.filterMinimalUserResponse(connector.user, loggedUser),
+          phaseAssignmentToGrid: connector.phaseAssignmentToGrid
         };
       });
       if (chargingStation.chargePoints) {
@@ -388,7 +388,8 @@ export default class ChargingStationSecurity {
             voltage: sanitize(connector.voltage),
             amperage: sanitize(connector.amperage),
             currentType: sanitize(connector.currentType),
-            numberOfConnectedPhase: sanitize(connector.numberOfConnectedPhase)
+            numberOfConnectedPhase: sanitize(connector.numberOfConnectedPhase),
+            phaseAssignmentToGrid: sanitize(connector.phaseAssignmentToGrid)
           };
         }
         return null;

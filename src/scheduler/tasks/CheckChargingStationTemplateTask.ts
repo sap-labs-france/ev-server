@@ -6,6 +6,7 @@ import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
+import { OCPPPhase } from '../../types/ocpp/OCPPServer';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
@@ -65,8 +66,26 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         let chargingStationUpdated = false;
         // Check Connectors
         for (const connector of chargingStation.connectors) {
+          // Amperage limit
           if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
             connector.amperageLimit = connector.amperage;
+            chargingStationUpdated = true;
+          }
+          // Phase Assignment
+          if (!Utils.objectHasProperty(connector, 'phaseAssignmentToGrid')) {
+            const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+            // Phase Assignment to Grid has to be handled only for Site Area with 3 phases
+            if (chargingStation?.siteArea?.numberOfPhases === 3) {
+              // Single Phase
+              if (numberOfPhases === 1) {
+                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null } ;
+              // Tri-phase
+              } else if (numberOfPhases === 3) {
+                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 } ;
+              }
+            } else {
+              connector.phaseAssignmentToGrid = null;
+            }
             chargingStationUpdated = true;
           }
         }

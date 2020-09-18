@@ -53,6 +53,7 @@ export default class OCPPUtils {
         action = ServerAction.UPDATE_TRANSACTION;
         break;
       case TransactionAction.STOP:
+      case TransactionAction.END:
         action = ServerAction.STOP_TRANSACTION;
         break;
     }
@@ -87,7 +88,7 @@ export default class OCPPUtils {
             action: action,
             module: MODULE_NAME,
             method: 'processOCPITransaction',
-            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Transaction thought OCPI protocol due to missing OCPI Token`
+            message: `User '${Utils.buildUserFullName(user)}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Transaction thought OCPI protocol due to missing OCPI Token`
           });
         }
         // Retrieve Authorization ID
@@ -887,7 +888,7 @@ export default class OCPPUtils {
     if (chargingStationVendor) {
       // Get current limitation
       const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-      const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+      const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
       const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(
         tenantID, chargingStation, chargePoint, connectorID);
       consumption.limitAmps = connectorLimit.limitAmps;
@@ -896,8 +897,8 @@ export default class OCPPUtils {
     } else {
       // Default
       const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-      consumption.limitAmps = connector.amperageLimit;
-      consumption.limitWatts = connector.power;
+      consumption.limitAmps = connector?.amperageLimit;
+      consumption.limitWatts = connector?.power;
       consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
     }
   }
@@ -914,8 +915,7 @@ export default class OCPPUtils {
       // Browse filter for extra matching
       for (const filter in chargingStationTemplate.extraFilters) {
         // Check
-        if (Utils.objectHasProperty(chargingStationTemplate.extraFilters, filter)) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        if (Utils.objectHasProperty(chargingStation, filter)) {
           const filterValue: string = chargingStationTemplate.extraFilters[filter];
           if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
             foundTemplate = null;
@@ -1183,7 +1183,7 @@ export default class OCPPUtils {
             } else {
               delete connector.numberOfConnectedPhase;
             }
-            break;
+            return true;
           }
         }
       }

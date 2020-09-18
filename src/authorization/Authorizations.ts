@@ -387,12 +387,18 @@ export default class Authorizations {
     });
   }
 
-  public static canDeleteRegistrationToken(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.DELETE);
+  public static canDeleteRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.DELETE, {
+      site: siteID,
+      sites: loggedUser.sitesAdmin
+    });
   }
 
-  public static canUpdateRegistrationToken(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.UPDATE);
+  public static canUpdateRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.UPDATE, {
+      site: siteID,
+      sites: loggedUser.sitesAdmin
+    });
   }
 
   public static canListRegistrationTokens(loggedUser: UserToken): boolean {
