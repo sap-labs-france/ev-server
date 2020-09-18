@@ -45,7 +45,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllToRefund(params) {
-    return await super.readAll(params, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/TransactionsToRefund');
+    return await super.readAll(params, TestConstants.ADVANCED_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/TransactionsToRefund');
   }
 
   public async readAllRefundReports(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {

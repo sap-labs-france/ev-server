@@ -4,6 +4,7 @@ import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
+import faker from 'faker';
 
 chai.use(chaiSubset);
 
@@ -41,7 +42,8 @@ describe('Tenant tests', function() {
 
     it('Should update the tenant', async () => {
       // Change entity
-      testData.newTenant.name = 'New Name';
+      // Using faker to avoid duplicated key in DB
+      testData.newTenant.name = faker.company.companyName();
       testData.newTenant.address.address1 = 'New Address1';
       // Update
       await CentralServerService.defaultInstance.updateEntity(
