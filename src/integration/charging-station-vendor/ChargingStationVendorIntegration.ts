@@ -597,7 +597,7 @@ export default abstract class ChargingStationVendorIntegration {
         const currentDate = new Date;
         chargingSchedule.startSchedule = (new Date(chargingSchedule.startSchedule));
         chargingSchedule.startSchedule.setFullYear(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-        // Check if the start of the schedule is yesterday (only works for 24h profiles)
+        // Check if the start of the schedule is yesterday
         if (moment(chargingSchedule.startSchedule).isAfter(now)) {
           chargingSchedule.startSchedule.setDate(currentDate.getDate() - 1);
         }
