@@ -31,10 +31,27 @@ export default class UserApi extends CrudApi {
   }
 
   public async getByEmail(email) {
-    return this.readAll({ Search : email });
+    return this.readAll({ Search: email });
   }
 
-  public async getByTag(tag) {
-    return this.readAll({ Search : tag });
+  public async readTags(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, '/client/api/Tags');
   }
+
+  public async readTag(id) {
+    return super.read({ ID: id }, '/client/api/Tag');
+  }
+
+  public async updateTag(data) {
+    return super.update(data, '/client/api/TagUpdate');
+  }
+
+  public async createTag(data) {
+    return super.create(data, '/client/api/TagCreate');
+  }
+
+  public async deleteTag(id) {
+    return super.delete(id, '/client/api/TagDelete');
+  }
+
 }

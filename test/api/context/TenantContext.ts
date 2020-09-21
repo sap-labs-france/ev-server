@@ -33,6 +33,7 @@ export default class TenantContext {
       companies: [],
       assets: [],
       users: [],
+      tags: [],
       siteContexts: [],
       chargingStations: [],
       createdUsers: [],
@@ -147,7 +148,8 @@ export default class TenantContext {
     }
   }
 
-  getUserContext(params) { // Structure { id = user ID, email = user mail, role = user role, status = user status, assignedToSite = boolean) {
+  getUserContext(params) {
+    // Structure { id = user ID, email = user mail, role = user role, status = user status, assignedToSite = boolean) {
     if (params.id || params.email) {
       return this.context.users.find((user) => user.id === params.id || user.email === params.email);
     }
@@ -168,12 +170,11 @@ export default class TenantContext {
             conditionMet = (userContextDef ? params[key] === userContextDef.assignedToSite : false);
           }
         } else if (key === 'withTags') {
+          user.tags = this.context.tags.filter(tag => tag.userID === user.id);
           if (conditionMet !== null) {
-            conditionMet = conditionMet && (params[key] ? user.tags && user.tags.length > 0 :
-              (user.tags ? user.tags.length === 0 : true));
+            conditionMet = conditionMet && (params[key] ? !Utils.isEmptyArray(user.tags) : Utils.isEmptyArray(user.tags));
           } else {
-            conditionMet = (params[key] ? user.tags && user.tags.length > 0 :
-              (user.tags ? user.tags.length === 0 : true));
+            conditionMet = (params[key] ? !Utils.isEmptyArray(user.tags) : Utils.isEmptyArray(user.tags));
           }
         }
       }
@@ -198,6 +199,10 @@ export default class TenantContext {
       }
       this.context.users.push(user);
     }
+  }
+
+  addTags(tags) {
+    this.context.tags = tags;
   }
 
   async createUser(user = Factory.user.build(), loggedUser = null) {

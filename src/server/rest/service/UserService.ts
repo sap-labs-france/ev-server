@@ -177,7 +177,7 @@ export default class UserService {
       });
     }
     // Check user
-    const user = await UserStorage.getUser(req.user.tenantID, id);
+    const user = await UserStorage.getUser(req.user.tenantID, id, { withTag: true });
     UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`,
       MODULE_NAME, 'handleDeleteUser', req.user);
     // Deleted
@@ -1090,8 +1090,8 @@ export default class UserService {
         withUser: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'user.id', 'user.name', 'user.firstName', 'user.email',
-        'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy' ],
+      ['id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'],
     );
     // Filter
     UserSecurity.filterTagsResponse(tags, req.user);

@@ -704,7 +704,7 @@ export default class Authorizations {
       // Access Control Enabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
-        return UserStorage.getUserByTagId(tenantID, tagID);
+        return await UserStorage.getUserByTagId(tenantID, tagID);
       }
       // Site -----------------------------------------------------
       chargingStation.siteArea.site = chargingStation.siteArea.site ?

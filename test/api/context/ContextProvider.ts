@@ -88,6 +88,7 @@ export default class ContextProvider {
     let siteList = null;
     let companyList = null;
     let userList = null;
+    let tagList = null;
     // Read all existing entities
     if (tenantEntity.components && tenantEntity.components[TenantComponents.ORGANIZATION] &&
       tenantEntity.components[TenantComponents.ORGANIZATION].active) {
@@ -99,6 +100,7 @@ export default class ContextProvider {
       chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({ WithNoSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
     }
     userList = (await defaultAdminCentralServiceService.userApi.readAll({}, { limit: 0, skip: 0 })).data.result;
+    tagList = (await defaultAdminCentralServiceService.userApi.readTags({}, { limit: 0, skip: 0 })).data.result;
     for (const user of userList) {
       user.password = config.get('admin.password');
       user.centralServerService = new CentralServerService(tenantEntity.subdomain, user);
@@ -108,6 +110,7 @@ export default class ContextProvider {
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, tenantEntity, '', defaultAdminCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList); // pragma getContext().users = userList;
+    newTenantContext.addTags(tagList);
     newTenantContext.getContext().companies = companyList;
 
     if (tenantEntity.components && tenantEntity.components[TenantComponents.ORGANIZATION] &&

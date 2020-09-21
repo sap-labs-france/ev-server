@@ -5,7 +5,7 @@ import faker from 'faker';
 const userFactory = Factory.define('user')
   .attr('firstName', () => faker.name.firstName())
   .attr('name', () => faker.name.lastName().toUpperCase())
-  .attr('email', () => faker.internet.email())
+  .attr('email', () => faker.internet.email().toLowerCase())
   .attr('passwords', () => {
     const password = faker.internet.password() + '@1Aa';
     return {
