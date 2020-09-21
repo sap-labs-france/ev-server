@@ -91,11 +91,14 @@ export default class Utils {
 
   public static getUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): CSPhasesUsed {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    // AC Chargers
     if (currentType === CurrentType.AC && transaction.currentInstantAmps > 0) {
-      const cSPhasesUsed = {
+      const cSPhasesUsed: CSPhasesUsed = {
         csPhase1: false,
         csPhase2: false,
-        csPhase3: false } as CSPhasesUsed;
+        csPhase3: false
+      };
+      // Check current consumption
       if (transaction.currentInstantAmpsL1 > 0) {
         cSPhasesUsed.csPhase1 = true;
       }
@@ -106,11 +109,13 @@ export default class Utils {
         cSPhasesUsed.csPhase3 = true;
       }
       return cSPhasesUsed;
+    // DC Chargers
     } else if (currentType === CurrentType.DC) {
       return {
         csPhase1: true,
         csPhase2: true,
-        csPhase3: true };
+        csPhase3: true
+      };
     }
     return null;
   }
