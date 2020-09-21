@@ -591,22 +591,24 @@ export default abstract class ChargingStationVendorIntegration {
       const now = moment();
       const chargingSchedule = chargingProfile.profile.chargingSchedule;
       // Check type (Recurring) and if it is already active
+      // Adjust the Daily Recurring Schedule to today
       if (chargingProfile.profile.chargingProfileKind === ChargingProfileKindType.RECURRING &&
-        chargingProfile.profile.recurrencyKind === RecurrencyKindType.DAILY &&
-        moment(now).isAfter(chargingSchedule.startSchedule)) {
-        const currentDate = new Date;
-        chargingSchedule.startSchedule = (new Date(chargingSchedule.startSchedule));
+          chargingProfile.profile.recurrencyKind === RecurrencyKindType.DAILY &&
+          now.isAfter(chargingSchedule.startSchedule)) {
+        const currentDate = new Date();
+        chargingSchedule.startSchedule = new Date(chargingSchedule.startSchedule);
         chargingSchedule.startSchedule.setFullYear(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
         // Check if the start of the schedule is yesterday
         if (moment(chargingSchedule.startSchedule).isAfter(now)) {
           chargingSchedule.startSchedule.setDate(currentDate.getDate() - 1);
         }
       }
+      // Check if the Charging Profile is active
       if (moment(chargingSchedule.startSchedule).add(chargingSchedule.duration, 's').isAfter(now)) {
         let lastButOneSchedule: ChargingSchedulePeriod;
-        // Search
+        // Search the right Schedule Period
         for (const schedulePeriod of chargingSchedule.chargingSchedulePeriod) {
-          // Handle if schedule contains only one period
+          // Hanlding of only one period
           if (chargingSchedule.chargingSchedulePeriod.length === 1 && schedulePeriod.startPeriod === 0) {
             const result: ConnectorCurrentLimit = {
               limitAmps: Utils.convertToInt(schedulePeriod.limit),
@@ -623,7 +625,7 @@ export default abstract class ChargingStationVendorIntegration {
             });
             return result;
           }
-          // Handle the middle of the Schedule
+          // Find the right Schedule Periods
           if (moment(chargingSchedule.startSchedule).add(schedulePeriod.startPeriod, 's').isAfter(now)) {
             // Found the schedule: Last but one is the correct one
             const result: ConnectorCurrentLimit = {
