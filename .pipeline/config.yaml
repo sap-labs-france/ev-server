@@ -1,1 +1,10 @@
+general:
+  verbose: true
+  productiveBranch: 'master-qa'
+  buildTool: 'npm'
+  gitHttpsCredentialsId: 'GitHub-emobility-ci-build'
+  githubTokenCredentialsId: 'GitHub-token-emobility-ci-build'
 
+stages:
+
+steps:
