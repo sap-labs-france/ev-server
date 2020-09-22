@@ -93,8 +93,14 @@ export default class TransactionStorage {
       currentInstantAmpsL2: Utils.convertToInt(transactionToSave.currentInstantAmpsL2),
       currentInstantAmpsL3: Utils.convertToInt(transactionToSave.currentInstantAmpsL3),
       currentInstantAmpsDC: Utils.convertToInt(transactionToSave.currentInstantAmpsDC),
-      phasesUsed: transactionToSave.phasesUsed,
     };
+    if (transactionToSave.phasesUsed) {
+      transactionMDB.phasesUsed = {
+        csPhase1: Utils.convertToBoolean(transactionToSave.phasesUsed.csPhase1),
+        csPhase2: Utils.convertToBoolean(transactionToSave.phasesUsed.csPhase2),
+        csPhase3: Utils.convertToBoolean(transactionToSave.phasesUsed.csPhase3),
+      };
+    }
     if (transactionToSave.stop) {
       // Add stop
       transactionMDB.stop = {
