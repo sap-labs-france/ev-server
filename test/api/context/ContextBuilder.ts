@@ -8,7 +8,6 @@ import ChargingStation from '../../types/ChargingStation';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Constants from '../../../src/utils/Constants';
 import Factory from '../../factories/Factory';
-import JsonCentralSystemServer from '../../server/ocpp/json/JsonCentralSystemServer';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
@@ -20,6 +19,7 @@ import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import StatisticsContext from './StatisticsContext';
+import Tag from '../../types/Tag';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
@@ -209,6 +209,7 @@ export default class ContextBuilder {
     }
     let userListToAssign: User[] = null;
     let userList: User[] = null;
+    let tagList: Tag[] = null;
     // Read admin user
     const adminUser: User = (await localCentralServiceService.getEntityById(
       localCentralServiceService.userApi, defaultAdminUser, false)).data;
@@ -250,6 +251,8 @@ export default class ContextBuilder {
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, '', localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
+    tagList = (await UserStorage.getTags(buildTenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT)).result;
+    newTenantContext.addTags(tagList);
     // Check if Organization is active
     if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&
       buildTenant.components[TenantComponents.ORGANIZATION].active) {

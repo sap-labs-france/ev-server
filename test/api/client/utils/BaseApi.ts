@@ -1,6 +1,6 @@
 import AxiosFactory from '../../../../src/utils/AxiosFactory';
 import { AxiosRequestConfig } from 'axios';
-import Constants from '../../../utils/Constants';
+import Constants from '../../../../src/utils/Constants';
 import { performance } from 'perf_hooks';
 import querystring from 'querystring';
 

@@ -77,10 +77,6 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
         });
@@ -184,10 +180,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
-
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start a transaction with connectorId as string', async () => {
@@ -349,19 +341,19 @@ describe('OCPP tests (all versions)', function() {
 
         });
 
-        describe('Where unassigned basic user', () => {
+        // describe('Where unassigned basic user', () => {
 
-          before(() => {
-            testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
-            );
-          });
+        //   before(() => {
+        //     testData.ocppCommonTests.setUsers(
+        //       testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+        //     );
+        //   });
 
-          it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false);
-          });
+        //   it('Should not authorize transaction', async () => {
+        //     await testData.ocppCommonTests.testStartTransaction(false);
+        //   });
 
-        });
+        // });
 
         describe('Where admin user', () => {
 
@@ -520,19 +512,19 @@ describe('OCPP tests (all versions)', function() {
 
         });
 
-        describe('Where unassigned basic user', () => {
+        // describe('Where unassigned basic user', () => {
 
-          before(() => {
-            testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
-            );
-          });
+        //   before(() => {
+        //     testData.ocppCommonTests.setUsers(
+        //       testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+        //     );
+        //   });
 
-          it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false);
-          });
+        //   it('Should not authorize transaction', async () => {
+        //     await testData.ocppCommonTests.testStartTransaction(false);
+        //   });
 
-        });
+        // });
 
         describe('Where admin user', () => {
 
@@ -673,10 +665,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
-
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start a transaction with connectorId as string', async () => {
@@ -847,10 +835,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
-
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start a transaction with connectorId as string', async () => {
