@@ -704,7 +704,7 @@ export default class Authorizations {
       // Access Control Enabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
-        return await UserStorage.getUserByTagId(tenantID, tagID);
+        return UserStorage.getUserByTagId(tenantID, tagID);
       }
       // Site -----------------------------------------------------
       chargingStation.siteArea.site = chargingStation.siteArea.site ?
@@ -775,8 +775,9 @@ export default class Authorizations {
     }
     // Check Auth
     if (tag.user.issuer && authAction) {
+      const user = await UserStorage.getUser(tenantID, tag.user.id, { withTag: true });
       // Build the JWT Token
-      const userToken = await Authorizations.buildUserToken(tenantID, tag.user);
+      const userToken = await Authorizations.buildUserToken(tenantID, user);
       // Authorized?
       const context = {
         user: transaction ? transaction.userID : null,
