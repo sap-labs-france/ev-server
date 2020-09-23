@@ -7,6 +7,7 @@ import OcpiEndpointsFactory from './OcpiEndpointsFactory';
 import SettingFactory from './SettingFactory';
 import SiteAreaFactory from './SiteAreaFactory';
 import SiteFactory from './SiteFactory';
+import TagFactory from './TagFactory';
 import TenantFactory from './TenantFactory';
 import UserFactory from './UserFactory';
 
@@ -22,4 +23,5 @@ export default abstract class Factory {
   public static setting = SettingFactory;
   public static ocpiEndpoint = OcpiEndpointsFactory;
   public static car = CarFactory;
+  public static tag = TagFactory;
 }

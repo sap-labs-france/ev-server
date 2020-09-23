@@ -34,7 +34,6 @@ import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
@@ -53,8 +52,6 @@ const MODULE_NAME = 'Utils';
 
 export default class Utils {
   private static tenants = [];
-  private static centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-  private static centralSystemRestServer = Configuration.getCentralSystemRestServer();
 
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
@@ -115,18 +112,20 @@ export default class Utils {
       return 0;
     }
     const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-    if (connector.power <= 3680) {
-      // Notify every 120 mins
-      intervalMins = 120;
-    } else if (connector.power <= 7360) {
-      // Notify every 60 mins
-      intervalMins = 60;
-    } else if (connector.power < 50000) {
-      // Notify every 30 mins
-      intervalMins = 30;
-    } else if (connector.power >= 50000) {
-      // Notify every 15 mins
-      intervalMins = 15;
+    if (connector) {
+      if (connector.power <= 3680) {
+        // Notify every 120 mins
+        intervalMins = 120;
+      } else if (connector.power <= 7360) {
+        // Notify every 60 mins
+        intervalMins = 60;
+      } else if (connector.power < 50000) {
+        // Notify every 30 mins
+        intervalMins = 30;
+      } else if (connector.power >= 50000) {
+        // Notify every 15 mins
+        intervalMins = 15;
+      }
     }
     return intervalMins;
   }
@@ -211,6 +210,10 @@ export default class Utils {
 
   public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
+  }
+
+  public static isBooleanValue(value: boolean): boolean {
+    return _.isBoolean(value);
   }
 
   public static generateGUID(): string {
@@ -669,7 +672,7 @@ export default class Utils {
               if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
                 // Check Connector ID
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-                if (connector.power) {
+                if (connector?.power) {
                   return connector.power;
                 }
                 return chargePointOfCS.power;
@@ -716,7 +719,7 @@ export default class Utils {
             if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.numberOfConnectedPhase) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.numberOfConnectedPhase) {
+              if (connector?.numberOfConnectedPhase) {
                 return connector.numberOfConnectedPhase;
               }
               return chargePointOfCS.numberOfConnectedPhase;
@@ -758,7 +761,7 @@ export default class Utils {
             if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.voltage) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.voltage) {
+              if (connector?.voltage) {
                 return connector.voltage;
               }
               return chargePointOfCS.voltage;
@@ -795,7 +798,7 @@ export default class Utils {
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.currentType) {
+              if (connector?.currentType) {
                 return connector.currentType;
               }
               return chargePointOfCS.currentType;
@@ -834,7 +837,7 @@ export default class Utils {
                 // Same power for all connectors
                 // Check Connector ID first
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-                if (connector.amperage) {
+                if (connector?.amperage) {
                   return connector.amperage;
                 }
                 return chargePointOfCS.amperage;
@@ -864,7 +867,7 @@ export default class Utils {
     let amperageLimit = 0;
     if (chargingStation) {
       if (connectorId > 0) {
-        return Utils.getConnectorFromID(chargingStation, connectorId).amperageLimit;
+        return Utils.getConnectorFromID(chargingStation, connectorId)?.amperageLimit;
       }
       // Check at charge point level
       if (chargingStation.chargePoints) {
@@ -876,11 +879,11 @@ export default class Utils {
             if (chargePointOfCS.cannotChargeInParallel ||
               chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
-              amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
+              amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0])?.amperageLimit;
             } else {
               // Add limit amp of all connectors
               for (const connectorID of chargePointOfCS.connectorIDs) {
-                amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID).amperageLimit;
+                amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID)?.amperageLimit;
               }
             }
           }
@@ -983,15 +986,17 @@ export default class Utils {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  public static buildRestServerURL() {
-    return `${Utils.centralSystemRestServer.protocol}://${Utils.centralSystemRestServer.host}:${Utils.centralSystemRestServer.port}`;
+  public static buildRestServerURL(): string {
+    const centralSystemRestServer = Configuration.getCentralSystemRestServer();
+    return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
   }
 
   public static buildEvseURL(subdomain: string = null): string {
+    const centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     if (subdomain) {
-      return `${Utils.centralSystemFrontEndConfig.protocol}://${subdomain}.${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
+      return `${centralSystemFrontEndConfig.protocol}://${subdomain}.${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
     }
-    return `${Utils.centralSystemFrontEndConfig.protocol}://${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
+    return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
@@ -1196,7 +1201,7 @@ export default class Utils {
     if (coordinates && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude
       if (new RegExp(Constants.REGEX_VALIDATION_LONGITUDE).test(coordinates[0].toString()) &&
-          new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
+        new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
         return true;
       }
     }
@@ -1579,47 +1584,58 @@ export default class Utils {
     }
   }
 
-  public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request): Promise<void> {
+  public static isDevelopmentEnv(): boolean {
+    return process.env.NODE_ENV === 'development';
+  }
+
+  public static isProductionEnv(): boolean {
+    return process.env.NODE_ENV === 'production';
+  }
+
+  public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
     // Check that the Badge ID is not already used
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      if (tags) {
-        for (const tag of tags) {
-          // Check if exists
-          const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
-          if (foundUser && (!user || (foundUser.id !== user.id))) {
-            // Tag already used!
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
-              message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
-              module: MODULE_NAME,
-              method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-          // Check params
-          if (!tag.id) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.GENERAL_ERROR,
-              message: 'Tag ID is mandatory',
-              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-          if (!Utils.objectHasProperty(tag, 'active')) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.GENERAL_ERROR,
-              message: 'Tag Active property is mandatory',
-              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-        }
-      }
+    if (!Authorizations.isAdmin(req.user)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Only Admins can change/create the Tags',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    // Check params
+    if (!tag.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    if (!tag.description) {
+      tag.description = `Tag ID '${tag.id}'`;
+    }
+    if (!tag.userID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    if (!Utils.objectHasProperty(tag, 'active')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag Active property is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
     }
   }
+
 
   public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request): void {
     const tenantID = req.user.tenantID;

@@ -1,5 +1,5 @@
 import { Car, CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter, CarMaker } from '../../types/Car';
-import global, { Image } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -22,7 +22,7 @@ export default class CarStorage {
       { carCatalogIDs: [id] },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     Logging.traceEnd(MODULE_NAME, 'getCarCatalog', uniqueTimerID, { id });
-    return carCatalogsMDB.count > 0 ? carCatalogsMDB.result[0] : null;
+    return carCatalogsMDB.count === 1 ? carCatalogsMDB.result[0] : null;
   }
 
   public static async getCarCatalogs(
@@ -550,7 +550,7 @@ export default class CarStorage {
       { carIDs: [carID], ...params },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { carID });
-    return carsMDB.count > 0 ? carsMDB.result[0] : null;
+    return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
 
   public static async getCarByVinLicensePlate(tenantID: string,
@@ -563,7 +563,7 @@ export default class CarStorage {
       { licensePlate: licensePlate, vin: vin, ...params },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     Logging.traceEnd(MODULE_NAME, 'getCarByVinLicensePlate', uniqueTimerID, { vin, licensePlate });
-    return carsMDB.count > 0 ? carsMDB.result[0] : null;
+    return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
 
   public static async getCars(tenantID: string,
@@ -578,7 +578,7 @@ export default class CarStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -675,7 +675,7 @@ export default class CarStorage {
       DatabaseUtils.pushArrayLookupInAggregation('carUsers', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
         tenantID, aggregation: aggregation, localField: 'carUsers.userID', foreignField: '_id',
         asField: 'carUsers.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-      }, { pipeline: carUsersPipeline });
+      }, { pipeline: carUsersPipeline, sort: dbParams.sort });
     }
     // Add Car Catalog
     DatabaseUtils.pushCarCatalogLookupInAggregation({
@@ -742,7 +742,7 @@ export default class CarStorage {
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     Logging.traceEnd(MODULE_NAME, 'getCarUserByCarUser', uniqueTimerID, { userID, carID });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return carUsersMDB.count > 0 ? carUsersMDB.result[0] : null;
+    return carUsersMDB.count === 1 ? carUsersMDB.result[0] : null;
   }
 
   public static async getCarUser(tenantID: string, carUserID: string = Constants.UNKNOWN_STRING_ID,
@@ -755,7 +755,7 @@ export default class CarStorage {
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     Logging.traceEnd(MODULE_NAME, 'getCarUser', uniqueTimerID, { carUserID });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return carUsersMDB.count > 0 ? carUsersMDB.result[0] : null;
+    return carUsersMDB.count === 1 ? carUsersMDB.result[0] : null;
   }
 
   public static async deleteCarUser(tenantID: string, id: string): Promise<void> {
@@ -810,7 +810,7 @@ export default class CarStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Limit on Car for Basic Users
     if (!Utils.isEmptyArray(params.carUsersIDs)) {
       filters._id = { $in: params.carUsersIDs };

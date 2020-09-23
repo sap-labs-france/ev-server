@@ -1,14 +1,30 @@
-import { HttpRegistrationTokenRequest, HttpRegistrationTokensRequest } from '../../../../types/requests/HttpRegistrationToken';
-
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
+import { HttpRegistrationTokensRequest } from '../../../../types/requests/HttpRegistrationToken';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class RegistrationTokenSecurity {
-  static filterRegistrationTokenCreateRequest(request: any): HttpRegistrationTokenRequest {
+  public static filterRegistrationTokenCreateRequest(request: any): Partial<RegistrationToken> {
+    return {
+      description: sanitize(request.description),
+      siteAreaID: sanitize(request.siteAreaID),
+      expirationDate: sanitize(request.expirationDate)
+    };
+  }
+
+  public static filterRegistrationTokenUpdateRequest(request: any): Partial<RegistrationToken> {
+    return {
+      id: sanitize(request.id),
+      description: sanitize(request.description),
+      siteAreaID: sanitize(request.siteAreaID),
+      expirationDate: sanitize(request.expirationDate)
+    };
+  }
+
+  public static filterRegistrationTokenRequest(request: any): Partial<RegistrationToken> {
     return {
       description: sanitize(request.description),
       siteAreaID: sanitize(request.siteAreaID),

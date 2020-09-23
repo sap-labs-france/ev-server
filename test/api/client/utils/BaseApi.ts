@@ -1,6 +1,6 @@
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
-
 import AxiosFactory from '../../../../src/utils/AxiosFactory';
+import { AxiosRequestConfig } from 'axios';
+import Constants from '../../../../src/utils/Constants';
 import { performance } from 'perf_hooks';
 import querystring from 'querystring';
 
@@ -13,7 +13,7 @@ export default class BaseApi {
 
   public async send(httpRequest: AxiosRequestConfig): Promise<any> {
     let httpResponse;
-    const axiosInstance = AxiosFactory.getAxiosInstance('default');
+    const axiosInstance = AxiosFactory.getAxiosInstance(Constants.DEFAULT_TENANT);
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
     // Set the Query String

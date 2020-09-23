@@ -1,4 +1,4 @@
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -48,7 +48,6 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   connectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string|string[];
-  currentServerLocalIPAddressPort?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;
   ocppStandardParameters?: KeyValue[];
@@ -116,6 +115,7 @@ export interface Connector {
   numberOfConnectedPhase?: number;
   currentType?: CurrentType;
   chargePointID?: number;
+  phaseAssignmentToGrid?: PhaseAssignmentToGrid;
 }
 
 export interface ConnectorMDB {
@@ -144,6 +144,13 @@ export interface ConnectorMDB {
   numberOfConnectedPhase?: number;
   currentType?: CurrentType;
   chargePointID?: number;
+  phaseAssignmentToGrid?: PhaseAssignmentToGrid;
+}
+
+export interface PhaseAssignmentToGrid {
+  csPhaseL1: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
+  csPhaseL2: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
+  csPhaseL3: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
 }
 
 export interface RemoteAuthorization {
@@ -280,11 +287,13 @@ export type OCPPParams = {
 };
 
 export enum ChargerVendor {
-  EBEE = 'Bender GmbH Co. KG',
+  BENDER = 'Bender GmbH Co. KG',
+  EBEE = 'Ebee',
   SCHNEIDER = 'Schneider Electric',
   WEBASTO = 'Webasto',
   DELTA = 'DELTA',
   ABB = 'ABB',
   LEGRAND = 'Legrand',
   ATESS = 'ATESS',
+  MENNEKES = 'MENNEKES',
 }

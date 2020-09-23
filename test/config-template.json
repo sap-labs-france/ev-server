@@ -59,5 +59,10 @@
     "advanceBillingAllowed": true,
     "immediateBillingAllowed": true,
     "periodicBillingAllowed": true
+  },
+  "smartCharging": {
+    "optimizerUrl": "",
+    "user": "",
+    "password": ""
   }
 }

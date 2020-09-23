@@ -6,6 +6,7 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import SiteContext from './context/SiteContext';
+import Tag from '../types/Tag';
 import TenantContext from './context/TenantContext';
 import User from '../types/User';
 import chaiSubset from 'chai-subset';
@@ -24,14 +25,16 @@ class TestData {
   public userService: CentralServerService;
   public siteContext: SiteContext;
   public newUser: User;
+  public newTag: Tag;
   public createdUsers: any[] = [];
+  public createdTags: any[] = [];
   public siteAreaContext: any;
   public chargingStationContext: ChargingStationContext;
 }
 
 const testData: TestData = new TestData();
 
-describe('User tests', function() {
+describe('User tests', function () {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -72,6 +75,11 @@ describe('User tests', function() {
         );
       });
       testData.createdUsers = [];
+      // Delete any created tag
+      testData.createdTags.forEach(async (tag) => {
+        await testData.centralUserService.userApi.deleteTag(tag.id)
+      });
+      testData.createdTags = [];
     });
 
     describe('Where admin user', () => {
@@ -146,44 +154,47 @@ describe('User tests', function() {
 
         it('Should be able to update the user', async () => {
           // Change entity
-          testData.newUser.name = 'New Name';
+          testData.newUser.name = 'NEW NAME';
           // Update
           await testData.userService.updateEntity(
             testData.userService.userApi,
             testData.newUser
           );
+        });
+
+        it('Should be able to create a tag for user', async () => {
+          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
+          const response = await testData.userService.userApi.createTag(testData.newTag);
+          expect(response.status).to.equal(200);
+          testData.createdTags.push(testData.newTag);
         });
 
         it('Should not be able to delete a badge that has already been used', async () => {
           const connectorId = 1;
-          const tagId = testData.newUser.tags[0].id;
+          const tagId = testData.newTag.id;
           const meterStart = 180;
           const startDate = moment();
-          const response = await testData.chargingStationContext.startTransaction(
+          let response = await testData.chargingStationContext.startTransaction(
             connectorId, tagId, meterStart, startDate.toDate());
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(response).to.be.transactionValid;
-          testData.newUser.tags = [testData.newUser.tags[1], testData.newUser.tags[2]];
-          // Update
-          await testData.userService.updateEntity(
-            testData.userService.userApi,
-            testData.newUser
-          );
-          testData.newUser = (await testData.userService.getEntityById(
-            testData.userService.userApi,
-            testData.newUser,
-            false
-          )).data;
-          // Check
-          const deactivatedTag = testData.newUser.tags.find((tag) => tag.id === tagId);
-          expect(testData.newUser.tags).has.lengthOf(3);
-          expect(deactivatedTag).to.not.be.null;
-          expect(deactivatedTag.active).to.equal(false);
+          response = await testData.userService.userApi.deleteTag(tagId);
+          expect(response.status).to.equal(575);
+          const tag = (await testData.userService.userApi.readTag(tagId)).data;
+          expect(tag).to.not.be.null;
+        });
+
+        it('Should be able to deactivate a badge', async () => {
+          testData.newTag.active = false;
+          const response = await testData.userService.userApi.updateTag(testData.newTag);
+          expect(response.status).to.equal(200);
+          const tag = (await testData.userService.userApi.readTag(testData.newTag.id)).data;
+          expect(tag.active).to.equal(false);
         });
 
         it('Should not be able to start a transaction with a deactivated badge', async () => {
           const connectorId = 1;
-          const tagId = testData.newUser.tags[0].id;
+          const tagId = testData.newTag.id;
           const meterStart = 180;
           const startDate = moment();
           const response = await testData.chargingStationContext.startTransaction(
@@ -193,23 +204,13 @@ describe('User tests', function() {
         });
 
         it('Should be able to delete a badge that has not been used', async () => {
-          const tagId = testData.newUser.tags[1].id;
-          testData.newUser.tags = [testData.newUser.tags[2]];
-          // Update
-          await testData.userService.updateEntity(
-            testData.userService.userApi,
-            testData.newUser
-          );
-          testData.newUser = (await testData.userService.getEntityById(
-            testData.userService.userApi,
-            testData.newUser,
-            false
-          )).data;
-          // Check
-          const deactivatedTag = testData.newUser.tags.find((tag) => tag.id === tagId);
-          expect(testData.newUser.tags).has.lengthOf(2);
-          expect(deactivatedTag).to.be.undefined;
-
+          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
+          let response = await testData.userService.userApi.createTag(testData.newTag);
+          expect(response.status).to.equal(200);
+          response = await testData.userService.userApi.deleteTag(testData.newTag.id);
+          expect(response.status).to.equal(200);
+          response = (await testData.userService.userApi.readTag(testData.newTag.id));
+          expect(response.status).to.equal(550);
         });
 
         it('Should find the updated user by id', async () => {

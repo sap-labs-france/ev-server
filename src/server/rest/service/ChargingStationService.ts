@@ -49,13 +49,24 @@ export default class ChargingStationService {
     // Check the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.id}' does not exist.`,
-      MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
+      MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
+    // OCPI Charging Station
+    if (!chargingStation.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Charging Station '${chargingStation.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+        user: req.user,
+        action: action
+      });
+    }
     let siteArea: SiteArea = null;
     // Check the Site Area
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
       UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist.`,
-        MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
+        MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
     }
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
@@ -106,6 +117,17 @@ export default class ChargingStationService {
     }
     // Update Site Area
     if (siteArea) {
+      // OCPI Site Area
+      if (!siteArea.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          user: req.user,
+          action: action
+        });
+      }
       chargingStation.siteAreaID = siteArea.id;
       // Check number of phases corresponds to the site area one
       if (filteredRequest.connectors) {
@@ -136,18 +158,23 @@ export default class ChargingStationService {
         filteredRequest.coordinates[1]
       ];
     }
-    // No charge point
-    if ((!chargingStation.chargePoints || chargingStation.chargePoints.length === 0) && filteredRequest.connectors) {
-      // Update Connectors
+    // Existing Connectors
+    if (!Utils.isEmptyArray(filteredRequest.connectors)) {
       for (const filteredConnector of filteredRequest.connectors) {
-        // Set
         const connector = Utils.getConnectorFromID(chargingStation, filteredConnector.connectorId);
-        connector.type = filteredConnector.type;
-        connector.power = filteredConnector.power;
-        connector.amperage = filteredConnector.amperage;
-        connector.voltage = filteredConnector.voltage;
-        connector.currentType = filteredConnector.currentType;
-        connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
+        // Update Connectors only if no Charge Point is defined
+        if (connector && Utils.isEmptyArray(chargingStation.chargePoints)) {
+          connector.type = filteredConnector.type;
+          connector.power = filteredConnector.power;
+          connector.amperage = filteredConnector.amperage;
+          connector.voltage = filteredConnector.voltage;
+          connector.currentType = filteredConnector.currentType;
+          connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
+        }
+        // Phase Assignment
+        if (siteArea?.numberOfPhases === 3) {
+          connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+        }
       }
     }
     // Update timestamp
@@ -416,8 +443,19 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${req.body.ChargingStationID}' does not exist.`,
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargingStationID}' does not exist.`,
       MODULE_NAME, 'handleUpdateChargingProfile', req.user);
+    // OCPI Charging Station
+    if (!chargingStation.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Charging Station '${chargingStation.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateChargingProfile',
+        user: req.user,
+        action: action
+      });
+    }
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
     UtilsService.assertObjectExists(action, chargePoint, `Charge Point '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'handleUpdateChargingProfile', req.user);
@@ -470,6 +508,17 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingProfile.chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingProfile.chargingStationID}' does not exist.`,
       MODULE_NAME, 'handleDeleteChargingProfile', req.user);
+    // OCPI Charging Station
+    if (!chargingStation.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Charging Station '${chargingStation.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleDeleteChargingProfile',
+        user: req.user,
+        action: action
+      });
+    }
     // Check Component
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
@@ -573,9 +622,19 @@ export default class ChargingStationService {
       'handleDeleteChargingStation', req.user);
     // Get
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
-    // Check
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${chargingStationID}' does not exist`,
       MODULE_NAME, 'handleDeleteChargingStation', req.user);
+    // OCPI Charging Station
+    if (!chargingStation.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Charging Station '${chargingStation.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleDeleteChargingStation',
+        user: req.user,
+        action: action
+      });
+    }
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
@@ -959,8 +1018,8 @@ export default class ChargingStationService {
         });
       }
       // Check if user is authorized
-      await Authorizations.isAuthorizedToStopTransaction(
-        req.user.tenantID, chargingStation, transaction, req.user.tagIDs[0]);
+      await Authorizations.isAuthorizedToStopTransaction(req.user.tenantID, chargingStation, transaction, req.user.tagIDs[0],
+        ServerAction.STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
       // Set the tag ID to handle the Stop Transaction afterwards
       transaction.remotestop = {
         timestamp: new Date(),
@@ -987,8 +1046,8 @@ export default class ChargingStationService {
         });
       }
       // Check if user is authorized
-      await Authorizations.isAuthorizedToStartTransaction(
-        req.user.tenantID, chargingStation, filteredRequest.args.tagID);
+      await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID,
+        ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, Action.REMOTE_START_TRANSACTION);
       // Ok: Execute it
       result = await this.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
@@ -1028,7 +1087,7 @@ export default class ChargingStationService {
       } else {
         // Connector ID > 0
         const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
-        const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+        const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
         result = await chargingStationVendor.getCompositeSchedule(
           req.user.tenantID, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration);
       }

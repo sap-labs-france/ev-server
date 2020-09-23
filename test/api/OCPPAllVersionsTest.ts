@@ -77,10 +77,6 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
         });
@@ -184,10 +180,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
-
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start a transaction with connectorId as string', async () => {
@@ -675,10 +667,6 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
         });
@@ -847,10 +835,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
-
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start a transaction with connectorId as string', async () => {

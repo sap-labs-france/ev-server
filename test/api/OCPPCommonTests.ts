@@ -8,6 +8,7 @@ import Constants from '../../src/utils/Constants';
 import Factory from '../factories/Factory';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import { PricingSettingsType } from '../../src/types/Setting';
+import Tag from '../types/Tag';
 import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
@@ -75,7 +76,9 @@ export default class OCPPCommonTests {
   public validTag: string;
   public invalidTag: string;
   public anyUser: User;
+  public anyTag: Tag;
   public createdUsers: User[] = [];
+  public createdTags: Tag[] = [];
 
   public constructor(tenantContext: TenantContext, centralUserContext, createAnyUser = false) {
     expect(tenantContext).to.exist;
@@ -222,17 +225,20 @@ export default class OCPPCommonTests {
     this.invalidTag = faker.random.alphaNumeric(21).toString();
     this.numberTag = faker.random.number(10000);
     if (this.createAnyUser) {
-      this.anyUser = await this.createUser(Factory.user.build({
-        tags: [
-          { id: this.validTag, issuer: true, active: true },
-          { id: this.invalidTag, issuer: true, active: true },
-          { id: this.numberTag.toString(), issuer: true, active: true }
-        ]
-      }));
+      this.anyUser = await this.createUser(Factory.user.build());
       if (!this.createdUsers) {
         this.createdUsers = [];
       }
       this.createdUsers.push(this.anyUser);
+      if (!this.createdTags) {
+        this.createdTags = [];
+      }
+      this.anyTag = (await this.createTag(Factory.tag.build({ id: this.validTag, userID: this.anyUser.id }))).data;
+      this.createdTags.push(this.anyTag);
+      this.anyTag = (await this.createTag(Factory.tag.build({ id: this.invalidTag, userID: this.anyUser.id }))).data;
+      this.createdTags.push(this.anyTag);
+      this.anyTag = (await this.createTag(Factory.tag.build({ id: this.numberTag.toString(), userID: this.anyUser.id }))).data;
+      this.createdTags.push(this.anyTag);
     }
   }
 
@@ -245,6 +251,12 @@ export default class OCPPCommonTests {
       this.createdUsers.forEach(async (user) => {
         await this.centralUserService.deleteEntity(
           this.centralUserService.userApi, user);
+      });
+    }
+    if (this.createdTags && Array.isArray(this.createdTags)) {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      this.createdTags.forEach(async (tag) => {
+        await this.centralUserService.userApi.deleteTag(tag.id);
       });
     }
   }
@@ -751,22 +763,6 @@ export default class OCPPCommonTests {
     await this.testAuthorize(null, OCPPAuthorizationStatus.INVALID);
   }
 
-  public async testAuthorizeUnknownTag() {
-    const unknownTag = faker.random.alphaNumeric(8);
-    await this.testAuthorize(unknownTag, OCPPAuthorizationStatus.INVALID);
-    const usersResponse = await this.centralUserService.userApi.getByTag(unknownTag);
-    expect(usersResponse.status).eq(200);
-    expect(usersResponse.data.count).eq(1);
-    const user = usersResponse.data.result[0];
-    this.createdUsers.push(user);
-    expect(user.name).eq('Unknown');
-    expect(user.firstName).eq('User');
-    expect(user.email).eq(`${unknownTag}@e-mobility.com`);
-    expect(user.role).eq('B');
-    expect(user.tags.length).eq(1);
-    expect(user.tags[0].id).eq(unknownTag);
-  }
-
   public async testStartTransactionWithConnectorIdAsString() {
     const response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
@@ -1073,6 +1069,11 @@ export default class OCPPCommonTests {
   private async createUser(user = Factory.user.build()) {
     const createdUser = await this.centralUserService.createEntity(this.centralUserService.userApi, user);
     return createdUser;
+  }
+
+  private async createTag(tag: Tag) {
+    const createdTag = await this.centralUserService.userApi.createTag(tag);
+    return createdTag;
   }
 
   private async testAuthorize(tagId, expectedStatus) {

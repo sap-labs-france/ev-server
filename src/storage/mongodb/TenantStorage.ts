@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -9,7 +11,6 @@ import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'TenantStorage';
 
@@ -21,19 +22,19 @@ export default class TenantStorage {
     const tenantsMDB = await TenantStorage.getTenants({ tenantIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTenant', uniqueTimerID, { id });
-    return tenantsMDB.count > 0 ? tenantsMDB.result[0] : null;
+    return tenantsMDB.count === 1 ? tenantsMDB.result[0] : null;
   }
 
   public static async getTenantByName(name: string): Promise<Tenant> {
     // Delegate querying
     const tenantsResult = await TenantStorage.getTenants({ tenantName: name }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return tenantsResult.count > 0 ? tenantsResult.result[0] : null;
+    return tenantsResult.count === 1 ? tenantsResult.result[0] : null;
   }
 
   public static async getTenantBySubdomain(subdomain: string): Promise<Tenant> {
     // Delegate querying
     const tenantsResult = await TenantStorage.getTenants({ tenantSubdomain: subdomain }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return tenantsResult.count > 0 ? tenantsResult.result[0] : null;
+    return tenantsResult.count === 1 ? tenantsResult.result[0] : null;
   }
 
   public static async saveTenant(tenantToSave: Partial<Tenant>, saveLogo = true): Promise<string> {
@@ -126,7 +127,7 @@ export default class TenantStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [

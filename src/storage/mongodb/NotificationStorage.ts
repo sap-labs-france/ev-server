@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
@@ -6,7 +8,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { Notification } from '../../types/UserNotifications';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'NotificationStorage';
 
@@ -29,7 +30,7 @@ export default class NotificationStorage {
     // Create Aggregation
     const aggregation: any[] = [];
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Set Date From?
     if (params.dateFrom) {
       filters.timestamp = {};
