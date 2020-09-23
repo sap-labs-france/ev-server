@@ -44,10 +44,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
-        Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION,
-        Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION,Action.STOP_TRANSACTION,Action.START_TRANSACTION, Action.UNLOCK_CONNECTOR,
-        Action.AUTHORIZE, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE, Action.CLEAR_CHARGING_PROFILE,
-        Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.EXPORT_PARAMS, Action.CHANGE_AVAILABILITY], attributes: ['*']
+          Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION,
+          Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION, Action.START_TRANSACTION,
+          Action.UNLOCK_CONNECTOR, Action.AUTHORIZE, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
+          Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.EXPORT_PARAMS,
+          Action.CHANGE_AVAILABILITY], attributes: ['*']
       },
       { resource: Entity.TRANSACTIONS, action: Action.LIST, attributes: ['*'] },
       {
@@ -65,7 +66,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
       { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE], attributes: ['*'] },
-      { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*'] },
+      { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
+        Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -259,11 +261,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CHARGING_STATION,
-        action: [Action.UPDATE, Action.DELETE,
-        Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION,
-        Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE, Action.CLEAR_CHARGING_PROFILE,
-        Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION,Action.STOP_TRANSACTION,, Action.EXPORT_PARAMS,
-        Action.CHANGE_AVAILABILITY],
+        action: [Action.UPDATE, Action.DELETE, Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION,
+          Action.CHANGE_CONFIGURATION, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
+          Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION,
+          Action.STOP_TRANSACTION, Action.EXPORT_PARAMS, Action.CHANGE_AVAILABILITY],
         attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
