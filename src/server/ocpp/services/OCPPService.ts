@@ -553,7 +553,7 @@ export default class OCPPService {
       startTransaction.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check Authorization with Tag ID
       const user = await Authorizations.isAuthorizedToStartTransaction(
-        headers.tenantID, chargingStation, startTransaction.tagID, ServerAction.START_TRANSACTION);
+        headers.tenantID, chargingStation, startTransaction.tagID, ServerAction.START_TRANSACTION, Action.START_TRANSACTION);
       if (user) {
         startTransaction.userID = user.id;
       }
@@ -761,7 +761,7 @@ export default class OCPPService {
       if (!stoppedByCentralSystem) {
         // Check and get users
         const users = await Authorizations.isAuthorizedToStopTransaction(
-          headers.tenantID, chargingStation, transaction, tagId, ServerAction.STOP_TRANSACTION);
+          headers.tenantID, chargingStation, transaction, tagId, ServerAction.STOP_TRANSACTION, Action.STOP_TRANSACTION);
         user = users.user;
         alternateUser = users.alternateUser;
       } else {

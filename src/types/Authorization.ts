@@ -100,6 +100,8 @@ export enum Action {
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
   REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
   REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
+  START_TRANSACTION = 'StartTransaction',
+  STOP_TRANSACTION = 'StopTransaction',
   UNLOCK_CONNECTOR = 'UnlockConnector',
   AUTHORIZE = 'Authorize',
   SET_CHARGING_PROFILE = 'SetChargingProfile',
