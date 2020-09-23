@@ -341,19 +341,19 @@ describe('OCPP tests (all versions)', function() {
 
         });
 
-        // describe('Where unassigned basic user', () => {
+        describe('Where unassigned basic user', () => {
 
-        //   before(() => {
-        //     testData.ocppCommonTests.setUsers(
-        //       testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
-        //     );
-        //   });
+          before(() => {
+            testData.ocppCommonTests.setUsers(
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+            );
+          });
 
-        //   it('Should not authorize transaction', async () => {
-        //     await testData.ocppCommonTests.testStartTransaction(false);
-        //   });
+          it('Should not authorize transaction', async () => {
+            await testData.ocppCommonTests.testStartTransaction(false);
+          });
 
-        // });
+        });
 
         describe('Where admin user', () => {
 
@@ -512,19 +512,19 @@ describe('OCPP tests (all versions)', function() {
 
         });
 
-        // describe('Where unassigned basic user', () => {
+        describe('Where unassigned basic user', () => {
 
-        //   before(() => {
-        //     testData.ocppCommonTests.setUsers(
-        //       testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
-        //     );
-        //   });
+          before(() => {
+            testData.ocppCommonTests.setUsers(
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+            );
+          });
 
-        //   it('Should not authorize transaction', async () => {
-        //     await testData.ocppCommonTests.testStartTransaction(false);
-        //   });
+          it('Should not authorize transaction', async () => {
+            await testData.ocppCommonTests.testStartTransaction(false);
+          });
 
-        // });
+        });
 
         describe('Where admin user', () => {
 
