@@ -27,12 +27,12 @@ steps:
   executeWhitesourceScan:
     scanType: npm
    
-  #executeCheckmarxScan:
-    #checkmarxProject: 'SAP_STH_LP_IO_100'
-    ##checkmarxGroupId: 'd7374377-1bb0-402e-ae37-88995b5c1d2c'
-    ##preset: 100126 # SAP_Default_SAPUI5_NodeJS
-    #checkmarxCredentialsId: 'lpx_brazil_checkmarx'
-    #filterPattern: '!**/node_modules/**, !**/coverage/**, !**/coverage-tmp/**, !**/.xmake/**, !**/tests/**, !**/jest.config.js, !**/*_test.go, !**/vendor/**/*.go, **/*.html, **/*.xml, **/*.go, **/*.py, **/*.js, **/*.scala, **/*.ts, **/*.tsx'
+  executeCheckmarxScan:
+    checkmarxProject: 'ev-server'
+    #checkmarxGroupId: 'd7374377-1bb0-402e-ae37-88995b5c1d2c'
+    #preset: 100126 # SAP_Default_SAPUI5_NodeJS
+    checkmarxCredentialsId: 'checkmarx-i030367-access'
+    filterPattern: '!**/node_modules/**, !**/coverage/**, !**/coverage-tmp/**, !**/.xmake/**, !**/tests/**, !**/jest.config.js, !**/*_test.go, !**/vendor/**/*.go, **/*.html, **/*.xml, **/*.go, **/*.py, **/*.js, **/*.scala, **/*.ts, **/*.tsx'
       
   sapCheckPPMSCompliance:
     ppmsID: '73554900100200014452'
