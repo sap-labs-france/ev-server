@@ -1623,7 +1623,7 @@ export default class Utils {
   }
 
   public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
-    // Check that the Badge ID is not already used
+    // Check authorization
     if (!Authorizations.isAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1633,7 +1633,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    // Check params
+    // Check badge ID
     if (!tag.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1643,9 +1643,11 @@ export default class Utils {
         user: req.user.id
       });
     }
+    // Check description
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;
     }
+    // Check user ID
     if (!tag.userID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1655,6 +1657,7 @@ export default class Utils {
         user: req.user.id
       });
     }
+    // Check user activation
     if (!Utils.objectHasProperty(tag, 'active')) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

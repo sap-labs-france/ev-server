@@ -13,7 +13,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'OCPPStorage';
 
 export default class OCPPStorage {
-  static async saveAuthorize(tenantID: string, authorize: OCPPAuthorizeRequestExtended) {
+  static async saveAuthorize(tenantID: string, authorize: OCPPAuthorizeRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveAuthorize');
     // Check Tenant
@@ -102,7 +102,7 @@ export default class OCPPStorage {
     };
   }
 
-  static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended) {
+  static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveHeartbeat');
     // Check Tenant
@@ -242,7 +242,7 @@ export default class OCPPStorage {
     return statusNotificationsMDB;
   }
 
-  static async saveStatusNotification(tenantID: string, statusNotificationToSave: OCPPStatusNotificationRequestExtended) {
+  static async saveStatusNotification(tenantID: string, statusNotificationToSave: OCPPStatusNotificationRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveStatusNotification');
     // Set
@@ -268,7 +268,7 @@ export default class OCPPStorage {
     Logging.traceEnd(MODULE_NAME, 'saveStatusNotification', uniqueTimerID);
   }
 
-  static async saveDataTransfer(tenantID: string, dataTransfer: OCPPDataTransferRequestExtended) {
+  static async saveDataTransfer(tenantID: string, dataTransfer: OCPPDataTransferRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveDataTransfer');
     // Check Tenant
@@ -290,7 +290,7 @@ export default class OCPPStorage {
     Logging.traceEnd(MODULE_NAME, 'saveDataTransfer', uniqueTimerID);
   }
 
-  static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotificationRequestExtended) {
+  static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotificationRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveBootNotification');
     // Check Tenant
@@ -375,7 +375,7 @@ export default class OCPPStorage {
     };
   }
 
-  static async saveDiagnosticsStatusNotification(tenantID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended) {
+  static async saveDiagnosticsStatusNotification(tenantID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveDiagnosticsStatusNotification');
     // Check Tenant
@@ -394,7 +394,7 @@ export default class OCPPStorage {
     Logging.traceEnd(MODULE_NAME, 'saveDiagnosticsStatusNotification', uniqueTimerID);
   }
 
-  static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended) {
+  static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveFirmwareStatusNotification');
     // Check Tenant

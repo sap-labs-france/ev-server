@@ -170,7 +170,7 @@ export default class TenantContext {
             conditionMet = (userContextDef ? params[key] === userContextDef.assignedToSite : false);
           }
         } else if (key === 'withTags') {
-          user.tags = this.context.tags.filter(tag => tag.userID === user.id);
+          user.tags = this.context.tags.filter((tag) => tag.userID === user.id);
           if (conditionMet !== null) {
             conditionMet = conditionMet && (params[key] ? !Utils.isEmptyArray(user.tags) : Utils.isEmptyArray(user.tags));
           } else {
