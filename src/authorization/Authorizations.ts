@@ -675,6 +675,14 @@ export default class Authorizations {
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
     transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
+    if (!Utils.isUpperCase(tagID)) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: action,
+        module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+        message: `Tag ID '${tagID}' is not upper case. Check charging station ${chargingStation.id} configuration`,
+      });
+    }
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
@@ -746,6 +754,7 @@ export default class Authorizations {
     if (!tag.active) {
       throw new BackendError({
         source: chargingStation.id,
+        action: action,
         message: `Tag ID '${tagID}' is not active`,
         module: MODULE_NAME,
         method: 'isTagIDAuthorizedOnChargingStation',
@@ -756,6 +765,7 @@ export default class Authorizations {
     if (!tag.user) {
       throw new BackendError({
         source: chargingStation.id,
+        action: action,
         message: `Tag ID '${tagID}' is not assigned to a User`,
         module: MODULE_NAME,
         method: 'isTagIDAuthorizedOnChargingStation',
@@ -767,6 +777,7 @@ export default class Authorizations {
       // Reject but save ok
       throw new BackendError({
         source: chargingStation.id,
+        action: action,
         message: `User with Tag ID '${tagID}' has the status '${Utils.getStatusDescription(tag.user.status)}'`,
         module: MODULE_NAME,
         method: 'isTagIDAuthorizedOnChargingStation',
@@ -791,6 +802,7 @@ export default class Authorizations {
       if (!Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
         throw new BackendError({
           source: chargingStation.id,
+          action: action,
           message: `User with Tag ID '${tagID}' is not authorized to perform the action '${authAction}'`,
           module: MODULE_NAME,
           method: 'isTagIDAuthorizedOnChargingStation',

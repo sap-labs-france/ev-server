@@ -277,6 +277,10 @@ export default class Utils {
     return typeof obj === 'undefined';
   }
 
+  public static isUpperCase(string: string): boolean {
+    return string === string.toUpperCase();
+  }
+
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,
@@ -1623,7 +1627,7 @@ export default class Utils {
   }
 
   public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
-    // Check that the Badge ID is not already used
+    // Check authorization
     if (!Authorizations.isAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1633,7 +1637,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    // Check params
+    // Check badge ID
     if (!tag.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1643,9 +1647,20 @@ export default class Utils {
         user: req.user.id
       });
     }
+    // Check badge ID case
+    if (!Utils.isUpperCase(tag.id)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag ID is is not upper case',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;
     }
+    // Check user ID
     if (!tag.userID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1655,6 +1670,7 @@ export default class Utils {
         user: req.user.id
       });
     }
+    // Check user activation
     if (!Utils.objectHasProperty(tag, 'active')) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

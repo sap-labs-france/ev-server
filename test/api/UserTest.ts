@@ -34,7 +34,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('User tests', function () {
+describe('User tests', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -77,7 +77,7 @@ describe('User tests', function () {
       testData.createdUsers = [];
       // Delete any created tag
       testData.createdTags.forEach(async (tag) => {
-        await testData.centralUserService.userApi.deleteTag(tag.id)
+        await testData.centralUserService.userApi.deleteTag(tag.id);
       });
       testData.createdTags = [];
     });
