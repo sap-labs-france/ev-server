@@ -2,7 +2,7 @@ import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingS
 import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, SiteAreaLimitSource } from '../types/ChargingStation';
-import Transaction, { InactivityStatus } from '../types/Transaction';
+import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -73,33 +73,63 @@ export default class Utils {
 
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    let threePhases = true;
     if (currentType === CurrentType.AC &&
-      (transaction.currentInstantAmpsL1 > 0 &&
-        (transaction.currentInstantAmpsL2 === 0 ||
-          transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL2 > 0 &&
-        (transaction.currentInstantAmpsL1 === 0 ||
-          transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL3 > 0 &&
-        (transaction.currentInstantAmpsL1 === 0 ||
-          transaction.currentInstantAmpsL2 === 0))) {
-      threePhases = false;
+       (transaction.currentInstantAmpsL1 > 0 && (transaction.currentInstantAmpsL2 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+       (transaction.currentInstantAmpsL2 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+       (transaction.currentInstantAmpsL3 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL2 === 0))) {
+      return false;
     }
-    return threePhases;
+    return true;
   }
 
-  public static getNumberOfUsedPhaseInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
+  public static getUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): CSPhasesUsed {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    let nbrOfPhases = 0;
-    if (currentType === CurrentType.AC) {
+    // AC Chargers
+    if (currentType === CurrentType.AC && Utils.checkIfPhasesProvidedInTransactionInProgress(transaction)) {
+      const cSPhasesUsed: CSPhasesUsed = {
+        csPhase1: false,
+        csPhase2: false,
+        csPhase3: false
+      };
+      // Check current consumption
       if (transaction.currentInstantAmpsL1 > 0) {
-        nbrOfPhases++;
+        cSPhasesUsed.csPhase1 = true;
       }
       if (transaction.currentInstantAmpsL2 > 0) {
-        nbrOfPhases++;
+        cSPhasesUsed.csPhase2 = true;
       }
       if (transaction.currentInstantAmpsL3 > 0) {
+        cSPhasesUsed.csPhase3 = true;
+      }
+      return cSPhasesUsed;
+    }
+    // Standard on three phases
+    return {
+      csPhase1: true,
+      csPhase2: true,
+      csPhase3: true
+    };
+  }
+
+  public static checkIfPhasesProvidedInTransactionInProgress(transaction: Transaction): boolean {
+    return transaction.currentInstantAmps > 0 &&
+      (transaction.currentInstantAmpsL1 > 0 ||
+       transaction.currentInstantAmpsL2 > 0 ||
+       transaction.currentInstantAmpsL3 > 0);
+  }
+
+  public static getNumberOfUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    let nbrOfPhases = -1;
+    if (currentType === CurrentType.AC && transaction.phasesUsed) {
+      nbrOfPhases = 0;
+      if (transaction.phasesUsed.csPhase1) {
+        nbrOfPhases++;
+      }
+      if (transaction.phasesUsed.csPhase2) {
+        nbrOfPhases++;
+      }
+      if (transaction.phasesUsed.csPhase3) {
         nbrOfPhases++;
       }
     }
