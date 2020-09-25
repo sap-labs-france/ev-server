@@ -726,7 +726,7 @@ export default class Authorizations {
       // Create the tag as inactive
       tag = {
         id: tagID,
-        description: `Badged on Charging Station '${chargingStation.id}'`,
+        description: `Badged on '${chargingStation.id}'`,
         issuer: true,
         active: false,
         createdOn: new Date()
