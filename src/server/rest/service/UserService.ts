@@ -1227,7 +1227,7 @@ export default class UserService {
       id: filteredRequest.id,
       description: filteredRequest.description,
       issuer: true,
-      active: true,
+      active: filteredRequest.active,
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       userID: filteredRequest.userID
