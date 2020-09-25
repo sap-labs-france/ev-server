@@ -356,6 +356,12 @@ export default class OCPPService {
             // Save all
             await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
           }
+          // Get the phases really used from Meter Values (for AC single phase charger/car)
+          if (!transaction.phasesUsed &&
+              Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
+              transaction.numberOfMeterValues >= 1) {
+            transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
+          }
           // Handle OCPI
           await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
           // Save Transaction
@@ -364,8 +370,8 @@ export default class OCPPService {
           await this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
-          // First Meter Value and no Car -> Trigger Smart Charging to adjust the single phase Car
-          if (transaction.numberOfMeterValues === 1 && !transaction.carID &&
+          // First Meter Value -> Trigger Smart Charging to adjust the single phase Car
+          if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed &&
               !Utils.isTransactionInProgressOnThreePhases(chargingStation, transaction)) {
             // Yes: Trigger Smart Charging
             await this.triggerSmartCharging(headers.tenantID, chargingStation);

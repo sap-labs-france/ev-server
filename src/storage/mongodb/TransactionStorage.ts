@@ -94,6 +94,13 @@ export default class TransactionStorage {
       currentInstantAmpsL3: Utils.convertToInt(transactionToSave.currentInstantAmpsL3),
       currentInstantAmpsDC: Utils.convertToInt(transactionToSave.currentInstantAmpsDC),
     };
+    if (transactionToSave.phasesUsed) {
+      transactionMDB.phasesUsed = {
+        csPhase1: Utils.convertToBoolean(transactionToSave.phasesUsed.csPhase1),
+        csPhase2: Utils.convertToBoolean(transactionToSave.phasesUsed.csPhase2),
+        csPhase3: Utils.convertToBoolean(transactionToSave.phasesUsed.csPhase3),
+      };
+    }
     if (transactionToSave.stop) {
       // Add stop
       transactionMDB.stop = {
@@ -250,7 +257,7 @@ export default class TransactionStorage {
     params: {
       transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorId?: number; startDateTime?: Date;
-      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: string[];
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
       ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
       ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean;
       statistics?: 'refund' | 'history'; refundStatus?: string[];
@@ -320,6 +327,10 @@ export default class TransactionStorage {
     // Charge Box
     if (params.chargeBoxIDs) {
       filters.chargeBoxID = { $in: params.chargeBoxIDs };
+    }
+    // Tag
+    if (params.tagIDs) {
+      filters.tagID = { $in: params.tagIDs };
     }
     // Connector
     if (params.connectorId) {
