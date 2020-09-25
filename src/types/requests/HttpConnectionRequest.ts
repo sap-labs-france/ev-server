@@ -1,5 +1,5 @@
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpConnectionsRequest extends HttpDatabaseRequest {
-  userId?: string;
+  UserID?: string;
 }

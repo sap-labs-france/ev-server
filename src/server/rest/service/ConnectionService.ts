@@ -71,7 +71,7 @@ export default class ConnectionService {
     // Filter
     const filteredRequest = ConnectionSecurity.filterConnectionsRequest(req.query);
     // Get
-    const connections = await ConnectionStorage.getConnectionsByUserId(req.user.tenantID, filteredRequest.userId);
+    const connections = await ConnectionStorage.getConnectionsByUserId(req.user.tenantID, filteredRequest.UserID);
     // Filter
     ConnectionSecurity.filterConnectionsResponse(connections, req.user);
     // Return
