@@ -118,11 +118,11 @@ export default class Utils {
        transaction.currentInstantAmpsL3 > 0);
   }
 
-  public static getNumberOfUsedPhaseInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
+  public static getNumberOfUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    // Default 3 phases
-    let nbrOfPhases = 3;
+    let nbrOfPhases = -1;
     if (currentType === CurrentType.AC && transaction.phasesUsed) {
+      nbrOfPhases = 0;
       if (transaction.phasesUsed.csPhase1) {
         nbrOfPhases++;
       }
