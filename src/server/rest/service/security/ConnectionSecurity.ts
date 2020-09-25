@@ -21,7 +21,7 @@ export default class ConnectionSecurity {
 
   public static filterConnectionsRequest(request: any): HttpConnectionsRequest {
     const filteredRequest: HttpConnectionsRequest = {
-      userId: sanitize(request.userId)
+      UserID: sanitize(request.UserID)
     } as HttpConnectionsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
