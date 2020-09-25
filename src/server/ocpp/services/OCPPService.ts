@@ -356,7 +356,9 @@ export default class OCPPService {
             // Save all
             await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
           }
-          if (!transaction.phasesUsed && Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
+          // Get the phases really used from Meter Values (for AC single phase charger/car)
+          if (!transaction.phasesUsed &&
+              Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
               transaction.numberOfMeterValues >= 1) {
             transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
           }

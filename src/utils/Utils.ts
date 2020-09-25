@@ -73,20 +73,13 @@ export default class Utils {
 
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    let threePhases = true;
     if (currentType === CurrentType.AC &&
-      (transaction.currentInstantAmpsL1 > 0 &&
-        (transaction.currentInstantAmpsL2 === 0 ||
-          transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL2 > 0 &&
-        (transaction.currentInstantAmpsL1 === 0 ||
-          transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL3 > 0 &&
-        (transaction.currentInstantAmpsL1 === 0 ||
-          transaction.currentInstantAmpsL2 === 0))) {
-      threePhases = false;
+       (transaction.currentInstantAmpsL1 > 0 && (transaction.currentInstantAmpsL2 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+       (transaction.currentInstantAmpsL2 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+       (transaction.currentInstantAmpsL3 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL2 === 0))) {
+      return false;
     }
-    return threePhases;
+    return true;
   }
 
   public static getUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): CSPhasesUsed {
@@ -109,26 +102,26 @@ export default class Utils {
         cSPhasesUsed.csPhase3 = true;
       }
       return cSPhasesUsed;
-    // Standard on three phases
     }
+    // Standard on three phases
     return {
       csPhase1: true,
       csPhase2: true,
-      csPhase3: true };
+      csPhase3: true
+    };
   }
 
   public static checkIfPhasesProvidedInTransactionInProgress(transaction: Transaction): boolean {
-    if (transaction.currentInstantAmps) {
-      if (transaction.currentInstantAmpsL1 > 0 || transaction.currentInstantAmpsL2 > 0 || transaction.currentInstantAmpsL3 > 0) {
-        return true;
-      }
-    }
-    return false;
+    return transaction.currentInstantAmps > 0 &&
+      (transaction.currentInstantAmpsL1 > 0 ||
+       transaction.currentInstantAmpsL2 > 0 ||
+       transaction.currentInstantAmpsL3 > 0);
   }
 
   public static getNumberOfUsedPhaseInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    let nbrOfPhases = 0;
+    // Default 3 phases
+    let nbrOfPhases = 3;
     if (currentType === CurrentType.AC && transaction.phasesUsed) {
       if (transaction.phasesUsed.csPhase1) {
         nbrOfPhases++;
