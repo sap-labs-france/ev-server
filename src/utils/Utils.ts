@@ -1643,7 +1643,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    // Check badge ID case
+    // Check description
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;
     }
