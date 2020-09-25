@@ -277,10 +277,6 @@ export default class Utils {
     return typeof obj === 'undefined';
   }
 
-  public static isUpperCase(string: string): boolean {
-    return string === string.toUpperCase();
-  }
-
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,
@@ -1648,15 +1644,6 @@ export default class Utils {
       });
     }
     // Check badge ID case
-    if (!Utils.isUpperCase(tag.id)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag ID is is not upper case',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user.id
-      });
-    }
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;
     }

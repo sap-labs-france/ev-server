@@ -675,14 +675,6 @@ export default class Authorizations {
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
     transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
-    if (!Utils.isUpperCase(tagID)) {
-      throw new BackendError({
-        source: chargingStation.id,
-        action: action,
-        module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-        message: `Tag ID '${tagID}' is not upper case. Check charging station ${chargingStation.id} configuration`,
-      });
-    }
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
