@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } f
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 
 import Constants from './Constants';
+import HttpStatusCodes from 'http-status-codes';
 import Logging from './Logging';
 
 const MODULE_NAME = 'AxiosFactory';
@@ -10,7 +11,8 @@ export default class AxiosFactory {
   private static axiosInstances: Map<string, AxiosInstance> = new Map();
   private static readonly maxRetries: number = 3;
 
-  private constructor() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() { }
 
   // All could have been done at 'axios' level normally!
   public static getAxiosInstance(tenantID: string, instanceConfiguration?: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig }): AxiosInstance {
@@ -60,9 +62,20 @@ export default class AxiosFactory {
     if (!axiosRetryConfig.retries) {
       axiosRetryConfig.retries = AxiosFactory.maxRetries;
     }
+    if (!axiosRetryConfig.retryCondition) {
+      axiosRetryConfig.retryCondition = AxiosFactory.isNetworkOrDefaultIdempotentRequestError.bind(this);
+    }
     if (!axiosRetryConfig.retryDelay) {
       axiosRetryConfig.retryDelay = axiosRetry.exponentialDelay.bind(this);
     }
     axiosRetry(axiosInstance, axiosRetryConfig);
+  }
+
+  private static isNetworkOrDefaultIdempotentRequestError(error: AxiosError): boolean {
+    const noRetryHTTPErrorCodes: number[] = [HttpStatusCodes.UNAUTHORIZED, HttpStatusCodes.FORBIDDEN, HttpStatusCodes.NOT_FOUND, HttpStatusCodes.NOT_IMPLEMENTED];
+    if (noRetryHTTPErrorCodes.includes(error.response.status)) {
+      return false;
+    }
+    return axiosRetry.isNetworkOrIdempotentRequestError(error);
   }
 }
