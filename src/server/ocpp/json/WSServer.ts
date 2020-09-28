@@ -5,6 +5,8 @@ import CentralSystemServerConfiguration from '../../../types/configuration/Centr
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import StatisticSecurity from '../../rest/service/security/StatisticSecurity';
+import { StatusCodes } from 'http-status-codes';
 import Utils from '../../../utils/Utils';
 import cluster from 'cluster';
 import fs from 'fs';
@@ -73,13 +75,13 @@ export default class WSServer extends WebSocket.Server {
       options.cert = fs.readFileSync(serverConfig['ssl-cert']);
       // Https server
       httpServer = https.createServer(options, (req, res) => {
-        res.writeHead(200);
+        res.writeHead(StatusCodes.OK);
         res.end('No support\n');
       });
     } else {
       // Http server
       httpServer = http.createServer((req, res) => {
-        res.writeHead(200);
+        res.writeHead(StatusCodes.OK);
         res.end('No support\n');
       });
     }

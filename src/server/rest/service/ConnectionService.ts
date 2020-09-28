@@ -9,10 +9,10 @@ import ConnectionSecurity from './security/ConnectionSecurity';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import ConnectionValidator from '../validation/ConnectionValidator';
 import Constants from '../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../utils/Logging';
 import RefundFactory from '../../../integration/refund/RefundFactory';
 import { ServerAction } from '../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'ConnectionService';
@@ -107,7 +107,7 @@ export default class ConnectionService {
       action: action
     });
     // Ok
-    res.status(HttpStatusCodes.OK).json(Object.assign({ id: req.user.tenantID }, Constants.REST_RESPONSE_SUCCESS));
+    res.status(StatusCodes.OK).json(Object.assign({ id: req.user.tenantID }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 

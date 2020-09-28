@@ -1,4 +1,5 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -94,8 +95,8 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
       // Send success
-      unregisterResult.statusCode = 200;
-      unregisterResult.statusText = 'OK';
+      unregisterResult.statusCode = StatusCodes.OK;
+      unregisterResult.statusText = ReasonPhrases.OK;
     } catch (error) {
       unregisterResult.message = error.message;
       unregisterResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
@@ -148,8 +149,8 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
       // Send success
-      registerResult.statusCode = 200;
-      registerResult.statusText = 'OK';
+      registerResult.statusCode = StatusCodes.OK;
+      registerResult.statusText = ReasonPhrases.OK;
     } catch (error) {
       registerResult.message = error.message;
       registerResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;

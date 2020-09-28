@@ -31,6 +31,7 @@ import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
@@ -961,7 +962,7 @@ export default class ChargingStationService {
         module: MODULE_NAME, method: 'handleGetFirmware',
         detailedMessages: { error: error.message, stack: error.stack },
       });
-      res.sendStatus(404);
+      res.sendStatus(StatusCodes.NOT_FOUND);
     });
     // End of download
     bucketStream.on('end', () => {
