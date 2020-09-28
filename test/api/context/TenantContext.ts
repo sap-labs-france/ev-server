@@ -283,12 +283,21 @@ export default class TenantContext {
       `Connector ID 1 of charging station ${createdChargingStation.id} must have 96 A`);
     expect(createdChargingStation.connectors[0].type).to.eql('T2',
       `Connector ID 1 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    if (siteArea) {
+      console.log(siteArea);
+      expect(createdChargingStation.connectors[0].phaseAssignmentToGrid).to.eql({},
+        `Connector ID 1 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    }
     expect(createdChargingStation.connectors[1].power).to.eql(22080,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 22080 W`);
     expect(createdChargingStation.connectors[1].amperage).to.eql(96,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 96 A`);
     expect(createdChargingStation.connectors[1].type).to.eql('T2',
       `Connector ID 2 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    if (siteArea) {
+      expect(createdChargingStation.connectors[1].phaseAssignmentToGrid).to.eql({},
+        `Connector ID 1 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    }
     // Charge Points
     expect(createdChargingStation.chargePoints.length).to.eql(1,
       `Number of charge point of charging station ${createdChargingStation.id} must be 1`);
