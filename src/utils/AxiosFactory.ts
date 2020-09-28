@@ -2,8 +2,8 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } f
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 
 import Constants from './Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from './Logging';
+import { StatusCodes } from 'http-status-codes';
 
 const MODULE_NAME = 'AxiosFactory';
 
@@ -72,7 +72,7 @@ export default class AxiosFactory {
   }
 
   private static isNetworkOrDefaultIdempotentRequestError(error: AxiosError): boolean {
-    const noRetryHTTPErrorCodes: number[] = [HttpStatusCodes.UNAUTHORIZED, HttpStatusCodes.FORBIDDEN, HttpStatusCodes.NOT_FOUND, HttpStatusCodes.NOT_IMPLEMENTED];
+    const noRetryHTTPErrorCodes: number[] = [StatusCodes.NOT_IMPLEMENTED];
     if (noRetryHTTPErrorCodes.includes(error.response.status)) {
       return false;
     }

@@ -5,7 +5,6 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OCPIMapping from './OCPIMapping';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
@@ -15,6 +14,7 @@ import OCPIUtils from '../../OCPIUtils';
 import { PricingSettingsType } from '../../../../types/Setting';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 
 const EP_IDENTIFIER = 'tariffs';
@@ -75,7 +75,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getTariffRequest',
           action: ServerAction.OCPI_GET_TARIFF,
-          errorCode: HttpStatusCodes.BAD_REQUEST,
+          errorCode: StatusCodes.BAD_REQUEST,
           message: `Simple Pricing setting not found on tenant ${tenant.name}`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });

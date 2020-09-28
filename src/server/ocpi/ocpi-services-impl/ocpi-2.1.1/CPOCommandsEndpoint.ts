@@ -10,7 +10,6 @@ import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../../utils/Logging';
 import { OCPICommandType } from '../../../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
@@ -22,6 +21,7 @@ import OCPITokensService from './OCPITokensService';
 import OCPIUtils from '../../OCPIUtils';
 import { OCPPRemoteStartStopStatus } from '../../../../types/ocpp/OCPPClient';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -77,7 +77,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME, method: 'remoteStartSession',
         action: ServerAction.OCPI_START_SESSION,
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: 'Start Session command body is invalid',
         detailedMessages: { payload: req.body },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -195,7 +195,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME, method: 'remoteStopSession',
         action: ServerAction.OCPI_START_SESSION,
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: 'StopSession command body is invalid',
         detailedMessages: { payload: req.body },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR

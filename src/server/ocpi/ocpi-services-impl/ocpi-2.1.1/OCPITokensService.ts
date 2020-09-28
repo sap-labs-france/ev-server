@@ -2,11 +2,11 @@ import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../OCPIUtils';
+import { StatusCodes } from 'http-status-codes';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 
@@ -19,7 +19,7 @@ export default class OCPITokensService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateToken',
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
         detailedMessages: { token },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -33,7 +33,7 @@ export default class OCPITokensService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateToken',
-          errorCode: HttpStatusCodes.CONFLICT,
+          errorCode: StatusCodes.CONFLICT,
           message: `The Token ID '${token.uid}' is already assigned to internal User`,
           detailedMessages: { token },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -109,7 +109,7 @@ export default class OCPITokensService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateToken',
-          errorCode: HttpStatusCodes.CONFLICT,
+          errorCode: StatusCodes.CONFLICT,
           message: `The Token ID '${token.uid}' does not belongs to OCPI`,
           detailedMessages: token,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR

@@ -9,7 +9,6 @@ import ChargingStation from '../../../../types/ChargingStation';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
@@ -21,6 +20,7 @@ import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 
 const EP_IDENTIFIER = 'locations';
@@ -81,7 +81,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'patchLocationRequest',
-          errorCode: HttpStatusCodes.NOT_FOUND,
+          errorCode: StatusCodes.NOT_FOUND,
           message: `Unknown Charging Station ID '${evseUid}'`,
           ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });

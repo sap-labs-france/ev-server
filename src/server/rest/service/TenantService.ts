@@ -8,12 +8,12 @@ import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -237,7 +237,7 @@ export default class TenantService {
       detailedMessages: { params: filteredRequest }
     });
     // Ok
-    res.status(HttpStatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.status(StatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 

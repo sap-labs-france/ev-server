@@ -4,13 +4,13 @@ import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OCPIMapping from './OCPIMapping';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 
@@ -57,7 +57,7 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_SESSIONS,
         module: MODULE_NAME, method: 'getSessionsRequest',
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: 'query parameter date_from is missing',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });

@@ -15,6 +15,7 @@ import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import { ServerAction } from '../../../types/Server';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../types/Tag';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -807,7 +808,7 @@ export default class AuthService {
 
   public static handleUserLogOut(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
     req.logout();
-    res.status(200).send({});
+    res.status(StatusCodes.OK).send({});
   }
 
   public static async userLoginWrongPassword(action: ServerAction, tenantID: string, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {
