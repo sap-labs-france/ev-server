@@ -5,9 +5,9 @@ import CFLog from 'cf-nodejs-logging-support';
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cluster from 'cluster';
@@ -132,7 +132,7 @@ export default class ExpressTools {
   }
 
   public static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.sendStatus(HttpStatusCodes.OK);
+    res.sendStatus(StatusCodes.OK);
   }
 
   private static getHttpServerPort(httpServer: http.Server): number {

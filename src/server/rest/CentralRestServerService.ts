@@ -18,6 +18,7 @@ import SettingService from './service/SettingService';
 import SiteAreaService from './service/SiteAreaService';
 import SiteService from './service/SiteService';
 import StatisticService from './service/StatisticService';
+import { StatusCodes } from 'http-status-codes';
 import TenantService from './service/TenantService';
 import TransactionService from './service/TransactionService';
 import UserService from './service/UserService';
@@ -193,7 +194,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTIONS]: ConnectionService.handleGetConnections.bind(this),
           [ServerAction.INTEGRATION_CONNECTION]: ConnectionService.handleGetConnection.bind(this),
           [ServerAction.PING]: (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
-            res.sendStatus(200);
+            res.sendStatus(StatusCodes.OK);
           },
         });
         break;
@@ -294,7 +295,7 @@ export default class CentralRestServerService {
           switch (action) {
             // Ping
             case ServerAction.PING:
-              res.sendStatus(200);
+              res.sendStatus(StatusCodes.OK);
               break;
             case ServerAction.CAR_CATALOG_IMAGE:
               await CarService.handleGetCarCatalogImage(action, req, res, next);
