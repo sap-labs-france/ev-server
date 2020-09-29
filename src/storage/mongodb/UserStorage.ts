@@ -315,7 +315,8 @@ export default class UserStorage {
       issuer: Utils.convertToBoolean(tag.issuer),
       active: Utils.convertToBoolean(tag.active),
       ocpiToken: tag.ocpiToken,
-      description: tag.description
+      description: tag.description,
+      deleted: Utils.objectHasProperty(tag, 'deleted') ? tag.deleted : false
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
@@ -757,7 +758,9 @@ export default class UserStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
-    const filters: FilterParams = {};
+    const filters: FilterParams = {
+      '$or': DatabaseUtils.getNotDeletedFilter()
+    };
     // Filter by other properties
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);

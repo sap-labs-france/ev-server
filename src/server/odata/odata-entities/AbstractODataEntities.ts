@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes';
 import Utils from '../../../utils/Utils';
 import _ from 'lodash';
 import moment from 'moment-timezone';
@@ -78,7 +79,7 @@ export default class AbstractODataEntities {
     let result = [];
     let fields = [];
     // Check if error
-    if (response.status !== 200) {
+    if (response.status !== StatusCodes.OK) {
       cb({ message: response.data.message });
       return;
     }

@@ -13,6 +13,7 @@ import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 import OCPIUtils from '../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -207,7 +208,7 @@ export default class OCPIEndpointService {
     // Try to ping
     const pingResult = await ocpiClient.ping();
     // Check ping result
-    if (pingResult.statusCode === 200) {
+    if (pingResult.statusCode === StatusCodes.OK) {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -542,7 +543,7 @@ export default class OCPIEndpointService {
     // Try to register
     const result = await ocpiClient.unregister();
     // Check ping result
-    if (result.statusCode === 200) {
+    if (result.statusCode === StatusCodes.OK) {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -591,7 +592,7 @@ export default class OCPIEndpointService {
     // Try to register
     const result = await ocpiClient.register();
     // Check ping result
-    if (result.statusCode === 200) {
+    if (result.statusCode === StatusCodes.OK) {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,

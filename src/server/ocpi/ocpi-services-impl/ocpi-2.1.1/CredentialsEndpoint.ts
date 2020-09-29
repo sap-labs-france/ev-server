@@ -17,6 +17,7 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 
 const EP_IDENTIFIER = 'credentials';
@@ -68,7 +69,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'deleteCredentials',
-        errorCode: 405,
+        errorCode: StatusCodes.METHOD_NOT_ALLOWED,
         action: ServerAction.OCPI_DELETE_CREDENTIALS,
         message: 'Method not allowed if the client was not registered',
         ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR

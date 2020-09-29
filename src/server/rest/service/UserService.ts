@@ -20,6 +20,7 @@ import { ServerAction } from '../../../types/Server';
 import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../types/Tag';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -278,6 +279,7 @@ export default class UserService {
       for (const tag of user.tags) {
         if (tag.transactionsCount > 0) {
           tag.active = false;
+          tag.deleted = true;
           tag.lastChangedOn = new Date();
           tag.lastChangedBy = { id: req.user.id };
           tag.userID = user.id;
@@ -994,7 +996,7 @@ export default class UserService {
     if (!invoiceNumber) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: 404,
+        errorCode: StatusCodes.NOT_FOUND,
         message: 'No invoices available',
         module: MODULE_NAME, method: 'handleGetUserInvoice',
         user: req.user,
@@ -1196,7 +1198,7 @@ export default class UserService {
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Check Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id);
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
     if (tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1224,7 +1226,7 @@ export default class UserService {
     }
     // Create
     const newTag: Tag = {
-      id: filteredRequest.id,
+      id: filteredRequest.id.toUpperCase(),
       description: filteredRequest.description,
       issuer: true,
       active: filteredRequest.active,

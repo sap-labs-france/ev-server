@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AbstractOCPIService from '../../AbstractOCPIService';
 import { Configuration } from '../../../../types/configuration/Configuration';
+import { StatusCodes } from 'http-status-codes';
 
 const VERSION = '2.0';
 
@@ -18,7 +19,7 @@ export default class OCPIService extends AbstractOCPIService {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async restService(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Not implemented
-    res.sendStatus(501);
+    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
   }
 }
 
