@@ -8,9 +8,9 @@ import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
-const MODULE_NAME = 'AddCreatedPropertiesToBadgeTask';
+const MODULE_NAME = 'AddCreatedPropertiesToTagTask';
 
-export default class AddCreatedPropertiesToBadgeTask extends MigrationTask {
+export default class AddCreatedPropertiesToTagTask extends MigrationTask {
   async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
@@ -64,7 +64,7 @@ export default class AddCreatedPropertiesToBadgeTask extends MigrationTask {
   }
 
   getName(): string {
-    return 'AddCreatedPropertiesToBadgeTask';
+    return 'AddCreatedPropertiesToTagTask';
   }
 
   isAsynchronous(): boolean {

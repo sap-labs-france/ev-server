@@ -22,28 +22,29 @@ export default class AlignTagsWithUsersIssuerTask extends MigrationTask {
     let updated = 0;
     let result: UpdateWriteOpResult;
     // Get users
-    const usersMDB = await global.database.getCollection<any>(tenant.id, 'users')
-      .find({}).toArray();
+    const usersMDB = await global.database.getCollection<any>(tenant.id, 'users').find({
+      issuer: true,
+    }).toArray();
     if (!Utils.isEmptyArray(usersMDB)) {
       // Update tags
       for (const userMDB of usersMDB) {
-          result = await global.database.getCollection(tenant.id, 'tags').updateMany(
-            {
-              userID: userMDB._id
-            },
-            {
-              $set: {
-                issuer: userMDB.issuer,
-              }
+        result = await global.database.getCollection(tenant.id, 'tags').updateMany(
+          {
+            userID: userMDB._id
+          },
+          {
+            $set: {
+              issuer: userMDB.issuer,
             }
-          );
-          updated += result.modifiedCount;
+          }
+        );
+        updated += result.modifiedCount;
       }
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${updated} Tag(s) have been updated in Tenant '${tenant.name}'`,
+        message: `${updated} Tag's issuer properties have been updated in Tenant '${tenant.name}'`,
       });
     }
   }

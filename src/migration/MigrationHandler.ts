@@ -1,6 +1,6 @@
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
-import AddCreatedPropertiesToBadgeTask from './tasks/AddCreatedPropertiesToBadgeTask';
+import AddCreatedPropertiesToTagTask from './tasks/AddCreatedPropertiesToTagTask';
 import AddDescriptionToTagsTask from './tasks/AddDescriptionToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
@@ -16,11 +16,11 @@ import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import CleanupSiteAreasTask from './tasks/CleanupSiteAreasTask';
 import Constants from '../utils/Constants';
-import DeleteTagsForDeletedUsersTask from './tasks/DeleteTagsForDeletedUsersTask';
 import InitialCarImportTask from './tasks/InitialCarImportTask';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
+import LogicallyDeleteTagsOfDeletedUsersTask from './tasks/LogicallyDeleteTagsOfDeletedUsersTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
@@ -73,7 +73,6 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddInactivityStatusInTransactionsTask());
         currentMigrationTasks.push(new AddIssuerFieldTask());
         currentMigrationTasks.push(new CleanupOrphanBadgeTask());
-        currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
         currentMigrationTasks.push(new AddActivePropertyToTagsTask());
         currentMigrationTasks.push(new InitialCarImportTask());
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDsTask());
@@ -89,9 +88,10 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new UnmarkTransactionExtraInactivitiesTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
         currentMigrationTasks.push(new AddUserInTransactionsTask());
-        currentMigrationTasks.push(new DeleteTagsForDeletedUsersTask());
         currentMigrationTasks.push(new AlignTagsWithUsersIssuerTask());
-        currentMigrationTasks.push(new AddCreatedPropertiesToBadgeTask());
+        currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
+        currentMigrationTasks.push(new LogicallyDeleteTagsOfDeletedUsersTask());
+        currentMigrationTasks.push(new AddCreatedPropertiesToTagTask());
         currentMigrationTasks.push(new AddDescriptionToTagsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();

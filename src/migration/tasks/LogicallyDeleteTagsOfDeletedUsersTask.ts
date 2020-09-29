@@ -8,9 +8,9 @@ import { UpdateWriteOpResult } from 'mongodb';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
-const MODULE_NAME = 'DeleteTagsForDeletedUsersTask';
+const MODULE_NAME = 'LogicallyDeleteTagsOfDeletedUsersTask';
 
-export default class DeleteTagsForDeletedUsersTask extends MigrationTask {
+export default class LogicallyDeleteTagsOfDeletedUsersTask extends MigrationTask {
   async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
@@ -21,8 +21,9 @@ export default class DeleteTagsForDeletedUsersTask extends MigrationTask {
   async migrateTenant(tenant: Tenant): Promise<void> {
     let updated = 0;
     let result: UpdateWriteOpResult;
+    // Get deleted Users
     const users = await global.database.getCollection<any>(tenant.id, 'users').find({
-      'deleted': true
+      deleted: true
     }).toArray();
     if (!Utils.isEmptyArray(users)) {
       for (const user of users) {
@@ -46,7 +47,7 @@ export default class DeleteTagsForDeletedUsersTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${updated} Tags(s) have been updated in Tenant '${tenant.name}'`
+        message: `${updated} Tag(s) have been marked logically deleted in Tenant '${tenant.name}'`
       });
     }
   }
@@ -56,12 +57,11 @@ export default class DeleteTagsForDeletedUsersTask extends MigrationTask {
   }
 
   getName(): string {
-    return 'DeleteTagsForDeletedUsersTask';
+    return 'LogicallyDeleteTagsOfDeletedUsersTask';
   }
 
   isAsynchronous(): boolean {
     return true;
   }
 }
-
 
