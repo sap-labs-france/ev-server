@@ -70,7 +70,6 @@
     "urlencode": "^1.1.0",
     "uuid": "^8.1.0",
     "validator": "^13.1.1",
-    "cross-env": "^7.0.2",
     "ws": "^7.3.0"
   },
   "devDependencies": {
@@ -120,6 +119,7 @@
     "chai": "^4.2.0",
     "chai-datetime": "^1.6.0",
     "chai-subset": "^1.6.0",
+    "cross-env": "^7.0.2",
     "clean-webpack-plugin": "^3.0.0",
     "clinic": "^6.0.2",
     "convict": "^6.0.0",
@@ -173,9 +173,9 @@
     "build:dev": "webpack --env dev",
     "build:prod": "webpack --env prod",
     "clean-install": "rimraf node_modules && rimraf package-lock.json && npm cache clear --force && npm install",
-    "lint": "cross-env TIMING=1 eslint --ext .js,.ts build/types src test",
-    "lint:fix": "cross-env TIMING=1 eslint --ext .js,.ts --fix build/types src test",
-    "test": "cross-env TS_NODE_FILES=true mocha test/**/*Test.ts",
+    "eslint": "cross-env TIMING=1 eslint --ext .js,.ts build/types src test",
+    "eslint:fix": "cross-env TIMING=1 eslint --ext .js,.ts --fix build/types src test",
+    "local-test": "cross-env TS_NODE_FILES=true mocha test/**/*Test.ts",
     "test:parallel": "cross-env TS_NODE_FILES=true mocha-parallel-tests test/**/*Test.ts",
     "test:charger": "cross-env TS_NODE_FILES=true mocha test/**/OCPP*Test.ts",
     "test:ocpi": "cross-env TS_NODE_FILES=true mocha test/**/OCPI*Test.ts",

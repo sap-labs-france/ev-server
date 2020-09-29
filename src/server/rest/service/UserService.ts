@@ -1198,7 +1198,7 @@ export default class UserService {
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Check Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id);
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
     if (tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1226,7 +1226,7 @@ export default class UserService {
     }
     // Create
     const newTag: Tag = {
-      id: filteredRequest.id,
+      id: filteredRequest.id.toUpperCase(),
       description: filteredRequest.description,
       issuer: true,
       active: filteredRequest.active,
