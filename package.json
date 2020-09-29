@@ -70,6 +70,7 @@
     "urlencode": "^1.1.0",
     "uuid": "^8.1.0",
     "validator": "^13.1.1",
+    "cross-env": "^7.0.2",
     "ws": "^7.3.0"
   },
   "devDependencies": {
@@ -123,7 +124,6 @@
     "clinic": "^6.0.2",
     "convict": "^6.0.0",
     "copy-webpack-plugin": "^5.1.1",
-    "cross-env": "^7.0.2",
     "eslint": "^7.2.0",
     "faker": "^4.1.0",
     "json-schema-faker": "^0.5.0-rcv.25",

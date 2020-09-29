@@ -9,7 +9,7 @@ import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class LoggingSecurity {
-  static filterLoggingsRequest(request: any): HttpLogsRequest {
+  static filterLogsRequest(request: any): HttpLogsRequest {
     const filteredRequest = {} as HttpLogsRequest;
     // Get logs
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -27,19 +27,19 @@ export default class LoggingSecurity {
     return filteredRequest;
   }
 
-  static filterLoggingRequest(request: any): HttpByIDRequest {
+  static filterLogRequest(request: any): HttpByIDRequest {
     return {
       ID: sanitize(request.ID)
     };
   }
 
-  static filterLoggingResponse(logging: Log, loggedUser: UserToken, withDetailedMessage = false): Log {
+  static filterLogResponse(logging: Log, loggedUser: UserToken, withDetailedMessage = false): Log {
     const filteredLogging: Log = {} as Log;
 
     if (!logging) {
       return null;
     }
-    if (!Authorizations.canReadLogging(loggedUser)) {
+    if (!Authorizations.canReadLog(loggedUser)) {
       return null;
     }
     filteredLogging.id = logging.id;
@@ -69,14 +69,14 @@ export default class LoggingSecurity {
     return filteredLogging;
   }
 
-  static filterLoggingsResponse(logs: DataResult<Log>, loggedUser: UserToken): void {
+  static filterLogsResponse(logs: DataResult<Log>, loggedUser: UserToken): void {
     const filteredLogs = [];
     if (!logs.result) {
       return null;
     }
     for (const logging of logs.result) {
       // Filter
-      const filteredLogging = LoggingSecurity.filterLoggingResponse(logging, loggedUser);
+      const filteredLogging = LoggingSecurity.filterLogResponse(logging, loggedUser);
       // Ok?
       if (filteredLogging) {
         // Add

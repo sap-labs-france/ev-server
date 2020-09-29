@@ -433,12 +433,12 @@ export default class OCPPService {
           });
         }
         const tag = user.tags.find(((value) => value.id === authorize.idTag));
-        if (!tag.ocpiToken) {
+        if (!tag?.ocpiToken) {
           throw new BackendError({
             user: user,
             action: ServerAction.AUTHORIZE,
             module: MODULE_NAME, method: 'handleAuthorize',
-            message: `user '${user.id}' with tag '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing ocpiToken`
+            message: `user '${user.id}' with tag '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
           });
         }
         const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
