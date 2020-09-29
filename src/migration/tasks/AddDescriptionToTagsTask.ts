@@ -23,7 +23,10 @@ export default class AddDescriptionToTagsTask extends MigrationTask {
     // Get Tags with no Description
     const tagsMDB = await global.database.getCollection<any>(tenant.id, 'tags')
       .find({
-        description: null,
+        $or: [
+          { description: null },
+          { description: '' }
+        ],
         issuer: true,
       }).toArray();
     if (!Utils.isEmptyArray(tagsMDB)) {
