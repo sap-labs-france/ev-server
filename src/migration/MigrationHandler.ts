@@ -1,5 +1,7 @@
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
+import AddCreatedPropertiesToBadgeTask from './tasks/AddCreatedPropertiesToBadgeTask';
+import AddDescriptionToTagsTask from './tasks/AddDescriptionToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
@@ -9,6 +11,7 @@ import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsum
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import AddUserInTransactionsTask from './tasks/AddUserInTransactionsTask';
+import AlignTagsWithUsersIssuerTask from './tasks/AlignTagsWithUsersIssuerTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import CleanupSiteAreasTask from './tasks/CleanupSiteAreasTask';
@@ -85,6 +88,9 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new UnmarkTransactionExtraInactivitiesTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
         currentMigrationTasks.push(new AddUserInTransactionsTask());
+        currentMigrationTasks.push(new AddCreatedPropertiesToBadgeTask());
+        currentMigrationTasks.push(new AddDescriptionToTagsTask());
+        currentMigrationTasks.push(new AlignTagsWithUsersIssuerTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

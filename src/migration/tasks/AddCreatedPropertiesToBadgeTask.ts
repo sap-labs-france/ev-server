@@ -8,9 +8,9 @@ import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
-const MODULE_NAME = 'AddLastChangePropertiesToBadgeTask';
+const MODULE_NAME = 'AddCreatedPropertiesToBadgeTask';
 
-export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
+export default class AddCreatedPropertiesToBadgeTask extends MigrationTask {
   async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
@@ -23,19 +23,17 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
     const tagCollection = global.database.getCollection<any>(tenant.id, 'tags');
     let counter = 0;
     for (const user of users.result) {
-      const tags = await tagCollection.find({ 'userID': Utils.convertToObjectID(user.id), lastChangedOn: null }).toArray();
-      if (!Utils.isEmptyArray(tags)) {
+      const tags = await tagCollection.find({ userID: Utils.convertToObjectID(user.id), createdOn: null }).toArray();
+      if (!Utils.isEmptyArray(tags) && user.createdOn) {
         for (const tag of tags) {
-          const lastChangedOn = user.lastChangedOn ? user.lastChangedOn : user.createdOn;
-          const lastChangedBy = user.lastChangedBy ? user.lastChangedBy : user.createdBy;
           await tagCollection.updateOne(
             {
-              '_id': tag._id
+              _id: tag._id
             },
             {
               $set: {
-                'lastChangedOn': lastChangedOn ? lastChangedOn : new Date(),
-                'lastChangedBy': lastChangedBy ? Utils.convertToObjectID(lastChangedBy.id) : null
+                createdOn: user.createdOn,
+                createdBy: user.createdBy ? Utils.convertToObjectID(user.createdBy.id) : null
               }
             },
             { upsert: false }
@@ -56,11 +54,11 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.1';
+    return '1.0';
   }
 
   getName(): string {
-    return 'AddLastChangePropertiesToBadgeTask';
+    return 'AddCreatedPropertiesToBadgeTask';
   }
 
   isAsynchronous(): boolean {
