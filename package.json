@@ -175,7 +175,7 @@
     "clean-install": "rimraf node_modules && rimraf package-lock.json && npm cache clear --force && npm install",
     "eslint": "cross-env TIMING=1 eslint --ext .js,.ts build/types src test",
     "eslint:fix": "cross-env TIMING=1 eslint --ext .js,.ts --fix build/types src test",
-    "test": "cross-env TS_NODE_FILES=true mocha test/**/*Test.ts",
+    "local-test": "cross-env TS_NODE_FILES=true mocha test/**/*Test.ts",
     "test:parallel": "cross-env TS_NODE_FILES=true mocha-parallel-tests test/**/*Test.ts",
     "test:charger": "cross-env TS_NODE_FILES=true mocha test/**/OCPP*Test.ts",
     "test:ocpi": "cross-env TS_NODE_FILES=true mocha test/**/OCPI*Test.ts",
