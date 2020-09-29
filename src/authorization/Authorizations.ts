@@ -202,7 +202,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.LOGGINGS, Action.LIST);
   }
 
-  public static canReadLogging(loggedUser: UserToken): boolean {
+  public static canReadLog(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.LOGGING, Action.READ);
   }
 
