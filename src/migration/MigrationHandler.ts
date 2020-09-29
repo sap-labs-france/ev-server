@@ -16,6 +16,7 @@ import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import CleanupSiteAreasTask from './tasks/CleanupSiteAreasTask';
 import Constants from '../utils/Constants';
+import DeleteTagsForDeletedUsersTask from './tasks/DeleteTagsForDeletedUsersTask';
 import InitialCarImportTask from './tasks/InitialCarImportTask';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
@@ -88,6 +89,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new UnmarkTransactionExtraInactivitiesTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
         currentMigrationTasks.push(new AddUserInTransactionsTask());
+        currentMigrationTasks.push(new DeleteTagsForDeletedUsersTask());
         currentMigrationTasks.push(new AddCreatedPropertiesToBadgeTask());
         currentMigrationTasks.push(new AddDescriptionToTagsTask());
         currentMigrationTasks.push(new AlignTagsWithUsersIssuerTask());
