@@ -133,7 +133,8 @@ export default class ChargingStationService {
       // Check number of phases corresponds to the site area one
       if (filteredRequest.connectors) {
         for (const connector of filteredRequest.connectors) {
-          if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea && chargingStation.siteArea.numberOfPhases === 1) {
+          const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+          if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
               action: action,
@@ -398,7 +399,7 @@ export default class ChargingStationService {
         action: Action.UPDATE,
         entity: Entity.SITE_AREA,
         module: MODULE_NAME,
-        method: 'handleAssignAssetsToSiteArea',
+        method: 'handleTriggerSmartCharging',
         value: filteredRequest.siteAreaID
       });
     }
@@ -566,7 +567,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' does not exist`,
-      MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
+      MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
