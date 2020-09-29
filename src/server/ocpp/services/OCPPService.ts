@@ -1197,12 +1197,15 @@ export default class OCPPService {
               break;
             case CurrentType.AC:
               switch (meterValue.attribute.phase) {
+                case OCPPPhase.L1_N:
                 case OCPPPhase.L1:
                   transaction.currentInstantVoltsL1 = voltage;
                   break;
+                case OCPPPhase.L2_N:
                 case OCPPPhase.L2:
                   transaction.currentInstantVoltsL2 = voltage;
                   break;
+                case OCPPPhase.L3_N:
                 case OCPPPhase.L3:
                   transaction.currentInstantVoltsL3 = voltage;
                   break;
