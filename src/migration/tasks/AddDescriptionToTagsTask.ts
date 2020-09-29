@@ -20,15 +20,18 @@ export default class AddDescriptionToTagsTask extends MigrationTask {
   async migrateTenant(tenant: Tenant): Promise<void> {
     // Add the active property to tags
     let updated = 0;
-    // Get users
+    // Get Tags with no Description
     const tagsMDB = await global.database.getCollection<any>(tenant.id, 'tags')
-      .find({ description: null }).toArray();
+      .find({
+        description: null,
+        issuer: true,
+      }).toArray();
     if (!Utils.isEmptyArray(tagsMDB)) {
       for (const tagMDB of tagsMDB) {
         await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
           { _id: tagMDB._id },
           { $set: { description: `Tag ID '${tagMDB._id}'` } });
-        updated++
+        updated++;
       }
     }
     // Log in the default tenant
@@ -37,7 +40,7 @@ export default class AddDescriptionToTagsTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updated} Tag(s) have been updated in Tenant '${tenant.name}'`
+        message: `${updated} Tag(s) description have been updated in Tenant '${tenant.name}'`
       });
     }
   }

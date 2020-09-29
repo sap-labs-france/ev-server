@@ -90,9 +90,9 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
         currentMigrationTasks.push(new AddUserInTransactionsTask());
         currentMigrationTasks.push(new DeleteTagsForDeletedUsersTask());
+        currentMigrationTasks.push(new AlignTagsWithUsersIssuerTask());
         currentMigrationTasks.push(new AddCreatedPropertiesToBadgeTask());
         currentMigrationTasks.push(new AddDescriptionToTagsTask());
-        currentMigrationTasks.push(new AlignTagsWithUsersIssuerTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

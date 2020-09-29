@@ -19,26 +19,32 @@ export default class AddCreatedPropertiesToBadgeTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    const users = await UserStorage.getUsers(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
+    const users = await UserStorage.getUsers(tenant.id, {
+      issuer: true
+    }, Constants.DB_PARAMS_MAX_LIMIT);
     const tagCollection = global.database.getCollection<any>(tenant.id, 'tags');
     let counter = 0;
     for (const user of users.result) {
-      const tags = await tagCollection.find({ userID: Utils.convertToObjectID(user.id), createdOn: null }).toArray();
-      if (!Utils.isEmptyArray(tags) && user.createdOn) {
-        for (const tag of tags) {
-          await tagCollection.updateOne(
-            {
-              _id: tag._id
-            },
-            {
-              $set: {
-                createdOn: user.createdOn,
-                createdBy: user.createdBy ? Utils.convertToObjectID(user.createdBy.id) : null
-              }
-            },
-            { upsert: false }
-          );
-          counter++;
+      if (user.createdOn) {
+        // Get the User's Tags with no Created On date
+        const tags = await tagCollection.find({
+          userID: Utils.convertToObjectID(user.id),
+          createdOn: null
+        }).toArray();
+        if (!Utils.isEmptyArray(tags)) {
+          for (const tag of tags) {
+            await tagCollection.updateOne(
+              { _id: tag._id },
+              {
+                $set: {
+                  createdOn: user.createdOn,
+                  createdBy: user.createdBy ? Utils.convertToObjectID(user.createdBy.id) : null
+                }
+              },
+              { upsert: false }
+            );
+            counter++;
+          }
         }
       }
     }
@@ -48,7 +54,7 @@ export default class AddCreatedPropertiesToBadgeTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${counter} Tags(s) have been updated in Tenant '${tenant.name}'`
+        message: `${counter} Tags's created properties have been updated in Tenant '${tenant.name}'`
       });
     }
   }

@@ -19,7 +19,9 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    const users = await UserStorage.getUsers(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
+    const users = await UserStorage.getUsers(tenant.id, {
+      issuer: true,
+    }, Constants.DB_PARAMS_MAX_LIMIT);
     const tagCollection = global.database.getCollection<any>(tenant.id, 'tags');
     let counter = 0;
     for (const user of users.result) {
@@ -50,7 +52,7 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${counter} Tags(s) have been updated in Tenant '${tenant.name}'`
+        message: `${counter} Tags's last changed properties have been updated in Tenant '${tenant.name}'`
       });
     }
   }
