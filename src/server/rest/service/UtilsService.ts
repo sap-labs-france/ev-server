@@ -5,6 +5,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
+import { DataResult } from '../../../types/DataResult';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
@@ -70,5 +71,41 @@ export default class UtilsService {
         user: userToken
       });
     }
+  }
+
+  public static async exportToCSV(req: Request, res: Response, attachementName: string,
+    handleGetData: (req: Request) => Promise<DataResult<any>>,
+    handleConvertToCSV: (loggedUser: UserToken, data: any[], writeHeader: boolean) => string) {
+    // Override
+    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
+    // Set the attachement name
+    res.attachment(attachementName);
+    // Get the total number of Logs
+    req.query.OnlyRecordCount = 'true';
+    let data = await handleGetData(req);
+    const count = data.count;
+    delete req.query.OnlyRecordCount;
+    let skip = 0;
+    // Handle closed socket
+    let connectionClosed = false;
+    req.connection.on('close', () => {
+      connectionClosed = true;
+    });
+    do {
+      // Check if the socket is closed and stop the process
+      if (connectionClosed) {
+        break;
+      }
+      console.log(skip);
+      // Get the Logs
+      req.query.Skip = skip.toString();
+      data = await handleGetData(req);
+      // Send Transactions
+      res.write(handleConvertToCSV(req.user, data.result, (skip === 0)));
+      // Next page
+      skip += Constants.EXPORT_PAGE_SIZE;
+    } while (skip < count);
+    // End of stream
+    res.end();
   }
 }

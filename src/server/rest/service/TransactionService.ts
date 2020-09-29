@@ -620,48 +620,16 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Get transactions
-    const transactions = await TransactionService.getTransactions(req);
-    // Create the file
-    const filename = 'exported-transactions.csv';
-    fs.writeFile(filename, TransactionService.convertToCSV(req.user, transactions.result), (err) => {
-      if (err) {
-        throw err;
-      }
-      res.download(filename, (err2) => {
-        if (err2) {
-          throw err2;
-        }
-        fs.unlink(filename, (err3) => {
-          if (err3) {
-            throw err3;
-          }
-        });
-      });
-    });
+  public static async handleExportTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-sessions.csv',
+      TransactionService.getTransactions.bind(this), TransactionService.convertToCSV.bind(this));
   }
 
-  public static async handleGetTransactionsToRefundExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Get transactions
-    const transactions = await TransactionService.getTransactions(req);
-    // Create the file
-    const filename = 'exported-refund-transactions.csv';
-    fs.writeFile(filename, TransactionService.convertToCSV(req.user, transactions.result), (err) => {
-      if (err) {
-        throw err;
-      }
-      res.download(filename, (err2) => {
-        if (err2) {
-          throw err2;
-        }
-        fs.unlink(filename, (err3) => {
-          if (err3) {
-            throw err3;
-          }
-        });
-      });
-    });
+  public static async handleExportTransactionsToRefund(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-refund-sessions.csv',
+      TransactionService.getTransactions.bind(this), TransactionService.convertToCSV.bind(this));
   }
 
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -732,10 +700,13 @@ export default class TransactionService {
     next();
   }
 
-  public static convertToCSV(loggedUser: UserToken, transactions: Transaction[]): string {
+  public static convertToCSV(loggedUser: UserToken, transactions: Transaction[], writeHeader = true): string {
     const i18nManager = new I18nManager(loggedUser.locale);
-    // Headers
-    let csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+    let csv = '';
+    // Header
+    if (writeHeader) {
+      csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}Start Time${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}End Time${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+    }
     // Content
     for (const transaction of transactions) {
       csv += `${transaction.id}` + Constants.CSV_SEPARATOR;
@@ -743,8 +714,10 @@ export default class TransactionService {
       csv += `${transaction.connectorId}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.user ? Cypher.hash(transaction.user.id) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.user ? Utils.buildUserFullName(transaction.user, false) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${i18nManager.formatDateTime(transaction.timestamp, 'L')} ${i18nManager.formatDateTime(transaction.timestamp, 'LT')}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${i18nManager.formatDateTime(transaction.stop.timestamp, 'L')} ${i18nManager.formatDateTime(transaction.stop.timestamp, 'LT')}` : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(transaction.timestamp).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(transaction.timestamp).format('HH:mm:ss')}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? `${moment(transaction.stop.timestamp).format('YYYY-MM-DD')}` : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? `${moment(transaction.stop.timestamp).format('HH:mm:ss')}` : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;

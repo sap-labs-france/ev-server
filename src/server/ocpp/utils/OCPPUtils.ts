@@ -768,12 +768,15 @@ export default class OCPPUtils {
             break;
           case CurrentType.AC:
             switch (meterValue.attribute?.phase) {
+              case OCPPPhase.L1_N:
               case OCPPPhase.L1:
                 consumption.instantWattsL1 = powerInMeterValueWatts;
                 break;
+              case OCPPPhase.L2_N:
               case OCPPPhase.L2:
                 consumption.instantWattsL2 = powerInMeterValueWatts;
                 break;
+              case OCPPPhase.L3_N:
               case OCPPPhase.L3:
                 consumption.instantWattsL3 = powerInMeterValueWatts;
                 break;

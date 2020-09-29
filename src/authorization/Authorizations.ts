@@ -202,7 +202,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.LOGGINGS, Action.LIST);
   }
 
-  public static canReadLogging(loggedUser: UserToken): boolean {
+  public static canReadLog(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.LOGGING, Action.READ);
   }
 
@@ -764,21 +764,22 @@ export default class Authorizations {
         user: tag.user
       });
     }
+    // Check User
+    const user = await UserStorage.getUser(tenantID, tag.user.id, { withTag: true });
     // User status
-    if (tag.user.status !== UserStatus.ACTIVE) {
+    if (user.status !== UserStatus.ACTIVE) {
       // Reject but save ok
       throw new BackendError({
         source: chargingStation.id,
         action: action,
-        message: `User with Tag ID '${tagID}' has the status '${Utils.getStatusDescription(tag.user.status)}'`,
+        message: `User with Tag ID '${tagID}' has the status '${Utils.getStatusDescription(user.status)}'`,
         module: MODULE_NAME,
         method: 'isTagIDAuthorizedOnChargingStation',
-        user: tag.user
+        user: user
       });
     }
-    // Check Auth
-    if (tag.user.issuer && authAction) {
-      const user = await UserStorage.getUser(tenantID, tag.user.id, { withTag: true });
+    // Check Auth if local user
+    if (user.issuer && authAction) {
       // Build the JWT Token
       const userToken = await Authorizations.buildUserToken(tenantID, user);
       // Authorized?
@@ -802,7 +803,7 @@ export default class Authorizations {
         });
       }
     }
-    return tag.user;
+    return user;
   }
 
   private static getUserScopes(tenantID: string, user: User, sitesAdminCount: number, sitesOwnerCount: number): ReadonlyArray<string> {
