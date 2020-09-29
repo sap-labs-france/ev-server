@@ -309,11 +309,11 @@ export default class OCPPService {
       // Check props
       OCPPValidation.getInstance().validateMeterValues(headers.tenantID, chargingStation, meterValues);
       // Normalize Meter Values
-      const newMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
+      const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
       // Handle Charging Station's specificities
-      this.filterMeterValuesOnSpecificChargingStations(headers.tenantID, chargingStation, newMeterValues);
+      this.filterMeterValuesOnSpecificChargingStations(headers.tenantID, chargingStation, normalizedMeterValues);
       // No Values?
-      if (newMeterValues.values.length === 0) {
+      if (normalizedMeterValues.values.length === 0) {
         Logging.logDebug({
           tenantID: headers.tenantID,
           source: chargingStation.id,
@@ -338,12 +338,12 @@ export default class OCPPService {
             });
           }
           // Save Meter Values
-          await OCPPStorage.saveMeterValues(headers.tenantID, newMeterValues);
+          await OCPPStorage.saveMeterValues(headers.tenantID, normalizedMeterValues);
           // Update Transaction
-          this.updateTransactionWithMeterValues(chargingStation, transaction, newMeterValues.values);
+          this.updateTransactionWithMeterValues(chargingStation, transaction, normalizedMeterValues.values);
           // Create Consumptions
           const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(
-            headers.tenantID, chargingStation, transaction, newMeterValues.values);
+            headers.tenantID, chargingStation, transaction, normalizedMeterValues.values);
           // Price/Bill Transaction and Save the Consumptions
           for (const consumption of consumptions) {
             // Update Transaction with Consumption
@@ -384,7 +384,7 @@ export default class OCPPService {
             user: transaction.userID,
             module: MODULE_NAME, method: 'handleMeterValues',
             message: `Connector '${meterValues.connectorId}' > Transaction ID '${meterValues.transactionId}' > MeterValue have been saved`,
-            detailedMessages: { newMeterValues }
+            detailedMessages: { normalizedMeterValues }
           });
         } else {
           // Log
@@ -394,7 +394,7 @@ export default class OCPPService {
             action: ServerAction.METER_VALUES,
             module: MODULE_NAME, method: 'handleMeterValues',
             message: `Connector '${meterValues.connectorId}' > Meter Values are ignored as it is not linked to a transaction`,
-            detailedMessages: { newMeterValues }
+            detailedMessages: { normalizedMeterValues }
           });
         }
       }
@@ -743,7 +743,7 @@ export default class OCPPService {
           message: 'Ignored Transaction ID = 0',
           detailedMessages: { headers, stopTransaction }
         });
-        // Ignore it! (Cahors bug)
+        // Ignore it! (DELTA bug)
         return {
           'status': OCPPAuthorizationStatus.ACCEPTED
         };
@@ -1141,7 +1141,7 @@ export default class OCPPService {
       if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
         // Flag it
         if (!transaction.transactionEndReceived) {
-          // First time: Clear all values
+          // First time: clear all values
           transaction.currentInstantWatts = 0;
           transaction.currentInstantWattsL1 = 0;
           transaction.currentInstantWattsL2 = 0;
@@ -1209,6 +1209,11 @@ export default class OCPPService {
                 case OCPPPhase.L3:
                   transaction.currentInstantVoltsL3 = voltage;
                   break;
+                case OCPPPhase.L1_L2:
+                case OCPPPhase.L2_L3:
+                case OCPPPhase.L3_L1:
+                  // Do nothing
+                  break;
                 default:
                   transaction.currentInstantVolts = voltage;
                   break;
@@ -1233,12 +1238,15 @@ export default class OCPPService {
               break;
             case CurrentType.AC:
               switch (meterValue.attribute.phase) {
+                case OCPPPhase.L1_N:
                 case OCPPPhase.L1:
                   transaction.currentInstantWattsL1 = powerInMeterValueWatts;
                   break;
+                case OCPPPhase.L2_N:
                 case OCPPPhase.L2:
                   transaction.currentInstantWattsL2 = powerInMeterValueWatts;
                   break;
+                case OCPPPhase.L3_N:
                 case OCPPPhase.L3:
                   transaction.currentInstantWattsL3 = powerInMeterValueWatts;
                   break;
@@ -1459,9 +1467,9 @@ export default class OCPPService {
 
   private normalizeMeterValues(chargingStation: ChargingStation, meterValues: OCPPMeterValuesExtended): OCPPNormalizedMeterValues {
     // Create the model
-    const newMeterValues: OCPPNormalizedMeterValues = {} as OCPPNormalizedMeterValues;
-    newMeterValues.values = [];
-    newMeterValues.chargeBoxID = chargingStation.id;
+    const normalizedMeterValues: OCPPNormalizedMeterValues = {} as OCPPNormalizedMeterValues;
+    normalizedMeterValues.values = [];
+    normalizedMeterValues.chargeBoxID = chargingStation.id;
     // OCPP 1.6
     if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
       meterValues.values = meterValues.meterValue;
@@ -1474,12 +1482,12 @@ export default class OCPPService {
     }
     // Process the Meter Values
     for (const value of meterValues.values) {
-      const newMeterValue: OCPPNormalizedMeterValue = {} as OCPPNormalizedMeterValue;
+      const normalizedMeterValue: OCPPNormalizedMeterValue = {} as OCPPNormalizedMeterValue;
       // Set the Meter Value header
-      newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
-      newMeterValue.connectorId = meterValues.connectorId;
-      newMeterValue.transactionId = meterValues.transactionId;
-      newMeterValue.timestamp = Utils.convertToDate(value.timestamp);
+      normalizedMeterValue.chargeBoxID = normalizedMeterValues.chargeBoxID;
+      normalizedMeterValue.connectorId = meterValues.connectorId;
+      normalizedMeterValue.transactionId = meterValues.transactionId;
+      normalizedMeterValue.timestamp = Utils.convertToDate(value.timestamp);
       // OCPP 1.6
       if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
         // Multiple Values?
@@ -1487,41 +1495,41 @@ export default class OCPPService {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
             // Add Attributes
-            const newLocalMeterValue = Utils.cloneJSonDocument(newMeterValue);
-            newLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
+            const normalizedLocalMeterValue = Utils.cloneJSonDocument(normalizedMeterValue);
+            normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
             // Data is to be interpreted as integer/decimal numeric data
-            if (newLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
-              newLocalMeterValue.value = Utils.convertToFloat(sampledValue.value);
+            if (normalizedLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
+              normalizedLocalMeterValue.value = Utils.convertToFloat(sampledValue.value);
               // Data is represented as a signed binary data block, encoded as hex data
-            } else if (newLocalMeterValue.attribute.format === OCPPValueFormat.SIGNED_DATA) {
-              newLocalMeterValue.value = sampledValue.value;
+            } else if (normalizedLocalMeterValue.attribute.format === OCPPValueFormat.SIGNED_DATA) {
+              normalizedLocalMeterValue.value = sampledValue.value;
             }
             // Add
-            newMeterValues.values.push(newLocalMeterValue);
+            normalizedMeterValues.values.push(normalizedLocalMeterValue);
           }
         } else {
           // Add Attributes
-          const newLocalMeterValue = Utils.cloneJSonDocument(newMeterValue);
-          newLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
+          const normalizedLocalMeterValue = Utils.cloneJSonDocument(normalizedMeterValue);
+          normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
           // Add
-          newMeterValues.values.push(newLocalMeterValue);
+          normalizedMeterValues.values.push(normalizedLocalMeterValue);
         }
       // OCPP 1.5
       } else if (value['value']) {
         if (Array.isArray(value['value'])) {
           for (const currentValue of value['value']) {
-            newMeterValue.value = Utils.convertToFloat(currentValue['$value']);
-            newMeterValue.attribute = currentValue.attributes;
-            newMeterValues.values.push(Utils.cloneJSonDocument(newMeterValue));
+            normalizedMeterValue.value = Utils.convertToFloat(currentValue['$value']);
+            normalizedMeterValue.attribute = currentValue.attributes;
+            normalizedMeterValues.values.push(Utils.cloneJSonDocument(normalizedMeterValue));
           }
         } else {
-          newMeterValue.value = Utils.convertToFloat(value['value']['$value']);
-          newMeterValue.attribute = value['value'].attributes;
-          newMeterValues.values.push(Utils.cloneJSonDocument(newMeterValue));
+          normalizedMeterValue.value = Utils.convertToFloat(value['value']['$value']);
+          normalizedMeterValue.attribute = value['value'].attributes;
+          normalizedMeterValues.values.push(Utils.cloneJSonDocument(normalizedMeterValue));
         }
       }
     }
-    return newMeterValues;
+    return normalizedMeterValues;
   }
 
   private buildMeterValueAttributes(sampledValue: OCPPSampledValue): OCPPAttribute {

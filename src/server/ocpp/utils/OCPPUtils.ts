@@ -1,7 +1,7 @@
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
@@ -410,7 +410,7 @@ export default class OCPPUtils {
     transaction.currentInstantAmpsDC = Utils.convertToFloat(consumption.instantAmpsDC);
     transaction.currentTimestamp = Utils.convertToDate(consumption.endedAt);
     transaction.currentStateOfCharge = Utils.convertToInt(consumption.stateOfCharge);
-    // If Transaction.Begin not provided (Cahors)
+    // If Transaction.Begin not provided (DELTA)
     if (!transaction.stateOfCharge) {
       transaction.stateOfCharge = Utils.convertToInt(transaction.currentStateOfCharge);
     }
@@ -797,14 +797,22 @@ export default class OCPPUtils {
             break;
           case CurrentType.AC:
             switch (meterValue.attribute.phase) {
+              case OCPPPhase.L1_N:
               case OCPPPhase.L1:
                 consumption.instantVoltsL1 = voltage;
                 break;
+              case OCPPPhase.L2_N:
               case OCPPPhase.L2:
                 consumption.instantVoltsL2 = voltage;
                 break;
+              case OCPPPhase.L3_N:
               case OCPPPhase.L3:
                 consumption.instantVoltsL3 = voltage;
+                break;
+              case OCPPPhase.L1_L2:
+              case OCPPPhase.L2_L3:
+              case OCPPPhase.L3_L1:
+                // Do nothing
                 break;
               default:
                 consumption.instantVolts = voltage;
@@ -863,7 +871,7 @@ export default class OCPPUtils {
           consumption.consumptionAmps = 0;
           if (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
             consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)) {
-          // Update inactivity
+            // Update inactivity
             transaction.currentTotalInactivitySecs += diffSecs;
             consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
           }
@@ -1367,9 +1375,9 @@ export default class OCPPUtils {
   }
 
   static isSocMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
-    return meterValue.attribute
-      && meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC
-      && meterValue.attribute.measurand === OCPPMeasurand.STATE_OF_CHARGE;
+    return !meterValue.attribute ||
+      (meterValue.attribute.measurand === OCPPMeasurand.STATE_OF_CHARGE
+        && meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
   static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
