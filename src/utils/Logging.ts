@@ -608,9 +608,8 @@ export default class Logging {
       return;
     } else if (typeof message === 'string') {
       for (const sensitiveData of Constants.SENSITIVE_DATA) {
-        const re = new RegExp(sensitiveData, 'gi');
         // Anonymize
-        message.replace(re , Constants.ANONYMIZED_VALUE);
+        message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
       }
     } else if (Array.isArray(message)) {
       for (const item of message) {
