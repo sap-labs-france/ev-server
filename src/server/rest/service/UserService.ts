@@ -483,15 +483,9 @@ export default class UserService {
       }
       // Save Admin Data
       if (filteredRequest.plateID || Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
+        const adminData: { plateID?: string; } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
-        }
-        if (Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
-          adminData.notificationsActive = filteredRequest.notificationsActive;
-          if (filteredRequest.notifications) {
-            adminData.notifications = filteredRequest.notifications;
-          }
         }
         await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
       }
