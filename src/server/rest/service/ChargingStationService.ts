@@ -116,49 +116,6 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'forceInactive')) {
       chargingStation.forceInactive = filteredRequest.forceInactive;
     }
-    // Update Site Area
-    if (siteArea) {
-      // OCPI Site Area
-      if (!siteArea.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-          user: req.user,
-          action: action
-        });
-      }
-      chargingStation.siteAreaID = siteArea.id;
-      // Check number of phases corresponds to the site area one
-      if (filteredRequest.connectors) {
-        for (const connector of filteredRequest.connectors) {
-          if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea && chargingStation.siteArea.numberOfPhases === 1) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              action: action,
-              errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-              message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
-              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-              user: req.user,
-            });
-          }
-        }
-      }
-      // Check Smart Charging
-      if (!siteArea.smartCharging) {
-        delete chargingStation.excludeFromSmartCharging;
-      }
-    } else {
-      delete chargingStation.excludeFromSmartCharging;
-      chargingStation.siteAreaID = null;
-    }
-    if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
-      chargingStation.coordinates = [
-        filteredRequest.coordinates[0],
-        filteredRequest.coordinates[1]
-      ];
-    }
     // Existing Connectors
     if (!Utils.isEmptyArray(filteredRequest.connectors)) {
       for (const filteredConnector of filteredRequest.connectors) {
@@ -177,6 +134,48 @@ export default class ChargingStationService {
           connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
         }
       }
+    }
+    // Update Site Area
+    if (siteArea) {
+      // OCPI Site Area
+      if (!siteArea.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          user: req.user,
+          action: action
+        });
+      }
+      chargingStation.siteAreaID = siteArea.id;
+      // Check number of phases corresponds to the site area one
+      for (const connector of chargingStation.connectors) {
+        const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+        if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
+            module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+            user: req.user,
+          });
+        }
+      }
+      // Check Smart Charging
+      if (!siteArea.smartCharging) {
+        delete chargingStation.excludeFromSmartCharging;
+      }
+    } else {
+      delete chargingStation.excludeFromSmartCharging;
+      chargingStation.siteAreaID = null;
+    }
+    if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
+      chargingStation.coordinates = [
+        filteredRequest.coordinates[0],
+        filteredRequest.coordinates[1]
+      ];
     }
     // Update timestamp
     chargingStation.lastChangedBy = { 'id': req.user.id };
@@ -398,7 +397,7 @@ export default class ChargingStationService {
         action: Action.UPDATE,
         entity: Entity.SITE_AREA,
         module: MODULE_NAME,
-        method: 'handleAssignAssetsToSiteArea',
+        method: 'handleTriggerSmartCharging',
         value: filteredRequest.siteAreaID
       });
     }
@@ -566,7 +565,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' does not exist`,
-      MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
+      MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
