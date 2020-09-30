@@ -440,7 +440,7 @@ export default abstract class ChargingStationVendorIntegration {
             limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, connectorLimitAmps),
             limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
           };
-          Logging.logDebug({
+          Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
@@ -467,7 +467,7 @@ export default abstract class ChargingStationVendorIntegration {
       limitWatts: limitDefaultMaxPower,
       limitSource: ConnectorCurrentLimitSource.CONNECTOR
     };
-    Logging.logDebug({
+    Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
@@ -615,7 +615,7 @@ export default abstract class ChargingStationVendorIntegration {
               limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(schedulePeriod.limit)),
               limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
             };
-            Logging.logDebug({
+            Logging.logInfo({
               tenantID: tenantID,
               source: chargingStation.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
@@ -633,7 +633,7 @@ export default abstract class ChargingStationVendorIntegration {
               limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(lastButOneSchedule.limit)),
               limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
             };
-            Logging.logDebug({
+            Logging.logInfo({
               tenantID: tenantID,
               source: chargingStation.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
@@ -652,7 +652,7 @@ export default abstract class ChargingStationVendorIntegration {
               limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(lastButOneSchedule.limit)),
               limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
             };
-            Logging.logDebug({
+            Logging.logInfo({
               tenantID: tenantID,
               source: chargingStation.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
