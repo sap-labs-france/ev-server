@@ -116,6 +116,25 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'forceInactive')) {
       chargingStation.forceInactive = filteredRequest.forceInactive;
     }
+    // Existing Connectors
+    if (!Utils.isEmptyArray(filteredRequest.connectors)) {
+      for (const filteredConnector of filteredRequest.connectors) {
+        const connector = Utils.getConnectorFromID(chargingStation, filteredConnector.connectorId);
+        // Update Connectors only if no Charge Point is defined
+        if (connector && Utils.isEmptyArray(chargingStation.chargePoints)) {
+          connector.type = filteredConnector.type;
+          connector.power = filteredConnector.power;
+          connector.amperage = filteredConnector.amperage;
+          connector.voltage = filteredConnector.voltage;
+          connector.currentType = filteredConnector.currentType;
+          connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
+        }
+        // Phase Assignment
+        if (siteArea?.numberOfPhases === 3) {
+          connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+        }
+      }
+    }
     // Update Site Area
     if (siteArea) {
       // OCPI Site Area
@@ -132,7 +151,7 @@ export default class ChargingStationService {
       chargingStation.siteAreaID = siteArea.id;
       // Check number of phases corresponds to the site area one
       if (filteredRequest.connectors) {
-        for (const connector of filteredRequest.connectors) {
+        for (const connector of chargingStation.connectors) {
           const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
           if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {
             throw new AppError({
@@ -159,25 +178,6 @@ export default class ChargingStationService {
         filteredRequest.coordinates[0],
         filteredRequest.coordinates[1]
       ];
-    }
-    // Existing Connectors
-    if (!Utils.isEmptyArray(filteredRequest.connectors)) {
-      for (const filteredConnector of filteredRequest.connectors) {
-        const connector = Utils.getConnectorFromID(chargingStation, filteredConnector.connectorId);
-        // Update Connectors only if no Charge Point is defined
-        if (connector && Utils.isEmptyArray(chargingStation.chargePoints)) {
-          connector.type = filteredConnector.type;
-          connector.power = filteredConnector.power;
-          connector.amperage = filteredConnector.amperage;
-          connector.voltage = filteredConnector.voltage;
-          connector.currentType = filteredConnector.currentType;
-          connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
-        }
-        // Phase Assignment
-        if (siteArea?.numberOfPhases === 3) {
-          connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
-        }
-      }
     }
     // Update timestamp
     chargingStation.lastChangedBy = { 'id': req.user.id };
