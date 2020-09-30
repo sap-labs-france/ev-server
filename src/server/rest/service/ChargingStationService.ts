@@ -150,19 +150,17 @@ export default class ChargingStationService {
       }
       chargingStation.siteAreaID = siteArea.id;
       // Check number of phases corresponds to the site area one
-      if (filteredRequest.connectors) {
-        for (const connector of chargingStation.connectors) {
-          const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
-          if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              action: action,
-              errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-              message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
-              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-              user: req.user,
-            });
-          }
+      for (const connector of chargingStation.connectors) {
+        const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+        if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
+            module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+            user: req.user,
+          });
         }
       }
       // Check Smart Charging
