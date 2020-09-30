@@ -51,8 +51,8 @@ jobs:
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
         npm run test:createContext
-    - name: npm test
-      run: npm test
+    - name: npm mochatest
+      run: npm mochatest
 
   unit-tests-submodules:
     runs-on: ubuntu-latest
@@ -93,6 +93,6 @@ jobs:
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
         npm run test:createContext
-    - name: npm test
-      run: npm test
+    - name: npm mochatest
+      run: npm mochatest
 
