@@ -7,6 +7,9 @@ general:
 
 stages:
 
+  Central Build:
+    sonarExecuteScan: false
+
   IPScan and PPMS:
     whitesourceProductName: 'SHC - SAP E-Mobility Backend'
     whitesourceProjectNames: ['e-Mobility Backend - 1'] # needed for automation of mapping requests # TODO
