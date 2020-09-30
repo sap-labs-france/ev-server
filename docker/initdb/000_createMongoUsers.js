@@ -19,7 +19,6 @@ db.createUser(
 );
 
 db = db.getSiblingDB('evse');
-db.dropDatabase();
 db.createUser(
   {
     user: 'evse-user',
