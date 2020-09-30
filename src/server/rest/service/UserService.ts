@@ -279,6 +279,7 @@ export default class UserService {
       for (const tag of user.tags) {
         if (tag.transactionsCount > 0) {
           tag.active = false;
+          tag.deleted = true;
           tag.lastChangedOn = new Date();
           tag.lastChangedBy = { id: req.user.id };
           tag.userID = user.id;
