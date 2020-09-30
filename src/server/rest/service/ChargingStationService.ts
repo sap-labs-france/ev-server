@@ -758,7 +758,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleChargingStationsOCPPParamsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleExportChargingStationsOCPPParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Always with site
     req.query.WithSite = 'true';
     // Get Charging Stations
@@ -772,61 +772,35 @@ export default class ChargingStationService {
           action: Action.EXPORT_PARAMS,
           entity: Entity.CHARGING_STATION,
           module: MODULE_NAME,
-          method: 'handleChargingStationsOCPPParamsExport',
+          method: 'handleExportChargingStationsOCPPParams',
         });
       }
     }
     const ocppParams: OCPPParams[] = [];
+    // Set the attachement name
+    res.attachment('exported-ocpp-params.csv');
+    let writeHeader = true;
     for (const chargingStation of chargingStations.result) {
       const ocppParameters = await ChargingStationStorage.getOcppParameters(req.user.tenantID, chargingStation.id);
       // Get OCPP Params
-      ocppParams.push({
+      const dataToExport = ChargingStationService.convertOCPPParamsToCSV({
         params: ocppParameters.result,
         siteName: chargingStation.siteArea.site.name,
         siteAreaName: chargingStation.siteArea.name,
         chargingStationName: chargingStation.id
-      });
+      }, writeHeader);
+      // Send OCPP Params
+      res.write(dataToExport);
+      writeHeader = false;
     }
-    const dataToExport = ChargingStationService.convertOCPPParamsToCSV(ocppParams);
-    // Build export
-    const filename = 'exported-ocpp-params.csv';
-    fs.writeFile(filename, dataToExport, (err) => {
-      if (err) {
-        throw err;
-      }
-      res.download(filename, (err2) => {
-        if (err2) {
-          throw err2;
-        }
-        fs.unlink(filename, (err3) => {
-          if (err3) {
-            throw err3;
-          }
-        });
-      });
-    });
+    // End of stream
+    res.end();
   }
 
-  public static async handleGetChargingStationsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Get Charging Stations
-    const chargingStations = await ChargingStationService.getChargingStations(req);
-    // Build export
-    const filename = 'exported-charging-stations.csv';
-    fs.writeFile(filename, ChargingStationService.convertToCSV(req.user, chargingStations.result), (err) => {
-      if (err) {
-        throw err;
-      }
-      res.download(filename, (err2) => {
-        if (err2) {
-          throw err2;
-        }
-        fs.unlink(filename, (err3) => {
-          if (err3) {
-            throw err3;
-          }
-        });
-      });
-    });
+  public static async handleExportChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-charging-stations.csv',
+      ChargingStationService.getChargingStations.bind(this), ChargingStationService.convertToCSV.bind(this));
   }
 
   public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -1251,23 +1225,31 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static convertOCPPParamsToCSV(configurations: OCPPParams[]): string {
-    let csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
-    for (const config of configurations) {
-      for (const param of config.params) {
-        csv += `${config.chargingStationName}` + Constants.CSV_SEPARATOR;
-        csv += `${param.key}` + Constants.CSV_SEPARATOR;
-        csv += `${Utils.replaceSpecialCharsInCSVValueParam(param.value)}` + Constants.CSV_SEPARATOR;
-        csv += `${config.siteAreaName}` + Constants.CSV_SEPARATOR;
-        csv += `${config.siteName}\r\n`;
-      }
+  private static convertOCPPParamsToCSV(ocppParams: OCPPParams, writeHeader = true): string {
+    let csv = '';
+    // Header
+    if (writeHeader) {
+      csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
+    }
+    // Content
+    for (const param of ocppParams.params) {
+      csv += `${ocppParams.chargingStationName}` + Constants.CSV_SEPARATOR;
+      csv += `${param.key}` + Constants.CSV_SEPARATOR;
+      csv += `${Utils.replaceSpecialCharsInCSVValueParam(param.value)}` + Constants.CSV_SEPARATOR;
+      csv += `${ocppParams.siteAreaName}` + Constants.CSV_SEPARATOR;
+      csv += `${ocppParams.siteName}\r\n`;
     }
     return csv;
   }
 
-  private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
+  private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[], writeHeader = true): string {
+    let csv = '';
     const i18nManager = new I18nManager(loggedUser.locale);
-    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+    // Header
+    if (writeHeader) {
+      csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+    }
+    // Content
     for (const chargingStation of chargingStations) {
       csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
       csv += `${i18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${i18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
