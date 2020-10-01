@@ -157,7 +157,7 @@
     "start": "npm run start:prod",
     "prestart": "npm run build:prod",
     "start:dev": "npm run components:export && cross-env NODE_ENV=development ts-node-dev --files --max-old-space-size=4096 -- src/start.ts",
-    "start:dev:debug": "npm run components:export && cross-env NODE_ENV=development ts-node-dev --inspect-brk --files --max-old-space-size=4096 -- src/start.ts",
+    "start:dev:debug": "npm run components:export && cross-env NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
     "start:dev:prof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development node -r source-map-support/register --prof -- dist/start.js",
     "start:dev:doctorprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic doctor -- node -r source-map-support/register dist/start.js",
     "start:dev:flameprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic flame -- node -r source-map-support/register dist/start.js",
