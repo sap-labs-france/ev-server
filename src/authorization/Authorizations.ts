@@ -645,7 +645,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
-  public static canSendEndUserErrorNotification(loggedUser: UserToken): boolean {
+  public static canEndUserReportError(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
   }
 

@@ -43,9 +43,9 @@ export default class NotificationService {
     }
   }
 
-  static async handleEndUserErrorNotification(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  static async handleEndUserReportError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canSendEndUserErrorNotification(req.user)) {
+    if (!Authorizations.canEndUserReportError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
