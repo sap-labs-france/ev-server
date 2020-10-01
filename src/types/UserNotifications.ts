@@ -60,7 +60,7 @@ export enum UserNotificationType {
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
-  END_USER_ERROR_NOTIFICATION = 'EndUserErrorNotification'
+  END_USER_REPORT_ERROR = 'EndUserErrorNotification'
 }
 
 export enum NotificationSeverity {

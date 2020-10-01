@@ -181,7 +181,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18nManager.translate('notifications.endUserErrorNotification.body',
       { userName: data.name, errorTitle: data.errorTitle, errorDescription: data.errorDescription ,tenantName: tenant.name });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_USER_ERROR_NOTIFICATION, title, body, user, null,
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_USER_REPORT_ERROR, title, body, user, null,
       severity
     );
   }
