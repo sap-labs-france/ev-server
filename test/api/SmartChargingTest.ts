@@ -2,7 +2,6 @@ import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest 
 import { SapSmartChargingSetting, SettingDB, SmartChargingSetting, SmartChargingSettingsType } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
-import CPOSessionsEndpoint from '../server/ocpi/ocpi-services-impl/ocpi-2.1.1/CPOSessionsEndpoint';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -10,8 +9,8 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
-import SapSmartChargingIntegration from '../../src/integration/smart-charging/sap-smart-charging/SapSmartChargingIntegration';
 import SiteContext from './context/SiteContext';
+import SmartChargingFactory from '../integration/smart-charging/SmartChargingFactory';
 import SmartChargingIntegration from '../../src/integration/smart-charging/SmartChargingIntegration';
 import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
@@ -43,10 +42,9 @@ class TestData {
     const sapSmartChargingSettings = TestData.getSmartChargingSettings();
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
     sapSmartChargingSettings.password = Cypher.encrypt(sapSmartChargingSettings.password);
-    smartChargingIntegration = new SapSmartChargingIntegration(testData.tenantContext.getTenant().id, sapSmartChargingSettings);
+    smartChargingIntegration = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);
     expect(smartChargingIntegration).to.not.be.null;
   }
-
 
   public static getSmartChargingSettings(): SapSmartChargingSetting {
     return {
