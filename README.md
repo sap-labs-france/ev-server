@@ -419,6 +419,7 @@ Here are the default delivered locales:
       "fr_FR",
       "es_MX",
       "de_DE",
+      "pt_PT",
     ]
  },
 ```
