@@ -51,7 +51,7 @@ export default class ContextBuilder {
     this.initialized = false;
   }
 
-  public static generateLocalToken(role: OCPIRole, tenantSubdomain: string) {
+  public static generateLocalToken(role: OCPIRole, tenantSubdomain: string): string {
     const newToken: any = {};
     newToken.ak = role;
     newToken.tid = tenantSubdomain;
@@ -59,15 +59,15 @@ export default class ContextBuilder {
     return OCPIUtils.btoa(JSON.stringify(newToken));
   }
 
-  async init() {
+  async init(): Promise<void> {
     if (!this.initialized) {
-      // Connect to the the DB
+      // Connect to the DB
       await global.database.start();
     }
     this.initialized = true;
   }
 
-  async destroy() {
+  async destroy(): Promise<void> {
     if (this.tenantsContexts && this.tenantsContexts.length > 0) {
       this.tenantsContexts.forEach(async (tenantContext) => {
         console.log(`Delete Tenant context '${tenantContext.getTenant().id} (${tenantContext.getTenant().subdomain})`);
@@ -87,7 +87,7 @@ export default class ContextBuilder {
     }
   }
 
-  async prepareContexts() {
+  async prepareContexts(): Promise<void> {
     await this.init();
     await this.destroy();
     // Build each tenant context
@@ -96,7 +96,7 @@ export default class ContextBuilder {
     }
   }
 
-  async buildTenantContext(tenantContextDef: TenantDefinition) {
+  async buildTenantContext(tenantContextDef: TenantDefinition): Promise<TenantContext> {
     // Build component list
     const components = {};
     if (tenantContextDef.componentSettings) {
@@ -112,7 +112,7 @@ export default class ContextBuilder {
         }
       }
     }
-    // Check if tenant exist
+    // Check if tenant exists
     const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);

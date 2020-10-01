@@ -253,6 +253,7 @@ export default class UserStorage {
       locale: userToSave.locale,
       iNumber: userToSave.iNumber,
       costCenter: userToSave.costCenter,
+      notificationsActive: userToSave.notificationsActive,
       notifications: {
         sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
         sendOptimalChargeReached: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOptimalChargeReached) : false,
