@@ -21,7 +21,7 @@ import Constants from './Constants';
 import Consumption from '../types/Consumption';
 import Cypher from './Cypher';
 import { HTTPError } from '../types/HTTPError';
-import { HttpEndUserErrorNotificationRequest } from '../types/requests/HttpNotificationRequest';
+import { HttpEndUserReportErrorRequest } from '../types/requests/HttpNotificationRequest';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
@@ -2105,7 +2105,7 @@ export default class Utils {
     }
   }
 
-  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserErrorNotificationRequest, req: Request): void {
+  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserReportErrorRequest, req: Request): void {
     if (!endUserErrorNotificationValid.errorTitle || !endUserErrorNotificationValid.errorDescription) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

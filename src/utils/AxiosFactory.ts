@@ -73,7 +73,7 @@ export default class AxiosFactory {
 
   private static isNetworkOrDefaultIdempotentRequestError(error: AxiosError): boolean {
     const noRetryHTTPErrorCodes: number[] = [StatusCodes.NOT_IMPLEMENTED];
-    if (noRetryHTTPErrorCodes.includes(error.response.status)) {
+    if (noRetryHTTPErrorCodes.includes(error.response?.status)) {
       return false;
     }
     return axiosRetry.isNetworkOrIdempotentRequestError(error);

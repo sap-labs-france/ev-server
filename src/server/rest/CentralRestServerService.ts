@@ -100,7 +100,7 @@ class RequestMapper {
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
           [ServerAction.TAG_CREATE]: UserService.handleCreateTag.bind(this),
-          [ServerAction.END_USER_ERROR_NOTIFICATION]: NotificationService.handleEndUserErrorNotification.bind(this),
+          [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
         });
         break;
 

@@ -43,22 +43,22 @@ export default class NotificationService {
     }
   }
 
-  static async handleEndUserErrorNotification(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  static async handleEndUserReportError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canSendEndUserErrorNotification(req.user)) {
+    if (!Authorizations.canEndUserReportError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.CREATE, entity: Entity.NOTIFICATION,
-        module: MODULE_NAME, method: 'handleEndUserErrorNotification'
+        module: MODULE_NAME, method: 'handleEndUserReportError'
       });
     }
     // Filter
-    const filteredRequest = NotificationSecurity.filterEndUserErrorNotificationRequest(req.body);
+    const filteredRequest = NotificationSecurity.filterEndUserReportErrorRequest(req.body);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
-      MODULE_NAME, 'handleEndUserErrorNotification', req.user);
+      MODULE_NAME, 'handleEndUserReportError', req.user);
     // Save mobile number
     if (filteredRequest.phone && (user.mobile !== filteredRequest.phone)) {
       user.mobile = filteredRequest.phone;

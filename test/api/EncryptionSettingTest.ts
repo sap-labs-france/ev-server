@@ -1,6 +1,6 @@
 // Goal : Checks related to settings
 // Note : These unit tests use the tenant utall. This tenant should exist prior running these tests.
-//        Run npm run test:createContext to create the needed utall if not present.
+//        Run npm run mochatest:createContext to create the needed utall if not present.
 import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
