@@ -277,8 +277,8 @@ export default class MongoDBStorage {
       if (collection.name === 'migrations') {
         await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
       }
-      if (collection.name === 'runningmigrations') {
-        await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name)).drop();
+      if (collection.name === DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'runningmigrations')) {
+        await this.db.collection(collection.name).drop();
       }
     }
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
@@ -316,6 +316,7 @@ export default class MongoDBStorage {
     const createCollection = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE_INDEX, `collection-${tenantID}.${name}`);
     if (await LockingManager.acquire(createCollection)) {
       try {
+        // Get all the collections
         const currentCollections = await this.db.listCollections().toArray();
         const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
         const foundCollection = currentCollections.find((collection) => collection.name === tenantCollectionName);

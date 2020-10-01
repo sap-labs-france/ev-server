@@ -40,7 +40,7 @@ export default class StatisticsContext {
     this.tenantContext = tenantContext;
   }
 
-  public async createTestData(siteName, siteAreaName) {
+  public async createTestData(siteName, siteAreaName): Promise<number> {
     let firstYear = 0;
     const siteContext = this.tenantContext.getSiteContext(siteName);
     const siteAreaContext = siteContext.getSiteAreaContext(siteAreaName);
@@ -104,7 +104,7 @@ export default class StatisticsContext {
     console.log(`${this.tenantContext.getTenant().id} (${this.tenantContext.getTenant().name}) - Updated transaction '${transaction.id}' with refund data`);
   }
 
-  public async deleteTestData() {
+  public async deleteTestData(): Promise<void> {
     if (Array.isArray(this.chargingStations)) {
       for (const chargingStation of this.chargingStations) {
         await chargingStation.cleanUpCreatedData();
@@ -112,7 +112,7 @@ export default class StatisticsContext {
     }
   }
 
-  public setUser(userContext) {
+  public setUser(userContext): void {
     expect(userContext).to.exist;
     this.transactionUser = userContext;
     this.transactionUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionUser);
