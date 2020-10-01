@@ -606,10 +606,11 @@ export default class Logging {
     if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
       // eslint-disable-next-line no-useless-return
       return;
-    // FIXME: Commented out until an agreement is found on the implementation
-    // } else if (typeof message === 'string') {
-    //   // Anonymize
-    //   message.replace(/((repeat|)[pP]assword|captcha|email)(\s|)(=|:)(\s|)(.*)/g, '$1$3$4$5' + Constants.ANONYMIZED_VALUE);
+    } else if (typeof message === 'string') {
+      for (const sensitiveData of Constants.SENSITIVE_DATA) {
+        // Anonymize
+        message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
+      }
     } else if (Array.isArray(message)) {
       for (const item of message) {
         Logging.anonymizeSensitiveData(item);
