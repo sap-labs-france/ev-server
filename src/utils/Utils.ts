@@ -1049,12 +1049,13 @@ export default class Utils {
     }
   }
 
-  public static async buildEvseUserURL(tenantID: string, user: User, hash = ''): Promise<string> {
+  public static async buildEvseTagURL(tenantID: string, tag: Tag): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
-    return _evseBaseURL + '/users?UserID=' + user.id + hash;
+    return _evseBaseURL + '/users#tag?tagID=' + tag.id;
   }
+
 
   public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
