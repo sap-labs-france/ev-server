@@ -279,6 +279,7 @@ export default class UserService {
       for (const tag of user.tags) {
         if (tag.transactionsCount > 0) {
           tag.active = false;
+          tag.deleted = true;
           tag.lastChangedOn = new Date();
           tag.lastChangedBy = { id: req.user.id };
           tag.userID = user.id;
@@ -482,15 +483,9 @@ export default class UserService {
       }
       // Save Admin Data
       if (filteredRequest.plateID || Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
+        const adminData: { plateID?: string; } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
-        }
-        if (Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
-          adminData.notificationsActive = filteredRequest.notificationsActive;
-          if (filteredRequest.notifications) {
-            adminData.notifications = filteredRequest.notifications;
-          }
         }
         await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
       }
@@ -1197,7 +1192,7 @@ export default class UserService {
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Check Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id);
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
     if (tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1225,7 +1220,7 @@ export default class UserService {
     }
     // Create
     const newTag: Tag = {
-      id: filteredRequest.id,
+      id: filteredRequest.id.toUpperCase(),
       description: filteredRequest.description,
       issuer: true,
       active: filteredRequest.active,

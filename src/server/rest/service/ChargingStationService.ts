@@ -116,49 +116,6 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'forceInactive')) {
       chargingStation.forceInactive = filteredRequest.forceInactive;
     }
-    // Update Site Area
-    if (siteArea) {
-      // OCPI Site Area
-      if (!siteArea.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-          user: req.user,
-          action: action
-        });
-      }
-      chargingStation.siteAreaID = siteArea.id;
-      // Check number of phases corresponds to the site area one
-      if (filteredRequest.connectors) {
-        for (const connector of filteredRequest.connectors) {
-          if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea && chargingStation.siteArea.numberOfPhases === 1) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              action: action,
-              errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-              message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
-              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-              user: req.user,
-            });
-          }
-        }
-      }
-      // Check Smart Charging
-      if (!siteArea.smartCharging) {
-        delete chargingStation.excludeFromSmartCharging;
-      }
-    } else {
-      delete chargingStation.excludeFromSmartCharging;
-      chargingStation.siteAreaID = null;
-    }
-    if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
-      chargingStation.coordinates = [
-        filteredRequest.coordinates[0],
-        filteredRequest.coordinates[1]
-      ];
-    }
     // Existing Connectors
     if (!Utils.isEmptyArray(filteredRequest.connectors)) {
       for (const filteredConnector of filteredRequest.connectors) {
@@ -177,6 +134,48 @@ export default class ChargingStationService {
           connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
         }
       }
+    }
+    // Update Site Area
+    if (siteArea) {
+      // OCPI Site Area
+      if (!siteArea.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          user: req.user,
+          action: action
+        });
+      }
+      chargingStation.siteAreaID = siteArea.id;
+      // Check number of phases corresponds to the site area one
+      for (const connector of chargingStation.connectors) {
+        const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+        if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
+            module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+            user: req.user,
+          });
+        }
+      }
+      // Check Smart Charging
+      if (!siteArea.smartCharging) {
+        delete chargingStation.excludeFromSmartCharging;
+      }
+    } else {
+      delete chargingStation.excludeFromSmartCharging;
+      chargingStation.siteAreaID = null;
+    }
+    if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
+      chargingStation.coordinates = [
+        filteredRequest.coordinates[0],
+        filteredRequest.coordinates[1]
+      ];
     }
     // Update timestamp
     chargingStation.lastChangedBy = { 'id': req.user.id };
@@ -398,7 +397,7 @@ export default class ChargingStationService {
         action: Action.UPDATE,
         entity: Entity.SITE_AREA,
         module: MODULE_NAME,
-        method: 'handleAssignAssetsToSiteArea',
+        method: 'handleTriggerSmartCharging',
         value: filteredRequest.siteAreaID
       });
     }
@@ -566,7 +565,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' does not exist`,
-      MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
+      MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -757,7 +756,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleChargingStationsOCPPParamsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleExportChargingStationsOCPPParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Always with site
     req.query.WithSite = 'true';
     // Get Charging Stations
@@ -771,61 +770,35 @@ export default class ChargingStationService {
           action: Action.EXPORT_PARAMS,
           entity: Entity.CHARGING_STATION,
           module: MODULE_NAME,
-          method: 'handleChargingStationsOCPPParamsExport',
+          method: 'handleExportChargingStationsOCPPParams',
         });
       }
     }
     const ocppParams: OCPPParams[] = [];
+    // Set the attachement name
+    res.attachment('exported-ocpp-params.csv');
+    let writeHeader = true;
     for (const chargingStation of chargingStations.result) {
       const ocppParameters = await ChargingStationStorage.getOcppParameters(req.user.tenantID, chargingStation.id);
       // Get OCPP Params
-      ocppParams.push({
+      const dataToExport = ChargingStationService.convertOCPPParamsToCSV({
         params: ocppParameters.result,
         siteName: chargingStation.siteArea.site.name,
         siteAreaName: chargingStation.siteArea.name,
         chargingStationName: chargingStation.id
-      });
+      }, writeHeader);
+      // Send OCPP Params
+      res.write(dataToExport);
+      writeHeader = false;
     }
-    const dataToExport = ChargingStationService.convertOCPPParamsToCSV(ocppParams);
-    // Build export
-    const filename = 'exported-ocpp-params.csv';
-    fs.writeFile(filename, dataToExport, (err) => {
-      if (err) {
-        throw err;
-      }
-      res.download(filename, (err2) => {
-        if (err2) {
-          throw err2;
-        }
-        fs.unlink(filename, (err3) => {
-          if (err3) {
-            throw err3;
-          }
-        });
-      });
-    });
+    // End of stream
+    res.end();
   }
 
-  public static async handleGetChargingStationsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Get Charging Stations
-    const chargingStations = await ChargingStationService.getChargingStations(req);
-    // Build export
-    const filename = 'exported-charging-stations.csv';
-    fs.writeFile(filename, ChargingStationService.convertToCSV(req.user, chargingStations.result), (err) => {
-      if (err) {
-        throw err;
-      }
-      res.download(filename, (err2) => {
-        if (err2) {
-          throw err2;
-        }
-        fs.unlink(filename, (err3) => {
-          if (err3) {
-            throw err3;
-          }
-        });
-      });
-    });
+  public static async handleExportChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-charging-stations.csv',
+      ChargingStationService.getChargingStations.bind(this), ChargingStationService.convertToCSV.bind(this));
   }
 
   public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -1250,23 +1223,31 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static convertOCPPParamsToCSV(configurations: OCPPParams[]): string {
-    let csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
-    for (const config of configurations) {
-      for (const param of config.params) {
-        csv += `${config.chargingStationName}` + Constants.CSV_SEPARATOR;
-        csv += `${param.key}` + Constants.CSV_SEPARATOR;
-        csv += `${Utils.replaceSpecialCharsInCSVValueParam(param.value)}` + Constants.CSV_SEPARATOR;
-        csv += `${config.siteAreaName}` + Constants.CSV_SEPARATOR;
-        csv += `${config.siteName}\r\n`;
-      }
+  private static convertOCPPParamsToCSV(ocppParams: OCPPParams, writeHeader = true): string {
+    let csv = '';
+    // Header
+    if (writeHeader) {
+      csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
+    }
+    // Content
+    for (const param of ocppParams.params) {
+      csv += `${ocppParams.chargingStationName}` + Constants.CSV_SEPARATOR;
+      csv += `${param.key}` + Constants.CSV_SEPARATOR;
+      csv += `${Utils.replaceSpecialCharsInCSVValueParam(param.value)}` + Constants.CSV_SEPARATOR;
+      csv += `${ocppParams.siteAreaName}` + Constants.CSV_SEPARATOR;
+      csv += `${ocppParams.siteName}\r\n`;
     }
     return csv;
   }
 
-  private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
+  private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[], writeHeader = true): string {
+    let csv = '';
     const i18nManager = new I18nManager(loggedUser.locale);
-    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+    // Header
+    if (writeHeader) {
+      csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+    }
+    // Content
     for (const chargingStation of chargingStations) {
       csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
       csv += `${i18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${i18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;

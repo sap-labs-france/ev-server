@@ -12,10 +12,13 @@ export default class Constants {
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
   public static readonly DB_RECORD_COUNT_CEIL = 2000;
   public static readonly DB_RECORD_COUNT_NO_LIMIT = Number.MAX_SAFE_INTEGER;
+  public static readonly DB_UNDETERMINED_NBR_OF_RECORDS = -1;
 
   public static readonly DB_PARAMS_MAX_LIMIT: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, sort: null });
   public static readonly DB_PARAMS_SINGLE_RECORD: DbParams = Object.freeze({ limit: 1, skip: 0, sort: null });
   public static readonly DB_PARAMS_COUNT_ONLY: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true, sort: null });
+
+  public static readonly EXPORT_PAGE_SIZE = 1000;
 
   public static readonly DEFAULT_TENANT = 'default';
   public static readonly DEFAULT_TENANT_OBJECT= {

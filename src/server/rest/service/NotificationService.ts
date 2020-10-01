@@ -50,7 +50,7 @@ export default class NotificationService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.CREATE, entity: Entity.NOTIFICATION,
-        module: MODULE_NAME, method: 'handleEndUserErrorNotification'
+        module: MODULE_NAME, method: 'handleEndUserReportError'
       });
     }
     // Filter
@@ -58,7 +58,7 @@ export default class NotificationService {
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
-      MODULE_NAME, 'handleEndUserErrorNotification', req.user);
+      MODULE_NAME, 'handleEndUserReportError', req.user);
     // Save mobile number
     if (filteredRequest.phone && (user.mobile !== filteredRequest.phone)) {
       user.mobile = filteredRequest.phone;
