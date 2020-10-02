@@ -21,6 +21,11 @@ stages:
     
   Additional Unit Tests:
     karmaExecuteTests: false
+    
+  Security:
+    executeCheckmarxScan: true
+    checkmarxExecuteScan: false
+    executeWhitesourceScan: false
 
 steps:
 
