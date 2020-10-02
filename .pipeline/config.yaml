@@ -11,9 +11,9 @@ stages:
     sonarExecuteScan: false
 
   IPScan and PPMS:
-    whitesourceProductName: 'SHC - SAP E-Mobility Backend'
-    whitesourceProjectNames: ['e-Mobility Backend - 1'] # needed for automation of mapping requests # TODO
-    whitesourceProductToken: '6c3a521684eb454b9da2ca82b8383fe644230f1755684f4ea03ad3b28c3668e5'
+    whitesourceProductName: 'SHC - SAP E-MOBILITY BACKEND 1.0'
+    whitesourceProjectNames: ['SAP E-MOBILITY BACKEND 1.0'] # needed for automation of mapping requests # TODO
+    whitesourceProductToken: '1bc6180baace4de497ac4fcf27264aad435caf91baf648bab8171559467f4f49'
     whitesourceUserTokenCredentialsId : 'whitesourceUserTokenEmobility'
     executeWhitesourceScan: true
     sapCheckPPMSCompliance: true
