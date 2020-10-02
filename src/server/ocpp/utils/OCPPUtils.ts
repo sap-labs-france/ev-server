@@ -1194,7 +1194,7 @@ export default class OCPPUtils {
             } else {
               delete connector.numberOfConnectedPhase;
             }
-            return true;
+            break;
           }
         }
       }
