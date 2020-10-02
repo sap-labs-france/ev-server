@@ -24,7 +24,7 @@ stages:
     
   Security:
     executeCheckmarxScan: false
-    checkmarxExecuteScan: true
+    checkmarxExecuteScan: false
     executeWhitesourceScan: false
 
 steps:
