@@ -1053,7 +1053,7 @@ export default class Utils {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
-    return _evseBaseURL + '/users#tag?tagID=' + tag.id;
+    return _evseBaseURL + '/users#tag?TagID=' + tag.id;
   }
 
 
