@@ -10,7 +10,7 @@ import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import SiteContext from './context/SiteContext';
-import SmartChargingFactory from '../integration/smart-charging/SmartChargingFactory';
+import SmartChargingFactory from '../../src/integration/smart-charging/SmartChargingFactory';
 import SmartChargingIntegration from '../../src/integration/smart-charging/SmartChargingIntegration';
 import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
