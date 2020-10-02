@@ -88,7 +88,7 @@ export enum ServerAction {
 
   REMOTE_PUSH_NOTIFICATION = 'RemotePushNotification',
   EMAIL_NOTIFICATION = 'EmailNotification',
-  END_USER_ERROR_NOTIFICATION = 'EndUserErrorNotification',
+  END_USER_REPORT_ERROR = 'EndUserReportError',
 
   SYNCHRONIZE_REFUND = 'RefundSynchronize',
 

@@ -23,7 +23,8 @@
         "run-script",
         "start:dev:debug"
       ],
-      "port": 9229
+      "port": 9229,
+      "stopOnEntry": true
     }
   ]
 }
