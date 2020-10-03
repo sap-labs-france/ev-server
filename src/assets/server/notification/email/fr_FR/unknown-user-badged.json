@@ -22,8 +22,8 @@
       "Un utilisateur inconnu vient juste de badger sur <b>'<%- chargeBoxID %>'</b> avec le badge ID <b>'<%- badgeID %>'</b>."
     ],
     "action": {
-      "title": "Editer Utilisateur",
-      "url": "<%- evseDashboardUserURL %>"
+      "title": "Editer Badge",
+      "url": "<%- evseDashboardTagURL %>"
     },
     "afterActionLines": [
       "Cordialement,",

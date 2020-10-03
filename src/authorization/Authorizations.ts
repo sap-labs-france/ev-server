@@ -8,6 +8,7 @@ import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
+import NotificationHandler from '../notification/NotificationHandler';
 import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/service/SessionHashService';
@@ -645,7 +646,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
-  public static canSendEndUserErrorNotification(loggedUser: UserToken): boolean {
+  public static canEndUserReportError(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
   }
 
@@ -733,6 +734,18 @@ export default class Authorizations {
       } as Tag;
       // Save
       await UserStorage.saveTag(tenantID, tag);
+      // Notify (Async)
+      NotificationHandler.sendUnknownUserBadged(
+        tenantID,
+        Utils.generateGUID(),
+        chargingStation,
+        {
+          chargeBoxID: chargingStation.id,
+          badgeID: tagID,
+          evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
+          evseDashboardTagURL: await Utils.buildEvseTagURL(tenantID, tag)
+        }
+      ).catch(() => { });
       // Log
       Logging.logWarning({
         tenantID: tenantID,

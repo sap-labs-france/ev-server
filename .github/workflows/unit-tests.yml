@@ -37,7 +37,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: npm install
-      run: npm install
+      run: npm install --package-lock-only && npm ci
     - name: npm run build:dev
       run: |
         cp src/assets/configs-ci/config.json src/assets
@@ -46,13 +46,13 @@ jobs:
       run: |
         npm run start:email &
         npm run start:devbuild &
-    - name: npm run test:createContext
+    - name: npm run mochatest:createContext
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
-        npm run test:createContext
-    - name: npm mochatest
-      run: npm mochatest
+        npm run mochatest:createContext
+    - name: npm run mochatest
+      run: npm run mochatest
 
   unit-tests-submodules:
     runs-on: ubuntu-latest
@@ -79,7 +79,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: npm install
-      run: npm install
+      run: npm install --package-lock-only && npm ci
     - name: npm run build:dev
       run: |
         cp src/assets/configs-ci/config.json src/assets
@@ -88,11 +88,11 @@ jobs:
       run: |
         npm run start:email &
         npm run start:devbuild &
-    - name: npm run test:createContext
+    - name: npm run mochatest:createContext
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
-        npm run test:createContext
-    - name: npm mochatest
-      run: npm mochatest
+        npm run mochatest:createContext
+    - name: npm run mochatest
+      run: npm run mochatest
 

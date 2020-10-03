@@ -21,7 +21,7 @@ import Constants from './Constants';
 import Consumption from '../types/Consumption';
 import Cypher from './Cypher';
 import { HTTPError } from '../types/HTTPError';
-import { HttpEndUserErrorNotificationRequest } from '../types/requests/HttpNotificationRequest';
+import { HttpEndUserReportErrorRequest } from '../types/requests/HttpNotificationRequest';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
@@ -1049,12 +1049,13 @@ export default class Utils {
     }
   }
 
-  public static async buildEvseUserURL(tenantID: string, user: User, hash = ''): Promise<string> {
+  public static async buildEvseTagURL(tenantID: string, tag: Tag): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
-    return _evseBaseURL + '/users?UserID=' + user.id + hash;
+    return _evseBaseURL + '/users#tag?TagID=' + tag.id;
   }
+
 
   public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
@@ -2105,7 +2106,7 @@ export default class Utils {
     }
   }
 
-  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserErrorNotificationRequest, req: Request): void {
+  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserReportErrorRequest, req: Request): void {
     if (!endUserErrorNotificationValid.errorTitle || !endUserErrorNotificationValid.errorDescription) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
