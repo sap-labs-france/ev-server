@@ -482,7 +482,7 @@ export default class UserService {
         await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID || Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
+      if (filteredRequest.plateID) {
         const adminData: { plateID?: string; } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
