@@ -22,7 +22,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public hasStaticLimitationSupport(chargingStation: ChargingStation): boolean {
-    return chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation;
+    return chargingStation.capabilities?.supportStaticLimitation;
   }
 
   public async setStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
@@ -542,8 +542,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   private hasStaticLimitationFullSupport(chargingStation: ChargingStation, chargePoint?: ChargePoint): boolean {
-    if (!chargePoint.excludeFromPowerLimitation && chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation
-      && chargePoint.ocppParamForPowerLimitation) {
+    if (!chargePoint?.excludeFromPowerLimitation && chargePoint?.ocppParamForPowerLimitation && chargingStation.capabilities?.supportStaticLimitation) {
       return true;
     }
     return false;
