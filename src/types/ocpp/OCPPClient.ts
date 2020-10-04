@@ -39,12 +39,12 @@ export enum OCPPClearCacheStatus {
 }
 
 export interface OCPPGetConfigurationCommandParam extends OCPPCommandParam {
-  keys?: string[];
+  key?: string[];
 }
 
 export interface OCPPGetConfigurationCommandResult {
-  configurationOcppParams: OcppParameter[];
-  unknownOcppParamKeys?: string[];
+  configurationKey: OcppParameter[];
+  unknownKey?: string[];
 }
 
 export interface OCPPChangeConfigurationCommandParam extends OCPPCommandParam {
