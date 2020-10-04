@@ -542,7 +542,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   private hasStaticLimitationFullSupport(chargingStation: ChargingStation, chargePoint?: ChargePoint): boolean {
-    if (!chargePoint?.excludeFromPowerLimitation && chargePoint?.ocppParamForPowerLimitation && chargingStation.capabilities?.supportStaticLimitation) {
+    if (this.hasStaticLimitationSupport(chargingStation) && !chargePoint?.excludeFromPowerLimitation && chargePoint?.ocppParamForPowerLimitation) {
       return true;
     }
     return false;
