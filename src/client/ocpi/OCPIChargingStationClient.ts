@@ -53,7 +53,7 @@ export default class OCPIChargingStationClient extends ChargingStationClient {
 
   async getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
     return {
-      configurationKey: []
+      configurationParams: []
     };
   }
 

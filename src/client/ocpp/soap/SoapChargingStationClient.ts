@@ -261,15 +261,15 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     this.initSoapHeaders(Command.GET_CONFIGURATION);
     // Log
     Logging.logSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
-      [params.key, { headers: this.client.getSoapHeaders() }]);
+      [params.paramKeys, { headers: this.client.getSoapHeaders() }]);
     // Set request
     const request: any = {
       'getConfigurationRequest': {}
     };
     // Key provided?
-    if (params.key) {
+    if (params.paramKeys) {
       // Set the keys
-      request.getConfigurationRequest.key = params.key;
+      request.getConfigurationRequest.key = params.paramKeys;
     }
     // Execute
     const { error, result, envelope } = await this.client.GetConfiguration(request);

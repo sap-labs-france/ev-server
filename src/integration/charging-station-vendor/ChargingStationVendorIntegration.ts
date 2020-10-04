@@ -57,7 +57,7 @@ export default abstract class ChargingStationVendorIntegration {
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
-        message: 'Charging Station capabilities or configuration does not support static power limitation'
+        message: 'Charging Station capabilities or configuration does not support power limitation'
       });
     }
     if (maxAmps < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors)) {
@@ -402,20 +402,26 @@ export default abstract class ChargingStationVendorIntegration {
         // Get the current Charging Plan
         // Check the TX Charging Profiles from the DB
         let chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
-            profilePurposeType: ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+          {
+            chargingStationIDs: [chargingStation.id], connectorID: connectorID,
+            profilePurposeType: ChargingProfilePurposeType.TX_PROFILE
+          }, Constants.DB_PARAMS_MAX_LIMIT);
         let result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
           return result;
         }
         // Check the TX Default Charging Profiles from the DB
         chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationIDs: [chargingStation.id], connectorID: 0,
-            profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+          {
+            chargingStationIDs: [chargingStation.id], connectorID: 0,
+            profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE
+          }, Constants.DB_PARAMS_MAX_LIMIT);
         if (chargingProfiles.result.length === 0) {
           chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-            { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
-              profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+            {
+              chargingStationIDs: [chargingStation.id], connectorID: connectorID,
+              profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE
+            }, Constants.DB_PARAMS_MAX_LIMIT);
         }
         result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
@@ -423,14 +429,16 @@ export default abstract class ChargingStationVendorIntegration {
         }
         // Check the Max Charging Profiles from the DB
         chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          { chargingStationIDs: [chargingStation.id], connectorID: connectorID,
-            profilePurposeType: ChargingProfilePurposeType.CHARGE_POINT_MAX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+          {
+            chargingStationIDs: [chargingStation.id], connectorID: connectorID,
+            profilePurposeType: ChargingProfilePurposeType.CHARGE_POINT_MAX_PROFILE
+          }, Constants.DB_PARAMS_MAX_LIMIT);
         result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
         if (result) {
           return result;
         }
       }
-      // Check next the static power limitation
+      // Check next the power limitation
       if (chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation) {
         // Read the static limitation from connector
         const connectorLimitAmps = Utils.getChargingStationAmperageLimit(chargingStation, chargePoint, connectorID);
@@ -593,8 +601,8 @@ export default abstract class ChargingStationVendorIntegration {
       // Check type (Recurring) and if it is already active
       // Adjust the Daily Recurring Schedule to today
       if (chargingProfile.profile.chargingProfileKind === ChargingProfileKindType.RECURRING &&
-          chargingProfile.profile.recurrencyKind === RecurrencyKindType.DAILY &&
-          now.isAfter(chargingSchedule.startSchedule)) {
+        chargingProfile.profile.recurrencyKind === RecurrencyKindType.DAILY &&
+        now.isAfter(chargingSchedule.startSchedule)) {
         const currentDate = new Date();
         chargingSchedule.startSchedule = new Date(chargingSchedule.startSchedule);
         chargingSchedule.startSchedule.setFullYear(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
