@@ -1487,7 +1487,7 @@ export default class OCPPUtils {
       // Create Conf
       const chargingStationOcppParameters: ChargingStationOcppParameters = {
         id: chargingStation.id,
-        configuration: ocppConfiguration.configurationParams,
+        configuration: ocppConfiguration.configurationOcppParams,
         timestamp: new Date()
       };
       // Set default?

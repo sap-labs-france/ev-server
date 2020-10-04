@@ -1300,7 +1300,7 @@ export default class ChargingStationService {
           break;
         // Get Configuration
         case Command.GET_CONFIGURATION:
-          result = await chargingStationClient.getConfiguration({ paramKeys: params.key });
+          result = await chargingStationClient.getConfiguration({ keys: params.key });
           break;
         // Set Configuration
         case Command.CHANGE_CONFIGURATION:
