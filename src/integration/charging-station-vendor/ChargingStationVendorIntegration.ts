@@ -616,7 +616,7 @@ export default abstract class ChargingStationVendorIntegration {
         let lastButOneSchedule: ChargingSchedulePeriod;
         // Search the right Schedule Period
         for (const schedulePeriod of chargingSchedule.chargingSchedulePeriod) {
-          // Hanlding of only one period
+          // Handling of only one period
           if (chargingSchedule.chargingSchedulePeriod.length === 1 && schedulePeriod.startPeriod === 0) {
             const result: ConnectorCurrentLimit = {
               limitAmps: Utils.convertToInt(schedulePeriod.limit),
