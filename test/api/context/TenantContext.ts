@@ -476,16 +476,28 @@ export default class TenantContext {
     //   `Connector ID 1 of charging station ${createdChargingStation.id} must have 654 A`);
     expect(createdChargingStation.connectors[0].type).to.eql('CCS',
       `Connector ID 1 of charging station ${createdChargingStation.id} must have CCS connector`);
-    expect(createdChargingStation.connectors[0].phaseAssignmentToGrid).to.eql(null,
-      `Connector ID 1 of charging station ${createdChargingStation.id} must not have phase assignment to grid`);
+    if (siteArea) {
+      expect(createdChargingStation.connectors[0].phaseAssignmentToGrid).to.eql({
+        'csPhaseL1': 'L1',
+        'csPhaseL2': 'L2',
+        'csPhaseL3': 'L3',
+      },
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    }
     expect(createdChargingStation.connectors[1].power).to.eql(150000,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 150000 W`);
     // Expect(createdChargingStation.connectors[1].amperage).to.eql(654,
     //   `Connector ID 2 of charging station ${createdChargingStation.id} must have 654 A`);
     expect(createdChargingStation.connectors[1].type).to.eql('CCS',
       `Connector ID 2 of charging station ${createdChargingStation.id} must have CCS connector`);
-    expect(createdChargingStation.connectors[1].phaseAssignmentToGrid).to.eql(null,
-      `Connector ID 2 of charging station ${createdChargingStation.id} must not have phase assignment to grid`);
+    if (siteArea) {
+      expect(createdChargingStation.connectors[1].phaseAssignmentToGrid).to.eql({
+        'csPhaseL1': 'L1',
+        'csPhaseL2': 'L2',
+        'csPhaseL3': 'L3',
+      },
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    }
     // Charge Points
     expect(createdChargingStation.chargePoints.length).to.eql(1,
       `Number of charge point of charging station ${createdChargingStation.id} must be 1`);

@@ -1198,8 +1198,8 @@ export default class OCPPUtils {
             }
             if (chargingStation.siteAreaID && !connector.phaseAssignmentToGrid) {
               const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
-              if (siteArea.numberOfPhases === 3 && Utils.getChargingStationCurrentType(chargingStation, null) === CurrentType.AC) {
-                const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation);
+              if (siteArea.numberOfPhases === 3) {
+                const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connectorID);
                 switch (numberOfPhases) {
                   case 3:
                     connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 } ;
