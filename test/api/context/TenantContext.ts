@@ -46,12 +46,12 @@ export default class TenantContext {
     };
   }
 
-  async initialize(token: string = null, siteAreaID: string = null) {
-    if (!token) {
-      token = await this.createRegistrationToken(siteAreaID);
+  async initialize(tokenID: string = null, siteAreaID: string = null) {
+    if (!tokenID) {
+      tokenID = await this.createRegistrationToken(siteAreaID);
     }
-    this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}/${token}`, this.ocppRequestHandler);
-    this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}%26Token=${token}`);
+    this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}/${tokenID}`, this.ocppRequestHandler);
+    this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}%26Token=${tokenID}`);
   }
 
   getTenant() {
@@ -74,7 +74,6 @@ export default class TenantContext {
     }
     if (!registrationToken) {
       await this.initialize(null, siteAreaID);
-      console.log(siteAreaID);
     }
     if (registrationToken) {
       await this.initialize(registrationToken.id);
@@ -325,7 +324,7 @@ export default class TenantContext {
         'csPhaseL2': 'L2',
         'csPhaseL3': 'L3',
       },
-      `Connector ID 1 of charging station ${createdChargingStation.id} must have default phase assignment`);
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have default phase assignment`);
     }
     // Charge Points
     expect(createdChargingStation.chargePoints.length).to.eql(1,
@@ -388,6 +387,17 @@ export default class TenantContext {
       `Connector ID 1 of charging station ${createdChargingStation.id} must have 32 A`);
     expect(createdChargingStation.connectors[0].type).to.eql('T2',
       `Connector ID 1 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    if (siteArea?.numberOfPhases === 3) {
+      expect(createdChargingStation.connectors[0].phaseAssignmentToGrid).to.eql({
+        'csPhaseL1': 'L1',
+        'csPhaseL2': null,
+        'csPhaseL3': null,
+      },
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    } else {
+      expect(createdChargingStation.connectors[0].phaseAssignmentToGrid).to.eql(null,
+        `Connector ID 1 of charging station ${createdChargingStation.id} must not have phase assignment to grid`);
+    }
     expect(createdChargingStation.connectors[1].power).to.eql(7360,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 7360 W`);
     expect(createdChargingStation.connectors[1].amperage).to.eql(32,
@@ -400,10 +410,10 @@ export default class TenantContext {
         'csPhaseL2': null,
         'csPhaseL3': null,
       },
-      `Connector ID 1 of charging station ${createdChargingStation.id} must have default phase assignment`);
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have default phase assignment`);
     } else {
       expect(createdChargingStation.connectors[1].phaseAssignmentToGrid).to.eql(null,
-        `Connector ID 1 of charging station ${createdChargingStation.id} must not have phase assignment to grid`);
+        `Connector ID 2 of charging station ${createdChargingStation.id} must not have phase assignment to grid`);
     }
     // Charge Points
     expect(createdChargingStation.chargePoints.length).to.eql(1,
@@ -514,7 +524,6 @@ export default class TenantContext {
     expect(registrationTokenResponse.status).eq(200);
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;
-    console.log(JSON.stringify(registrationTokenResponse.data.result, null, ' '));
     if (registrationTokenResponse.data.result.lenght !== 0) {
       return registrationTokenResponse.data.result[0];
     }

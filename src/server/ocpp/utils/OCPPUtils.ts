@@ -1208,8 +1208,6 @@ export default class OCPPUtils {
                     connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null } ;
                     break;
                 }
-              } else {
-                console.log('test');
               }
             }
             return true;
