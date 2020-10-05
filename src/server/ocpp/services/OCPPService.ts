@@ -175,9 +175,9 @@ export default class OCPPService {
         Utils.generateGUID(),
         chargingStation,
         {
-          'chargeBoxID': chargingStation.id,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(headers.tenantID)).subdomain),
-          'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
+          chargeBoxID: chargingStation.id,
+          evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(headers.tenantID)).subdomain),
+          evseDashboardChargingStationURL: await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
         }
       ).catch(
         () => { }
@@ -210,9 +210,9 @@ export default class OCPPService {
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
       // Reject
       return {
-        'status': RegistrationStatus.REJECTED,
-        'currentTime': bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
-        'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
+        status: RegistrationStatus.REJECTED,
+        currentTime: bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
+        heartbeatInterval: this.chargingStationConfig.heartbeatIntervalSecs
       };
     }
   }
