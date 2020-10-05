@@ -1051,7 +1051,7 @@ export default class OCPPUtils {
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-                      message: `Template contains setting for power limitation OCPP parameter key ${parameter} in OCPP standard parameters, skipping. Remove it from template`,
+                      message: `Template contains setting for power limitation OCPP parameter key '${parameter}' in OCPP Standard parameters, skipping. Remove it from template!`,
                       detailedMessages: { chargingStationTemplate }
                     });
                     continue;
@@ -1100,7 +1100,7 @@ export default class OCPPUtils {
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-                      message: `Template contains setting for power limitation OCPP parameter key ${parameter} in OCPP vendor parameters, skipping. Remove it from template`,
+                      message: `Template contains setting for power limitation OCPP Parameter key '${parameter}' in OCPP Vendor parameters, skipping. Remove it from template!`,
                       detailedMessages: { chargingStationTemplate }
                     });
                     continue;
