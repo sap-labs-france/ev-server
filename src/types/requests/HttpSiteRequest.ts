@@ -6,6 +6,7 @@ export interface HttpSiteRequest extends HttpByIDRequest {
 }
 
 export interface HttpSitesRequest extends HttpDatabaseRequest {
+  Search: string;
   Issuer: boolean;
   WithAvailableChargers: boolean;
   WithCompany: boolean;
@@ -13,7 +14,8 @@ export interface HttpSitesRequest extends HttpDatabaseRequest {
   CompanyID: string;
   SiteID: string;
   ExcludeSitesOfUserID: boolean;
-  Search: string;
+  LocCoordinates?: number[];
+  LocMaxDistanceMeters?: number;
 }
 
 export interface HttpSiteAssignUsersRequest {

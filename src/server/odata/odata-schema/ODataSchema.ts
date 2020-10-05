@@ -4,6 +4,7 @@ import CentralServiceApi from '../client/CentralServiceApi';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import auth from 'basic-auth';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
@@ -23,7 +24,7 @@ export default class ODataSchema {
     const authentication = auth(req);
     if (!authentication) {
       res.setHeader('WWW-Authenticate', 'Basic');
-      res.send(401);
+      res.send(StatusCodes.UNAUTHORIZED);
       return;
     }
     // Perform a Secure Ping only if root or metadata is requested - otherwise the authentication is checked in the proper REST method call
@@ -49,7 +50,7 @@ export default class ODataSchema {
         message: 'Unauthorized Access',
         detailedMessages: { error: error.message, stack: error.stack }
       });
-      res.send(401);
+      res.send(StatusCodes.UNAUTHORIZED);
       return;
     }
     res.setHeader('OData-Version', '4.0');

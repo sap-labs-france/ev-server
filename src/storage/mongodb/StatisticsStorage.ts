@@ -27,30 +27,30 @@ export default class StatisticsStorage {
     if (filters.endDateTime) {
       match.timestamp.$lte = Utils.convertToDate(filters.endDateTime);
     }
-    // Check stop tr
+    // Check stop transaction
     if (filters.stop) {
       match.stop = filters.stop;
     }
-    // Filter on Site?
-    if (filters.siteIDs && Array.isArray(filters.siteIDs) && filters.siteIDs.length > 0) {
+    // Site
+    if (!Utils.isEmptyArray(filters.siteIDs)) {
       match.siteID = {
         $in: filters.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Filter on Site Area?
-    if (filters.siteAreaIDs && Array.isArray(filters.siteAreaIDs) && filters.siteAreaIDs.length > 0) {
+    if (!Utils.isEmptyArray(filters.siteAreaIDs)) {
       match.siteAreaID = {
         $in: filters.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
       };
     }
     // Filter on Charge Box?
-    if (filters.chargeBoxIDs && Array.isArray(filters.chargeBoxIDs) && filters.chargeBoxIDs.length > 0) {
+    if (!Utils.isEmptyArray(filters.chargeBoxIDs)) {
       match.chargeBoxID = {
         $in: filters.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
       };
     }
     // Filter on User?
-    if (filters.userIDs && Array.isArray(filters.userIDs) && filters.userIDs.length > 0) {
+    if (!Utils.isEmptyArray(filters.userIDs)) {
       match.userID = {
         $in: filters.userIDs.map((userID) => Utils.convertToObjectID(userID))
       };
@@ -153,25 +153,25 @@ export default class StatisticsStorage {
       match.stop = filters.stop;
     }
     // Filter on Site?
-    if (filters.siteIDs && Array.isArray(filters.siteIDs) && filters.siteIDs.length > 0) {
+    if (!Utils.isEmptyArray(filters.siteIDs)) {
       match.siteID = {
         $in: filters.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Filter on Site Area?
-    if (filters.siteAreaIDs && Array.isArray(filters.siteAreaIDs) && filters.siteAreaIDs.length > 0) {
+    if (!Utils.isEmptyArray(filters.siteAreaIDs)) {
       match.siteAreaID = {
         $in: filters.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
       };
     }
     // Filter on Charge Box?
-    if (filters.chargeBoxIDs && Array.isArray(filters.chargeBoxIDs) && filters.chargeBoxIDs.length > 0) {
+    if (!Utils.isEmptyArray(filters.chargeBoxIDs)) {
       match.chargeBoxID = {
         $in: filters.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
       };
     }
     // Filter on User?
-    if (filters.userIDs && Array.isArray(filters.userIDs) && filters.userIDs.length > 0) {
+    if (!Utils.isEmptyArray(filters.userIDs)) {
       match.userID = {
         $in: filters.userIDs.map((userID) => Utils.convertToObjectID(userID))
       };

@@ -2,13 +2,13 @@ import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIMapping from './OCPIMapping';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../OCPIUtils';
+import { StatusCodes } from 'http-status-codes';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Utils from '../../../../utils/Utils';
 
 const MODULE_NAME = 'OCPITokensService';
 
@@ -19,7 +19,7 @@ export default class OCPITokensService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateToken',
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
         detailedMessages: { token },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -33,8 +33,8 @@ export default class OCPITokensService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateToken',
-          errorCode: HttpStatusCodes.CONFLICT,
-          message: `The token ${token.uid} is already assigned to internal user`,
+          errorCode: StatusCodes.CONFLICT,
+          message: `The Token ID '${token.uid}' is already assigned to internal User`,
           detailedMessages: { token },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
@@ -46,12 +46,14 @@ export default class OCPITokensService {
         tag.description = token.visual_number;
         tag.active = token.valid === true ? true : false;
         tag.ocpiToken = token;
-        await UserStorage.saveUserTag(tenantId, user.id, tag);
+        tag.userID = user.id;
+        await UserStorage.saveTag(tenantId, tag);
       } else {
         await this.checkExistingTag(tenantId, token);
-        await UserStorage.saveUserTag(tenantId, user.id, {
+        await UserStorage.saveTag(tenantId, {
           id: token.uid,
           issuer: false,
+          userID: user.id,
           active: token.valid === true ? true : false,
           description: token.visual_number,
           lastChangedOn: token.last_updated,
@@ -67,7 +69,7 @@ export default class OCPITokensService {
         name: token.issuer,
         firstName: OCPIUtils.buildOperatorName(ocpiEndpoint.countryCode, ocpiEndpoint.partyId),
         email: email,
-        locale: OCPIMapping.convertLanguageToLocale(token.language),
+        locale: Utils.getLocaleFromLanguage(token.language),
         tags: [
           {
             id: token.uid,
@@ -82,7 +84,8 @@ export default class OCPITokensService {
       user.id = await UserStorage.saveUser(tenantId, user);
       await UserStorage.saveUserRole(tenantId, user.id, UserRole.BASIC);
       await UserStorage.saveUserStatus(tenantId, user.id, UserStatus.ACTIVE);
-      await UserStorage.saveUserTag(tenantId, user.id, user.tags[0]);
+      user.tags[0].userID = user.id;
+      await UserStorage.saveTag(tenantId, user.tags[0]);
     }
   }
 
@@ -106,15 +109,15 @@ export default class OCPITokensService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateToken',
-          errorCode: HttpStatusCodes.CONFLICT,
-          message: `The token ${token.uid} does not belongs to OCPI`,
+          errorCode: StatusCodes.CONFLICT,
+          message: `The Token ID '${token.uid}' does not belongs to OCPI`,
           detailedMessages: token,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       } else {
         const user = await UserStorage.getUser(tenantId, existingTag.userID);
         if (!user || user.deleted) {
-          await UserStorage.deleteUserTag(tenantId, existingTag.userID, existingTag);
+          await UserStorage.deleteTag(tenantId, existingTag.userID, existingTag);
         }
       }
     }

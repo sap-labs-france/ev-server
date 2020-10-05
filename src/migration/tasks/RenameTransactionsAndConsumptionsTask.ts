@@ -9,40 +9,39 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'CleanupAllTransactionsTask';
 
 export default class RenameTransactionsAndConsumptionsTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     // Consumptions
     await this.renameConsumptionProperties(tenant);
     await this.deleteConsumptionProperties(tenant);
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.1';
   }
 
-  getName() {
+  getName(): string {
     return 'RenameTransactionsAndConsumptionsTask';
   }
 
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 
-  private async deleteConsumptionProperties(tenant: Tenant) {
+  private async deleteConsumptionProperties(tenant: Tenant): Promise<void> {
     const result = await global.database.getCollection<any>(tenant.id, 'consumptions').updateMany(
       { },
       {
         $unset: {
           'amperage': '',
         }
-      },
-      { upsert: false }
+      }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {
@@ -55,7 +54,7 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
     }
   }
 
-  private async renameConsumptionProperties(tenant: Tenant) {
+  private async renameConsumptionProperties(tenant: Tenant): Promise<void> {
     // Renamed properties in Transactions
     const result = await global.database.getCollection<any>(tenant.id, 'consumptions').updateMany(
       {
@@ -73,8 +72,7 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
           'amperageL3': 'instantAmpsL3',
           'amperageDC': 'instantAmpsDC',
         }
-      },
-      { upsert: false }
+      }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {

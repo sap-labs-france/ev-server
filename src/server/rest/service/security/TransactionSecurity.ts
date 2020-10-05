@@ -1,17 +1,18 @@
-import sanitize from 'mongo-sanitize';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
+import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
+
 import Authorizations from '../../../../authorization/Authorizations';
+import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
-import { TransactionInError } from '../../../../types/InError';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import RefundReport from '../../../../types/Refund';
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
-import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
-import UserToken from '../../../../types/UserToken';
-import Constants from '../../../../utils/Constants';
-import Utils from '../../../../utils/Utils';
+import { TransactionInError } from '../../../../types/InError';
 import UserSecurity from './UserSecurity';
+import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
-
+import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -47,6 +48,12 @@ export default class TransactionSecurity {
     };
   }
 
+  public static filterPushTransactionCdrRequest(request: any): HttpPushTransactionCdrRequest {
+    return {
+      transactionId: Utils.convertToInt(sanitize(request.transactionId))
+    };
+  }
+
   public static filterTransactionsActiveRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     if (request.Issuer) {
@@ -73,6 +80,7 @@ export default class TransactionSecurity {
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.TagID = sanitize(request.TagID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.InactivityStatus = sanitize(request.InactivityStatus);
@@ -170,11 +178,14 @@ export default class TransactionSecurity {
       filteredTransaction.refundData = transaction.refundData;
       if (transaction.ocpiData) {
         filteredTransaction.ocpiData = {
-          session: transaction.ocpiData.session,
           sessionCheckedOn: transaction.ocpiData.sessionCheckedOn,
-          cdr: transaction.ocpiData.cdr,
-          cdrCheckedOn: transaction.ocpiData.cdrCheckedOn
+          cdrCheckedOn: transaction.ocpiData.cdrCheckedOn,
         };
+        if (transaction.ocpiData.cdr) {
+          filteredTransaction.ocpiData.cdr = {
+            id: transaction.ocpiData.cdr.id,
+          } as OCPICdr;
+        }
       }
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
@@ -310,7 +321,7 @@ export default class TransactionSecurity {
     // Clean
     filteredTransaction.values = consumptions.map((consumption) => {
       const newConsumption: TransactionConsumption = {
-        date: consumption.endedAt,
+        date: consumption.startedAt,
         instantWatts: consumption.instantWatts,
         instantWattsL1: consumption.instantWattsL1,
         instantWattsL2: consumption.instantWattsL2,
@@ -335,6 +346,13 @@ export default class TransactionSecurity {
       };
       return newConsumption;
     });
+    // Add the last point (duration of the last consumption)
+    if (consumptions.length > 0) {
+      filteredTransaction.values.push({
+        ...filteredTransaction.values[filteredTransaction.values.length - 1],
+        date: consumptions[consumptions.length - 1].endedAt,
+      });
+    }
     return filteredTransaction;
   }
 }

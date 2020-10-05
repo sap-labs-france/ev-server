@@ -5,7 +5,7 @@ import faker from 'faker';
 const userFactory = Factory.define('user')
   .attr('firstName', () => faker.name.firstName())
   .attr('name', () => faker.name.lastName().toUpperCase())
-  .attr('email', () => faker.internet.email())
+  .attr('email', () => faker.internet.email().toLowerCase())
   .attr('passwords', () => {
     const password = faker.internet.password() + '@1Aa';
     return {
@@ -30,31 +30,12 @@ const userFactory = Factory.define('user')
     sendOfflineChargingStations: false,
     sendBillingSynchronizationFailed: false,
     sendSessionNotStarted: false,
-    sendCarCatalogSynchronizationFailed: false
+    sendCarCatalogSynchronizationFailed: false,
+    sendEndUserErrorNotification: false,
   }))
   .attr('role', 'B')
   .attr('status', 'A')
-  .attr('locale', 'en_US')
-  .attr('tags', () => [
-    {
-      id: faker.random.alphaNumeric(8).toUpperCase(),
-      description: '',
-      issuer: true,
-      active: true
-    },
-    {
-      id: faker.random.alphaNumeric(8).toUpperCase(),
-      description: '',
-      issuer: true,
-      active: true
-    },
-    {
-      id: faker.random.alphaNumeric(8).toUpperCase(),
-      description: '',
-      issuer: true,
-      active: true
-    }
-  ]);
+  .attr('locale', 'en_US');
 
 const registerUserFactory = Factory.define('user')
   .attr('firstName', () => faker.name.firstName())

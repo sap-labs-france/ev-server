@@ -56,12 +56,12 @@ export default class ConnectionStorage {
     return connection;
   }
 
-  static async getConnectionsByUserId(tenantID: string, userId: string): Promise<DataResult<Connection>> {
+  static async getConnectionsByUserId(tenantID: string, userID: string): Promise<DataResult<Connection>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getConnectionsByUserId');
     await Utils.checkTenant(tenantID);
     const aggregation = [];
     aggregation.push({
-      $match: { userId: Utils.convertToObjectID(userId) }
+      $match: { userId: Utils.convertToObjectID(userID) }
     });
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userId');
@@ -128,5 +128,4 @@ export default class ConnectionStorage {
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteConnectionByUser', uniqueTimerID, { userId });
   }
-
 }

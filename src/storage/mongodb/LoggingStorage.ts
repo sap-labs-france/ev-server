@@ -1,3 +1,5 @@
+import global, { FilterParams } from './../../types/GlobalType';
+
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -8,7 +10,6 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
-import global from './../../types/GlobalType';
 import os from 'os';
 
 const MODULE_NAME = 'LoggingStorage';
@@ -18,7 +19,7 @@ export default class LoggingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Do Not Delete Security Logs
     filters.type = {};
     filters.type.$ne = 'S';
@@ -40,7 +41,7 @@ export default class LoggingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Delete Only Security Logs
     filters.type = {};
     filters.type.$eq = 'S';
@@ -78,7 +79,9 @@ export default class LoggingStorage {
       detailedMessages: logToSave.detailedMessages
     };
     // Insert
-    await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
+    if (global.database) {
+      await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
+    }
   }
 
   public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Log> {
@@ -90,7 +93,7 @@ export default class LoggingStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getLog', uniqueTimerID, { id });
-    return logsMDB.count > 0 ? logsMDB.result[0] : null;
+    return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 
   public static async getLogs(tenantID: string, params: {
@@ -99,12 +102,14 @@ export default class LoggingStorage {
   } = {}, dbParams: DbParams): Promise<DataResult<Log>> {
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
       filters.timestamp = {};

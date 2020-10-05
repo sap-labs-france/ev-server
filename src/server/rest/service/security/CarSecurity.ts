@@ -33,7 +33,7 @@ export default class CarSecurity {
 
   public static filterCarCatalogImagesRequest(request: any): HttpCarCatalogImagesRequest {
     const filteredRequest: HttpCarCatalogImagesRequest = {
-      CarID: sanitize(request.CarCatalogID),
+      ID: sanitize(request.ID),
     } as HttpCarCatalogImagesRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -42,7 +42,7 @@ export default class CarSecurity {
 
   public static filterCarCatalogRequest(request: any): HttpCarCatalogByIDRequest {
     const filteredRequest: HttpCarCatalogByIDRequest = {
-      ID: +sanitize(request.CarCatalogID),
+      ID: sanitize(request.ID),
     } as HttpCarCatalogByIDRequest;
     return filteredRequest;
   }
@@ -113,6 +113,7 @@ export default class CarSecurity {
         vehicleModel: carCatalog.vehicleModel,
         vehicleMake: carCatalog.vehicleMake,
         vehicleModelVersion: carCatalog.vehicleModelVersion,
+        image: `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=${carCatalog.id}`,
       } as CarCatalog;
     }
     return filteredCarCatalog;
@@ -164,7 +165,7 @@ export default class CarSecurity {
           rangeReal: carCatalog.rangeReal,
           rangeWLTP: carCatalog.rangeWLTP,
           efficiencyReal: carCatalog.efficiencyReal,
-          image: carCatalog.image,
+          image: `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=${carCatalog.id}`,
           chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed,
           chargeOptionPower: carCatalog.chargeOptionPower,
           chargeAlternativePower: carCatalog.chargeAlternativePower,
@@ -254,9 +255,6 @@ export default class CarSecurity {
     }
     // Admin?
     if (Authorizations.canUpdateCar(loggedUser)) {
-      // Yes: set all params
-      filteredCar = car;
-    } else {
       // Set only necessary info
       filteredCar = {
         id: car.id,
@@ -267,17 +265,17 @@ export default class CarSecurity {
         converter: car.converter,
         carCatalog: car.carCatalog,
       };
+      if (filteredCar.carUsers) {
+        filteredCar.carUsers = car.carUsers.map((carUser) => ({
+          ...carUser, user: UserSecurity.filterMinimalUserResponse(carUser.user, loggedUser)
+        }));
+      }
+      if (filteredCar.carCatalog) {
+        filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
+          this.filterCarCatalogResponse(car.carCatalog, loggedUser);
+      }
+      UtilsSecurity.filterCreatedAndLastChanged(filteredCar, car, loggedUser);
     }
-    if (filteredCar.carUsers) {
-      filteredCar.carUsers = car.carUsers.map((carUser) => ({
-        ...carUser, user: UserSecurity.filterMinimalUserResponse(carUser.user, loggedUser)
-      }));
-    }
-    if (filteredCar.carCatalog) {
-      filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
-        this.filterCarCatalogResponse(car.carCatalog, loggedUser);
-    }
-    UtilsSecurity.filterCreatedAndLastChanged(filteredCar, car, loggedUser);
     return filteredCar;
   }
 

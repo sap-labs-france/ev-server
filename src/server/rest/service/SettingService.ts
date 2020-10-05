@@ -7,11 +7,11 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import { StatusCodes } from 'http-status-codes';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
 
@@ -145,7 +145,7 @@ export default class SettingService {
       detailedMessages: { params: filteredRequest }
     });
     // Ok
-    res.status(HttpStatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.status(StatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 

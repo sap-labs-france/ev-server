@@ -6,6 +6,7 @@ import { DataResult } from '../../../../types/DataResult';
 import Site from '../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
@@ -72,6 +73,18 @@ export default class SiteSecurity {
     filteredRequest.ExcludeSitesOfUserID = sanitize(request.ExcludeSitesOfUserID);
     filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
     filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);
+    if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(sanitize(request.LocLongitude)),
+        Utils.convertToFloat(sanitize(request.LocLatitude))
+      ];
+      if (request.LocMaxDistanceMeters) {
+        request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
+        if (request.LocMaxDistanceMeters > 0) {
+          filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;
+        }
+      }
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -92,15 +105,15 @@ export default class SiteSecurity {
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     filteredRequest.image = sanitize(request.image);
+    filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
     filteredRequest.autoUserSiteAssignment =
       UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
     filteredRequest.companyID = sanitize(request.companyID);
     return filteredRequest;
   }
 
-  static filterSiteResponse(site: Site, loggedUser: UserToken, forList = false): Site {
+  static filterSiteResponse(site: Site, loggedUser: UserToken): Site {
     let filteredSite;
-
     if (!site) {
       return null;
     }
@@ -112,8 +125,9 @@ export default class SiteSecurity {
       filteredSite.name = site.name;
       filteredSite.companyID = site.companyID;
       filteredSite.autoUserSiteAssignment = site.autoUserSiteAssignment;
+      filteredSite.public = site.public;
       filteredSite.issuer = site.issuer;
-      if (!forList && site.address) {
+      if (Utils.objectHasProperty(site, 'address')) {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
@@ -128,8 +142,13 @@ export default class SiteSecurity {
       if (site.connectorStats) {
         filteredSite.connectorStats = site.connectorStats;
       }
+      if (Utils.objectHasProperty(site, 'distanceMeters')) {
+        filteredSite.distanceMeters = site.distanceMeters;
+      }
       // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(filteredSite, site, loggedUser);
+      if (Authorizations.canUpdateSite(loggedUser, site.id)) {
+        UtilsSecurity.filterCreatedAndLastChanged(filteredSite, site, loggedUser);
+      }
     }
     return filteredSite;
   }
@@ -145,7 +164,7 @@ export default class SiteSecurity {
     }
     for (const site of sites.result) {
       // Filter
-      const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser, true);
+      const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
       if (filteredSite) {
         filteredSites.push(filteredSite);
       }

@@ -1,35 +1,38 @@
-import axios from 'axios';
-import moment from 'moment';
-import Stripe, { IResourceObject } from 'stripe';
-import BackendError from '../../../exception/BackendError';
-import BillingStorage from '../../../storage/mongodb/BillingStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
-import { ServerAction } from '../../../types/Server';
-import { StripeBillingSetting } from '../../../types/Setting';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
+import Stripe, { IResourceObject } from 'stripe';
+
+import AxiosFactory from '../../../utils/AxiosFactory';
+import { AxiosInstance } from 'axios';
+import BackendError from '../../../exception/BackendError';
+import BillingIntegration from '../BillingIntegration';
+import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import { StripeBillingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import BillingIntegration from '../BillingIntegration';
-
+import moment from 'moment';
 
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 import IInvoice = Stripe.invoices.IInvoice;
 
-const MODULE_NAME = 'StripeBilling';
+const MODULE_NAME = 'StripeBillingIntegration';
 
 export default class StripeBillingIntegration extends BillingIntegration<StripeBillingSetting> {
   private static readonly STRIPE_MAX_LIST = 100;
+  private axiosInstance: AxiosInstance;
   private stripe: Stripe;
 
   constructor(tenantId: string, settings: StripeBillingSetting) {
     super(tenantId, settings);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
     this.settings.currency = settings.currency;
     if (this.settings.secretKey) {
       this.settings.secretKey = Cypher.decrypt(settings.secretKey);
@@ -341,7 +344,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
     if (invoice.downloadUrl && invoice.downloadUrl !== '') {
       // Get document
-      const response = await axios.get(invoice.downloadUrl, { responseType: 'arraybuffer' });
+      const response = await this.axiosInstance.get(invoice.downloadUrl,
+        {
+          responseType: 'arraybuffer'
+        });
       // Convert
       const base64Image = Buffer.from(response.data).toString('base64');
       const content = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
@@ -352,6 +358,22 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         type: DocumentType.PDF,
         encoding: DocumentEncoding.BASE64
       };
+    }
+  }
+
+  public async finalizeInvoice(invoice: BillingInvoice): Promise<string> {
+    await this.checkConnection();
+    try {
+      const stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
+      return stripeInvoice.invoice_pdf;
+    } catch (error) {
+      throw new BackendError({
+        message: 'Failed to finalize invoice',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'finalizeInvoice',
+        action: ServerAction.BILLING_SEND_INVOICE
+      });
     }
   }
 
@@ -430,12 +452,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     };
     // Get the draft invoice
     const draftInvoices = await BillingStorage.getInvoices(this.tenantID,
-      { invoiceStatus: [BillingInvoiceStatus.DRAFT] }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { invoiceStatus: [BillingInvoiceStatus.DRAFT], userIDs: [transaction.userID] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Set
     invoice.invoice = draftInvoices.count > 0 ? draftInvoices.result[0] : null;
     if (invoice.invoice) {
       // Append a new invoice item
-      invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice.id, {
+      invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice.invoiceID, {
         description: description,
         amount: Math.round(transaction.stop.roundedPrice * 100)
       }, transaction.id);

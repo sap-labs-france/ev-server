@@ -1,34 +1,23 @@
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
 
 import AuthService from './service/AuthService';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import UtilsService from './service/UtilsService';
 
-export default {
+export default class CentralRestServerAuthentication {
   // Init Passport
-  initialize(): Handler {
+  static initialize(): Handler {
     return AuthService.initialize();
-  },
+  }
 
-  authenticate(): RequestHandler {
+  static authenticate(): RequestHandler {
     return AuthService.authenticate();
-  },
+  }
 
-  async authService(req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Parse the action
-    const action = req.params.action as ServerAction;
-    // Get the tenant
-    let tenantID = Constants.DEFAULT_TENANT;
-    if (req.body && req.body.tenant) {
-      tenantID = await AuthService.getTenantID(req.body.tenant);
-    } else if (req.query && req.query.tenant) {
-      tenantID = await AuthService.getTenantID(req.query.tenant.toString());
-    } else if (req.user && req.user.tenantID) {
-      tenantID = req.user.tenantID;
-    }
+  static async authService(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      // Parse the action
+      const action = req.params.action as ServerAction;
       // Check Context
       switch (req.method) {
         // Create Request
@@ -100,7 +89,7 @@ export default {
           break;
       }
     } catch (error) {
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, tenantID);
+      next(error);
     }
   }
-};
+}

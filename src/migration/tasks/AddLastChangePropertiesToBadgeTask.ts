@@ -11,38 +11,38 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'AddLastChangePropertiesToBadgeTask';
 
 export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant) {
-    const users = await UserStorage.getUsers(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
+  async migrateTenant(tenant: Tenant): Promise<void> {
+    const users = await UserStorage.getUsers(tenant.id, {
+      issuer: true,
+    }, Constants.DB_PARAMS_MAX_LIMIT);
     const tagCollection = global.database.getCollection<any>(tenant.id, 'tags');
-
     let counter = 0;
     for (const user of users.result) {
-      if (user.tags) {
-        for (const tag of user.tags) {
-          if (!tag.lastChangedOn) {
-            const lastChangedOn = user.lastChangedOn ? user.lastChangedOn : user.createdOn;
-            const lastChangedBy = user.lastChangedBy ? user.lastChangedBy : user.createdBy;
-            await tagCollection.updateOne(
-              {
-                '_id': tag.id
-              },
-              {
-                $set: {
-                  'lastChangedOn': lastChangedOn ? lastChangedOn : new Date(),
-                  'lastChangedBy': lastChangedBy ? Utils.convertToObjectID(lastChangedBy.id) : null
-                }
-              },
-              { upsert: false }
-            );
-            counter++;
-          }
+      const tags = await tagCollection.find({ 'userID': Utils.convertToObjectID(user.id), lastChangedOn: null }).toArray();
+      if (!Utils.isEmptyArray(tags)) {
+        for (const tag of tags) {
+          const lastChangedOn = user.lastChangedOn ? user.lastChangedOn : user.createdOn;
+          const lastChangedBy = user.lastChangedBy ? user.lastChangedBy : user.createdBy;
+          await tagCollection.updateOne(
+            {
+              '_id': tag._id
+            },
+            {
+              $set: {
+                'lastChangedOn': lastChangedOn ? lastChangedOn : new Date(),
+                'lastChangedBy': lastChangedBy ? Utils.convertToObjectID(lastChangedBy.id) : null
+              }
+            },
+            { upsert: false }
+          );
+          counter++;
         }
       }
     }
@@ -52,16 +52,20 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${counter} Tags(s) have been updated in Tenant '${tenant.name}'`
+        message: `${counter} Tags's last changed properties have been updated in Tenant '${tenant.name}'`
       });
     }
   }
 
-  getVersion() {
-    return '1.0';
+  getVersion(): string {
+    return '1.1';
   }
 
-  getName() {
+  getName(): string {
     return 'AddLastChangePropertiesToBadgeTask';
+  }
+
+  isAsynchronous(): boolean {
+    return true;
   }
 }

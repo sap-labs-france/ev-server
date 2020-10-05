@@ -11,16 +11,74 @@ import AssetSecurity from './security/AssetSecurity';
 import AssetStorage from '../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import moment from 'moment';
 
 const MODULE_NAME = 'AssetService';
 
 export default class AssetService {
+
+  public static async handleGetAssetConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssetConsumption');
+    // Filter
+    const filteredRequest = AssetSecurity.filterAssetConsumptionRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.AssetID, MODULE_NAME,
+      'handleGetAssetConsumption', req.user);
+    // Check auth
+    if (!Authorizations.canReadAsset(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleGetAsset',
+        value: filteredRequest.AssetID
+      });
+    }
+    // Get it
+    const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.AssetID);
+    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.AssetID}' does not exist`,
+      MODULE_NAME, 'handleGetAssetConsumption', req.user);
+    // Check dates
+    if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Start date and end date must be provided',
+        module: MODULE_NAME, method: 'handleGetAssetConsumption',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check dates order
+    if (filteredRequest.StartDate && filteredRequest.EndDate &&
+        moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The requested start date '${filteredRequest.StartDate.toISOString()}' is after the end date '${filteredRequest.EndDate.toISOString()}' `,
+        module: MODULE_NAME, method: 'handleGetAssetConsumption',
+        user: req.user,
+        action: action
+      });
+    }
+    // Get the ConsumptionValues
+    const consumptions = await ConsumptionStorage.getAssetConsumptions(req.user.tenantID, {
+      assetID: filteredRequest.AssetID,
+      startDate: filteredRequest.StartDate,
+      endDate: filteredRequest.EndDate
+    });
+    // Return
+    res.json(AssetSecurity.filterAssetConsumptionResponse(asset, consumptions, req.user));
+    next();
+  }
 
   public static async handleCheckAssetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
@@ -46,10 +104,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CHECK_CONNECTION,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleCheckAssetConnection'
+        action: Action.CHECK_CONNECTION, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleCheckAssetConnection'
       });
     }
     try {
@@ -149,10 +205,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.ASSETS,
-        module: MODULE_NAME,
-        method: 'handleGetAssetsInError'
+        action: Action.LIST, entity: Entity.ASSETS,
+        module: MODULE_NAME, method: 'handleGetAssetsInError'
       });
     }
     // Filter
@@ -196,10 +250,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleDeleteAsset',
+        action: Action.DELETE, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleDeleteAsset',
         value: filteredRequest.ID
       });
     }
@@ -238,10 +290,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleGetAsset',
+        action: Action.READ, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleGetAsset',
         value: filteredRequest.ID
       });
     }
@@ -271,10 +321,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleGetAssetImage',
+        action: Action.READ, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleGetAssetImage',
         value: assetID
       });
     }
@@ -297,10 +345,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.ASSETS,
-        module: MODULE_NAME,
-        method: 'handleGetAssets'
+        action: Action.LIST, entity: Entity.ASSETS,
+        module: MODULE_NAME, method: 'handleGetAssets'
       });
     }
     // Filter
@@ -311,7 +357,8 @@ export default class AssetService {
         search: filteredRequest.Search,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         withSiteArea: filteredRequest.WithSiteArea,
-        withNoSiteArea: filteredRequest.WithNoSiteArea
+        withNoSiteArea: filteredRequest.WithNoSiteArea,
+        dynamicOnly: filteredRequest.DynamicOnly,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates', 'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts']
@@ -332,10 +379,8 @@ export default class AssetService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.ASSET,
-        module: MODULE_NAME,
-        method: 'handleCreateAsset'
+        action: Action.CREATE, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleCreateAsset'
       });
     }
     // Filter

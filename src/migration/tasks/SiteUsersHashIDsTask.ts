@@ -1,18 +1,19 @@
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import MigrationTask from '../MigrationTask';
+import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 
 export default class SiteUsersHashIDsTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -42,11 +43,11 @@ export default class SiteUsersHashIDsTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.0';
   }
 
-  getName() {
+  getName(): string {
     return 'SiteUsersHashIDsTask';
   }
 }

@@ -76,7 +76,10 @@ export enum Entity {
   REGISTRATION_TOKEN = 'RegistrationToken',
   REGISTRATION_TOKENS = 'RegistrationTokens',
   CHARGING_PROFILE = 'ChargingProfile',
-  CHARGING_PROFILES = 'ChargingProfiles'
+  CHARGING_PROFILES = 'ChargingProfiles',
+  NOTIFICATION = 'Notification',
+  TAGS = 'Tags',
+  TAG = 'Tag',
 }
 
 export enum Action {
@@ -97,6 +100,8 @@ export enum Action {
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
   REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
   REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
+  START_TRANSACTION = 'StartTransaction',
+  STOP_TRANSACTION = 'StopTransaction',
   UNLOCK_CONNECTOR = 'UnlockConnector',
   AUTHORIZE = 'Authorize',
   SET_CHARGING_PROFILE = 'SetChargingProfile',

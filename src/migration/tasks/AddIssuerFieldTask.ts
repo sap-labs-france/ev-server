@@ -8,7 +8,7 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'AddIssuerFieldTask';
 
 export default class AddIssuerFieldTask extends MigrationTask {
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     await this.migrateTenant(Constants.DEFAULT_TENANT, Constants.DEFAULT_TENANT, 'users');
     for (const tenant of tenants.result) {
@@ -21,14 +21,13 @@ export default class AddIssuerFieldTask extends MigrationTask {
     }
   }
 
-  async migrateTenant(tenantId: string, tenantName: string, collectionName: string) {
+  async migrateTenant(tenantId: string, tenantName: string, collectionName: string): Promise<void> {
     // Add the status property to the refunded transactions
     const result = await global.database.getCollection<any>(tenantId, collectionName).updateMany(
       {
         'issuer': { $exists: false }
       },
-      { $set: { 'issuer': true } },
-      { upsert: false }
+      { $set: { 'issuer': true } }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {
@@ -41,11 +40,11 @@ export default class AddIssuerFieldTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.3';
   }
 
-  getName() {
+  getName(): string {
     return 'AddIssuerFieldTask';
   }
 }

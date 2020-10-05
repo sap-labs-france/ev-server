@@ -3,11 +3,12 @@ import { PricingSettingsType, RefundSettingsType } from '../../types/Setting';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import MigrationTask from '../MigrationTask';
+import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 
 export default class AddSensitiveDataInSettingsTask extends MigrationTask {
-  public async migrate() {
+  public async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
 
     for (const tenant of tenants.result) {
@@ -15,7 +16,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
     }
   }
 
-  public async migrateTenant(tenant) {
+  public async migrateTenant(tenant: Tenant): Promise<void> {
     // Read all Settings
     const settings: any = await global.database.getCollection(tenant.id, 'settings')
       .aggregate([{
@@ -55,11 +56,11 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
     }
   }
 
-  public getVersion() {
+  public getVersion(): string {
     return '1.0';
   }
 
-  public getName() {
+  public getName(): string {
     return 'AddSensitiveDataInSettings';
   }
 }

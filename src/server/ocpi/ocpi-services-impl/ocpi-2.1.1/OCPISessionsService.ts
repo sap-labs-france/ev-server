@@ -8,12 +8,12 @@ import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import { HTTPError } from '../../../../types/HTTPError';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../../utils/Logging';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
+import { StatusCodes } from 'http-status-codes';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
@@ -23,12 +23,12 @@ const MODULE_NAME = 'EMSPSessionsEndpoint';
 
 export default class OCPISessionsService {
 
-  public static async updateTransaction(tenantId: string, session: OCPISession) {
+  public static async updateTransaction(tenantId: string, session: OCPISession): Promise<void> {
     if (!OCPISessionsService.validateSession(session)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateSession',
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
         detailedMessages: { session },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -48,7 +48,7 @@ export default class OCPISessionsService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `No user found for auth_id ${session.auth_id}`,
+          message: `No User found for auth_id ${session.auth_id}`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
@@ -61,9 +61,9 @@ export default class OCPISessionsService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `No charging station found for evse uid ${evse.uid}`,
+          message: `No Charging Station found for ID '${evse.uid}'`,
           detailedMessages: { session },
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
       }
       if (chargingStation.issuer) {
@@ -71,9 +71,9 @@ export default class OCPISessionsService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `OCPI Session is not authorized on charging station ${evse.uid} issued locally`,
+          message: `OCPI Transaction is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: { session },
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
       }
       let connectorId = 1;
@@ -159,12 +159,11 @@ export default class OCPISessionsService {
         userID: transaction.userID
       };
     }
-
     await TransactionStorage.saveTransaction(tenantId, transaction);
     await this.updateConnector(tenantId, transaction);
   }
 
-  public static async processCdr(tenantId: string, cdr: OCPICdr) {
+  public static async processCdr(tenantId: string, cdr: OCPICdr): Promise<void> {
     if (!OCPISessionsService.validateCdr(cdr)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -175,19 +174,17 @@ export default class OCPISessionsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenantId, cdr.id);
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `No transaction found for ocpi session ${cdr.id}`,
+        message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
         detailedMessages: { cdr },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     if (!cdr.total_cost) {
       cdr.total_cost = 0;
     }
@@ -200,7 +197,6 @@ export default class OCPISessionsService {
     if (!cdr.total_parking_time) {
       cdr.total_parking_time = 0;
     }
-
     transaction.priceUnit = cdr.currency;
     transaction.price = cdr.total_cost;
     transaction.roundedPrice = Utils.convertToFloat(cdr.total_cost.toFixed(2));
@@ -217,22 +213,20 @@ export default class OCPISessionsService {
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,
       totalConsumptionWh: cdr.total_energy * 1000,
-      totalDurationSecs: cdr.total_time,
-      totalInactivitySecs: cdr.total_parking_time,
+      totalDurationSecs: cdr.total_time * 3600,
+      totalInactivitySecs: cdr.total_parking_time * 3600,
       inactivityStatus: transaction.currentInactivityStatus,
       userID: transaction.userID
     };
-
     if (!transaction.ocpiData) {
       transaction.ocpiData = {};
     }
-
     transaction.ocpiData.cdr = cdr;
     await TransactionStorage.saveTransaction(tenantId, transaction);
     await this.updateConnector(tenantId, transaction);
   }
 
-  public static async updateConnector(tenantId: string, transaction: Transaction) {
+  public static async updateConnector(tenantId: string, transaction: Transaction): Promise<void> {
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantId, transaction.chargeBoxID);
     if (chargingStation && chargingStation.connectors) {
       for (const connector of chargingStation.connectors) {
@@ -264,7 +258,7 @@ export default class OCPISessionsService {
     }
   }
 
-  private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession) {
+  private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession): Promise<void> {
     const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastConsumption.value);
     const duration = moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds') / 1000;
     if (consumptionWh > 0 || duration > 0) {

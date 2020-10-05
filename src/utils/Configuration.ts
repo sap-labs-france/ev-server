@@ -4,6 +4,7 @@ import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSy
 import CentralSystemRestServiceConfiguration from '../types/configuration/CentralSystemRestServiceConfiguration';
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
+import ChargingStationTemplatesConfiguration from '../types/configuration/ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
 import { Configuration as ConfigurationType } from '../types/configuration/Configuration';
 import Constants from './Constants';
@@ -30,16 +31,11 @@ import global from './../types/GlobalType';
 import os from 'os';
 
 const _appEnv = cfenv.getAppEnv();
-let config: ConfigurationType = null;
 
 export default class Configuration {
-  // Read the config file
-  static getConfig(): ConfigurationType {
-    if (!config) {
-      config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8'));
-    }
-    return config;
-  }
+  private static config: ConfigurationType;
+
+  private constructor() {}
 
   // Crypto config
   public static getCryptoConfig(): CryptoConfiguration {
@@ -48,19 +44,19 @@ export default class Configuration {
   }
 
   // Scheduler config
-  static getSchedulerConfig(): SchedulerConfiguration {
+  public static getSchedulerConfig(): SchedulerConfiguration {
     // Read conf
     return Configuration.getConfig().Scheduler;
   }
 
   // Firebase config
-  static getFirebaseConfig(): FirebaseConfiguration {
+  public static getFirebaseConfig(): FirebaseConfiguration {
     // Read conf
     return Configuration.getConfig().Firebase;
   }
 
   // Cluster config
-  static getClusterConfig(): ClusterConfiguration {
+  public static getClusterConfig(): ClusterConfiguration {
     let clusterConfig: ClusterConfiguration = Configuration.getConfig().Cluster;
     const nbCpus = os.cpus().length;
     // Read conf and set defaults values
@@ -84,7 +80,7 @@ export default class Configuration {
   }
 
   // Central System config
-  static getCentralSystemsConfig(): CentralSystemConfiguration[] {
+  public static getCentralSystemsConfig(): CentralSystemConfiguration[] {
     const centralSystems = Configuration.getConfig().CentralSystems;
     // Check Cloud Foundry
     if (centralSystems && Configuration.isCloudFoundry()) {
@@ -100,41 +96,41 @@ export default class Configuration {
   }
 
   // Notification config
-  static getNotificationConfig(): NotificationConfiguration {
+  public static getNotificationConfig(): NotificationConfiguration {
     // Read conf
     return Configuration.getConfig().Notification;
   }
 
   // Authorization config
-  static getAuthorizationConfig(): AuthorizationConfiguration {
+  public static getAuthorizationConfig(): AuthorizationConfiguration {
     // Read conf
     return Configuration.getConfig().Authorization;
   }
 
-  static isCloudFoundry(): boolean {
+  public static isCloudFoundry(): boolean {
     return !_appEnv.isLocal;
   }
 
-  static getCFInstanceIndex(): string {
+  public static getCFInstanceIndex(): string {
     if (Configuration.isCloudFoundry()) {
       return _appEnv.app.instance_index;
     }
   }
 
-  static getCFApplicationID(): string {
+  public static getCFApplicationID(): string {
     if (Configuration.isCloudFoundry()) {
       return _appEnv.app.application_id;
     }
   }
 
-  static getCFApplicationIDAndInstanceIndex(): string {
+  public static getCFApplicationIDAndInstanceIndex(): string {
     if (Configuration.isCloudFoundry()) {
       return Configuration.getCFApplicationID() + ':' + Configuration.getCFInstanceIndex();
     }
   }
 
   // Central System REST config
-  static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
+  public static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
     const centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
     // Check Cloud Foundry
     if (centralSystemRestService) {
@@ -158,7 +154,7 @@ export default class Configuration {
   }
 
   // OCPI Server Configuration
-  static getOCPIServiceConfig(): OCPIServiceConfiguration {
+  public static getOCPIServiceConfig(): OCPIServiceConfiguration {
     const ocpiService = Configuration.getConfig().OCPIService;
     // Check Cloud Foundry
     if (ocpiService && Configuration.isCloudFoundry()) {
@@ -171,7 +167,7 @@ export default class Configuration {
   }
 
   // OData Server Configuration
-  static getODataServiceConfig(): ODataServiceConfiguration {
+  public static getODataServiceConfig(): ODataServiceConfiguration {
     const oDataservice = Configuration.getConfig().ODataService;
     // Check Cloud Foundry
     if (oDataservice && Configuration.isCloudFoundry()) {
@@ -184,45 +180,45 @@ export default class Configuration {
   }
 
   // RestService Configuration - Internet view
-  static getCentralSystemRestServer(): CentralSystemServerConfiguration {
+  public static getCentralSystemRestServer(): CentralSystemServerConfiguration {
     return Configuration.getConfig().CentralSystemServer;
   }
 
   // Central System REST config
-  static getWSDLEndpointConfig(): WSDLEndpointConfiguration {
+  public static getWSDLEndpointConfig(): WSDLEndpointConfiguration {
     return Configuration.getConfig().WSDLEndpoint;
   }
 
   // Central System Json config
-  static getJsonEndpointConfig(): JsonEndpointConfiguration {
+  public static getJsonEndpointConfig(): JsonEndpointConfiguration {
     return Configuration.getConfig().JsonEndpoint;
   }
 
   // Central System OCPI config
-  static getOCPIEndpointConfig(): OCPIEndpointConfiguration {
+  public static getOCPIEndpointConfig(): OCPIEndpointConfiguration {
     return Configuration.getConfig().OCPIEndpoint;
   }
 
   // Central System Front-End config
-  static getCentralSystemFrontEndConfig(): CentralSystemFrontEndConfiguration {
+  public static getCentralSystemFrontEndConfig(): CentralSystemFrontEndConfiguration {
     // Read conf
     return Configuration.getConfig().CentralSystemFrontEnd;
   }
 
   // Email config
-  static getEmailConfig(): EmailConfiguration {
+  public static getEmailConfig(): EmailConfiguration {
     // Read conf
     return Configuration.getConfig().Email;
   }
 
   // Email config
-  static getEVDatabaseConfig(): EVDatabaseConfiguration {
+  public static getEVDatabaseConfig(): EVDatabaseConfiguration {
     // Read conf
     return Configuration.getConfig().EVDatabase;
   }
 
   // DB config
-  static getStorageConfig(): StorageConfiguration {
+  public static getStorageConfig(): StorageConfiguration {
     const storage: StorageConfiguration = Configuration.getConfig().Storage;
     // Check Cloud Foundry
     if (storage && Configuration.isCloudFoundry()) {
@@ -255,7 +251,7 @@ export default class Configuration {
   }
 
   // Central System config
-  static getChargingStationConfig(): ChargingStationConfiguration {
+  public static getChargingStationConfig(): ChargingStationConfiguration {
     // Read conf and set defaults values
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
     if (!Utils.isUndefined(chargingStationConfiguration.useServerLocalIPForRemoteCommand)) {
@@ -268,13 +264,13 @@ export default class Configuration {
   }
 
   // Logging
-  static getLoggingConfig(): LoggingConfiguration {
+  public static getLoggingConfig(): LoggingConfiguration {
     // Read conf
     return Configuration.getConfig().Logging;
   }
 
   // WSClient
-  static getWSClientConfig(): WSClientConfiguration {
+  public static getWSClientConfig(): WSClientConfiguration {
     // Read conf and set defaults values
     if (Utils.isUndefined(Configuration.getConfig().WSClient)) {
       Configuration.getConfig().WSClient = {} as WSClientConfiguration;
@@ -288,7 +284,7 @@ export default class Configuration {
     return Configuration.getConfig().WSClient;
   }
 
-  static getHealthCheckConfig(): HealthCheckConfiguration {
+  public static getHealthCheckConfig(): HealthCheckConfiguration {
     // Read conf and set defaults values
     if (Utils.isUndefined(Configuration.getConfig().HealthCheck)) {
       Configuration.getConfig().HealthCheck = {} as HealthCheckConfiguration;
@@ -299,7 +295,7 @@ export default class Configuration {
     return Configuration.getConfig().HealthCheck;
   }
 
-  static getMigrationConfig(): MigrationConfiguration {
+  public static getMigrationConfig(): MigrationConfiguration {
     // Read conf and set defaults values
     if (Utils.isUndefined(Configuration.getConfig().Migration)) {
       Configuration.getConfig().Migration = {} as MigrationConfiguration;
@@ -308,6 +304,25 @@ export default class Configuration {
       Configuration.getConfig().Migration.active = false;
     }
     return Configuration.getConfig().Migration;
+  }
+
+  static getChargingStationTemplatesConfig(): ChargingStationTemplatesConfiguration {
+    // Read conf and set defaults values
+    if (Utils.isUndefined(Configuration.getConfig().ChargingStationTemplates)) {
+      Configuration.getConfig().ChargingStationTemplates = {} as ChargingStationTemplatesConfiguration;
+    }
+    if (Utils.isUndefined(Configuration.getConfig().ChargingStationTemplates.templatesFilePath)) {
+      Configuration.getConfig().ChargingStationTemplates.templatesFilePath = `${global.appRoot}/assets/charging-station-templates/charging-stations.json`;
+    }
+    return Configuration.getConfig().ChargingStationTemplates;
+  }
+
+  // Read the config file
+  private static getConfig(): ConfigurationType {
+    if (!this.config) {
+      this.config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8'));
+    }
+    return this.config;
   }
 }
 

@@ -198,8 +198,9 @@ describe('Car Tests', function() {
         it('Should be able to update a car', async () => {
           // Update
           const carToUpdate = (await testData.centralService.carApi.readCar(testData.createdCars[0].id)).data;
+          const carUsers = (await testData.centralService.carApi.readCarUsers({ CarID: testData.createdCars[0].id })).data.result;
           carToUpdate.carCatalogID = 1010;
-          carToUpdate['usersRemoved'] = [carToUpdate.carUsers.find((carUser) => carUser.user.id === testData.userContext.id)];
+          carToUpdate['usersRemoved'] = [carUsers.find((carUser) => carUser.user.id === testData.userContext.id)];
           carToUpdate['usersUpserted'] = [];
           testData.newCar = await testData.centralService.updateEntity(
             testData.centralService.carApi,

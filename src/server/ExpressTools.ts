@@ -5,9 +5,9 @@ import CFLog from 'cf-nodejs-logging-support';
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cluster from 'cluster';
@@ -51,7 +51,16 @@ export default class ExpressTools {
       // Bind to express app
       app.use(CFLog.logNetwork);
     }
+    // Log Express Request
+    app.use(Logging.logExpressRequest.bind(this));
     return app;
+  }
+
+  public static postInitApplication(app: express.Application): void {
+    // Log Express Response
+    app.use(Logging.logExpressResponse.bind(this));
+    // Error Handling
+    app.use(Logging.logExpressError.bind(this));
   }
 
   public static createHttpServer(serverConfig: CentralSystemServerConfiguration, expressApp: express.Application): http.Server {
@@ -86,19 +95,11 @@ export default class ExpressTools {
     return server;
   }
 
-  public static getHttpServerPort(httpServer: http.Server): number {
-    return (httpServer.address() as AddressInfo).port;
-  }
-
-  public static getHttpServerAddress(httpServer: http.Server): string {
-    return (httpServer.address() as AddressInfo).address;
-  }
-
   public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
     // Default listen callback
     function defaultListenCb(): void {
       // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerPort(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}'`;
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerAddress(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}'`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'startServer',
@@ -131,6 +132,14 @@ export default class ExpressTools {
   }
 
   public static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.sendStatus(HttpStatusCodes.OK);
+    res.sendStatus(StatusCodes.OK);
+  }
+
+  private static getHttpServerPort(httpServer: http.Server): number {
+    return (httpServer.address() as AddressInfo).port;
+  }
+
+  private static getHttpServerAddress(httpServer: http.Server): string {
+    return (httpServer.address() as AddressInfo).address;
   }
 }

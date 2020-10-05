@@ -6,6 +6,7 @@ import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
 import { v4 as uuid } from 'uuid';
 
@@ -132,25 +133,29 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       };
       // Closed
       this.wsConnection.onclose = () => {
-        // Log
-        Logging.logInfo({
-          tenantID: this.tenantID,
-          source: this.chargingStation.id,
-          action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
-          module: MODULE_NAME, method: 'onClose',
-          message: `Connection closed from '${this.serverURL}'`
-        });
+        if (Utils.isProductionEnv()) {
+          // Log
+          Logging.logInfo({
+            tenantID: this.tenantID,
+            source: this.chargingStation.id,
+            action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
+            module: MODULE_NAME, method: 'onClose',
+            message: `Connection closed from '${this.serverURL}'`
+          });
+        }
       };
       // Handle Error Message
       this.wsConnection.onerror = (error) => {
-        // Log
-        Logging.logException(
-          error,
-          ServerAction.WS_REST_CONNECTION_CLOSED,
-          this.chargingStation.id,
-          MODULE_NAME, 'onError',
-          this.tenantID
-        );
+        if (Utils.isProductionEnv()) {
+          // Log
+          Logging.logException(
+            error,
+            ServerAction.WS_REST_CONNECTION_CLOSED,
+            this.chargingStation.id,
+            MODULE_NAME, 'onError',
+            this.tenantID
+          );
+        }
         // Terminate WS in error
         this.terminateConnection();
       };

@@ -11,4 +11,6 @@ export default interface Tag {
   lastChangedOn?: Date;
   transactionsCount?: number;
   ocpiToken?: OCPIToken;
+  user?: User;
+  deleted?: boolean
 }

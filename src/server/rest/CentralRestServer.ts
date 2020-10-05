@@ -9,20 +9,17 @@ import ChangeNotification from '../../types/ChangeNotification';
 import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
+import ExpressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SessionHashService from './service/SessionHashService';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
-import expressTools from '../ExpressTools';
 import http from 'http';
-import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
-import util from 'util';
 
 const MODULE_NAME = 'CentralRestServer';
 
@@ -45,28 +42,9 @@ export default class CentralRestServer {
     CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
     this.chargingStationConfig = chargingStationConfig;
     // Initialize express app
-    this.expressApplication = expressTools.initApplication('2mb');
+    this.expressApplication = ExpressTools.initApplication('2mb');
     // Mount express-sanitizer middleware
     this.expressApplication.use(sanitize());
-    // Log to console
-    if (CentralRestServer.centralSystemRestConfig.debug) {
-      // Log
-      this.expressApplication.use(
-        morgan('combined', {
-          'stream': {
-            write: (message) => {
-              // Log
-              Logging.logDebug({
-                tenantID: Constants.DEFAULT_TENANT,
-                module: MODULE_NAME, method: 'constructor',
-                action: ServerAction.EXPRESS_SERVER,
-                message: message
-              });
-            }
-          }
-        })
-      );
-    }
     // Authentication
     this.expressApplication.use(CentralRestServerAuthentication.initialize());
     // Auth services
@@ -82,19 +60,10 @@ export default class CentralRestServer {
       req.query.FileName = 'r7_update_3.3.0.12_d4.epk';
       await CentralRestServerService.restServiceUtil(req, res, next);
     });
-    // Catchall for util with logging
-    this.expressApplication.all(['/client/util/*', '/client%2Futil%2F*'], (req: Request, res: Response) => {
-      Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'constructor',
-        action: ServerAction.EXPRESS_SERVER,
-        message: `Unhandled URL ${req.method} request (original URL ${req.originalUrl})`,
-        detailedMessages: 'Request: ' + util.inspect(req)
-      });
-      res.sendStatus(HttpStatusCodes.NOT_FOUND);
-    });
+    // Post init
+    ExpressTools.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app
-    CentralRestServer.restHttpServer = expressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
+    CentralRestServer.restHttpServer = ExpressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }
 
   startSocketIO(): void {
@@ -202,7 +171,7 @@ export default class CentralRestServer {
 
   // Start the server
   start(): void {
-    expressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
+    ExpressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
   }
 
   public notifyUser(tenantID: string, action: Action, data: NotificationData): void {
@@ -221,6 +190,26 @@ export default class CentralRestServer {
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.USERS,
+      'action': action
+    });
+  }
+
+  public notifyTag(tenantID: string, action: Action, data: NotificationData): void {
+    // On Tag change rebuild userHashID
+    if (data && data.id) {
+      SessionHashService.rebuildUserHashIDFromTagID(tenantID, data.id).catch(() => { });
+    }
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.TAG,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.TAGS,
       'action': action
     });
   }

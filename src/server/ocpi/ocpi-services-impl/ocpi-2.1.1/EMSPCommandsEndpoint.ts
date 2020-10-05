@@ -12,6 +12,7 @@ import Tenant from '../../../../types/Tenant';
 
 const EP_IDENTIFIER = 'commands';
 const MODULE_NAME = 'EMSPCommandsEndpoint';
+
 /**
  * EMSP Tokens Endpoint
  */
@@ -46,7 +47,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
             Logging.logDebug({
               tenantID: tenant.id,
               action: this.getAction(command),
-              message: `OCPI command response received for action ${command} with id ${commandId}` ,
+              message: `OCPI command response received for action '${command}' with ID '${commandId}'` ,
               module: MODULE_NAME, method: 'process',
               detailedMessages: { response : req.body }
             });

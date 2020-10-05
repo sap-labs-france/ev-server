@@ -1,8 +1,10 @@
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
+import Utils from '../../utils/Utils';
 import { WSClientOptions } from '../../types/WebSocket';
 import WebSocket from 'ws';
+import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'WSClient';
 
@@ -70,43 +72,6 @@ export default class WSClient {
     this.ws.on('close', this.onClose.bind(this));
     // A new WS have just been created, reinstantiate the saved callbacks on it
     this.reinstantiateCbs();
-  }
-
-  public reconnect(error: Error): void {
-    if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
-      (this.autoReconnectRetryCount < this.autoReconnectMaxRetries || this.autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {
-      this.autoReconnectRetryCount++;
-      setTimeout(() => {
-        if (this.dbLogging) {
-          // Informational message
-          Logging.logInfo({
-            tenantID: this.logTenantID,
-            module: MODULE_NAME, method: 'reconnect',
-            action: ServerAction.WS_CLIENT_INFO,
-            message: `Re-connection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`
-          });
-        } else {
-          // eslint-disable-next-line no-console
-          console.log(`Re-connection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`);
-        }
-        this.onreconnect(error);
-        this.open();
-      }, this.autoReconnectTimeout);
-    } else if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED || this.autoReconnectMaxRetries !== Constants.WS_RECONNECT_UNLIMITED) {
-      if (this.dbLogging) {
-        // Informational message
-        Logging.logInfo({
-          tenantID: this.logTenantID,
-          module: MODULE_NAME, method: 'reconnect',
-          action: ServerAction.WS_CLIENT_INFO,
-          message: `Re-connection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`
-        });
-      } else {
-        // eslint-disable-next-line no-console
-        console.log(`Re-connection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`);
-      }
-      this.onmaximum(error);
-    }
   }
 
   /**
@@ -185,6 +150,44 @@ export default class WSClient {
     return this.ws.readyState === WebSocket.OPEN;
   }
 
+  private reconnect(error: Error): void {
+    if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
+      (this.autoReconnectRetryCount < this.autoReconnectMaxRetries || this.autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {
+      this.autoReconnectRetryCount++;
+      Utils.sleep(axiosRetry.exponentialDelay(this.autoReconnectRetryCount)).catch(() => {});
+      setTimeout(() => {
+        if (this.dbLogging) {
+          // Informational message
+          Logging.logInfo({
+            tenantID: this.logTenantID,
+            module: MODULE_NAME, method: 'reconnect',
+            action: ServerAction.WS_CLIENT_INFO,
+            message: `Re-connection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`
+          });
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(`Re-connection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`);
+        }
+        this.onreconnect(error);
+        this.open();
+      }, this.autoReconnectTimeout);
+    } else if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED || this.autoReconnectMaxRetries !== Constants.WS_RECONNECT_UNLIMITED) {
+      if (this.dbLogging) {
+        // Informational message
+        Logging.logInfo({
+          tenantID: this.logTenantID,
+          module: MODULE_NAME, method: 'reconnect',
+          action: ServerAction.WS_CLIENT_INFO,
+          message: `Re-connection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`
+        });
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(`Re-connection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`);
+      }
+      this.onmaximum(error);
+    }
+  }
+
   private onOpen() {
     this.autoReconnectRetryCount = 0;
   }
@@ -216,13 +219,15 @@ export default class WSClient {
         break;
       default:
         if (this.dbLogging) {
-          // Error message
-          Logging.logError({
-            tenantID: this.logTenantID,
-            module: MODULE_NAME, method: 'onError',
-            action: ServerAction.WS_CLIENT_ERROR,
-            message: `Connection error to '${this.url}': ${error}`
-          });
+          if (Utils.isProductionEnv()) {
+            // Error message
+            Logging.logError({
+              tenantID: this.logTenantID,
+              module: MODULE_NAME, method: 'onError',
+              action: ServerAction.WS_CLIENT_ERROR,
+              message: `Connection error to '${this.url}': ${error}`
+            });
+          }
         } else {
           // eslint-disable-next-line no-console
           console.log(`Connection error to '${this.url}':`, error);
@@ -239,13 +244,15 @@ export default class WSClient {
         break;
       default: // Abnormal close
         if (this.dbLogging) {
-          // Error message
-          Logging.logError({
-            tenantID: this.logTenantID,
-            module: MODULE_NAME, method: 'onClose',
-            action: ServerAction.WS_CLIENT_ERROR,
-            message: `Connection closing error to '${this.url}': ${error}`
-          });
+          if (Utils.isProductionEnv()) {
+            // Error message
+            Logging.logError({
+              tenantID: this.logTenantID,
+              module: MODULE_NAME, method: 'onClose',
+              action: ServerAction.WS_CLIENT_ERROR,
+              message: `Connection closing error to '${this.url}': ${error}`
+            });
+          }
         } else {
           // eslint-disable-next-line no-console
           console.log(`Connection closing error to '${this.url}':`, error);

@@ -51,6 +51,18 @@ export default class SiteAreaSecurity {
     if (request.Issuer) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
+    if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(sanitize(request.LocLongitude)),
+        Utils.convertToFloat(sanitize(request.LocLatitude))
+      ];
+      if (request.LocMaxDistanceMeters) {
+        request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
+        if (request.LocMaxDistanceMeters > 0) {
+          filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;
+        }
+      }
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -93,7 +105,7 @@ export default class SiteAreaSecurity {
       filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
       filteredSiteArea.smartCharging = siteArea.smartCharging;
       filteredSiteArea.accessControl = siteArea.accessControl;
-      if (!forList && Utils.objectHasProperty(siteArea, 'address')) {
+      if (Utils.objectHasProperty(siteArea, 'address')) {
         filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
       }
       if (siteArea.connectorStats) {
@@ -107,8 +119,13 @@ export default class SiteAreaSecurity {
           ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser)
         );
       }
+      if (Utils.objectHasProperty(siteArea, 'distanceMeters')) {
+        filteredSiteArea.distanceMeters = siteArea.distanceMeters;
+      }
       // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(filteredSiteArea, siteArea, loggedUser);
+      if (Authorizations.canUpdateSiteArea(loggedUser, siteArea.siteID)) {
+        UtilsSecurity.filterCreatedAndLastChanged(filteredSiteArea, siteArea, loggedUser);
+      }
     }
     return filteredSiteArea;
   }
@@ -141,7 +158,7 @@ export default class SiteAreaSecurity {
       return null;
     }
     for (const siteArea of siteAreas.result) {
-      const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser, true);
+      const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
       if (filteredSiteArea) {
         filteredSiteAreas.push(filteredSiteArea);
       }

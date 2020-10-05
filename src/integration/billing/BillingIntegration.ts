@@ -1,15 +1,15 @@
-import BackendError from '../../exception/BackendError';
-import BillingStorage from '../../storage/mongodb/BillingStorage';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
-import { UserInErrorType } from '../../types/InError';
-import { ServerAction } from '../../types/Server';
-import { BillingSetting } from '../../types/Setting';
-import Transaction from '../../types/Transaction';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
+import BackendError from '../../exception/BackendError';
+import { BillingSetting } from '../../types/Setting';
+import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import { ServerAction } from '../../types/Server';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Transaction from '../../types/Transaction';
+import { UserInErrorType } from '../../types/InError';
+import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'BillingIntegration';
@@ -345,10 +345,24 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return actionsDone;
   }
 
-  public async sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice> {
-    // Save generated pdf
-    if (invoice.downloadable) {
-      // Send link to the user using our notification framework (link to the front-end + download)
+  public async sendInvoiceToUser(tenantID: string, invoice: BillingInvoice): Promise<BillingInvoice> {
+    // Send link to the user using our notification framework (link to the front-end + download)
+    try {
+      invoice.downloadUrl = await this.finalizeInvoice(invoice);
+      invoice.status = BillingInvoiceStatus.OPEN;
+      invoice.downloadable = true;
+      await BillingStorage.saveInvoice(tenantID, invoice);
+      const invoicedocument = await this.downloadInvoiceDocument(invoice);
+      await BillingStorage.saveInvoiceDocument(tenantID, invoicedocument);
+    } catch (error) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SEND_INVOICE,
+        module: MODULE_NAME, method: 'sendInvoiceToUser',
+        message: 'Unable to send invoice to user',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
     }
     return invoice;
   }
@@ -375,7 +389,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       });
     }
     // Check Charging Station
-    if (transaction.billingData) {
+    if (transaction.billingData.invoiceID) {
       throw new BackendError({
         message: 'Transaction has already billing data',
         source: Constants.CENTRAL_SERVER,
@@ -506,4 +520,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   async abstract createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
 
   async abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
+
+  async abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
 }

@@ -22,8 +22,8 @@
       "An der Ladestation <b>'<%- chargeBoxID %>'</b> hat sich gerade ein unbekannter Nutzer mit der Badge-ID <b>'<%- badgeID %>'</b> angemeldet."
     ],
     "action": {
-      "title": "Nutzer bearbeiten",
-      "url": "<%- evseDashboardUserURL %>"
+      "title": "Nutzer badge",
+      "url": "<%- evseDashboardTagURL %>"
     },
     "afterActionLines": [
       "Mit freundlichen Grüßen",

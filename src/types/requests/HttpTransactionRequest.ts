@@ -16,6 +16,10 @@ export interface HttpTransactionRequest {
   ID: number;
 }
 
+export interface HttpPushTransactionCdrRequest {
+  transactionId: number;
+}
+
 export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   ChargeBoxID: string;
   Issuer: boolean;
@@ -23,6 +27,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   SiteAreaID?: string;
   SiteID?: string;
   UserID?: string;
+  TagID?: string;
   StartDateTime?: Date;
   EndDateTime?: Date;
   Search?: string;

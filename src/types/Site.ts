@@ -15,6 +15,8 @@ export default interface Site extends CreatedUpdatedProps {
   connectorStats: ConnectorStats;
   siteAreas?: SiteArea[];
   company?: Company;
+  distanceMeters?: number;
+  public?: boolean;
 }
 
 export interface SiteUser {

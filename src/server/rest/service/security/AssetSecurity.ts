@@ -1,7 +1,8 @@
-import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import { HttpAssetConsumptionRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 
 import Asset from '../../../../types/Asset';
 import Authorizations from '../../../../authorization/Authorizations';
+import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserToken from '../../../../types/UserToken';
@@ -27,6 +28,7 @@ export default class AssetSecurity {
       SiteAreaID: sanitize(request.SiteAreaID),
       WithSiteArea: !request.WithSiteArea ? false : UtilsSecurity.filterBoolean(request.WithSiteArea),
       WithNoSiteArea: !request.WithNoSiteArea ? false : UtilsSecurity.filterBoolean(request.WithNoSiteArea),
+      DynamicOnly: !request.DynamicOnly ? false : UtilsSecurity.filterBoolean(request.DynamicOnly),
       ErrorType: sanitize(request.ErrorType)
     } as HttpAssetsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -77,6 +79,42 @@ export default class AssetSecurity {
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
         filteredAsset, asset, loggedUser);
+    }
+    return filteredAsset;
+  }
+
+  public static filterAssetConsumptionRequest(request: any): HttpAssetConsumptionRequest {
+    return {
+      AssetID: sanitize(request.AssetID),
+      StartDate: sanitize(request.StartDate),
+      EndDate: sanitize(request.EndDate)
+    };
+  }
+
+  public static filterAssetConsumptionResponse(asset: Asset, consumptions: Consumption[], loggedUser: UserToken): Asset {
+    asset.values = [];
+    if (!consumptions) {
+      consumptions = [];
+    }
+    const filteredAsset = this.filterAssetResponse(asset, loggedUser);
+    if (consumptions.length === 0) {
+      filteredAsset.values = [];
+      return filteredAsset;
+    }
+    // Clean
+    filteredAsset.values = consumptions.map((consumption) => ({
+      date: consumption.startedAt,
+      instantWatts: consumption.instantWatts,
+      instantAmps: consumption.instantAmps,
+      limitWatts: consumption.limitWatts,
+      limitAmps: consumption.limitAmps,
+    }));
+    // Add the last point (duration of the last consumption)
+    if (consumptions.length > 0) {
+      filteredAsset.values.push({
+        ...filteredAsset.values[filteredAsset.values.length - 1],
+        date: consumptions[consumptions.length - 1].endedAt,
+      });
     }
     return filteredAsset;
   }

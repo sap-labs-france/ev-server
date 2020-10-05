@@ -3,6 +3,7 @@ import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 import moment from 'moment';
@@ -14,7 +15,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
   public done: any;
   public startTime: any;
 
-  async migrate() {
+  async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
 
     for (const tenant of tenants.result) {
@@ -22,7 +23,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     }
   }
 
-  async migrateTenant(tenant) {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     this.totalCount = 0;
     this.done = 0;
     this.startTime = moment();
@@ -60,15 +61,15 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  getVersion(): string {
     return '1.0';
   }
 
-  getName() {
+  getName(): string {
     return 'CleanupMeterValuesTask';
   }
 
-  isAsynchronous() {
+  isAsynchronous(): boolean {
     return true;
   }
 }

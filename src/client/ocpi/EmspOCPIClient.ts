@@ -7,6 +7,7 @@ import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import { OCPICdr } from '../../types/ocpi/OCPICdr';
 import OCPIClient from './OCPIClient';
 import { OCPICommandResponse } from '../../types/ocpi/OCPICommandResponse';
 import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
@@ -17,6 +18,7 @@ import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPISession } from '../../types/ocpi/OCPISession';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
 import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
 import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
@@ -31,7 +33,6 @@ import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import _ from 'lodash';
-import axios from 'axios';
 import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 
@@ -42,7 +43,7 @@ export default class EmspOCPIClient extends OCPIClient {
     super(tenant, settings, ocpiEndpoint, OCPIRole.EMSP);
     if (ocpiEndpoint.role !== OCPIRole.EMSP) {
       throw new BackendError({
-        message: `EmspOCPIClient requires Ocpi Endpoint with role ${OCPIRole.EMSP}`,
+        message: `EmspOCPIClient requires OCPI Endpoint with role ${OCPIRole.EMSP}`,
         module: MODULE_NAME, method: 'constructor',
       });
     }
@@ -69,13 +70,13 @@ export default class EmspOCPIClient extends OCPIClient {
         sendResult.success++;
         sendResult.tokenIDsInSuccess.push(token.uid);
         sendResult.logs.push(
-          `Token ${token.uid} successfully updated`
+          `Token ID '${token.uid}' successfully updated`
         );
       } catch (error) {
         sendResult.failure++;
         sendResult.tokenIDsInFailure.push(token.uid);
         sendResult.logs.push(
-          `Failure updating token:${token.uid}:${error.message}`
+          `Failed to update Token ID '${token.uid}': ${error.message}`
         );
       }
     }
@@ -164,44 +165,27 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_LOCATIONS,
-        message: `Retrieve locations at ${locationsUrl}`,
+        message: `Retrieve locations from ${locationsUrl}`,
         module: MODULE_NAME, method: 'pullLocations'
       });
       // Call IOP
-      const response = await axios.get(locationsUrl,
+      const response = await this.axiosInstance.get(locationsUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
-          timeout: 10000
         });
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_LOCATIONS,
-          message: `Invalid response code ${response.status} from Get locations`,
-          module: MODULE_NAME, method: 'pullLocations',
-        });
-      }
-      if (!response.data.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_LOCATIONS,
-          message: 'Invalid response from Get locations',
-          module: MODULE_NAME, method: 'pullLocations',
-          detailedMessages: { response: response.data }
-        });
-      }
-      for (const location of response.data.data) {
+      for (const location of response.data.data as OCPILocation[]) {
         try {
           await this.processLocation(location, company, sites.result);
           sendResult.success++;
           sendResult.logs.push(
-            `Location ${location.name} successfully updated`
+            `Location '${location.name}' successfully updated`
           );
         } catch (error) {
           sendResult.failure++;
           sendResult.logs.push(
-            `Failure updating location:${location.name}:${error.message}`
+            `Failed to update Location '${location.name}': ${error.message}`
           );
         }
       }
@@ -233,44 +217,27 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_SESSIONS,
-        message: `Retrieve sessions at ${sessionsUrl}`,
+        message: `Retrieve OCPI Sessions from ${sessionsUrl}`,
         module: MODULE_NAME, method: 'pullSessions'
       });
       // Call IOP
-      const response = await axios.get(sessionsUrl,
+      const response = await this.axiosInstance.get(sessionsUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
-          timeout: 10000
         });
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_SESSIONS,
-          message: `Invalid response code ${response.status} from Get sessions`,
-          module: MODULE_NAME, method: 'pullSessions',
-        });
-      }
-      if (!response.data.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_SESSIONS,
-          message: 'Invalid response from Get sessions',
-          module: MODULE_NAME, method: 'pullSessions',
-          detailedMessages: { response: response.data }
-        });
-      }
-      for (const session of response.data.data) {
+      for (const session of response.data.data as OCPISession[]) {
         try {
           await OCPISessionsService.updateTransaction(this.tenant.id, session);
           sendResult.success++;
           sendResult.logs.push(
-            `Session ${session.id} successfully updated`
+            `OCPI Session '${session.id}' successfully updated`
           );
         } catch (error) {
           sendResult.failure++;
           sendResult.logs.push(
-            `Failure updating session:${session.id}:${error.message}`
+            `Failed to update OCPI Transaction ID '${session.id}': ${error.message}`
           );
         }
       }
@@ -303,45 +270,27 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_CDRS,
-        message: `Retrieve cdrs at ${cdrsUrl}`,
+        message: `Retrieve CDRs from ${cdrsUrl}`,
         module: MODULE_NAME, method: 'pullCdrs'
       });
       // Call IOP
-      const response = await axios.get(cdrsUrl,
+      const response = await this.axiosInstance.get(cdrsUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
-          timeout: 10000
         });
-      // Check response
-      if (response.status !== 200 || !response.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_CDRS,
-          message: `Get cdrs failed with status ${response.status}`,
-          module: MODULE_NAME, method: 'pullCdrs',
-          detailedMessages: { response: response.data }
-        });
-      }
-      if (!response.data.data) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PULL_CDRS,
-          message: 'Invalid response from Get cdrs',
-          module: MODULE_NAME, method: 'pullCdrs',
-          detailedMessages: { response: response.data }
-        });
-      }
-      for (const cdr of response.data.data) {
+      for (const cdr of response.data.data as OCPICdr[]) {
         try {
           await OCPISessionsService.processCdr(this.tenant.id, cdr);
           sendResult.success++;
           sendResult.logs.push(
-            `Cdr ${cdr.id} successfully updated`
+            `CDR ID '${cdr.id}' successfully updated`
           );
         } catch (error) {
           sendResult.failure++;
           sendResult.logs.push(
-            `Failure updating cdr:${cdr.id}:${error.message}`
+            `Failed to update CDR ID '${cdr.id}': ${error.message}`
           );
         }
       }
@@ -360,7 +309,7 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PULL_LOCATIONS,
-      message: `Processing location ${location.name} with id ${location.id}`,
+      message: `Processing Location '${location.name}' with ID '${location.id}'`,
       module: MODULE_NAME, method: 'processLocation',
       detailedMessages: location
     });
@@ -427,7 +376,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Missing evse uid of location ${location.name}`,
+            message: `Missing Charging Station ID in Location '${location.name}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
@@ -435,7 +384,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Delete removed evse ${chargingStationId} of location ${location.name}`,
+            message: `Removed Charging Station ID '${chargingStationId}' in Location '${location.name}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
@@ -444,7 +393,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Update evse ${chargingStationId} of location ${location.name}`,
+            message: `Updated Charging Station ID '${chargingStationId}' in Location '${location.name}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
@@ -468,36 +417,33 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CHECK_TOKENS,
-      message: `Get token at ${fullUrl}`,
+      message: `Get Token ID '${tokenUid}' from ${fullUrl}`,
       module: MODULE_NAME, method: 'getToken',
       detailedMessages: { tokenUid }
     });
     // Call IOP
-    const response = await axios.get(fullUrl,
+    const response = await this.axiosInstance.get(fullUrl,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`
         },
-        timeout: 10000
       });
-    if (response.status === 200 && response.data) {
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_CHECK_LOCATIONS,
-        message: 'Token checked with result',
-        module: MODULE_NAME, method: 'checkToken',
-        detailedMessages: { response : response.data }
-      });
-      const checkedToken = response.data.data as OCPILocation;
-      if (checkedToken) {
-        return true;
-      }
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_LOCATIONS,
+      message: `Token ID '${tokenUid}' checked successfully`,
+      module: MODULE_NAME, method: 'checkToken',
+      detailedMessages: { response : response.data }
+    });
+    const checkedToken = response.data.data as OCPILocation;
+    if (checkedToken) {
+      return true;
     }
     // Check response
     if (!response.data) {
       throw new BackendError({
         action: ServerAction.OCPI_CHECK_TOKENS,
-        message: `Get token failed with status ${JSON.stringify(response)}`,
+        message: `Get Token ID '${tokenUid}' failed with status ${JSON.stringify(response)}`,
         module: MODULE_NAME, method: 'getToken',
         detailedMessages: { response: response.data }
       });
@@ -516,28 +462,18 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_TOKENS,
-      message: `Put token at ${fullUrl}`,
+      message: `Push Token ID '${token.uid}' to ${fullUrl}`,
       module: MODULE_NAME, method: 'pushToken',
       detailedMessages: { token }
     });
     // Call IOP
-    const response = await axios.put(fullUrl, token,
+    await this.axiosInstance.put(fullUrl, token,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
-        timeout: 10000
       });
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Push token failed with status ${JSON.stringify(response)}`,
-        module: MODULE_NAME, method: 'pushToken',
-        detailedMessages: { response: response.data }
-      });
-    }
     return this.checkToken(token.uid);
   }
 
@@ -549,7 +485,8 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!user || user.deleted || !user.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        message: `OCPI Remote Start session is not available for user with tag id ${tagId}`,
+        source: chargingStation.id,
+        message: `OCPI Remote Start Session is not available for user with Tag ID '${tagId}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { user: user }
       });
@@ -558,7 +495,8 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!tag || !tag.issuer || !tag.active) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        message: `OCPI Remote Start session is not available for tag id ${tagId}`,
+        source: chargingStation.id,
+        message: `Connector '${connectorId}' > OCPI Remote Start Session is not available for Tag ID '${tagId}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { tag: tag }
       });
@@ -585,40 +523,24 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
-      message: `OCPI Remote Start session at ${commandUrl}`,
+      source: chargingStation.id,
+      message: `Connector '${connectorId}' > OCPI Remote Start Session with Tad ID '${tagId}' at ${commandUrl}`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { payload }
     });
     // Call IOP
-    const response = await axios.post(commandUrl, payload,
+    const response = await this.axiosInstance.post(commandUrl, payload,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
-        timeout: 10000
       });
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_START_SESSION,
-        message: `OCPI Remote Start session failed with status ${JSON.stringify(response)}`,
-        module: MODULE_NAME, method: 'remoteStartSession',
-        detailedMessages: { response: response.data }
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_START_SESSION,
-        message: 'OCPI Remote Start session response is invalid',
-        module: MODULE_NAME, method: 'remoteStartSession',
-        detailedMessages: { response: response.data }
-      });
-    }
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
-      message: `OCPI Remote Start session response status ${response.status}`,
+      source: chargingStation.id,
+      message: `Connector '${connectorId}' > OCPI Remote Start session response status ${response.status}`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { response: response.data }
     });
@@ -633,7 +555,8 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction || !transaction.ocpiData || !transaction.ocpiData.session || transaction.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        message: `OCPI Remote Stop session is not available for the transaction ${transactionId}`,
+        source: transaction ? transaction.chargeBoxID : null,
+        message: `OCPI Remote Stop Session is not available for the Session ID '${transactionId}'`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction: transaction }
       });
@@ -646,40 +569,24 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
-      message: `OCPI Remote Stop session at ${commandUrl}`,
+      source: transaction.chargeBoxID,
+      message: `Connector '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' at ${commandUrl}`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { payload }
     });
     // Call IOP
-    const response = await axios.post(commandUrl, payload,
+    const response = await this.axiosInstance.post(commandUrl, payload,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
-        timeout: 10000
       });
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_STOP_SESSION,
-        message: `OCPI Remote Stop session failed with status ${response.status}`,
-        module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { response: response.data }
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_STOP_SESSION,
-        message: 'OCPI Remote Stop session response is invalid',
-        module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { response: response.data }
-      });
-    }
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
-      message: `OCPI Remote Stop session response status ${response.status}`,
+      source: transaction.chargeBoxID,
+      message: `Connector ID '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' response status ${response.status}`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { response: response.data }
     });

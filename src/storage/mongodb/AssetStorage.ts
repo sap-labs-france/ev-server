@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import Asset from '../../types/Asset';
 import { AssetInErrorType } from '../../types/InError';
 import Constants from '../../utils/Constants';
@@ -7,7 +9,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'AssetStorage';
 
@@ -66,7 +67,8 @@ export default class AssetStorage {
       _id: assetToSave.id ? Utils.convertToObjectID(assetToSave.id) : new ObjectID(),
       name: assetToSave.name,
       siteAreaID: Utils.convertToObjectID(assetToSave.siteAreaID),
-      coordinates: assetToSave.coordinates,
+      coordinates: Utils.containsGPSCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
+        (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
       dynamicAsset: assetToSave.dynamicAsset,
       issuer: Utils.convertToBoolean(assetToSave.issuer),
@@ -111,18 +113,20 @@ export default class AssetStorage {
 
   public static async getAssets(tenantID: string,
     params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean;
-      withNoSiteArea?: boolean; } = {},
+      withNoSiteArea?: boolean; dynamicOnly?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAssets');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Build filter
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
@@ -133,15 +137,23 @@ export default class AssetStorage {
     // With no Site Area
     if (params.withNoSiteArea) {
       filters.siteAreaID = null;
-    } else if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
-      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
+    } else if (!Utils.isEmptyArray(params.siteAreaIDs)) {
+      filters.siteAreaID = {
+        $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id))
+      };
+    }
+    // Dynamic Asset
+    if (params.dynamicOnly) {
+      filters.dynamicAsset = true;
     }
     // Create Aggregation
     const aggregation = [];
     // Limit on Asset for Basic Users
-    if (params.assetIDs && params.assetIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.assetIDs)) {
       // Build filter
-      filters._id = { $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) };
+      filters._id = {
+        $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID))
+      };
     }
     // Filters
     if (!Utils.isEmptyJSon(filters)) {
@@ -176,12 +188,12 @@ export default class AssetStorage {
       $sort: dbParams.sort
     });
     // Skip
-    if (skip > 0) {
-      aggregation.push({ $skip: skip });
+    if (dbParams.skip > 0) {
+      aggregation.push({ $skip: dbParams.skip });
     }
     // Limit
     aggregation.push({
-      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Site Area
     if (params.withSiteArea) {
@@ -193,6 +205,7 @@ export default class AssetStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteArea.siteID');
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project
@@ -222,19 +235,21 @@ export default class AssetStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAssetsInError');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'name': { $regex: searchRegex, $options: 'i' } },
       ];
     }
-    if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
     }
     // Create Aggregation
@@ -247,7 +262,7 @@ export default class AssetStorage {
     }
     // Build facets for each type of error if any
     const facets: any = { $facet: {} };
-    if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
+    if (!Utils.isEmptyArray(params.errorType)) {
       // Build facet only for one error type
       const array = [];
       params.errorType.forEach((type) => {
@@ -273,12 +288,12 @@ export default class AssetStorage {
       $sort: dbParams.sort
     });
     // Skip
-    if (skip > 0) {
-      aggregation.push({ $skip: skip });
+    if (dbParams.skip > 0) {
+      aggregation.push({ $skip: dbParams.skip });
     }
     // Limit
     aggregation.push({
-      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);

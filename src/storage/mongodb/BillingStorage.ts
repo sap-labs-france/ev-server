@@ -1,4 +1,5 @@
 import { BillingInvoice, BillingInvoiceDocument, BillingInvoiceStatus } from '../../types/Billing';
+import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -7,7 +8,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'BillingStorage';
 
@@ -21,7 +21,7 @@ export default class BillingStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getInvoice', uniqueTimerID, { id });
-    return invoicesMDB.count > 0 ? invoicesMDB.result[0] : null;
+    return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
   public static async getInvoiceByBillingInvoiceID(tenantID: string, billingInvoiceID: string): Promise<BillingInvoice> {
@@ -33,7 +33,7 @@ export default class BillingStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getInvoice', uniqueTimerID, { billingInvoiceID });
-    return invoicesMDB.count > 0 ? invoicesMDB.result[0] : null;
+    return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
   public static async getInvoices(tenantID: string,
@@ -46,12 +46,14 @@ export default class BillingStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getInvoices');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Search filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Filter by other properties
     if (params.search) {
       filters.$or = [
@@ -60,18 +62,24 @@ export default class BillingStorage {
     }
     // Create Aggregation
     const aggregation = [];
-    if (params.invoiceIDs) {
-      filters._id = { $in: params.invoiceIDs.map((invoiceID) => Utils.convertToObjectID(invoiceID)) };
+    if (!Utils.isEmptyArray(params.invoiceIDs)) {
+      filters._id = {
+        $in: params.invoiceIDs.map((invoiceID) => Utils.convertToObjectID(invoiceID))
+      };
     }
-    if (params.userIDs) {
-      filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = {
+        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
+      };
     }
     if (params.billingInvoiceID) {
       filters.invoiceID = { $eq: params.billingInvoiceID };
     }
     // Status
-    if (params.invoiceStatus && Array.isArray(params.invoiceStatus) && params.invoiceStatus.length > 0) {
-      filters.status = { $in: params.invoiceStatus };
+    if (!Utils.isEmptyArray(params.invoiceStatus)) {
+      filters.status = {
+        $in: params.invoiceStatus
+      };
     }
     if (params.startDateTime || params.endDateTime) {
       filters.createdOn = {};
@@ -116,11 +124,11 @@ export default class BillingStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Add Users
     DatabaseUtils.pushUserLookupInAggregation({

@@ -57,6 +57,7 @@ export enum PricingContentType {
 export interface SimplePricingSetting extends PricingSetting {
   price: number;
   currency: string;
+  last_updated?: Date;
 }
 
 export interface ConvergentChargingPricingSetting extends PricingSetting {
@@ -79,6 +80,7 @@ export interface RoamingSettings extends Setting {
 export interface OcpiSetting {
   cpo: OcpiIdentifier;
   emsp: OcpiIdentifier;
+  currency: string;
   businessDetails: OcpiBusinessDetails;
 }
 

@@ -54,7 +54,6 @@ export default class ChargingStationSecurity {
         filteredChargingStation.ocppVersion = chargingStation.ocppVersion;
         filteredChargingStation.chargingStationURL = chargingStation.chargingStationURL;
         filteredChargingStation.currentIPAddress = chargingStation.currentIPAddress;
-        filteredChargingStation.currentServerLocalIPAddressPort = chargingStation.currentServerLocalIPAddressPort;
         filteredChargingStation.endpoint = chargingStation.endpoint;
         filteredChargingStation.ocppStandardParameters = chargingStation.ocppStandardParameters;
         filteredChargingStation.ocppVendorParameters = chargingStation.ocppVendorParameters;
@@ -72,10 +71,14 @@ export default class ChargingStationSecurity {
       filteredChargingStation.chargePointModel = chargingStation.chargePointModel;
       filteredChargingStation.public = chargingStation.public;
       filteredChargingStation.excludeFromSmartCharging = chargingStation.excludeFromSmartCharging;
+      filteredChargingStation.forceInactive = chargingStation.forceInactive;
       filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
       filteredChargingStation.coordinates = chargingStation.coordinates;
       if (chargingStation.ocpiData) {
         filteredChargingStation.ocpiData = chargingStation.ocpiData;
+      }
+      if (Utils.objectHasProperty(chargingStation, 'distanceMeters')) {
+        filteredChargingStation.distanceMeters = chargingStation.distanceMeters;
       }
       filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
         if (!connector) {
@@ -101,7 +104,8 @@ export default class ChargingStationSecurity {
           currentType: connector.currentType,
           voltage: connector.voltage,
           amperage: connector.amperage,
-          user: UserSecurity.filterMinimalUserResponse(connector.user, loggedUser)
+          user: UserSecurity.filterMinimalUserResponse(connector.user, loggedUser),
+          phaseAssignmentToGrid: connector.phaseAssignmentToGrid
         };
       });
       if (chargingStation.chargePoints) {
@@ -193,10 +197,11 @@ export default class ChargingStationSecurity {
     }
     for (const chargingProfile of chargingProfiles.result) {
       const filteredChargingProfile = this.filterChargingProfileResponse(chargingProfile, loggedUser);
-      if (filteredChargingProfile) {
+      if (filteredChargingProfile && Object.entries(filteredChargingProfile).length !== 0) {
         filteredChargingProfiles.push(filteredChargingProfile);
       }
     }
+    chargingProfiles.count = filteredChargingProfiles.length;
     chargingProfiles.result = filteredChargingProfiles;
   }
 
@@ -206,7 +211,7 @@ export default class ChargingStationSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadChargingProfile(loggedUser)) {
+    if (Authorizations.canReadChargingProfile(loggedUser, chargingProfile.chargingStation.siteArea ? chargingProfile.chargingStation.siteArea.siteID : null)) {
       filteredChargingProfile.id = chargingProfile.id;
       filteredChargingProfile.chargingStationID = chargingProfile.chargingStationID;
       filteredChargingProfile.chargePointID = chargingProfile.chargePointID;
@@ -276,6 +281,7 @@ export default class ChargingStationSecurity {
     filteredRequest.ConnectorID = sanitize(request.ConnectorID);
     filteredRequest.WithChargingStation = UtilsSecurity.filterBoolean(request.WithChargingStation);
     filteredRequest.WithSiteArea = UtilsSecurity.filterBoolean(request.WithSiteArea);
+    filteredRequest.SiteID = sanitize(request.SiteID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -320,6 +326,18 @@ export default class ChargingStationSecurity {
     filteredRequest.ConnectorType = sanitize(request.ConnectorType);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
+    if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(sanitize(request.LocLongitude)),
+        Utils.convertToFloat(sanitize(request.LocLatitude))
+      ];
+      if (request.LocMaxDistanceMeters) {
+        request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
+        if (request.LocMaxDistanceMeters > 0) {
+          filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;
+        }
+      }
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -344,6 +362,9 @@ export default class ChargingStationSecurity {
     if (Utils.objectHasProperty(request, 'excludeFromSmartCharging')) {
       filteredRequest.excludeFromSmartCharging = UtilsSecurity.filterBoolean(request.excludeFromSmartCharging);
     }
+    if (Utils.objectHasProperty(request, 'forceInactive')) {
+      filteredRequest.forceInactive = UtilsSecurity.filterBoolean(request.forceInactive);
+    }
     if (Utils.objectHasProperty(request, 'public')) {
       filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
     }
@@ -367,7 +388,8 @@ export default class ChargingStationSecurity {
             voltage: sanitize(connector.voltage),
             amperage: sanitize(connector.amperage),
             currentType: sanitize(connector.currentType),
-            numberOfConnectedPhase: sanitize(connector.numberOfConnectedPhase)
+            numberOfConnectedPhase: sanitize(connector.numberOfConnectedPhase),
+            phaseAssignmentToGrid: sanitize(connector.phaseAssignmentToGrid)
           };
         }
         return null;

@@ -1,4 +1,6 @@
+import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
 import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
+import CheckChargingStationTemplateTask from './tasks/CheckChargingStationTemplateTask';
 import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
 import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
@@ -15,6 +17,7 @@ import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIPatchLocationsTask from './tasks/ocpi/OCPIPatchLocationsTask';
+import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
 import SchedulerTask from './SchedulerTask';
 import { ServerAction } from '../types/Server';
 import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
@@ -91,6 +94,9 @@ export default class SchedulerManager {
           case 'OCPIGetTokensTask':
             schedulerTask = new OCPIGetTokensTask();
             break;
+          case 'OCPIPushCdrsTask':
+            schedulerTask = new OCPIPushCdrsTask();
+            break;
           case 'SynchronizeRefundTransactionsTask':
             schedulerTask = new SynchronizeRefundTransactionsTask();
             break;
@@ -109,7 +115,12 @@ export default class SchedulerManager {
           case 'CheckAndComputeSmartChargingTask':
             schedulerTask = new CheckAndComputeSmartChargingTask();
             break;
-
+          case 'AssetGetConsumptionTask':
+            schedulerTask = new AssetGetConsumptionTask();
+            break;
+          case 'CheckChargingStationTemplateTask':
+            schedulerTask = new CheckChargingStationTemplateTask();
+            break;
           default:
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,

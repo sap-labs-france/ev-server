@@ -311,10 +311,10 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetStatisticsExport(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleExportStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetStatisticsExport');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleExportStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -323,7 +323,7 @@ export default class StatisticService {
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
         module: MODULE_NAME,
-        method: 'handleGetStatisticsExport'
+        method: 'handleExportStatistics'
       });
     }
     // Filter
@@ -359,24 +359,15 @@ export default class StatisticService {
     }
     // Query data
     const transactionStatsMDB = await StatisticsStorage[method](req.user.tenantID, filter, groupBy);
+    // Set the attachement name
+    res.attachment('exported-' + filteredRequest.DataType.toLowerCase() + '-statistics.csv');
     // Build the result
-    const filename = 'exported-' + filteredRequest.DataType.toLowerCase() + '-statistics.csv';
-    fs.writeFile(filename, StatisticService.convertToCSV(req.user, transactionStatsMDB, filteredRequest.DataCategory,
-      filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
-      if (createError) {
-        throw createError;
-      }
-      res.download(filename, (downloadError) => {
-        if (downloadError) {
-          throw downloadError;
-        }
-        fs.unlink(filename, (unlinkError) => {
-          if (unlinkError) {
-            throw unlinkError;
-          }
-        });
-      });
-    });
+    const dataToExport = StatisticService.convertToCSV(req.user, transactionStatsMDB, filteredRequest.DataCategory,
+      filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope);
+    // Send
+    res.write(dataToExport);
+    // End of stream
+    res.end();
   }
 
   // Only completed transactions
@@ -660,12 +651,12 @@ export default class StatisticService {
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
         if (dataType === 'Pricing') {
           if (transaction._id.unit) {
-            csv += number + Constants.CSV_SEPARATOR + `${transaction._id.unit}` + '\r\n';
+            csv += number.toString() + Constants.CSV_SEPARATOR + `${transaction._id.unit}` + '\r\n';
           } else {
-            csv += number + Constants.CSV_SEPARATOR + ' ' + '\r\n';
+            csv += number.toString() + Constants.CSV_SEPARATOR + ' ' + '\r\n';
           }
         } else {
-          csv += number + '\r\n';
+          csv += number.toString() + '\r\n';
         }
       }
     }

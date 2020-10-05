@@ -1,6 +1,6 @@
 import Site, { SiteUser } from '../../types/Site';
 import User, { UserSite } from '../../types/User';
-import global, { Image } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
@@ -26,7 +26,7 @@ export default class SiteStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getSite', uniqueTimerID, { id });
-    return sitesMDB.count > 0 ? sitesMDB.result[0] : null;
+    return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }
 
   public static async getSiteImage(tenantID: string, id: string): Promise<Image> {
@@ -100,10 +100,12 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSitesUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation: any[] = [];
     // Filter
@@ -169,11 +171,11 @@ export default class SiteStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
@@ -256,12 +258,25 @@ export default class SiteStorage {
     // Properties to save
     const siteMDB: any = {
       _id: siteFilter._id,
-      address: siteToSave.address,
       issuer: Utils.convertToBoolean(siteToSave.issuer),
+      public: Utils.convertToBoolean(siteToSave.public),
       companyID: Utils.convertToObjectID(siteToSave.companyID),
       autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
     };
+    if (siteToSave.address) {
+      siteMDB.address = {
+        address1: siteToSave.address.address1,
+        address2: siteToSave.address.address2,
+        postalCode: siteToSave.address.postalCode,
+        city: siteToSave.address.city,
+        department: siteToSave.address.department,
+        region: siteToSave.address.region,
+        country: siteToSave.address.country,
+        coordinates: Utils.containsGPSCoordinates(siteToSave.address.coordinates) ? siteToSave.address.coordinates.map(
+          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
     // Modify and return the modified document
@@ -296,47 +311,67 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean;
-      withAvailableChargingStations?: boolean; withChargingStations?: boolean; withCompany?: boolean;
+      userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean;
+      withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+      aggregation.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: params.locCoordinates
+          },
+          distanceField: 'distanceMeters',
+          maxDistance: params.locMaxDistanceMeters > 0 ? params.locMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true
+        }
+      });
+    }
     // Search filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
     }
-    // Query by companyIDs
-    if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters._id = {
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+      };
+    }
+    // Company
+    if (!Utils.isEmptyArray(params.companyIDs)) {
       filters.companyID = {
         $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
     }
-    if (params.issuer === true || params.issuer === false) {
+    // Issuer
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
+    }
+    // Public Site
+    if (params.onlyPublicSite) {
+      filters.public = params.onlyPublicSite;
     }
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;
-    }
-    // Limit on Site for Basic Users
-    if (params.siteIDs && params.siteIDs.length > 0) {
-      aggregation.push({
-        $match: {
-          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
-        }
-      });
     }
     // Get users
     if (params.userID || params.excludeSitesOfUserID) {
@@ -375,16 +410,20 @@ export default class SiteStorage {
     if (!dbParams.sort) {
       dbParams.sort = { name: 1 };
     }
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+      dbParams.sort = { distanceMeters: 1 };
+    }
     aggregation.push({
       $sort: dbParams.sort
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Add Company
     if (params.withCompany) {
@@ -402,7 +441,7 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const sitesMDB = await global.database.getCollection<any>(tenantID, 'sites')
+    const sitesMDB = await global.database.getCollection<Site>(tenantID, 'sites')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
@@ -413,12 +452,12 @@ export default class SiteStorage {
     if (sitesMDB && sitesMDB.length > 0) {
       // Create
       for (const siteMDB of sitesMDB) {
-        if (params.withChargingStations || params.withAvailableChargingStations) {
+        if (params.withOnlyChargingStations || params.withAvailableChargingStations) {
         // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
-          // Skip site with no chargers if asked
-          if (params.withChargingStations && chargingStations.count === 0) {
+          // Skip site with no charging stations if asked
+          if (params.withOnlyChargingStations && chargingStations.count === 0) {
             continue;
           }
           // Add counts of Available/Occupied Chargers/Connectors

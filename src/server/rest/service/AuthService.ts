@@ -6,6 +6,7 @@ import User, { UserRole, UserStatus } from '../../../types/User';
 import AppError from '../../../exception/AppError';
 import AuthSecurity from './security/AuthSecurity';
 import Authorizations from '../../../authorization/Authorizations';
+import AxiosFactory from '../../../utils/AxiosFactory';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -14,13 +15,13 @@ import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import { ServerAction } from '../../../types/Server';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../types/Tag';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
@@ -47,7 +48,6 @@ if (_centralSystemRestConfig) {
 const MODULE_NAME = 'AuthService';
 
 export default class AuthService {
-
   public static initialize(): Handler {
     return passport.initialize();
   }
@@ -193,8 +193,8 @@ export default class AuthService {
       });
     }
     // Check Captcha
-    const response = await axios.get(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
+    const response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -228,7 +228,7 @@ export default class AuthService {
     // Generate a password
     const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
-    const newUser = UserStorage.getEmptyUser() as User;
+    const newUser = UserStorage.createNewUser() as User;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
@@ -251,9 +251,10 @@ export default class AuthService {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt().toString(),
       active: true,
       issuer: true,
+      userID: newUser.id,
       lastChangedOn: new Date()
     };
-    await UserStorage.saveUserTag(req.user.tenantID, newUser.id, tag);
+    await UserStorage.saveTag(req.user.tenantID, tag);
 
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,
@@ -327,8 +328,8 @@ export default class AuthService {
       });
     }
     // Check captcha
-    const response = await axios.get(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
+    const response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
     // Check
     if (!response.data.success) {
       throw new AppError({
@@ -713,8 +714,8 @@ export default class AuthService {
     }
 
     // Is valid captcha?
-    const response = await axios.get(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
+    const response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -807,7 +808,7 @@ export default class AuthService {
 
   public static handleUserLogOut(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
     req.logout();
-    res.status(200).send({});
+    res.status(StatusCodes.OK).send({});
   }
 
   public static async userLoginWrongPassword(action: ServerAction, tenantID: string, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {

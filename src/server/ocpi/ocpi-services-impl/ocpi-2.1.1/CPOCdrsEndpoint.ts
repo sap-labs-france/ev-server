@@ -10,8 +10,7 @@ import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'cdrs';
-const MODULE_NAME = 'CPOSessionsEndpoint';
-
+const MODULE_NAME = 'CPOCdrsEndpoint';
 const RECORDS_LIMIT = 25;
 
 /**
@@ -46,7 +45,7 @@ export default class CPOCdrsEndpoint extends AbstractEndpoint {
     // Get query parameters
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
     const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
-    // Get all sessions
+    // Get all cdrs
     const cdrs = await OCPIMapping.getAllCdrs(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     // Set header
     res.set({

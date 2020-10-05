@@ -1,4 +1,5 @@
 import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -9,7 +10,6 @@ import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'SettingStorage';
 
@@ -21,13 +21,13 @@ export default class SettingStorage {
     const settingMDB = await SettingStorage.getSettings(tenantID, { settingID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getSetting', uniqueTimerID, { id });
-    return settingMDB.count > 0 ? settingMDB.result[0] : null;
+    return settingMDB.count === 1 ? settingMDB.result[0] : null;
   }
 
   public static async getSettingByIdentifier(tenantID: string, identifier: string = Constants.UNKNOWN_STRING_ID): Promise<SettingDB> {
     const settingResult = await SettingStorage.getSettings(
       tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return settingResult.count > 0 ? settingResult.result[0] : null;
+    return settingResult.count === 1 ? settingResult.result[0] : null;
   }
 
   public static async saveSettings(tenantID: string, settingToSave: Partial<SettingDB>): Promise<string> {
@@ -160,12 +160,15 @@ export default class SettingStorage {
     return refundSettings;
   }
 
-  public static async getPricingSettings(tenantID: string): Promise<PricingSettings> {
+  public static async getPricingSettings(tenantID: string, limit?: number, skip?: number, dateFrom?: Date, dateTo?: Date): Promise<PricingSettings> {
     const pricingSettings = {
       identifier: TenantComponents.PRICING,
     } as PricingSettings;
     // Get the Pricing settings
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.PRICING }, Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.PRICING, dateFrom: dateFrom, dateTo: dateTo }, {
+      limit,
+      skip
+    });
     // Get the currency
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
@@ -176,8 +179,9 @@ export default class SettingStorage {
       if (config.simple) {
         pricingSettings.type = PricingSettingsType.SIMPLE;
         pricingSettings.simple = {
-          price: config.simple.price ? Utils.convertToFloat(config.simple.price + '') : 0,
+          price: config.simple.price ? Utils.convertToFloat(config.simple.price) : 0,
           currency: config.simple.currency ? config.simple.currency : '',
+          last_updated: settings.result[0].lastChangedOn ? Utils.convertToDate(settings.result[0].lastChangedOn) : null,
         };
       }
       // Convergent Charging
@@ -292,18 +296,20 @@ export default class SettingStorage {
   }
 
   public static async getSettings(tenantID: string,
-    params: {identifier?: string; settingID?: string},
+    params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSettings');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Source?
     if (params.settingID) {
       filters._id = Utils.convertToObjectID(params.settingID);
@@ -312,6 +318,18 @@ export default class SettingStorage {
     if (params.identifier) {
       filters.identifier = params.identifier;
     }
+    // Date provided?
+    // if (params.dateFrom || params.dateTo) {
+    //   filters.createdOn = {};
+    //   // Start date
+    //   if (params.dateFrom) {
+    //     filters.createdOn.$gte = Utils.convertToDate(params.dateFrom);
+    //   }
+    //   // End date
+    //   if (params.dateTo) {
+    //     filters.createdOn.$lte = Utils.convertToDate(params.dateTo);
+    //   }
+    // }
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -358,7 +376,7 @@ export default class SettingStorage {
     };
   }
 
-  public static async deleteSetting(tenantID: string, id: string) {
+  public static async deleteSetting(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteSetting');
     // Check Tenant

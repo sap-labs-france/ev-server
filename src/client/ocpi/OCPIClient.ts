@@ -1,4 +1,6 @@
-import axios, { AxiosResponse } from 'axios';
+import { AxiosInstance, AxiosResponse } from 'axios';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
+import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import { HTTPError } from '../../types/HTTPError';
@@ -6,6 +8,7 @@ import Logging from '../../utils/Logging';
 import OCPICredential from '../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
@@ -13,11 +16,11 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 
 const MODULE_NAME = 'OCPIClient';
 
 export default abstract class OCPIClient {
+  protected axiosInstance: AxiosInstance;
   protected ocpiEndpoint: OCPIEndpoint;
   protected tenant: Tenant;
   protected role: string;
@@ -30,6 +33,7 @@ export default abstract class OCPIClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
     this.tenant = tenant;
     this.settings = settings;
     this.ocpiEndpoint = ocpiEndpoint;
@@ -91,8 +95,8 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
       // Send success
-      unregisterResult.statusCode = 200;
-      unregisterResult.statusText = 'OK';
+      unregisterResult.statusCode = StatusCodes.OK;
+      unregisterResult.statusText = ReasonPhrases.OK;
     } catch (error) {
       unregisterResult.message = error.message;
       unregisterResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
@@ -145,8 +149,8 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
       // Send success
-      registerResult.statusCode = 200;
-      registerResult.statusText = 'OK';
+      registerResult.statusCode = StatusCodes.OK;
+      registerResult.statusText = ReasonPhrases.OK;
     } catch (error) {
       registerResult.message = error.message;
       registerResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
@@ -162,25 +166,15 @@ export default abstract class OCPIClient {
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_VERSIONS,
-      message: `Get OCPI versions at ${this.ocpiEndpoint.baseUrl}`,
+      message: `Get OCPI Versions at ${this.ocpiEndpoint.baseUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
-    const respOcpiVersions = await axios.get(this.ocpiEndpoint.baseUrl, {
+    const response = await this.axiosInstance.get(this.ocpiEndpoint.baseUrl, {
       headers: {
         'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
-      timeout: 10000
     });
-    // Check response
-    if (!respOcpiVersions.data || !respOcpiVersions.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_GET_VERSIONS,
-        message: `Invalid response from GET ${this.ocpiEndpoint.baseUrl}`,
-        module: MODULE_NAME, method: 'getVersions',
-        detailedMessages: { response: respOcpiVersions.data }
-      });
-    }
-    return respOcpiVersions;
+    return response;
   }
 
   /**
@@ -191,25 +185,15 @@ export default abstract class OCPIClient {
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_VERSIONS,
-      message: `Get OCPI services at ${this.ocpiEndpoint.versionUrl}`,
+      message: `Get OCPI Services at ${this.ocpiEndpoint.versionUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
-    const respOcpiServices = await axios.get(this.ocpiEndpoint.versionUrl, {
+    const response = await this.axiosInstance.get(this.ocpiEndpoint.versionUrl, {
       headers: {
         'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
-      timeout: 10000
     });
-    // Check response
-    if (!respOcpiServices.data || !respOcpiServices.data.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_GET_VERSIONS,
-        message: `Invalid response from GET ${this.ocpiEndpoint.versionUrl}`,
-        module: MODULE_NAME, method: 'getServices',
-        detailedMessages: { response: respOcpiServices.data }
-      });
-    }
-    return respOcpiServices;
+    return response;
   }
 
   async deleteCredentials(): Promise<AxiosResponse<OCPICredential>> {
@@ -219,28 +203,18 @@ export default abstract class OCPIClient {
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
-      message: `Delete credentials at ${credentialsUrl}`,
+      message: `Delete Credentials at ${credentialsUrl}`,
       module: MODULE_NAME, method: 'postCredentials'
     });
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await axios.delete<OCPICredential>(credentialsUrl,
+    const response = await this.axiosInstance.delete<OCPICredential>(credentialsUrl,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
-        timeout: 10000
       });
-    // Check response
-    if (!respOcpiCredentials.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_POST_CREDENTIALS,
-        message: 'Invalid response from delete credentials',
-        module: MODULE_NAME, method: 'deleteCredentials',
-        detailedMessages: { response: respOcpiCredentials.data }
-      });
-    }
-    return respOcpiCredentials;
+    return response;
   }
 
   /**
@@ -254,41 +228,31 @@ export default abstract class OCPIClient {
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
-      message: `Post credentials at ${credentialsUrl}`,
+      message: `Post Credentials at ${credentialsUrl}`,
       module: MODULE_NAME, method: 'postCredentials',
       detailedMessages: { credentials }
     });
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await axios.post<OCPICredential>(credentialsUrl, credentials,
+    const response = await this.axiosInstance.post<OCPICredential>(credentialsUrl, credentials,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
-        timeout: 10000
       });
-    // Check response
-    if (!respOcpiCredentials.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_POST_CREDENTIALS,
-        message: 'Invalid response from post credentials',
-        module: MODULE_NAME, method: 'postCredentials',
-        detailedMessages: { response: respOcpiCredentials.data }
-      });
-    }
-    return respOcpiCredentials;
+    return response;
   }
 
   getLocalCountryCode(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
-        action, message: `OCPI settings are missing for role ${this.role}`,
+        action, message: `OCPI Settings are missing for role ${this.role}`,
         module: MODULE_NAME, method: 'getLocalCountryCode',
       });
     }
     if (!this.settings[this.role].countryCode) {
       throw new BackendError({
-        action, message: `OCPI Country code setting is missing for role ${this.role}`,
+        action, message: `OCPI Country Code setting is missing for role ${this.role}`,
         module: MODULE_NAME, method: 'getLocalCountryCode',
       });
     }
@@ -298,7 +262,7 @@ export default abstract class OCPIClient {
   getLocalPartyID(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
-        action, message: `OCPI settings are missing for role ${this.role}`,
+        action, message: `OCPI Settings are missing for role ${this.role}`,
         module: MODULE_NAME, method: 'getLocalPartyID',
       });
     }
