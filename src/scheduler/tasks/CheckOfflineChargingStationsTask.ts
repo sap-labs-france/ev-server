@@ -49,7 +49,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
                 source: chargingStation.id,
                 action: ServerAction.MIGRATION,
                 module: MODULE_NAME, method: 'processTenant',
-                message: 'Offline charging station responded successfuly to an OCPP command and will be ignored',
+                message: 'Offline charging station responded successfully to an OCPP command and will be ignored',
               });
               // Update Heartbeat
               await ChargingStationStorage.saveChargingStationHeartBeat(tenant.id, chargingStation.id,

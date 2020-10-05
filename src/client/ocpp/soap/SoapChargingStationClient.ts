@@ -22,9 +22,9 @@ export default class SoapChargingStationClient extends ChargingStationClient {
   public tagID: string;
   public connectorID: any;
   public type: any;
-  public keys: any;
-  public key: any;
-  public value: any;
+  // pragma public keys: any;
+  // public keys: any[];
+  // public value: any;
   private chargingStation: ChargingStation;
   private tenantID: string;
   private client: any;

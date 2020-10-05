@@ -1045,6 +1045,17 @@ export default class OCPPUtils {
               // Found?
               if (matchFirmware && matchOcpp) {
                 for (const parameter in ocppStandardParameters.parameters) {
+                  if (OCPPUtils.isOcppParamForPowerLimitationKey(parameter, chargingStation)) {
+                    Logging.logError({
+                      tenantID: tenantID,
+                      source: chargingStation.id,
+                      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+                      module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+                      message: `Template contains setting for power limitation OCPP parameter key '${parameter}' in OCPP Standard parameters, skipping. Remove it from template!`,
+                      detailedMessages: { chargingStationTemplate }
+                    });
+                    continue;
+                  }
                   chargingStation.ocppStandardParameters.push({
                     key: parameter,
                     value: ocppStandardParameters.parameters[parameter]
@@ -1083,6 +1094,17 @@ export default class OCPPUtils {
               // Found?
               if (matchFirmware && matchOcpp) {
                 for (const parameter in ocppVendorParameters.parameters) {
+                  if (OCPPUtils.isOcppParamForPowerLimitationKey(parameter, chargingStation)) {
+                    Logging.logError({
+                      tenantID: tenantID,
+                      source: chargingStation.id,
+                      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+                      module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+                      message: `Template contains setting for power limitation OCPP Parameter key '${parameter}' in OCPP Vendor parameters, skipping. Remove it from template!`,
+                      detailedMessages: { chargingStationTemplate }
+                    });
+                    continue;
+                  }
                   chargingStation.ocppVendorParameters.push({
                     key: parameter,
                     value: ocppVendorParameters.parameters[parameter]
@@ -1662,5 +1684,14 @@ export default class OCPPUtils {
       foundConnector.currentTagID = null;
       foundConnector.userID = null;
     }
+  }
+
+  private static isOcppParamForPowerLimitationKey(ocppParameterKey: string, chargingStation: ChargingStation): boolean {
+    for (const chargePoint of chargingStation.chargePoints) {
+      if (ocppParameterKey.includes(chargePoint.ocppParamForPowerLimitation)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
