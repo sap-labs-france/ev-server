@@ -164,8 +164,7 @@ export default class OCPPService {
         chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
       }
       // Enrich Charging Station
-      const chargingStationTemplateUpdated =
-        await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
+      const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Save Boot Notification
