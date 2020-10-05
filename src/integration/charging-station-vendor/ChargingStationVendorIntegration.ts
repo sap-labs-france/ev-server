@@ -45,7 +45,7 @@ export default abstract class ChargingStationVendorIntegration {
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        message: `No OCPP parameter provided in template for Charge Point '${chargePoint.chargePointID}'`,
+        message: `No OCPP Parameter provided in template for Charge Point '${chargePoint.chargePointID}'`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
         detailedMessages: { chargePoint }
       });
@@ -79,16 +79,6 @@ export default abstract class ChargingStationVendorIntegration {
     }
     // Fixed the max amp per connector
     const ocppLimitAmpValue = this.convertLimitAmpPerPhase(chargingStation, chargePoint, 0, maxAmps);
-    // Get the OCPP Client
-    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
-    if (!chargingStationClient) {
-      throw new BackendError({
-        source: chargingStation.id,
-        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        module: MODULE_NAME, method: 'setStaticPowerLimitation',
-        message: 'Charging Station is not connected to the backend',
-      });
-    }
     let result: OCPPChangeConfigurationCommandResult;
     try {
       Logging.logDebug({
@@ -99,8 +89,9 @@ export default abstract class ChargingStationVendorIntegration {
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
         detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, ocppLimitAmpValue: ocppLimitAmpValue }
       });
-      // Change the config
-      result = await chargingStationClient.changeConfiguration({
+      // Change the OCPP Parameter
+      // FIXME: trigger conditional reset?
+      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenantID, chargingStation, {
         key: chargePoint.ocppParamForPowerLimitation,
         value: ocppLimitAmpValue.toString()
       });
@@ -112,11 +103,9 @@ export default abstract class ChargingStationVendorIntegration {
         status: error.status
       };
     }
-    // Update the DB OCPP configuration
+    // Update the connectors limit
     if (result.status === OCPPConfigurationStatus.ACCEPTED ||
       result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-      // Refresh Configuration
-      await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
       // Update the charger's connectors
       const limitAmpsPerConnector = this.chargePointToConnectorLimitAmps(chargePoint, maxAmps);
       for (const connector of chargingStation.connectors) {
@@ -143,7 +132,7 @@ export default abstract class ChargingStationVendorIntegration {
                 tenantID: tenantID,
                 source: chargingStation.id,
                 action: ServerAction.OCPP_PARAM_UPDATE,
-                message: `Connector ID '${connectorID}' amperage limit set to ${connector.amperageLimit}A following an update of OCPP param '${ocppParamName}'`,
+                message: `Connector ID '${connectorID}' amperage limit set to ${connector.amperageLimit}A following an update of OCPP Parameter '${ocppParamName}'`,
                 module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
                 detailedMessages: {
                   ocppParamName, ocppParamValue, connectorID,
