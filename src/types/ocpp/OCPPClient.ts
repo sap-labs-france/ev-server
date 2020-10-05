@@ -1,4 +1,5 @@
 import { ChargingProfile, ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
+
 import { OcppParameter } from '../ChargingStation';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -63,7 +64,7 @@ export interface OCPPChangeConfigurationCommandResult {
 export interface OCPPCustomConfigurationParam extends OCPPCommandParam {
   key: string;
   value: string;
-  isCustom: boolean;
+  custom: boolean;
 }
 
 export interface OCPPCustomConfigurationResult {

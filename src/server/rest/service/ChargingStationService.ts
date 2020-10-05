@@ -1325,11 +1325,11 @@ export default class ChargingStationService {
               });
             }
             // Refresh Configuration
-            if (params.type) {
+            if (params.custom) {
               await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation, false, {
                 key: params.key,
                 value: params.value,
-                isCustom: params.isCustom
+                custom: params.custom
               });
             } else {
               await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);

@@ -277,7 +277,7 @@ export interface OcppParameter {
   key: string;
   value: string;
   readonly: boolean;
-  type?: string;
+  custom?: boolean;
 }
 
 export type OCPPParams = {

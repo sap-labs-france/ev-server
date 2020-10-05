@@ -1,17 +1,18 @@
-import moment from 'moment';
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPCustomConfigurationParam, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../../exception/BackendError';
+import { BillingDataTransactionStop } from '../../../types/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import PricingFactory from '../../../integration/pricing/PricingFactory';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../types/DataResult';
@@ -19,27 +20,19 @@ import Logging from '../../../utils/Logging';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import { BillingDataTransactionStop } from '../../../types/Billing';
-import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, TemplateUpdateResult } from '../../../types/ChargingStation';
-import Consumption from '../../../types/Consumption';
-import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPCustomConfigurationParam, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPTypeConfigurationResult } from '../../../types/ocpp/OCPPClient';
-import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
 import { PricedConsumption } from '../../../types/Pricing';
-import { ServerAction } from '../../../types/Server';
+import PricingFactory from '../../../integration/pricing/PricingFactory';
 import { PricingSettingsType } from '../../../types/Setting';
+import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
-import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import moment from 'moment';
 
 const MODULE_NAME = 'OCPPUtils';
 
@@ -1445,8 +1438,8 @@ export default class OCPPUtils {
     return chargingStation;
   }
 
-  public static async requestAndSaveChargingStationOcppParameters(tenantID: string,
-    chargingStation: ChargingStation, forceUpdateOcppParametersWithTemplate = false, typedParameter?: OCPPCustomConfigurationParam): Promise<OCPPChangeConfigurationCommandResult> {
+  public static async requestAndSaveChargingStationOcppParameters(tenantID: string, chargingStation: ChargingStation,
+    forceUpdateOcppParametersWithTemplate = false, customParameter?: OCPPCustomConfigurationParam): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Client
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -1487,15 +1480,15 @@ export default class OCPPUtils {
           chargingStationOcppParameters.configuration = ocppParametersFromDB.result;
         }
       }
-      // Retype all fetched Parameters
+      // Reverify all fetched Parameters
       chargingStationOcppParameters.configuration.forEach((fetchedParam) => {
         const dbParam = ocppParametersFromDB.result.find((param) => param.key === fetchedParam.key);
-        if (dbParam && dbParam.type) {
-          fetchedParam.type = dbParam.type;
+        if (dbParam && dbParam.custom) {
+          fetchedParam.custom = dbParam.custom;
         }
-        // If new param, type it
-        if (!dbParam && typedParameter && typedParameter.key === fetchedParam.key) {
-          fetchedParam.type = typedParameter.type;
+        // If new param, set custom status
+        if (!dbParam && customParameter && customParameter.key === fetchedParam.key) {
+          fetchedParam.custom = customParameter.custom;
         }
       });
       // Save config
