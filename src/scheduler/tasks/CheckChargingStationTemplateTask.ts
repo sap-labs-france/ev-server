@@ -19,7 +19,7 @@ const MODULE_NAME = 'CheckChargingStationTemplateTask';
 export default class CheckChargingStationTemplateTask extends SchedulerTask {
   public async run(name: string, config: TaskConfig): Promise<void> {
     // Update Template
-    await this.updateChargingStationTemplate();
+    await this.updateChargingStationTemplates();
     // Call default implementation
     await super.run(name, config);
   }
@@ -175,7 +175,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     }
   }
 
-  private async updateChargingStationTemplate() {
+  private async updateChargingStationTemplates() {
     // Update current Chargers
     ChargingStationStorage.updateChargingStationTemplatesFromFile().catch(
       (error) => {
