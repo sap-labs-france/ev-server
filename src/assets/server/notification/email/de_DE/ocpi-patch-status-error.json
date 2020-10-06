@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Sehr geehrter Administrator,",
       "",
-      "Die Übertragung der Ladestation Status an der Lokation <b>'<%- location %>'</b> ist fehlgeschlagen.",
+      "Die Übertragung der Ladestation Status an der Lokation <strong>'<%- location %>'</strong> ist fehlgeschlagen.",
       "",
       "Bitte überprüfen Sie die Logs.",
       ""

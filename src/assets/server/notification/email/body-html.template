@@ -13,7 +13,7 @@
                   src="<%- body.header.image.left.url %>">
               </td>
               <td align="center" style="padding: 10px;border-color:white;border-width: 2px;border-left-style: solid;border-right-style: solid;">
-                <font size="5" color="white" face="sans-serif"><b><%- body.header.title %></b></font>
+                <font size="5" color="white" face="sans-serif"><strong><%- body.header.title %></strong></font>
               </td>
               <td width="180" style="padding: 10px;" align="center">
                 <img height="<%- body.header.image.right.height %>"
@@ -52,7 +52,7 @@
                       <%- body.stats[i].label %><br/>
                     </font>
                     <font size="6" color="white" face="sans-serif">
-                      <b><%- body.stats[i].value %></b>
+                      <strong><%- body.stats[i].value %></strong>
                     </font>
                   </td>
                   <td style="width: 30%;"></td>
@@ -70,7 +70,7 @@
           <td align="center" height="50" style="background-color: #1976d2;border-radius: 10px;">
             <a id="action-url" style="text-decoration:none;" href="<%- body.action.url %>" target="_blank">
               <font size="4" color="white" face="sans-serif">
-                <b><%- body.action.title %></b>
+                <strong><%- body.action.title %></strong>
               </font>
             </a>
           </td>

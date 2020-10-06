@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Votre véhicule électrique est correctement connecté sur la borne <b>'<%- chargeBoxID %>'</b>, connecteur <b>'<%- connectorId %>'</b>."
+      "Votre véhicule électrique est correctement connecté sur la borne <strong>'<%- chargeBoxID %>'</strong>, connecteur <strong>'<%- connectorId %>'</strong>."
     ],
     "action": {
       "title": "Voir Session",

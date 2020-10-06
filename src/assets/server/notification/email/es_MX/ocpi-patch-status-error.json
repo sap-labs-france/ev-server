@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Estimado administrador,",
       "",
-      "La actualización del estatus de la terminal falló en el sitio <b> '<% - location%>' </b> ",
+      "La actualización del estatus de la terminal falló en el sitio <strong> '<% - location%>' </strong> ",
       "",
       "Por favor revise el registro",
       ""

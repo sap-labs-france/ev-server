@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "The following charging stations are offline in your organization: <b><%- chargeBoxIDs %></b>",
+      "The following charging stations are offline in your organization: <strong><%- chargeBoxIDs %></strong>",
       ""
     ],
     "action": {
