@@ -1007,10 +1007,10 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
-                // pragma if (Utils.objectHasProperty(capabilities.capabilities, 'supportChargingProfiles') &&
-                //   !capabilities.capabilities.supportChargingProfiles) {
-                //   chargingStation.excludeFromSmartCharging = !capabilities.capabilities.supportChargingProfiles;
-                // }
+                if (Utils.objectHasProperty(capabilities.capabilities, 'supportChargingProfiles') &&
+                  !capabilities.capabilities.supportChargingProfiles) {
+                  chargingStation.excludeFromSmartCharging = !capabilities.capabilities.supportChargingProfiles;
+                }
                 chargingStation.capabilities = capabilities.capabilities;
                 break;
               }
