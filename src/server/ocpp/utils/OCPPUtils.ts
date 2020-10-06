@@ -38,7 +38,7 @@ const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
   public static async processOCPITransaction(tenantID: string, transaction: Transaction,
-    chargingStation: ChargingStation, transactionAction: TransactionAction) {
+    chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
     if (!transaction.user || transaction.user.issuer) {
       return;
     }
