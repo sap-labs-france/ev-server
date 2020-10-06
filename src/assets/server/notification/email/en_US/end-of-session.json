@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your session on the charging station <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b> has just finished."
+      "Your session on the charging station <strong>'<%- chargeBoxID %>'</strong>, connector <strong>'<%- connectorId %>'</strong> has just finished."
     ],
     "stats": [
       { "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
@@ -32,7 +32,7 @@
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
-      "<%- (alternateUser ? 'The user <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> has stopped your session.' : '') %>",
+      "<%- (alternateUser ? 'The user <strong>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</strong> has stopped your session.' : '') %>",
       "",
       "Best Regards,",
       "EV Admins."
