@@ -1,6 +1,7 @@
 import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
+import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import { Action } from '../../../types/Authorization';
@@ -163,6 +164,7 @@ export default class OCPPService {
       if (Configuration.isCloudFoundry()) {
         chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
       }
+      const currentTenant = await TenantStorage.getTenant(headers.tenantID);
       // Enrich Charging Station from templates
       const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
       // Save Charging Station
@@ -176,7 +178,7 @@ export default class OCPPService {
         chargingStation,
         {
           chargeBoxID: chargingStation.id,
-          evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(headers.tenantID)).subdomain),
+          evseDashboardURL: Utils.buildEvseURL(currentTenant.subdomain),
           evseDashboardChargingStationURL: await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
         }
       ).catch(
@@ -190,13 +192,19 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'handleBootNotification',
         message: 'Boot notification saved'
       });
-      // Handle the get of configuration later on
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-undef
-      setTimeout(async () => {
-        // Get config and save it
-        await OCPPUtils.requestAndSaveChargingStationOcppParameters(
-          headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
-      }, Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS);
+      // Get config and save it
+      const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS,
+        OCPPUtils.requestAndSaveChargingStationOcppParameters(headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated),
+        `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in requesting and saving OCPP Parameters`);
+      if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+        Logging.logError({
+          tenantID: headers.tenantID,
+          action: ServerAction.BOOT_NOTIFICATION,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'handleBootNotification',
+          message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
+        });
+      }
       // Return the result
       return {
         'currentTime': bootNotification.timestamp.toISOString(),

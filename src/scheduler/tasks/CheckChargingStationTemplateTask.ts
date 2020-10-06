@@ -126,8 +126,8 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
             });
             // Request the latest configuration
             const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
-              60 * 1000, OCPPUtils.requestAndSaveChargingStationOcppParameters(tenant.id, chargingStation),
-              'Time out error (60s) in requesting OCPP params');
+              Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.requestAndSaveChargingStationOcppParameters(tenant.id, chargingStation),
+              `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in requesting OCPP Parameters`);
             if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
               Logging.logError({
                 tenantID: tenant.id,
@@ -140,8 +140,8 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
             }
             // Update the OCPP Parameters from the template
             const updatedOcppParameters = await Utils.executePromiseWithTimeout<ActionsResponse>(
-              60 * 1000, OCPPUtils.updateChargingStationTemplateOcppParameters(tenant.id, chargingStation),
-              'Time out error (60s) in updating OCPP Parameters');
+              Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationTemplateOcppParameters(tenant.id, chargingStation),
+              `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in updating OCPP Parameters`);
             // Log
             Utils.logActionsResponse(
               tenant.id,
