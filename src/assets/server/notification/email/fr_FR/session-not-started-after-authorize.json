@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Vous avez badgé sur la borne <b>'<%- chargeBoxID %>'</b>, mais aucune session n'a été démarrée.",
+      "Vous avez badgé sur la borne <strong>'<%- chargeBoxID %>'</strong>, mais aucune session n'a été démarrée.",
       ""
     ],
     "action": {
