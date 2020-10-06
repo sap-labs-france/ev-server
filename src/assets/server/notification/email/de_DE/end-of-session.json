@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Ihr Ladevorgang an Ladestation <b>'<%- chargeBoxID %>'</b>, Ladepunkt <b>'<%- connectorId %>'</b> wurde soeben abgeschlossen."
+      "Ihr Ladevorgang an Ladestation <strong>'<%- chargeBoxID %>'</strong>, Ladepunkt <strong>'<%- connectorId %>'</strong> wurde soeben abgeschlossen."
     ],
     "stats": [
       {
@@ -44,7 +44,7 @@
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
-      "<%- (alternateUser ? 'Der Nutzer <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> hat Ihren Ladevorgang beendet.' : '') %>",
+      "<%- (alternateUser ? 'Der Nutzer <strong>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</strong> hat Ihren Ladevorgang beendet.' : '') %>",
       "",
       "Mit freundlichen Grüßen",
       "EV Admins."

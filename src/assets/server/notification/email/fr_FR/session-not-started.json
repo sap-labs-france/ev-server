@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Vous n'avez pas démarré votre session sur la borne <b>'<%- chargeBoxID %>'</b>, connecteur <b>'<%- connectorId %>'</b>.",
+      "Vous n'avez pas démarré votre session sur la borne <strong>'<%- chargeBoxID %>'</strong>, connecteur <strong>'<%- connectorId %>'</strong>.",
       ""
     ],
     "action": {

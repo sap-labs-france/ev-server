@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Insignó en la estación de carga <b> '<% - chargeBoxID%>' </b> pero no inició ninguna sesión.",
+      "Insignó en la estación de carga <strong> '<% - chargeBoxID%>' </strong> pero no inició ninguna sesión.",
       ""
     ],
     "action": {

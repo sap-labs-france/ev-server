@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "You haven't started the session on charging station <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b>.",
+      "You haven't started the session on charging station <strong>'<%- chargeBoxID %>'</strong>, connector <strong>'<%- connectorId %>'</strong>.",
       ""
     ],
     "action": {
