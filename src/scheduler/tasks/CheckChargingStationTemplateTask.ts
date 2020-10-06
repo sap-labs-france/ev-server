@@ -108,7 +108,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
             tenantID: tenant.id,
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-            module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+            module: MODULE_NAME, method: 'applyTemplateToChargingStations',
             message: `Charging Station '${chargingStation.id}' updated with the following Template's section(s): ${sectionsUpdated.join(', ')}`,
             detailedMessages: { chargingStationTemplateUpdated }
           });
