@@ -1496,7 +1496,7 @@ export default class OCPPUtils {
       await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
       // Check OCPP Configuration
       if (forceUpdateOcppParametersWithTemplate) {
-        await this.updateChargingStationTemplateOcppParameters(
+        await OCPPUtils.updateChargingStationTemplateOcppParameters(
           tenantID, chargingStation, chargingStationOcppParameters.configuration);
       }
       // Ok

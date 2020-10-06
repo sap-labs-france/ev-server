@@ -209,4 +209,3 @@
     "import-sort": "npx import-sort-cli --write 'src/**/*.ts{,x}' 'test/**/*.ts{,x}' 'build/types/**/*.ts{,x}'"
   }
 }
-  
