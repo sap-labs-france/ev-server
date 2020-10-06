@@ -1748,7 +1748,7 @@ export default class OCPPUtils {
 
   private static isOcppParamForPowerLimitationKey(ocppParameterKey: string, chargingStation: ChargingStation): boolean {
     for (const chargePoint of chargingStation.chargePoints) {
-      if (ocppParameterKey.includes(chargePoint.ocppParamForPowerLimitation)) {
+      if (chargePoint.ocppParamForPowerLimitation && ocppParameterKey.includes(chargePoint.ocppParamForPowerLimitation)) {
         return true;
       }
     }
