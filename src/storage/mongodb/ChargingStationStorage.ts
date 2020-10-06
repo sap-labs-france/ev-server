@@ -27,8 +27,6 @@ export default class ChargingStationStorage {
   public static async updateChargingStationTemplatesFromFile(): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateChargingStationTemplatesFromFile');
-    // Delete all previous templates
-    await ChargingStationStorage.deleteChargingStationTemplates();
     // Read File
     let chargingStationTemplates: ChargingStationTemplate[];
     try {
@@ -38,6 +36,8 @@ export default class ChargingStationStorage {
         throw error;
       }
     }
+    // Delete all previous templates
+    await ChargingStationStorage.deleteChargingStationTemplates();
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
