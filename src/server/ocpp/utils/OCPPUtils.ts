@@ -9,6 +9,7 @@ import BackendError from '../../../exception/BackendError';
 import { BillingDataTransactionStop } from '../../../types/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationFactory from '../../../factories/ChargingStationFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../utils/Constants';
@@ -25,6 +26,7 @@ import PricingFactory from '../../../integration/pricing/PricingFactory';
 import { PricingSettingsType } from '../../../types/Setting';
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -1216,7 +1218,21 @@ export default class OCPPUtils {
             } else {
               delete connector.numberOfConnectedPhase;
             }
-            break;
+            if (chargingStation.siteAreaID && !connector.phaseAssignmentToGrid) {
+              const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
+              if (siteArea.numberOfPhases === 3) {
+                const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connectorID);
+                switch (numberOfPhases) {
+                  case 3:
+                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 } ;
+                    break;
+                  case 1:
+                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null } ;
+                    break;
+                }
+              }
+            }
+            return true;
           }
         }
       }
