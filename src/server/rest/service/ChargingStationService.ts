@@ -1320,7 +1320,7 @@ export default class ChargingStationService {
                 user: user,
                 action: action,
                 module: MODULE_NAME, method: 'handleChargingStationCommand',
-                message: `Reboot is required due to change of param '${params.key}' to '${params.value}'`,
+                message: `Reboot is required due to change of OCPP Parameter '${params.key}' to '${params.value}'`,
                 detailedMessages: { result }
               });
             }

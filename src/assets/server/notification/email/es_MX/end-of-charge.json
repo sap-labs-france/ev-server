@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hola <% - (user.firstName? User.firstName: user.name)%>, ",
       "",
-      "Su vehículo eléctrico, que está conectado a la terminal <b> '<% - chargeBoxID%>' </b>, conector <b> '<% - connectorId%>' </b>, ha completado su carga."
+      "Su vehículo eléctrico, que está conectado a la terminal <strong> '<% - chargeBoxID%>' </strong>, conector <strong> '<% - connectorId%>' </strong>, ha completado su carga."
     ],
     "stats": [
       { "label": "Consumo", "value": "<%- totalConsumption %> kW.h" },
