@@ -9,7 +9,6 @@ import BackendError from '../../../exception/BackendError';
 import { BillingDataTransactionStop } from '../../../types/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationFactory from '../../../factories/ChargingStationFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../utils/Constants';
