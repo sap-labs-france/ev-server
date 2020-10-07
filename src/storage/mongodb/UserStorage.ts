@@ -315,6 +315,7 @@ export default class UserStorage {
       userID: Utils.convertToObjectID(tag.userID),
       issuer: Utils.convertToBoolean(tag.issuer),
       active: Utils.convertToBoolean(tag.active),
+      default: Utils.convertToBoolean(tag.default),
       ocpiToken: tag.ocpiToken,
       description: tag.description,
       deleted: Utils.objectHasProperty(tag, 'deleted') ? tag.deleted : false
@@ -330,6 +331,20 @@ export default class UserStorage {
       { upsert: true, returnOriginal: false });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveTag', uniqueTimerID, { id: tag.id });
+  }
+
+  public static async clearTagUserDefault(tenantID: string, userID: string): Promise<void> {
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'clearTagUserDefault');
+    await Utils.checkTenant(tenantID);
+    await global.database.getCollection<any>(tenantID, 'tags').updateMany(
+      {
+        userID: Utils.convertToObjectID(userID),
+        default: true
+      },
+      {
+        $set: { default: false }
+      });
+    Logging.traceEnd(MODULE_NAME, 'clearTagUserDefault', uniqueTimerID, { userID });
   }
 
   public static async deleteTag(tenantID: string, userID: string, tag: Tag): Promise<void> {

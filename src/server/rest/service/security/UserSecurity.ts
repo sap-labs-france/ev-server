@@ -251,6 +251,7 @@ export default class UserSecurity {
         description: sanitize(tag.description),
         active: UtilsSecurity.filterBoolean(tag.active),
         issuer: UtilsSecurity.filterBoolean(tag.issuer),
+        default: UtilsSecurity.filterBoolean(tag.default),
         userID: sanitize(tag.userID)
       } as Tag;
     }
@@ -270,6 +271,7 @@ export default class UserSecurity {
       filteredTag.active = tag.active;
       filteredTag.transactionsCount = tag.transactionsCount;
       filteredTag.userID = tag.userID;
+      filteredTag.default = tag.default;
       if (tag.user) {
         filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser);
       }

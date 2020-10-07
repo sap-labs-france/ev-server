@@ -1218,6 +1218,10 @@ export default class UserService {
         action: action
       });
     }
+    // Clear default tag
+    if(filteredRequest.default){
+      await UserStorage.clearTagUserDefault(req.user.tenantID,filteredRequest.userID);
+    }
     // Create
     const newTag: Tag = {
       id: filteredRequest.id.toUpperCase(),
@@ -1226,7 +1230,8 @@ export default class UserService {
       active: filteredRequest.active,
       createdBy: { id: req.user.id },
       createdOn: new Date(),
-      userID: filteredRequest.userID
+      userID: filteredRequest.userID,
+      default: filteredRequest.default
     } as Tag;
     // Save
     await UserStorage.saveTag(req.user.tenantID, newTag);
@@ -1328,10 +1333,14 @@ export default class UserService {
       }
       formerTagOwnerID = tag.userID;
     }
+    if(filteredRequest.default && (tag.default !== filteredRequest.default)){
+      await UserStorage.clearTagUserDefault(req.user.tenantID,filteredRequest.userID);
+    }
     // Update
     tag.description = filteredRequest.description;
     tag.active = filteredRequest.active;
     tag.userID = filteredRequest.userID;
+    tag.default = filteredRequest.default;
     tag.lastChangedBy = { id: req.user.id };
     tag.lastChangedOn = new Date();
     // Save
