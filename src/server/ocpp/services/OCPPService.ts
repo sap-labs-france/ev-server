@@ -19,6 +19,7 @@ import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import { OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
@@ -163,7 +164,8 @@ export default class OCPPService {
       if (Configuration.isCloudFoundry()) {
         chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
       }
-      // Enrich Charging Station
+      const currentTenant = await TenantStorage.getTenant(headers.tenantID);
+      // Enrich Charging Station from templates
       const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
@@ -175,9 +177,9 @@ export default class OCPPService {
         Utils.generateGUID(),
         chargingStation,
         {
-          'chargeBoxID': chargingStation.id,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(headers.tenantID)).subdomain),
-          'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
+          chargeBoxID: chargingStation.id,
+          evseDashboardURL: Utils.buildEvseURL(currentTenant.subdomain),
+          evseDashboardChargingStationURL: await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
         }
       ).catch(
         () => { }
@@ -190,18 +192,26 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'handleBootNotification',
         message: 'Boot notification saved'
       });
-      // Handle the get of configuration later on
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-undef
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
         // Get config and save it
-        await OCPPUtils.requestAndSaveChargingStationOcppParameters(
+        const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
           headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
+        if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+          Logging.logError({
+            tenantID: headers.tenantID,
+            action: ServerAction.BOOT_NOTIFICATION,
+            source: chargingStation.id,
+            module: MODULE_NAME, method: 'handleBootNotification',
+            message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
+          });
+        }
       }, Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS);
       // Return the result
       return {
-        'currentTime': bootNotification.timestamp.toISOString(),
-        'status': RegistrationStatus.ACCEPTED,
-        'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
+        currentTime: bootNotification.timestamp.toISOString(),
+        status: RegistrationStatus.ACCEPTED,
+        heartbeatInterval: this.chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
       if (error.params) {
@@ -210,9 +220,9 @@ export default class OCPPService {
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
       // Reject
       return {
-        'status': RegistrationStatus.REJECTED,
-        'currentTime': bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
-        'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
+        status: RegistrationStatus.REJECTED,
+        currentTime: bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
+        heartbeatInterval: this.chargingStationConfig.heartbeatIntervalSecs
       };
     }
   }
@@ -357,8 +367,8 @@ export default class OCPPService {
           }
           // Get the phases really used from Meter Values (for AC single phase charger/car)
           if (!transaction.phasesUsed &&
-              Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
-              transaction.numberOfMeterValues >= 1) {
+            Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
+            transaction.numberOfMeterValues >= 1) {
             transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
           }
           // Handle OCPI
@@ -371,7 +381,7 @@ export default class OCPPService {
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
           // First Meter Value -> Trigger Smart Charging to adjust the single phase Car
           if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed &&
-              !Utils.isTransactionInProgressOnThreePhases(chargingStation, transaction)) {
+            !Utils.isTransactionInProgressOnThreePhases(chargingStation, transaction)) {
             // Yes: Trigger Smart Charging
             await this.triggerSmartCharging(headers.tenantID, chargingStation);
           }
@@ -930,8 +940,8 @@ export default class OCPPService {
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&
-        foundConnector.errorCode === statusNotification.errorCode &&
-        foundConnector.info === statusNotification.info) {
+      foundConnector.errorCode === statusNotification.errorCode &&
+      foundConnector.info === statusNotification.info) {
       // No Change: Do not save it
       Logging.logWarning({
         tenantID: tenantID,
@@ -975,7 +985,7 @@ export default class OCPPService {
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
     if (statusNotification.status === ChargePointStatus.CHARGING ||
-        statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
+      statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
         await this.triggerSmartCharging(tenantID, chargingStation);
@@ -997,8 +1007,8 @@ export default class OCPPService {
     // Check Inactivity
     // OCPP 1.6: Finishing --> Available
     if (connector.status === ChargePointStatus.FINISHING &&
-        statusNotification.status === ChargePointStatus.AVAILABLE &&
-        Utils.objectHasProperty(statusNotification, 'timestamp')) {
+      statusNotification.status === ChargePointStatus.AVAILABLE &&
+      Utils.objectHasProperty(statusNotification, 'timestamp')) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
         tenantID, chargingStation.id, connector.connectorId);
@@ -1395,8 +1405,8 @@ export default class OCPPService {
             const consumptions = await ConsumptionStorage.getTransactionConsumptions(
               tenantID, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
             if (consumptions.result.every((consumption) => consumption.consumptionWh === 0 &&
-                (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
-                 consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)))) {
+              (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
+                consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)))) {
               // Send Notification
               await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
             }

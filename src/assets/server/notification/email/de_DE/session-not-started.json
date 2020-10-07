@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Sie haben an Ladestation <b>'<%- chargeBoxID %>'</b>, Ladepunkt <b>'<%- connectorId %>'</b>. keinen Ladevorgang gestartet",
+      "Sie haben an Ladestation <strong>'<%- chargeBoxID %>'</strong>, Ladepunkt <strong>'<%- connectorId %>'</strong>. keinen Ladevorgang gestartet",
       ""
     ],
     "action": {

@@ -8,7 +8,8 @@ general:
 stages:
 
   Central Build:
-    sonarExecuteScan: false
+    executeSonarScan: false
+    sonarExecuteScan: true
 
   IPScan and PPMS:
     whitesourceProductName: 'SHC - SAP E-MOBILITY BACKEND 1.0'

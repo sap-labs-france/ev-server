@@ -537,36 +537,42 @@ export default class ContextDefinition {
     { // With access control
       id: '5ce249a2372f0b1c8caf9294',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      numberOfPhases: 3,
       accessControl: true,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5476',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      numberOfPhases: 3,
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf1234',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      numberOfPhases: 3,
       accessControl: true,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf4678',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      numberOfPhases: 3,
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf5497',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      numberOfPhases: 3,
       accessControl: true,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5432',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      numberOfPhases: 3,
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
     },

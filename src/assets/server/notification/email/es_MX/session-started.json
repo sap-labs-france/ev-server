@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Su vehículo eléctrico está conectado correctamente a la terminal <b> '<% - chargeBoxID%>' </b>, conector <b> '<% - connectorId%>' </b>."
+      "Su vehículo eléctrico está conectado correctamente a la terminal <strong> '<% - chargeBoxID%>' </strong>, conector <strong> '<% - connectorId%>' </strong>."
     ],
     "action": {
       "title": "Ver sesion",
