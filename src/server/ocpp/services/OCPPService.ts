@@ -193,9 +193,13 @@ export default class OCPPService {
         message: 'Boot notification saved'
       });
       // Get config and save it
-      const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS,
-        OCPPUtils.requestAndSaveChargingStationOcppParameters(headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated),
-        `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in requesting and saving OCPP Parameters`);
+      let result;
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      setTimeout(async () => {
+        // Get config and save it
+        result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
+          headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
+      }, Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS);
       if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
         Logging.logError({
           tenantID: headers.tenantID,
