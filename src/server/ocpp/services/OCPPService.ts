@@ -192,22 +192,21 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'handleBootNotification',
         message: 'Boot notification saved'
       });
-      let result;
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
         // Get config and save it
-        result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
+        const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
           headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
+        if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+          Logging.logError({
+            tenantID: headers.tenantID,
+            action: ServerAction.BOOT_NOTIFICATION,
+            source: chargingStation.id,
+            module: MODULE_NAME, method: 'handleBootNotification',
+            message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
+          });
+        }
       }, Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS);
-      if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-        Logging.logError({
-          tenantID: headers.tenantID,
-          action: ServerAction.BOOT_NOTIFICATION,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleBootNotification',
-          message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
-        });
-      }
       // Return the result
       return {
         currentTime: bootNotification.timestamp.toISOString(),
