@@ -36,6 +36,8 @@ export default class ChargingStationStorage {
         throw error;
       }
     }
+    // Delete all previous templates
+    await ChargingStationStorage.deleteChargingStationTemplates();
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
@@ -84,11 +86,20 @@ export default class ChargingStationStorage {
     return chargingStationTemplates;
   }
 
+  public static async deleteChargingStationTemplates(): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteChargingStationTemplates');
+    // Delete all records
+    await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').deleteMany({});
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'deleteChargingStationTemplates', uniqueTimerID);
+  }
+
   public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationTemplate');
     // Modify and return the modified document
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
+    await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },
       chargingStationTemplate,
       { upsert: true });
