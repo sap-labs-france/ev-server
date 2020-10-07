@@ -192,7 +192,6 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'handleBootNotification',
         message: 'Boot notification saved'
       });
-      // Get config and save it
       let result;
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
