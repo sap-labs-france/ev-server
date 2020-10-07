@@ -210,9 +210,9 @@ export default class OCPPService {
       }
       // Return the result
       return {
-        'currentTime': bootNotification.timestamp.toISOString(),
-        'status': RegistrationStatus.ACCEPTED,
-        'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
+        currentTime: bootNotification.timestamp.toISOString(),
+        status: RegistrationStatus.ACCEPTED,
+        heartbeatInterval: this.chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
       if (error.params) {
