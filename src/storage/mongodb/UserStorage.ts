@@ -761,7 +761,7 @@ export default class UserStorage {
 
   public static async getTags(tenantID: string,
     params: { issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
-      withUser?: boolean; withNbrTransactions?: boolean; search?: string },
+      withUser?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?:boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
@@ -790,6 +790,9 @@ export default class UserStorage {
     }
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+      if(params.defaultTag){
+        filters.default = true;
+      }
     }
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
