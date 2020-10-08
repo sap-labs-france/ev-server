@@ -46,7 +46,7 @@ export default abstract class WSConnection {
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.WS_JSON_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'constructor',
-      message: `Charging Station attemps to connect with URL: '${req.url}'`,
+      message: `WS connection opening attempts with URL: '${req.url}'`,
     });
     // Default
     this.tenantIsValid = false;
@@ -79,11 +79,17 @@ export default abstract class WSConnection {
         message: `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`
       });
     }
+    let logMsg = '';
+    if (req.url.startsWith('/REST')) {
+      logMsg = `Charging Station attempts to connect with URL: '${req.url}'`;
+    } else if (req.url.startsWith('/OCPP16')) {
+      logMsg = `Charging Station attempts to connect with URL: '${req.url}'`;
+    }
     Logging.logDebug({
       tenantID: this.tenantID,
       action: ServerAction.WS_CONNECTION,
       module: MODULE_NAME, method: 'constructor',
-      message: `Charging Station attemps to connect with URL: '${req.url}'`,
+      message: logMsg,
     });
     if (!Utils.isChargingStationIDValid(this.chargingStationID)) {
       const backendError = new BackendError({
