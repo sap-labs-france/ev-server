@@ -252,7 +252,8 @@ export default class AuthService {
       active: true,
       issuer: true,
       userID: newUser.id,
-      lastChangedOn: new Date()
+      lastChangedOn: new Date(),
+      default: false
     };
     await UserStorage.saveTag(req.user.tenantID, tag);
 
