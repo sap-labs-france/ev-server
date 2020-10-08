@@ -40,7 +40,7 @@ export default class AddDefaultPropertyToTagsTask extends MigrationTask {
                 tenantID: Constants.DEFAULT_TENANT,
                 module: MODULE_NAME, method: 'migrateTenant',
                 action: ServerAction.MIGRATION,
-                message: `${updated} Tag(s) default property have been updated in Tenant '${tenant.name}'`
+                message: `${updated} Tag's default properties have been updated in Tenant '${tenant.name}'`
             });
         }
     }
