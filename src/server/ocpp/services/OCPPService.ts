@@ -1,7 +1,6 @@
 import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import { Action } from '../../../types/Authorization';
@@ -20,6 +19,7 @@ import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import { OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
@@ -192,24 +192,26 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'handleBootNotification',
         message: 'Boot notification saved'
       });
-      // Get config and save it
-      const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS,
-        OCPPUtils.requestAndSaveChargingStationOcppParameters(headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated),
-        `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in requesting and saving OCPP Parameters`);
-      if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-        Logging.logError({
-          tenantID: headers.tenantID,
-          action: ServerAction.BOOT_NOTIFICATION,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleBootNotification',
-          message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
-        });
-      }
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      setTimeout(async () => {
+        // Get config and save it
+        const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
+          headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
+        if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+          Logging.logError({
+            tenantID: headers.tenantID,
+            action: ServerAction.BOOT_NOTIFICATION,
+            source: chargingStation.id,
+            module: MODULE_NAME, method: 'handleBootNotification',
+            message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
+          });
+        }
+      }, Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS);
       // Return the result
       return {
-        'currentTime': bootNotification.timestamp.toISOString(),
-        'status': RegistrationStatus.ACCEPTED,
-        'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
+        currentTime: bootNotification.timestamp.toISOString(),
+        status: RegistrationStatus.ACCEPTED,
+        heartbeatInterval: this.chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
       if (error.params) {
