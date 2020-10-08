@@ -194,7 +194,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.RESET);
     // Log
-    Logging.logSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.RESET,
+    Logging.logSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
       [params, { headers: this.client.getSoapHeaders() }]);
     // Execute
     const { error, result, envelope } = await this.client.Reset({
@@ -204,7 +204,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this.tenantID,
-        action: ServerAction.RESET,
+        action: ServerAction.CHARGING_STATION_RESET,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'reset',
         message: `Error when trying to reboot: ${error.toString()}`,
@@ -217,7 +217,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       return error;
     }
     // Log
-    Logging.logReturnedAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.RESET, [
+    Logging.logReturnedAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET, [
       { result },
       { envelope }
     ]);
