@@ -81,7 +81,7 @@ export default abstract class WSConnection {
     }
     let logMsg = '';
     if (req.url.startsWith('/REST')) {
-      logMsg = `Charging Station attempts to connect with URL: '${req.url}'`;
+      logMsg = `Connection from REST service to Charging Station attempts with URL: '${req.url}'`;
     } else if (req.url.startsWith('/OCPP16')) {
       logMsg = `Charging Station attempts to connect with URL: '${req.url}'`;
     }
