@@ -1476,7 +1476,7 @@ export default class OCPPUtils {
   }
 
   public static async requestAndSaveChargingStationOcppParameters(tenantID: string, chargingStation: ChargingStation,
-    forceUpdateOcppParametersWithTemplate = false, customParameter?: OCPPCustomConfigurationParam): Promise<OCPPChangeConfigurationCommandResult> {
+    forceUpdateOcppParametersWithTemplate = false): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Configuration
       const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(tenantID, chargingStation, {});
@@ -1489,35 +1489,29 @@ export default class OCPPUtils {
         message: 'Command sent with success',
         detailedMessages: { ocppConfiguration }
       });
-      // Create Conf
+      // Set Conf
       const chargingStationOcppParameters: ChargingStationOcppParameters = {
         id: chargingStation.id,
         configuration: ocppConfiguration.configurationKey,
         timestamp: new Date()
       };
+      // No: Get it from DB
       const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenantID, chargingStation.id);
-      // Set default?
+      // Configuration found in Charging Station
       if (!chargingStationOcppParameters.configuration) {
-        // Check if there is an already existing config in DB
         if (ocppParametersFromDB.count === 0) {
           // No config at all: Set default OCPP configuration
           chargingStationOcppParameters.configuration = Constants.DEFAULT_OCPP_16_CONFIGURATION;
         } else {
-          // Set DB
+          // Set from DB
           chargingStationOcppParameters.configuration = ocppParametersFromDB.result;
         }
       }
-      // Reverify all fetched Parameters
-      chargingStationOcppParameters.configuration.forEach((fetchedParam) => {
-        const dbParam = ocppParametersFromDB.result.find((param) => param.key === fetchedParam.key);
-        if (dbParam && dbParam.custom) {
-          fetchedParam.custom = dbParam.custom;
-        }
-        // If new param, set custom status
-        if (!dbParam && customParameter && customParameter.key === fetchedParam.key) {
-          fetchedParam.custom = customParameter.custom;
-        }
-      });
+      // Add the existing custom params
+      const customParams = ocppParametersFromDB.result.filter((customParam) => customParam.custom);
+      if (!Utils.isEmptyArray(customParams)) {
+        chargingStationOcppParameters.configuration = chargingStationOcppParameters.configuration.concat(customParams);
+      }
       // Save config
       await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
       // Check OCPP Configuration

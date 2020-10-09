@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../types/Authorization';
-import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationOcppParameters, Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
@@ -38,7 +38,6 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import fs from 'fs';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -1311,7 +1310,7 @@ export default class ChargingStationService {
           });
           // Check
           if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
             // Reboot?
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
               Logging.logWarning({
@@ -1320,18 +1319,42 @@ export default class ChargingStationService {
                 user: user,
                 action: action,
                 module: MODULE_NAME, method: 'handleChargingStationCommand',
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 message: `Reboot is required due to change of OCPP Parameter '${params.key}' to '${params.value}'`,
                 detailedMessages: { result }
               });
             }
-            // Refresh Configuration
+            // Custom param?
             if (params.custom) {
-              await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation, false, {
-                key: params.key,
-                value: params.value,
-                custom: params.custom
-              });
+              // Get OCPP Parameters from DB
+              const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenantID, chargingStation.id);
+              // Set new structure
+              const chargingStationOcppParameters: ChargingStationOcppParameters = {
+                id: chargingStation.id,
+                configuration: ocppParametersFromDB.result,
+                timestamp: new Date()
+              };
+              // Search for existing Custom param
+              const foundOcppParam = chargingStationOcppParameters.configuration.find((ocppParam) => ocppParam.key === params.key);
+              if (foundOcppParam) {
+                // Update param
+                foundOcppParam.value = params.value;
+                // Save config
+                if (foundOcppParam.custom) {
+                  // Save
+                  await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
+                } else {
+                  // Not a custom param: Refresh the whole OCPP Parameters
+                  await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
+                }
+              } else {
+                // Add custom param
+                chargingStationOcppParameters.configuration.push(params);
+                // Save
+                await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
+              }
             } else {
+              // Refresh the whole OCPP Parameters
               await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
             }
             // Check update with Vendor
