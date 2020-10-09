@@ -7,7 +7,7 @@ export interface HttpNotificationRequest extends HttpDatabaseRequest {
 }
 
 export interface HttpEndUserReportErrorRequest {
-  errorTitle: string;
-  errorDescription: string;
-  phone: string;
+  subject: string;
+  description: string;
+  mobile: string;
 }
