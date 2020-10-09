@@ -462,6 +462,10 @@ export default class Utils {
     }
   }
 
+  public static clearTenants(): void {
+    Utils.tenants = [];
+  }
+
   public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
