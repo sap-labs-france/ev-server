@@ -95,20 +95,6 @@ export default class Logging {
     Logging.logError(log);
   }
 
-  public static logReceivedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, payload: any): void {
-    // Keep duration
-    Logging.traceOCPPCalls[`${chargeBoxID}~action`] = new Date().getTime();
-    // Log
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      module: module, method: action,
-      message: `>> OCPP Request '${action}' Received`,
-      action: action,
-      detailedMessages: { payload }
-    });
-  }
-
   public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const tenantID = await Logging.retrieveTenantFromHttpRequest(req);
@@ -237,44 +223,24 @@ export default class Logging {
     });
   }
 
-  public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, args: any): void {
-    // Log
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      module: module, method: action,
-      message: `<< OCPP Request '${action}' Sent`,
-      action: action,
-      detailedMessages: { args }
-    });
+  public static logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, args: any): void {
+    this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, args, '<<');
   }
 
-  public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any): void {
-    // Compute duration if provided
-    let executionDurationSecs: number;
-    if (Logging.traceOCPPCalls[`${chargeBoxID}~action`]) {
-      executionDurationSecs = (new Date().getTime() - Logging.traceOCPPCalls[`${chargeBoxID}~action`]) / 1000;
-      delete Logging.traceOCPPCalls[`${chargeBoxID}~action`];
-    }
-    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
-      Logging.logError({
-        tenantID: tenantID,
-        source: chargeBoxID,
-        module: module, method: action,
-        message: `<< OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
-        action: action,
-        detailedMessages
-      });
-    } else {
-      Logging.logDebug({
-        tenantID: tenantID,
-        source: chargeBoxID,
-        module: module, method: action,
-        message: `<< OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
-        action: action,
-        detailedMessages
-      });
-    }
+  public static logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, detailedMessages: any): void {
+    this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>');
+  }
+
+  public static logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, payload: any): void {
+    this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, payload, '>>');
+  }
+
+  public static logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, detailedMessages: any): void {
+    this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<');
   }
 
   // Used to log exception in catch(...) only
@@ -745,5 +711,57 @@ export default class Logging {
       }
     }
     return Constants.DEFAULT_TENANT;
+  }
+
+  private static traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, args: any, direction: '<<'|'>>'): void {
+    // Keep duration
+    Logging.traceOCPPCalls[`${chargeBoxID}~action`] = new Date().getTime();
+    // Log
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargeBoxID,
+      module: module, method: action,
+      message: `${direction} OCPP Request '${action}' Sent`,
+      action: action,
+      detailedMessages: { args }
+    });
+  }
+
+  private static traceChargingStationActionEnd(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): void {
+    // Compute duration if provided
+    let executionDurationSecs: number;
+    if (Logging.traceOCPPCalls[`${chargeBoxID}~action`]) {
+      executionDurationSecs = (new Date().getTime() - Logging.traceOCPPCalls[`${chargeBoxID}~action`]) / 1000;
+      delete Logging.traceOCPPCalls[`${chargeBoxID}~action`];
+    }
+    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargeBoxID,
+        module: module, method: action,
+        message: `${direction} OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
+        action: action,
+        detailedMessages
+      });
+    } else {
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: chargeBoxID,
+        module: module, method: action,
+        message: `${direction} OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
+        action: action,
+        detailedMessages
+      });
+    }
+    // TODO: To Remove: Temporary log to trace memory leaks
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargeBoxID,
+      module: module, method: action,
+      message: `OCPP trace buffer size: ${Object.keys(Logging.traceOCPPCalls).length} items`,
+      action: action,
+      detailedMessages
+    });
   }
 }
