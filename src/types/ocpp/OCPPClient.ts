@@ -61,9 +61,7 @@ export interface OCPPChangeConfigurationCommandResult {
   status: OCPPConfigurationStatus;
 }
 
-export interface OCPPCustomConfigurationParam extends OCPPCommandParam {
-  key: string;
-  value: string;
+export interface OCPPCustomConfigurationParam extends OCPPChangeConfigurationCommandParam {
   custom: boolean;
 }
 
