@@ -11,6 +11,7 @@ import BillingFactory from '../../../integration/billing/BillingFactory';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import { HTTPError } from '../../../types/HTTPError';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import { ServerAction } from '../../../types/Server';
@@ -246,13 +247,16 @@ export default class AuthService {
     }
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newUser.id, UserStatus.PENDING);
+    // Get the i18n translation class
+    const i18nManager = new I18nManager(newUser.locale);
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt().toString(),
       active: true,
       issuer: true,
       userID: newUser.id,
-      lastChangedOn: new Date(),
-      description: 'Virtual Tag',
+      createdBy: { id: newUser.id },
+      createdOn: new Date(),
+      description: i18nManager.translate('tags.virtualBadge'),
       default: true
     };
     await UserStorage.saveTag(req.user.tenantID, tag);

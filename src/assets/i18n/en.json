@@ -75,5 +75,8 @@
     "generatedUser": "Generated user for '{{email}}'",
     "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})",
     "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})"
+  },
+  "tags": {
+    "virtualBadge": "Virtual Badge"
   }
 }
