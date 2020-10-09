@@ -4,7 +4,6 @@ import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'AddDefaultPropertyToTagsTask';
@@ -18,29 +17,21 @@ export default class AddDefaultPropertyToTagsTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    // Add the active property to tags
-    let updated = 0;
-    // Get Tags with no Description
-    const tagsMDB = await global.database.getCollection<any>(tenant.id, 'tags')
-      .find({
+    // Add the default property to tags
+    const result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
+      {
         default: null,
         issuer: true,
-      }).toArray();
-    if (!Utils.isEmptyArray(tagsMDB)) {
-      for (const tagMDB of tagsMDB) {
-        await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
-          { _id: tagMDB._id },
-          { $set: { default: false } });
-        updated++;
-      }
-    }
+      },
+      { $set: { default: false } }
+    );
     // Log in the default tenant
-    if (updated > 0) {
+    if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updated} Tag's default properties have been updated in Tenant '${tenant.name}'`
+        message: `${result.modifiedCount} Tag's default properties have been updated in Tenant '${tenant.name}'`
       });
     }
   }
