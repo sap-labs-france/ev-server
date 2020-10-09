@@ -29,11 +29,6 @@ export enum OCPPResetType {
   SOFT = 'Soft'
 }
 
-export enum OCPPCustomStatus {
-  ACCEPTED = 'Accepted',
-  REJECTED = 'Rejected'
-}
-
 export interface OCPPClearCacheCommandResult {
   status: OCPPClearCacheStatus;
 }
@@ -63,10 +58,6 @@ export interface OCPPChangeConfigurationCommandResult {
 
 export interface OCPPCustomConfigurationParam extends OCPPChangeConfigurationCommandParam {
   custom: boolean;
-}
-
-export interface OCPPCustomConfigurationResult {
-  status: OCPPCustomStatus;
 }
 
 export enum OCPPConfigurationStatus {
