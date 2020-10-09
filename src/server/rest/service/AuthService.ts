@@ -246,17 +246,16 @@ export default class AuthService {
     }
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newUser.id, UserStatus.PENDING);
-
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt().toString(),
       active: true,
       issuer: true,
       userID: newUser.id,
       lastChangedOn: new Date(),
+      description: 'Virtual Tag',
       default: false
     };
     await UserStorage.saveTag(req.user.tenantID, tag);
-
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,
       {
@@ -294,7 +293,6 @@ export default class AuthService {
       message: `User with Email '${req.body.email}' has been created successfully`,
       detailedMessages: { params: req.body }
     });
-
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +

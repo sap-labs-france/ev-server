@@ -790,7 +790,7 @@ export default class UserStorage {
     }
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
-      if(params.defaultTag){
+      if (params.defaultTag) {
         filters.default = true;
       }
     }

@@ -1086,7 +1086,7 @@ export default class UserService {
         withUser: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'user.id', 'user.name', 'user.firstName', 'user.email',
+      ['id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email',
         'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'],
     );
     // Filter
@@ -1219,7 +1219,7 @@ export default class UserService {
       });
     }
     // Clear default tag
-    if(filteredRequest.default){
+    if (filteredRequest.default) {
       await UserStorage.clearTagUserDefault(req.user.tenantID,filteredRequest.userID);
     }
     // Create
@@ -1333,7 +1333,7 @@ export default class UserService {
       }
       formerTagOwnerID = tag.userID;
     }
-    if(filteredRequest.default && (tag.default !== filteredRequest.default)){
+    if (filteredRequest.default && (tag.default !== filteredRequest.default)) {
       await UserStorage.clearTagUserDefault(req.user.tenantID,filteredRequest.userID);
     }
     // Update
