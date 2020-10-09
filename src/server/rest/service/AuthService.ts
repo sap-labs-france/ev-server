@@ -253,7 +253,7 @@ export default class AuthService {
       userID: newUser.id,
       lastChangedOn: new Date(),
       description: 'Virtual Tag',
-      default: false
+      default: true
     };
     await UserStorage.saveTag(req.user.tenantID, tag);
     // Save User password
