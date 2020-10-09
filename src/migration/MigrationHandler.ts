@@ -1,6 +1,7 @@
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
 import AddCreatedPropertiesToTagTask from './tasks/AddCreatedPropertiesToTagTask';
+import AddDefaultPropertyToTagsTask from './tasks/AddDefaultPropertyToTagsTask';
 import AddDescriptionToTagsTask from './tasks/AddDescriptionToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
@@ -93,6 +94,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new LogicallyDeleteTagsOfDeletedUsersTask());
         currentMigrationTasks.push(new AddCreatedPropertiesToTagTask());
         currentMigrationTasks.push(new AddDescriptionToTagsTask());
+        currentMigrationTasks.push(new AddDefaultPropertyToTagsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
