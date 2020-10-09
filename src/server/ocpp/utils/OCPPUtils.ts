@@ -2,7 +2,7 @@ import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPCustomConfigurationParam, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
 import BackendError from '../../../exception/BackendError';
@@ -1475,8 +1475,8 @@ export default class OCPPUtils {
     return chargingStation;
   }
 
-  public static async requestAndSaveChargingStationOcppParameters(tenantID: string,
-    chargingStation: ChargingStation, forceUpdateOcppParametersWithTemplate = false): Promise<OCPPChangeConfigurationCommandResult> {
+  public static async requestAndSaveChargingStationOcppParameters(tenantID: string, chargingStation: ChargingStation,
+    forceUpdateOcppParametersWithTemplate = false): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Configuration
       const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(tenantID, chargingStation, {});
@@ -1489,23 +1489,28 @@ export default class OCPPUtils {
         message: 'Command sent with success',
         detailedMessages: { ocppConfiguration }
       });
-      // Create Conf
+      // Set Conf
       const chargingStationOcppParameters: ChargingStationOcppParameters = {
         id: chargingStation.id,
         configuration: ocppConfiguration.configurationKey,
         timestamp: new Date()
       };
-      // Set default?
+      // No: Get it from DB
+      const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenantID, chargingStation.id);
+      // Configuration found in Charging Station
       if (!chargingStationOcppParameters.configuration) {
-        // Check if there is an already existing config in DB
-        const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenantID, chargingStation.id);
         if (ocppParametersFromDB.count === 0) {
           // No config at all: Set default OCPP configuration
           chargingStationOcppParameters.configuration = Constants.DEFAULT_OCPP_16_CONFIGURATION;
         } else {
-          // Set DB
+          // Set from DB
           chargingStationOcppParameters.configuration = ocppParametersFromDB.result;
         }
+      }
+      // Add the existing custom params
+      const customParams = ocppParametersFromDB.result.filter((customParam) => customParam.custom);
+      if (!Utils.isEmptyArray(customParams)) {
+        chargingStationOcppParameters.configuration = chargingStationOcppParameters.configuration.concat(customParams);
       }
       // Save config
       await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
