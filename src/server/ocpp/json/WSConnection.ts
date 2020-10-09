@@ -79,7 +79,7 @@ export default abstract class WSConnection {
         message: `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`
       });
     }
-    let logMsg = '';
+    let logMsg = `Unknown type WS connection attempts with URL: '${req.url}'`;
     if (req.url.startsWith('/REST')) {
       logMsg = `REST service connection attempts to Charging Station with URL: '${req.url}'`;
     } else if (req.url.startsWith('/OCPP16')) {
