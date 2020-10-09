@@ -21,9 +21,9 @@ export default class NotificationSecurity {
 
   static filterEndUserReportErrorRequest(request: any): HttpEndUserReportErrorRequest {
     const filteredRequest: HttpEndUserReportErrorRequest = {
-      errorTitle:  sanitize(request.errorTitle),
-      errorDescription: sanitize(request.errorDescription),
-      phone: sanitize(request.phone),
+      subject:  sanitize(request.subject),
+      description: sanitize(request.description),
+      mobile: sanitize(request.mobile),
     };
     return filteredRequest;
   }

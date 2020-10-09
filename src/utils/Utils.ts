@@ -426,11 +426,11 @@ export default class Utils {
 
   public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
     // Normalize
-    Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
-    Utils._normalizeOneSOAPParam(headers, 'Action');
-    Utils._normalizeOneSOAPParam(headers, 'To');
-    Utils._normalizeOneSOAPParam(headers, 'From.Address');
-    Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
+    Utils.normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
+    Utils.normalizeOneSOAPParam(headers, 'Action');
+    Utils.normalizeOneSOAPParam(headers, 'To');
+    Utils.normalizeOneSOAPParam(headers, 'From.Address');
+    Utils.normalizeOneSOAPParam(headers, 'ReplyTo.Address');
     // Parse the request (lower case for fucking charging station DBT URL registration)
     const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
     const tenantID = urlParts.query.tenantid as string;
@@ -460,6 +460,10 @@ export default class Utils {
       case ConnectorCurrentLimitSource.STATIC_LIMITATION:
         return 'Static Limitation';
     }
+  }
+
+  public static clearTenants(): void {
+    Utils.tenants = [];
   }
 
   public static async checkTenant(tenantID: string): Promise<void> {
@@ -1765,7 +1769,7 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (req.method === 'POST' && !Utils._isUserEmailValid(filteredRequest.email)) {
+    if (req.method === 'POST' && !Utils.isUserEmailValid(filteredRequest.email)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1787,7 +1791,7 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.phone && !Utils._isPhoneValid(filteredRequest.phone)) {
+    if (filteredRequest.phone && !Utils.isPhoneValid(filteredRequest.phone)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1798,7 +1802,7 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.mobile && !Utils._isPhoneValid(filteredRequest.mobile)) {
+    if (filteredRequest.mobile && !Utils.isPhoneValid(filteredRequest.mobile)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1810,7 +1814,7 @@ export default class Utils {
       });
     }
     if (filteredRequest.tags) {
-      if (!Utils._areTagsValid(filteredRequest.tags)) {
+      if (!Utils.areTagsValid(filteredRequest.tags)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
@@ -1822,7 +1826,7 @@ export default class Utils {
         });
       }
     }
-    if (filteredRequest.plateID && !Utils._isPlateIDValid(filteredRequest.plateID)) {
+    if (filteredRequest.plateID && !Utils.isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -2006,7 +2010,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vin Car is mandatory',
+        message: 'Car Vin is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2020,7 +2024,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!Utils._isPlateIDValid(car.licensePlate)) {
+    if (!Utils.isPlateIDValid(car.licensePlate)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -2063,7 +2067,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter is mandatory',
+        message: 'Car Converter is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2072,7 +2076,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter amperage per phase is mandatory',
+        message: 'Car Converter amperage per phase is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2081,7 +2085,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter number of phases is mandatory',
+        message: 'Car Converter number of phases is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2090,7 +2094,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter power is mandatory',
+        message: 'Car Converter power is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2099,7 +2103,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter type is mandatory',
+        message: 'Car Converter type is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2107,16 +2111,25 @@ export default class Utils {
   }
 
   public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserReportErrorRequest, req: Request): void {
-    if (!endUserErrorNotificationValid.errorTitle || !endUserErrorNotificationValid.errorDescription) {
+    if (!endUserErrorNotificationValid.subject) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Error Title and Description are mandatory.',
+        message: 'Subject is mandatory.',
         module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
         user: req.user.id
       });
     }
-    if (!this._isPhoneValid(endUserErrorNotificationValid.phone)) {
+    if (!endUserErrorNotificationValid.description) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Description is mandatory.',
+        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
+        user: req.user.id
+      });
+    }
+    if (endUserErrorNotificationValid.mobile && !this.isPhoneValid(endUserErrorNotificationValid.mobile)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -2127,23 +2140,23 @@ export default class Utils {
     }
   }
 
-  private static _isUserEmailValid(email: string): boolean {
-    return validator.isEmail(email);
-  }
-
-  private static _areTagsValid(tags: Tag[]): boolean {
-    return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
-  }
-
-  private static _isPhoneValid(phone: string): boolean {
+  private static isPhoneValid(phone: string): boolean {
     return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
 
-  private static _isPlateIDValid(plateID): boolean {
+  private static isUserEmailValid(email: string): boolean {
+    return validator.isEmail(email);
+  }
+
+  private static areTagsValid(tags: Tag[]): boolean {
+    return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
+  }
+
+  private static isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
   }
 
-  private static _normalizeOneSOAPParam(headers: any, name: string) {
+  private static normalizeOneSOAPParam(headers: any, name: string) {
     const val = _.get(headers, name);
     if (val && val.$value) {
       _.set(headers, name, val.$value);

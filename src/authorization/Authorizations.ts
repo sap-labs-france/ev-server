@@ -730,7 +730,8 @@ export default class Authorizations {
         description: `Badged on '${chargingStation.id}'`,
         issuer: true,
         active: false,
-        createdOn: new Date()
+        createdOn: new Date(),
+        default: false
       } as Tag;
       // Save
       await UserStorage.saveTag(tenantID, tag);

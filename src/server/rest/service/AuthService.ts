@@ -11,6 +11,7 @@ import BillingFactory from '../../../integration/billing/BillingFactory';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import { HTTPError } from '../../../types/HTTPError';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import { ServerAction } from '../../../types/Server';
@@ -246,16 +247,19 @@ export default class AuthService {
     }
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newUser.id, UserStatus.PENDING);
-
+    // Get the i18n translation class
+    const i18nManager = new I18nManager(newUser.locale);
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt().toString(),
       active: true,
       issuer: true,
       userID: newUser.id,
-      lastChangedOn: new Date()
+      createdBy: { id: newUser.id },
+      createdOn: new Date(),
+      description: i18nManager.translate('tags.virtualBadge'),
+      default: true
     };
     await UserStorage.saveTag(req.user.tenantID, tag);
-
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,
       {
@@ -293,7 +297,6 @@ export default class AuthService {
       message: `User with Email '${req.body.email}' has been created successfully`,
       detailedMessages: { params: req.body }
     });
-
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +

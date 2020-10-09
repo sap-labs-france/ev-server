@@ -37,7 +37,7 @@ export default class CentralRestServerAuthentication {
               break;
 
             // Reset password
-            case ServerAction.RESET:
+            case ServerAction.PASSWORD_RESET:
               // Delegate
               await AuthService.handleUserPasswordReset(action, req, res, next);
               break;
