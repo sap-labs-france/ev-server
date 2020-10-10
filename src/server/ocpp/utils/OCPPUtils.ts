@@ -1777,7 +1777,7 @@ export default class OCPPUtils {
   }
 
   private static convertUnknownKey(unknownKey: string[]): OcppParameter[] {
-    let unknownKeyOcppParameters: OcppParameter[];
+    const unknownKeyOcppParameters: OcppParameter[] = [];
     for (const key of unknownKey) {
       unknownKeyOcppParameters.push({
         key: key,
