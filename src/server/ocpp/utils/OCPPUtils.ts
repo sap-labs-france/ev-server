@@ -1223,10 +1223,10 @@ export default class OCPPUtils {
                 const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connectorID);
                 switch (numberOfPhases) {
                   case 3:
-                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 } ;
+                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 };
                     break;
                   case 1:
-                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null } ;
+                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null };
                     break;
                 }
               }
@@ -1492,7 +1492,8 @@ export default class OCPPUtils {
       // Set Conf
       const chargingStationOcppParameters: ChargingStationOcppParameters = {
         id: chargingStation.id,
-        configuration: ocppConfiguration.configurationKey,
+        configuration: !Utils.isEmptyArray(ocppConfiguration.unknownKey) ? ocppConfiguration.configurationKey.concat(OCPPUtils.convertUnknownKey(ocppConfiguration.unknownKey))
+          : ocppConfiguration.configurationKey,
         timestamp: new Date()
       };
       // No: Get it from DB
@@ -1566,7 +1567,7 @@ export default class OCPPUtils {
     // Check Standard OCPP Params
     for (const ocppParameter of ocppParameters) {
       // Find OCPP Param
-      const currentOcppParam: KeyValue = currentOcppParameters.find(
+      const currentOcppParam: OcppParameter = currentOcppParameters.find(
         (ocppParam) => ocppParam.key === ocppParameter.key);
       try {
         if (!currentOcppParam) {
@@ -1773,5 +1774,16 @@ export default class OCPPUtils {
       }
     }
     return false;
+  }
+
+  private static convertUnknownKey(unknownKey: string[]): OcppParameter[] {
+    let unknownKeyOcppParameters: OcppParameter[];
+    for (const key of unknownKey) {
+      unknownKeyOcppParameters.push({
+        key: key,
+        readonly: false
+      });
+    }
+    return unknownKeyOcppParameters;
   }
 }
