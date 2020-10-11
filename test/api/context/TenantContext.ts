@@ -536,7 +536,7 @@ export default class TenantContext {
     expect(registrationTokenResponse.status).eq(200);
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;
-    if (registrationTokenResponse.data.result.lenght !== 0) {
+    if (registrationTokenResponse.data.result.length !== 0) {
       return registrationTokenResponse.data.result[0];
     }
     return null;

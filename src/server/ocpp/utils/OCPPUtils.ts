@@ -1643,7 +1643,7 @@ export default class OCPPUtils {
     }
     // Parameter(s) updated?
     if (updatedOcppParams.inSuccess) {
-      await this.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
+      await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
     }
     // Reboot required?
     if (rebootRequired) {
