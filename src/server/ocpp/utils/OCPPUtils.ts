@@ -1780,7 +1780,7 @@ export default class OCPPUtils {
     const unknownKeyOcppParameters: OcppParameter[] = [];
     for (const key of unknownKey) {
       unknownKeyOcppParameters.push({
-        key: key,
+        key: key + ' (unknown key)',
         readonly: false
       });
     }
