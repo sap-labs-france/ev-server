@@ -56,6 +56,10 @@ export interface OCPPChangeConfigurationCommandResult {
   status: OCPPConfigurationStatus;
 }
 
+export interface OCPPCustomConfigurationParam extends OCPPChangeConfigurationCommandParam {
+  custom: boolean;
+}
+
 export enum OCPPConfigurationStatus {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected',

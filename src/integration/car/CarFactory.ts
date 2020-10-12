@@ -1,10 +1,10 @@
 import CarIntegration from './CarIntegration';
-import EVDabaseCarIntegration from './ev-database/EVDabaseCarIntegration';
+import EVDatabaseCarIntegration from './ev-database/EVDatabaseCarIntegration';
 
 export default class CarFactory {
   static async getCarImpl(): Promise<CarIntegration> {
     // Always return the EVDatabase
-    return new EVDabaseCarIntegration();
+    return new EVDatabaseCarIntegration();
   }
 }
 

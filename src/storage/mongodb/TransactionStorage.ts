@@ -1,5 +1,6 @@
 import RefundReport, { RefundStatus } from '../../types/Refund';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
+import global, { FilterParams } from './../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import ConsumptionStorage from './ConsumptionStorage';
@@ -12,7 +13,6 @@ import { ServerAction } from '../../types/Server';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
-import global from './../../types/GlobalType';
 import moment from 'moment';
 
 const MODULE_NAME = 'TransactionStorage';
@@ -94,6 +94,13 @@ export default class TransactionStorage {
       currentInstantAmpsL3: Utils.convertToInt(transactionToSave.currentInstantAmpsL3),
       currentInstantAmpsDC: Utils.convertToInt(transactionToSave.currentInstantAmpsDC),
     };
+    if (transactionToSave.phasesUsed) {
+      transactionMDB.phasesUsed = {
+        csPhase1: Utils.convertToBoolean(transactionToSave.phasesUsed.csPhase1),
+        csPhase2: Utils.convertToBoolean(transactionToSave.phasesUsed.csPhase2),
+        csPhase3: Utils.convertToBoolean(transactionToSave.phasesUsed.csPhase3),
+      };
+    }
     if (transactionToSave.stop) {
       // Add stop
       transactionMDB.stop = {
@@ -189,7 +196,7 @@ export default class TransactionStorage {
     return transactionToSave.id;
   }
 
-  public static async assignTransactionsToUser(tenantID: string, user: User) {
+  public static async assignTransactionsToUser(tenantID: string, user: User): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'assignTransactionsToUser');
     // Assign transactions
@@ -202,8 +209,6 @@ export default class TransactionStorage {
       $set: {
         userID: Utils.convertToObjectID(user.id)
       }
-    }, {
-      upsert: false
     });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'assignTransactionsToUser', uniqueTimerID);
@@ -252,8 +257,8 @@ export default class TransactionStorage {
     params: {
       transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorId?: number; startDateTime?: Date;
-      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: string[];
-      ocpiSessionId?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
+      ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
       ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean;
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
@@ -269,13 +274,15 @@ export default class TransactionStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactions');
     // Check
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Build filter
     const ownerMatch = { $or: [] };
-    const filters: any = {};
+    const filters: FilterParams = {};
     // User / Site Admin
     if (params.ownerID) {
       ownerMatch.$or.push({
@@ -290,15 +297,18 @@ export default class TransactionStorage {
       });
     }
     // Filter?
-    if (params.ocpiSessionId) {
-      filters['ocpiData.session.id'] = params.ocpiSessionId;
-    } else if (params.search) {
+    if (params.search) {
       // Build filter
       filters.$or = [
         { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
-        { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
+        { 'chargeBoxID': { $regex: params.search, $options: 'i' } },
+        { 'ocpiData.session.id': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    // OCPI ID
+    if (params.ocpiSessionID) {
+      filters['ocpiData.session.id'] = params.ocpiSessionID;
     }
     // Transaction
     if (!Utils.isEmptyArray(params.transactionIDs)) {
@@ -307,7 +317,7 @@ export default class TransactionStorage {
       };
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Charge Box
@@ -317,6 +327,10 @@ export default class TransactionStorage {
     // Charge Box
     if (params.chargeBoxIDs) {
       filters.chargeBoxID = { $in: params.chargeBoxIDs };
+    }
+    // Tag
+    if (params.tagIDs) {
+      filters.tagID = { $in: params.tagIDs };
     }
     // Connector
     if (params.connectorId) {
@@ -587,6 +601,8 @@ export default class TransactionStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactions');
     // Check
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -714,17 +730,19 @@ export default class TransactionStorage {
     };
   }
 
-  static async getTransactionsInError(tenantID,
+  static async getTransactionsInError(tenantID: string,
     params: {
       search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
-      siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-      errorType?: (TransactionInErrorType.LONG_INACTIVITY | TransactionInErrorType.NEGATIVE_ACTIVITY | TransactionInErrorType.NEGATIVE_DURATION | TransactionInErrorType.OVER_CONSUMPTION | TransactionInErrorType.INVALID_START_DATE | TransactionInErrorType.NO_CONSUMPTION | TransactionInErrorType.MISSING_USER | TransactionInErrorType.MISSING_PRICE | TransactionInErrorType.NO_BILLING_DATA)[];
+      siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
+      withChargeBoxes?: boolean; errorType?: TransactionInErrorType[];
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactionsInError');
     // Check
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -740,7 +758,7 @@ export default class TransactionStorage {
       ];
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       match.issuer = params.issuer;
     }
     // User / Site Admin
@@ -885,15 +903,15 @@ export default class TransactionStorage {
     return null;
   }
 
-  public static async getOCPITransaction(tenantID: string, sessionId: string): Promise<Transaction> {
+  public static async getOCPITransaction(tenantID: string, sessionID: string): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOCPITransaction');
     // Check
     await Utils.checkTenant(tenantID);
     // Delegate work
-    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionId: sessionId }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getOCPITransaction', uniqueTimerID, { sessionId });
+    Logging.traceEnd(MODULE_NAME, 'getOCPITransaction', uniqueTimerID, { sessionID });
     // Found?
     if (transactionsMDB && transactionsMDB.count > 0) {
       return transactionsMDB.result[0];

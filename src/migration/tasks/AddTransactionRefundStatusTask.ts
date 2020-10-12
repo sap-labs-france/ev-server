@@ -24,8 +24,7 @@ export default class AddTransactionRefundStatusTask extends MigrationTask {
         'refundData': { $exists: true },
         'refundData.status': { $exists: false }
       },
-      { $set: { 'refundData.status': RefundStatus.SUBMITTED } },
-      { upsert: false }
+      { $set: { 'refundData.status': RefundStatus.SUBMITTED } }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {

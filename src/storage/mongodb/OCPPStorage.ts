@@ -1,4 +1,5 @@
 import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
+import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -8,12 +9,11 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'OCPPStorage';
 
 export default class OCPPStorage {
-  static async saveAuthorize(tenantID: string, authorize: OCPPAuthorizeRequestExtended) {
+  static async saveAuthorize(tenantID: string, authorize: OCPPAuthorizeRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveAuthorize');
     // Check Tenant
@@ -40,12 +40,14 @@ export default class OCPPStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAuthorizes');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Date from provided?
     if (params.dateFrom) {
       filters.timestamp = {};
@@ -100,7 +102,7 @@ export default class OCPPStorage {
     };
   }
 
-  static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended) {
+  static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveHeartbeat');
     // Check Tenant
@@ -125,12 +127,14 @@ export default class OCPPStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getStatusNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Date from provided?
     if (params.dateFrom) {
       filters.timestamp = {};
@@ -196,7 +200,7 @@ export default class OCPPStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Date before provided?
     if (params.dateBefore) {
       filters.timestamp = {};
@@ -238,7 +242,7 @@ export default class OCPPStorage {
     return statusNotificationsMDB;
   }
 
-  static async saveStatusNotification(tenantID: string, statusNotificationToSave: OCPPStatusNotificationRequestExtended) {
+  static async saveStatusNotification(tenantID: string, statusNotificationToSave: OCPPStatusNotificationRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveStatusNotification');
     // Set
@@ -264,7 +268,7 @@ export default class OCPPStorage {
     Logging.traceEnd(MODULE_NAME, 'saveStatusNotification', uniqueTimerID);
   }
 
-  static async saveDataTransfer(tenantID: string, dataTransfer: OCPPDataTransferRequestExtended) {
+  static async saveDataTransfer(tenantID: string, dataTransfer: OCPPDataTransferRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveDataTransfer');
     // Check Tenant
@@ -286,7 +290,7 @@ export default class OCPPStorage {
     Logging.traceEnd(MODULE_NAME, 'saveDataTransfer', uniqueTimerID);
   }
 
-  static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotificationRequestExtended) {
+  static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotificationRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveBootNotification');
     // Check Tenant
@@ -312,19 +316,21 @@ export default class OCPPStorage {
   }
 
   public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string},
-    { limit, skip, sort }: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
+    dbParams: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getBootNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     // Set the filters
-    const filters: any = {
+    const filters: FilterParams = {
       '$or': DatabaseUtils.getNotDeletedFilter()
     };
     // Charging Station ID
@@ -342,24 +348,19 @@ export default class OCPPStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (sort) {
-      // Sort
-      aggregation.push({
-        $sort: sort
-      });
-    } else {
-      // Default
-      aggregation.push({
-        $sort: { _id: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Read DB
     const bootNotificationsMDB = await global.database.getCollection<any>(tenantID, 'bootnotifications')
@@ -374,7 +375,7 @@ export default class OCPPStorage {
     };
   }
 
-  static async saveDiagnosticsStatusNotification(tenantID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended) {
+  static async saveDiagnosticsStatusNotification(tenantID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveDiagnosticsStatusNotification');
     // Check Tenant
@@ -393,7 +394,7 @@ export default class OCPPStorage {
     Logging.traceEnd(MODULE_NAME, 'saveDiagnosticsStatusNotification', uniqueTimerID);
   }
 
-  static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended) {
+  static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveFirmwareStatusNotification');
     // Check Tenant
@@ -450,18 +451,20 @@ export default class OCPPStorage {
   }
 
   public static async getMeterValues(tenantID: string, params: { transactionId: number },
-    { limit, skip, sort }: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
+    dbParams: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getMeterValues');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Charging Station ID
     if (params.transactionId) {
       filters.transactionId = params.transactionId;
@@ -474,25 +477,20 @@ export default class OCPPStorage {
     const meterValuesCountMDB = await global.database.getCollection<any>(tenantID, 'metervalues')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (sort) {
-      aggregation.push({
-        $sort: sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { timestamp: 1 }
-      });
+    if (!dbParams.sort) {
+      dbParams.sort = { timestamp: 1 };
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Read DB
     const meterValuesMDB = await global.database.getCollection<any>(tenantID, 'metervalues')

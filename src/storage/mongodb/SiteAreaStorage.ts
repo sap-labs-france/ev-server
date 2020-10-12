@@ -1,4 +1,4 @@
-import global, { Image } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -26,8 +26,6 @@ export default class SiteAreaStorage {
           { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } },
           {
             $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
-          }, {
-            upsert: false
           });
       }
     }
@@ -52,8 +50,6 @@ export default class SiteAreaStorage {
           { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } },
           {
             $set: { siteAreaID: null }
-          }, {
-            upsert: false
           });
       }
     }
@@ -162,10 +158,12 @@ export default class SiteAreaStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreas');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
@@ -183,7 +181,7 @@ export default class SiteAreaStorage {
       });
     }
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Otherwise check if search is present
     if (params.search) {
       filters.$or = [
@@ -202,7 +200,7 @@ export default class SiteAreaStorage {
         $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     if (params.smartCharging === true || params.smartCharging === false) {
@@ -246,11 +244,11 @@ export default class SiteAreaStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Sites
     if (params.withSite) {
@@ -332,8 +330,6 @@ export default class SiteAreaStorage {
           { '_id': { $in: chargingStationIDs } },
           {
             $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
-          }, {
-            upsert: false
           });
       }
     }
@@ -358,8 +354,6 @@ export default class SiteAreaStorage {
           { '_id': { $in: chargingStationIDs } },
           {
             $set: { siteAreaID: null }
-          }, {
-            upsert: false
           });
       }
     }
@@ -387,14 +381,12 @@ export default class SiteAreaStorage {
     // Remove Charging Station's Site Area
     await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
       { siteAreaID: { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } },
-      { $set: { siteAreaID: null } },
-      { upsert: false }
+      { $set: { siteAreaID: null } }
     );
     // Remove Asset's Site Area
     await global.database.getCollection<any>(tenantID, 'assets').updateMany(
       { siteAreaID: { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } },
-      { $set: { siteAreaID: null } },
-      { upsert: false }
+      { $set: { siteAreaID: null } }
     );
     // Delete SiteArea
     await global.database.getCollection<any>(tenantID, 'siteareas').deleteMany(

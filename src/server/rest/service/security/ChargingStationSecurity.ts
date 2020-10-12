@@ -54,7 +54,6 @@ export default class ChargingStationSecurity {
         filteredChargingStation.ocppVersion = chargingStation.ocppVersion;
         filteredChargingStation.chargingStationURL = chargingStation.chargingStationURL;
         filteredChargingStation.currentIPAddress = chargingStation.currentIPAddress;
-        filteredChargingStation.currentServerLocalIPAddressPort = chargingStation.currentServerLocalIPAddressPort;
         filteredChargingStation.endpoint = chargingStation.endpoint;
         filteredChargingStation.ocppStandardParameters = chargingStation.ocppStandardParameters;
         filteredChargingStation.ocppVendorParameters = chargingStation.ocppVendorParameters;
@@ -72,6 +71,7 @@ export default class ChargingStationSecurity {
       filteredChargingStation.chargePointModel = chargingStation.chargePointModel;
       filteredChargingStation.public = chargingStation.public;
       filteredChargingStation.excludeFromSmartCharging = chargingStation.excludeFromSmartCharging;
+      filteredChargingStation.forceInactive = chargingStation.forceInactive;
       filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
       filteredChargingStation.coordinates = chargingStation.coordinates;
       if (chargingStation.ocpiData) {
@@ -104,7 +104,8 @@ export default class ChargingStationSecurity {
           currentType: connector.currentType,
           voltage: connector.voltage,
           amperage: connector.amperage,
-          user: UserSecurity.filterMinimalUserResponse(connector.user, loggedUser)
+          user: UserSecurity.filterMinimalUserResponse(connector.user, loggedUser),
+          phaseAssignmentToGrid: connector.phaseAssignmentToGrid
         };
       });
       if (chargingStation.chargePoints) {
@@ -361,6 +362,9 @@ export default class ChargingStationSecurity {
     if (Utils.objectHasProperty(request, 'excludeFromSmartCharging')) {
       filteredRequest.excludeFromSmartCharging = UtilsSecurity.filterBoolean(request.excludeFromSmartCharging);
     }
+    if (Utils.objectHasProperty(request, 'forceInactive')) {
+      filteredRequest.forceInactive = UtilsSecurity.filterBoolean(request.forceInactive);
+    }
     if (Utils.objectHasProperty(request, 'public')) {
       filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
     }
@@ -384,7 +388,8 @@ export default class ChargingStationSecurity {
             voltage: sanitize(connector.voltage),
             amperage: sanitize(connector.amperage),
             currentType: sanitize(connector.currentType),
-            numberOfConnectedPhase: sanitize(connector.numberOfConnectedPhase)
+            numberOfConnectedPhase: sanitize(connector.numberOfConnectedPhase),
+            phaseAssignmentToGrid: sanitize(connector.phaseAssignmentToGrid)
           };
         }
         return null;
@@ -430,6 +435,9 @@ export default class ChargingStationSecurity {
       }
       if (Utils.objectHasProperty(request.args, 'value')) {
         filteredRequest.args.value = sanitize(request.args.value);
+      }
+      if (Utils.objectHasProperty(request.args, 'custom')) {
+        filteredRequest.args.custom = UtilsSecurity.filterBoolean(request.args.custom);
       }
       if (Utils.objectHasProperty(request.args, 'connectorId')) {
         filteredRequest.args.connectorId = sanitize(request.args.connectorId);

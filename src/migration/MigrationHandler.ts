@@ -1,5 +1,8 @@
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
+import AddCreatedPropertiesToTagTask from './tasks/AddCreatedPropertiesToTagTask';
+import AddDefaultPropertyToTagsTask from './tasks/AddDefaultPropertyToTagsTask';
+import AddDescriptionToTagsTask from './tasks/AddDescriptionToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
@@ -8,6 +11,8 @@ import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTa
 import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsumptionsTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
+import AddUserInTransactionsTask from './tasks/AddUserInTransactionsTask';
+import AlignTagsWithUsersIssuerTask from './tasks/AlignTagsWithUsersIssuerTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import CleanupSiteAreasTask from './tasks/CleanupSiteAreasTask';
@@ -16,6 +21,7 @@ import InitialCarImportTask from './tasks/InitialCarImportTask';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
+import LogicallyDeleteTagsOfDeletedUsersTask from './tasks/LogicallyDeleteTagsOfDeletedUsersTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
@@ -27,8 +33,8 @@ import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
 import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
+import UnmarkTransactionExtraInactivitiesTask from './tasks/UnmarkTransactionExtraInactivitiesTask';
 import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
-import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjectIDsTask';
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
 import cluster from 'cluster';
@@ -37,7 +43,7 @@ import moment from 'moment';
 const MODULE_NAME = 'MigrationHandler';
 
 export default class MigrationHandler {
-  public static async migrate(processAsyncTasksOnly = false) {
+  public static async migrate(processAsyncTasksOnly = false): Promise<void> {
     // Check we're on the master nodejs process
     if (!cluster.isMaster) {
       return;
@@ -68,21 +74,27 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddInactivityStatusInTransactionsTask());
         currentMigrationTasks.push(new AddIssuerFieldTask());
         currentMigrationTasks.push(new CleanupOrphanBadgeTask());
-        currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
         currentMigrationTasks.push(new AddActivePropertyToTagsTask());
         currentMigrationTasks.push(new InitialCarImportTask());
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDsTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
-        currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
         currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
         currentMigrationTasks.push(new RenameTransactionsAndConsumptionsTask());
         currentMigrationTasks.push(new AddConsumptionAmpsToConsumptionsTask());
-        currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
         currentMigrationTasks.push(new RenameChargingStationPropertiesTask());
         currentMigrationTasks.push(new CleanupSiteAreasTask());
+        currentMigrationTasks.push(new UnmarkTransactionExtraInactivitiesTask());
+        currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
+        currentMigrationTasks.push(new AddUserInTransactionsTask());
+        currentMigrationTasks.push(new AlignTagsWithUsersIssuerTask());
+        currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
+        currentMigrationTasks.push(new LogicallyDeleteTagsOfDeletedUsersTask());
+        currentMigrationTasks.push(new AddCreatedPropertiesToTagTask());
+        currentMigrationTasks.push(new AddDescriptionToTagsTask());
+        currentMigrationTasks.push(new AddDefaultPropertyToTagsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

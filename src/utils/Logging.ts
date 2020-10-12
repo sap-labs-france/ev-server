@@ -1,109 +1,52 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import CFLog from 'cf-nodejs-logging-support';
-import cfenv from 'cfenv';
-import cluster from 'cluster';
+import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
-import jwtDecode from 'jwt-decode';
-import os from 'os';
-import { PerformanceObserver, performance } from 'perf_hooks';
-import { v4 as uuid } from 'uuid';
+
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
-import LoggingStorage from '../storage/mongodb/LoggingStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import { HTTPError } from '../types/HTTPError';
-import { Log, LogLevel, LogType } from '../types/Log';
-import { ServerAction } from '../types/Server';
-import User from '../types/User';
-import UserToken from '../types/UserToken';
+import CFLog from 'cf-nodejs-logging-support';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
+import { HTTPError } from '../types/HTTPError';
+import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
+import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import { ServerAction } from '../types/Server';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import User from '../types/User';
+import UserToken from '../types/UserToken';
 import Utils from './Utils';
-
-
-const _loggingConfig = Configuration.getLoggingConfig();
-let _traceStatistics = null;
+import cfenv from 'cfenv';
+import cluster from 'cluster';
+import jwtDecode from 'jwt-decode';
+import os from 'os';
 
 const MODULE_NAME = 'Logging';
 
-const obs = new PerformanceObserver((items): void => {
-  if (!_loggingConfig.traceLogOnlyStatistics) {
-    // eslint-disable-next-line no-console
-    console.log(`Performance ${items.getEntries()[0].name}) ${items.getEntries()[0].duration} ms`);
-  }
-
-  // Add statistics
-  if (!_traceStatistics) {
-    _traceStatistics = {};
-    // Start interval to display statistics
-    if (_loggingConfig.traceStatisticInterval) {
-      setInterval((): void => {
-        const date = new Date();
-        // eslint-disable-next-line no-console
-        console.log(date.toISOString().substr(0, 19) + ' STATISTICS START');
-        // eslint-disable-next-line no-console
-        console.log(JSON.stringify(_traceStatistics, null, ' '));
-        // eslint-disable-next-line no-console
-        console.log(date.toISOString().substr(0, 19) + ' STATISTICS END');
-      }, _loggingConfig.traceStatisticInterval * 1000);
-    }
-  }
-  Logging.addStatistic(items.getEntries()[0].name, items.getEntries()[0].duration);
-  if (performance.clearMeasures) {
-    performance.clearMeasures(); // Does not seem to exist in node 10. It's strange because then we have no way to remove measures and we will reach the maximum quickly
-  }
-  performance.clearMarks();
-});
-obs.observe({ entryTypes: ['measure'] });
-
 export default class Logging {
   private static traceOCPPCalls: { [key: string]: number } = {};
+  private static loggingConfig: LoggingConfiguration;
+
+  public static getConfiguration(): LoggingConfiguration {
+    if (!this.loggingConfig) {
+      this.loggingConfig = Configuration.getLoggingConfig();
+    }
+    return this.loggingConfig;
+  }
 
   // Debug DB
   public static traceStart(module: string, method: string): string {
-    let uniqueID = '0';
-    // Check
-    if (_loggingConfig.trace) {
-      uniqueID = uuid();
-      // Log
-      // eslint-disable-next-line no-console
-      console.time(`${module}.${method}(${uniqueID})`);
-      performance.mark(`Start ${module}.${method}(${uniqueID})`);
-    }
-    return uniqueID;
-  }
-
-  public static addStatistic(name: string, duration: number): void {
-    let currentStatistics;
-    if (_traceStatistics[name]) {
-      currentStatistics = _traceStatistics[name];
-    } else {
-      _traceStatistics[name] = {};
-      currentStatistics = _traceStatistics[name];
-    }
-
-    // Update current statistics timers
-    if (currentStatistics) {
-      currentStatistics.countTime = (currentStatistics.countTime ? currentStatistics.countTime + 1 : 1);
-      currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) : duration);
-      currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) : duration);
-      currentStatistics.totalTime = (currentStatistics.totalTime ? currentStatistics.totalTime + duration : duration);
-      currentStatistics.avgTime = currentStatistics.totalTime / currentStatistics.countTime;
-    }
+    return '';
   }
 
   // Debug DB
   public static traceEnd(module: string, method: string, uniqueID: string, params = {}): void {
-    if (_loggingConfig.trace) {
-      performance.mark(`End ${module}.${method}(${uniqueID})`);
-      performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`);
-    }
   }
 
   // Log Debug
   public static logDebug(log: Log): void {
     log.level = LogLevel.DEBUG;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logging._log(log);
   }
 
@@ -116,6 +59,7 @@ export default class Logging {
   // Log Info
   public static logInfo(log: Log): void {
     log.level = LogLevel.INFO;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logging._log(log);
   }
 
@@ -128,6 +72,7 @@ export default class Logging {
   // Log Warning
   public static logWarning(log: Log): void {
     log.level = LogLevel.WARNING;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logging._log(log);
   }
 
@@ -140,6 +85,7 @@ export default class Logging {
   // Log Error
   public static logError(log: Log): void {
     log.level = LogLevel.ERROR;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logging._log(log);
   }
 
@@ -147,20 +93,6 @@ export default class Logging {
   public static logSecurityError(log: Log): void {
     log.type = LogType.SECURITY;
     Logging.logError(log);
-  }
-
-  public static logReceivedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, payload: any): void {
-    // Keep duration
-    Logging.traceOCPPCalls[`${chargeBoxID}~action`] = new Date().getTime();
-    // Log
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      module: module, method: action,
-      message: `>> OCPP Request '${action}' Received`,
-      action: action,
-      detailedMessages: { payload }
-    });
   }
 
   public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -257,7 +189,7 @@ export default class Logging {
     // Compute Length
     let contentLengthKB = 0;
     if (response.config.headers['Content-Length']) {
-      contentLengthKB = response.config.headers['Content-Length'] / 1000;
+      contentLengthKB = Utils.roundTo(response.config.headers['Content-Length'] / 1024, 2);
     }
     Logging.logSecurityDebug({
       tenantID: tenantID,
@@ -282,53 +214,33 @@ export default class Logging {
       module: MODULE_NAME, method: 'interceptor',
       detailedMessages: {
         url: error.config.url,
-        status: error.response.status,
-        statusText: error.response.statusText,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
         message: error.message,
-        response: error.response.data,
+        response: error.response?.data,
         axiosError: error.toJSON(),
       }
     });
   }
 
-  public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, args: any): void {
-    // Log
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      module: module, method: action,
-      message: `<< OCPP Request '${action}' Sent`,
-      action: action,
-      detailedMessages: { args }
-    });
+  public static logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, args: any): void {
+    this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, args, '<<');
   }
 
-  public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any): void {
-    // Compute duration if provided
-    let executionDurationSecs: number;
-    if (Logging.traceOCPPCalls[`${chargeBoxID}~action`]) {
-      executionDurationSecs = (new Date().getTime() - Logging.traceOCPPCalls[`${chargeBoxID}~action`]) / 1000;
-      delete Logging.traceOCPPCalls[`${chargeBoxID}~action`];
-    }
-    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
-      Logging.logError({
-        tenantID: tenantID,
-        source: chargeBoxID,
-        module: module, method: action,
-        message: `<< OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
-        action: action,
-        detailedMessages
-      });
-    } else {
-      Logging.logDebug({
-        tenantID: tenantID,
-        source: chargeBoxID,
-        module: module, method: action,
-        message: `<< OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
-        action: action,
-        detailedMessages
-      });
-    }
+  public static logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, detailedMessages: any): void {
+    this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>');
+  }
+
+  public static logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, payload: any): void {
+    this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, payload, '>>');
+  }
+
+  public static logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, detailedMessages: any): void {
+    this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<');
   }
 
   // Used to log exception in catch(...) only
@@ -531,16 +443,17 @@ export default class Logging {
   // Log
   private static async _log(log: Log): Promise<void> {
     let moduleConfig = null;
+    const loggingConfig = Logging.getConfiguration();
     // Default Log Level
-    let logLevel = _loggingConfig.logLevel ? _loggingConfig.logLevel : LogLevel.DEBUG;
+    let logLevel = loggingConfig.logLevel ? loggingConfig.logLevel : LogLevel.DEBUG;
     // Default Console Level
-    let consoleLogLevel = _loggingConfig.consoleLogLevel ? _loggingConfig.consoleLogLevel : LogLevel.NONE;
+    let consoleLogLevel = loggingConfig.consoleLogLevel ? loggingConfig.consoleLogLevel : LogLevel.NONE;
     // Module Provided?
-    if (log.module && _loggingConfig.moduleDetails) {
+    if (log.module && loggingConfig.moduleDetails) {
       // Yes: Check the Module
-      if (_loggingConfig.moduleDetails[log.module]) {
+      if (loggingConfig.moduleDetails[log.module]) {
         // Get Modules Config
-        moduleConfig = _loggingConfig.moduleDetails[log.module];
+        moduleConfig = loggingConfig.moduleDetails[log.module];
         // Check Module Log Level
         if (moduleConfig.logLevel) {
           if (moduleConfig.logLevel !== LogLevel.DEFAULT) {
@@ -657,48 +570,56 @@ export default class Logging {
 
   private static anonymizeSensitiveData(message: any) {
     if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
+      // eslint-disable-next-line no-useless-return
       return;
-    }
-    if (typeof message === 'object') {
-      for (const key in message) {
-        if (message[key]) {
-          // Another JSon?
-          if (typeof message[key] === 'object') {
-            Logging.anonymizeSensitiveData(message[key]);
-          }
-          // Array?
-          if (Array.isArray(message[key])) {
-            Logging.anonymizeSensitiveData(message[key]);
-          }
-          // String?
-          if (typeof message[key] === 'string') {
-            for (const sensitiveData of Constants.SENSITIVE_DATA) {
-              if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
-                // Anonymize
-                message[key] = Constants.ANONYMIZED_VALUE;
-              }
-            }
-            // Check query string
-            const dataParts: string[] = message[key].split('&');
-            if (dataParts.length > 1) {
-              for (let i = 0; i < dataParts.length; i++) {
-                const dataPart = dataParts[i];
-                for (const sensitiveData of Constants.SENSITIVE_DATA) {
-                  if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
-                    // Anonymize
-                    dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
-                  }
-                }
-              }
-              message[key] = dataParts.join('&');
-            }
-          }
-        }
+    } else if (typeof message === 'string') {
+      for (const sensitiveData of Constants.SENSITIVE_DATA) {
+        // Anonymize
+        message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
       }
     } else if (Array.isArray(message)) {
       for (const item of message) {
         Logging.anonymizeSensitiveData(item);
       }
+    } else if (typeof message === 'object') {
+      for (const key of Object.keys(message)) {
+        // String?
+        if (typeof message[key] === 'string') {
+          for (const sensitiveData of Constants.SENSITIVE_DATA) {
+            if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
+              // Anonymize
+              message[key] = Constants.ANONYMIZED_VALUE;
+            }
+          }
+          // Check query string
+          const dataParts: string[] = message[key].split('&');
+          if (dataParts.length > 1) {
+            for (let i = 0; i < dataParts.length; i++) {
+              const dataPart = dataParts[i];
+              for (const sensitiveData of Constants.SENSITIVE_DATA) {
+                if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+                  // Anonymize
+                  dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+                }
+              }
+            }
+            message[key] = dataParts.join('&');
+          }
+        } else {
+          Logging.anonymizeSensitiveData(message[key]);
+        }
+      }
+    } else {
+      // Log
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        type: LogType.SECURITY,
+        module: MODULE_NAME,
+        method: 'anonymizeSensitiveData',
+        action: ServerAction.LOGGING,
+        message: 'No matching object type for log message anonymisation',
+        detailedMessages: { message: message }
+      });
     }
   }
 
@@ -790,5 +711,57 @@ export default class Logging {
       }
     }
     return Constants.DEFAULT_TENANT;
+  }
+
+  private static traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, args: any, direction: '<<'|'>>'): void {
+    // Keep duration
+    Logging.traceOCPPCalls[`${chargeBoxID}~action`] = new Date().getTime();
+    // Log
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargeBoxID,
+      module: module, method: action,
+      message: `${direction} OCPP Request '${action}' Sent`,
+      action: action,
+      detailedMessages: { args }
+    });
+  }
+
+  private static traceChargingStationActionEnd(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): void {
+    // Compute duration if provided
+    let executionDurationSecs: number;
+    if (Logging.traceOCPPCalls[`${chargeBoxID}~action`]) {
+      executionDurationSecs = (new Date().getTime() - Logging.traceOCPPCalls[`${chargeBoxID}~action`]) / 1000;
+      delete Logging.traceOCPPCalls[`${chargeBoxID}~action`];
+    }
+    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargeBoxID,
+        module: module, method: action,
+        message: `${direction} OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
+        action: action,
+        detailedMessages
+      });
+    } else {
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: chargeBoxID,
+        module: module, method: action,
+        message: `${direction} OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
+        action: action,
+        detailedMessages
+      });
+    }
+    // TODO: To Remove: Temporary log to trace memory leaks
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargeBoxID,
+      module: module, method: action,
+      message: `OCPP trace buffer size: ${Object.keys(Logging.traceOCPPCalls).length} items`,
+      action: action,
+      detailedMessages
+    });
   }
 }

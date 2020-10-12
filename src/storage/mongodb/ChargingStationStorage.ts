@@ -2,6 +2,7 @@ import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } fro
 import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorMDB, ConnectorType, OcppParameter } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream } from 'mongodb';
+import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -17,7 +18,6 @@ import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
 import fs from 'fs';
-import global from '../../types/GlobalType';
 import moment from 'moment';
 
 const MODULE_NAME = 'ChargingStationStorage';
@@ -36,6 +36,8 @@ export default class ChargingStationStorage {
         throw error;
       }
     }
+    // Delete all previous templates
+    await ChargingStationStorage.deleteChargingStationTemplates();
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
@@ -84,11 +86,20 @@ export default class ChargingStationStorage {
     return chargingStationTemplates;
   }
 
+  public static async deleteChargingStationTemplates(): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteChargingStationTemplates');
+    // Delete all records
+    await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').deleteMany({});
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'deleteChargingStationTemplates', uniqueTimerID);
+  }
+
   public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationTemplate');
     // Modify and return the modified document
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
+    await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },
       chargingStationTemplate,
       { upsert: true });
@@ -120,6 +131,8 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -141,7 +154,7 @@ export default class ChargingStationStorage {
       });
     }
     // Set the filters
-    const filters: any = {
+    const filters: FilterParams = {
       $or: DatabaseUtils.getNotDeletedFilter()
     };
     // Filter
@@ -163,7 +176,7 @@ export default class ChargingStationStorage {
       filters.lastHeartBeat = { $lte: params.offlineSince };
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Add Charging Station inactive flag
@@ -327,6 +340,8 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -336,7 +351,7 @@ export default class ChargingStationStorage {
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
     // Set the filters
-    const filters: any = { '$or': DatabaseUtils.getNotDeletedFilter() };
+    const filters: FilterParams = { '$or': DatabaseUtils.getNotDeletedFilter() };
     filters.issuer = true;
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
@@ -469,6 +484,7 @@ export default class ChargingStationStorage {
       chargingStationURL: chargingStationToSave.chargingStationURL,
       maximumPower: Utils.convertToInt(chargingStationToSave.maximumPower),
       excludeFromSmartCharging: Utils.convertToBoolean(chargingStationToSave.excludeFromSmartCharging),
+      forceInactive: Utils.convertToBoolean(chargingStationToSave.forceInactive),
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       voltage: Utils.convertToInt(chargingStationToSave.voltage),
       connectors: chargingStationToSave.connectors ? chargingStationToSave.connectors.map(
@@ -652,7 +668,7 @@ export default class ChargingStationStorage {
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getChargingProfile', uniqueTimerID, { id });
-    return chargingProfilesMDB.count > 0 ? chargingProfilesMDB.result[0] : null;
+    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
   }
 
   public static async getChargingProfiles(tenantID: string,
@@ -665,12 +681,14 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingProfiles');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Query by chargingStationID
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Build filter
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
@@ -923,6 +941,12 @@ export default class ChargingStationStorage {
       numberOfConnectedPhase: connector.numberOfConnectedPhase,
       currentType: connector.currentType,
       chargePointID: connector.chargePointID,
+      phaseAssignmentToGrid: connector.phaseAssignmentToGrid ?
+        {
+          csPhaseL1: connector.phaseAssignmentToGrid.csPhaseL1,
+          csPhaseL2: connector.phaseAssignmentToGrid.csPhaseL2,
+          csPhaseL3: connector.phaseAssignmentToGrid.csPhaseL3,
+        } : null,
     };
   }
 

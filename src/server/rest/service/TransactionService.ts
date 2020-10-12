@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Transaction, { TransactionAction } from '../../../types/Transaction';
 
 import { ActionsResponse } from '../../../types/GlobalType';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -24,7 +25,6 @@ import { ServerAction } from '../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import Transaction from '../../../types/Transaction';
 import { TransactionInErrorType } from '../../../types/InError';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
@@ -150,6 +150,79 @@ export default class TransactionService {
     next();
   }
 
+  public static async handlePushTransactionCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = TransactionSecurity.filterPushTransactionCdrRequest(req.body);
+    // Check Mandatory fields
+    UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
+    // Check auth
+    if (!Authorizations.canUpdateTransaction(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        value: filteredRequest.transactionId.toString()
+      });
+    }
+    // Check Transaction
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.transactionId);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionId}' does not exist`,
+      MODULE_NAME, 'handlePushTransactionCdr', req.user);
+    // Check Charging Station
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
+      MODULE_NAME, 'handlePushTransactionCdr', req.user);
+    // Check Issuer
+    if (!transaction.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TRANSACTION_NOT_FROM_TENANT,
+        message: `The transaction ID '${transaction.id}' belongs to an external organization`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check OCPI
+    if (!transaction.ocpiData) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
+        message: `The transaction ID '${transaction.id}' has no OCPI data`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user,
+        action: action
+      });
+    }
+    // CDR already pushed
+    if (transaction.ocpiData.cdr?.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
+        message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user,
+        action: action
+      });
+    }
+    // Post CDR
+    await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+    // Save
+    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    // Ok
+    Logging.logInfo({
+      tenantID: req.user.tenantID,
+      action: action,
+      user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+      module: MODULE_NAME, method: 'handlePushTransactionCdr',
+      message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+      detailedMessages: { cdr: transaction.ocpiData.cdr }
+    });
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   public static async handleGetUnassignedTransactionsCount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
@@ -176,7 +249,7 @@ export default class TransactionService {
       });
     }
     // Get the user
-    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID, { withTag: true });
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
@@ -237,9 +310,19 @@ export default class TransactionService {
       });
     }
     // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID, { withTag: true });
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User not issued by the organization',
+        module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
+        user: req.user, actionOnUser: user,
+        action: action
+      });
+    }
     // Assign
     await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user);
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -389,7 +472,8 @@ export default class TransactionService {
     // Get the consumption
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
-      consumptions = await ConsumptionStorage.getTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
+      const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
+      consumptions = consumptionsMDB.result;
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     }
@@ -536,48 +620,16 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Get transactions
-    const transactions = await TransactionService.getTransactions(req);
-    // Create the file
-    const filename = 'exported-transactions.csv';
-    fs.writeFile(filename, TransactionService.convertToCSV(req.user, transactions.result), (err) => {
-      if (err) {
-        throw err;
-      }
-      res.download(filename, (err2) => {
-        if (err2) {
-          throw err2;
-        }
-        fs.unlink(filename, (err3) => {
-          if (err3) {
-            throw err3;
-          }
-        });
-      });
-    });
+  public static async handleExportTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-sessions.csv',
+      TransactionService.getTransactions.bind(this), TransactionService.convertToCSV.bind(this));
   }
 
-  public static async handleGetTransactionsToRefundExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Get transactions
-    const transactions = await TransactionService.getTransactions(req);
-    // Create the file
-    const filename = 'exported-refund-transactions.csv';
-    fs.writeFile(filename, TransactionService.convertToCSV(req.user, transactions.result), (err) => {
-      if (err) {
-        throw err;
-      }
-      res.download(filename, (err2) => {
-        if (err2) {
-          throw err2;
-        }
-        fs.unlink(filename, (err3) => {
-          if (err3) {
-            throw err3;
-          }
-        });
-      });
-    });
+  public static async handleExportTransactionsToRefund(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-refund-sessions.csv',
+      TransactionService.getTransactions.bind(this), TransactionService.convertToCSV.bind(this));
   }
 
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -648,10 +700,13 @@ export default class TransactionService {
     next();
   }
 
-  public static convertToCSV(loggedUser: UserToken, transactions: Transaction[]): string {
+  public static convertToCSV(loggedUser: UserToken, transactions: Transaction[], writeHeader = true): string {
     const i18nManager = new I18nManager(loggedUser.locale);
-    // Headers
-    let csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+    let csv = '';
+    // Header
+    if (writeHeader) {
+      csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}Start Time${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}End Time${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+    }
     // Content
     for (const transaction of transactions) {
       csv += `${transaction.id}` + Constants.CSV_SEPARATOR;
@@ -659,8 +714,10 @@ export default class TransactionService {
       csv += `${transaction.connectorId}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.user ? Cypher.hash(transaction.user.id) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.user ? Utils.buildUserFullName(transaction.user, false) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${i18nManager.formatDateTime(transaction.timestamp, 'L')} ${i18nManager.formatDateTime(transaction.timestamp, 'LT')}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${i18nManager.formatDateTime(transaction.stop.timestamp, 'L')} ${i18nManager.formatDateTime(transaction.stop.timestamp, 'LT')}` : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(transaction.timestamp).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(transaction.timestamp).format('HH:mm:ss')}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? `${moment(transaction.stop.timestamp).format('YYYY-MM-DD')}` : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? `${moment(transaction.stop.timestamp).format('HH:mm:ss')}` : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
@@ -771,6 +828,7 @@ export default class TransactionService {
         chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,
         ownerID: Authorizations.isBasic(req.user) ? req.user.id : null,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         siteIDs: filteredRequest.SiteID ? Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|')) : null,

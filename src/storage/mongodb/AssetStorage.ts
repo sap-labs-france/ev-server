@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import Asset from '../../types/Asset';
 import { AssetInErrorType } from '../../types/InError';
 import Constants from '../../utils/Constants';
@@ -7,7 +9,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'AssetStorage';
 
@@ -118,12 +119,14 @@ export default class AssetStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAssets');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Build filter
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
@@ -185,12 +188,12 @@ export default class AssetStorage {
       $sort: dbParams.sort
     });
     // Skip
-    if (skip > 0) {
-      aggregation.push({ $skip: skip });
+    if (dbParams.skip > 0) {
+      aggregation.push({ $skip: dbParams.skip });
     }
     // Limit
     aggregation.push({
-      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Site Area
     if (params.withSiteArea) {
@@ -232,12 +235,14 @@ export default class AssetStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAssetsInError');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -283,12 +288,12 @@ export default class AssetStorage {
       $sort: dbParams.sort
     });
     // Skip
-    if (skip > 0) {
-      aggregation.push({ $skip: skip });
+    if (dbParams.skip > 0) {
+      aggregation.push({ $skip: dbParams.skip });
     }
     // Limit
     aggregation.push({
-      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);

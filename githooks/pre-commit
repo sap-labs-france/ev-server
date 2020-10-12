@@ -9,11 +9,11 @@
 # npm run start:dev
 
 echo "Running linter fix:"
-npm run lint:fix
+npm run eslint:fix
 
 echo "Running unit tests (do not forget to start the server before with 'npm run start:dev'):"
 # npm run start:email &
-npm test
+npm run mochatest
 
 # Do not abort the commit because of errors
 exit 0

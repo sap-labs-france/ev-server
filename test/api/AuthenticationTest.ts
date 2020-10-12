@@ -69,20 +69,22 @@ describe('Authentication Service (tenant utall)', function() {
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('status', 'Success');
+      testData.createdUsersAdminTenant.push(newUser);
 
       response = await CentralServerService.defaultInstance.userApi.getByEmail(newUser.email);
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('count', 1);
       const user: User = response.data.result[0];
-      testData.createdUsersAdminTenant.push(user);
+      response = await CentralServerService.defaultInstance.userApi.readTags({ UserID: user.id });
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('count', 1);
+      expect(response.data.result).to.have.lengthOf(1);
       expect(user).to.have.property('email', newUser.email);
       expect(user).to.have.property('name', newUser.name);
       expect(user).to.have.property('firstName', newUser.firstName);
       expect(user).to.have.property('status', 'P');
       expect(user).to.have.property('role', 'B');
       expect(user).to.have.property('locale', 'en_US');
-      expect(user.tags).to.not.be.null;
-      expect(user.tags).to.have.lengthOf(1);
       expect(user.eulaAcceptedHash).to.not.be.null;
       expect(user.eulaAcceptedOn).to.not.be.null;
       expect(user.eulaAcceptedVersion).to.not.be.null;
@@ -106,6 +108,21 @@ describe('Authentication Service (tenant utall)', function() {
       expect(user.notifications.sendEndOfSession).to.eql(true);
       expect(user.notifications).to.have.property('sendUserAccountStatusChanged');
       expect(user.notifications.sendUserAccountStatusChanged).to.eql(true);
+    });
+
+
+    it('Should be able to update the registered user', async () => {
+      let response = await CentralServerService.defaultInstance.userApi.getByEmail(testData.createdUsersAdminTenant[0].email);
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('count', 1);
+      const user: User = response.data.result[0];
+      // Change entity
+      user.name = 'NEW NAME';
+      // Update
+      response = await CentralServerService.defaultInstance.userApi.update(user);
+      // Check
+      expect(response.status).to.equal(200);
+      expect(response.data.status).to.eql('Success');
     });
 
     it('Should be possible to register a new user on the default tenant', async () => {

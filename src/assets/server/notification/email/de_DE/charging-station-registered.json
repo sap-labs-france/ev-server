@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Sehr geehrter Administrator,",
       "",
-      "Die Ladestation <b>'<%- chargeBoxID %>'</b> wurde gerade mit dem zentralen Server verbunden."
+      "Die Ladestation <strong>'<%- chargeBoxID %>'</strong> wurde gerade mit dem zentralen Server verbunden."
     ],
     "action": {
       "title": "View <%- chargeBoxID %>",

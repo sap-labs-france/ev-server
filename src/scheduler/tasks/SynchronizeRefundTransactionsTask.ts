@@ -37,7 +37,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       return;
     }
     // Get the lock
-    const refundLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.TRANSACTION, 'synchronize-refunded-transactions');
+    const refundLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.TRANSACTION, 'synchronize-refunded-sessions');
     if (await LockingManager.acquire(refundLock)) {
       try {
         // Get the 'Submitted' transactions

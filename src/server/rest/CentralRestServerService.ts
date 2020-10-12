@@ -18,6 +18,7 @@ import SettingService from './service/SettingService';
 import SiteAreaService from './service/SiteAreaService';
 import SiteService from './service/SiteService';
 import StatisticService from './service/StatisticService';
+import { StatusCodes } from 'http-status-codes';
 import TenantService from './service/TenantService';
 import TransactionService from './service/TransactionService';
 import UserService from './service/UserService';
@@ -72,7 +73,8 @@ class RequestMapper {
           [ServerAction.ADD_SITES_TO_USER]: UserService.handleAssignSitesToUser.bind(this),
           [ServerAction.REMOVE_SITES_FROM_USER]: UserService.handleAssignSitesToUser.bind(this),
           [ServerAction.SITE_AREA_CREATE]: SiteAreaService.handleCreateSiteArea.bind(this),
-          [ServerAction.TRANSACTION_REFUND]: TransactionService.handleRefundTransactions.bind(this),
+          [ServerAction.TRANSACTIONS_REFUND]: TransactionService.handleRefundTransactions.bind(this),
+          [ServerAction.TRANSACTION_PUSH_CDR]: TransactionService.handlePushTransactionCdr.bind(this),
           [ServerAction.SYNCHRONIZE_REFUNDED_TRANSACTIONS]: TransactionService.handleSynchronizeRefundedTransactions.bind(this),
           [ServerAction.SETTING_CREATE]: SettingService.handleCreateSetting.bind(this),
           [ServerAction.BILLING_SYNCHRONIZE_USERS]: BillingService.handleSynchronizeUsers.bind(this),
@@ -97,7 +99,8 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
-          [ServerAction.END_USER_ERROR_NOTIFICATION]: NotificationService.handleEndUserErrorNotification.bind(this),
+          [ServerAction.TAG_CREATE]: UserService.handleCreateTag.bind(this),
+          [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
         });
         break;
 
@@ -105,9 +108,9 @@ class RequestMapper {
       case 'GET':
         // Register REST actions
         this.registerJsonActionsPaths({
-          [ServerAction.LOGGINGS]: LoggingService.handleGetLoggings.bind(this),
-          [ServerAction.LOGGING]: LoggingService.handleGetLogging.bind(this),
-          [ServerAction.LOGGINGS_EXPORT]: LoggingService.handleGetLoggingsExport.bind(this),
+          [ServerAction.LOGGINGS]: LoggingService.handleGetLogs.bind(this),
+          [ServerAction.LOGGING]: LoggingService.handleGetLog.bind(this),
+          [ServerAction.LOGGINGS_EXPORT]: LoggingService.handleExportLogs.bind(this),
           [ServerAction.CHARGING_STATIONS]: ChargingStationService.handleGetChargingStations.bind(this),
           [ServerAction.CAR_CATALOGS]: CarService.handleGetCarCatalogs.bind(this),
           [ServerAction.CAR_CATALOG]: CarService.handleGetCarCatalog.bind(this),
@@ -116,8 +119,8 @@ class RequestMapper {
           [ServerAction.CAR]: CarService.handleGetCar.bind(this),
           [ServerAction.CAR_USERS]: CarService.handleGetCarUsers.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
-          [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleGetChargingStationsExport.bind(this),
-          [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
+          [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleExportChargingStations.bind(this),
+          [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleExportChargingStationsOCPPParams.bind(this),
           [ServerAction.CHARGING_STATION]: ChargingStationService.handleGetChargingStation.bind(this),
           [ServerAction.CHECK_SMART_CHARGING_CONNECTION]: ChargingStationService.handleCheckSmartChargingConnection.bind(this),
           [ServerAction.CHARGING_PROFILES]: ChargingStationService.handleGetChargingProfiles.bind(this),
@@ -134,12 +137,14 @@ class RequestMapper {
           [ServerAction.ASSETS_IN_ERROR]: AssetService.handleGetAssetsInError.bind(this),
           [ServerAction.CHECK_ASSET_CONNECTION]: AssetService.handleCheckAssetConnection.bind(this),
           [ServerAction.RETRIEVE_ASSET_CONSUMPTION]: AssetService.handleRetrieveConsumption.bind(this),
+          [ServerAction.ASSET_CONSUMPTION]: AssetService.handleGetAssetConsumption.bind(this),
           [ServerAction.SITES]: SiteService.handleGetSites.bind(this),
           [ServerAction.SITE]: SiteService.handleGetSite.bind(this),
           [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
           [ServerAction.SITE_USERS]: SiteService.handleGetUsers.bind(this),
           [ServerAction.TENANTS]: TenantService.handleGetTenants.bind(this),
           [ServerAction.TENANT]: TenantService.handleGetTenant.bind(this),
+          [ServerAction.TENANT_LOGO]: TenantService.handleGetTenantLogo.bind(this),
           [ServerAction.SITE_AREAS]: SiteAreaService.handleGetSiteAreas.bind(this),
           [ServerAction.SITE_AREA]: SiteAreaService.handleGetSiteArea.bind(this),
           [ServerAction.SITE_AREA_IMAGE]: SiteAreaService.handleGetSiteAreaImage.bind(this),
@@ -150,11 +155,13 @@ class RequestMapper {
           [ServerAction.USER_IMAGE]: UserService.handleGetUserImage.bind(this),
           [ServerAction.USER]: UserService.handleGetUser.bind(this),
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
+          [ServerAction.TAGS]: UserService.handleGetTags.bind(this),
+          [ServerAction.TAG]: UserService.handleGetTag.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
-          [ServerAction.TRANSACTIONS_TO_REFUND_EXPORT]: TransactionService.handleGetTransactionsToRefundExport.bind(this),
+          [ServerAction.TRANSACTIONS_TO_REFUND_EXPORT]: TransactionService.handleExportTransactionsToRefund.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND_REPORTS]: TransactionService.handleGetRefundReports.bind(this),
-          [ServerAction.TRANSACTIONS_EXPORT]: TransactionService.handleGetTransactionsExport.bind(this),
+          [ServerAction.TRANSACTIONS_EXPORT]: TransactionService.handleExportTransactions.bind(this),
           [ServerAction.TRANSACTIONS_ACTIVE]: TransactionService.handleGetTransactionsActive.bind(this),
           [ServerAction.TRANSACTIONS_IN_ERROR]: TransactionService.handleGetTransactionsInError.bind(this),
           [ServerAction.TRANSACTION_YEARS]: TransactionService.handleGetTransactionYears.bind(this),
@@ -165,7 +172,7 @@ class RequestMapper {
           [ServerAction.CHARGING_STATION_INACTIVITY_STATISTICS]: StatisticService.handleGetChargingStationInactivityStatistics.bind(this),
           [ServerAction.CHARGING_STATION_TRANSACTIONS_STATISTICS]: StatisticService.handleGetChargingStationTransactionsStatistics.bind(this),
           [ServerAction.CHARGING_STATION_PRICING_STATISTICS]: StatisticService.handleGetChargingStationPricingStatistics.bind(this),
-          [ServerAction.STATISTICS_EXPORT]: StatisticService.handleGetStatisticsExport.bind(this),
+          [ServerAction.STATISTICS_EXPORT]: StatisticService.handleExportStatistics.bind(this),
           [ServerAction.USER_CONSUMPTION_STATISTICS]: StatisticService.handleGetUserConsumptionStatistics.bind(this),
           [ServerAction.USER_USAGE_STATISTICS]: StatisticService.handleGetUserUsageStatistics.bind(this),
           [ServerAction.USER_INACTIVITY_STATISTICS]: StatisticService.handleGetUserInactivityStatistics.bind(this),
@@ -187,7 +194,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTIONS]: ConnectionService.handleGetConnections.bind(this),
           [ServerAction.INTEGRATION_CONNECTION]: ConnectionService.handleGetConnection.bind(this),
           [ServerAction.PING]: (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
-            res.sendStatus(200);
+            res.sendStatus(StatusCodes.OK);
           },
         });
         break;
@@ -216,6 +223,7 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_UNREGISTER]: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
+          [ServerAction.TAG_UPDATE]: UserService.handleUpdateTag.bind(this),
         });
         break;
 
@@ -239,6 +247,7 @@ class RequestMapper {
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
           [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
+          [ServerAction.TAG_DELETE]: UserService.handleDeleteTag.bind(this),
         });
         break;
     }
@@ -286,7 +295,7 @@ export default class CentralRestServerService {
           switch (action) {
             // Ping
             case ServerAction.PING:
-              res.sendStatus(200);
+              res.sendStatus(StatusCodes.OK);
               break;
             case ServerAction.CAR_CATALOG_IMAGE:
               await CarService.handleGetCarCatalogImage(action, req, res, next);

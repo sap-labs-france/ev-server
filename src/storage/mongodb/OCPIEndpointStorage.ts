@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -7,7 +9,6 @@ import Logging from '../../utils/Logging';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'OCPIEndpointStorage';
 
@@ -20,7 +21,7 @@ export default class OCPIEndpointStorage {
 
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getOcpiEndpoint', uniqueTimerID, { id });
-    return endpointsMDB.count > 0 ? endpointsMDB.result[0] : null;
+    return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
   static async getOcpiEndpointByLocalToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
@@ -30,7 +31,7 @@ export default class OCPIEndpointStorage {
 
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getOcpiEndpoinByLocalToken', uniqueTimerID, { token });
-    return endpointsMDB.count > 0 ? endpointsMDB.result[0] : null;
+    return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
   static async saveOcpiEndpoint(tenantID: string, ocpiEndpointToSave: OCPIEndpoint): Promise<string> {
@@ -93,14 +94,16 @@ export default class OCPIEndpointStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOcpiEndpoints');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation: any[] = [];
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Source?
     if (params.id) {
       filters._id = Utils.convertToObjectID(params.id);
@@ -112,11 +115,9 @@ export default class OCPIEndpointStorage {
         { 'name': { $regex: params.search, $options: 'i' } }
       ];
     }
-
     if (params.role) {
       filters.role = params.role;
     }
-
     // Filters
     if (filters) {
       aggregation.push({
@@ -154,11 +155,11 @@ export default class OCPIEndpointStorage {
     });
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Read DB
     const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
@@ -166,12 +167,7 @@ export default class OCPIEndpointStorage {
       .toArray();
 
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, {
-      params,
-      limit,
-      skip,
-      sort: dbParams.sort
-    });
+    Logging.traceEnd(MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, { params });
     // Ok
     return {
       count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),

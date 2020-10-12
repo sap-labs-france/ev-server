@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -9,7 +11,6 @@ import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'TenantStorage';
 
@@ -21,22 +22,22 @@ export default class TenantStorage {
     const tenantsMDB = await TenantStorage.getTenants({ tenantIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTenant', uniqueTimerID, { id });
-    return tenantsMDB.count > 0 ? tenantsMDB.result[0] : null;
+    return tenantsMDB.count === 1 ? tenantsMDB.result[0] : null;
   }
 
   public static async getTenantByName(name: string): Promise<Tenant> {
     // Delegate querying
     const tenantsResult = await TenantStorage.getTenants({ tenantName: name }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return tenantsResult.count > 0 ? tenantsResult.result[0] : null;
+    return tenantsResult.count === 1 ? tenantsResult.result[0] : null;
   }
 
   public static async getTenantBySubdomain(subdomain: string): Promise<Tenant> {
     // Delegate querying
     const tenantsResult = await TenantStorage.getTenants({ tenantSubdomain: subdomain }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return tenantsResult.count > 0 ? tenantsResult.result[0] : null;
+    return tenantsResult.count === 1 ? tenantsResult.result[0] : null;
   }
 
-  public static async saveTenant(tenantToSave: Partial<Tenant>): Promise<string> {
+  public static async saveTenant(tenantToSave: Partial<Tenant>, saveLogo = true): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveTenant');
     // Check
@@ -62,14 +63,33 @@ export default class TenantStorage {
       name: tenantToSave.name,
       email: tenantToSave.email,
       subdomain: tenantToSave.subdomain,
-      components: tenantToSave.components ? tenantToSave.components : {}
+      components: tenantToSave.components ? tenantToSave.components : {},
     };
+    if (tenantToSave.address) {
+      Object.assign(tenantMDB, {
+        address: {
+          address1: tenantToSave.address.address1,
+          address2: tenantToSave.address.address2,
+          postalCode: tenantToSave.address.postalCode,
+          city: tenantToSave.address.city,
+          department: tenantToSave.address.department,
+          region: tenantToSave.address.region,
+          country: tenantToSave.address.country,
+          coordinates: Utils.containsGPSCoordinates(tenantToSave.address.coordinates) ? tenantToSave.address.coordinates.map(
+            (coordinate) => Utils.convertToFloat(coordinate)) : [],
+        }
+      });
+    }
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter,
       { $set: tenantMDB },
       { upsert: true, returnOriginal: false });
+    // Save Logo
+    if (saveLogo) {
+      await TenantStorage._saveTenantLogo(tenantMDB._id.toHexString(), tenantToSave.logo);
+    }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveTenant', uniqueTimerID, { tenantToSave });
     // Create
@@ -96,16 +116,18 @@ export default class TenantStorage {
 
   // Delegate
   public static async getTenants(
-    params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string },
+    params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string, withLogo?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTenants');
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -169,6 +191,17 @@ export default class TenantStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Company Logo
+    if (params.withLogo) {
+      DatabaseUtils.pushCollectionLookupInAggregation('tenantlogos',
+        {
+          tenantID: null, aggregation, localField: '_id', foreignField: '_id',
+          asField: 'tenantlogos', oneToOneCardinality: true
+        }
+      );
+      // Rename
+      DatabaseUtils.pushRenameField(aggregation, 'tenantlogos.logo', 'logo');
+    }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Add Created By / Last Changed By
@@ -210,5 +243,35 @@ export default class TenantStorage {
     await global.database.deleteTenantDatabase(id);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteTenantDB', uniqueTimerID, { id });
+  }
+
+  public static async getTenantLogo(tenantID: string): Promise<{ id: string; logo: string }> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTenantLogo');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Read DB
+    const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
+      .findOne({ _id: Utils.convertToObjectID(tenantID) });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'getTenantLogo', uniqueTimerID, { tenantID });
+    return {
+      id: tenantID,
+      logo: tenantLogoMDB ? tenantLogoMDB.logo : null
+    };
+  }
+
+  private static async _saveTenantLogo(tenantID: string, tenantLogoToSave: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveTenantLogo');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenantlogos').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(tenantID) },
+      { $set: { logo: tenantLogoToSave } },
+      { upsert: true });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'saveTenantLogo', uniqueTimerID, {});
   }
 }

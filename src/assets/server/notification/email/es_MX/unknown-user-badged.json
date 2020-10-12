@@ -19,11 +19,11 @@
     "beforeActionLines": [
       "Estimado administrador,",
       "",
-      "Un usuario desconocido acaba de conectarse a <b> '<% - chargeBoxID%>' </b> con el ID de la insignia <b> '<% - badgeID%>' </b>."
+      "Un usuario desconocido acaba de conectarse a <strong> '<% - chargeBoxID%>' </strong> con el ID de la insignia <strong> '<% - badgeID%>' </strong>."
     ],
     "action": {
-      "title": "Editar usuario",
-      "url": "<%- evseDashboardUserURL %>"
+      "title": "Editar Insignia",
+      "url": "<%- evseDashboardTagURL %>"
     },
     "afterActionLines": [
       "Atentamente,",

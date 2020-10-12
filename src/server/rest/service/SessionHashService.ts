@@ -3,9 +3,9 @@ import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../types/Tenant';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import User from '../../../types/User';
@@ -30,7 +30,7 @@ export default class SessionHashService {
         global.userHashMapIDs.get(`${tenantID}#${userID}`) !== userHashID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HttpStatusCodes.FORBIDDEN,
+          errorCode: StatusCodes.FORBIDDEN,
           message: 'User has been updated and will be logged off',
           module: MODULE_NAME,
           method: 'isSessionHashUpdated',
@@ -41,7 +41,7 @@ export default class SessionHashService {
         global.tenantHashMapIDs.get(`${tenantID}`) !== tenantHashID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HttpStatusCodes.FORBIDDEN,
+          errorCode: StatusCodes.FORBIDDEN,
           message: 'Tenant has been updated and all users will be logged off',
           module: MODULE_NAME,
           method: 'isSessionHashUpdated',
@@ -74,11 +74,19 @@ export default class SessionHashService {
   // Rebuild and store User Hash ID
   static async rebuildUserHashID(tenantID: string, userID: string): Promise<void> {
     // Build User hash
-    const user = await UserStorage.getUser(tenantID, userID);
+    const user = await UserStorage.getUser(tenantID, userID, { withTag: true });
     if (user) {
       global.userHashMapIDs.set(`${tenantID}#${userID}`, SessionHashService.buildUserHashID(user));
     } else {
       global.userHashMapIDs.delete(`${tenantID}#${userID}`);
+    }
+  }
+
+  static async rebuildUserHashIDFromTagID(tenantID: string, tagID: string): Promise<void> {
+    // Build User hash
+    const tag = await UserStorage.getTag(tenantID, tagID);
+    if (tag?.userID) {
+      await this.rebuildUserHashID(tenantID, tag.userID);
     }
   }
 

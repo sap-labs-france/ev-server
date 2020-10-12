@@ -2,7 +2,7 @@ import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingS
 import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, SiteAreaLimitSource } from '../types/ChargingStation';
-import Transaction, { InactivityStatus } from '../types/Transaction';
+import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -21,7 +21,7 @@ import Constants from './Constants';
 import Consumption from '../types/Consumption';
 import Cypher from './Cypher';
 import { HTTPError } from '../types/HTTPError';
-import { HttpEndUserErrorNotificationRequest } from '../types/requests/HttpNotificationRequest';
+import { HttpEndUserReportErrorRequest } from '../types/requests/HttpNotificationRequest';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
@@ -34,7 +34,6 @@ import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
@@ -53,8 +52,6 @@ const MODULE_NAME = 'Utils';
 
 export default class Utils {
   private static tenants = [];
-  private static centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-  private static centralSystemRestServer = Configuration.getCentralSystemRestServer();
 
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
@@ -76,33 +73,63 @@ export default class Utils {
 
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    let threePhases = true;
     if (currentType === CurrentType.AC &&
-      (transaction.currentInstantAmpsL1 > 0 &&
-        (transaction.currentInstantAmpsL2 === 0 ||
-          transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL2 > 0 &&
-        (transaction.currentInstantAmpsL1 === 0 ||
-          transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL3 > 0 &&
-        (transaction.currentInstantAmpsL1 === 0 ||
-          transaction.currentInstantAmpsL2 === 0))) {
-      threePhases = false;
+       (transaction.currentInstantAmpsL1 > 0 && (transaction.currentInstantAmpsL2 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+       (transaction.currentInstantAmpsL2 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+       (transaction.currentInstantAmpsL3 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL2 === 0))) {
+      return false;
     }
-    return threePhases;
+    return true;
   }
 
-  public static getNumberOfUsedPhaseInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
+  public static getUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): CSPhasesUsed {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    let nbrOfPhases = 0;
-    if (currentType === CurrentType.AC) {
+    // AC Chargers
+    if (currentType === CurrentType.AC && Utils.checkIfPhasesProvidedInTransactionInProgress(transaction)) {
+      const cSPhasesUsed: CSPhasesUsed = {
+        csPhase1: false,
+        csPhase2: false,
+        csPhase3: false
+      };
+      // Check current consumption
       if (transaction.currentInstantAmpsL1 > 0) {
-        nbrOfPhases++;
+        cSPhasesUsed.csPhase1 = true;
       }
       if (transaction.currentInstantAmpsL2 > 0) {
-        nbrOfPhases++;
+        cSPhasesUsed.csPhase2 = true;
       }
       if (transaction.currentInstantAmpsL3 > 0) {
+        cSPhasesUsed.csPhase3 = true;
+      }
+      return cSPhasesUsed;
+    }
+    // Standard on three phases
+    return {
+      csPhase1: true,
+      csPhase2: true,
+      csPhase3: true
+    };
+  }
+
+  public static checkIfPhasesProvidedInTransactionInProgress(transaction: Transaction): boolean {
+    return transaction.currentInstantAmps > 0 &&
+      (transaction.currentInstantAmpsL1 > 0 ||
+       transaction.currentInstantAmpsL2 > 0 ||
+       transaction.currentInstantAmpsL3 > 0);
+  }
+
+  public static getNumberOfUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    let nbrOfPhases = -1;
+    if (currentType === CurrentType.AC && transaction.phasesUsed) {
+      nbrOfPhases = 0;
+      if (transaction.phasesUsed.csPhase1) {
+        nbrOfPhases++;
+      }
+      if (transaction.phasesUsed.csPhase2) {
+        nbrOfPhases++;
+      }
+      if (transaction.phasesUsed.csPhase3) {
         nbrOfPhases++;
       }
     }
@@ -115,18 +142,20 @@ export default class Utils {
       return 0;
     }
     const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-    if (connector.power <= 3680) {
-      // Notify every 120 mins
-      intervalMins = 120;
-    } else if (connector.power <= 7360) {
-      // Notify every 60 mins
-      intervalMins = 60;
-    } else if (connector.power < 50000) {
-      // Notify every 30 mins
-      intervalMins = 30;
-    } else if (connector.power >= 50000) {
-      // Notify every 15 mins
-      intervalMins = 15;
+    if (connector) {
+      if (connector.power <= 3680) {
+        // Notify every 120 mins
+        intervalMins = 120;
+      } else if (connector.power <= 7360) {
+        // Notify every 60 mins
+        intervalMins = 60;
+      } else if (connector.power < 50000) {
+        // Notify every 30 mins
+        intervalMins = 30;
+      } else if (connector.power >= 50000) {
+        // Notify every 15 mins
+        intervalMins = 15;
+      }
     }
     return intervalMins;
   }
@@ -211,6 +240,10 @@ export default class Utils {
 
   public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
+  }
+
+  public static isBooleanValue(value: boolean): boolean {
+    return _.isBoolean(value);
   }
 
   public static generateGUID(): string {
@@ -393,11 +426,11 @@ export default class Utils {
 
   public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
     // Normalize
-    Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
-    Utils._normalizeOneSOAPParam(headers, 'Action');
-    Utils._normalizeOneSOAPParam(headers, 'To');
-    Utils._normalizeOneSOAPParam(headers, 'From.Address');
-    Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
+    Utils.normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
+    Utils.normalizeOneSOAPParam(headers, 'Action');
+    Utils.normalizeOneSOAPParam(headers, 'To');
+    Utils.normalizeOneSOAPParam(headers, 'From.Address');
+    Utils.normalizeOneSOAPParam(headers, 'ReplyTo.Address');
     // Parse the request (lower case for fucking charging station DBT URL registration)
     const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
     const tenantID = urlParts.query.tenantid as string;
@@ -427,6 +460,10 @@ export default class Utils {
       case ConnectorCurrentLimitSource.STATIC_LIMITATION:
         return 'Static Limitation';
     }
+  }
+
+  public static clearTenants(): void {
+    Utils.tenants = [];
   }
 
   public static async checkTenant(tenantID: string): Promise<void> {
@@ -669,7 +706,7 @@ export default class Utils {
               if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
                 // Check Connector ID
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-                if (connector.power) {
+                if (connector?.power) {
                   return connector.power;
                 }
                 return chargePointOfCS.power;
@@ -716,7 +753,7 @@ export default class Utils {
             if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.numberOfConnectedPhase) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.numberOfConnectedPhase) {
+              if (connector?.numberOfConnectedPhase) {
                 return connector.numberOfConnectedPhase;
               }
               return chargePointOfCS.numberOfConnectedPhase;
@@ -758,7 +795,7 @@ export default class Utils {
             if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.voltage) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.voltage) {
+              if (connector?.voltage) {
                 return connector.voltage;
               }
               return chargePointOfCS.voltage;
@@ -795,7 +832,7 @@ export default class Utils {
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.currentType) {
+              if (connector?.currentType) {
                 return connector.currentType;
               }
               return chargePointOfCS.currentType;
@@ -834,7 +871,7 @@ export default class Utils {
                 // Same power for all connectors
                 // Check Connector ID first
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-                if (connector.amperage) {
+                if (connector?.amperage) {
                   return connector.amperage;
                 }
                 return chargePointOfCS.amperage;
@@ -864,7 +901,7 @@ export default class Utils {
     let amperageLimit = 0;
     if (chargingStation) {
       if (connectorId > 0) {
-        return Utils.getConnectorFromID(chargingStation, connectorId).amperageLimit;
+        return Utils.getConnectorFromID(chargingStation, connectorId)?.amperageLimit;
       }
       // Check at charge point level
       if (chargingStation.chargePoints) {
@@ -876,11 +913,11 @@ export default class Utils {
             if (chargePointOfCS.cannotChargeInParallel ||
               chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
-              amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
+              amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0])?.amperageLimit;
             } else {
               // Add limit amp of all connectors
               for (const connectorID of chargePointOfCS.connectorIDs) {
-                amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID).amperageLimit;
+                amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID)?.amperageLimit;
               }
             }
           }
@@ -983,15 +1020,17 @@ export default class Utils {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  public static buildRestServerURL() {
-    return `${Utils.centralSystemRestServer.protocol}://${Utils.centralSystemRestServer.host}:${Utils.centralSystemRestServer.port}`;
+  public static buildRestServerURL(): string {
+    const centralSystemRestServer = Configuration.getCentralSystemRestServer();
+    return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
   }
 
   public static buildEvseURL(subdomain: string = null): string {
+    const centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     if (subdomain) {
-      return `${Utils.centralSystemFrontEndConfig.protocol}://${subdomain}.${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
+      return `${centralSystemFrontEndConfig.protocol}://${subdomain}.${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
     }
-    return `${Utils.centralSystemFrontEndConfig.protocol}://${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
+    return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
@@ -1014,12 +1053,13 @@ export default class Utils {
     }
   }
 
-  public static async buildEvseUserURL(tenantID: string, user: User, hash = ''): Promise<string> {
+  public static async buildEvseTagURL(tenantID: string, tag: Tag): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
-    return _evseBaseURL + '/users?UserID=' + user.id + hash;
+    return _evseBaseURL + '/users#tag?TagID=' + tag.id;
   }
+
 
   public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
@@ -1208,7 +1248,7 @@ export default class Utils {
     if (coordinates && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude
       if (new RegExp(Constants.REGEX_VALIDATION_LONGITUDE).test(coordinates[0].toString()) &&
-          new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
+        new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
         return true;
       }
     }
@@ -1591,47 +1631,61 @@ export default class Utils {
     }
   }
 
-  public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request): Promise<void> {
-    // Check that the Badge ID is not already used
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      if (tags) {
-        for (const tag of tags) {
-          // Check if exists
-          const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
-          if (foundUser && (!user || (foundUser.id !== user.id))) {
-            // Tag already used!
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
-              message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
-              module: MODULE_NAME,
-              method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-          // Check params
-          if (!tag.id) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.GENERAL_ERROR,
-              message: 'Tag ID is mandatory',
-              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-          if (!Utils.objectHasProperty(tag, 'active')) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.GENERAL_ERROR,
-              message: 'Tag Active property is mandatory',
-              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-        }
-      }
+  public static isDevelopmentEnv(): boolean {
+    return process.env.NODE_ENV === 'development';
+  }
+
+  public static isProductionEnv(): boolean {
+    return process.env.NODE_ENV === 'production';
+  }
+
+  public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
+    // Check authorization
+    if (!Authorizations.isAdmin(req.user)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Only Admins can change/create the Tags',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    // Check badge ID
+    if (!tag.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    // Check description
+    if (!tag.description) {
+      tag.description = `Tag ID '${tag.id}'`;
+    }
+    // Check user ID
+    if (!tag.userID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
+    // Check user activation
+    if (!Utils.objectHasProperty(tag, 'active')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag Active property is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
     }
   }
+
 
   public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request): void {
     const tenantID = req.user.tenantID;
@@ -1727,11 +1781,11 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (req.method === 'POST' && !Utils._isUserEmailValid(filteredRequest.email)) {
+    if (req.method === 'POST' && !Utils.isUserEmailValid(filteredRequest.email)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Email ${filteredRequest.email} is not valid`,
+        message: `User Email '${filteredRequest.email}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1749,22 +1803,22 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.phone && !Utils._isPhoneValid(filteredRequest.phone)) {
+    if (filteredRequest.phone && !Utils.isPhoneValid(filteredRequest.phone)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Phone ${filteredRequest.phone} is not valid`,
+        message: `User Phone '${filteredRequest.phone}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.mobile && !Utils._isPhoneValid(filteredRequest.mobile)) {
+    if (filteredRequest.mobile && !Utils.isPhoneValid(filteredRequest.mobile)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Mobile ${filteredRequest.mobile} is not valid`,
+        message: `User Mobile '${filteredRequest.mobile}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1772,11 +1826,11 @@ export default class Utils {
       });
     }
     if (filteredRequest.tags) {
-      if (!Utils._areTagsValid(filteredRequest.tags)) {
+      if (!Utils.areTagsValid(filteredRequest.tags)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags ${JSON.stringify(filteredRequest.tags)} is/are not valid`,
+          message: `User Tags '${JSON.stringify(filteredRequest.tags)}' is/are not valid`,
           module: MODULE_NAME,
           method: 'checkIfUserValid',
           user: req.user.id,
@@ -1784,11 +1838,11 @@ export default class Utils {
         });
       }
     }
-    if (filteredRequest.plateID && !Utils._isPlateIDValid(filteredRequest.plateID)) {
+    if (filteredRequest.plateID && !Utils.isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Plate ID ${filteredRequest.plateID} is not valid`,
+        message: `User Plate ID '${filteredRequest.plateID}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
@@ -1799,7 +1853,7 @@ export default class Utils {
 
   public static async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption): Promise<void> {
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && siteArea) {
       // Get limit of the site area
       consumption.limitSiteAreaWatts = 0;
       // Maximum power of the Site Area provided?
@@ -1968,7 +2022,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vin Car is mandatory',
+        message: 'Car Vin is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -1980,6 +2034,16 @@ export default class Utils {
         message: 'License Plate is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
+      });
+    }
+    if (!Utils.isPlateIDValid(car.licensePlate)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Car License Plate ID '${car.licensePlate}' is not valid`,
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id,
+        actionOnUser: car.id
       });
     }
     if (!car.carCatalogID) {
@@ -2015,7 +2079,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter is mandatory',
+        message: 'Car Converter is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2024,7 +2088,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter amperage per phase is mandatory',
+        message: 'Car Converter amperage per phase is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2033,7 +2097,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter number of phases is mandatory',
+        message: 'Car Converter number of phases is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2042,7 +2106,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter power is mandatory',
+        message: 'Car Converter power is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
@@ -2051,24 +2115,33 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter type is mandatory',
+        message: 'Car Converter type is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
     }
   }
 
-  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserErrorNotificationRequest, req: Request): void {
-    if (!endUserErrorNotificationValid.errorTitle || !endUserErrorNotificationValid.errorDescription) {
+  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserReportErrorRequest, req: Request): void {
+    if (!endUserErrorNotificationValid.subject) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Error Title and Description are mandatory.',
+        message: 'Subject is mandatory.',
         module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
         user: req.user.id
       });
     }
-    if (!this._isPhoneValid(endUserErrorNotificationValid.phone)) {
+    if (!endUserErrorNotificationValid.description) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Description is mandatory.',
+        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
+        user: req.user.id
+      });
+    }
+    if (endUserErrorNotificationValid.mobile && !this.isPhoneValid(endUserErrorNotificationValid.mobile)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -2079,23 +2152,23 @@ export default class Utils {
     }
   }
 
-  private static _isUserEmailValid(email: string): boolean {
-    return validator.isEmail(email);
-  }
-
-  private static _areTagsValid(tags: Tag[]): boolean {
-    return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
-  }
-
-  private static _isPhoneValid(phone: string): boolean {
+  private static isPhoneValid(phone: string): boolean {
     return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
 
-  private static _isPlateIDValid(plateID): boolean {
-    return /^[A-Z0-9-]*$/.test(plateID);
+  private static isUserEmailValid(email: string): boolean {
+    return validator.isEmail(email);
   }
 
-  private static _normalizeOneSOAPParam(headers: any, name: string) {
+  private static areTagsValid(tags: Tag[]): boolean {
+    return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
+  }
+
+  private static isPlateIDValid(plateID): boolean {
+    return /^[A-Z0-9- ]*$/.test(plateID);
+  }
+
+  private static normalizeOneSOAPParam(headers: any, name: string) {
     const val = _.get(headers, name);
     if (val && val.$value) {
       _.set(headers, name, val.$value);

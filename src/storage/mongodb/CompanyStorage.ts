@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import Company from '../../types/Company';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -7,7 +9,6 @@ import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import SiteStorage from './SiteStorage';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'CompanyStorage';
 
@@ -93,10 +94,12 @@ export default class CompanyStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneJSonDocument(dbParams);
     // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
@@ -114,7 +117,7 @@ export default class CompanyStorage {
       });
     }
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -130,7 +133,7 @@ export default class CompanyStorage {
         $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID))
       };
     }
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       aggregation.push({
         $match: {
           'issuer': params.issuer
@@ -162,6 +165,25 @@ export default class CompanyStorage {
     }
     // Remove the limit
     aggregation.pop();
+    // Sort
+    if (!dbParams.sort) {
+      dbParams.sort = { name: 1 };
+    }
+    // Position coordinates
+    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+      dbParams.sort = { distanceMeters: 1 };
+    }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    // Skip
+    if (dbParams.skip > 0) {
+      aggregation.push({ $skip: dbParams.skip });
+    }
+    // Limit
+    aggregation.push({
+      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+    });
     // Site
     if (params.withSites) {
       DatabaseUtils.pushSiteLookupInAggregation(
@@ -182,25 +204,6 @@ export default class CompanyStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
-    // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { name: 1 };
-    }
-    // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
-      dbParams.sort = { distanceMeters: 1 };
-    }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
-    // Skip
-    if (skip > 0) {
-      aggregation.push({ $skip: skip });
-    }
-    // Limit
-    aggregation.push({
-      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
-    });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

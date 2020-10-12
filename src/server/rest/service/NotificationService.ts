@@ -1,19 +1,19 @@
-import { NextFunction, Request, Response, request } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError } from '../../../types/HTTPError';
-import { ServerAction } from '../../../types/Server';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
-import NotificationSecurity from './security/NotificationSecurity';
-import UtilsService from './UtilsService';
-import { EndUserErrorNotification } from '../../../types/UserNotifications';
+import { NextFunction, Request, Response, request } from 'express';
 
+import AppAuthError from '../../../exception/AppAuthError';
+import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
+import { EndUserErrorNotification } from '../../../types/UserNotifications';
+import { HTTPAuthError } from '../../../types/HTTPError';
+import Logging from '../../../utils/Logging';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import NotificationSecurity from './security/NotificationSecurity';
+import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
+import { ServerAction } from '../../../types/Server';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'NotificationService';
 
@@ -43,26 +43,28 @@ export default class NotificationService {
     }
   }
 
-  static async handleEndUserErrorNotification(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  static async handleEndUserReportError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canSendEndUserErrorNotification(req.user)) {
+    if (!Authorizations.canEndUserReportError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.CREATE, entity: Entity.NOTIFICATION,
-        module: MODULE_NAME, method: 'handleEndUserErrorNotification'
+        module: MODULE_NAME, method: 'handleEndUserReportError'
       });
     }
     // Filter
-    const filteredRequest = NotificationSecurity.filterEndUserErrorNotificationRequest(req.body);
+    const filteredRequest = NotificationSecurity.filterEndUserReportErrorRequest(req.body);
+    // Check if Notification is valid
+    Utils.checkIfEndUserErrorNotificationValid(filteredRequest, req);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
-      MODULE_NAME, 'handleEndUserErrorNotification', req.user);
+      MODULE_NAME, 'handleEndUserReportError', req.user);
     // Save mobile number
-    if (filteredRequest.phone && (user.mobile !== filteredRequest.phone)) {
-      user.mobile = filteredRequest.phone;
-      await UserStorage.saveUserMobilePhone(req.user.tenantID, user.id, { mobile: filteredRequest.phone });
+    if (filteredRequest.mobile && (user.mobile !== filteredRequest.mobile)) {
+      user.mobile = filteredRequest.mobile;
+      await UserStorage.saveUserMobilePhone(req.user.tenantID, user.id, { mobile: filteredRequest.mobile });
     }
     // Set
     const endUserErrorNotification: EndUserErrorNotification = {
@@ -70,12 +72,10 @@ export default class NotificationService {
       email: user.email,
       phone: user.mobile,
       name: Utils.buildUserFullName(user, false, false),
-      errorTitle: filteredRequest.errorTitle,
-      errorDescription: filteredRequest.errorDescription,
+      errorTitle: filteredRequest.subject,
+      errorDescription: filteredRequest.description,
       evseDashboardURL: Utils.buildEvseURL(),
     };
-    // Check if Notification is valid
-    Utils.checkIfEndUserErrorNotificationValid(filteredRequest, req);
     // Send Notification
     await NotificationHandler.sendEndUserErrorNotification(req.user.tenantID, endUserErrorNotification);
     // Ok

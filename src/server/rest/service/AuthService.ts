@@ -11,10 +11,12 @@ import BillingFactory from '../../../integration/billing/BillingFactory';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import { HTTPError } from '../../../types/HTTPError';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import { ServerAction } from '../../../types/Server';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../types/Tag';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -227,7 +229,7 @@ export default class AuthService {
     // Generate a password
     const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
-    const newUser = UserStorage.getEmptyUser() as User;
+    const newUser = UserStorage.createNewUser() as User;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
@@ -245,15 +247,19 @@ export default class AuthService {
     }
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newUser.id, UserStatus.PENDING);
-
+    // Get the i18n translation class
+    const i18nManager = new I18nManager(newUser.locale);
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt().toString(),
       active: true,
       issuer: true,
-      lastChangedOn: new Date()
+      userID: newUser.id,
+      createdBy: { id: newUser.id },
+      createdOn: new Date(),
+      description: i18nManager.translate('tags.virtualBadge'),
+      default: true
     };
-    await UserStorage.saveUserTag(req.user.tenantID, newUser.id, tag);
-
+    await UserStorage.saveTag(req.user.tenantID, tag);
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,
       {
@@ -291,7 +297,6 @@ export default class AuthService {
       message: `User with Email '${req.body.email}' has been created successfully`,
       detailedMessages: { params: req.body }
     });
-
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
@@ -806,7 +811,7 @@ export default class AuthService {
 
   public static handleUserLogOut(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
     req.logout();
-    res.status(200).send({});
+    res.status(StatusCodes.OK).send({});
   }
 
   public static async userLoginWrongPassword(action: ServerAction, tenantID: string, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {

@@ -33,6 +33,7 @@ export default class ContextDefinition {
     TENANT_BILLING: 'utbilling', // Only billing and pricing component is active
     TENANT_ASSET: 'utasset', // Only asset component is active
     TENANT_CAR: 'utcar', // Only car component is active
+    TENANT_SMART_CHARGING: 'utsmartcharging' // Organization and Smart Charging components are active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -45,7 +46,10 @@ export default class ContextDefinition {
   static readonly SITE_AREA_CONTEXTS: any = {
     NO_SITE: 'No site', // Used for unassigned Charging Station or CS in tenant with no organizations
     WITH_ACL: 'withACL', // ACL is active
-    WITHOUT_ACL: 'withoutACL' // ACL is inactive
+    WITHOUT_ACL: 'withoutACL', // ACL is inactive
+    WITH_SMART_CHARGING_THREE_PHASED: 'withSmartChargingThreePhased', // Smart Charging is active three phased
+    WITH_SMART_CHARGING_SINGLE_PHASED: 'withSmartChargingSinglePhased', // Smart Charging is active single phased
+    WITH_SMART_CHARGING_DC: 'withSmartChargingDC', // Smart Charging is active DC
   };
 
   static readonly CHARGING_STATION_CONTEXTS: any = {
@@ -325,7 +329,24 @@ export default class ContextDefinition {
     componentSettings: {
       car: {},
     }
-  }];
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_SMART_CHARGING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaab2',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_SMART_CHARGING,
+    componentSettings: {
+      organization: {},
+      smartCharging:
+      { content:
+        { type: SmartChargingSettingsType.SAP_SMART_CHARGING, sapSmartCharging:
+          { optimizerUrl: '',
+            user: '',
+            password: '' }
+        }
+      },
+    }
+  }
+  ];
 
   // List of users created in a tenant
   static readonly TENANT_USER_LIST: any = [
@@ -489,6 +510,7 @@ export default class ContextDefinition {
       id: '5ce249a2372f0b1c8caf9294',
       name: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
       autoUserSiteAssignment: false,
+      public: true,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
     { // Site with other user stop
@@ -496,6 +518,7 @@ export default class ContextDefinition {
       id: '5ce249a2372f0b1c8caf8367',
       name: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
       autoUserSiteAssignment: false,
+      public: true,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
     { // Site with auto user assignment
@@ -503,6 +526,7 @@ export default class ContextDefinition {
       id: '5ce249a2372f0b1c8caf6532',
       name: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
       autoUserSiteAssignment: true,
+      public: true,
       companyID: '5ce249a2372f0b1c8caf928f'
     }
   ];
@@ -513,40 +537,74 @@ export default class ContextDefinition {
     { // With access control
       id: '5ce249a2372f0b1c8caf9294',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      numberOfPhases: 3,
       accessControl: true,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5476',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      numberOfPhases: 3,
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf1234',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      numberOfPhases: 3,
       accessControl: true,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf4678',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      numberOfPhases: 3,
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf5497',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      numberOfPhases: 3,
       accessControl: true,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5432',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      numberOfPhases: 3,
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+    },
+    { // With smart charging three phased
+      id: '5ce249a2372f0b1c8caf5442',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`,
+      smartCharging: true,
+      numberOfPhases: 3,
+      maximumPower: 100000,
+      voltage: 230,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+    },
+    { // With smart charging single phased
+      id: '5ce249a2372f0b1c8caf5443',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
+      smartCharging: true,
+      numberOfPhases: 1,
+      maximumPower: 100000,
+      voltage: 230,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+    },
+    { // With smart charging DC
+      id: '5ce249a2372f0b1c8caf5444',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`,
+      smartCharging: true,
+      numberOfPhases: 3,
+      maximumPower: 200000,
+      voltage: 230,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     }
   ];
+
 
   // List of Charging Station created in a tenant
   // siteAreaNames must refer the site Areas where teh charging station will be created
@@ -561,7 +619,10 @@ export default class ContextDefinition {
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
-        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`]
     },
     {
       baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15, // Concatenated with siteAreaName

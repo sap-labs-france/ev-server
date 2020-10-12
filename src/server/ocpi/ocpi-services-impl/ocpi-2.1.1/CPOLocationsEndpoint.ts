@@ -73,7 +73,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
           module: MODULE_NAME, method: 'getLocationRequest',
           action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`,
+          message: `Connector ID '${connectorId}' not found on Charging Station ID '${evseUid}' and Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
@@ -86,7 +86,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
           module: MODULE_NAME, method: 'getLocationRequest',
           action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `EVSE uid not found '${evseUid}' on location id '${locationId}'`,
+          message: `Charging Station ID not found '${evseUid}' on Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
@@ -101,7 +101,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
           module: MODULE_NAME, method: 'getLocationRequest',
           action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Site id '${locationId}' not found`,
+          message: `Site ID '${locationId}' not found`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
