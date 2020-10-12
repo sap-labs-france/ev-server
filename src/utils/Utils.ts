@@ -1087,7 +1087,7 @@ export default class Utils {
 
   public static async buildEvseBillingDownloadInvoicesURL(tenantID: string, invoiceID: string): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBillingInvoiceURL = await Utils.buildEvseBillingInvoicesURL(tenant.subdomain);
+    const _evseBillingInvoiceURL = await Utils.buildEvseBillingInvoicesURL(tenantID);
     return _evseBillingInvoiceURL + '?invoiceID=' + invoiceID + '#all';
   }
 
