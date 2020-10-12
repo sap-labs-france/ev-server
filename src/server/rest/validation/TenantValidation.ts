@@ -24,7 +24,7 @@ export default class TenantValidator extends SchemaValidator {
     return TenantValidator._instance;
   }
 
-  public validateTenantCreationRequestSuperAdmin(tenant: Tenant): Tenant {
+  public validateTenantCreateRequestSuperAdmin(tenant: Tenant): Tenant {
     // Validate schema
     this.validate(this._tenantCreateReqSuperAdmin, tenant);
     // Validate deps between components

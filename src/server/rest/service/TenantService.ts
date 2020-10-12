@@ -152,7 +152,7 @@ export default class TenantService {
 
   public static async handleCreateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantCreationRequestSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
