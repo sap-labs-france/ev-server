@@ -18,6 +18,7 @@ export default interface UserNotifications {
   sendPreparingSessionNotStarted: boolean;
   sendOfflineChargingStations: boolean;
   sendBillingSynchronizationFailed: boolean;
+  sendBillingNewInvoice: boolean;
   sendCarCatalogSynchronizationFailed: boolean;
   sendSessionNotStarted: boolean;
   sendEndUserErrorNotification: boolean;
@@ -38,6 +39,7 @@ export type UserNotificationKeys =
  'sendPreparingSessionNotStarted' |
  'sendOfflineChargingStations' |
  'sendBillingSynchronizationFailed' |
+ 'sendBillingNewInvoice' |
  'sendSessionNotStarted' |
  'sendCarCatalogSynchronizationFailed' |
  'sendEndUserErrorNotification'

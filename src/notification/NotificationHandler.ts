@@ -903,12 +903,20 @@ export default class NotificationHandler {
         // Active?
         if (notificationSource.enabled) {
           try {
-            // Save
-            await NotificationHandler.saveNotification(
-              tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
-            // Send
-            await notificationSource.notificationTask.sendBillingNewInvoice(
-              sourceData, user, tenant, NotificationSeverity.INFO);
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+              tenantID, notificationSource.channel, notificationID);
+            if (!hasBeenNotified) {
+              // Enabled?
+              if (sourceData.user.notificationsActive && sourceData.user.notifications.sendBillingNewInvoice) {
+                // Save
+                await NotificationHandler.saveNotification(
+                  tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
+                // Send
+                await notificationSource.notificationTask.sendBillingNewInvoice(
+                  sourceData, user, tenant, NotificationSeverity.INFO);
+              }
+            }
           } catch (error) {
             Logging.logActionExceptionMessage(tenantID, ServerAction.BILLING_NEW_INVOICE, error);
           }
