@@ -20,6 +20,7 @@ import http from 'http';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
+import { tenantRouter } from './router/TenantRouter';
 
 const MODULE_NAME = 'CentralRestServer';
 
@@ -47,6 +48,8 @@ export default class CentralRestServer {
     this.expressApplication.use(sanitize());
     // Authentication
     this.expressApplication.use(CentralRestServerAuthentication.initialize());
+    // Routers
+    this.expressApplication.use('/v1/api', CentralRestServerAuthentication.authenticate(), tenantRouter);
     // Auth services
     this.expressApplication.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
     // Secured API
