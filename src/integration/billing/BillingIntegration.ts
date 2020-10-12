@@ -368,7 +368,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     }
     const tenant = await TenantStorage.getTenant(this.tenantID);
     // Send async notification
-    await NotificationHandler.sendBillingNewInvoiceNotification(
+    NotificationHandler.sendBillingNewInvoiceNotification(
       this.tenantID,
       Utils.generateGUID(),
       invoice.user,
@@ -379,23 +379,15 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         invoiceDownloadUrl: await Utils.buildEvseBillingDownloadInvoicesURL(this.tenantID, invoice.id),
         invoice: invoice
       }
-    );
-    //     .then(() => {
-    //   Logging.logDebug({
-    //     module: 'BillingIntegration',
-    //     method: 'sendInvoiceToUser',
-    //     message: 'Sent email to user',
-    //     tenantID: this.tenantID
-    //   });
-    // }).catch((e) => {
-    //   Logging.logError({
-    //     module: 'BillingIntegration',
-    //     method: 'sendInvoiceToUser',
-    //     message: 'Failed to send email to user',
-    //     detailedMessages: { e },
-    //     tenantID: this.tenantID
-    //   });
-    // });
+    ).catch((error) => {
+      Logging.logError({
+        module: 'BillingIntegration',
+        method: 'sendInvoiceToUser',
+        message: 'Failed to send email to user',
+        detailedMessages: { error: error.message, stack: error.stack },
+        tenantID: this.tenantID
+      });
+    });
     return invoice;
   }
 

@@ -68,7 +68,7 @@
     },
     "billingNewInvoice": {
       "title": "Nouvelle facture",
-      "body": "Une nouvelle facture {{invoiceNumber}} est disponible"
+      "body": "Une nouvelle facture ({{invoiceNumber}}) est disponible"
     },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",

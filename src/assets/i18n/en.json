@@ -68,7 +68,7 @@
     },
     "billingNewInvoice": {
       "title": "New invoice",
-      "body": "A new invoice is now available"
+      "body": "A new invoice ({{invoiceNumber}}) is now available"
     },
     "endUserErrorNotification": {
       "title": "An user reported an error",
