@@ -5,7 +5,6 @@ import CentralSystemServerConfiguration from '../../../types/configuration/Centr
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
-import StatisticSecurity from '../../rest/service/security/StatisticSecurity';
 import { StatusCodes } from 'http-status-codes';
 import Utils from '../../../utils/Utils';
 import cluster from 'cluster';
