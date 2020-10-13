@@ -7,7 +7,7 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ConnectionSecurity from './security/ConnectionSecurity';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
-import ConnectionValidator from '../validation/ConnectionValidator';
+import ConnectionValidator from '../validator/ConnectionValidator';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import RefundFactory from '../../../integration/refund/RefundFactory';

@@ -17,7 +17,7 @@ import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TenantValidator from '../validation/TenantValidation';
+import TenantValidator from '../validator/TenantValidation';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
