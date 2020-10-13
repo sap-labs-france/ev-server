@@ -2,7 +2,6 @@ import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTab
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
-import BackendError from '../../../exception/BackendError';
 import CarIntegration from '../CarIntegration';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -22,12 +21,14 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
   public async getCarCatalogs(): Promise<CarCatalog[]> {
     const evDatabaseConfig = Configuration.getEVDatabaseConfig();
     if (!evDatabaseConfig) {
-      throw new BackendError({
+      Logging.logWarning({
+        tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
-        message: 'No configuration is provided to access the EVDatabase system',
+        message: 'No configuration is provided to access the EVDatabase system, skipping',
         module: MODULE_NAME, method: 'getCarCatalogs',
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
       });
+      return;
     }
     const response = await this.axiosInstance.get(evDatabaseConfig.url + '/' + evDatabaseConfig.key);
     const carCatalogs: CarCatalog[] = [];
