@@ -8,13 +8,13 @@ import global from '../../../types/GlobalType';
 
 export default class TenantValidator extends SchemaValidator {
   private static _instance: TenantValidator | undefined;
-  private _tenantCreation: any;
-  private _tenantUpdate: any;
+  private _tenantCreateReqSuperAdmin: any;
+  private _tenantUpdateReqSuperAdmin: any;
 
   private constructor() {
     super('TenantValidator');
-    this._tenantCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-create.json`, 'utf8'));
-    this._tenantUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-update.json`, 'utf8'));
+    this._tenantCreateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-create-req-super-admin.json`, 'utf8'));
+    this._tenantUpdateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-update-req-super-admin.json`, 'utf8'));
   }
 
   public static getInstance(): TenantValidator {
@@ -24,17 +24,17 @@ export default class TenantValidator extends SchemaValidator {
     return TenantValidator._instance;
   }
 
-  public validateTenantCreation(tenant: Tenant): Tenant {
+  public validateTenantCreateRequestSuperAdmin(tenant: Tenant): Tenant {
     // Validate schema
-    this.validate(this._tenantCreation, tenant);
+    this.validate(this._tenantCreateReqSuperAdmin, tenant);
     // Validate deps between components
     this.validateComponentDependencies(tenant);
     return tenant;
   }
 
-  public validateTenantUpdate(tenant: Tenant): Tenant {
+  public validateTenantUpdateRequestSuperAdmin(tenant: Tenant): Tenant {
     // Validate schema
-    this.validate(this._tenantUpdate, tenant);
+    this.validate(this._tenantUpdateReqSuperAdmin, tenant);
     // Validate deps between components
     this.validateComponentDependencies(tenant);
     return tenant;
@@ -49,7 +49,7 @@ export default class TenantValidator extends SchemaValidator {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Organization must be active to use the Smart Charging component',
-          module: this.moduleName, method: 'validateTenantUpdate'
+          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
         });
       }
       // Asset active: Organization must be active
@@ -59,7 +59,7 @@ export default class TenantValidator extends SchemaValidator {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Organization must be active to use the Asset component',
-          module: this.moduleName, method: 'validateTenantUpdate'
+          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
         });
       }
       // Billing active: Pricing must be active
@@ -69,7 +69,7 @@ export default class TenantValidator extends SchemaValidator {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Billing component',
-          module: this.moduleName, method: 'validateTenantUpdate'
+          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
         });
       }
       // Refund active: Pricing must be active
@@ -79,7 +79,7 @@ export default class TenantValidator extends SchemaValidator {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Refund component',
-          module: this.moduleName, method: 'validateTenantUpdate'
+          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
         });
       }
     }

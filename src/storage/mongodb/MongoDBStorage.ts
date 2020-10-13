@@ -320,10 +320,13 @@ export default class MongoDBStorage {
         const currentCollections = await this.db.listCollections().toArray();
         const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
         const foundCollection = currentCollections.find((collection) => collection.name === tenantCollectionName);
-        // Check if it exists
+        // Create
         if (!foundCollection) {
-          // Create
-          await this.db.createCollection(tenantCollectionName);
+          try {
+            await this.db.createCollection(tenantCollectionName);
+          } catch (error) {
+            console.log(`Error in creating collection '${tenantCollectionName}': ${error.message}`);
+          }
         }
         // Indexes?
         if (indexes) {

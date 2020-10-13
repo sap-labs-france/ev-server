@@ -1,5 +1,6 @@
 import ChargingStation, { ChargerVendor } from '../../types/ChargingStation';
 
+import AbbChargingStationVendorIntegration from './abb/AbbChargingStationVendorIntegration';
 import AtessChargingStationVendorIntegration from './atess/AtessChargingStationVendorIntegration';
 import ChargingStationVendorIntegration from './ChargingStationVendorIntegration';
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
@@ -12,6 +13,9 @@ export default class ChargingStationVendorFactory {
   static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
     let chargingStationVendorImpl: ChargingStationVendorIntegration = null;
     switch (chargingStation.chargePointVendor) {
+      case ChargerVendor.ABB:
+        chargingStationVendorImpl = new AbbChargingStationVendorIntegration(chargingStation);
+        break;
       case ChargerVendor.SCHNEIDER:
         chargingStationVendorImpl = new SchneiderChargingStationVendorIntegration(chargingStation);
         break;
