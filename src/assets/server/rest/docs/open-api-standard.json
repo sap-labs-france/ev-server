@@ -3,15 +3,19 @@
   "servers": [
     {
       "description": "SCP - Prod - SAP Labs France",
-      "url": "https://slf.evse.cfapps.eu10.hana.ondemand.com/client/api/1.0.0/"
+      "url": "https://slf.evse.cfapps.eu10.hana.ondemand.com/v1/api"
     },
     {
       "description": "SCP - Prod - Tenant Management",
-      "url": "https://evse.cfapps.eu10.hana.ondemand.com/client/api/1.0.0/"
+      "url": "https://evse.cfapps.eu10.hana.ondemand.com/v1/api"
     },
     {
       "description": "AWS - Prod - Tenant Management",
-      "url": "https://e-mobility-group.com/client/api/1.0.0/"
+      "url": "https://e-mobility-group.com/v1/api"
+    },
+    {
+      "description": "Localhost - Dev - Tenant Management",
+      "url": "http://localhost/v1/api"
     }
   ],
   "info": {
