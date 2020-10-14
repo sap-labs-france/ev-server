@@ -1,0 +1,35 @@
+{
+  "subject": "Billing - New invoice",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Billing - New invoice",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "A new invoice is available : <%- invoice.number %>. Click <a href=\"<%- invoiceDownloadUrl %>\">here to download it</a>"
+    ],
+    "action": {
+      "title": "Consult",
+      "url": "<%- evseDashboardInvoiceURL %>"
+    },
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
