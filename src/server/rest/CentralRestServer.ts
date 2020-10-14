@@ -2,6 +2,7 @@ import { Action, Entity } from '../../types/Authorization';
 import SingleChangeNotification, { NotificationData } from '../../types/SingleChangeNotification';
 import express, { NextFunction, Request, Response } from 'express';
 
+import AuthService from './service/AuthService';
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
@@ -47,13 +48,13 @@ export default class CentralRestServer {
     // Mount express-sanitizer middleware
     this.expressApplication.use(sanitize());
     // Authentication
-    this.expressApplication.use(CentralRestServerAuthentication.initialize());
+    this.expressApplication.use(AuthService.initialize());
     // Routers
     this.expressApplication.use('/', globalRouter);
     // Auth services
     this.expressApplication.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
     // Secured API
-    this.expressApplication.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
+    this.expressApplication.all('/client/api/:action', AuthService.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
     // Util API
     this.expressApplication.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
     // Workaround URL encoding issue

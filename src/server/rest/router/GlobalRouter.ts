@@ -6,9 +6,6 @@ import { tenantRouter } from './api/TenantRouter';
 
 export const globalRouter = express.Router();
 
-// Init Secured Service
-AuthService.initialize();
-
 // API
 globalRouter.use('/v1/api', AuthService.authenticate(), tenantRouter);
 
