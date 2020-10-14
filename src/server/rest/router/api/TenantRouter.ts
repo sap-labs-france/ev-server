@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 
-import { ServerAction } from '../../../types/Server';
-import TenantService from '../service/TenantService';
+import { ServerAction } from '../../../../types/Server';
+import TenantService from '../../service/TenantService';
 
 export const tenantRouter = express.Router();
 
