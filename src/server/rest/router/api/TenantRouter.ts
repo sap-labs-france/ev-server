@@ -1,28 +1,18 @@
 import express, { NextFunction, Request, Response } from 'express';
 
+import RouterUtils from '../RouterUtils';
 import { ServerAction } from '../../../../types/Server';
 import TenantService from '../../service/TenantService';
+import sanitize from 'mongo-sanitize';
 
 export const tenantRouter = express.Router();
 
-// Define the home page route
 tenantRouter.get('/tenants', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await TenantService.handleGetTenants(ServerAction.TENANTS, req, res, next);
-    next();
-  } catch (error) {
-    next(error);
-  }
+  await RouterUtils.handleServerAction(TenantService.handleGetTenants.bind(this), ServerAction.TENANTS, req, res, next);
 });
 
-// Define the about route
 tenantRouter.get('/tenants/:id', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    req.query.ID = req.params.id;
-    await TenantService.handleGetTenant(ServerAction.TENANT, req, res, next);
-    next();
-  } catch (error) {
-    next(error);
-  }
+  req.query.ID = sanitize(req.params.id);
+  await RouterUtils.handleServerAction(TenantService.handleGetTenant.bind(this), ServerAction.TENANT, req, res, next);
 });
 
