@@ -1344,7 +1344,7 @@ export default class ChargingStationService {
                   // Save
                   await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
                 } else {
-                  // Not a custom param: Refresh the whole OCPP Parameters
+                  // Not a custom param: refresh the whole OCPP Parameters
                   await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
                 }
               } else {
