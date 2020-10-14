@@ -16,12 +16,11 @@ import SessionHashService from './service/SessionHashService';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
+import { globalRouter } from './router/GlobalRouter';
 import http from 'http';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
-import { swaggerRouter } from './router/SwaggerRouter';
-import { tenantRouter } from './router/TenantRouter';
 
 const MODULE_NAME = 'CentralRestServer';
 
@@ -50,8 +49,7 @@ export default class CentralRestServer {
     // Authentication
     this.expressApplication.use(CentralRestServerAuthentication.initialize());
     // Routers
-    this.expressApplication.use('/v1/api', CentralRestServerAuthentication.authenticate(), tenantRouter);
-    this.expressApplication.use('/v1/docs', swaggerRouter);
+    this.expressApplication.use('/', globalRouter);
     // Auth services
     this.expressApplication.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
     // Secured API
