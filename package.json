@@ -66,6 +66,7 @@
     "source-map-support": "^0.5.19",
     "stripe": "^7.15.0",
     "strong-soap": "^1.22.1",
+    "swagger-ui-express": "^4.1.4",
     "tslib": "^2.0.3",
     "tz-lookup": "^6.1.25",
     "urlencode": "^1.1.0",

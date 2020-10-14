@@ -1,19 +1,10 @@
-import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 import AuthService from './service/AuthService';
 import { ServerAction } from '../../types/Server';
 import UtilsService from './service/UtilsService';
 
 export default class CentralRestServerAuthentication {
-  // Init Passport
-  static initialize(): Handler {
-    return AuthService.initialize();
-  }
-
-  static authenticate(): RequestHandler {
-    return AuthService.authenticate();
-  }
-
   static async authService(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Parse the action
