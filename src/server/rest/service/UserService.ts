@@ -1413,16 +1413,21 @@ export default class UserService {
       csv += `${user.role}` + Constants.CSV_SEPARATOR;
       csv += `${user.status}` + Constants.CSV_SEPARATOR;
       csv += `${user.email}` + Constants.CSV_SEPARATOR;
-      const tags = [];
-      for (const tag of user.tags) {
-        tags.push(tag.id);
+      let tagsString = '';
+      if (user.tags) {
+        for (const tag of user.tags) {
+          tagsString += `${tag.id} `;
+        }
       }
-      const tagsString = tags.toString();
       csv += `${tagsString}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.eulaAcceptedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.createdOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.lastChangedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      csv += `${user.lastChangedBy.name} ${user.lastChangedBy.firstName}\r\n`;
+      let lastChangedBy = '';
+      if (user.lastChangedBy) {
+        lastChangedBy += `${user.lastChangedBy.name} ${user.lastChangedBy.firstName}`;
+      }
+      csv += `${lastChangedBy}\r\n`;
     }
     return csv;
   }
