@@ -722,7 +722,7 @@ export default class Logging {
       tenantID: tenantID,
       source: chargeBoxID,
       module: module, method: action,
-      message: `${direction} OCPP Request '${action}' Sent`,
+      message: `${direction} OCPP Request '${action}' ${direction === '>>' ? 'Received' : 'Sent'}`,
       action: action,
       detailedMessages: { args }
     });
