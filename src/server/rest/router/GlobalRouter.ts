@@ -17,7 +17,7 @@ globalRouter.use(currentVersionBaseURI + '/api', AuthService.authenticate(), ten
 globalRouter.use(currentVersionBaseURI + '/auth', authRouter);
 
 // Util
-globalRouter.use(currentVersionBaseURI + '/utils', utilRouter);
+globalRouter.use(currentVersionBaseURI + '/util', utilRouter);
 
 // Docs
 globalRouter.use(currentVersionBaseURI + '/docs', swaggerRouter);
