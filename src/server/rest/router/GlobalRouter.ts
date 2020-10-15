@@ -7,17 +7,16 @@ import { utilRouter } from './util/UtilRouter';
 
 export const globalRouter = express.Router();
 
-// API version 1 routes
-const currentVersion = 1;
-const currentVersionBaseURI = `/v${currentVersion}`;
+// API version 1 top level routes
+
 // Protected API
-globalRouter.use(currentVersionBaseURI + '/api', AuthService.authenticate(), tenantRouter);
+globalRouter.use('/v1/api', AuthService.authenticate(), tenantRouter);
 
 // Auth
-globalRouter.use(currentVersionBaseURI + '/auth', authRouter);
+globalRouter.use('/v1/auth', authRouter);
 
 // Util
-globalRouter.use(currentVersionBaseURI + '/util', utilRouter);
+globalRouter.use('/v1/util', utilRouter);
 
 // Docs
-globalRouter.use(currentVersionBaseURI + '/docs', swaggerRouter);
+globalRouter.use('/v1/docs', swaggerRouter);
