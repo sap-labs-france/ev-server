@@ -11,7 +11,9 @@ import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
+import { DataResult } from '../../../types/DataResult';
 import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
@@ -29,9 +31,11 @@ import { UserInErrorType } from '../../../types/InError';
 import UserNotifications from '../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
+import moment from 'moment';
 
 const MODULE_NAME = 'UserService';
 
@@ -649,6 +653,12 @@ export default class UserService {
     // Ok
     res.json(userImage);
     next();
+  }
+
+  public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-users.csv',
+      UserService.getUsers.bind(this), UserService.convertToCSV.bind(this));
   }
 
   public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -1387,5 +1397,69 @@ export default class UserService {
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+  private static convertToCSV(loggedUser: UserToken, users: User[], writeHeader = true): string {
+    const i18nManager = new I18nManager(loggedUser.locale);
+    let csv = '';
+    // Header
+    if (writeHeader) {
+      csv = `Name${Constants.CSV_SEPARATOR}First Name${Constants.CSV_SEPARATOR}Role${Constants.CSV_SEPARATOR}Status${Constants.CSV_SEPARATOR}Email${Constants.CSV_SEPARATOR}Badges${Constants.CSV_SEPARATOR}EULA Accepted On${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Changed On${Constants.CSV_SEPARATOR}Changed By\r\n`;
+    }
+    // Content
+    for (const user of users) {
+      csv += `${user.name}` + Constants.CSV_SEPARATOR;
+      csv += `${user.firstName}` + Constants.CSV_SEPARATOR;
+      csv += `${user.role}` + Constants.CSV_SEPARATOR;
+      csv += `${user.status}` + Constants.CSV_SEPARATOR;
+      csv += `${user.email}` + Constants.CSV_SEPARATOR;
+      const tags = [];
+      for (const tag of user.tags) {
+        tags.push(tag.id);
+      }
+      const tagsString = tags.toString();
+      csv += `${tagsString}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(user.eulaAcceptedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(user.createdOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(user.lastChangedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
+      csv += `${user.lastChangedBy.name} ${user.lastChangedBy.firstName}\r\n`;
+    }
+    return csv;
+  }
+
+  private static async getUsers(req: Request): Promise<DataResult<User>> {
+    // Check auth
+    if (!Authorizations.canListUsers(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST, entity: Entity.USERS,
+        module: MODULE_NAME, method: 'getUsers'
+      });
+    }
+    // Filter
+    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
+    // Get users
+    const users = await UserStorage.getUsers(req.user.tenantID,
+      {
+        search: filteredRequest.Search,
+        issuer: filteredRequest.Issuer,
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
+        statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
+        excludeSiteID: filteredRequest.ExcludeSiteID,
+        excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
+        includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
+        notAssignedToCarID: filteredRequest.NotAssignedToCarID,
+        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      }
+    );
+    return users;
   }
 }
