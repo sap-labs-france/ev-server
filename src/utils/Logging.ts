@@ -759,7 +759,7 @@ export default class Logging {
       tenantID: tenantID,
       source: chargeBoxID,
       module: module, method: action,
-      message: `OCPP trace buffer size: ${Object.keys(Logging.traceOCPPCalls).length} items`,
+      message: `OCPP trace buffer size: ${Object.keys(Logging.traceOCPPCalls).length} item(s)`,
       action: action,
       detailedMessages
     });
