@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 
 export const utilRouter = express.Router();
 
-utilRouter.get('/' + ServerAction.RESTful_PING, async (req: Request, res: Response, next: NextFunction) => {
+utilRouter.get(`/${ServerAction.REST_PING}`, async (req: Request, res: Response, next: NextFunction) => {
   res.sendStatus(StatusCodes.OK);
 });
 

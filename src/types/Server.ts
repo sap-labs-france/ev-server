@@ -373,7 +373,7 @@ export enum ServerAction {
   SIGNIN = 'signin',
   SIGNON = 'signon',
   SIGNOUT = 'signout',
-  RESTful_PASSWORD_RESET = 'passwordreset',
-  RESTful_PING = 'ping',
-  RESTful_TENANTS = 'tenants'
+  REST_PASSWORD_RESET = 'passwordreset',
+  REST_PING = 'ping',
+  REST_TENANTS = 'tenants'
 }
