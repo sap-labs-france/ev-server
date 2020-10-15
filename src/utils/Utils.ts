@@ -1055,40 +1055,33 @@ export default class Utils {
 
   public static async buildEvseTagURL(tenantID: string, tag: Tag): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    // Add
-    return _evseBaseURL + '/users#tag?TagID=' + tag.id;
+    return `${Utils.buildEvseURL(tenant.subdomain)}/users#tag?TagID=${tag.id}`;
   }
 
 
   public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
+    return `${Utils.buildEvseURL(tenant.subdomain)}/charging-stations?ChargingStationID=${chargingStation.id}${hash}`;
   }
 
   public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId: number, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/transactions?TransactionID=' + transactionId.toString() + hash;
+    return `${Utils.buildEvseURL(tenant.subdomain)}/transactions?TransactionID=${transactionId.toString()}${hash}`;
   }
 
   public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/settings#billing';
+    return `${Utils.buildEvseURL(tenant.subdomain)}/settings#billing`;
   }
 
   public static async buildEvseBillingInvoicesURL(tenantID: string): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/invoices';
+    return `${Utils.buildEvseURL(tenant.subdomain)}/invoices`;
   }
 
   public static async buildEvseBillingDownloadInvoicesURL(tenantID: string, invoiceID: string): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBillingInvoiceURL = await Utils.buildEvseBillingInvoicesURL(tenantID);
-    return _evseBillingInvoiceURL + '?invoiceID=' + invoiceID + '#all';
+    return `${Utils.buildEvseURL(tenant.subdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
   public static isServerInProductionMode(): boolean {
