@@ -26,46 +26,50 @@ export default class UserSecurity {
   }
 
   public static filterUsersRequest(request: any): HttpUsersRequest {
+    const filteredRequest = {} as HttpUsersRequest;
     if (request.Issuer) {
-      request.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
+    if (request.WithTag) {
+      filteredRequest.WithTag = UtilsSecurity.filterBoolean(request.WithTag);
     }
     if (request.Search) {
-      request.Search = sanitize(request.Search);
+      filteredRequest.Search = sanitize(request.Search);
     }
     if (request.SiteID) {
-      request.SiteID = sanitize(request.SiteID);
+      filteredRequest.SiteID = sanitize(request.SiteID);
     }
     if (request.Role) {
-      request.Role = sanitize(request.Role);
+      filteredRequest.Role = sanitize(request.Role);
     }
     if (request.Status) {
-      request.Status = sanitize(request.Status);
+      filteredRequest.Status = sanitize(request.Status);
     }
     if (request.ErrorType) {
-      request.ErrorType = sanitize(request.ErrorType);
+      filteredRequest.ErrorType = sanitize(request.ErrorType);
     }
     if (request.ExcludeSiteID) {
-      request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
+      filteredRequest.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }
     if (request.TagID) {
-      request.TagID = sanitize(request.TagID);
+      filteredRequest.TagID = sanitize(request.TagID);
     }
     if (request.ExcludeUserIDs) {
-      request.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
+      filteredRequest.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
     }
-    if (request.IncludeUserIDs) {
-      request.IncludeUserIDs = sanitize(request.IncludeUserIDs);
+    if (request.IncludeCarUserIDs) {
+      filteredRequest.IncludeCarUserIDs = sanitize(request.IncludeCarUserIDs);
     }
     if (request.NotAssignedToCarID) {
-      request.NotAssignedToCarID = sanitize(request.NotAssignedToCarID);
+      filteredRequest.NotAssignedToCarID = sanitize(request.NotAssignedToCarID);
     }
-    UtilsSecurity.filterSkipAndLimit(request, request);
-    UtilsSecurity.filterSort(request, request);
-    return request as HttpUsersRequest;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
   }
 
   public static filterUserSitesRequest(request: any): HttpUserSitesRequest {
-    const filteredRequest: HttpUserSitesRequest = {} as HttpUserSitesRequest;
+    const filteredRequest = {} as HttpUserSitesRequest;
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -92,7 +96,7 @@ export default class UserSecurity {
   }
 
   public static filterTagsRequest(request: any): HttpTagsRequest {
-    const filteredRequest: HttpTagsRequest = {
+    const filteredRequest = {
       Search: sanitize(request.Search),
       UserID: sanitize(request.UserID),
       Issuer: Utils.objectHasProperty(request, 'Issuer') ? UtilsSecurity.filterBoolean(request.Issuer) : null
@@ -139,6 +143,9 @@ export default class UserSecurity {
         }
         if (user.billingData) {
           filteredUser.billingData = user.billingData;
+        }
+        if (!Utils.isEmptyArray(user.tags)) {
+          filteredUser.tags = user.tags.map((tag) => UserSecurity.filterTagResponse(tag, loggedUser));
         }
       } else {
         // Set only necessary info

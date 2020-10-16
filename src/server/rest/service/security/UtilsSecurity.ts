@@ -59,7 +59,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterSkipAndLimit(request, filteredRequest): void {
+  static filterSkipAndLimit(request: any, filteredRequest: any): void {
     // Limit
     UtilsSecurity.filterLimit(request, filteredRequest);
     // Skip
@@ -70,7 +70,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterLimit(request, filteredRequest): void {
+  static filterLimit(request: any, filteredRequest: any): void {
     // Exist?
     if (!request.Limit) {
       // Default
@@ -87,7 +87,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterSkip(request, filteredRequest): void {
+  static filterSkip(request: any, filteredRequest: any): void {
     // Exist?
     if (!request.Skip) {
       // Default

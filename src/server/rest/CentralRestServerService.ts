@@ -154,6 +154,7 @@ class RequestMapper {
           [ServerAction.USERS_IN_ERROR]: UserService.handleGetUsersInError.bind(this),
           [ServerAction.USER_IMAGE]: UserService.handleGetUserImage.bind(this),
           [ServerAction.USER]: UserService.handleGetUser.bind(this),
+          [ServerAction.USERS_EXPORT]: UserService.handleExportUsers.bind(this),
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
           [ServerAction.TAGS]: UserService.handleGetTags.bind(this),
           [ServerAction.TAG]: UserService.handleGetTag.bind(this),

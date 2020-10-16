@@ -11,7 +11,10 @@ import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
+import { DataResult } from '../../../types/DataResult';
 import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
@@ -29,9 +32,11 @@ import { UserInErrorType } from '../../../types/InError';
 import UserNotifications from '../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
+import moment from 'moment';
 
 const MODULE_NAME = 'UserService';
 
@@ -651,6 +656,13 @@ export default class UserService {
     next();
   }
 
+  public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Export with tags
+    req.query['WithTag'] = 'true';
+    await UtilsService.exportToCSV(req, res, 'exported-users.csv',
+      UserService.getUsers.bind(this), UserService.convertToCSV.bind(this));
+  }
+
   public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
@@ -697,51 +709,8 @@ export default class UserService {
   }
 
   public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.LIST, entity: Entity.USERS,
-        module: MODULE_NAME, method: 'handleGetUsers'
-      });
-    }
-    // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
-    // Check component
-    if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-        Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
-    }
-    if (filteredRequest.NotAssignedToCarID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
-    }
-    // Get users
-    const users = await UserStorage.getUsers(req.user.tenantID,
-      {
-        search: filteredRequest.Search,
-        issuer: filteredRequest.Issuer,
-        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
-        excludeSiteID: filteredRequest.ExcludeSiteID,
-        excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
-        includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
-        notAssignedToCarID: filteredRequest.NotAssignedToCarID,
-        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
-      },
-      {
-        limit: filteredRequest.Limit,
-        skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
-      }
-    );
-    // Filter
-    UserSecurity.filterUsersResponse(users, req.user);
-    // Ok
-    res.json(users);
+    // Return
+    res.json(await UserService.getUsers(req));
     next();
   }
 
@@ -1387,5 +1356,77 @@ export default class UserService {
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+  private static convertToCSV(loggedUser: UserToken, users: User[], writeHeader = true): string {
+    let csv = '';
+    // Header
+    if (writeHeader) {
+      csv = `ID${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}First Name${Constants.CSV_SEPARATOR}Role${Constants.CSV_SEPARATOR}Status${Constants.CSV_SEPARATOR}Email${Constants.CSV_SEPARATOR}Nbr Badges${Constants.CSV_SEPARATOR}Badges${Constants.CSV_SEPARATOR}EULA Accepted On${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Changed On${Constants.CSV_SEPARATOR}Changed By\r\n`;
+    }
+    // Content
+    for (const user of users) {
+      csv += `${Cypher.hash(user.id)}` + Constants.CSV_SEPARATOR;
+      csv += `${user.name}` + Constants.CSV_SEPARATOR;
+      csv += `${user.firstName}` + Constants.CSV_SEPARATOR;
+      csv += `${user.role}` + Constants.CSV_SEPARATOR;
+      csv += `${user.status}` + Constants.CSV_SEPARATOR;
+      csv += `${user.email}` + Constants.CSV_SEPARATOR;
+      csv += `${user.tags ? user.tags.length : 0}` + Constants.CSV_SEPARATOR;
+      csv += `${user.tags ? user.tags.map((tag) => tag.id).join(',') : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(user.eulaAcceptedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(user.createdOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
+      csv += `${moment(user.lastChangedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
+      csv += `${user.lastChangedBy ? user.lastChangedBy as string : ''}\r\n`;
+    }
+    return csv;
+  }
+
+  private static async getUsers(req: Request): Promise<DataResult<User>> {
+    // Check auth
+    if (!Authorizations.canListUsers(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST, entity: Entity.USERS,
+        module: MODULE_NAME, method: 'getUsers'
+      });
+    }
+    // Filter
+    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
+    // Check component
+    if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+        Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
+    }
+    if (filteredRequest.NotAssignedToCarID) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
+    }
+    // Get users
+    const users = await UserStorage.getUsers(req.user.tenantID,
+      {
+        search: filteredRequest.Search,
+        issuer: filteredRequest.Issuer,
+        withTag: filteredRequest.WithTag,
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
+        statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
+        excludeSiteID: filteredRequest.ExcludeSiteID,
+        excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
+        includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
+        notAssignedToCarID: filteredRequest.NotAssignedToCarID,
+        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      }
+    );
+    // Filter
+    UserSecurity.filterUsersResponse(users, req.user);
+    return users;
   }
 }

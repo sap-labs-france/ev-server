@@ -71,7 +71,7 @@ export default class TransactionSecurity {
   }
 
   public static filterTransactionsRequest(request: any): HttpTransactionsRequest {
-    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
+    const filteredRequest = {} as HttpTransactionsRequest;
     // Handle picture
     if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
