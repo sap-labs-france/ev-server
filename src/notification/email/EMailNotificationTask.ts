@@ -6,12 +6,12 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
+import { SMTPClient } from 'emailjs';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import ejs from 'ejs';
-import email from 'emailjs';
 import fs from 'fs';
 import global from '../../types/GlobalType';
 
@@ -24,7 +24,7 @@ export default class EMailNotificationTask implements NotificationTask {
 
   constructor() {
     // Connect the SMTP server
-    this.server = email.server.connect({
+    this.server = new SMTPClient({
       user: this.emailConfig.smtp.user,
       password: this.emailConfig.smtp.password,
       host: this.emailConfig.smtp.host,
@@ -34,7 +34,7 @@ export default class EMailNotificationTask implements NotificationTask {
     });
     // Connect the SMTP Backup server
     if (this.emailConfig.smtpBackup) {
-      this.serverBackup = email.server.connect({
+      this.serverBackup = new SMTPClient({
         user: this.emailConfig.smtpBackup.user,
         password: this.emailConfig.smtpBackup.password,
         host: this.emailConfig.smtpBackup.host,
@@ -149,7 +149,7 @@ export default class EMailNotificationTask implements NotificationTask {
     // Send the message and get a callback with an error or details of the message that was sent
     return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, async (err, messageSent) => {
       if (err) {
-        // If authentifcation error in the primary email server then notify admins using the backup server
+        // If authentication error in the primary email server then notify admins using the backup server
         if (!retry && this.serverBackup) {
           NotificationHandler.sendSmtpAuthError(
             tenant.id,

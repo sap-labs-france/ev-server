@@ -1,4 +1,4 @@
-import { HttpEndUserErrorNotificationRequest, HttpNotificationRequest } from '../../../../types/requests/HttpNotificationRequest';
+import { HttpEndUserReportErrorRequest, HttpNotificationRequest } from '../../../../types/requests/HttpNotificationRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
@@ -19,11 +19,11 @@ export default class NotificationSecurity {
     return filteredRequest;
   }
 
-  static filterEndUserErrorNotificationRequest(request: any): HttpEndUserErrorNotificationRequest {
-    const filteredRequest: HttpEndUserErrorNotificationRequest = {
-      errorTitle:  sanitize(request.errorTitle),
-      errorDescription: sanitize(request.errorDescription),
-      phone: sanitize(request.phone),
+  static filterEndUserReportErrorRequest(request: any): HttpEndUserReportErrorRequest {
+    const filteredRequest: HttpEndUserReportErrorRequest = {
+      subject:  sanitize(request.subject),
+      description: sanitize(request.description),
+      mobile: sanitize(request.mobile),
     };
     return filteredRequest;
   }

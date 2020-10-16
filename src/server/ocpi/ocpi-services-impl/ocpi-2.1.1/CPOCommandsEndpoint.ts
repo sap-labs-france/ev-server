@@ -97,7 +97,6 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-
     let chargingStation: ChargingStation;
     let connector: Connector;
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
@@ -114,7 +113,6 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         });
       }
     }
-
     if (!chargingStation) {
       Logging.logDebug({
         tenantID: tenant.id,
@@ -154,7 +152,8 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!chargingStation.remoteAuthorizations) {
       chargingStation.remoteAuthorizations = [];
     }
-    const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find((authorization) => authorization.connectorId === connector.connectorId);
+    const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find(
+      (authorization) => authorization.connectorId === connector.connectorId);
     if (existingAuthorization) {
       if (OCPIUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
         Logging.logDebug({
@@ -179,9 +178,12 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         }
       );
     }
+    // Save Auth
     await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+    // Start the transaction
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint);
+    // Ok
     return this.getOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
 
@@ -229,7 +231,6 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
     if (!chargingStation) {
       Logging.logDebug({
@@ -243,7 +244,6 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.remoteStopTransaction(tenant, chargingStation, transaction.id, stopSession, ocpiEndpoint);
-
     return this.getOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
 
@@ -279,12 +279,10 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!chargingStationClient) {
       return;
     }
-
     const result = await chargingStationClient.remoteStartTransaction({
       connectorId: connector.connectorId,
       idTag: startSession.token.uid
     });
-
     if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_START_SESSION, startSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
     } else {

@@ -6,8 +6,8 @@ export interface HttpNotificationRequest extends HttpDatabaseRequest {
   Channel: string;
 }
 
-export interface HttpEndUserErrorNotificationRequest {
-  errorTitle: string;
-  errorDescription: string;
-  phone: string;
+export interface HttpEndUserReportErrorRequest {
+  subject: string;
+  description: string;
+  mobile: string;
 }

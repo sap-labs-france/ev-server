@@ -552,7 +552,7 @@ export default class SiteAreaService {
     siteArea.lastChangedOn = new Date();
     // Update Site Area
     await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
-    // Regtrigger Smart Charging
+    // Retrigger Smart Charging
     if (filteredRequest.smartCharging) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-undef
       setTimeout(async () => {

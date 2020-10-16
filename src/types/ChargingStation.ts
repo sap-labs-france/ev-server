@@ -275,8 +275,9 @@ export interface ChargingStationOcppParameters {
 
 export interface OcppParameter {
   key: string;
-  value: string;
+  value?: string;
   readonly: boolean;
+  custom?: boolean;
 }
 
 export type OCPPParams = {

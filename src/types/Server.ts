@@ -2,9 +2,9 @@
 export enum ServerAction {
   LOGIN = 'Login',
   LOGOUT = 'Logout',
+  PASSWORD_RESET = 'Reset',
   PING = 'Ping',
   CHECK_CONNECTION = 'CheckConnection',
-  RESET = 'Reset',
 
   CHARGING_STATION_RESET = 'ChargingStationReset',
   CHARGING_STATION_REQUEST_OCPP_PARAMETERS = 'ChargingStationRequestOcppParameters',
@@ -88,7 +88,7 @@ export enum ServerAction {
 
   REMOTE_PUSH_NOTIFICATION = 'RemotePushNotification',
   EMAIL_NOTIFICATION = 'EmailNotification',
-  END_USER_ERROR_NOTIFICATION = 'EndUserErrorNotification',
+  END_USER_REPORT_ERROR = 'EndUserReportError',
 
   SYNCHRONIZE_REFUND = 'RefundSynchronize',
 

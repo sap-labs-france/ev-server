@@ -210,8 +210,8 @@ export default class CpoOCPIClient extends OCPIClient {
       siteID = chargingStation.siteArea.siteID;
     }
     const site: Site = await SiteStorage.getSite(this.tenant.id, siteID);
-    const ocpiLocation: OCPILocation = OCPIMapping.convertChargingStationToOCPILocation(
-      site, chargingStation, transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
+    const ocpiLocation: OCPILocation = OCPIMapping.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
+      transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession =
     {

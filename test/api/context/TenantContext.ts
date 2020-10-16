@@ -6,6 +6,8 @@ import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPService from '../ocpp/OCPPService';
 import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
+import RegistrationToken from '../../types/RegistrationToken';
+import SiteArea from '../../types/SiteArea';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
 import Tenant from '../../types/Tenant';
@@ -44,12 +46,12 @@ export default class TenantContext {
     };
   }
 
-  async initialize(token: string = null) {
-    if (!token) {
-      token = await this.createRegistrationToken();
+  async initialize(tokenID: string = null, siteAreaID: string = null) {
+    if (!tokenID) {
+      tokenID = await this.createRegistrationToken(siteAreaID);
     }
-    this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}/${token}`, this.ocppRequestHandler);
-    this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}%26Token=${token}`);
+    this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}/${tokenID}`, this.ocppRequestHandler);
+    this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}%26Token=${tokenID}`);
   }
 
   getTenant() {
@@ -63,6 +65,25 @@ export default class TenantContext {
   getUserCentralServerService(params) {
     const user = this.getUserContext(params);
     return user.centralServerService;
+  }
+
+  async getOCPPServiceForContextCreation(ocppVersion: string, siteAreaID: string = null): Promise<OCPPService> {
+    let registrationToken = null;
+    if (siteAreaID) {
+      registrationToken = await this.getRegistrationToken(siteAreaID);
+    }
+    if (!registrationToken) {
+      await this.initialize(null, siteAreaID);
+    }
+    if (registrationToken) {
+      await this.initialize(registrationToken.id);
+    }
+    if (ocppVersion === OCPPVersion.VERSION_16) {
+      return this.ocpp16;
+    } else if (ocppVersion === OCPPVersion.VERSION_15) {
+      return this.ocpp15;
+    }
+    throw new Error('unknown ocpp version');
   }
 
   async getOCPPService(ocppVersion: string, token: string = null): Promise<OCPPService> {
@@ -244,8 +265,8 @@ export default class TenantContext {
 
   async createChargingStation(ocppVersion, chargingStation = Factory.chargingStation.build({
     id: faker.random.alphaNumeric(12)
-  }), connectorsDef = null, siteArea = null) {
-    const ocppService = await this.getOCPPService(ocppVersion);
+  }), connectorsDef = null, siteArea: SiteArea = null) {
+    const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
     const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
     // Check
     expect(response).to.not.be.null;
@@ -283,12 +304,28 @@ export default class TenantContext {
       `Connector ID 1 of charging station ${createdChargingStation.id} must have 96 A`);
     expect(createdChargingStation.connectors[0].type).to.eql('T2',
       `Connector ID 1 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    if (siteArea) {
+      expect(createdChargingStation.connectors[0].phaseAssignmentToGrid).to.eql({
+        'csPhaseL1': 'L1',
+        'csPhaseL2': 'L2',
+        'csPhaseL3': 'L3',
+      },
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    }
     expect(createdChargingStation.connectors[1].power).to.eql(22080,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 22080 W`);
     expect(createdChargingStation.connectors[1].amperage).to.eql(96,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 96 A`);
     expect(createdChargingStation.connectors[1].type).to.eql('T2',
       `Connector ID 2 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    if (siteArea) {
+      expect(createdChargingStation.connectors[1].phaseAssignmentToGrid).to.eql({
+        'csPhaseL1': 'L1',
+        'csPhaseL2': 'L2',
+        'csPhaseL3': 'L3',
+      },
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    }
     // Charge Points
     expect(createdChargingStation.chargePoints.length).to.eql(1,
       `Number of charge point of charging station ${createdChargingStation.id} must be 1`);
@@ -303,12 +340,6 @@ export default class TenantContext {
       `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot be excluded from power limitation`);
     expect(createdChargingStation.chargePoints[0].ocppParamForPowerLimitation).to.eql('maxintensitysocket',
       `Charge Point ID 1 of charging station ${createdChargingStation.id} must have OCPP param 'maxintensitysocket'`);
-    // Assign to Site Area
-    if (siteArea) {
-      createdChargingStation.siteAreaID = siteArea.id;
-      await this.getAdminCentralServerService().updateEntity(
-        this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
-    }
     const createdCS = new ChargingStationContext(createdChargingStation, this);
     await createdCS.initialize();
     this.context.createdChargingStations.push(createdCS);
@@ -317,8 +348,8 @@ export default class TenantContext {
 
   async createSinglePhasedChargingStation(ocppVersion, chargingStation = Factory.chargingStation.buildChargingStationSinglePhased({
     id: faker.random.alphaNumeric(12)
-  }), connectorsDef = null, siteArea = null) {
-    const ocppService = await this.getOCPPService(ocppVersion);
+  }), connectorsDef = null, siteArea: SiteArea = null) {
+    const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
     const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
     // Check
     expect(response).to.not.be.null;
@@ -356,12 +387,34 @@ export default class TenantContext {
       `Connector ID 1 of charging station ${createdChargingStation.id} must have 32 A`);
     expect(createdChargingStation.connectors[0].type).to.eql('T2',
       `Connector ID 1 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    if (siteArea?.numberOfPhases === 3) {
+      expect(createdChargingStation.connectors[0].phaseAssignmentToGrid).to.eql({
+        'csPhaseL1': 'L1',
+        'csPhaseL2': null,
+        'csPhaseL3': null,
+      },
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    } else {
+      expect(createdChargingStation.connectors[0].phaseAssignmentToGrid).to.eql(null,
+        `Connector ID 1 of charging station ${createdChargingStation.id} must not have phase assignment to grid`);
+    }
     expect(createdChargingStation.connectors[1].power).to.eql(7360,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 7360 W`);
     expect(createdChargingStation.connectors[1].amperage).to.eql(32,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 32 A`);
     expect(createdChargingStation.connectors[1].type).to.eql('T2',
       `Connector ID 2 of charging station ${createdChargingStation.id} must have Type 2 connector`);
+    if (siteArea?.numberOfPhases === 3) {
+      expect(createdChargingStation.connectors[1].phaseAssignmentToGrid).to.eql({
+        'csPhaseL1': 'L1',
+        'csPhaseL2': null,
+        'csPhaseL3': null,
+      },
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    } else {
+      expect(createdChargingStation.connectors[1].phaseAssignmentToGrid).to.eql(null,
+        `Connector ID 2 of charging station ${createdChargingStation.id} must not have phase assignment to grid`);
+    }
     // Charge Points
     expect(createdChargingStation.chargePoints.length).to.eql(1,
       `Number of charge point of charging station ${createdChargingStation.id} must be 1`);
@@ -376,12 +429,6 @@ export default class TenantContext {
       `Charge Point ID 1 of charging station ${createdChargingStation.id} cannot be excluded from power limitation`);
     expect(createdChargingStation.chargePoints[0].ocppParamForPowerLimitation).to.eql('maxintensitysocket',
       `Charge Point ID 1 of charging station ${createdChargingStation.id} must have OCPP param 'maxintensitysocket'`);
-    // Assign to Site Area
-    if (siteArea) {
-      createdChargingStation.siteAreaID = siteArea.id;
-      await this.getAdminCentralServerService().updateEntity(
-        this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
-    }
     const createdCS = new ChargingStationContext(createdChargingStation, this);
     await createdCS.initialize();
     this.context.createdChargingStations.push(createdCS);
@@ -391,7 +438,7 @@ export default class TenantContext {
   async createChargingStationDC(ocppVersion, chargingStation = Factory.chargingStation.build({
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea = null) {
-    const ocppService = await this.getOCPPService(ocppVersion);
+    const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
     const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
     // Check
     expect(response).to.not.be.null;
@@ -429,12 +476,28 @@ export default class TenantContext {
     //   `Connector ID 1 of charging station ${createdChargingStation.id} must have 654 A`);
     expect(createdChargingStation.connectors[0].type).to.eql('CCS',
       `Connector ID 1 of charging station ${createdChargingStation.id} must have CCS connector`);
+    if (siteArea) {
+      expect(createdChargingStation.connectors[0].phaseAssignmentToGrid).to.eql({
+        'csPhaseL1': 'L1',
+        'csPhaseL2': 'L2',
+        'csPhaseL3': 'L3',
+      },
+      `Connector ID 1 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    }
     expect(createdChargingStation.connectors[1].power).to.eql(150000,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 150000 W`);
     // Expect(createdChargingStation.connectors[1].amperage).to.eql(654,
     //   `Connector ID 2 of charging station ${createdChargingStation.id} must have 654 A`);
     expect(createdChargingStation.connectors[1].type).to.eql('CCS',
       `Connector ID 2 of charging station ${createdChargingStation.id} must have CCS connector`);
+    if (siteArea) {
+      expect(createdChargingStation.connectors[1].phaseAssignmentToGrid).to.eql({
+        'csPhaseL1': 'L1',
+        'csPhaseL2': 'L2',
+        'csPhaseL3': 'L3',
+      },
+      `Connector ID 2 of charging station ${createdChargingStation.id} must have default phase assignment`);
+    }
     // Charge Points
     expect(createdChargingStation.chargePoints.length).to.eql(1,
       `Number of charge point of charging station ${createdChargingStation.id} must be 1`);
@@ -451,12 +514,6 @@ export default class TenantContext {
       `Charge Point ID 1 of charging station ${createdChargingStation.id} must have OCPP param 'Device/GridCurrent'`);
     expect(createdChargingStation.chargePoints[0].efficiency).to.eql(95,
       `Charge Point ID 1 of charging station ${createdChargingStation.id} must have efficiency 95`);
-    // Assign to Site Area
-    if (siteArea) {
-      createdChargingStation.siteAreaID = siteArea.id;
-      await this.getAdminCentralServerService().updateEntity(
-        this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
-    }
     const createdCS = new ChargingStationContext(createdChargingStation, this);
     await createdCS.initialize();
     this.context.createdChargingStations.push(createdCS);
@@ -472,6 +529,17 @@ export default class TenantContext {
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;
     return registrationTokenResponse.data.id;
+  }
+
+  async getRegistrationToken(siteAreaID: string): Promise<RegistrationToken> {
+    const registrationTokenResponse = await this.centralAdminServerService.registrationApi.readAll({ siteAreaID: siteAreaID });
+    expect(registrationTokenResponse.status).eq(200);
+    expect(registrationTokenResponse.data).not.null;
+    expect(registrationTokenResponse.data.id).not.null;
+    if (registrationTokenResponse.data.result.length !== 0) {
+      return registrationTokenResponse.data.result[0];
+    }
+    return null;
   }
 
   findSiteContextFromSiteArea(siteArea) {

@@ -8,12 +8,13 @@ general:
 stages:
 
   Central Build:
-    sonarExecuteScan: false
+    executeSonarScan: false
+    sonarExecuteScan: true
 
   IPScan and PPMS:
-    whitesourceProductName: 'SHC - SAP E-Mobility Backend'
-    whitesourceProjectNames: ['e-Mobility Backend - 1'] # needed for automation of mapping requests # TODO
-    whitesourceProductToken: '6c3a521684eb454b9da2ca82b8383fe644230f1755684f4ea03ad3b28c3668e5'
+    whitesourceProductName: 'SHC - SAP E-MOBILITY BACKEND 1.0'
+    whitesourceProjectNames: ['SAP E-MOBILITY BACKEND 1.0'] # needed for automation of mapping requests # TODO
+    whitesourceProductToken: '1bc6180baace4de497ac4fcf27264aad435caf91baf648bab8171559467f4f49'
     whitesourceUserTokenCredentialsId : 'whitesourceUserTokenEmobility'
     executeWhitesourceScan: true
     sapCheckPPMSCompliance: true
@@ -21,6 +22,11 @@ stages:
     
   Additional Unit Tests:
     karmaExecuteTests: false
+    
+  Security:
+    executeCheckmarxScan: true
+    checkmarxExecuteScan: false
+    executeWhitesourceScan: false
 
 steps:
 
@@ -31,9 +37,13 @@ steps:
     scanType: npm
    
   executeCheckmarxScan:
+  #checkmarxExecuteScan:
     checkmarxProject: 'ev-server'
+    #projectName: 'ev-server'
     #checkmarxGroupId: 'd7374377-1bb0-402e-ae37-88995b5c1d2c'
+    checkmarxGroupId: '29091a00-0dbc-4d06-b78b-32ab0ef54cdc'
     #preset: 100126 # SAP_Default_SAPUI5_NodeJS
+    preset: 100131 #SAP_Default_Typescript
     checkmarxCredentialsId: 'checkmarx-i030367-access'
     filterPattern: '!**/node_modules/**, !**/coverage/**, !**/coverage-tmp/**, !**/.xmake/**, !**/tests/**, !**/jest.config.js, !**/*_test.go, !**/vendor/**/*.go, **/*.html, **/*.xml, **/*.go, **/*.py, **/*.js, **/*.scala, **/*.ts, **/*.tsx'
       

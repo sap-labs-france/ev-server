@@ -8,6 +8,7 @@ import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
+import NotificationHandler from '../notification/NotificationHandler';
 import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/service/SessionHashService';
@@ -645,7 +646,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
-  public static canSendEndUserErrorNotification(loggedUser: UserToken): boolean {
+  public static canEndUserReportError(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
   }
 
@@ -729,10 +730,23 @@ export default class Authorizations {
         description: `Badged on '${chargingStation.id}'`,
         issuer: true,
         active: false,
-        createdOn: new Date()
+        createdOn: new Date(),
+        default: false
       } as Tag;
       // Save
       await UserStorage.saveTag(tenantID, tag);
+      // Notify (Async)
+      NotificationHandler.sendUnknownUserBadged(
+        tenantID,
+        Utils.generateGUID(),
+        chargingStation,
+        {
+          chargeBoxID: chargingStation.id,
+          badgeID: tagID,
+          evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
+          evseDashboardTagURL: await Utils.buildEvseTagURL(tenantID, tag)
+        }
+      ).catch(() => { });
       // Log
       Logging.logWarning({
         tenantID: tenantID,
@@ -765,7 +779,9 @@ export default class Authorizations {
       });
     }
     // Check User
-    const user = await UserStorage.getUser(tenantID, tag.user.id, { withTag: true });
+    const user = await UserStorage.getUser(tenantID, tag.user.id);
+    // Repush the tag in user
+    user.tags = [tag];
     // User status
     if (user.status !== UserStatus.ACTIVE) {
       // Reject but save ok

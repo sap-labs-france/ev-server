@@ -17,7 +17,7 @@ import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TenantValidator from '../validation/TenantValidation';
+import TenantValidator from '../validator/TenantValidation';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -152,7 +152,7 @@ export default class TenantService {
 
   public static async handleCreateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantCreation(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -243,7 +243,7 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    const tenantUpdate = TenantValidator.getInstance().validateTenantUpdate(req.body);
+    const tenantUpdate = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({

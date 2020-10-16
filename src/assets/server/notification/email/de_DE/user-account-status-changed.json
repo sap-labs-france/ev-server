@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hallo <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Ihr Account wurde von einem Administrator <b><%- (user.status === 'A' ? 'aktiviert' : 'ausgesetzt'); %></b>."
+      "Ihr Account wurde von einem Administrator <strong><%- (user.status === 'A' ? 'aktiviert' : 'ausgesetzt'); %></strong>."
     ],
     "action": {
       "title": "e-Mobility",

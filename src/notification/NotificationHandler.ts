@@ -837,7 +837,7 @@ export default class NotificationHandler {
             try {
               // Save
               await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, null, ServerAction.END_USER_ERROR_NOTIFICATION, {
+                tenantID, notificationSource.channel, null, ServerAction.END_USER_REPORT_ERROR, {
                   notificationData: {
                     'userID': sourceData.userID,
                   }
@@ -851,7 +851,7 @@ export default class NotificationHandler {
                 }
               }
             } catch (error) {
-              Logging.logActionExceptionMessage(tenantID, ServerAction.END_USER_ERROR_NOTIFICATION, error);
+              Logging.logActionExceptionMessage(tenantID, ServerAction.END_USER_REPORT_ERROR, error);
             }
           }
         }
