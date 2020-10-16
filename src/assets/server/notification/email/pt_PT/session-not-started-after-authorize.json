@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Session Not Started",
+  "subject": "'<%- chargeBoxID %>' - Sessão não iniciada",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Session Not Started",
+      "title": "Sessão não iniciada",
       "image": {
         "left": {
           "height": 60,
@@ -17,9 +17,9 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Olá <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "You badged on the charging station <b>'<%- chargeBoxID %>'</b> but no session has been started.",
+      "Você colocou o badge na estação de carregamento <b> '<%- chargeBoxID %>' </b>, mas não foi iniciada nenhuma sessão.",
       ""
     ],
     "action": {
@@ -27,7 +27,7 @@
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Com os melhores cumprimntos,",
       "EV Admins."
     ],
     "footer": {

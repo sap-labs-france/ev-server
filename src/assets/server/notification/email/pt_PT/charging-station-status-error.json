@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Connector '<%- connectorId %>' - '<%- error %>'",
+  "subject": "'<%- chargeBoxID %>' - Conector '<%- connectorId %>' - '<%- error %>'",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charging Station Error",
+      "title": "Erro na estação de carregamento",
       "image": {
         "left": {
           "height": 60,
@@ -17,16 +17,16 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Caro Administrador,",
       "",
-      "Error occurred on <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b>: <b><%- error %></b>."
+      "Ocorreu um erro em <b> '<%- chargeBoxID %>' </b>, conector <b> '<%- connectorId %>' </b>: <b> <%- error %> </b>."
     ],
     "action": {
-      "title": "View Error",
+      "title": "Ver Erros",
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Com os melhores cumprimentos,",
       "EV Admins."
     ],
     "footer": {

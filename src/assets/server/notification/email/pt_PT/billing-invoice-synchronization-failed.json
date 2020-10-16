@@ -1,10 +1,10 @@
 {
-  "subject": "Billing - Invoice Synchronization Failed",
+  "subject": "Faturação - Falha na sincronização da fatura",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Billing - Invoice Synchronization Failed",
+      "title": "Faturação - Falha na sincronização da fatura",
       "image": {
         "left": {
           "height": 60,
@@ -17,16 +17,16 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Caro Administrador,",
       "",
-      "Unable to synchronize <%- nbrInvoicesInError %> invoices(s) with Billing service provider."
+      "Não foi possível sincronizar <%- nbrInvoicesInError %> faturas com o provedor de serviços de cobrança."
     ],
     "action": {
       "title": "View Settings",
       "url": "<%- evseDashboardBillingURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Melhores Cumprimentos,",
       "EV Admins."
     ],
     "footer": {

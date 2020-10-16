@@ -1,10 +1,10 @@
 {
-  "subject": "Session Finished",
+  "subject": "Sessão Terminada",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Session Finished",
+      "title": "Sessão Terminada",
       "image": {
         "left": {
           "height": 60,
@@ -17,24 +17,24 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Olá <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your session on the charging station <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b> has just finished."
+      "Sua sessão na estação de carregamento <b> '<%- chargeBoxID %>' </b>, conector <b> '<%- connectorId %>' </b> acabou de terminar."
     ],
     "stats": [
-      { "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
-      { "label": "Total Duration", "value": "<%- totalDuration %>" },
-      { "label": "Total Inactivity", "value": "<%- totalInactivity %>" },
-      { "label": "Battery Level", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
+      { "label": "Consumo", "value": "<%- totalConsumption %> kW.h" },
+      { "label": "Duração Total", "value": "<%- totalDuration %>" },
+      { "label": "Tempo Total de Inatividade", "value": "<%- totalInactivity %>" },
+      { "label": "Nível de Bateria", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
     "action": {
-      "title": "View Session",
+      "title": "Ver Sessões",
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
-      "<%- (alternateUser ? 'The user <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> has stopped your session.' : '') %>",
+      "<%- (alternateUser ? 'O utilizador <b> '+ (alternateUser.firstName? AlternateUser.name +' '+ alternateUser.firstName: alternateUser.name) +' </b> interrompeu a sua sessão.' : '') %>",
       "",
-      "Best Regards,",
+      "Com os melhores cumprimentos,",
       "EV Admins."
     ],
     "footer": {

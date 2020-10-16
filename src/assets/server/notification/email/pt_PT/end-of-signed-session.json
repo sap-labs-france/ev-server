@@ -1,19 +1,19 @@
 {
-  "subject": "Session Finished - Signed Session",
+  "subject": "Sessão concluída - Sessão assinada",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "stats": [
-      { "label": "Charger", "value": "<%- chargeBoxID %>" },
-      { "label": "Connector", "value": "<%- connectorId %>" },
+      { "label": "Carregador", "value": "<%- chargeBoxID %>" },
+      { "label": "Conector", "value": "<%- connectorId %>" },
       { "label": "Badge ID", "value": "<%- tagId %>" },
-      { "label": "Start time", "value": "<%- startDate %>" },
-      { "label": "End time", "value": "<%- endDate %>" },
-      { "label": "Start counter", "value": "<%- meterStart %> kWh" },
-      { "label": "Start counter", "value": "<%- meterStop %> kWh" },
-      { "label": "Consumption", "value": "<%- totalConsumption %> kWh" },
-      { "label": "Cost", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informativ)" },
-      { "label": "Contract for", "value":"LOCAL (informativ)" }
+      { "label": "Data de Inicio", "value": "<%- startDate %>" },
+      { "label": "Data de Fim", "value": "<%- endDate %>" },
+      { "label": "Iniciar Contador", "value": "<%- meterStart %> kWh" },
+      { "label": "Iniciar Contador", "value": "<%- meterStop %> kWh" },
+      { "label": "Consumo", "value": "<%- totalConsumption %> kWh" },
+      { "label": "Custo", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informativ)" },
+      { "label": "Contratado para", "value":"LOCAL (informativ)" }
     ],
     "transactionId": "<%- transactionId %>",
     "startSignedData": "<%- startSignedData %>",

@@ -1,10 +1,10 @@
 {
-  "subject": "User Account Inactivity",
+  "subject": "Conta de utilizador sem atividade",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "User Account Inactivity",
+      "title": "Conta de utilizador sem atividade",
       "image": {
         "left": {
           "height": 60,
@@ -17,20 +17,20 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Ola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "You haven't logged in to the e-Mobility application since <%- lastLogin %>.",
+      "Você não efetuou nenhum login na aplicação e-Mobility desde <%- lastLogin %>.",
       "",
-      "Please be aware that in order to comply with the general data protection regulation, your account might be made inactive by an administrator and eventually deleted.",
+      "Esteja ciente de que, para cumprir o regulamento geral de proteção de dados, sua conta pode ser desativada por um administrador e eventualmente excluída.",
       "",
-      "Please login to your account and be aware of the latest end-user license agreement."
+      "Faça login em sua conta e esteja ciente do contrato de licença de utilizador final mais recente."
     ],
     "action": {
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Com os melhores cumprimentos,",
       "EV Admins."
     ],
     "footer": {
