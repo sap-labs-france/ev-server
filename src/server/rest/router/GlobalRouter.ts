@@ -1,22 +1,40 @@
+import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
-import { authRouter } from './auth/AuthRouter';
+import SwaggerRouter from './doc/SwaggerRouter';
+import TenantRouter from './api/TenantRouter';
+import UtilRouter from './util/UtilRouter';
 import express from 'express';
-import { swaggerRouter } from './doc/SwaggerRouter';
-import { tenantRouter } from './api/TenantRouter';
-import { utilRouter } from './util/UtilRouter';
 
-export const globalRouter = express.Router();
+export default class GlobalRouter {
+  private router: express.Router;
 
-// API version 1 top level routes
+  public constructor() {
+    this.router = express.Router();
+  }
 
-// Protected API
-globalRouter.use('/v1/api', AuthService.authenticate(), tenantRouter);
+  public buildRoutes(): express.Router {
+    this.buildRouteAuth();
+    this.buildRouteAPI();
+    this.buildRouteUtil();
+    this.buildRouteDocs();
+    return this.router;
+  }
 
-// Auth
-globalRouter.use('/v1/auth', authRouter);
+  protected buildRouteAuth(): void {
+    this.router.use('/auth', new AuthRouter().buildRoutes());
+  }
 
-// Util
-globalRouter.use('/v1/util', utilRouter);
+  protected buildRouteAPI(): void {
+    this.router.use('/api', AuthService.authenticate(), [
+      new TenantRouter().buildRoutes()
+    ]);
+  }
 
-// Docs
-globalRouter.use('/v1/docs', swaggerRouter);
+  protected buildRouteUtil(): void {
+    this.router.use('/util', new UtilRouter().buildRoutes());
+  }
+
+  protected buildRouteDocs(): void {
+    this.router.use('/docs', new SwaggerRouter().buildRoutes());
+  }
+}

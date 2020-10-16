@@ -3,15 +3,22 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 import swaggerUi from 'swagger-ui-express';
 
-export const swaggerRouter = express.Router();
-
 const options = {
   explorer: false
 };
 
-const oasDocument = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/docs/open-api-standard.json`, 'utf8'));
+export default class SwaggerRouter {
+  private router: express.Router;
 
-swaggerRouter.use('/', swaggerUi.serve);
+  public constructor() {
+    this.router = express.Router();
+  }
 
-swaggerRouter.get('/', swaggerUi.setup(oasDocument, options));
+  public buildRoutes(): express.Router {
+    const oasDocument = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/docs/open-api-standard.json`, 'utf8'));
+    this.router.use('/', swaggerUi.serve);
+    this.router.get('/', swaggerUi.setup(oasDocument, options));
+    return this.router;
+  }
+}
 
