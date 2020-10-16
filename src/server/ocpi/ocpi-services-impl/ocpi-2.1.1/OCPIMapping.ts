@@ -8,7 +8,6 @@ import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/
 import { PricingSettings, PricingSettingsType, SimplePricingSetting } from '../../../../types/Setting';
 
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
@@ -315,7 +314,7 @@ export default class OCPIMapping {
         evse_id: evseID,
         status: OCPIMapping.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-        connectors: [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID)],
+        connectors: [OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, evseID)],
         last_updated: chargingStation.lastHeartBeat,
         coordinates: {
           latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1] : null,
@@ -343,7 +342,7 @@ export default class OCPIMapping {
     const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation);
     // Get all connectors
     const connectors = chargingStation.connectors.map(
-      (connector: Connector) => OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID));
+      (connector: Connector) => OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, evseID));
     // Build evse
     const evse: OCPIEvse = {
       uid: OCPIUtils.buildEvseUID(chargingStation),
@@ -364,13 +363,13 @@ export default class OCPIMapping {
     return [evse];
   }
 
-  static convertChargingStationToOCPILocation(site: Site, chargingStation: ChargingStation, connectorId: number, countryId: string, partyId: string): OCPILocation {
+  static convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation, connectorId: number, countryId: string, partyId: string): OCPILocation {
     const evseID = OCPIUtils.buildEvseID(countryId, partyId, chargingStation);
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
     for (const chargingStationConnector of chargingStation.connectors) {
       if (chargingStationConnector.connectorId === connectorId) {
-        connectors.push(OCPIMapping.convertConnector2OCPIConnector(chargingStation, chargingStationConnector, evseID));
+        connectors.push(OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, chargingStationConnector, evseID));
         status = chargingStationConnector.status;
         break;
       }
@@ -427,14 +426,7 @@ export default class OCPIMapping {
     return statusesOrdered[aggregatedConnectorStatusIndex];
   }
 
-  /**
-   * Converter Connector to OCPI Connector
-   * @param {ChargingStation} chargingStation
-   * @param connector
-   * @param evseID pass evse ID in order to build connector id (specs for Gireve)
-   * @param {*} connector
-   */
-  static convertConnector2OCPIConnector(chargingStation: ChargingStation, connector: Connector, evseID: string): OCPIConnector {
+  static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, evseID: string): OCPIConnector {
     let type, format;
     switch (connector.type) {
       case 'C':
@@ -468,10 +460,24 @@ export default class OCPIMapping {
       voltage: voltage,
       amperage: amperage,
       power_type: OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
-      // FIXME: add tariff id from the simple pricing settings remapping
-      tariff_id: '1',
+      tariff_id: OCPIMapping.buildTariffID(tenant),
       last_updated: chargingStation.lastHeartBeat
     };
+  }
+
+  // FIXME: add tariff id from the simple pricing settings remapping
+  // TODO: Implement the tariff module under dev in Gireve
+  static buildTariffID(tenant: Tenant): string {
+    switch (tenant?.id) {
+      // SLF
+      case '5be7fb271014d90008992f06':
+        return 'FR*SLF_AC_Sud2';
+      // Proviridis
+      case '5e2701b248aaa90007904cca':
+        return '1';
+      default:
+        return '';
+    }
   }
 
   /**
