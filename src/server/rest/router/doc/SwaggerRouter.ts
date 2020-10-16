@@ -1,5 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
-
+import express from 'express';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 import swaggerUi from 'swagger-ui-express';

@@ -369,4 +369,12 @@ export enum ServerAction {
   HTTP_REQUEST = 'HttpRequest',
   HTTP_RESPONSE = 'HttpResponse',
   HTTP_ERROR = 'HttpError',
+
+  // RESTful API
+  SIGNIN = 'signin',
+  SIGNON = 'signon',
+  SIGNOUT = 'signout',
+  REST_PASSWORD_RESET = 'passwordreset',
+  REST_PING = 'ping',
+  REST_TENANTS = 'tenants'
 }

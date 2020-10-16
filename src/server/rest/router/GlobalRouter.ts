@@ -7,7 +7,9 @@ import { utilRouter } from './util/UtilRouter';
 
 export const globalRouter = express.Router();
 
-// API
+// API version 1 top level routes
+
+// Protected API
 globalRouter.use('/v1/api', AuthService.authenticate(), tenantRouter);
 
 // Auth
