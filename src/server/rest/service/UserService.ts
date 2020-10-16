@@ -11,6 +11,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
 import { DataResult } from '../../../types/DataResult';
 import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../utils/I18nManager';
@@ -1361,25 +1362,22 @@ export default class UserService {
     let csv = '';
     // Header
     if (writeHeader) {
-      csv = `ID${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}First Name${Constants.CSV_SEPARATOR}Role${Constants.CSV_SEPARATOR}Status${Constants.CSV_SEPARATOR}Email${Constants.CSV_SEPARATOR}Badges${Constants.CSV_SEPARATOR}EULA Accepted On${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Changed On${Constants.CSV_SEPARATOR}Changed By\r\n`;
+      csv = `ID${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}First Name${Constants.CSV_SEPARATOR}Role${Constants.CSV_SEPARATOR}Status${Constants.CSV_SEPARATOR}Email${Constants.CSV_SEPARATOR}Nbr Badges${Constants.CSV_SEPARATOR}Badges${Constants.CSV_SEPARATOR}EULA Accepted On${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Changed On${Constants.CSV_SEPARATOR}Changed By\r\n`;
     }
     // Content
     for (const user of users) {
-      csv += `${user.id}` + Constants.CSV_SEPARATOR;
+      csv += `${Cypher.hash(user.id)}` + Constants.CSV_SEPARATOR;
       csv += `${user.name}` + Constants.CSV_SEPARATOR;
       csv += `${user.firstName}` + Constants.CSV_SEPARATOR;
       csv += `${user.role}` + Constants.CSV_SEPARATOR;
       csv += `${user.status}` + Constants.CSV_SEPARATOR;
       csv += `${user.email}` + Constants.CSV_SEPARATOR;
+      csv += `${user.tags ? user.tags.length : 0}` + Constants.CSV_SEPARATOR;
       csv += `${user.tags ? user.tags.map((tag) => tag.id).join(',') : ''}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.eulaAcceptedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.createdOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.lastChangedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      let lastChangedBy = '';
-      if (user.lastChangedBy) {
-        lastChangedBy += `${user.lastChangedBy.name} ${user.lastChangedBy.firstName}`;
-      }
-      csv += `${lastChangedBy}\r\n`;
+      csv += `${user.lastChangedBy ? user.lastChangedBy as string : ''}\r\n`;
     }
     return csv;
   }
