@@ -33,7 +33,6 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import fs from 'fs';
 import moment from 'moment';
 
 const MODULE_NAME = 'TransactionService';

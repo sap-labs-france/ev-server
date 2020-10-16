@@ -707,51 +707,8 @@ export default class UserService {
   }
 
   public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.LIST, entity: Entity.USERS,
-        module: MODULE_NAME, method: 'handleGetUsers'
-      });
-    }
-    // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
-    // Check component
-    if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-        Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
-    }
-    if (filteredRequest.NotAssignedToCarID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
-    }
-    // Get users
-    const users = await UserStorage.getUsers(req.user.tenantID,
-      {
-        search: filteredRequest.Search,
-        issuer: filteredRequest.Issuer,
-        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
-        excludeSiteID: filteredRequest.ExcludeSiteID,
-        excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
-        includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
-        notAssignedToCarID: filteredRequest.NotAssignedToCarID,
-        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
-      },
-      {
-        limit: filteredRequest.Limit,
-        skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
-      }
-    );
-    // Filter
-    UserSecurity.filterUsersResponse(users, req.user);
-    // Ok
-    res.json(users);
+    // Return
+    res.json(await UserService.getUsers(req));
     next();
   }
 
@@ -1400,7 +1357,6 @@ export default class UserService {
   }
 
   private static convertToCSV(loggedUser: UserToken, users: User[], writeHeader = true): string {
-    const i18nManager = new I18nManager(loggedUser.locale);
     let csv = '';
     // Header
     if (writeHeader) {
@@ -1444,6 +1400,15 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterUsersRequest(req.query);
+    // Check component
+    if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+        Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
+    }
+    if (filteredRequest.NotAssignedToCarID) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
+    }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
@@ -1465,6 +1430,8 @@ export default class UserService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       }
     );
+    // Filter
+    UserSecurity.filterUsersResponse(users, req.user);
     return users;
   }
 }
