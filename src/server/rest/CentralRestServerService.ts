@@ -1,28 +1,28 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AssetService from './service/AssetService';
-import BillingService from './service/BillingService';
-import CarService from './service/CarService';
-import ChargingStationService from './service/ChargingStationService';
+import AssetService from './v1/service/AssetService';
+import BillingService from './v1/service/BillingService';
+import CarService from './v1/service/CarService';
+import ChargingStationService from './v1/service/ChargingStationService';
 import { Command } from '../../types/ChargingStation';
-import CompanyService from './service/CompanyService';
-import ConnectionService from './service/ConnectionService';
+import CompanyService from './v1/service/CompanyService';
+import ConnectionService from './v1/service/ConnectionService';
 import Logging from '../../utils/Logging';
-import LoggingService from './service/LoggingService';
-import NotificationService from './service/NotificationService';
-import OCPIEndpointService from './service/OCPIEndpointService';
-import RegistrationTokenService from './service/RegistrationTokenService';
+import LoggingService from './v1/service/LoggingService';
+import NotificationService from './v1/service/NotificationService';
+import OCPIEndpointService from './v1/service/OCPIEndpointService';
+import RegistrationTokenService from './v1/service/RegistrationTokenService';
 import { ServerAction } from '../../types/Server';
-import SessionHashService from './service/SessionHashService';
-import SettingService from './service/SettingService';
-import SiteAreaService from './service/SiteAreaService';
-import SiteService from './service/SiteService';
-import StatisticService from './service/StatisticService';
+import SessionHashService from './v1/service/SessionHashService';
+import SettingService from './v1/service/SettingService';
+import SiteAreaService from './v1/service/SiteAreaService';
+import SiteService from './v1/service/SiteService';
+import StatisticService from './v1/service/StatisticService';
 import { StatusCodes } from 'http-status-codes';
-import TenantService from './service/TenantService';
-import TransactionService from './service/TransactionService';
-import UserService from './service/UserService';
-import UtilsService from './service/UtilsService';
+import TenantService from './v1/service/TenantService';
+import TransactionService from './v1/service/TransactionService';
+import UserService from './v1/service/UserService';
+import UtilsService from './v1/service/UtilsService';
 
 class RequestMapper {
   // eslint-disable-next-line no-undef
