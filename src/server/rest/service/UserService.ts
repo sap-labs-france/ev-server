@@ -656,7 +656,8 @@ export default class UserService {
   }
 
   public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Export
+    // Export with tags
+    req.query['WithTag'] = 'true';
     await UtilsService.exportToCSV(req, res, 'exported-users.csv',
       UserService.getUsers.bind(this), UserService.convertToCSV.bind(this));
   }
@@ -1360,22 +1361,17 @@ export default class UserService {
     let csv = '';
     // Header
     if (writeHeader) {
-      csv = `Name${Constants.CSV_SEPARATOR}First Name${Constants.CSV_SEPARATOR}Role${Constants.CSV_SEPARATOR}Status${Constants.CSV_SEPARATOR}Email${Constants.CSV_SEPARATOR}Badges${Constants.CSV_SEPARATOR}EULA Accepted On${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Changed On${Constants.CSV_SEPARATOR}Changed By\r\n`;
+      csv = `ID${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}First Name${Constants.CSV_SEPARATOR}Role${Constants.CSV_SEPARATOR}Status${Constants.CSV_SEPARATOR}Email${Constants.CSV_SEPARATOR}Badges${Constants.CSV_SEPARATOR}EULA Accepted On${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Changed On${Constants.CSV_SEPARATOR}Changed By\r\n`;
     }
     // Content
     for (const user of users) {
+      csv += `${user.id}` + Constants.CSV_SEPARATOR;
       csv += `${user.name}` + Constants.CSV_SEPARATOR;
       csv += `${user.firstName}` + Constants.CSV_SEPARATOR;
       csv += `${user.role}` + Constants.CSV_SEPARATOR;
       csv += `${user.status}` + Constants.CSV_SEPARATOR;
       csv += `${user.email}` + Constants.CSV_SEPARATOR;
-      let tagsString = '';
-      if (user.tags) {
-        for (const tag of user.tags) {
-          tagsString += `${tag.id} `;
-        }
-      }
-      csv += `${tagsString}` + Constants.CSV_SEPARATOR;
+      csv += `${user.tags ? user.tags.map((tag) => tag.id).join(',') : ''}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.eulaAcceptedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.createdOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.lastChangedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
@@ -1414,6 +1410,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
+        withTag: filteredRequest.WithTag,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
