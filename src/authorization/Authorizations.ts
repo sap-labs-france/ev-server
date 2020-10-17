@@ -738,7 +738,7 @@ export default class Authorizations {
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
         tenantID,
-        Utils.generateGUID(),
+        Utils.generateUUID(),
         chargingStation,
         {
           chargeBoxID: chargingStation.id,

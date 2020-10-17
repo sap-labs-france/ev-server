@@ -507,7 +507,7 @@ export default class UserService {
       // Send notification (Async)
       NotificationHandler.sendUserAccountStatusChanged(
         req.user.tenantID,
-        Utils.generateGUID(),
+        Utils.generateUUID(),
         user,
         {
           'user': user,
