@@ -78,7 +78,7 @@ export default class UtilsService {
     handleConvertToCSV: (loggedUser: UserToken, data: any[], writeHeader: boolean) => string) {
     // Override
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
-    // Set the attachement name
+    // Set the attachment name
     res.attachment(attachementName);
     // Get the total number of Logs
     req.query.OnlyRecordCount = 'true';

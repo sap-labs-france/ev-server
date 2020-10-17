@@ -76,7 +76,7 @@ export default abstract class WSConnection {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'constructor',
-        message: `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`
+        message: `The URL '${req.url}' is invalid (/(OCPPxx|REST)/TENANT_ID/CHARGEBOX_ID)`
       });
     }
     let logMsg = `Unknown type WS connection attempts with URL: '${req.url}'`;

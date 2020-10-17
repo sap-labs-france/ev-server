@@ -31,7 +31,7 @@ export default class GlobalRouter {
   }
 
   protected buildRouteUtil(): void {
-    this.router.use('/util', new UtilRouter().buildRoutes());
+    this.router.use('/utils', new UtilRouter().buildRoutes());
   }
 
   protected buildRouteDocs(): void {
