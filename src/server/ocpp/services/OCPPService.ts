@@ -174,7 +174,7 @@ export default class OCPPService {
       // Send Notification (Async)
       NotificationHandler.sendChargingStationRegistered(
         headers.tenantID,
-        Utils.generateGUID(),
+        Utils.generateUUID(),
         chargingStation,
         {
           chargeBoxID: chargingStation.id,
@@ -1128,7 +1128,7 @@ export default class OCPPService {
       // Send Notification (Async)
       NotificationHandler.sendChargingStationStatusError(
         tenantID,
-        Utils.generateGUID(),
+        Utils.generateUUID(),
         chargingStation,
         {
           'chargeBoxID': chargingStation.id,

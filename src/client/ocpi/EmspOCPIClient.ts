@@ -32,9 +32,9 @@ import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import Utils from '../../utils/Utils';
 import _ from 'lodash';
 import moment from 'moment';
-import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'EmspOCPIClient';
 
@@ -511,7 +511,7 @@ export default class EmspOCPIClient extends OCPIClient {
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
       last_updated: new Date()
     };
-    const authorizationId = uuid();
+    const authorizationId = Utils.generateUUID();
     const payload: OCPIStartSession = {
       response_url: callbackUrl + '/' + authorizationId,
       token: token,

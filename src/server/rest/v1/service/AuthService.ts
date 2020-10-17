@@ -304,7 +304,7 @@ export default class AuthService {
       // Notify (Async)
       NotificationHandler.sendNewRegisteredUser(
         tenantID,
-        Utils.generateGUID(),
+        Utils.generateUUID(),
         newUser,
         {
           'tenant': filteredRequest.name,
@@ -365,7 +365,7 @@ export default class AuthService {
         method: 'handleUserPasswordReset'
       });
     }
-    const resetHash = Utils.generateGUID();
+    const resetHash = Utils.generateUUID();
     // Init Password info
     await UserStorage.saveUserPassword(tenantID, user.id, { passwordResetHash: resetHash });
     // Log
@@ -382,7 +382,7 @@ export default class AuthService {
     // Send Request Password (Async)
     NotificationHandler.sendRequestPassword(
       tenantID,
-      Utils.generateGUID(),
+      Utils.generateUUID(),
       user,
       {
         'user': user,
@@ -796,7 +796,7 @@ export default class AuthService {
     // Send Verification Email (Async)
     NotificationHandler.sendVerificationEmail(
       tenantID,
-      Utils.generateGUID(),
+      Utils.generateUUID(),
       user,
       {
         'user': user,
