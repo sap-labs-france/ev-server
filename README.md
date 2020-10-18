@@ -431,7 +431,7 @@ Each charging station vendor has its own configuration interface, so I'll just d
 * Rename the charging station ID if necessary: this will be the key (use Company-Town-Number)
 * Set the charging station endpoint public URL to a reachable URL so the server can use it to trigger action on it (avoid using *localhost*)
 
-All charging stations supporting OCPP-J and OCPP-S 1.5 and 1.6 protocols are compatibles.
+All charging stations supporting OCPP-J and OCPP-S version 1.5 and 1.6 protocols are compatibles.
 
 ## Start the Central Service Server (CSS)
 
