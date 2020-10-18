@@ -568,6 +568,11 @@ It is possible to build and start all containers in one command:
 ```bash
 make
 ```
+Or without the optional git submodules:
+```bash
+make SUBMODULES_INIT=false
+```
+That Makefile option works for all targets.
 
 ## Architecture
 
