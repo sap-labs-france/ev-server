@@ -13,7 +13,6 @@ import { ServerAction } from '../../../types/Server';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
 import http from 'http';
-import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'WSConnection';
 
@@ -76,7 +75,7 @@ export default abstract class WSConnection {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'constructor',
-        message: `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`
+        message: `The URL '${req.url}' is invalid (/(OCPPxx|REST)/TENANT_ID/CHARGEBOX_ID)`
       });
     }
     let logMsg = `Unknown type WS connection attempts with URL: '${req.url}'`;
@@ -280,7 +279,7 @@ export default abstract class WSConnection {
 
   public async send(command, messageType = MessageType.CALL_MESSAGE): Promise<unknown> {
     // Send Message
-    return this.sendMessage(uuid(), command, messageType);
+    return this.sendMessage(Utils.generateUUID(), command, messageType);
   }
 
   public async sendError(messageId, err): Promise<unknown> {

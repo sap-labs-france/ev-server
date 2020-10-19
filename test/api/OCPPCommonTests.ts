@@ -585,7 +585,7 @@ export default class OCPPCommonTests {
     expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
     // Set the connector to Available
     this.chargingStationConnector1.status = ChargePointStatus.AVAILABLE;
-    this.chargingStationConnector1.timestamp = new Date().toISOString();
+    this.chargingStationConnector1.timestamp = this.transactionCurrentTime.toISOString();
     // Update
     const statusResponse = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
     expect(statusResponse).to.eql({});

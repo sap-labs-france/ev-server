@@ -5,7 +5,6 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
-import { ObjectID } from 'mongodb';
 import SiteArea from './SiteArea';
 import User from './User';
 
@@ -110,35 +109,6 @@ export interface Connector {
   amperage?: number;
   amperageLimit?: number;
   userID?: string;
-  user?: User;
-  statusLastChangedOn?: Date;
-  numberOfConnectedPhase?: number;
-  currentType?: CurrentType;
-  chargePointID?: number;
-  phaseAssignmentToGrid?: PhaseAssignmentToGrid;
-}
-
-export interface ConnectorMDB {
-  id?: string;
-  connectorId: number;
-  currentInstantWatts?: number;
-  currentStateOfCharge?: number;
-  currentTotalConsumptionWh?: number;
-  currentTotalInactivitySecs?: number;
-  currentInactivityStatus?: InactivityStatus;
-  currentTransactionID?: number;
-  currentTransactionDate?: Date;
-  currentTagID?: string;
-  status: ChargePointStatus;
-  errorCode?: string;
-  info?: string;
-  vendorErrorCode?: string;
-  power?: number;
-  type?: ConnectorType;
-  voltage?: Voltage;
-  amperage?: number;
-  amperageLimit?: number;
-  userID?: ObjectID;
   user?: User;
   statusLastChangedOn?: Date;
   numberOfConnectedPhase?: number;

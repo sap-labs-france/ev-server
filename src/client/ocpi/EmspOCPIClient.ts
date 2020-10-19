@@ -32,9 +32,9 @@ import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import Utils from '../../utils/Utils';
 import _ from 'lodash';
 import moment from 'moment';
-import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'EmspOCPIClient';
 
@@ -496,7 +496,7 @@ export default class EmspOCPIClient extends OCPIClient {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
-        message: `Connector '${connectorId}' > OCPI Remote Start Session is not available for Tag ID '${tagId}'`,
+        message: `Connector ID '${connectorId}' > OCPI Remote Start Session is not available for Tag ID '${tagId}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { tag: tag }
       });
@@ -511,7 +511,7 @@ export default class EmspOCPIClient extends OCPIClient {
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
       last_updated: new Date()
     };
-    const authorizationId = uuid();
+    const authorizationId = Utils.generateUUID();
     const payload: OCPIStartSession = {
       response_url: callbackUrl + '/' + authorizationId,
       token: token,
@@ -524,7 +524,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
       source: chargingStation.id,
-      message: `Connector '${connectorId}' > OCPI Remote Start Session with Tad ID '${tagId}' at ${commandUrl}`,
+      message: `Connector ID '${connectorId}' > OCPI Remote Start Session with Tad ID '${tagId}' at ${commandUrl}`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { payload }
     });
@@ -540,7 +540,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
       source: chargingStation.id,
-      message: `Connector '${connectorId}' > OCPI Remote Start session response status ${response.status}`,
+      message: `Connector ID '${connectorId}' > OCPI Remote Start session response status ${response.status}`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { response: response.data }
     });
@@ -570,7 +570,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
       source: transaction.chargeBoxID,
-      message: `Connector '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' at ${commandUrl}`,
+      message: `Connector ID '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' at ${commandUrl}`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { payload }
     });
