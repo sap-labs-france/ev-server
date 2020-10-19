@@ -450,6 +450,30 @@ export default class CarService {
     next();
   }
 
+  public static async handleGetUserDefaultCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR,
+      MODULE_NAME, 'handleGetUserDefaultCar');
+    // Check auth
+    if (!Authorizations.canReadCar(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.CAR,
+        module: MODULE_NAME, method: 'handleGetUserDefaultCar'
+      });
+    }
+    const userID = CarSecurity.filterCarRequestByUserID(req.query);
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultCar', req.user);
+    // Get the default car
+    const car = await CarStorage.getUserDefaultCar(req.user.tenantID, userID);
+    UtilsService.assertObjectExists(action, car, `User with ID '${userID}' does not have any cars`,
+      MODULE_NAME, 'handleGetUserDefaultTag', req.user);
+    // Return
+    res.json(CarSecurity.filterCarResponse(car, req.user));
+    next();
+  }
+
   public static async handleGetCarUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.USERS_CARS,

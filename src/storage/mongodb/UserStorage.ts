@@ -274,7 +274,8 @@ export default class UserStorage {
         sendCarCatalogSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendCarCatalogSynchronizationFailed) : false,
         sendEndUserErrorNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndUserErrorNotification) : false,
       },
-      deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false
+      deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false,
+      lastSelectedCarID: userToSave.lastSelectedCarID
     };
     if (userToSave.address) {
       userMDB.address = {
@@ -759,9 +760,32 @@ export default class UserStorage {
     return tag.count === 1 ? tag.result[0] : null;
   }
 
+  public static async getUserDefaultTag(tenantID: string, userID: string): Promise<Tag> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserDefaultTag');
+    // Get tag
+    let tag = await UserStorage.getTags(tenantID, {
+      userIDs: [userID],
+      defaultTag: true,
+      active: true
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    if (tag.count < 1) {
+      tag = await UserStorage.getTags(tenantID, {
+        userIDs: [userID],
+        active: true
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'getUserDefaultTag', uniqueTimerID, { userID });
+    return tag.count > 0 ? tag.result[0] : null;
+  }
+
+
   public static async getTags(tenantID: string,
-    params: { issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
-      withUser?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?:boolean },
+    params: {
+      issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
+      withUser?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean
+    },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
@@ -796,6 +820,9 @@ export default class UserStorage {
     }
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
+    }
+    if (Utils.objectHasProperty(params, 'active') && Utils.isBooleanValue(params.active)) {
+      filters.active = params.active;
     }
     if (params.dateFrom && moment(params.dateFrom).isValid()) {
       filters.lastChangedOn = { $gte: new Date(params.dateFrom) };

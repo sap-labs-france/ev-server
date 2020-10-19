@@ -591,6 +591,7 @@ export default class OCPPService {
         issuer: true,
         chargeBoxID: startTransaction.chargeBoxID,
         tagID: startTransaction.idTag,
+        carID: user.lastSelectedCarID,
         timezone: startTransaction.timezone,
         userID: startTransaction.userID,
         siteAreaID: startTransaction.siteAreaID,

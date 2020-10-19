@@ -95,7 +95,8 @@ export default class UserSecurity {
     const filteredRequest: HttpTagsRequest = {
       Search: sanitize(request.Search),
       UserID: sanitize(request.UserID),
-      Issuer: Utils.objectHasProperty(request, 'Issuer') ? UtilsSecurity.filterBoolean(request.Issuer) : null
+      Issuer: Utils.objectHasProperty(request, 'Issuer') ? UtilsSecurity.filterBoolean(request.Issuer) : null,
+      Active: Utils.objectHasProperty(request, 'Active') ? UtilsSecurity.filterBoolean(request.Active) : null
     } as HttpTagsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -325,6 +326,10 @@ export default class UserSecurity {
 
   public static filterTagRequestByID(request: any): string {
     return sanitize(request.ID);
+  }
+
+  public static filterTagRequestByUserID(request: any): string {
+    return sanitize(request.UserID);
   }
 
   private static filterUserRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {

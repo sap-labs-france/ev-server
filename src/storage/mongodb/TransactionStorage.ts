@@ -57,6 +57,7 @@ export default class TransactionStorage {
       siteAreaID: Utils.convertToObjectID(transactionToSave.siteAreaID),
       connectorId: Utils.convertToInt(transactionToSave.connectorId),
       tagID: transactionToSave.tagID,
+      carID: Utils.convertToObjectID(transactionToSave.carID),
       userID: Utils.convertToObjectID(transactionToSave.userID),
       chargeBoxID: transactionToSave.chargeBoxID,
       meterStart: Utils.convertToInt(transactionToSave.meterStart),
@@ -560,6 +561,16 @@ export default class TransactionStorage {
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Car
+    DatabaseUtils.pushCarLookupInAggregation({
+      tenantID, aggregation: aggregation, asField: 'car', localField: 'carID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Car Catalog
+    DatabaseUtils.pushCarCatalogLookupInAggregation({
+      tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'car.carCatalog', localField: 'car.carCatalogID',
+      foreignField: '_id', oneToOneCardinality: true
     });
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',

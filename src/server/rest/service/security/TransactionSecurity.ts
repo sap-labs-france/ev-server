@@ -2,6 +2,7 @@ import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequ
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
 
 import Authorizations from '../../../../authorization/Authorizations';
+import CarSecurity from './CarSecurity';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
@@ -192,6 +193,9 @@ export default class TransactionSecurity {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;
       } else {
         filteredTransaction.tagID = transaction.tagID;
+      }
+      if (transaction.car) {
+        filteredTransaction.car = CarSecurity.filterCarResponse(transaction.car, loggedUser);
       }
       // Filter user
       filteredTransaction.user = UserSecurity.filterMinimalUserResponse(transaction.user, loggedUser);

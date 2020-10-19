@@ -716,6 +716,20 @@ export default class CarStorage {
     Logging.traceEnd(MODULE_NAME, 'clearCarUserDefault', uniqueTimerID, { userID });
   }
 
+  public static async getUserDefaultCar(tenantID: string, userID: string, projectFields?: string[]): Promise<Car> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserDefaultCar');
+    // Query single Car
+    let carsMDB = await CarStorage.getCars(tenantID,
+      { userIDs: [userID], defaultCar: true },
+      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    carsMDB = carsMDB.count > 0 ? carsMDB : await CarStorage.getCars(tenantID,
+      { userIDs: [userID] },
+      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    Logging.traceEnd(MODULE_NAME, 'getUserDefaultCar', uniqueTimerID, { userID });
+    return carsMDB.count > 0 ? carsMDB.result[0] : null;
+  }
+
   public static async clearCarUserOwner(tenantID: string, carID: string): Promise<void> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'clearCarUserOwner');
     await Utils.checkTenant(tenantID);
