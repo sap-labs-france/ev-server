@@ -1390,14 +1390,14 @@ export default class OCPPUtils {
         detailedMessages: { result, chargingProfile },
       });
     }
-    // Save
+    // Saves
     const chargingProfileID = await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
     Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_UPDATE,
       module: MODULE_NAME, method: 'setAndSaveChargingProfile',
-      message: 'Charging Profile has been successfully pushed and saved',
+      message: `Connector ID '${chargingProfile.connectorID}' > Charging Profile has been successfully pushed and saved`,
       detailedMessages: { chargingProfile }
     });
     return chargingProfileID;

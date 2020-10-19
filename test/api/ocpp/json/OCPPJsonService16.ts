@@ -2,10 +2,10 @@ import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, 
 
 import { MessageType } from '../../../../src/types/WebSocket';
 import OCPPService from '../OCPPService';
+import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
-import { v4 as uuid } from 'uuid';
 
 export default class OCPPJsonService16 extends OCPPService {
   private wsSessions: any;
@@ -171,7 +171,7 @@ export default class OCPPJsonService16 extends OCPPService {
     // Build the request
     return [
       MessageType.CALL_MESSAGE,
-      uuid(),
+      Utils.generateUUID(),
       command,
       payload];
   }

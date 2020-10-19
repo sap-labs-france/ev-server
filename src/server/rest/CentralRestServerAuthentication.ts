@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AuthService from './service/AuthService';
+import AuthService from './v1/service/AuthService';
 import { ServerAction } from '../../types/Server';
-import UtilsService from './service/UtilsService';
+import UtilsService from './v1/service/UtilsService';
 
 export default class CentralRestServerAuthentication {
   static async authService(req: Request, res: Response, next: NextFunction): Promise<void> {

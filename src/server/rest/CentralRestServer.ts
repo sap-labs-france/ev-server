@@ -2,7 +2,7 @@ import { Action, Entity } from '../../types/Authorization';
 import SingleChangeNotification, { NotificationData } from '../../types/SingleChangeNotification';
 import express, { NextFunction, Request, Response } from 'express';
 
-import AuthService from './service/AuthService';
+import AuthService from './v1/service/AuthService';
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
@@ -11,13 +11,13 @@ import ChargingStationConfiguration from '../../types/configuration/ChargingStat
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import ExpressTools from '../ExpressTools';
+import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
-import SessionHashService from './service/SessionHashService';
+import SessionHashService from './v1/service/SessionHashService';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
-import { globalRouter } from './router/GlobalRouter';
 import http from 'http';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
@@ -50,7 +50,7 @@ export default class CentralRestServer {
     // Authentication
     this.expressApplication.use(AuthService.initialize());
     // Routers
-    this.expressApplication.use('/', globalRouter);
+    this.expressApplication.use('/v1', new GlobalRouter().buildRoutes());
     // Auth services
     this.expressApplication.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
     // Secured API
