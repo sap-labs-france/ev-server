@@ -17,7 +17,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingIntegration';
 
 export default abstract class BillingIntegration<T extends BillingSetting> {
-  protected readonly tenantID: string; // Assuming GUID or other string format ID
+  protected readonly tenantID: string; // Assuming UUID or other string format ID
   protected settings: T;
 
   protected constructor(tenantID: string, settings: T) {

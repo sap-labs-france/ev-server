@@ -3,7 +3,7 @@ import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPP
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import Logging from '../../../utils/Logging';
-import SchemaValidator from '../../rest/validation/SchemaValidator';
+import SchemaValidator from '../../rest/v1/validator/SchemaValidator';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import fs from 'fs';

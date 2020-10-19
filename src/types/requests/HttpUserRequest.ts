@@ -31,6 +31,7 @@ export interface HttpSitesAssignUserRequest {
 
 export interface HttpUsersRequest extends HttpDatabaseRequest {
   Issuer: boolean;
+  WithTag?: boolean;
   Search: string;
   SiteID: string;
   Role: string;

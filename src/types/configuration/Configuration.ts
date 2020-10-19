@@ -48,6 +48,6 @@ export interface Configuration {
   Logging: LoggingConfiguration;
   HealthCheck?: HealthCheckConfiguration;
   Migration?: MigrationConfiguration;
-  EVDatabase: EVDatabaseConfiguration;
+  EVDatabase?: EVDatabaseConfiguration;
   ChargingStationTemplates: ChargingStationTemplatesConfiguration;
 }

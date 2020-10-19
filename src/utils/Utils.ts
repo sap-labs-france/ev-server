@@ -246,7 +246,7 @@ export default class Utils {
     return _.isBoolean(value);
   }
 
-  public static generateGUID(): string {
+  public static generateUUID(): string {
     return uuid();
   }
 

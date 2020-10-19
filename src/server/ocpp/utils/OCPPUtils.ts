@@ -1,10 +1,10 @@
-import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPCustomConfigurationParam, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
+import { ActionsResponse } from '../../../types/GlobalType';
 import BackendError from '../../../exception/BackendError';
 import { BillingDataTransactionStop } from '../../../types/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
@@ -1223,10 +1223,10 @@ export default class OCPPUtils {
                 const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connectorID);
                 switch (numberOfPhases) {
                   case 3:
-                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 } ;
+                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 };
                     break;
                   case 1:
-                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null } ;
+                    connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null };
                     break;
                 }
               }
@@ -1390,14 +1390,14 @@ export default class OCPPUtils {
         detailedMessages: { result, chargingProfile },
       });
     }
-    // Save
+    // Saves
     const chargingProfileID = await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
     Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_UPDATE,
       module: MODULE_NAME, method: 'setAndSaveChargingProfile',
-      message: 'Charging Profile has been successfully pushed and saved',
+      message: `Connector ID '${chargingProfile.connectorID}' > Charging Profile has been successfully pushed and saved`,
       detailedMessages: { chargingProfile }
     });
     return chargingProfileID;
@@ -1566,7 +1566,7 @@ export default class OCPPUtils {
     // Check Standard OCPP Params
     for (const ocppParameter of ocppParameters) {
       // Find OCPP Param
-      const currentOcppParam: KeyValue = currentOcppParameters.find(
+      const currentOcppParam: OcppParameter = currentOcppParameters.find(
         (ocppParam) => ocppParam.key === ocppParameter.key);
       try {
         if (!currentOcppParam) {
