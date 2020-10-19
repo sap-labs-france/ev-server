@@ -1005,64 +1005,26 @@ export default class OCPPService {
   private async checkStatusNotificationExtraInactivity(tenantID: string, chargingStation: ChargingStation,
     statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check Inactivity
-    // OCPP 1.6: Finishing --> Available
-    if (connector.status === ChargePointStatus.FINISHING &&
-      statusNotification.status === ChargePointStatus.AVAILABLE &&
-      Utils.objectHasProperty(statusNotification, 'timestamp')) {
+    if (statusNotification.status === ChargePointStatus.AVAILABLE &&
+        Utils.objectHasProperty(statusNotification, 'timestamp')) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
         tenantID, chargingStation.id, connector.connectorId);
       // Session is finished
-      if (lastTransaction && lastTransaction.stop) {
-        // Inactivity already computed
-        if (!lastTransaction.stop.extraInactivityComputed) {
-          const transactionStopTimestamp = lastTransaction.stop.timestamp;
-          const statusNotifTimestamp = new Date(statusNotification.timestamp);
-          lastTransaction.stop.extraInactivitySecs =
-            Math.floor((statusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
-          lastTransaction.stop.extraInactivityComputed = true;
-          lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(lastTransaction.chargeBox, lastTransaction.connectorId,
-            lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
-          // Build extra inactivity consumption
-          await OCPPUtils.buildExtraConsumptionInactivity(tenantID, lastTransaction);
-          // OCPI: post CDR
-          await OCPPUtils.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
-          // Save
-          await TransactionStorage.saveTransaction(tenantID, lastTransaction);
-          // Log
-          Logging.logInfo({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            user: lastTransaction.userID,
-            module: MODULE_NAME, method: 'checkStatusNotificationExtraInactivity',
-            action: ServerAction.EXTRA_INACTIVITY,
-            message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
-            detailedMessages: [statusNotification, lastTransaction]
-          });
-        } else {
-          // Log
-          Logging.logWarning({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            user: lastTransaction.userID,
-            module: MODULE_NAME, method: 'checkStatusNotificationExtraInactivity',
-            action: ServerAction.EXTRA_INACTIVITY,
-            message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity has already been computed`,
-            detailedMessages: [statusNotification, lastTransaction]
-          });
-        }
-      }
-      // OCPP 1.6: Charging --> Available
-    } else if (connector.status === ChargePointStatus.CHARGING &&
-      statusNotification.status === ChargePointStatus.AVAILABLE) {
-      // Get the last transaction
-      const lastTransaction = await TransactionStorage.getLastTransaction(
-        tenantID, chargingStation.id, connector.connectorId);
-      // FInished?
       if (lastTransaction && lastTransaction.stop && !lastTransaction.stop.extraInactivityComputed) {
-        // Marked done
+        const transactionStopTimestamp = Utils.convertToDate(lastTransaction.stop.timestamp);
+        const currentStatusNotifTimestamp = Utils.convertToDate(statusNotification.timestamp);
+        // Diff
+        lastTransaction.stop.extraInactivitySecs =
+          Math.floor((currentStatusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
+        // Flag
         lastTransaction.stop.extraInactivityComputed = true;
-        // OCPI: post CDR
+        // Fix the Inactivity severity
+        lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(lastTransaction.chargeBox, lastTransaction.connectorId,
+          lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
+        // Build extra inactivity consumption
+        await OCPPUtils.buildExtraConsumptionInactivity(tenantID, lastTransaction);
+        // OCPI: Post the CDR
         await OCPPUtils.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
         // Save
         await TransactionStorage.saveTransaction(tenantID, lastTransaction);
@@ -1073,8 +1035,8 @@ export default class OCPPService {
           user: lastTransaction.userID,
           module: MODULE_NAME, method: 'checkStatusNotificationExtraInactivity',
           action: ServerAction.EXTRA_INACTIVITY,
-          message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > No Extra Inactivity has been added`,
-          detailedMessages: [statusNotification, lastTransaction]
+          message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
+          detailedMessages: [statusNotification, connector, lastTransaction]
         });
       }
     }
