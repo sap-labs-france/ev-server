@@ -370,7 +370,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     // Send async notification
     NotificationHandler.sendBillingNewInvoiceNotification(
       this.tenantID,
-      Utils.generateGUID(),
+      invoice.id,
       invoice.user,
       {
         user: invoice.user,
