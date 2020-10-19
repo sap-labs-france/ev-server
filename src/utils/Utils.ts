@@ -420,6 +420,8 @@ export default class Utils {
       return 'es_MX';
     } else if (language === 'de') {
       return 'de_DE';
+    } else if (language === 'pt') {
+      return 'pt_PT';
     }
     return Constants.DEFAULT_LOCALE;
   }
