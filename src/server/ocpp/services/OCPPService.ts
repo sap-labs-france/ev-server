@@ -377,6 +377,8 @@ export default class OCPPService {
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station
           await this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
+          // Handle End Of charge
+          await this.checkNotificationEndOfCharge(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
           // First Meter Value -> Trigger Smart Charging to adjust the single phase Car
@@ -1286,8 +1288,6 @@ export default class OCPPService {
       foundConnector.userID = transaction.userID;
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
-      // Handle End Of charge
-      await this.checkNotificationEndOfCharge(tenantID, chargingStation, transaction);
       // Log
       Logging.logInfo({
         tenantID: tenantID,
@@ -1363,11 +1363,11 @@ export default class OCPPService {
             // Send Notification
             await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
           } else {
-            // Check last 5 consumptions
+            // Check last consumptions
             const consumptions = await ConsumptionStorage.getTransactionConsumptions(
               tenantID, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
             if (consumptions.result.every((consumption) => consumption.consumptionWh === 0 &&
-              (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
+               (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
                 consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)))) {
               // Send Notification
               await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
