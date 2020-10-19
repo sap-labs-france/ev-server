@@ -8,7 +8,6 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
-import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
@@ -247,6 +246,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private buildRequest(command, params = {}) {
     // Build the request
-    return [MessageType.CALL_MESSAGE, uuid(), command, params];
+    return [MessageType.CALL_MESSAGE, Utils.generateUUID(), command, params];
   }
 }

@@ -209,7 +209,7 @@ export default class TenantService {
     // Save User Account Verification
     const verificationToken = Utils.generateToken(filteredRequest.email);
     await UserStorage.saveUserAccountVerification(filteredRequest.id, tenantUser.id, { verificationToken });
-    const resetHash = Utils.generateGUID();
+    const resetHash = Utils.generateUUID();
     // Init Password info
     await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, { passwordResetHash: resetHash });
     // Send activation link
@@ -219,7 +219,7 @@ export default class TenantService {
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
       filteredRequest.id,
-      Utils.generateGUID(),
+      Utils.generateUUID(),
       tenantUser,
       {
         'tenant': filteredRequest.name,

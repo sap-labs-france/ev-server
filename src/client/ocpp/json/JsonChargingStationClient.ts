@@ -6,7 +6,7 @@ import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { MessageType } from '../../../types/WebSocket';
 import { ServerAction } from '../../../types/Server';
-import { v4 as uuid } from 'uuid';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'JsonChargingStationClient';
 
@@ -86,7 +86,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     // Log
     Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, params);
     // Execute
-    const result = await this.wsConnection.sendMessage(uuid(), params, messageType, commandName);
+    const result = await this.wsConnection.sendMessage(Utils.generateUUID(), params, messageType, commandName);
     // Log
     Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, result);
     return result;

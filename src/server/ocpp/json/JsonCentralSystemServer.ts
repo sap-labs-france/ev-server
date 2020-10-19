@@ -9,10 +9,10 @@ import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import Utils from '../../../utils/Utils';
 import WSServer from './WSServer';
 import global from '../../../types/GlobalType';
 import http from 'http';
-import { v4 as uuid } from 'uuid';
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
   private serverName: string;
@@ -137,7 +137,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     this.wsServer.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
       try {
         // Set an ID
-        ws['id'] = uuid();
+        ws['id'] = Utils.generateUUID();
         // Check Rest calls
         if (req.url.startsWith('/REST')) {
           // Create a Rest Web Socket connection object
