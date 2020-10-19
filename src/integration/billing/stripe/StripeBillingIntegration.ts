@@ -330,15 +330,29 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'Invoice item not provided',
       });
     }
-    return await this.stripe.invoiceItems.create({
-      customer: user.billingData.customerID,
-      currency: this.settings.currency.toLocaleLowerCase(),
-      amount: invoiceItem.amount,
-      description: invoiceItem.description,
-      invoice: invoiceID
-    }, {
-      idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
-    });
+    try {
+      const stripeInvoiceItem = await this.stripe.invoiceItems.create({
+        customer: user.billingData.customerID,
+        currency: this.settings.currency.toLocaleLowerCase(),
+        amount: invoiceItem.amount,
+        description: invoiceItem.description,
+        invoice: invoiceID
+      }, {
+        idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
+      });
+      const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(this.tenantID, invoiceID);
+      invoice.nbrOfItems++;
+      await BillingStorage.saveInvoice(this.tenantID, invoice);
+      return stripeInvoiceItem;
+    } catch (e) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_CREATE_INVOICE_ITEM,
+        module: MODULE_NAME, method: 'createInvoiceItem',
+        message: 'Failed to create invoice item',
+        detailedMessages: { error: e.message, stack: e.stack }
+      });
+    }
   }
 
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {

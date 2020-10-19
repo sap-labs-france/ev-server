@@ -5,6 +5,7 @@ import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
+import { TransactionInErrorType } from '../../src/types/InError';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
@@ -524,7 +525,7 @@ export default class TransactionCommonTests {
       transactionId2, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllInError(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+      { ChargeBoxID: this.chargingStationContext.getChargingStation().id, ErrorType: TransactionInErrorType.NO_CONSUMPTION });
     expect(transactions.status).to.equal(200);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.result).to.containSubset([{
