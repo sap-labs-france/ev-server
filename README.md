@@ -432,17 +432,7 @@ Each charging station vendor has its own configuration interface, so I'll just d
 * Rename the charging station ID if necessary: this will be the key (use Company-Town-Number)
 * Set the charging station endpoint public URL to a reachable URL so the server can use it to trigger action on it (avoid using *localhost*)
 
-Tested and supported Charging Station:
-
-* **Schneider Electric**
-	* **Type**: Accelerated Charger
-	* **Power**: 2 connectors AC of 22 kW
-	* **Connector**: Type 2
-	* **Product Id**: 501FE25
-	* **Reference**: EV.2S22P44R
-	* **OCPP Version**: 1.5
-	* **Firmware**: 2.7.4.17
-
+All charging stations supporting OCPP-J and OCPP-S version 1.5 and 1.6 protocols are compatibles.
 
 ## Start the Central Service Server (CSS)
 
@@ -569,6 +559,11 @@ It is possible to build and start all containers in one command:
 ```bash
 make
 ```
+Or without the optional git submodules:
+```bash
+make SUBMODULES_INIT=false
+```
+That Makefile option works for all targets.
 
 ## Architecture
 

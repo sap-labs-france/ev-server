@@ -11,7 +11,7 @@ import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
-import SessionHashService from '../server/rest/service/SessionHashService';
+import SessionHashService from '../server/rest/v1/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
@@ -738,7 +738,7 @@ export default class Authorizations {
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
         tenantID,
-        Utils.generateGUID(),
+        Utils.generateUUID(),
         chargingStation,
         {
           chargeBoxID: chargingStation.id,
