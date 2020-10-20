@@ -264,6 +264,7 @@ export default class CarSecurity {
         type: car.type,
         converter: car.converter,
         carCatalog: car.carCatalog,
+        carUsers: car.carUsers
       };
       if (filteredCar.carUsers) {
         filteredCar.carUsers = car.carUsers.map((carUser) => ({
