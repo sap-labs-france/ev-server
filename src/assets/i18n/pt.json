@@ -75,5 +75,8 @@
     "generatedUser": "Utilizador criado para '{{email}}'",
     "chargingStopSiteArea": "Carregamento {{totalConsumption}} kWh na {{siteArea}} (terminado as {{time}})",
     "chargingStopChargeBox": "Carregamento {{totalConsumption}} kWh em curso na estação {{chargeBox}} (termiando as {{time}})"
+  },
+  "tags": {
+    "virtualBadge": "Virtual Badge"
   }
 }
