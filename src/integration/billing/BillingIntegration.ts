@@ -379,15 +379,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         invoiceDownloadUrl: await Utils.buildEvseBillingDownloadInvoicesURL(this.tenantID, invoice.id),
         invoice: invoice
       }
-    ).catch((error) => {
-      Logging.logError({
-        module: 'BillingIntegration',
-        method: 'sendInvoiceToUser',
-        message: 'Failed to send email to user',
-        detailedMessages: { error: error.message, stack: error.stack },
-        tenantID: this.tenantID
-      });
-    });
+    );
     return invoice;
   }
 
