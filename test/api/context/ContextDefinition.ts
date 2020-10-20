@@ -310,7 +310,8 @@ export default class ContextDefinition {
             taxID: ''
           }
         }
-      }
+      },
+      organization: {},
     },
   },
   {
