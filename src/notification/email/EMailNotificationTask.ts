@@ -143,7 +143,7 @@ export default class EMailNotificationTask implements NotificationTask {
       from: (!retry ? this.emailConfig.smtp.from : this.emailConfig.smtpBackup.from),
       to: email.to,
       cc: email.cc,
-      bcc: (email.bccNeeded ? email.bcc : null),
+      bcc: (email.bccNeeded ? email.bcc : ''),
       subject: email.subject,
       // pragma text: email.text
       attachment: [
