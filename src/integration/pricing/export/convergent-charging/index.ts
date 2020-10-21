@@ -1,1 +1,1 @@
-export { default } from '../../dummy/DummyPricingIntegration';
+export { default } from '../../convergent-charging';
