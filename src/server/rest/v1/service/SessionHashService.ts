@@ -23,11 +23,10 @@ export default class SessionHashService {
     const tenantID = req.user.tenantID;
     const userHashID = req.user.userHashID;
     const tenantHashID = req.user.tenantHashID;
-
     try {
       // Check User's Hash
       if (global.userHashMapIDs.has(`${tenantID}#${userID}`) &&
-        global.userHashMapIDs.get(`${tenantID}#${userID}`) !== userHashID) {
+          global.userHashMapIDs.get(`${tenantID}#${userID}`) !== userHashID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: StatusCodes.FORBIDDEN,
@@ -37,8 +36,9 @@ export default class SessionHashService {
           user: req.user
         });
       }
+      // Check Tenant's Hash
       if (global.tenantHashMapIDs.has(`${tenantID}`) &&
-        global.tenantHashMapIDs.get(`${tenantID}`) !== tenantHashID) {
+          global.tenantHashMapIDs.get(`${tenantID}`) !== tenantHashID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: StatusCodes.FORBIDDEN,
