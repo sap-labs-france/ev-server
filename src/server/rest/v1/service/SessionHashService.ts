@@ -16,18 +16,23 @@ import global from '../../../../types/GlobalType';
 const MODULE_NAME = 'SessionHashService';
 
 export default class SessionHashService {
-  // Check if Session has been updated and require new login
-  static isSessionHashUpdated(req: Request, res: Response, next: NextFunction): boolean {
+  public static isSessionHashUpdated(req: Request, res: Response, next: NextFunction): boolean {
     // Get tenant id, user id and hash ID
     const userID = req.user.id;
     const tenantID = req.user.tenantID;
     const userHashID = req.user.userHashID;
     const tenantHashID = req.user.tenantHashID;
-
+    // TODO: To Remove: Temporary log to trace memory leaks
+    Logging.logDebug({
+      tenantID: tenantID,
+      module: MODULE_NAME, method: 'isSessionHashUpdated',
+      message: `Session Hash buffer size: ${global.userHashMapIDs.size} user(s), ${global.tenantHashMapIDs.size} tenant(s)`,
+      action: ServerAction.SESSION_HASH_SERVICE
+    });
     try {
       // Check User's Hash
       if (global.userHashMapIDs.has(`${tenantID}#${userID}`) &&
-        global.userHashMapIDs.get(`${tenantID}#${userID}`) !== userHashID) {
+          global.userHashMapIDs.get(`${tenantID}#${userID}`) !== userHashID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: StatusCodes.FORBIDDEN,
@@ -37,8 +42,9 @@ export default class SessionHashService {
           user: req.user
         });
       }
+      // Check Tenant's Hash
       if (global.tenantHashMapIDs.has(`${tenantID}`) &&
-        global.tenantHashMapIDs.get(`${tenantID}`) !== tenantHashID) {
+          global.tenantHashMapIDs.get(`${tenantID}`) !== tenantHashID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: StatusCodes.FORBIDDEN,
@@ -56,23 +62,20 @@ export default class SessionHashService {
     return false;
   }
 
-  // Build User Hash ID
-  static buildUserHashID(user: User): string {
+  public static buildUserHashID(user: User): string {
     // Get all field that need to be hashed
     const tags = user.tags && user.tags.length > 0 ? user.tags.map((tag) => tag.id).sort().join('-') : '';
     const data = `${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}/${tags}`;
     return Cypher.hash(data);
   }
 
-  // Build Tenant Hash ID
-  static buildTenantHashID(tenant: Tenant): string {
+  public static buildTenantHashID(tenant: Tenant): string {
     // Get all field that need to be hashed
     const data = JSON.stringify(Utils.getTenantActiveComponents(tenant));
     return Cypher.hash(data);
   }
 
-  // Rebuild and store User Hash ID
-  static async rebuildUserHashID(tenantID: string, userID: string): Promise<void> {
+  public static async rebuildUserHashID(tenantID: string, userID: string): Promise<void> {
     // Build User hash
     const user = await UserStorage.getUser(tenantID, userID, { withTag: true });
     if (user) {
@@ -82,7 +85,11 @@ export default class SessionHashService {
     }
   }
 
-  static async rebuildUserHashIDFromTagID(tenantID: string, tagID: string): Promise<void> {
+  public static deleteUserHashID(tenantID: string, userID: string): void {
+    global.userHashMapIDs.delete(`${tenantID}#${userID}`);
+  }
+
+  public static async rebuildUserHashIDFromTagID(tenantID: string, tagID: string): Promise<void> {
     // Build User hash
     const tag = await UserStorage.getTag(tenantID, tagID);
     if (tag?.userID) {
@@ -90,8 +97,7 @@ export default class SessionHashService {
     }
   }
 
-  // Rebuild and store Tenant Hash ID
-  static async rebuildTenantHashID(tenantID: string): Promise<void> {
+  public static async rebuildTenantHashID(tenantID: string): Promise<void> {
     // Build Tenant hash
     const tenant = await TenantStorage.getTenant(tenantID);
     if (tenant) {

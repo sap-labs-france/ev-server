@@ -15,6 +15,7 @@ import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
+import SessionHashService from './SessionHashService';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
@@ -810,6 +811,10 @@ export default class AuthService {
   }
 
   public static handleUserLogOut(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
+    // Cleanup hash
+    if (req.user) {
+      SessionHashService.deleteUserHashID(req.user.tenantID, req.user.id);
+    }
     req.logout();
     res.status(StatusCodes.OK).send({});
   }
