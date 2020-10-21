@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/indent */
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType } from '../../../../types/ChargingStation';
-import { OICPAccessibility, OICPAccessibilityLocation, OICPAddressIso19773, OICPAuthenticationMode, OICPCalibrationLawDataAvailability, OICPChargingFacility, OICPChargingMode, OICPChargingPoolID, OICPCountryCode, OICPDynamicInfoAvailable, OICPEvseDataRecord, OICPGeoCoordinates, OICPGeoCoordinatesResponseFormat, OICPPaymentOption, OICPPlug, OICPPower, OICPValueAddedService } from '../../../../types/oicp/OICPEvse';
+import { OICPAccessibility, OICPAccessibilityLocation, OICPAddressIso19773, OICPAuthenticationMode, OICPCalibrationLawDataAvailability, OICPChargingFacility, OICPChargingMode, OICPChargingPoolID, OICPCountryCode, OICPDynamicInfoAvailable, OICPEvseDataRecord, OICPEvseStatus, OICPEvseStatusRecord, OICPGeoCoordinates, OICPGeoCoordinatesResponseFormat, OICPOperatorEvseStatus, OICPOperatorID, OICPPaymentOption, OICPPlug, OICPPower, OICPValueAddedService } from '../../../../types/oicp/OICPEvse';
 
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import Constants from '../../../../utils/Constants';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 
@@ -18,14 +23,14 @@ export default class OICPMapping {
    * @param {*} chargingStation
    * @return Array of OICP EVSEs
    */
-  static convertChargingStation2MultipleEvses(tenant: Tenant, site: Site, chargingStation: ChargingStation,
-                                              options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OICPEvseDataRecord[] {
+  static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string }): OICPEvseDataRecord[] {
     let accessible;
     if (chargingStation.public === true) {
       accessible = OICPAccessibility.FreePubliclyAccessible;
     } else {
       accessible = OICPAccessibility.RestrictedAccess;
     }
+
     // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
     const evses = connectors.map((connector) => {
@@ -39,17 +44,13 @@ export default class OICPMapping {
         ChargingStationNames: [ // Name of the charging station in different Languages
           {
             lang: 'en',
-            value: 'ABC Charging Station Test'
-          },
-          {
-            lang: 'de',
-            value: 'ABC Testladestation'
+            value: chargingStation.id
           }
         ],
         HardwareManufacturer: chargingStation.chargePointVendor, // Name of the charging point manufacturer. Field Length = 50
         // ChargingStationImage?: string, // URL that redirect to an online image of the related EVSEID. Field Length = 200
-        // SubOperatorName?: string, // Name of the Sub Operator owning the Charging Station. Field Length = 100
-        Address: OICPMapping.getOICPAddressIso19773FromSite(site), // Address of the charging station.
+        // SubOperatorName?: string, // Name of the Sub Operator owning the Charging Station. Field Length = 100. Tenant Name
+        Address: OICPMapping.getOICPAddressIso19773FromSite(chargingStation.siteArea.site), // Address of the charging station.
         GeoCoordinates: OICPMapping.convertCoordinates2OICPGeoCoordinates(chargingStation.coordinates, OICPGeoCoordinatesResponseFormat.DecimalDegree), // Geolocation of the charging station. Field Length = 100
         Plugs: [OICPMapping.convertConnector2OICPPlug(connector)],
         // DynamicPowerLevel?: boolean, // Informs is able to deliver different power outputs.
@@ -77,6 +78,52 @@ export default class OICPMapping {
       return evse;
     });
     // Return all evses
+    return evses;
+  }
+
+  /**
+   * Get evses from SiteArea
+   * @param {Tenant} tenant
+   * @param {SiteArea} siteArea
+   * @param options
+   * @return Array of OICP EVSES
+   */
+  static async getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseDataRecord[]> {
+    // Build evses array
+    const evses: OICPEvseDataRecord[] = [];
+    // Convert charging stations to evse(s)
+    siteArea.chargingStations.forEach((chargingStation) => {
+      if (chargingStation.issuer === true && chargingStation.public) {
+        evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
+      }
+    });
+    // Return evses
+    return evses;
+  }
+
+  /**
+   * Get evses from Site
+   * @param {Tenant} tenant
+   * @param {Site} site
+   * @param options
+   * @return Array of OICP EVSEs
+   */
+  static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string }): Promise<OICPEvseDataRecord[]> {
+    // Build evses array
+    const evses = [];
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
+      {
+        withOnlyChargingStations: true,
+        withChargingStations: true,
+        siteIDs: [site.id],
+        issuer: true
+      },
+      Constants.DB_PARAMS_MAX_LIMIT);
+    for (const siteArea of siteAreas.result) {
+      // Get charging stations from SiteArea
+      evses.push(...await OICPMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
+    }
+    // Return evses
     return evses;
   }
 
@@ -205,5 +252,55 @@ export default class OICPMapping {
       return `${countryCode}*${partyId}*P${chargingStation.siteAreaID}`;
     }
   }
+
+   /**
+   * Convert internal status to OICP EVSE Status
+   * @param {*} status
+   */
+  static convertStatus2OICPEvseStatus(status: ChargePointStatus): OICPEvseStatus {
+    switch (status) {
+      case ChargePointStatus.AVAILABLE:
+        return OICPEvseStatus.Available;
+      case ChargePointStatus.OCCUPIED:
+        return OICPEvseStatus.Occupied;
+      case ChargePointStatus.CHARGING:
+        return OICPEvseStatus.Occupied;
+      case ChargePointStatus.FAULTED:
+        return OICPEvseStatus.OutOfService;
+      case ChargePointStatus.PREPARING:
+      case ChargePointStatus.SUSPENDED_EV:
+      case ChargePointStatus.SUSPENDED_EVSE:
+      case ChargePointStatus.FINISHING:
+        return OICPEvseStatus.Occupied;
+      case ChargePointStatus.RESERVED:
+        return OICPEvseStatus.Reserved;
+      default:
+        return OICPEvseStatus.Unknown;
+    }
+  }
+
+  /**
+   * Convert internal charge point status to OICP EVSE Status Records
+   * @param {*} status
+   */
+  static convertConnectorStatus2OICPEvseStatusRecord(connector: Connector, chargingStation: ChargingStation, options: { countryID: string; partyID: string }): OICPEvseStatusRecord {
+    const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    return {
+      EvseID: evseID, // The ID that identifies the charging spot.
+      EvseStatus: OICPMapping.convertStatus2OICPEvseStatus(connector.status) // The status of the charging spot
+    };
+  }
+
+  /**
+   * Convert OICP EVSE Status Records to OICP Operator EVSEs Status
+   * @param {*} status
+   */
+  static convertEvseStatusRecordList2OICPOperatorEvseStatus(OICPEvseStatusRecords: OICPEvseStatusRecord[], operatorID: OICPOperatorID, operatorName?: string): OICPOperatorEvseStatus {
+    return {
+      OperatorID: operatorID,
+      OperatorName: operatorName,
+      EvseStatusRecord: OICPEvseStatusRecords
+    };
+    }
 
 }

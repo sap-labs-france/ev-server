@@ -1,4 +1,6 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { OICPOperatorID } from './oicp/OICPEvse';
+import { OICPProviderID } from './oicp/OICPAuthentication';
 import TenantComponents from './TenantComponents';
 
 export interface Setting {
@@ -84,12 +86,37 @@ export interface OcpiSetting {
   businessDetails: OcpiBusinessDetails;
 }
 
+export interface OicpSetting {
+  cpo: OicpIdentifier;
+  emsp: OicpIdentifier;
+  currency: string;
+  businessDetails: OicpBusinessDetails;
+}
+
 export interface OcpiIdentifier {
   countryCode: string;
   partyID: string;
 }
 
+export interface OicpIdentifier {
+  countryCode: string;
+  partyID: string;
+}
+
 export interface OcpiBusinessDetails {
+  name: string;
+  website: string;
+  logo?: {
+    url: string;
+    thumbnail: string;
+    category: string;
+    type: string;
+    width: string;
+    height: string;
+  };
+}
+
+export interface OicpBusinessDetails {
   name: string;
   website: string;
   logo?: {
