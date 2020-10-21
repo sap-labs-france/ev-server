@@ -1379,12 +1379,13 @@ export default class UserService {
     // Save
     await UserStorage.saveTag(req.user.tenantID, tag);
     if (formerTagOwnerID) {
-      const formerTagOwner = await UserStorage.getUser(req.user.tenantID, formerTagOwnerID, { withTag: true });
-      if (!Utils.isEmptyArray(formerTagOwner.tags) && formerTagOwner.tags.length === 1) {
-        if (!formerTagOwner.tags[0].default) {
-          tag = formerTagOwner.tags[0];
+      const tagsMDB = await UserStorage.getTags(req.user.tenantID, {
+        userIDs: [formerTagOwnerID]
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
+      if (tagsMDB.count === 1) {
+        if (!tagsMDB.result[0].default) {
+          tag = tagsMDB.result[0];
           tag.default = true;
-          tag.userID = formerTagOwnerID;
           await UserStorage.saveTag(req.user.tenantID, tag);
         }
       }
