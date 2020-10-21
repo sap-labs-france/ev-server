@@ -19,11 +19,14 @@
     "beforeActionLines": [
       "Cher <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Une nouvelle facture est disponible : <%- invoice.number %>. Cliquez <a href=\"<%- invoiceDownloadUrl %>\">ici pour la télécharger</a>"
+      "Une nouvelle facture est disponible : <%- invoice.number %>."
     ],
     "actions": [{
       "title": "Consulter",
       "url": "<%- evseDashboardInvoiceURL %>"
+    }, {
+      "title": "Télécharger",
+      "url": "<%- invoiceDownloadUrl %>"
     }],
     "afterActionLines": [
       "Cordialement,",
