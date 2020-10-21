@@ -331,10 +331,6 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  public static filterCarRequestByUserID(request: any): string {
-    return sanitize(request.UserID);
-  }
-
   public static filterCarUsersRequest(request: any): HttpUsersCarsRequest {
     const filteredRequest: HttpUsersCarsRequest = {
       Search: sanitize(request.Search),

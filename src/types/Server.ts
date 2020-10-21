@@ -65,7 +65,6 @@ export enum ServerAction {
   CAR_DELETE = 'CarDelete',
   CARS = 'Cars',
   CAR = 'Car',
-  DEFAULT_CAR = 'DefaultCar',
   CAR_USERS = 'CarUsers',
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
 
@@ -334,7 +333,7 @@ export enum ServerAction {
   USER_IMAGE = 'UserImage',
   TAGS = 'Tags',
   TAG = 'Tag',
-  DEFAUlT_TAG = 'DefaultTag',
+  USER_DEFAUlT_TAG_CAR = 'UserDefaultTagCar',
   TAG_CREATE = 'TagCreate',
   TAG_UPDATE = 'TagUpdate',
   TAG_DELETE = 'TagDelete',

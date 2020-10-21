@@ -760,27 +760,6 @@ export default class UserStorage {
     return tag.count === 1 ? tag.result[0] : null;
   }
 
-  public static async getUserDefaultTag(tenantID: string, userID: string): Promise<Tag> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserDefaultTag');
-    // Get tag
-    let tag = await UserStorage.getTags(tenantID, {
-      userIDs: [userID],
-      defaultTag: true,
-      active: true
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
-    if (tag.count < 1) {
-      tag = await UserStorage.getTags(tenantID, {
-        userIDs: [userID],
-        active: true
-      }, Constants.DB_PARAMS_SINGLE_RECORD);
-    }
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUserDefaultTag', uniqueTimerID, { userID });
-    return tag.count > 0 ? tag.result[0] : null;
-  }
-
-
   public static async getTags(tenantID: string,
     params: {
       issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;

@@ -66,8 +66,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
       { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE], attributes: ['*'] },
-      { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
-        Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*'] },
+      {
+        resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
+          Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*']
+      },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -154,6 +156,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             }
           ]
         }
+      },
+      {
+        resource: Entity.TAG, action: Action.READ, attributes: ['*'],
+        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
       {
         resource: Entity.CHARGING_STATION,

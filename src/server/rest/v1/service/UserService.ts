@@ -9,6 +9,7 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
+import CarStorage from '../../../../storage/mongodb/CarStorage';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
@@ -1013,8 +1014,9 @@ export default class UserService {
   }
 
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const tagID = UserSecurity.filterTagRequestByID(req.query);
     // Check auth
-    if (!Authorizations.canReadTag(req.user)) {
+    if (!Authorizations.canReadTag(req.user, tagID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -1022,7 +1024,6 @@ export default class UserService {
         module: MODULE_NAME, method: 'handleGetTag'
       });
     }
-    const tagID = UserSecurity.filterTagRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, tagID, MODULE_NAME, 'handleGetTag', req.user);
     // Get the tag
     const tag = await UserStorage.getTag(req.user.tenantID, tagID, { withUser: true });
@@ -1033,24 +1034,49 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserDefaultTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     // Check auth
-    if (!Authorizations.canReadTag(req.user)) {
+    if (!Authorizations.canReadTag(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.READ, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleGetUserDefaultTag'
+        module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
       });
     }
-    const userID = UserSecurity.filterTagRequestByUserID(req.query);
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTag', req.user);
+    // Check auth
+    if (!Authorizations.canReadCar(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.CAR,
+        module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
+      });
+    }
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Get the tag
-    const tag = await UserStorage.getUserDefaultTag(req.user.tenantID, userID);
-    UtilsService.assertObjectExists(action, tag, `User with ID '${userID}' does not have any tags`,
-      MODULE_NAME, 'handleGetUserDefaultTag', req.user);
+    let tagsMDB = await UserStorage.getTags(req.user.tenantID, {
+      userIDs: [userID],
+      defaultTag: true,
+      active: true
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    if (tagsMDB.count < 1) {
+      tagsMDB = await UserStorage.getTags(req.user.tenantID, {
+        userIDs: [userID],
+        active: true
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }
+    const tag = tagsMDB.count > 0 ? tagsMDB.result[0] : null;
+    let carsMDB = await CarStorage.getCars(req.user.tenantID,
+      { userIDs: [userID], defaultCar: true },
+      Constants.DB_PARAMS_SINGLE_RECORD);
+    carsMDB = carsMDB.count > 0 ? carsMDB : await CarStorage.getCars(req.user.tenantID,
+      { userIDs: [userID] },
+      Constants.DB_PARAMS_SINGLE_RECORD);
+    const car = carsMDB.count > 0 ? carsMDB.result[0] : null;
     // Return
-    res.json(UserSecurity.filterTagResponse(tag, req.user));
+    res.json(UserSecurity.filterUserDefaultTagResponse(tag, car, req.user));
     next();
   }
 
@@ -1128,12 +1154,13 @@ export default class UserService {
     }
     // Delete the Tag
     await UserStorage.deleteTag(req.user.tenantID, tag.userID, tag);
-    const user = await UserStorage.getUser(req.user.tenantID, tag.userID,{ withTag: true });
-    if (!Utils.isEmptyArray(user.tags) && user.tags.length === 1) {
-      if (!user.tags[0].default) {
-        tag = user.tags[0];
+    const tagsMDB = await UserStorage.getTags(req.user.tenantID, {
+      userIDs: [tag.userID]
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    if (tagsMDB.count === 1) {
+      if (!tagsMDB.result[0].default) {
+        tag = tagsMDB.result[0];
         tag.default = true;
-        tag.userID = user.id;
         await UserStorage.saveTag(req.user.tenantID, tag);
       }
     }
@@ -1203,7 +1230,7 @@ export default class UserService {
       });
     }
     // Check User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID, { withTag: true });
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleCreateTag', req.user);
     // Only current organization User can be assigned to Tag
@@ -1230,7 +1257,9 @@ export default class UserService {
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       userID: filteredRequest.userID,
-      default: filteredRequest.default ? filteredRequest.default : Utils.isEmptyArray(user.tags)
+      default: filteredRequest.default ? filteredRequest.default : (await UserStorage.getTags(req.user.tenantID, {
+        userIDs: [filteredRequest.userID]
+      }, Constants.DB_PARAMS_SINGLE_RECORD)).count === 0
     } as Tag;
     // Save
     await UserStorage.saveTag(req.user.tenantID, newTag);
@@ -1303,7 +1332,7 @@ export default class UserService {
       });
     }
     // Get User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID, { withTag: true });
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
     // Only current organization User can be assigned to Tag
@@ -1342,7 +1371,9 @@ export default class UserService {
     tag.description = filteredRequest.description;
     tag.active = filteredRequest.active;
     tag.userID = filteredRequest.userID;
-    tag.default = filteredRequest.default ? filteredRequest.default : Utils.isEmptyArray(user.tags);
+    tag.default = filteredRequest.default ? filteredRequest.default : (await UserStorage.getTags(req.user.tenantID, {
+      userIDs: [filteredRequest.userID]
+    }, Constants.DB_PARAMS_SINGLE_RECORD)).count === 0;
     tag.lastChangedBy = { id: req.user.id };
     tag.lastChangedOn = new Date();
     // Save

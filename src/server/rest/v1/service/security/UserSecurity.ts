@@ -1,7 +1,9 @@
 import { HttpSitesAssignUserRequest, HttpTagsRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
-import User, { UserRole } from '../../../../../types/User';
+import User, { UserDefaultTagCar, UserRole } from '../../../../../types/User';
 
 import Authorizations from '../../../../../authorization/Authorizations';
+import { Car } from '../../../../../types/Car';
+import CarSecurity from './CarSecurity';
 import Constants from '../../../../../utils/Constants';
 import { DataResult } from '../../../../../types/DataResult';
 import Tag from '../../../../../types/Tag';
@@ -266,13 +268,25 @@ export default class UserSecurity {
     return filteredTag;
   }
 
+  public static filterUserDefaultTagResponse(tag: Tag, car: Car, loggedUser: UserToken): UserDefaultTagCar {
+    const filteredUserDefaultTagCar = {} as UserDefaultTagCar;
+    // Check auth
+    if (tag && Authorizations.canReadTag(loggedUser, tag.userID)) {
+      filteredUserDefaultTagCar.tag = this.filterTagResponse(tag, loggedUser);
+    }
+    if (Authorizations.canReadCar(loggedUser)) {
+      filteredUserDefaultTagCar.car = CarSecurity.filterCarResponse(car, loggedUser);
+    }
+    return filteredUserDefaultTagCar;
+  }
+
   static filterTagResponse(tag: Tag, loggedUser: UserToken): Tag {
     const filteredTag = {} as Tag;
     if (!tag) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadTag(loggedUser)) {
+    if (Authorizations.canReadTag(loggedUser, tag.userID)) {
       filteredTag.id = tag.id;
       filteredTag.issuer = tag.issuer;
       filteredTag.description = tag.description;
@@ -335,7 +349,7 @@ export default class UserSecurity {
     return sanitize(request.ID);
   }
 
-  public static filterTagRequestByUserID(request: any): string {
+  public static filterDefaultTagCarRequestByUserID(request: any): string {
     return sanitize(request.UserID);
   }
 
