@@ -349,23 +349,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   public async sendInvoiceToUser(tenantID: string, invoice: BillingInvoice): Promise<BillingInvoice> {
     // Send link to the user using our notification framework (link to the front-end + download)
-    try {
-      invoice.downloadUrl = await this.finalizeInvoice(invoice);
-      invoice.status = BillingInvoiceStatus.OPEN;
-      invoice.downloadable = true;
-      await BillingStorage.saveInvoice(tenantID, invoice);
-      const invoicedocument = await this.downloadInvoiceDocument(invoice);
-      await BillingStorage.saveInvoiceDocument(tenantID, invoicedocument);
-    } catch (error) {
-      Logging.logError({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SEND_INVOICE,
-        module: MODULE_NAME, method: 'sendInvoiceToUser',
-        message: 'Unable to send invoice to user',
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
     const tenant = await TenantStorage.getTenant(this.tenantID);
     // Send async notification
     NotificationHandler.sendBillingNewInvoiceNotification(
