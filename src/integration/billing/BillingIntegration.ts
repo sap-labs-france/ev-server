@@ -379,7 +379,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         invoiceDownloadUrl: await Utils.buildEvseBillingDownloadInvoicesURL(this.tenantID, invoice.id),
         invoice: invoice
       }
-    );
+    ).catch(() => { });
     return invoice;
   }
 
