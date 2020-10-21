@@ -65,9 +65,6 @@ export default class Bootstrap {
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
       Bootstrap.migrationConfig = Configuration.getMigrationConfig();
-      // Init global user and tenant IDs hashmap
-      global.userHashMapIDs = new Map<string, string>();
-      global.tenantHashMapIDs = new Map<string, string>();
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {
         // Check database implementation

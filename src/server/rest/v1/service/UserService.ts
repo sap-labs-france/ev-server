@@ -1254,7 +1254,6 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterTagUpdateRequest(req.body, req.user);
-    let formerTagOwnerID = '';
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
@@ -1299,7 +1298,6 @@ export default class UserService {
           action: action
         });
       }
-      formerTagOwnerID = tag.userID;
     }
     if (filteredRequest.default && (tag.default !== filteredRequest.default)) {
       await UserStorage.clearTagUserDefault(req.user.tenantID,filteredRequest.userID);
@@ -1313,10 +1311,6 @@ export default class UserService {
     tag.lastChangedOn = new Date();
     // Save
     await UserStorage.saveTag(req.user.tenantID, tag);
-    if (formerTagOwnerID) {
-      // Recompute the former User's Hash (trigger unlog)
-      await SessionHashService.rebuildUserHashID(req.user.tenantID, formerTagOwnerID);
-    }
     // Synchronize badges with IOP
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) && (filteredRequest.userID !== tag.userID)) {
       try {
