@@ -21,10 +21,10 @@
       "",
       "Unable to synchronize <%- nbrUsersInError %> user(s) with Billing service provider."
     ],
-    "action": {
+    "actions": [{
       "title": "View Settings",
       "url": "<%- evseDashboardBillingURL %>"
-    },
+    }],
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

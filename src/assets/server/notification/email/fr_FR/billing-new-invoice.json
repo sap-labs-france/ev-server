@@ -21,10 +21,10 @@
       "",
       "Une nouvelle facture est disponible : <%- invoice.number %>. Cliquez <a href=\"<%- invoiceDownloadUrl %>\">ici pour la télécharger</a>"
     ],
-    "action": {
+    "actions": [{
       "title": "Consulter",
       "url": "<%- evseDashboardInvoiceURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

@@ -22,10 +22,10 @@
       "Você colocou o badge na estação de carregamento <b> '<%- chargeBoxID %>' </b>, mas não foi iniciada nenhuma sessão.",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "View <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Com os melhores cumprimntos,",
       "EV Admins."

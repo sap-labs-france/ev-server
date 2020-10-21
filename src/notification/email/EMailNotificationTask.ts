@@ -291,11 +291,11 @@ export default class EMailNotificationTask implements NotificationTask {
           });
       }
       // Render Action
-      if (emailTemplate.body.action) {
-        emailTemplate.body.action.title =
-          ejs.render(emailTemplate.body.action.title, data);
-        emailTemplate.body.action.url =
-          ejs.render(emailTemplate.body.action.url, data);
+      if (emailTemplate.body.actions) {
+        for (const action of emailTemplate.body.actions) {
+          action.title = ejs.render(action.title, data);
+          action.url = ejs.render(action.url, data);
+        }
       }
       if (emailTemplate.body.afterActionLines) {
         // Render Lines After Action

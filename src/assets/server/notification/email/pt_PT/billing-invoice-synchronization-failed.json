@@ -21,10 +21,10 @@
       "",
       "Não foi possível sincronizar <%- nbrInvoicesInError %> faturas com o provedor de serviços de cobrança."
     ],
-    "action": {
+    "actions": [{
       "title": "View Settings",
       "url": "<%- evseDashboardBillingURL %>"
-    },
+    }],
     "afterActionLines": [
       "Melhores Cumprimentos,",
       "EV Admins."

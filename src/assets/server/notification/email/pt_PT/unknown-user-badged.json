@@ -21,10 +21,10 @@
       "",
       "Um utilizador desconhecido acabou de tentar inciiaar sessão na <b> '<%- chargeBoxID %>' </b> com o badge <b> '<%- badgeID %>' </b>."
     ],
-    "action": {
+    "actions": [{
       "title": "Editar Utilizador",
       "url": "<%- evseDashboardUserURL %>"
-    },
+    }],
     "afterActionLines": [
       "Com os melhores cumprimentos,",
       "EV Admins."

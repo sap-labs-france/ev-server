@@ -22,10 +22,10 @@
       "Les bornes suivantes sont hors ligne dans votre organisation : <strong><%- chargeBoxIDs %></strong>",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."
