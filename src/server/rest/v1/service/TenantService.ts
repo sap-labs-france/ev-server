@@ -142,7 +142,7 @@ export default class TenantService {
         withLogo: filteredRequest.WithLogo,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
-      [ 'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']);
+      [ 'id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']);
     // Filter
     TenantSecurity.filterTenantsResponse(tenants, req.user);
     // Return
