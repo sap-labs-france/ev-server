@@ -20,6 +20,13 @@ class TestData {
   public superAdminCentralService: any;
   public centralService: any;
   public credentials: any = {};
+
+  public connectUser(): void {
+    this.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS, {
+      email: config.get('admin.username'),
+      password: config.get('admin.password')
+    });
+  }
 }
 
 const testData: TestData = new TestData();
@@ -33,10 +40,7 @@ describe('Tenant Settings test', function() {
       email: config.get('superadmin.username'),
       password: config.get('superadmin.password')
     });
-    testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS, {
-      email: config.get('admin.username'),
-      password: config.get('admin.password')
-    });
+    testData.connectUser();
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
     const response = await testData.superAdminCentralService.tenantApi.readAll({ 'Search': ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS }, {
@@ -97,6 +101,7 @@ describe('Tenant Settings test', function() {
       const res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+      testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.OCPI, RoamingSettingsType.GIREVE);
@@ -124,7 +129,7 @@ describe('Tenant Settings test', function() {
       const res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
-
+      testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
@@ -175,6 +180,7 @@ describe('Tenant Settings test', function() {
       res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+      testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(2);
@@ -225,6 +231,7 @@ describe('Tenant Settings test', function() {
       };
       res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+      testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(2);
@@ -274,6 +281,7 @@ describe('Tenant Settings test', function() {
       };
       res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+      testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
@@ -301,6 +309,7 @@ describe('Tenant Settings test', function() {
       };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+      testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
@@ -329,7 +338,7 @@ describe('Tenant Settings test', function() {
       };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
-
+      testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
@@ -379,6 +388,7 @@ describe('Tenant Settings test', function() {
       res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+      testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.ASSET, null);
