@@ -7,6 +7,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import { StatusCodes } from 'http-status-codes';
 import Transaction from '../../types/Transaction';
 import { UserInErrorType } from '../../types/InError';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -242,20 +243,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             });
             continue;
           }
-          // Delete in e-Mobility
-          if (!invoiceInBilling && invoice) {
-            await BillingStorage.deleteInvoiceByInvoiceID(tenantID, invoiceIDInBilling);
-            actionsDone.inSuccess++;
-            Logging.logDebug({
-              tenantID: tenantID,
-              user: user,
-              source: Constants.CENTRAL_SERVER,
-              action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-              module: MODULE_NAME, method: 'synchronizeInvoices',
-              message: `Billing invoice with ID '${invoiceIDInBilling}' has been deleted in e-Mobility`
-            });
-            continue;
-          }
           // Create / Update
           let userInInvoice: User;
           if (invoice) {
@@ -315,16 +302,34 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             detailedMessages: { invoiceInBilling }
           });
         } catch (error) {
-          actionsDone.inError++;
-          Logging.logError({
-            tenantID: tenantID,
-            user: user,
-            source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-            module: MODULE_NAME, method: 'synchronizeInvoices',
-            message: `Unable to process the invoice with ID '${invoiceIDInBilling}'`,
-            detailedMessages: { error: error.message, stack: error.stack, invoiceIDInBilling }
-          });
+          if (error.statusCode === StatusCodes.NOT_FOUND) {
+            const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(tenantID, invoiceIDInBilling);
+            // Delete in e-Mobility
+            if (invoice) {
+              await BillingStorage.deleteInvoiceByInvoiceID(tenantID, invoiceIDInBilling);
+              actionsDone.inSuccess++;
+              Logging.logDebug({
+                tenantID: tenantID,
+                user: user,
+                source: Constants.CENTRAL_SERVER,
+                action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+                module: MODULE_NAME, method: 'synchronizeInvoices',
+                message: `Billing invoice with ID '${invoiceIDInBilling}' has been deleted in e-Mobility`
+              });
+              continue;
+            }
+          } else {
+            actionsDone.inError++;
+            Logging.logError({
+              tenantID: tenantID,
+              user: user,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+              module: MODULE_NAME, method: 'synchronizeInvoices',
+              message: `Unable to process the invoice with ID '${invoiceIDInBilling}'`,
+              detailedMessages: { error: error.message, stack: error.stack, invoiceIDInBilling }
+            });
+          }
         }
       }
     }
