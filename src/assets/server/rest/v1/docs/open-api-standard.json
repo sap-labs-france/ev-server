@@ -241,7 +241,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Login"
+                "$ref": "#/components/schemas/Signin"
               }
             }
           }
@@ -275,7 +275,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Register"
+                "$ref": "#/components/schemas/Signon"
               }
             }
           }
@@ -301,6 +301,34 @@
           },
           "550": {
             "description": "User tried to register with an unknown tenant"
+          }
+        }
+      }
+    },
+    "/auth/passwordreset": {
+      "post": {
+        "description": "Reset password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordReset"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset notification sent successfully"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "User is deleted logically"
           }
         }
       }
@@ -491,7 +519,7 @@
           }
         }
       },
-      "Login": {
+      "Signin": {
         "type": "object",
         "properties": {
           "email": {
@@ -512,7 +540,7 @@
           }
         }
       },
-      "Register": {
+      "Signon": {
         "type": "object",
         "properties": {
           "email": {
@@ -551,6 +579,23 @@
           "captcha": {
             "type": "string",
             "example": "03AGdBq27rf-WyiNvo8yOO11OjDwgST4ZiQ-dtKxxDvVzxtU7XG6Oqff-M-KXe8RwCsHrlgU-4BCi_Y9CLLSC-DHMZkK-YS2fIJ4TpVxwn2mCQ7PwgIi8HUJHudaq5Jb7W88zebKr_xWBa9zyLp4k8exaWwQ9v2Pnj-FSKTHHDpT66PZiHOfRVjg9Za6eQIHhbXkNK5m6ZKWgT92XYigaJuTEPigGK7N5kbXHydXZFX6Ku5lntg9FRl7n737SRSAsO0joBb5XtgJV1vfZGyvnSjHECf3lmNdhZCQbdhGjEqn2vtHuodFk1i3kFzgEgMOS59A42m_zr4AME1Avd-hyAW80dybsbSKWbThyQx6iBRcOydgM9b10TI9kIpL8feLHBCvnmVutnhlp_Zz9MDTop5_Fdi3xvZHW-tLcLYHljECgnTHbApkcHfCSzgSJBlkB7_qifzRGitTfCUFGztgOCho6pKXeHAzc4XQ"
+          }
+        }
+      },
+      "PasswordReset": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "loan.alouache@sap.com"
+          },
+          "captcha": {
+            "type": "string",
+            "example": "03AGdBq261sQ2KzqROGD8E2Xb2ljxLkmQbUumIL9m6FqtJZau9Z5Aq4Pp8K-VzbjTwuvnBvdaZBgD-6VU0IY8PMSyGmSJNH9Ctkgde4l8XoQUVLYLhspglIRSjkPS15-DZQtJ2gLG910Kq3RXE-S5M9gkuXBfEh6Y-81qC9gRb-FFwN_Ao5_NO7j6iu1kZqJHpyxHvwVqtbLK5APvTngU_8gx9tRDfXUBtLMmgZAofmkIE1qbefMNTDceJsiNKtHHykP-xFIt-lNRN1H6h_HZ8EbRjncT5k_AeqjL8ClBTZy9Pdqwy9jkpvas4l5EH7WPVT-9VPV0C0tuwKkwwwesMhzYSo2Vso_wN15G5x1Zgji8xsndjvMthTkIWe4zyRNKNr2gc4z1Sgfy-dGcRkDc7lUnet0fJfII5bXKl_njo_S8no8KGVZ2IeOTzhTKigA7A0hdtNrKnAOmU"
+          },
+          "tenant": {
+            "type": "string",
+            "example": ""
           }
         }
       },
