@@ -328,7 +328,7 @@
             "$ref": "#/components/responses/500BackendError"
           },
           "550": {
-            "description": "User is deleted logically"
+            "description": "User does not exist or is deleted logically"
           }
         }
       }
