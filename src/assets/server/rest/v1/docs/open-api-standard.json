@@ -2,10 +2,6 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "description": "Localhost - Dev - Tenant Management",
-      "url": "http://localhost:8082/v1/"
-    },
-    {
       "description": "SCP - Prod - SAP Labs France",
       "url": "https://slf.evse.cfapps.eu10.hana.ondemand.com/v1/api"
     },
@@ -16,6 +12,14 @@
     {
       "description": "AWS - Prod - Tenant Management",
       "url": "https://e-mobility-group.com/v1/api"
+    },
+    {
+      "description": "Localhost - Dev - Tenant Management",
+      "url": "http://localhost:8082/v1/api"
+    },
+    {
+      "description": "Localhost - Dev - Auth Management",
+      "url": "http://localhost:8082/v1/"
     }
   ],
   "info": {
