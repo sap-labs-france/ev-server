@@ -2,6 +2,10 @@
   "openapi": "3.0.3",
   "servers": [
     {
+      "description": "Localhost - Dev - Tenant Management",
+      "url": "http://localhost:8082/v1/"
+    },
+    {
       "description": "SCP - Prod - SAP Labs France",
       "url": "https://slf.evse.cfapps.eu10.hana.ondemand.com/v1/api"
     },
@@ -12,10 +16,6 @@
     {
       "description": "AWS - Prod - Tenant Management",
       "url": "https://e-mobility-group.com/v1/api"
-    },
-    {
-      "description": "Localhost - Dev - Tenant Management",
-      "url": "http://localhost/v1/api"
     }
   ],
   "info": {
@@ -35,6 +35,10 @@
     {
       "name": "Tenants",
       "description": "Tenant management"
+    },
+    {
+      "name": "Auth",
+      "description": "Auth management"
     }
   ],
   "paths": {
@@ -225,6 +229,40 @@
           }
         }
       }
+    },
+    "/auth/signin": {
+      "post": {
+        "description": "Login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Logged in successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "520": {
+            "description": "The End-user License Agreement is mandatory"
+          },
+          "550": {
+            "description": "User tried to log in with an unknown tenant or is deleted logically"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -409,6 +447,27 @@
                 }
               }
             }
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "loan.alouache@sap.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "Azerty123!"
+          },
+          "acceptEula": {
+            "type": "boolean",
+            "example": true
+          },
+          "tenant": {
+            "type": "string",
+            "example": ""
           }
         }
       },
