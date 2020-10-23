@@ -263,6 +263,43 @@
           }
         }
       }
+    },
+    "/auth/signon": {
+      "post": {
+        "description": "Register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Register"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Registered successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "510": {
+            "description": "Email already used"
+          },
+          "520": {
+            "description": "The End-user License Agreement is mandatory"
+          },
+          "550": {
+            "description": "User tried to register with an unknown tenant"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -468,6 +505,48 @@
           "tenant": {
             "type": "string",
             "example": ""
+          }
+        }
+      },
+      "Register": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "loan.alouache@sap.com"
+          },
+          "name": {
+            "type": "string",
+            "example": "Alouache"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Loan"
+          },
+          "passwords": {
+            "type": "object",
+            "properties": {
+              "password": {
+                "type": "string",
+                "example": "Azerty123!"
+              },
+              "repeatPassword": {
+                "type": "string",
+                "example": "Azerty123!"
+              }
+            }
+          },
+          "acceptEula": {
+            "type": "boolean",
+            "example": true
+          },
+          "tenant": {
+            "type": "string",
+            "example": ""
+          },
+          "captcha": {
+            "type": "string",
+            "example": "03AGdBq27rf-WyiNvo8yOO11OjDwgST4ZiQ-dtKxxDvVzxtU7XG6Oqff-M-KXe8RwCsHrlgU-4BCi_Y9CLLSC-DHMZkK-YS2fIJ4TpVxwn2mCQ7PwgIi8HUJHudaq5Jb7W88zebKr_xWBa9zyLp4k8exaWwQ9v2Pnj-FSKTHHDpT66PZiHOfRVjg9Za6eQIHhbXkNK5m6ZKWgT92XYigaJuTEPigGK7N5kbXHydXZFX6Ku5lntg9FRl7n737SRSAsO0joBb5XtgJV1vfZGyvnSjHECf3lmNdhZCQbdhGjEqn2vtHuodFk1i3kFzgEgMOS59A42m_zr4AME1Avd-hyAW80dybsbSKWbThyQx6iBRcOydgM9b10TI9kIpL8feLHBCvnmVutnhlp_Zz9MDTop5_Fdi3xvZHW-tLcLYHljECgnTHbApkcHfCSzgSJBlkB7_qifzRGitTfCUFGztgOCho6pKXeHAzc4XQ"
           }
         }
       },
