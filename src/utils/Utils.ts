@@ -234,10 +234,6 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
-  public static getRoundedNumberToTwoDecimals(numberToRound: number): number {
-    return Math.round(numberToRound * 100) / 100;
-  }
-
   public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
   }
