@@ -293,7 +293,7 @@
             "description": "Email already used"
           },
           "520": {
-            "description": "The End-user License Agreement is mandatory"
+            "description": "End-user License Agreement has not been accepted"
           },
           "550": {
             "description": "User tried to register with an unknown tenant"
