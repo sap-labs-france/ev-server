@@ -15,11 +15,11 @@
     },
     {
       "description": "Localhost - Dev - Tenant Management",
-      "url": "http://localhost:8082/v1/api"
+      "url": "http://localhost/v1/api"
     },
     {
       "description": "Localhost - Dev - Auth Management",
-      "url": "http://localhost:8082/v1/"
+      "url": "http://localhost/v1/"
     }
   ],
   "info": {
