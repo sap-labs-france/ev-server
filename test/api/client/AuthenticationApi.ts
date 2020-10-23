@@ -23,7 +23,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
-      url: '/client/auth/Login',
+      url: '/v1/auth/signin',
       'axios-retry': {
         retries: 0
       },
@@ -42,7 +42,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
-      url: '/client/auth/RegisterUser',
+      url: '/v1/auth/signon',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -60,7 +60,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
-      url: '/client/auth/Reset',
+      url: '/v1/auth/passwordreset',
       headers: {
         'Content-Type': 'application/json'
       },
