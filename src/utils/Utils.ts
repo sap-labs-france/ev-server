@@ -1132,8 +1132,8 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneJSonDocument(jsonDocument: any): any {
-    return JSON.parse(JSON.stringify(jsonDocument));
+  public static cloneObject(object: any): any {
+    return JSON.parse(JSON.stringify(object));
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {

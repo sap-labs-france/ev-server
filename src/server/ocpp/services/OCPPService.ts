@@ -1466,7 +1466,7 @@ export default class OCPPService {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
             // Add Attributes
-            const normalizedLocalMeterValue = Utils.cloneJSonDocument(normalizedMeterValue);
+            const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
             normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
             // Data is to be interpreted as integer/decimal numeric data
             if (normalizedLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
@@ -1480,7 +1480,7 @@ export default class OCPPService {
           }
         } else {
           // Add Attributes
-          const normalizedLocalMeterValue = Utils.cloneJSonDocument(normalizedMeterValue);
+          const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
           normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
           // Add
           normalizedMeterValues.values.push(normalizedLocalMeterValue);
@@ -1491,12 +1491,12 @@ export default class OCPPService {
           for (const currentValue of value['value']) {
             normalizedMeterValue.value = Utils.convertToFloat(currentValue['$value']);
             normalizedMeterValue.attribute = currentValue.attributes;
-            normalizedMeterValues.values.push(Utils.cloneJSonDocument(normalizedMeterValue));
+            normalizedMeterValues.values.push(Utils.cloneObject(normalizedMeterValue));
           }
         } else {
           normalizedMeterValue.value = Utils.convertToFloat(value['value']['$value']);
           normalizedMeterValue.attribute = value['value'].attributes;
-          normalizedMeterValues.values.push(Utils.cloneJSonDocument(normalizedMeterValue));
+          normalizedMeterValues.values.push(Utils.cloneObject(normalizedMeterValue));
         }
       }
     }
