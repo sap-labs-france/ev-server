@@ -1,10 +1,10 @@
 {
-  "subject": "Billing - New invoice",
+  "subject": "Faturação - Nova Fatura",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Billing - New invoice",
+      "title": "Faturação - Nova Fatura",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Dear <%- (user.firstName?user.firstName:user.name) %>,",
+      "Caro <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "A new invoice is available : <%- invoice.number %>."
+      "Uma nova fatura está disponível : <%- invoice.number %>."
     ],
     "actions": [{
-      "title": "Consult",
+      "title": "Consultar",
       "url": "<%- evseDashboardInvoiceURL %>"
     }, {
       "title": "Download",
       "url": "<%- invoiceDownloadUrl %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
+      "Com os melhores cumprimentos,",
       "EV Admins."
     ],
     "footer": {
