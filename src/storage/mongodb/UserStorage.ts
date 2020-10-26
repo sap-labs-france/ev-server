@@ -843,13 +843,17 @@ export default class UserStorage {
     });
     // Transactions
     if (params.withNbrTransactions) {
+      let additionalPipeline :Record<string, any>[] = [];
+      if (params.withUser) {
+        additionalPipeline = [{
+          '$match': { 'userID': { $exists: true, $ne: null } }
+        }];
+      }
       DatabaseUtils.pushTransactionsLookupInAggregation({
         tenantID, aggregation: aggregation, localField: '_id', foreignField: 'tagID',
         count: true, asField: 'transactionsCount', oneToOneCardinality: false,
         objectIDFields: ['createdBy', 'lastChangedBy']
-      }, [{
-        '$match': { 'userID': { $exists: true, $ne: null } }
-      }]);
+      },additionalPipeline);
     }
     // Users
     if (params.withUser) {

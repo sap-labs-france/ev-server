@@ -1079,7 +1079,7 @@ export default class UserService {
       });
     }
     // Get Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true });
+    const tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${tagId}' does not exist`,
       MODULE_NAME, 'handleDeleteTag', req.user);
     // Only current organizations tags can be deleted
@@ -1257,7 +1257,7 @@ export default class UserService {
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true });
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
     // Only current organization Tag can be updated
