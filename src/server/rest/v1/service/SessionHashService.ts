@@ -11,23 +11,29 @@ import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
-import global from '../../../../types/GlobalType';
 
 const MODULE_NAME = 'SessionHashService';
 
 export default class SessionHashService {
-  // Check if Session has been updated and require new login
-  static isSessionHashUpdated(req: Request, res: Response, next: NextFunction): boolean {
+  public static async isSessionHashUpdated(req: Request, res: Response, next: NextFunction): Promise<boolean> {
     // Get tenant id, user id and hash ID
     const userID = req.user.id;
     const tenantID = req.user.tenantID;
     const userHashID = req.user.userHashID;
     const tenantHashID = req.user.tenantHashID;
-
+    // No session hash in master tenant
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      return false;
+    }
+    const tenant = await TenantStorage.getTenant(tenantID);
+    const user = await UserStorage.getUser(tenantID, userID);
     try {
+      // User or Tenant no longer exists
+      if (!tenant || !user) {
+        return true;
+      }
       // Check User's Hash
-      if (global.userHashMapIDs.has(`${tenantID}#${userID}`) &&
-        global.userHashMapIDs.get(`${tenantID}#${userID}`) !== userHashID) {
+      if (userHashID !== this.buildUserHashID(user)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: StatusCodes.FORBIDDEN,
@@ -37,8 +43,8 @@ export default class SessionHashService {
           user: req.user
         });
       }
-      if (global.tenantHashMapIDs.has(`${tenantID}`) &&
-        global.tenantHashMapIDs.get(`${tenantID}`) !== tenantHashID) {
+      // Check Tenant's Hash
+      if (tenantHashID !== this.buildTenantHashID(tenant)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: StatusCodes.FORBIDDEN,
@@ -56,48 +62,17 @@ export default class SessionHashService {
     return false;
   }
 
-  // Build User Hash ID
-  static buildUserHashID(user: User): string {
-    // Get all field that need to be hashed
-    const tags = user.tags && user.tags.length > 0 ? user.tags.map((tag) => tag.id).sort().join('-') : '';
-    const data = `${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}/${tags}`;
-    return Cypher.hash(data);
-  }
-
-  // Build Tenant Hash ID
-  static buildTenantHashID(tenant: Tenant): string {
-    // Get all field that need to be hashed
-    const data = JSON.stringify(Utils.getTenantActiveComponents(tenant));
-    return Cypher.hash(data);
-  }
-
-  // Rebuild and store User Hash ID
-  static async rebuildUserHashID(tenantID: string, userID: string): Promise<void> {
-    // Build User hash
-    const user = await UserStorage.getUser(tenantID, userID, { withTag: true });
+  public static buildUserHashID(user: User): string {
+    // Generate User Hash
     if (user) {
-      global.userHashMapIDs.set(`${tenantID}#${userID}`, SessionHashService.buildUserHashID(user));
-    } else {
-      global.userHashMapIDs.delete(`${tenantID}#${userID}`);
+      return Cypher.hash(`${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}`);
     }
   }
 
-  static async rebuildUserHashIDFromTagID(tenantID: string, tagID: string): Promise<void> {
-    // Build User hash
-    const tag = await UserStorage.getTag(tenantID, tagID);
-    if (tag?.userID) {
-      await this.rebuildUserHashID(tenantID, tag.userID);
-    }
-  }
-
-  // Rebuild and store Tenant Hash ID
-  static async rebuildTenantHashID(tenantID: string): Promise<void> {
-    // Build Tenant hash
-    const tenant = await TenantStorage.getTenant(tenantID);
+  public static buildTenantHashID(tenant: Tenant): string {
+    // Generate Tenant Hash
     if (tenant) {
-      global.tenantHashMapIDs.set(`${tenantID}`, SessionHashService.buildTenantHashID(tenant));
-    } else {
-      global.tenantHashMapIDs.delete(`${tenantID}`);
+      return Cypher.hash(JSON.stringify(Utils.getTenantActiveComponents(tenant)));
     }
   }
 }

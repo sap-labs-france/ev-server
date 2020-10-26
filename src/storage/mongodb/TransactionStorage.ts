@@ -275,7 +275,7 @@ export default class TransactionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -602,7 +602,7 @@ export default class TransactionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -742,7 +742,7 @@ export default class TransactionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -1195,7 +1195,7 @@ export default class TransactionStorage {
           { $match: { 'activeDuration': { $gt: 0 } } },
           { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
           { $addFields: { averagePower: { $abs: { $multiply: [{ $divide: ['$stop.totalConsumptionWh', '$activeDuration'] }, 3600] } } } },
-          { $addFields: { impossiblePower: { $lte: [{ $subtract: [{ $multiply: ['$connector.power', 1.05] }, '$averagePower'] }, 0] } } },
+          { $addFields: { impossiblePower: { $lte: [{ $subtract: [{ $multiply: ['$connector.power', 1.10] }, '$averagePower'] }, 0] } } },
           { $match: { 'impossiblePower': { $eq: true } } },
           { $addFields: { 'errorCode': TransactionInErrorType.OVER_CONSUMPTION } }
         ];
