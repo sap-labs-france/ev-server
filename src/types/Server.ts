@@ -371,9 +371,9 @@ export enum ServerAction {
   HTTP_ERROR = 'HttpError',
 
   // RESTful API
-  SIGNIN = 'signin',
-  SIGNON = 'signon',
-  SIGNOUT = 'signout',
+  REST_SIGNIN = 'signin',
+  REST_SIGNON = 'signon',
+  REST_SIGNOUT = 'signout',
   REST_PASSWORD_RESET = 'passwordreset',
   REST_PING = 'ping',
   REST_TENANTS = 'tenants'
