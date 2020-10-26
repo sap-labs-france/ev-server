@@ -19,7 +19,7 @@
     },
     {
       "description": "Localhost - Dev - Auth Management",
-      "url": "http://localhost/v1/"
+      "url": "http://localhost/v1/auth"
     }
   ],
   "info": {
@@ -234,7 +234,7 @@
         }
       }
     },
-    "/auth/signin": {
+    "/signin": {
       "post": {
         "description": "Login",
         "requestBody": {
@@ -268,7 +268,7 @@
         }
       }
     },
-    "/auth/signon": {
+    "/signon": {
       "post": {
         "description": "Register",
         "requestBody": {
@@ -305,7 +305,7 @@
         }
       }
     },
-    "/auth/passwordreset": {
+    "/passwordreset": {
       "post": {
         "description": "Reset password",
         "requestBody": {
