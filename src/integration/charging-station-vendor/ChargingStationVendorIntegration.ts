@@ -478,7 +478,7 @@ export default abstract class ChargingStationVendorIntegration {
   public convertToVendorChargingProfile(chargingStation: ChargingStation,
     chargePoint: ChargePoint, chargingProfile: ChargingProfile): ChargingProfile {
     // Get vendor specific charging profile
-    const vendorSpecificChargingProfile: ChargingProfile = Utils.cloneJSonDocument(chargingProfile);
+    const vendorSpecificChargingProfile: ChargingProfile = Utils.cloneObject(chargingProfile);
     // Check connector
     if (chargingStation.connectors && vendorSpecificChargingProfile.profile && vendorSpecificChargingProfile.profile.chargingSchedule) {
       // Convert to Watts?
