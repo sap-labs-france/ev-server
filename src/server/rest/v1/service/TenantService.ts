@@ -29,6 +29,8 @@ export default class TenantService {
   public static async handleDeleteTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const id = TenantSecurity.filterTenantRequestByID(req.query);
+    // Validate
+    // const filteredRequest = TenantValidator.getInstance().validateTenantDeleteRequestSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {

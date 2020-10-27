@@ -8,13 +8,22 @@ import global from '../../../../types/GlobalType';
 
 export default class TenantValidator extends SchemaValidator {
   private static _instance: TenantValidator | undefined;
+  private _commonAddress: any;
   private _tenantCreateReqSuperAdmin: any;
   private _tenantUpdateReqSuperAdmin: any;
+  private _tenantDeleteReqSuperAdmin: any;
+  private _tenantGetLogoReqSuperAdmin: any;
+  private _tenantGetReqSuperAdmin: any;
+  private _tenantGetRespSuperAdmin: any;
 
   private constructor() {
     super('TenantValidator');
+    this._commonAddress = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/common/address.json`, 'utf8'));
     this._tenantCreateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create-req-super-admin.json`, 'utf8'));
     this._tenantUpdateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update-req-super-admin.json`, 'utf8'));
+    this._tenantDeleteReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete-req-super-admin.json`, 'utf8'));
+    // TODO: restliche Json nachladen
+    // Address -> "address": { "$ref": "address.json#" }
   }
 
   public static getInstance(): TenantValidator {
@@ -37,6 +46,26 @@ export default class TenantValidator extends SchemaValidator {
     this.validate(this._tenantUpdateReqSuperAdmin, tenant);
     // Validate deps between components
     this.validateComponentDependencies(tenant);
+    return tenant;
+  }
+
+  public validateTenantDeleteRequestSuperAdmin(request: Tenant): Tenant {
+    // Validate schema
+    this.validate(this._tenantDeleteReqSuperAdmin, request);
+    return request;
+  }
+
+  public validateGetLogoReqSuperAdmin(tenant: Tenant): Tenant {
+    // Validate schema
+    this.validate(this._tenantGetLogoReqSuperAdmin, tenant);
+    return tenant;
+  }
+
+  public validateTenantGetReqSuperAdmin(tenant: Tenant): Tenant {
+    return tenant;
+  }
+
+  public validateTenantGetRespSuperAdmin(tenant: Tenant): Tenant {
     return tenant;
   }
 
