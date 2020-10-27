@@ -375,6 +375,9 @@ export enum ServerAction {
   REST_SIGNON = 'signon',
   REST_SIGNOUT = 'signout',
   REST_PASSWORD_RESET = 'passwordreset',
+  REST_VERIFY_EMAIL = 'verifyemail',
+  REST_RESEND_VERIFICATION_EMAIL = 'resendverficationmail',
+  REST_CHECK_USER_LICENSE_AGREEMENT = 'checkenduserlicenseagreement',
   REST_PING = 'ping',
   REST_TENANTS = 'tenants'
 }
