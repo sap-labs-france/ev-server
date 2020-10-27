@@ -811,10 +811,6 @@ export default class AuthService {
   }
 
   public static handleUserLogOut(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
-    // Cleanup hash
-    if (req.user) {
-      SessionHashService.deleteUserHashID(req.user.tenantID, req.user.id);
-    }
     req.logout();
     res.status(StatusCodes.OK).send({});
   }

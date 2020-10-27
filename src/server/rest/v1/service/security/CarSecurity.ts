@@ -262,15 +262,14 @@ export default class CarSecurity {
         licensePlate: car.licensePlate,
         carCatalogID: car.carCatalogID,
         type: car.type,
-        converter: car.converter,
-        carCatalog: car.carCatalog,
+        converter: car.converter
       };
-      if (filteredCar.carUsers) {
+      if (car.carUsers) {
         filteredCar.carUsers = car.carUsers.map((carUser) => ({
           ...carUser, user: UserSecurity.filterMinimalUserResponse(carUser.user, loggedUser)
         }));
       }
-      if (filteredCar.carCatalog) {
+      if (car.carCatalog) {
         filteredCar.carCatalog = forList ? this.filterMinimalCarCatalogResponse(car.carCatalog, loggedUser) :
           this.filterCarCatalogResponse(car.carCatalog, loggedUser);
       }

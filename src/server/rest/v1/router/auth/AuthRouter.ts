@@ -20,20 +20,20 @@ export default class AuthRouter {
   }
 
   protected buildRouteSignIn(): void {
-    this.router.post(`/${ServerAction.SIGNIN}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(AuthService.handleLogIn.bind(this), ServerAction.SIGNIN, req, res, next);
+    this.router.post(`/${ServerAction.REST_SIGNIN}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleLogIn.bind(this), ServerAction.REST_SIGNIN, req, res, next);
     });
   }
 
   protected buildRouteSignOn(): void {
-    this.router.post(`/${ServerAction.SIGNON}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(AuthService.handleRegisterUser.bind(this), ServerAction.SIGNON, req, res, next);
+    this.router.post(`/${ServerAction.REST_SIGNON}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleRegisterUser.bind(this), ServerAction.REST_SIGNON, req, res, next);
     });
   }
 
   protected buildRouteSignOut(): void {
-    this.router.get(`/${ServerAction.SIGNOUT}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(AuthService.handleUserLogOut.bind(this), ServerAction.SIGNOUT, req, res, next);
+    this.router.get(`/${ServerAction.REST_SIGNOUT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleUserLogOut.bind(this), ServerAction.REST_SIGNOUT, req, res, next);
     });
   }
 
