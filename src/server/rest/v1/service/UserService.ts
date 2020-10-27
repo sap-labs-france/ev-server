@@ -1079,7 +1079,7 @@ export default class UserService {
       });
     }
     // Get Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true });
+    const tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${tagId}' does not exist`,
       MODULE_NAME, 'handleDeleteTag', req.user);
     // Only current organizations tags can be deleted
@@ -1254,11 +1254,10 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterTagUpdateRequest(req.body, req.user);
-    let formerTagOwnerID = '';
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true });
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
     // Only current organization Tag can be updated
@@ -1299,7 +1298,6 @@ export default class UserService {
           action: action
         });
       }
-      formerTagOwnerID = tag.userID;
     }
     if (filteredRequest.default && (tag.default !== filteredRequest.default)) {
       await UserStorage.clearTagUserDefault(req.user.tenantID,filteredRequest.userID);
@@ -1313,10 +1311,6 @@ export default class UserService {
     tag.lastChangedOn = new Date();
     // Save
     await UserStorage.saveTag(req.user.tenantID, tag);
-    if (formerTagOwnerID) {
-      // Recompute the former User's Hash (trigger unlog)
-      await SessionHashService.rebuildUserHashID(req.user.tenantID, formerTagOwnerID);
-    }
     // Synchronize badges with IOP
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) && (filteredRequest.userID !== tag.userID)) {
       try {

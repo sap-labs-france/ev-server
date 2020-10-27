@@ -21,10 +21,10 @@ export default class Constants {
   public static readonly EXPORT_PAGE_SIZE = 1000;
 
   public static readonly DEFAULT_TENANT = 'default';
-  public static readonly DEFAULT_TENANT_OBJECT= {
+  public static readonly DEFAULT_TENANT_OBJECT= Object.freeze({
     id: Constants.DEFAULT_TENANT,
     name: Constants.DEFAULT_TENANT
-  } as Tenant;
+  } as Tenant);
 
   public static readonly UNKNOWN_OBJECT_ID: string = '000000000000000000000000';
   public static readonly UNKNOWN_STRING_ID: string = '000000000000000000000000';
@@ -58,8 +58,8 @@ export default class Constants {
   public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store regex in enum
   public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store regex in enum
 
-  public static readonly SUPPORTED_LOCALES = Object.freeze(['en_US', 'fr_FR', 'es_MX', 'de_DE']);
-  public static readonly SUPPORTED_LANGUAGES = Object.freeze(['en', 'fr', 'es', 'de']);
+  public static readonly SUPPORTED_LOCALES = Object.freeze(['en_US', 'fr_FR', 'es_MX', 'de_DE', 'pt_PT']);
+  public static readonly SUPPORTED_LANGUAGES = Object.freeze(['en', 'fr', 'es', 'de', 'pt']);
   public static readonly DEFAULT_LOCALE = 'en_US';
   public static readonly DEFAULT_LANGUAGE = 'en';
 

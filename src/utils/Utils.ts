@@ -234,10 +234,6 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
-  public static getRoundedNumberToTwoDecimals(numberToRound: number): number {
-    return Math.round(numberToRound * 100) / 100;
-  }
-
   public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
   }
@@ -420,6 +416,8 @@ export default class Utils {
       return 'es_MX';
     } else if (language === 'de') {
       return 'de_DE';
+    } else if (language === 'pt') {
+      return 'pt_PT';
     }
     return Constants.DEFAULT_LOCALE;
   }
@@ -1134,8 +1132,8 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneJSonDocument(jsonDocument: any): any {
-    return JSON.parse(JSON.stringify(jsonDocument));
+  public static cloneObject(object: any): any {
+    return JSON.parse(JSON.stringify(object));
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {

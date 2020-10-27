@@ -2,7 +2,7 @@ import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, 
 
 import { MessageType } from '../../../../src/types/WebSocket';
 import OCPPService from '../OCPPService';
-import Utils from '../../../utils/Utils';
+import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
