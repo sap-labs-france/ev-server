@@ -1,0 +1,14 @@
+{
+    "title": "Tenant Request",
+    "type": "object",
+    "properties": {
+        "ID": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$",
+            "sanitize": "mongo"
+        },
+        "required": [
+            "ID"
+        ]
+    }
+}
