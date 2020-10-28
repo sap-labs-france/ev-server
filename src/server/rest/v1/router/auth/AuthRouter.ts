@@ -3,6 +3,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import AuthService from '../../service/AuthService';
 import RouterUtils from '../RouterUtils';
 import { ServerAction } from '../../../../../types/Server';
+import sanitize from 'mongo-sanitize';
 
 export default class AuthRouter {
   private router: express.Router;
@@ -18,6 +19,7 @@ export default class AuthRouter {
     this.buildRoutePasswordReset();
     this.buildRouteVerifyMail();
     this.buildRouteResendVerificationMail();
+    this.buildRouteEndUserLicenseAgreement();
     this.buildRouteCheckEndUserLicenseAgreement();
     return this.router;
   }
@@ -58,9 +60,16 @@ export default class AuthRouter {
     });
   }
 
+  protected buildRouteEndUserLicenseAgreement(): void {
+    this.router.get(`/${ServerAction.REST_END_USER_LICENSE_AGREEMENT}/:language`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.Language = sanitize(req.params.Language);
+      await RouterUtils.handleServerAction(AuthService.handleGetEndUserLicenseAgreement.bind(this), ServerAction.REST_END_USER_LICENSE_AGREEMENT, req, res, next);
+    });
+  }
+
   protected buildRouteCheckEndUserLicenseAgreement(): void {
-    this.router.post(`/${ServerAction.REST_CHECK_USER_LICENSE_AGREEMENT}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(AuthService.handleVerifyEmail.bind(this), ServerAction.REST_CHECK_USER_LICENSE_AGREEMENT, req, res, next);
+    this.router.get(`/${ServerAction.REST_CHECK_END_USER_LICENSE_AGREEMENT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleCheckEndUserLicenseAgreement.bind(this), ServerAction.REST_CHECK_END_USER_LICENSE_AGREEMENT, req, res, next);
     });
   }
 }

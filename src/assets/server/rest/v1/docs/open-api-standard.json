@@ -305,6 +305,22 @@
         }
       }
     },
+    "/signout": {
+      "get": {
+        "description": "Sign out",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully signed out"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
     "/passwordreset": {
       "post": {
         "description": "Reset password",
@@ -329,6 +345,188 @@
           },
           "550": {
             "description": "User does not exist or is deleted logically"
+          }
+        }
+      }
+    },
+    "/eula/{language}": {
+      "get": {
+        "description": "Get tenant EULA",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Tenant",
+            "description": "Tenant's subdomain",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "language",
+            "description": "Browser language",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved tenant's EULA",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "$ref": "#/components/schemas/Eulas"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "Unknown tenant"
+          }
+        }
+      }
+    },
+    "/checkEula": {
+      "get": {
+        "description": "Check if a user accepted latest EULA",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "Email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "User accepted latest EULA",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Accepted latest": {
+                    "value": {
+                      "acceptedEula": true
+                    }
+                  },
+                  "Not accepted latest": {
+                    "value": {
+                      "acceptedEula": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "Unknown tenant"
+          },
+          "591": {
+            "description": "Account already activated"
+          }
+        }
+      }
+    },
+    "/verifyEmail": {
+      "get": {
+        "description": "Verify email",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "Email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "VerificationToken",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully validated email"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "Unknown tenant or logically deleted user"
+          },
+          "591": {
+            "description": "Account already activated"
+          }
+        }
+      }
+    },
+    "/resendVerficationEmail": {
+      "post": {
+        "description": "Resend a verification email",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationMail"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully validated email"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "Unknown tenant"
+          },
+          "591": {
+            "description": "Account already activated"
           }
         }
       }
@@ -596,6 +794,34 @@
           "tenant": {
             "type": "string",
             "example": ""
+          }
+        }
+      },
+      "Eulas": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": {
+            "type": "string",
+            "example": "<h3>End-user Agreement Usage of the e-Mobility Software</h3>..."
+          }
+        }
+      },
+      "ResendVerificationMail": {
+        "type": "object",
+        "required": ["email", "tenant", "captcha"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "loan.alouache@sap.com"
+          },
+          "tenant": {
+            "type": "string",
+            "example": "utall"
+          },
+          "captcha": {
+            "type": "string",
+            "example": "03AGdBq261sQ2KzqROGD8E2Xb2ljxLkmQbUumIL9m6FqtJZau9Z5Aq4Pp8K-VzbjTwuvnBvdaZBgD-6VU0IY8PMSyGmSJNH9Ctkgde4l8XoQUVLYLhspglIRSjkPS15-DZQtJ2gLG910Kq3RXE-S5M9gkuXBfEh6Y-81qC9gRb-FFwN_Ao5_NO7j6iu1kZqJHpyxHvwVqtbLK5APvTngU_8gx9tRDfXUBtLMmgZAofmkIE1qbefMNTDceJsiNKtHHykP-xFIt-lNRN1H6h_HZ8EbRjncT5k_AeqjL8ClBTZy9Pdqwy9jkpvas4l5EH7WPVT-9VPV0C0tuwKkwwwesMhzYSo2Vso_wN15G5x1Zgji8xsndjvMthTkIWe4zyRNKNr2gc4z1Sgfy-dGcRkDc7lUnet0fJfII5bXKl_njo_S8no8KGVZ2IeOTzhTKigA7A0hdtNrKnAOmU"
           }
         }
       },
