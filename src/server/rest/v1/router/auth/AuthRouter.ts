@@ -43,33 +43,32 @@ export default class AuthRouter {
   }
 
   protected buildRoutePasswordReset(): void {
-    this.router.post(`/${ServerAction.REST_PASSWORD_RESET}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(AuthService.handleUserPasswordReset.bind(this), ServerAction.REST_PASSWORD_RESET, req, res, next);
+    this.router.post(`/${ServerAction.REST_PASSWORD}/reset`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleUserPasswordReset.bind(this), ServerAction.REST_PASSWORD, req, res, next);
     });
   }
 
   protected buildRouteResendVerificationMail(): void {
-    this.router.post(`/${ServerAction.REST_RESEND_VERIFICATION_EMAIL}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(AuthService.handleResendVerificationEmail.bind(this), ServerAction.REST_RESEND_VERIFICATION_EMAIL, req, res, next);
+    this.router.post(`/${ServerAction.REST_MAIL}/resend`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleResendVerificationEmail.bind(this), ServerAction.REST_MAIL, req, res, next);
     });
   }
 
   protected buildRouteVerifyMail(): void {
-    this.router.get(`/${ServerAction.REST_VERIFY_EMAIL}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(AuthService.handleVerifyEmail.bind(this), ServerAction.REST_VERIFY_EMAIL, req, res, next);
+    this.router.get(`/${ServerAction.REST_MAIL}/check`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleVerifyEmail.bind(this), ServerAction.REST_MAIL, req, res, next);
     });
   }
 
   protected buildRouteEndUserLicenseAgreement(): void {
-    this.router.get(`/${ServerAction.REST_END_USER_LICENSE_AGREEMENT}/:language`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.Language = sanitize(req.params.Language);
-      await RouterUtils.handleServerAction(AuthService.handleGetEndUserLicenseAgreement.bind(this), ServerAction.REST_END_USER_LICENSE_AGREEMENT, req, res, next);
+    this.router.get(`/${ServerAction.REST_EULA}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleGetEndUserLicenseAgreement.bind(this), ServerAction.REST_EULA, req, res, next);
     });
   }
 
   protected buildRouteCheckEndUserLicenseAgreement(): void {
-    this.router.get(`/${ServerAction.REST_CHECK_END_USER_LICENSE_AGREEMENT}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(AuthService.handleCheckEndUserLicenseAgreement.bind(this), ServerAction.REST_CHECK_END_USER_LICENSE_AGREEMENT, req, res, next);
+    this.router.get(`/${ServerAction.REST_EULA}/check`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleCheckEndUserLicenseAgreement.bind(this), ServerAction.REST_EULA, req, res, next);
     });
   }
 }

@@ -321,7 +321,7 @@
         }
       }
     },
-    "/passwordreset": {
+    "/password/reset": {
       "post": {
         "description": "Reset password",
         "requestBody": {
@@ -349,7 +349,7 @@
         }
       }
     },
-    "/eula/{language}": {
+    "/eula": {
       "get": {
         "description": "Get tenant EULA",
         "parameters": [
@@ -363,7 +363,7 @@
             }
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "language",
             "description": "Browser language",
             "required": true,
@@ -396,7 +396,7 @@
         }
       }
     },
-    "/checkEula": {
+    "/eula/check": {
       "get": {
         "description": "Check if a user accepted latest EULA",
         "parameters": [
@@ -452,7 +452,7 @@
         }
       }
     },
-    "/verifyEmail": {
+    "/mail/check": {
       "get": {
         "description": "Verify email",
         "parameters": [
@@ -500,7 +500,7 @@
         }
       }
     },
-    "/resendVerficationEmail": {
+    "/mail/resend": {
       "post": {
         "description": "Resend a verification email",
         "requestBody": {
