@@ -61,7 +61,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerAction.REST_PASSWORD + '/reset',
+      url: '/v1/auth/password/' + ServerAction.REST_RESET,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -79,7 +79,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerAction.REST_MAIL + '/resend',
+      url: '/v1/auth/mail/' + ServerAction.REST_RESEND,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -97,7 +97,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'GET',
-      url: '/v1/auth/' + ServerAction.REST_MAIL + '/check',
+      url: '/v1/auth/mail/' + ServerAction.REST_CHECK,
       headers: {
         'Content-Type': 'application/json'
       },
