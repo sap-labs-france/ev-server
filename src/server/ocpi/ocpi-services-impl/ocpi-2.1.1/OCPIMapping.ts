@@ -446,12 +446,15 @@ export default class OCPIMapping {
     if (connector.chargePointID) {
       chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }
-    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
-    const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
-    let numberOfConnectedPhase = 0;
+    let voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
+    // FIXME: Gireve OCPI spec violation #1: OCPI says total amperage for connector but Gireve wrongly interprets 'total' by 'per phase' ...
+    const amperage = Utils.getChargingStationAmperagePerPhase(chargingStation, chargePoint, connector.connectorId);
     const currentType = Utils.getChargingStationCurrentType(chargingStation, chargePoint, connector.connectorId);
+    let numberOfConnectedPhase = 0;
     if (currentType === CurrentType.AC) {
       numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
+      // FIXME: Gireve OCPI spec violation #2: OCPI says voltage line-to-neutral for AC charger connector but Gireve wrongly interprets 'line-to-neutral' by 'line-to-line' ...
+      voltage = voltage * Math.sqrt(3);
     }
     return {
       id: `${evseID}*${connector.connectorId}`,
