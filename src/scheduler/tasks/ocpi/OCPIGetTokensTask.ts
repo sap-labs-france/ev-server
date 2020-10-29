@@ -34,7 +34,6 @@ export default class OCPIGetTokensTask extends SchedulerTask {
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'get-tokens');
@@ -44,7 +43,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_GET_TOKENS,
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
           });
@@ -52,7 +51,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
         } else if (!ocpiEndpoint.backgroundPatchJob) {
           Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_GET_TOKENS,
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
           });
@@ -60,7 +59,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
         }
         Logging.logInfo({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'patch',
+          module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_GET_TOKENS,
           message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
         });
@@ -70,7 +69,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
         const result = await ocpiClient.pullTokens();
         Logging.logInfo({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'patch',
+          module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_GET_TOKENS,
           message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed)`,
           detailedMessages: { result }

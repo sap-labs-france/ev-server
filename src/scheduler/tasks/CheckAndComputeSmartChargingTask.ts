@@ -31,7 +31,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
               // Log
               Logging.logError({
                 tenantID: tenant.id,
-                module: MODULE_NAME, method: 'run',
+                module: MODULE_NAME, method: 'processTenant',
                 action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
                 message: 'No implementation available for the Smart Charging',
               });
@@ -42,7 +42,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
             // Log error
             Logging.logError({
               tenantID: tenant.id,
-              module: MODULE_NAME, method: 'run',
+              module: MODULE_NAME, method: 'processTenant',
               action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
               message: `Error while running the task '${CheckAndComputeSmartChargingTask.name}': ${error.message}`,
               detailedMessages: { error: error.message, stack: error.stack }
