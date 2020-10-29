@@ -8,7 +8,6 @@ import global from '../../../../types/GlobalType';
 
 export default class TenantValidator extends SchemaValidator {
   private static _instance: TenantValidator | undefined;
-  private _commonAddress: any;
   private _tenantCreateReqSuperAdmin: any;
   private _tenantUpdateReqSuperAdmin: any;
   private _tenantDeleteReqSuperAdmin: any;
@@ -18,12 +17,10 @@ export default class TenantValidator extends SchemaValidator {
 
   private constructor() {
     super('TenantValidator');
-    this._commonAddress = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/common/address.json`, 'utf8'));
     this._tenantCreateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create-req-super-admin.json`, 'utf8'));
     this._tenantUpdateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update-req-super-admin.json`, 'utf8'));
     this._tenantDeleteReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete-req-super-admin.json`, 'utf8'));
     // TODO: restliche Json nachladen
-    // Address -> "address": { "$ref": "address.json#" }
   }
 
   public static getInstance(): TenantValidator {

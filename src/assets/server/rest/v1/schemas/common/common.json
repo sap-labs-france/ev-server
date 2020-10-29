@@ -1,0 +1,44 @@
+{
+    "$id": "common.json",
+    "type": "object",
+    "common": {
+        "type": "object",
+        "address": {
+            "type": "object",
+            "properties": {
+                "address1": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "address2": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "postalCode": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "city": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "department": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "region": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "country": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "coordinates": {
+                    "type": "array",
+                    "sanitize": "mongo"
+                }
+            }
+        }
+    }
+}
