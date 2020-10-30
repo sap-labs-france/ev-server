@@ -179,10 +179,6 @@ export default class CentralRestServer {
   }
 
   public notifyUser(tenantID: string, action: Action, data: NotificationData): void {
-    // On User change rebuild userHashID
-    if (data && data.id) {
-      SessionHashService.rebuildUserHashID(tenantID, data.id).catch(() => { });
-    }
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -199,10 +195,6 @@ export default class CentralRestServer {
   }
 
   public notifyTag(tenantID: string, action: Action, data: NotificationData): void {
-    // On Tag change rebuild userHashID
-    if (data && data.id) {
-      SessionHashService.rebuildUserHashIDFromTagID(tenantID, data.id).catch(() => { });
-    }
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -219,10 +211,6 @@ export default class CentralRestServer {
   }
 
   public notifyTenant(tenantID: string, action: Action, data: NotificationData): void {
-    // On Tenant change rebuild tenantHashID
-    if (data && data.id) {
-      SessionHashService.rebuildTenantHashID(data.id).catch(() => { });
-    }
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,

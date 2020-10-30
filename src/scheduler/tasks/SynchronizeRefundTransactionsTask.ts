@@ -50,7 +50,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
           Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'processTenant',
             message: `${transactions.count} Refunded Transaction(s) are going to be synchronized`
           });
           const actionsDone = {
@@ -82,7 +82,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
           Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'processTenant',
             message: `Synchronized: ${actionsDone.approved} Approved, ${actionsDone.cancelled} Cancelled, ${actionsDone.notUpdated} Not updated, ${actionsDone.error} In Error`
           });
         } else {
@@ -90,7 +90,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
           Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'processTenant',
             message: 'No Refunded Transaction found to synchronize'
           });
         }

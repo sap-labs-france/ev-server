@@ -235,10 +235,6 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
-  public static getRoundedNumberToTwoDecimals(numberToRound: number): number {
-    return Math.round(numberToRound * 100) / 100;
-  }
-
   public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
   }
@@ -900,6 +896,10 @@ export default class Utils {
     return totalAmps;
   }
 
+  public static getChargingStationAmperagePerPhase(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+    return Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId) / Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
+  }
+
   public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
     let amperageLimit = 0;
     if (chargingStation) {
@@ -1137,8 +1137,8 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneJSonDocument(jsonDocument: any): any {
-    return JSON.parse(JSON.stringify(jsonDocument));
+  public static cloneObject(object: any): any {
+    return JSON.parse(JSON.stringify(object));
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {

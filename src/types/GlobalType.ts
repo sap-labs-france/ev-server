@@ -43,8 +43,6 @@ interface TSGlobal extends Global {
   appRoot: string;
   centralSystemJsonServer: JsonCentralSystemServer;
   centralSystemSoapServer: SoapCentralSystemServer;
-  userHashMapIDs: Map<string, string>;
-  tenantHashMapIDs: Map<string, string>;
 }
 
 // Export global variables

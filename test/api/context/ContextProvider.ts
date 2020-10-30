@@ -40,7 +40,7 @@ export default class ContextProvider {
   async _init() {
     if (!this.initialized) {
       // Read all tenants
-      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
+      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({ WithComponents: true }, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
     }
     this.initialized = true;
   }
