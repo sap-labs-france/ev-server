@@ -29,32 +29,24 @@ export default class UtilsSecurity {
     if (request.SortFields) {
       // Sanitize
       request.SortFields = sanitize(request.SortFields);
-      request.SortDirs = sanitize(request.SortDirs);
+      request.SortFields = request.SortFields.split('|');
       // Array?
-      if (Array.isArray(request.SortFields) && request.SortFields.length > 0) {
+      if (request.SortFields.length > 0) {
         // Init
         filteredRequest.Sort = {};
         // Build
         for (let i = 0; i < request.SortFields.length; i++) {
-          let sortField = request.SortFields[i];
+          let sortField: string = request.SortFields[i];
+          const order = sortField.startsWith('-') ? -1 : 1;
+          sortField = sortField.startsWith('-') ? sortField.substr(1) : sortField;
           // Check field ID
           if (sortField === 'id') {
             // In MongoDB it's '_id'
             sortField = '_id';
           }
           // Set
-          filteredRequest.Sort[sortField] = (request.SortDirs[i] === 'asc' ? 1 : -1);
+          filteredRequest.Sort[sortField] = order;
         }
-      } else {
-        // Init
-        filteredRequest.Sort = {};
-        // Check field ID
-        if (request.SortFields === 'id') {
-          // In MongoDB it's '_id'
-          request.SortFields = '_id';
-        }
-        // Set
-        filteredRequest.Sort[request.SortFields] = (request.SortDirs === 'asc' ? 1 : -1);
       }
     }
   }
