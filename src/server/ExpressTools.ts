@@ -39,7 +39,15 @@ export default class ExpressTools {
     }));
     // Debug
     if (debug) {
-      app.use(morgan('tiny'));
+      app.use(morgan((tokens, req: Request, res: Response) =>
+        [
+          tokens.method(req, res),
+          tokens.url(req, res), '-',
+          tokens.status(req, res), '-',
+          tokens['response-time'](req, res) + 'ms', '-',
+          tokens.res(req, res, 'content-length') / 1000 + 'Kb',
+        ].join(' ')
+      ));
     }
     app.use(hpp());
     app.use(bodyParser['xml']({

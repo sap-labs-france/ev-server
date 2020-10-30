@@ -14,7 +14,7 @@ const MODULE_NAME = 'ConsumptionStorage';
 export default class ConsumptionStorage {
   static async saveConsumption(tenantID: string, consumptionToSave: Consumption): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveConsumption');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveConsumption');
     // Check
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -81,26 +81,26 @@ export default class ConsumptionStorage {
       { $set: consumptionMDB },
       { upsert: true });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveConsumption', uniqueTimerID, { consumptionToSave: consumptionToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumption', uniqueTimerID, { consumptionToSave: consumptionToSave });
     // Return
     return consumptionMDB._id;
   }
 
   static async deleteConsumptions(tenantID: string, transactionIDs: number[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteConsumptions');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // DeleFte
     await global.database.getCollection<any>(tenantID, 'consumptions')
       .deleteMany({ 'transactionId': { $in: transactionIDs } });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
   static async getAssetConsumptions(tenantID: string, params: { assetID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAssetConsumptions');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create filters
@@ -171,13 +171,13 @@ export default class ConsumptionStorage {
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getAssetConsumptions', uniqueTimerID, { assetID: params.assetID });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetConsumptions', uniqueTimerID, { assetID: params.assetID });
     return consumptionsMDB;
   }
 
   static async getSiteAreaConsumptions(tenantID: string, params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaConsumptions');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create filters
@@ -250,13 +250,13 @@ export default class ConsumptionStorage {
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, { siteAreaID: params.siteAreaID });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, { siteAreaID: params.siteAreaID });
     return consumptionsMDB;
   }
 
   static async getTransactionConsumptions(tenantID: string, params: { transactionId: number }, dbParams: DbParams): Promise<DataResult<Consumption>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactionConsumptions');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
@@ -314,7 +314,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd(tenantID, 'ConsumptionStorage', 'getTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return {
       count: (consumptionsCountMDB.length > 0 ?
         (consumptionsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : consumptionsCountMDB[0].count) : 0),
@@ -324,7 +324,7 @@ export default class ConsumptionStorage {
 
   static async getLastTransactionConsumption(tenantID: string, params: { transactionId: number }): Promise<Consumption> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLastTransactionConsumption');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastTransactionConsumption');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -357,13 +357,13 @@ export default class ConsumptionStorage {
       consumption = consumptionsMDB[0];
     }
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getLastTransactionConsumption', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd(tenantID, 'ConsumptionStorage', 'getLastTransactionConsumption', uniqueTimerID, { transactionId: params.transactionId });
     return consumption;
   }
 
   static async getOptimizedTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOptimizedTransactionConsumptions');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOptimizedTransactionConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -435,7 +435,7 @@ export default class ConsumptionStorage {
     // Sort
     consumptions.sort((cons1, cons2) => cons1.endedAt.getTime() - cons2.endedAt.getTime());
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getOptimizedTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getOptimizedTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptions;
   }
 }

@@ -86,20 +86,22 @@ export default class LoggingStorage {
 
   public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Log> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLog');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLog');
     // Query single Site
     const logsMDB = await LoggingStorage.getLogs(tenantID,
       { logID: id },
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getLog', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getLog', uniqueTimerID, { id });
     return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 
   public static async getLogs(tenantID: string, params: {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
     hosts?: string[]; userIDs?: string[]; search?: string; logID?: string;
-  } = {}, dbParams: DbParams): Promise<DataResult<Log>> {
+  } = {}, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Log>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLogs');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
@@ -196,6 +198,8 @@ export default class LoggingStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
+      // Debug
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getLogs', uniqueTimerID);
       // Return only the count
       return {
         count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
@@ -238,37 +242,29 @@ export default class LoggingStorage {
       oneToOneCardinality: true,
       oneToOneCardinalityNotNull: false
     });
+    // Check if it has detailed messages
+    aggregation.push(
+      {
+        $addFields: {
+          'hasDetailedMessages': { $gt: ['$detailedMessages', null] }
+        }
+      }
+    );
+    // Change ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const loggingsMDB = await global.database.getCollection<any>(tenantID, 'logs')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-    const loggings = [];
-    for (const loggingMDB of loggingsMDB) {
-      const logging: Log = {
-        tenantID: tenantID,
-        id: loggingMDB._id.toString(),
-        level: loggingMDB.level,
-        source: loggingMDB.source,
-        host: loggingMDB.host,
-        process: loggingMDB.process,
-        module: loggingMDB.module,
-        method: loggingMDB.method,
-        timestamp: loggingMDB.timestamp,
-        action: loggingMDB.action,
-        type: loggingMDB.type,
-        message: loggingMDB.message,
-        user: loggingMDB.user,
-        actionOnUser: loggingMDB.actionOnUser,
-        detailedMessages: loggingMDB.detailedMessages
-      };
-      // Set the model
-      loggings.push(logging);
-    }
+    // Debug
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getLogs', uniqueTimerID, loggingsMDB);
     // Ok
     return {
       count: (loggingsCountMDB.length > 0 ?
         (loggingsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : loggingsCountMDB[0].count) : 0),
-      result: loggings
+      result: loggingsMDB
     };
   }
 }

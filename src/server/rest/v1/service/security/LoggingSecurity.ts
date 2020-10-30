@@ -35,7 +35,6 @@ export default class LoggingSecurity {
 
   static filterLogResponse(logging: Log, loggedUser: UserToken, withDetailedMessage = false): Log {
     const filteredLogging: Log = {} as Log;
-
     if (!logging) {
       return null;
     }
@@ -54,7 +53,7 @@ export default class LoggingSecurity {
     filteredLogging.message = logging.message;
     filteredLogging.module = logging.module;
     filteredLogging.method = logging.method;
-    filteredLogging.hasDetailedMessages = (logging.detailedMessages && logging.detailedMessages.length > 0);
+    filteredLogging.hasDetailedMessages = logging.hasDetailedMessages;
     if (withDetailedMessage) {
       filteredLogging.detailedMessages = logging.detailedMessages;
     }

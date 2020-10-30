@@ -136,7 +136,9 @@ export default class LoggingService {
       skip: filteredRequest.Skip,
       sort: filteredRequest.Sort,
       onlyRecordCount: filteredRequest.OnlyRecordCount
-    });
+    }, [
+      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'userFullName', 'action', 'message', 'module', 'method', 'user', 'actionOnUser', 'hasDetailedMessages'
+    ]);
     return loggings;
   }
 }

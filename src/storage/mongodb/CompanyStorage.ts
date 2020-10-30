@@ -16,7 +16,7 @@ export default class CompanyStorage {
 
   public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Company> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompany');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompany');
     // Reuse
     const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     let company: Company = null;
@@ -25,20 +25,20 @@ export default class CompanyStorage {
       company = companiesMDB.result[0];
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getCompany', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompany', uniqueTimerID, { id });
     return company;
   }
 
   public static async getCompanyLogo(tenantID: string, id: string): Promise<{ id: string; logo: string }> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompanyLogo');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
     const companyLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenantID, 'companylogos')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getCompanyLogo', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanyLogo', uniqueTimerID, { id });
     return {
       id: id,
       logo: companyLogoMDB ? companyLogoMDB.logo : null
@@ -47,7 +47,7 @@ export default class CompanyStorage {
 
   public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo = true): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveCompany');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set
@@ -82,7 +82,7 @@ export default class CompanyStorage {
       await CompanyStorage._saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveCompany', uniqueTimerID, { companyToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCompany', uniqueTimerID, { companyToSave });
     return companyMDB._id.toHexString();
   }
 
@@ -91,7 +91,7 @@ export default class CompanyStorage {
       locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompanies');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
@@ -214,7 +214,7 @@ export default class CompanyStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getCompanies', uniqueTimerID,
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanies', uniqueTimerID,
       { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
     // Ok
     return {
@@ -226,7 +226,7 @@ export default class CompanyStorage {
 
   public static async deleteCompany(tenantID: string, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteCompany');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete sites associated with Company
@@ -238,12 +238,12 @@ export default class CompanyStorage {
     await global.database.getCollection<any>(tenantID, 'companylogos')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
   }
 
   private static async _saveCompanyLogo(tenantID: string, companyID: string, companyLogoToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveCompanyLogo');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
@@ -252,6 +252,6 @@ export default class CompanyStorage {
       { $set: { logo: companyLogoToSave } },
       { upsert: true });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveCompanyLogo', uniqueTimerID, {});
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCompanyLogo', uniqueTimerID, {});
   }
 }

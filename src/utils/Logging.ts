@@ -20,11 +20,12 @@ import cfenv from 'cfenv';
 import cluster from 'cluster';
 import jwtDecode from 'jwt-decode';
 import os from 'os';
+import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'Logging';
 
 export default class Logging {
-  private static traceOCPPCalls: { [key: string]: number } = {};
+  private static traceCalls: { [key: string]: number } = {};
   private static loggingConfig: LoggingConfiguration;
 
   public static getConfiguration(): LoggingConfiguration {
@@ -35,12 +36,32 @@ export default class Logging {
   }
 
   // Debug DB
-  public static traceStart(module: string, method: string): string {
-    return '';
+  public static traceStart(tenantID: string, module: string, method: string): string {
+    if (Utils.isDevMode()) {
+      const key = `${tenantID}~${module}~${method}~${Utils.generateUUID()}`;
+      Logging.traceCalls[key] = new Date().getTime();
+      return key;
+    }
   }
 
   // Debug DB
-  public static traceEnd(module: string, method: string, uniqueID: string, params = {}): void {
+  public static traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): void {
+    if (Utils.isDevMode()) {
+      // Compute duration if provided
+      let executionDurationSecs: number;
+      let found = false;
+      if (Logging.traceCalls[key]) {
+        executionDurationSecs = (new Date().getTime() - Logging.traceCalls[key]);
+        delete Logging.traceCalls[key];
+        found = true;
+      }
+      console.log(`${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + (sizeof(data) / 1000) + 'Kb' : ''}`);
+      Logging.logDebug({
+        tenantID: tenantID, module, method,
+        message: `${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + (sizeof(data) / 1000) + 'Kb' : ''}`,
+        action: ServerAction.DB_MONITOR
+      });
+    }
   }
 
   // Log Debug
@@ -716,7 +737,7 @@ export default class Logging {
   private static traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
     action: ServerAction, args: any, direction: '<<'|'>>'): void {
     // Keep duration
-    Logging.traceOCPPCalls[`${chargeBoxID}~action`] = new Date().getTime();
+    Logging.traceCalls[`${chargeBoxID}~action`] = new Date().getTime();
     // Log
     Logging.logDebug({
       tenantID: tenantID,
@@ -731,16 +752,19 @@ export default class Logging {
   private static traceChargingStationActionEnd(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): void {
     // Compute duration if provided
     let executionDurationSecs: number;
-    if (Logging.traceOCPPCalls[`${chargeBoxID}~action`]) {
-      executionDurationSecs = (new Date().getTime() - Logging.traceOCPPCalls[`${chargeBoxID}~action`]) / 1000;
-      delete Logging.traceOCPPCalls[`${chargeBoxID}~action`];
+    let found = false;
+    if (Logging.traceCalls[`${chargeBoxID}~action`]) {
+      executionDurationSecs = (new Date().getTime() - Logging.traceCalls[`${chargeBoxID}~action`]) / 1000;
+      delete Logging.traceCalls[`${chargeBoxID}~action`];
+      found = true;
     }
+    console.log(`${direction} OCPP Request has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`);
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
       Logging.logError({
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: `${direction} OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
+        message: `${direction} OCPP Request has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
         action: action,
         detailedMessages
       });
@@ -749,19 +773,10 @@ export default class Logging {
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: `${direction} OCPP Request processed ${executionDurationSecs ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
+        message: `${direction} OCPP Request has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
         action: action,
         detailedMessages
       });
     }
-    // TODO: To Remove: Temporary log to trace memory leaks
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      module: module, method: action,
-      message: `OCPP trace buffer size: ${Object.keys(Logging.traceOCPPCalls).length} item(s)`,
-      action: action,
-      detailedMessages
-    });
   }
 }
