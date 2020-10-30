@@ -1127,7 +1127,7 @@ export default class UserService {
       });
     }
     // Get Tag
-    let tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true });
+    let tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${tagId}' does not exist`,
       MODULE_NAME, 'handleDeleteTag', req.user);
     // Only current organizations tags can be deleted
@@ -1318,7 +1318,7 @@ export default class UserService {
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
-    let tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true });
+    let tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
     // Only current organization Tag can be updated
@@ -1389,8 +1389,6 @@ export default class UserService {
           await UserStorage.saveTag(req.user.tenantID, tag);
         }
       }
-      // Recompute the former User's Hash (trigger unlog)
-      await SessionHashService.rebuildUserHashID(req.user.tenantID, formerTagOwnerID);
     }
     // Synchronize badges with IOP
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) && (filteredRequest.userID !== tag.userID)) {

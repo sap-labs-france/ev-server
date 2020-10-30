@@ -66,14 +66,17 @@ export default class BillingContext {
 
     const adminBillingUser = await billingImpl.getUserByEmail(adminUser.email);
     const basicBillingUser = await billingImpl.getUserByEmail(basicUser.email);
-    for (let i = 0; i < 2; i++) {
-      await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin' + (i + 1), amount: 100 });
-      await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic' + (i + 1), amount: 100 });
-    }
+
+    const adminInvoice = await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin 1', amount: 100 });
+    const userInvoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic 1', amount: 100 });
+    await billingImpl.createInvoiceItem(adminBillingUser, adminInvoice.invoice.invoiceID, { description: 'TestAdmin 2', amount: 100 });
+    await billingImpl.createInvoiceItem(basicBillingUser, userInvoice.invoice.invoiceID, { description: 'TestBasic 2', amount: 100 });
+
     let invoice = await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin3', amount: 100 });
     await billingImpl.sendInvoiceToUser(this.tenantContext.getTenant().id, invoice.invoice);
     invoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic3', amount: 100 });
     await billingImpl.sendInvoiceToUser(this.tenantContext.getTenant().id, invoice.invoice);
+    // Await billingImpl.synchronizeInvoices(this.tenantContext.getTenant().id);
   }
 
   private async saveBillingSettings(stripeSettings) {

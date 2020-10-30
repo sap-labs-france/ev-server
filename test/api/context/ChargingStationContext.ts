@@ -7,7 +7,6 @@ import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import OCPPService from '../ocpp/OCPPService';
 import TenantContext from './TenantContext';
-import Transaction from '../../types/Transaction';
 import Utils from '../../../src/utils/Utils';
 import faker from 'faker';
 

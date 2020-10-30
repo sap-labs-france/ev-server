@@ -21,10 +21,10 @@ export default class Constants {
   public static readonly EXPORT_PAGE_SIZE = 1000;
 
   public static readonly DEFAULT_TENANT = 'default';
-  public static readonly DEFAULT_TENANT_OBJECT= {
+  public static readonly DEFAULT_TENANT_OBJECT= Object.freeze({
     id: Constants.DEFAULT_TENANT,
     name: Constants.DEFAULT_TENANT
-  } as Tenant;
+  } as Tenant);
 
   public static readonly UNKNOWN_OBJECT_ID: string = '000000000000000000000000';
   public static readonly UNKNOWN_STRING_ID: string = '000000000000000000000000';

@@ -20,6 +20,7 @@ export default class TenantSecurity {
     const filteredRequest: HttpTenantsRequest = {} as HttpTenantsRequest;
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithLogo = UtilsSecurity.filterBoolean(request.WithLogo);
+    filteredRequest.WithComponents = UtilsSecurity.filterBoolean(request.WithComponents);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

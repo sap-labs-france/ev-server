@@ -548,7 +548,7 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -770,7 +770,7 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -847,11 +847,17 @@ export default class UserStorage {
     });
     // Transactions
     if (params.withNbrTransactions) {
+      let additionalPipeline :Record<string, any>[] = [];
+      if (params.withUser) {
+        additionalPipeline = [{
+          '$match': { 'userID': { $exists: true, $ne: null } }
+        }];
+      }
       DatabaseUtils.pushTransactionsLookupInAggregation({
         tenantID, aggregation: aggregation, localField: '_id', foreignField: 'tagID',
         count: true, asField: 'transactionsCount', oneToOneCardinality: false,
         objectIDFields: ['createdBy', 'lastChangedBy']
-      });
+      },additionalPipeline);
     }
     // Users
     if (params.withUser) {
@@ -893,7 +899,7 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -1012,7 +1018,7 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip

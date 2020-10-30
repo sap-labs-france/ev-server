@@ -110,8 +110,8 @@ export default class Logging {
         detailedMessages: {
           url: req.url,
           method: req.method,
-          query: Utils.cloneJSonDocument(req.query),
-          body: Utils.cloneJSonDocument(req.body),
+          query: Utils.cloneObject(req.query),
+          body: Utils.cloneObject(req.body),
           locale: req.locale,
           xhr: req.xhr,
           ip: req.ip,
@@ -175,7 +175,7 @@ export default class Logging {
       message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
       module: MODULE_NAME, method: 'interceptor',
       detailedMessages: {
-        request: Utils.cloneJSonDocument(request),
+        request: Utils.cloneObject(request),
       }
     });
   }
@@ -199,8 +199,8 @@ export default class Logging {
       detailedMessages: {
         status: response.status,
         statusText: response.statusText,
-        request: Utils.cloneJSonDocument(response.config),
-        response: Utils.cloneJSonDocument(response.data)
+        request: Utils.cloneObject(response.config),
+        response: Utils.cloneObject(response.data)
       }
     });
   }
@@ -536,7 +536,7 @@ export default class Logging {
     // Host
     log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
     // Process
-    log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
+    log.process = cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master';
     // Anonymize message
     Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check

@@ -321,7 +321,7 @@ export default class CentralRestServerService {
     // Parse the action
     const action = req.params.action as ServerAction;
     // Check if User has been updated and require new login
-    if (SessionHashService.isSessionHashUpdated(req, res, next)) {
+    if ((await SessionHashService.isSessionHashUpdated(req, res, next))) {
       return;
     }
     // Check HTTP Verbs

@@ -377,6 +377,8 @@ export default class OCPPService {
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station
           await this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
+          // Handle End Of charge
+          await this.checkNotificationEndOfCharge(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
           // First Meter Value -> Trigger Smart Charging to adjust the single phase Car
@@ -866,7 +868,8 @@ export default class OCPPService {
         action: ServerAction.STOP_TRANSACTION,
         user: (alternateUser ? alternateUser : (user ? user : null)),
         actionOnUser: (alternateUser ? (user ? user : null) : null),
-        message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been stopped successfully`
+        message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been stopped successfully`,
+        detailedMessages: { stopTransaction }
       });
       // Success
       return {
@@ -1287,8 +1290,6 @@ export default class OCPPService {
       foundConnector.userID = transaction.userID;
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
-      // Handle End Of charge
-      await this.checkNotificationEndOfCharge(tenantID, chargingStation, transaction);
       // Log
       Logging.logInfo({
         tenantID: tenantID,
@@ -1296,7 +1297,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'updateChargingStationWithTransaction',
         action: ServerAction.CONSUMPTION,
         user: transaction.userID,
-        message: `Connector ID '${foundConnector.connectorId}' > Transaction ID '${foundConnector.currentTransactionID}' > Instant: ${Utils.getRoundedNumberToTwoDecimals(foundConnector.currentInstantWatts / 1000)} kW, Total: ${Utils.getRoundedNumberToTwoDecimals(foundConnector.currentTotalConsumptionWh / 1000)} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge.toString() + ' %' : ''}`
+        message: `Connector ID '${foundConnector.connectorId}' > Transaction ID '${foundConnector.currentTransactionID}' > Instant: ${Utils.roundTo(foundConnector.currentInstantWatts / 1000, 2)} kW, Total: ${Utils.roundTo(foundConnector.currentTotalConsumptionWh / 1000, 2)} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge.toString() + ' %' : ''}`
       });
       // Cleanup connector transaction data
     } else if (foundConnector) {
@@ -1364,11 +1365,11 @@ export default class OCPPService {
             // Send Notification
             await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
           } else {
-            // Check last 5 consumptions
+            // Check last consumptions
             const consumptions = await ConsumptionStorage.getTransactionConsumptions(
               tenantID, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
             if (consumptions.result.every((consumption) => consumption.consumptionWh === 0 &&
-              (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
+               (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
                 consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)))) {
               // Send Notification
               await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
@@ -1467,7 +1468,7 @@ export default class OCPPService {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
             // Add Attributes
-            const normalizedLocalMeterValue = Utils.cloneJSonDocument(normalizedMeterValue);
+            const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
             normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
             // Data is to be interpreted as integer/decimal numeric data
             if (normalizedLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
@@ -1481,7 +1482,7 @@ export default class OCPPService {
           }
         } else {
           // Add Attributes
-          const normalizedLocalMeterValue = Utils.cloneJSonDocument(normalizedMeterValue);
+          const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
           normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
           // Add
           normalizedMeterValues.values.push(normalizedLocalMeterValue);
@@ -1492,12 +1493,12 @@ export default class OCPPService {
           for (const currentValue of value['value']) {
             normalizedMeterValue.value = Utils.convertToFloat(currentValue['$value']);
             normalizedMeterValue.attribute = currentValue.attributes;
-            normalizedMeterValues.values.push(Utils.cloneJSonDocument(normalizedMeterValue));
+            normalizedMeterValues.values.push(Utils.cloneObject(normalizedMeterValue));
           }
         } else {
           normalizedMeterValue.value = Utils.convertToFloat(value['value']['$value']);
           normalizedMeterValue.attribute = value['value'].attributes;
-          normalizedMeterValues.values.push(Utils.cloneJSonDocument(normalizedMeterValue));
+          normalizedMeterValues.values.push(Utils.cloneObject(normalizedMeterValue));
         }
       }
     }
