@@ -11,6 +11,7 @@ import Logging from '../../utils/Logging';
 import LoggingService from './v1/service/LoggingService';
 import NotificationService from './v1/service/NotificationService';
 import OCPIEndpointService from './v1/service/OCPIEndpointService';
+import OICPEndpointService from '../restOICP/v2.3.0/service/OICPEndpointService';
 import RegistrationTokenService from './v1/service/RegistrationTokenService';
 import { ServerAction } from '../../types/Server';
 import SessionHashService from './v1/service/SessionHashService';
@@ -96,6 +97,11 @@ class RequestMapper {
           [ServerAction.OCPI_ENPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_SEND_TOKENS]: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
+          [ServerAction.OICP_ENPOINT_CREATE]: OICPEndpointService.handleCreateOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENPOINT_PING]: OICPEndpointService.handlePingOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENPOINT_TRIGGER_JOBS]: OICPEndpointService.handleTriggerJobsEndpoint.bind(this),
+          [ServerAction.OICP_ENPOINT_SEND_EVSE_STATUSES]: OICPEndpointService.handleSendEVSEStatusesOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENPOINT_SEND_EVSES]: OICPEndpointService.handleSendEVSEsOicpEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),

@@ -61,6 +61,8 @@ export enum Entity {
   TOKEN = 'Token',
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_ENDPOINTS = 'OcpiEndpoints',
+  OICP_ENDPOINT = 'OicpEndpoint',
+  OICP_ENDPOINTS = 'OicpEndpoints',
   CONNECTION = 'Connection',
   CONNECTIONS = 'Connections',
   ASSET = 'Asset',

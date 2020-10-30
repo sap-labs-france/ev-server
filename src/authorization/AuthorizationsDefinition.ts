@@ -80,6 +80,12 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.REGISTER, Action.TRIGGER_JOB],
         attributes: ['*']
       },
+      { resource: Entity.OICP_ENDPOINTS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.OICP_ENDPOINT,
+        action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.PING, Action.TRIGGER_JOB],
+        attributes: ['*']
+      },
       { resource: Entity.CONNECTIONS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CONNECTION, action: [Action.CREATE, Action.READ, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },

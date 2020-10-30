@@ -7,7 +7,7 @@ import { OICPProductID } from './OICPPricing';
 //
 // eRoamingChargingNotifications Start
 //
-export interface OICPChargingNotificationsStartCpoSend {
+export interface OICPChargingNotificationStartCpoSend {
   Type: OICPChargingNotification, // The type of ChargingNotification. For this case only the notification type “Start” can be chosen.
   SessionID: OICPSessionID, // The Hubject SessionID that identifies the process.
   CPOPartnerSessionID?: string, // Optional field containing the session ID assigned by the CPO to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250
@@ -24,7 +24,7 @@ export interface OICPChargingNotificationsStartCpoSend {
 //
 // eRoamingChargingNotifications Progress
 //
-export interface OICPChargingNotificationsProgressCpoSend {
+export interface OICPChargingNotificationProgressCpoSend {
   Type: OICPChargingNotification, // The type of ChargingNotification. For this case only the notification type “Progress” can be chosen.
   SessionID: OICPSessionID, // The Hubject SessionID that identifies the process.
   CPOPartnerSessionID?: string, // Optional field containing the session ID assigned by the CPO to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250
@@ -44,7 +44,7 @@ export interface OICPChargingNotificationsProgressCpoSend {
 //
 // eRoamingChargingNotifications End
 //
-export interface OICPChargingNotificationsEndCpoSend {
+export interface OICPChargingNotificationEndCpoSend {
   Type: OICPChargingNotification, // The type of ChargingNotification. For this case only the notification type “End” can be chosen.
   SessionID: OICPSessionID, // The Hubject SessionID that identifies the process.
   CPOPartnerSessionID?: string, // Optional field containing the session ID assigned by the CPO to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250
@@ -67,7 +67,7 @@ export interface OICPChargingNotificationsEndCpoSend {
 //
 // eRoamingChargingNotifications Error
 //
-export interface OICPChargingNotificationsErrorCpoSend {
+export interface OICPChargingNotificationErrorCpoSend {
   Type: OICPChargingNotification, // The type of ChargingNotification. For this case only the notification type “Error” can be chosen.
   SessionID: OICPSessionID, // The Hubject SessionID that identifies the process.
   CPOPartnerSessionID?: string, // Optional field containing the session ID assigned by the CPO to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250

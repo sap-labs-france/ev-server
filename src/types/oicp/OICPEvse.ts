@@ -10,7 +10,7 @@ export interface OICPEvseDataRecord {
   lastUpdate?: Date, // The attribute indicates the date and time of the last update of the record. Hubject assigns this attribute to every response EVSE record.
   EvseID: OICPEvseID, // The ID that identifies the charging spot.
   ChargingPoolID?: OICPChargingPoolID, // The ID that identifies the charging station.
-  ChargingStationId?: string, // The ID that identifies the charging station. Field Length = 50
+  ChargingStationID?: string, // The ID that identifies the charging station. Field Length = 50
   ChargingStationNames: OICPInfoText[], // Name of the charging station in different Languages
   HardwareManufacturer?: string, // Name of the charging point manufacturer. Field Length = 50
   ChargingStationImage?: string, // URL that redirect to an online image of the related EVSEID. Field Length = 200
@@ -38,7 +38,8 @@ export interface OICPEvseDataRecord {
   OpeningTimes?: OICPOpeningTimes[], // Opening time in case that the charging station cannot be accessed around the clock.
   ClearinghouseID?: string, // Identification of the corresponding clearing house in the event that roaming between different clearing houses must be processed in the future. Field Length = 20
   IsHubjectCompatible: boolean, // Is eRoaming via intercharge at this charging station possible? If set to "false" the charge spot will not be started/stopped remotely via Hubject.
-  DynamicInfoAvailable: OICPDynamicInfoAvailable // Values; true / false / auto This attribute indicates whether a CPO provides (dynamic) EVSE Status info in addition to the (static) EVSE Data for this EVSERecord. Value auto is set to true by Hubject if the operator offers Hubject EVSEStatus data.
+  DynamicInfoAvailable: OICPDynamicInfoAvailable, // Values; true / false / auto This attribute indicates whether a CPO provides (dynamic) EVSE Status info in addition to the (static) EVSE Data for this EVSERecord. Value auto is set to true by Hubject if the operator offers Hubject EVSEStatus data.
+  chargeBoxId?: string
 }
 
 export enum OICPDelta {
@@ -113,7 +114,7 @@ export enum OICPPlug {
 }
 
 export interface OICPChargingFacility {
-  PowerType: OICPPower[], // Charging Facility power type (e.g. AC or DC)
+  PowerType: OICPPower, // Charging Facility power type (e.g. AC or DC)
   Voltage?: number, // Voltage of the Charging Facility. Field Length = 3
   Amperage?: number, // Amperage of the Charging Facility. Field Length = 2
   Power: number, // Charging Facility power in kW. Field Length = 3
@@ -250,7 +251,8 @@ export interface OICPOperatorEvseStatus {
 
 export interface OICPEvseStatusRecord {
   EvseID: OICPEvseID, // The ID that identifies the charging spot.
-  EvseStatus: OICPEvseStatus // The status of the charging spot
+  EvseStatus: OICPEvseStatus, // The status of the charging spot
+  chargeBoxId?: string
 }
 
 export enum OICPEvseStatus {
@@ -278,7 +280,7 @@ export interface OICPCalibrationLawVerification {
   PublicKey?: string, // Unique PublicKey for EVSEID can be provided here. Field Length = 1000
   MeteringSignatureUrl?: string, // In this field CPO can also provide a url for xml file. This xml file can give the compiled Calibration Law Data information which can be simply added to invoices for Customer of EMP. The information can contain for eg Charging Station Details, Charging Session Date/Time, SignedMeteringValues (Transparency Software format), SignedMeterValuesVerificationInstruction etc. Field Length = 200
   MeteringSignatureEncodingFormat?: string, // Encoding format of the metering signature data as well as the version (e.g. EDL40 Mennekes: V1). Field Length = 50
-  PubSignedMeteringValuesVerificationInstructionlicKey?: string, // Additional information (e.g. instruction on how to use the transparency software). Field Length = 400
+  SignedMeteringValuesVerificationInstruction?: string, // Additional information (e.g. instruction on how to use the transparency software). Field Length = 400
 }
 
 export type OICPCountryCode = string; // The CountryCodeType allows for Alpha-3 country codes only as of OICP 2.2 and OICP 2.3. For Alpha-3 (three-letter) country codes as defined in ISO 3166-1. Examples: AUT Austria, DEU, Germany, FRA France

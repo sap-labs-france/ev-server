@@ -25,6 +25,7 @@ export interface SettingLink {
 export interface SettingDBContent {
   type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType;
   ocpi?: OcpiSetting;
+  oicp?: OicpSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
   stripe?: StripeBillingSetting;
@@ -70,13 +71,15 @@ export interface ConvergentChargingPricingSetting extends PricingSetting {
 }
 
 export enum RoamingSettingsType {
-  GIREVE = 'gireve'
+  GIREVE = 'gireve',
+  Hubject = 'hubject'
 }
 
 export interface RoamingSettings extends Setting {
-  identifier: TenantComponents.OCPI;
+  identifier: TenantComponents.OCPI | TenantComponents.OICP;
   type: RoamingSettingsType;
   ocpi?: OcpiSetting;
+  oicp?: OicpSetting;
 }
 
 export interface OcpiSetting {
@@ -98,9 +101,13 @@ export interface OcpiIdentifier {
   partyID: string;
 }
 
+// Should be renamed. Certificate and Key are bundled with OperatorID / ProviderID at this moment.
+// Because the roles CPO and EMPSP probably need different certificates to call the Hubject Backend
 export interface OicpIdentifier {
   countryCode: string;
   partyID: string;
+  clientCertificate?: string;
+  privateKey?: string;
 }
 
 export interface OcpiBusinessDetails {

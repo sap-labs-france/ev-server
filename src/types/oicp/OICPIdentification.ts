@@ -10,34 +10,6 @@ export interface OICPIdentification {
   RemoteIdentification?: OICPRemoteIdentificationType, // Authentication data details. The data structure differs depending on the authentication technology
 }
 
-// Alternative type with the restriction that only one identification methods can be selected
-export type OICPIdentificationType =
-  { RFIDMifareFamilyIdentification: OICPRFIDmifarefamilyIdentification; // Authentication data details. The data structure differs depending on the authentication technology
-    RFIDIdentification?: undefined;
-    QRCodeIdentification?: undefined;
-    PlugAndChargeIdentification?: undefined;
-    RemoteIdentification?: undefined } |
-  { RFIDMifareFamilyIdentification?: undefined;
-    RFIDIdentification: OICPRFIDIdentification; // Authentication data details. The data structure differs depending on the authentication technology
-    QRCodeIdentification?: undefined;
-    PlugAndChargeIdentification?: undefined;
-    RemoteIdentification?: undefined } |
-  { RFIDMifareFamilyIdentification?: undefined;
-    RFIDIdentification?: undefined;
-    QRCodeIdentification: OICPQRCodeIdentification; // Authentication data details. The data structure differs depending on the authentication technology
-    PlugAndChargeIdentification?: undefined;
-    RemoteIdentification?: undefined } |
-  { RFIDMifareFamilyIdentification?: undefined;
-    RFIDIdentification?: undefined;
-    QRCodeIdentification?: undefined;
-    PlugAndChargeIdentification: OICPPlugAndChargeIdentification; // Authentication required for Plug&Charge (EMAID/EVCOID)
-    RemoteIdentification?: undefined } |
-  { RFIDMifareFamilyIdentification?: undefined;
-    RFIDIdentification?: undefined;
-    QRCodeIdentification?: undefined;
-    PlugAndChargeIdentification?: undefined;
-    RemoteIdentification: OICPRemoteIdentificationType }; // Authentication data details. The data structure differs depending on the authentication technology
-
 export interface OICPRFIDmifarefamilyIdentification {
   UID: OICPUID // The UID from the RFID-Card. It should be read from left to right using big-endian format. Hubject will automatically convert all characters from lower case to upper case. Field Length = 50
 }

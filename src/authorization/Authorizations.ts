@@ -442,6 +442,18 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN);
   }
 
+  public static canCreateOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.CREATE);
+  }
+
+  public static canPingOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.PING);
+  }
+
+  public static canTriggerJobOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.TRIGGER_JOB);
+  }
+
   public static canListChargingProfiles(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILES, Action.LIST);
   }

@@ -10,7 +10,7 @@ export interface OICPPushEvseDataCpoSend {
 }
 
 export enum OICPActionType {
-  fullLoad = 'Authorized',
+  fullLoad = 'fullLoad',
   update = 'update',
   insert = 'insert',
   delete = 'delete'

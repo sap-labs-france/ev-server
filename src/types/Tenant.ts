@@ -13,6 +13,10 @@ export default interface Tenant extends CreatedUpdatedProps {
       active: boolean;
       type: string;
     };
+    oicp?: {
+      active: boolean;
+      type: string;
+    };
     organization?: {
       active: boolean;
     };

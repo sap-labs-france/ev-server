@@ -147,6 +147,24 @@ export enum ServerAction {
   OCPI_ENDPOINT_UNREGISTER = 'OcpiEndpointUnregister',
   OCPI_ENDPOINT_DELETE = 'OcpiEndpointDelete',
 
+  OICP_ENPOINT_CREATE = 'OicpEndpointCreate',
+  OICP_ENPOINT_PING = 'OicpEndpointPing',
+  OICP_ENPOINT_TRIGGER_JOBS = 'OicpEndpointTriggerJobs',
+  OICP_PUSH_EVSES = 'OicpPushEvses',
+  OICP_PUSH_EVSE_STATUSES = 'OicpPushEvseStatuses',
+  OICP_AUTHORIZE_START = 'OicpAuthorizeStart',
+  OICP_AUTHORIZE_STOP = 'OicpAuthorizeStop',
+  OICP_PUSH_CDRS = 'OicpPushCdrs',
+  OICP_PUSH_EVSE_PRICING = 'OicpPushEvsePricing',
+  OICP_PUSH_PRICING_PRODUCT_DATA = 'OicpPushPricingProductData',
+  OICP_SEND_CHARGING_NOTIFICATION_START = 'OicpSendChargingNotificationStart',
+  OICP_SEND_CHARGING_NOTIFICATION_PROGRESS = 'OicpSendChargingNotificationProgress',
+  OICP_SEND_CHARGING_NOTIFICATION_END = 'OicpSendChargingNotificationEnd',
+  OICP_SEND_CHARGING_NOTIFICATION_ERROR = 'OicpSendChargingNotificationError',
+  OICP_ENPOINT_SEND_EVSE_STATUSES = 'OicpEndpointSendEVSEStatuses',
+  OICP_ENPOINT_SEND_EVSES = 'OicpEndpointSendEVSEs',
+
+
   AUTHORIZE = 'Authorize',
 
   OCPP_SERVICE = 'OCPPService',
