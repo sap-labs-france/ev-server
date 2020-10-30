@@ -895,6 +895,10 @@ export default class Utils {
     return totalAmps;
   }
 
+  public static getChargingStationAmperagePerPhase(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+    return Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId) / Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
+  }
+
   public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
     let amperageLimit = 0;
     if (chargingStation) {

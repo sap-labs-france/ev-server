@@ -722,6 +722,7 @@ export default class ChargingStationStorage {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'chargingStationID': { $regex: searchRegex, $options: 'i' } },
+        { 'profile.transactionId': Utils.convertToInt(searchRegex) },
       ];
     }
     if (params.chargingProfileID) {

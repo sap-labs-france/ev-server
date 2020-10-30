@@ -229,7 +229,7 @@ export default class MongoDBStorage {
     if (this.migrationConfig.active) {
       await this.checkDatabase();
     }
-    console.log(`Connected to '${this.dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+    console.log(`Connected to '${this.dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
   }
 
   private async checkDatabase(): Promise<void> {

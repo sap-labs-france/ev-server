@@ -34,7 +34,6 @@ export default class OCPICheckLocationsTask extends SchedulerTask {
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'check-locations');
