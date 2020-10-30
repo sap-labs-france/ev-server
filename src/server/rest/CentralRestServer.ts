@@ -44,7 +44,7 @@ export default class CentralRestServer {
     CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
     this.chargingStationConfig = chargingStationConfig;
     // Initialize express app
-    this.expressApplication = ExpressTools.initApplication('2mb');
+    this.expressApplication = ExpressTools.initApplication('2mb', centralSystemRestConfig.debug);
     // Mount express-sanitizer middleware
     this.expressApplication.use(sanitize());
     // Authentication

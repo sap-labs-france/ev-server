@@ -18,11 +18,12 @@ import hpp from 'hpp';
 import http from 'http';
 import https from 'https';
 import locale from 'locale';
+import morgan from 'morgan';
 
 bodyParserXml(bodyParser);
 
 export default class ExpressTools {
-  public static initApplication(bodyLimit = '1mb'): express.Application {
+  public static initApplication(bodyLimit = '1mb', debug = false): express.Application {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -36,6 +37,10 @@ export default class ExpressTools {
       extended: false,
       limit: bodyLimit
     }));
+    // Debug
+    if (debug) {
+      app.use(morgan('tiny'));
+    }
     app.use(hpp());
     app.use(bodyParser['xml']({
       limit: bodyLimit

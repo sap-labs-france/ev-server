@@ -18,7 +18,7 @@ export default class ODataServer {
     // Keep params
     this.oDataServerConfig = oDataServerConfig;
     // Initialize express app
-    this.expressApplication = ExpressTools.initApplication();
+    this.expressApplication = ExpressTools.initApplication(null, oDataServerConfig.debug);
     // Get URL of the CentralSystemRestServer
     const restConf = Configuration.getCentralSystemRestServer();
     const restServerUrl = `${restConf.protocol}://${restConf.host}:${restConf.port}/`;

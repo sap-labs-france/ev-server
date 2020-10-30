@@ -53,6 +53,7 @@
     "mongo-sanitize": "^1.1.0",
     "mongo-uri-builder": "^3.2.2",
     "mongodb": "^3.6.2",
+    "morgan": "^1.10.0",
     "mustache": "^4.0.1",
     "node-cron": "^2.0.3",
     "passport": "^0.4.1",
