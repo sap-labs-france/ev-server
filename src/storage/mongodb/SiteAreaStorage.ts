@@ -14,7 +14,7 @@ const MODULE_NAME = 'SiteAreaStorage';
 export default class SiteAreaStorage {
   public static async addAssetsToSiteArea(tenantID: string, siteAreaID: string, assetIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addAssetsToSiteArea');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'addAssetsToSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Site Area provided?
@@ -30,7 +30,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'addAssetsToSiteArea', uniqueTimerID, {
+    Logging.traceEnd(tenantID, MODULE_NAME, 'addAssetsToSiteArea', uniqueTimerID, {
       siteAreaID,
       assetIDs
     });
@@ -38,7 +38,7 @@ export default class SiteAreaStorage {
 
   public static async removeAssetsFromSiteArea(tenantID: string, siteAreaID: string, assetIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'removeAssetsFromSiteArea');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'removeAssetsFromSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Site Area provided?
@@ -54,7 +54,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'removeAssetsFromSiteArea', uniqueTimerID, {
+    Logging.traceEnd(tenantID, MODULE_NAME, 'removeAssetsFromSiteArea', uniqueTimerID, {
       siteAreaID,
       assetIDs
     });
@@ -62,14 +62,14 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreaImage(tenantID: string, id: string): Promise<Image> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaImage');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
     const siteAreaImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'siteareaimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getSiteAreaImage', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreaImage', uniqueTimerID, { id });
     return {
       id: id, image: siteAreaImageMDB ? siteAreaImageMDB.image : null
     };
@@ -78,7 +78,7 @@ export default class SiteAreaStorage {
   public static async getSiteArea(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
     params: { withSite?: boolean; withChargingStations?: boolean } = {}): Promise<SiteArea> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteArea');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Exec
@@ -93,7 +93,7 @@ export default class SiteAreaStorage {
       Constants.DB_PARAMS_SINGLE_RECORD
     );
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getSiteArea', uniqueTimerID, {
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteArea', uniqueTimerID, {
       id,
       withChargingStations: params.withChargingStations,
       withSite: params.withSite
@@ -103,7 +103,7 @@ export default class SiteAreaStorage {
 
   public static async saveSiteArea(tenantID: string, siteAreaToSave: SiteArea, saveImage = false): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveSiteArea');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set
@@ -143,7 +143,7 @@ export default class SiteAreaStorage {
       await SiteAreaStorage.saveSiteAreaImage(tenantID, siteAreaMDB._id.toHexString(), siteAreaToSave.image);
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveSiteArea', uniqueTimerID, { siteAreaToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteArea', uniqueTimerID, { siteAreaToSave });
     return siteAreaMDB._id.toHexString();
   }
 
@@ -155,7 +155,7 @@ export default class SiteAreaStorage {
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreas');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreas');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
@@ -306,7 +306,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getSiteAreas', uniqueTimerID,
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreas', uniqueTimerID,
       { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
     // Ok
     return {
@@ -318,7 +318,7 @@ export default class SiteAreaStorage {
 
   public static async addChargingStationsToSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addChargingStationsToSiteArea');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'addChargingStationsToSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Site provided?
@@ -334,7 +334,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'addChargingStationsToSiteArea', uniqueTimerID, {
+    Logging.traceEnd(tenantID, MODULE_NAME, 'addChargingStationsToSiteArea', uniqueTimerID, {
       siteAreaID,
       chargingStationIDs
     });
@@ -342,7 +342,7 @@ export default class SiteAreaStorage {
 
   public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'removeChargingStationsFromSiteArea');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'removeChargingStationsFromSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Site provided?
@@ -358,7 +358,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'removeChargingStationsFromSiteArea', uniqueTimerID, {
+    Logging.traceEnd(tenantID, MODULE_NAME, 'removeChargingStationsFromSiteArea', uniqueTimerID, {
       siteAreaID,
       chargingStationIDs
     });
@@ -366,16 +366,16 @@ export default class SiteAreaStorage {
 
   public static async deleteSiteArea(tenantID: string, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteSiteArea');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSiteArea');
     // Delete singular site area
     await SiteAreaStorage.deleteSiteAreas(tenantID, [id]);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteSiteArea', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSiteArea', uniqueTimerID, { id });
   }
 
   public static async deleteSiteAreas(tenantID: string, siteAreaIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteSiteAreas');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSiteAreas');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Remove Charging Station's Site Area
@@ -397,12 +397,12 @@ export default class SiteAreaStorage {
       { '_id': { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } }
     );
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteSiteAreas', uniqueTimerID, { siteAreaIDs });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSiteAreas', uniqueTimerID, { siteAreaIDs });
   }
 
   public static async deleteSiteAreasFromSites(tenantID: string, siteIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteSiteAreasFromSites');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSiteAreasFromSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Find site areas to delete
@@ -412,12 +412,12 @@ export default class SiteAreaStorage {
     // Delete site areas
     await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteSiteAreasFromSites', uniqueTimerID, { siteIDs });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSiteAreasFromSites', uniqueTimerID, { siteIDs });
   }
 
   private static async saveSiteAreaImage(tenantID: string, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveSiteAreaImage');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
@@ -427,6 +427,6 @@ export default class SiteAreaStorage {
       { upsert: true, returnOriginal: false }
     );
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveSiteAreaImage', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteAreaImage', uniqueTimerID);
   }
 }
