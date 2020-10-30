@@ -901,7 +901,7 @@ export default class Utils {
     if (totalAmps % numberOfConnectedPhases === 0) {
       return totalAmps / numberOfConnectedPhases;
     }
-    return Math.round(totalAmps / numberOfConnectedPhases + 1);
+    return Math.round(totalAmps / numberOfConnectedPhases);
   }
 
   public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
