@@ -453,7 +453,7 @@ export default class OCPIMapping {
     if (currentType === CurrentType.AC) {
       numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
       // FIXME: Gireve OCPI spec violation #1: OCPI says voltage line-to-neutral for AC charger connector but Gireve wrongly interprets 'line-to-neutral' by 'line-to-line' ...
-      voltage = voltage * Math.sqrt(3);
+      voltage = Utils.roundTo(voltage * Math.sqrt(3), 2);
     }
     return {
       id: `${evseID}*${connector.connectorId}`,
