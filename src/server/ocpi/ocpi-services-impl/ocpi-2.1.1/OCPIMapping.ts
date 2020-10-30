@@ -426,6 +426,15 @@ export default class OCPIMapping {
     return statusesOrdered[aggregatedConnectorStatusIndex];
   }
 
+  static getChargingStationOCPINumberOfConnectedPhases(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
+    switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
+      case CurrentType.AC:
+        return Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
+      case CurrentType.DC:
+        return 0;
+    }
+  }
+
   static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, evseID: string): OCPIConnector {
     let type, format;
     switch (connector.type) {
@@ -446,15 +455,9 @@ export default class OCPIMapping {
     if (connector.chargePointID) {
       chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }
-    let voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
+    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
     const amperage = Utils.getChargingStationAmperagePerPhase(chargingStation, chargePoint, connector.connectorId);
-    const currentType = Utils.getChargingStationCurrentType(chargingStation, chargePoint, connector.connectorId);
-    let numberOfConnectedPhase = 0;
-    if (currentType === CurrentType.AC) {
-      numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
-      // FIXME: Gireve OCPI spec violation #1: OCPI says voltage line-to-neutral for AC charger connector but Gireve wrongly interprets 'line-to-neutral' by 'line-to-line' ...
-      voltage = Utils.roundTo(voltage * Math.sqrt(3), 2);
-    }
+    const numberOfConnectedPhase = OCPIMapping.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {
       id: `${evseID}*${connector.connectorId}`,
       standard: type,
