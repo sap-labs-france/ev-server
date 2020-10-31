@@ -342,7 +342,9 @@ export default class MongoDBStorage {
             const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
             if (!foundIndex) {
               // Drop indexes
-              console.log(`Drop index ${JSON.stringify(databaseIndex.key)} on collection ${tenantID}.${name}`);
+              if (Utils.isDevMode()) {
+                console.log(`Drop index ${JSON.stringify(databaseIndex.key)} on collection ${tenantID}.${name}`);
+              }
               await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
             }
           }
@@ -353,7 +355,9 @@ export default class MongoDBStorage {
             const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
             if (!foundIndex) {
               // Create Indexes
-              console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
+              if (Utils.isDevMode()) {
+                console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
+              }
               // eslint-disable-next-line @typescript-eslint/await-thenable
               await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
             }
