@@ -7,8 +7,8 @@ export interface OCPIEvse {
   capabilities: OCPICapability[];
   connectors: OCPIConnector[];
   coordinates: {
-    latitude: number;
-    longitude: number;
+    latitude: string;
+    longitude: string;
   };
   last_updated: Date;
   chargeBoxId?: string;

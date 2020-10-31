@@ -54,8 +54,8 @@ export default class OCPIMapping {
       postal_code: site.address.postalCode,
       country: site.address.country,
       coordinates: {
-        latitude: site.address.coordinates[1],
-        longitude: site.address.coordinates[0]
+        latitude: site.address.coordinates[1].toString(),
+        longitude: site.address.coordinates[0].toString()
       },
       evses: await OCPIMapping.getEvsesFromSite(tenant, site, options),
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
@@ -78,13 +78,13 @@ export default class OCPIMapping {
     } as ChargingStation;
     if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
       chargingStation.coordinates = [
-        evse.coordinates.longitude,
-        evse.coordinates.latitude
+        Utils.convertToFloat(evse.coordinates.longitude),
+        Utils.convertToFloat(evse.coordinates.latitude)
       ];
     } else if (location && location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
       chargingStation.coordinates = [
-        location.coordinates.longitude,
-        location.coordinates.latitude
+        Utils.convertToFloat(location.coordinates.longitude),
+        Utils.convertToFloat(location.coordinates.latitude)
       ];
     }
     if (evse.connectors && evse.connectors.length > 0) {
@@ -358,8 +358,8 @@ export default class OCPIMapping {
       postal_code: site.address.postalCode,
       country: site.address.country,
       coordinates: {
-        latitude: site.address.coordinates[1],
-        longitude: site.address.coordinates[0]
+        latitude: site.address.coordinates[1].toString(),
+        longitude: site.address.coordinates[0].toString()
       },
       type: OCPILocationType.UNKNOWN,
       evses: [{
@@ -369,8 +369,8 @@ export default class OCPIMapping {
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
         coordinates: {
-          latitude: chargingStation.coordinates[1],
-          longitude: chargingStation.coordinates[0]
+          latitude: chargingStation.coordinates[1].toString(),
+          longitude: chargingStation.coordinates[0].toString()
         },
         last_updated: chargingStation.lastHeartBeat
       }],
@@ -537,8 +537,8 @@ export default class OCPIMapping {
         connectors: [OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, evseID)],
         last_updated: chargingStation.lastHeartBeat,
         coordinates: {
-          latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1] : null,
-          longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0] : null
+          latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
+          longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
         }
       };
       // Check addChargeBoxID flag
@@ -572,8 +572,8 @@ export default class OCPIMapping {
       connectors: connectors,
       last_updated: chargingStation.lastHeartBeat,
       coordinates: {
-        latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1] : null,
-        longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0] : null
+        latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
+        longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
       }
     };
     // Check addChargeBoxID flag
