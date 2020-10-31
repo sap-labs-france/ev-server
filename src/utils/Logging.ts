@@ -753,7 +753,7 @@ export default class Logging {
       delete Logging.traceCalls[`${chargeBoxID}~action`];
       found = true;
     }
-    if (Utils.isDevMode()) {
+    if (Utils.isDevelopmentEnv()) {
       console.log(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`);
     }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
