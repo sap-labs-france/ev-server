@@ -1,7 +1,6 @@
 import JsonCentralSystemServer from '../server/ocpp/json/JsonCentralSystemServer';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import SoapCentralSystemServer from '../server/ocpp/soap/SoapCentralSystemServer';
-import Utils from '../utils/Utils';
 import bluebird from 'bluebird';
 import path from 'path';
 import Global = NodeJS.Global;
@@ -51,9 +50,9 @@ declare const global: TSGlobal;
 // Use bluebird Promise as default
 global.Promise = bluebird as any;
 // AppRoot full path
-if (Utils.isDevelopmentEnv() || Utils.isTestEnv()) {
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
   global.appRoot = path.resolve(__dirname, '../');
-} else if (Utils.isProductionEnv() || process.env.NODE_ENV === 'development-build') {
+} else if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'development-build') {
   global.appRoot = path.resolve(__dirname, '../dist');
 } else {
   console.error(`Unknown NODE_ENV '${process.env.NODE_ENV}' defined, exiting`);
