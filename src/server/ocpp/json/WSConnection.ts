@@ -177,7 +177,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Response request for unknown message id ${messageId} is not iterable`,
+              message: `Response request for message id ${messageId} is not iterable`,
               action: commandName
             });
           }
@@ -224,7 +224,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Error request for unknown message id ${messageId} is not iterable`,
+              message: `Error request for message id ${messageId} is not iterable`,
               action: commandName
             });
           }
@@ -309,7 +309,7 @@ export default abstract class WSConnection {
         resolve(payload);
       }
       // Function that will receive the request's rejection
-      function rejectCallback(reason) {
+      function rejectCallback(reason: string|OCPPError) {
         // Build Exception
         self.requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);

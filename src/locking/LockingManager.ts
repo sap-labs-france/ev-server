@@ -6,6 +6,7 @@ import Cypher from '../utils/Cypher';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
+import Utils from '../utils/Utils';
 import cfenv from 'cfenv';
 import os from 'os';
 
@@ -42,7 +43,7 @@ export default class LockingManager {
         message: `Acquired successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock }
       });
-      // pragma console.log(`Acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+      Utils.isDevelopmentEnv() && console.debug(`Acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
       return true;
     } catch (error) {
       Logging.logError({
@@ -52,7 +53,7 @@ export default class LockingManager {
         message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock, error: error.message, stack: error.stack }
       });
-      console.log(`Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+      Utils.isDevelopmentEnv() && console.debug(`Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
       return false;
     }
   }
@@ -77,7 +78,7 @@ export default class LockingManager {
       message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
       detailedMessages: { lock }
     });
-    // pragma console.log(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+    Utils.isDevelopmentEnv() && console.debug(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
     return true;
   }
 
