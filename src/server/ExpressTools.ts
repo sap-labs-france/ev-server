@@ -8,6 +8,7 @@ import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import { StatusCodes } from 'http-status-codes';
+import Utils from '../utils/Utils';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cluster from 'cluster';
@@ -38,7 +39,7 @@ export default class ExpressTools {
       limit: bodyLimit
     }));
     // Debug
-    if (debug) {
+    if (debug || Utils.isDevMode()) {
       app.use(morgan((tokens, req: Request, res: Response) =>
         [
           tokens.method(req, res),
