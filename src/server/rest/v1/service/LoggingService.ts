@@ -55,7 +55,6 @@ export default class LoggingService {
   }
 
   private static convertToCSV(loggedUser: UserToken, loggings: Log[], writeHeader = true): string {
-    const i18nManager = new I18nManager(loggedUser.locale);
     let csv = '';
     // Header
     if (writeHeader) {
