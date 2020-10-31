@@ -456,7 +456,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       description = i18nManager.translate('billing.chargingStopChargeBox',
         { totalConsumption: totalConsumptionkWh, chargeBox: transaction.chargeBoxID, time: time });
     }
-    // Const taxRates: ITaxRate[] = [];
+    // pragma const taxRates: ITaxRate[] = [];
     // if (this.settings.taxID) {
     //   taxRates.push(this.settings.taxID);
     // }

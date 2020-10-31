@@ -10,7 +10,7 @@ const MODULE_NAME = 'StatisticsStorage';
 export default class StatisticsStorage {
   static async getChargingStationStats(tenantID: string, filters: StatisticFilter, groupBy: string) {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStationStats');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStationStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -125,13 +125,13 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getChargingStationStats', uniqueTimerID, { filters, groupBy });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, { filters, groupBy });
     return transactionStatsMDB;
   }
 
   static async getUserStats(tenantID: string, filters: StatisticFilter, groupBy: string) {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserStats');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -259,7 +259,7 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUserStats', uniqueTimerID, { filters, groupBy });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getUserStats', uniqueTimerID, { filters, groupBy });
     return transactionStatsMDB;
   }
 }
