@@ -56,11 +56,6 @@ export default class Logging {
         found = true;
       }
       console.log(`${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + (sizeof(data) / 1000) + 'Kb' : ''}`);
-      Logging.logDebug({
-        tenantID: tenantID, module, method,
-        message: `${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + (sizeof(data) / 1000) + 'Kb' : ''}`,
-        action: ServerAction.DB_MONITOR
-      });
     }
   }
 
