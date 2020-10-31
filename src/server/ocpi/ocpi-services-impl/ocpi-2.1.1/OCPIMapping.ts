@@ -482,14 +482,14 @@ export default class OCPIMapping {
     }
     const voltage = OCPIMapping.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
     const amperage = OCPIMapping.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
-    const ocpiNumberOfConnectedPhase = OCPIMapping.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
+    const ocpiNumberOfConnectedPhases = OCPIMapping.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {
       id: `${evseID}*${connector.connectorId}`,
       standard: type,
       format: format,
       voltage: voltage,
       amperage: amperage,
-      power_type: OCPIMapping.convertOCPINumberOfConnectedPhase2PowerType(ocpiNumberOfConnectedPhase),
+      power_type: OCPIMapping.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
       tariff_id: OCPIMapping.buildTariffID(tenant),
       last_updated: chargingStation.lastHeartBeat
     };
@@ -551,8 +551,8 @@ export default class OCPIMapping {
    * Convert internal Power (1/3 Phase) to PowerType
    * @param {*} power
    */
-  static convertOCPINumberOfConnectedPhase2PowerType(ocpiNumberOfConnectedPhase: number): OCPIPowerType {
-    switch (ocpiNumberOfConnectedPhase) {
+  static convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases: number): OCPIPowerType {
+    switch (ocpiNumberOfConnectedPhases) {
       case 0:
         return OCPIPowerType.DC;
       case 1:
