@@ -1,6 +1,5 @@
 import { ServerAction } from './Server';
 import User from './User';
-import UserToken from './UserToken';
 
 export interface Log {
   tenantID: string;
@@ -14,12 +13,11 @@ export interface Log {
   timestamp?: Date;
   action?: ServerAction;
   type?: LogType;
-  message: string|any;
-  user?: User|UserToken|string;
-  userFullName?: string;
-  actionOnUser?: User|UserToken|string;
+  message: string;
+  user?: User;
+  actionOnUser?: User;
   hasDetailedMessages?: boolean;
-  detailedMessages?: string|any;
+  detailedMessages?: any;
 }
 
 export enum LogLevel {

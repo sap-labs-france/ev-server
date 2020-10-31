@@ -23,16 +23,11 @@ const MODULE_NAME = 'LoggingService';
 export default class LoggingService {
   public static async handleGetLogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get logs
-    const loggings = await LoggingService.getLogs(req);
-    // Filter
-    LoggingSecurity.filterLogsResponse(loggings, req.user);
-    // Return
-    res.json(loggings);
+    res.json(await LoggingService.getLogs(req));
     next();
   }
 
   public static async handleExportLogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Export
     await UtilsService.exportToCSV(req, res, 'exported-logs.csv',
       LoggingService.getLogs.bind(this), LoggingService.convertToCSV.bind(this));
   }
@@ -41,24 +36,21 @@ export default class LoggingService {
     // Filter
     const filteredRequest = LoggingSecurity.filterLogRequest(req.query);
     // Get logs
-    const logging = await LoggingStorage.getLog(req.user.tenantID, filteredRequest.ID);
+    const logging = await LoggingStorage.getLog(req.user.tenantID, filteredRequest.ID, [
+      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
+      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+    ]);
     // Check auth
     if (!Authorizations.canReadLog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.LOGGING,
-        module: MODULE_NAME,
-        method: 'handleGetLog'
+        action: Action.READ, entity: Entity.LOGGING,
+        module: MODULE_NAME, method: 'handleGetLog'
       });
     }
     // Return
-    res.json(
-      LoggingSecurity.filterLogResponse(
-        logging, req.user, true
-      )
-    );
+    res.json(logging);
     next();
   }
 
@@ -137,7 +129,8 @@ export default class LoggingService {
       sort: filteredRequest.Sort,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     }, [
-      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'userFullName', 'action', 'message', 'module', 'method', 'user', 'actionOnUser', 'hasDetailedMessages'
+      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
+      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages'
     ]);
     return loggings;
   }
