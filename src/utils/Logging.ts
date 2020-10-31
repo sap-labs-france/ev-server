@@ -37,7 +37,7 @@ export default class Logging {
 
   // Debug DB
   public static traceStart(tenantID: string, module: string, method: string): string {
-    if (Utils.isDevMode()) {
+    if (Utils.isDevelopmentEnv()) {
       const key = `${tenantID}~${module}~${method}~${Utils.generateUUID()}`;
       Logging.traceCalls[key] = new Date().getTime();
       return key;
@@ -46,7 +46,7 @@ export default class Logging {
 
   // Debug DB
   public static traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): void {
-    if (Utils.isDevMode()) {
+    if (Utils.isDevelopmentEnv()) {
       // Compute duration if provided
       let executionDurationSecs: number;
       let found = false;

@@ -67,10 +67,6 @@ export default class Utils {
     });
   }
 
-  public static isDevMode(): boolean {
-    return process.env.NODE_ENV === 'development';
-  }
-
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     if (currentType === CurrentType.AC &&
@@ -1086,14 +1082,9 @@ export default class Utils {
     return _evseBaseURL + '/settings#billing';
   }
 
-  public static isServerInProductionMode(): boolean {
-    const env = process.env.NODE_ENV || 'dev';
-    return (env === 'production');
-  }
-
   public static hideShowMessage(message: string): string {
     // Check Prod
-    if (Utils.isServerInProductionMode()) {
+    if (Utils.isProductionEnv()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
     }
     return message;
@@ -1632,6 +1623,10 @@ export default class Utils {
 
   public static isProductionEnv(): boolean {
     return process.env.NODE_ENV === 'production';
+  }
+
+  public static isTestEnv(): boolean {
+    return process.env.NODE_ENV === 'test';
   }
 
   public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {

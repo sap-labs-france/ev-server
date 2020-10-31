@@ -39,7 +39,7 @@ export default class ExpressTools {
       limit: bodyLimit
     }));
     // Debug
-    if (debug || Utils.isDevMode()) {
+    if (debug || Utils.isDevelopmentEnv()) {
       app.use(morgan((tokens, req: Request, res: Response) =>
         [
           tokens.method(req, res),
