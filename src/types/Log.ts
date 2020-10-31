@@ -1,5 +1,6 @@
 import { ServerAction } from './Server';
 import User from './User';
+import UserToken from './UserToken';
 
 export interface Log {
   tenantID: string;
@@ -14,8 +15,8 @@ export interface Log {
   action?: ServerAction;
   type?: LogType;
   message: string;
-  user?: User;
-  actionOnUser?: User;
+  user?: User|UserToken|string;
+  actionOnUser?: User|UserToken|string;
   hasDetailedMessages?: boolean;
   detailedMessages?: any;
 }

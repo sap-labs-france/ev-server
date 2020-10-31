@@ -83,7 +83,7 @@ export default class JsonWSConnection extends WSConnection {
       tenantID: this.getTenantID(),
       action: ServerAction.WS_ERROR,
       module: MODULE_NAME, method: 'onError',
-      message: event
+      message: event + ''
     });
   }
 
