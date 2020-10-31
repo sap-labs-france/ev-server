@@ -426,12 +426,37 @@ export default class OCPIMapping {
     return statusesOrdered[aggregatedConnectorStatusIndex];
   }
 
+  // FIXME: We should probably only have charging station output characteristics everywhere
+  static getChargingStationOCPIVoltage(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
+    switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
+      case CurrentType.AC:
+        return Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorId);
+      case CurrentType.DC:
+        return 400;
+      default:
+        return null;
+    }
+  }
+
+  static getChargingStationOCPIAmperage(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
+    switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
+      case CurrentType.AC:
+        return Utils.getChargingStationAmperagePerPhase(chargingStation, chargePoint, connectorId);
+      case CurrentType.DC:
+        return Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+      default:
+        return null;
+    }
+  }
+
   static getChargingStationOCPINumberOfConnectedPhases(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
     switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
       case CurrentType.AC:
         return Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
       case CurrentType.DC:
         return 0;
+      default:
+        return null;
     }
   }
 
@@ -455,23 +480,23 @@ export default class OCPIMapping {
     if (connector.chargePointID) {
       chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }
-    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
-    const amperage = Utils.getChargingStationAmperagePerPhase(chargingStation, chargePoint, connector.connectorId);
-    const numberOfConnectedPhase = OCPIMapping.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
+    const voltage = OCPIMapping.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
+    const amperage = OCPIMapping.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
+    const ocpiNumberOfConnectedPhase = OCPIMapping.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {
       id: `${evseID}*${connector.connectorId}`,
       standard: type,
       format: format,
       voltage: voltage,
       amperage: amperage,
-      power_type: OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
+      power_type: OCPIMapping.convertOCPINumberOfConnectedPhase2PowerType(ocpiNumberOfConnectedPhase),
       tariff_id: OCPIMapping.buildTariffID(tenant),
       last_updated: chargingStation.lastHeartBeat
     };
   }
 
-  // FIXME: add tariff id from the simple pricing settings remapping
   // TODO: Implement the tariff module under dev in Gireve
+  // FIXME: add tariff id from the simple pricing settings remapping
   static buildTariffID(tenant: Tenant): string {
     switch (tenant?.id) {
       // SLF
@@ -526,7 +551,7 @@ export default class OCPIMapping {
    * Convert internal Power (1/3 Phase) to PowerType
    * @param {*} power
    */
-  static convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase: number): OCPIPowerType {
+  static convertOCPINumberOfConnectedPhase2PowerType(numberOfConnectedPhase: number): OCPIPowerType {
     switch (numberOfConnectedPhase) {
       case 0:
         return OCPIPowerType.DC;
