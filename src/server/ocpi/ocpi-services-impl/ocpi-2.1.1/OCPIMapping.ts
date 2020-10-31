@@ -551,8 +551,8 @@ export default class OCPIMapping {
    * Convert internal Power (1/3 Phase) to PowerType
    * @param {*} power
    */
-  static convertOCPINumberOfConnectedPhase2PowerType(numberOfConnectedPhase: number): OCPIPowerType {
-    switch (numberOfConnectedPhase) {
+  static convertOCPINumberOfConnectedPhase2PowerType(ocpiNumberOfConnectedPhase: number): OCPIPowerType {
+    switch (ocpiNumberOfConnectedPhase) {
       case 0:
         return OCPIPowerType.DC;
       case 1:
