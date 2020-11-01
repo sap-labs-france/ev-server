@@ -55,7 +55,7 @@ export default class Logging {
         delete Logging.traceCalls[key];
         found = true;
       }
-      console.debug(`${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + (sizeof(data) / 1000) + 'Kb' : ''}`);
+      console.debug(`${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + Utils.roundTo(sizeof(data) / 1024, 2).toString() + 'Kb' : ''}`);
     }
   }
 
