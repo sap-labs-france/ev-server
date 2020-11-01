@@ -102,7 +102,7 @@ export default class AssetStorage {
       await AssetStorage.saveAssetImage(tenantID, assetMDB._id.toHexString(), assetToSave.image);
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveAsset', uniqueTimerID, assetToSave);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveAsset', uniqueTimerID, assetMDB);
     return assetMDB._id.toHexString();
   }
 
