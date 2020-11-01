@@ -251,17 +251,12 @@ export default class MongoDBStorage {
     // Logs
     await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'logs', [
       { fields: { timestamp: 1 } },
-      { fields: { timestamp: -1 } },
       { fields: { type: 1, timestamp: 1 } },
-      { fields: { type: 1, timestamp: -1 } },
       { fields: { action: 1, timestamp: 1 } },
-      { fields: { action: 1, timestamp: -1 } },
       { fields: { level: 1, timestamp: 1 } },
-      { fields: { level: 1, timestamp: -1 } },
       { fields: { source: 1, timestamp: 1 } },
-      { fields: { source: 1, timestamp: -1 } },
       { fields: { host: 1, timestamp: 1 } },
-      { fields: { host: 1, timestamp: -1 } }
+      { fields: { message: 'text', source: 'text', host: 'text', action: 'text' } },
     ]);
     // Locks
     await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'locks', [
@@ -331,7 +326,7 @@ export default class MongoDBStorage {
             if (databaseIndex.key._id) {
               continue;
             }
-            const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
+            const foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
             if (!foundIndex) {
               if (Utils.isDevelopmentEnv()) {
                 console.log(`Drop index ${JSON.stringify(databaseIndex.key)} on collection ${tenantID}.${name}`);
@@ -345,7 +340,7 @@ export default class MongoDBStorage {
           }
           // Create indexes
           for (const index of indexes) {
-            const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
+            const foundIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
             if (!foundIndex) {
               if (Utils.isDevelopmentEnv()) {
                 console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
@@ -364,5 +359,14 @@ export default class MongoDBStorage {
         await LockingManager.release(createCollection);
       }
     }
+  }
+
+  private buildIndexName(indexes: { [key: string]: string }): string {
+    const indexNameValues: string[] = [];
+    for (const indexKey in indexes) {
+      indexNameValues.push(indexKey);
+      indexNameValues.push(indexes[indexKey]);
+    }
+    return indexNameValues.join('_');
   }
 }
