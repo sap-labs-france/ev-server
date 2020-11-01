@@ -76,6 +76,7 @@ export default class MongoDBStorage {
       { fields: { level: 1, timestamp: 1 } },
       { fields: { source: 1, timestamp: 1 } },
       { fields: { host: 1, timestamp: 1 } },
+      { fields: { message: 'text', source: 'text', host: 'text', action: 'text' } },
     ]);
     // MeterValues
     await this.handleIndexesInCollection(tenantID, 'metervalues', [
@@ -276,8 +277,7 @@ export default class MongoDBStorage {
       }
     }
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
-      .find({})
-      .toArray();
+      .find({}).toArray();
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
       // Database creation Lock
@@ -319,41 +319,43 @@ export default class MongoDBStorage {
           try {
             await this.db.createCollection(tenantCollectionName);
           } catch (error) {
-            console.log(`Error in creating collection '${tenantCollectionName}': ${error.message}`);
+            console.error(`>>>>> Error in creating collection '${tenantCollectionName}': ${error.message}`);
           }
         }
         // Indexes?
         if (indexes) {
           // Get current indexes
           const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-          // Check each index that should be dropped
+          // Drop indexes
           for (const databaseIndex of databaseIndexes) {
-            // Bypass ID
             if (databaseIndex.key._id) {
               continue;
             }
-            // Exists?
             const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
             if (!foundIndex) {
-              // Drop indexes
               if (Utils.isDevelopmentEnv()) {
                 console.log(`Drop index ${JSON.stringify(databaseIndex.key)} on collection ${tenantID}.${name}`);
               }
-              await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+              try {
+                await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+              } catch (error) {
+                console.error(`>>>>> Error in dropping index '${JSON.stringify(databaseIndex.key)}' in '${tenantCollectionName}': ${error.message}`);
+              }
             }
           }
-          // Check each index that should be created
+          // Create indexes
           for (const index of indexes) {
-            // Create
-            // Check if it exists
             const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
             if (!foundIndex) {
-              // Create Indexes
               if (Utils.isDevelopmentEnv()) {
                 console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
               }
-              // eslint-disable-next-line @typescript-eslint/await-thenable
-              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+              try {
+                // eslint-disable-next-line @typescript-eslint/await-thenable
+                await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+              } catch (error) {
+                console.error(`>>>>> Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message}`);
+              }
             }
           }
         }

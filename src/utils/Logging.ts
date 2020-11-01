@@ -55,7 +55,7 @@ export default class Logging {
         delete Logging.traceCalls[key];
         found = true;
       }
-      console.log(`${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + (sizeof(data) / 1000) + 'Kb' : ''}`);
+      console.debug(`${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + (sizeof(data) / 1000) + 'Kb' : ''}`);
     }
   }
 
@@ -160,7 +160,7 @@ export default class Logging {
           contentLengthKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
         }
         if (Utils.isDevelopmentEnv()) {
-          console.log(`Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
+          console.debug(`Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
         }
         Logging.logSecurityDebug({
           tenantID: tenantID,
@@ -756,7 +756,7 @@ export default class Logging {
       found = true;
     }
     if (Utils.isDevelopmentEnv()) {
-      console.log(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`);
+      console.debug(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`);
     }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
       Logging.logError({
