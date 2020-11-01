@@ -71,17 +71,11 @@ export default class MongoDBStorage {
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [
       { fields: { timestamp: 1 } },
-      { fields: { timestamp: -1 } },
       { fields: { type: 1, timestamp: 1 } },
-      { fields: { type: 1, timestamp: -1 } },
       { fields: { action: 1, timestamp: 1 } },
-      { fields: { action: 1, timestamp: -1 } },
       { fields: { level: 1, timestamp: 1 } },
-      { fields: { level: 1, timestamp: -1 } },
       { fields: { source: 1, timestamp: 1 } },
-      { fields: { source: 1, timestamp: -1 } },
       { fields: { host: 1, timestamp: 1 } },
-      { fields: { host: 1, timestamp: -1 } }
     ]);
     // MeterValues
     await this.handleIndexesInCollection(tenantID, 'metervalues', [
