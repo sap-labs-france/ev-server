@@ -70,12 +70,10 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'eulas');
     // Assets
     await this.handleIndexesInCollection(tenantID, 'assets', [
-      { fields: { name: 'text' } },
     ]);
     // Invoices
     await this.handleIndexesInCollection(tenantID, 'invoices', [
       { fields: { invoiceID: 1 }, options: { unique: true } },
-      { fields: { invoiceID: 'text' } },
     ]);
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [
@@ -112,7 +110,6 @@ export default class MongoDBStorage {
     // Cars
     await this.handleIndexesInCollection(tenantID, 'cars', [
       { fields: { vin: 1, licensePlate: 1 }, options: { unique: true } },
-      { fields: { vin: 'text', licensePlate: 'text' } },
     ]);
     // Car Catalogs
     await this.handleIndexesInCollection(tenantID, 'carcatalogimages', [
@@ -293,12 +290,6 @@ export default class MongoDBStorage {
         }
       }
     }
-    // Default Tenant
-    // Car Catalogs
-    await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'carcatalogs', [
-      { fields: { vehicleModel: 'text', vehicleMake: 'text', vehicleModelVersion: 'text' } },
-    ]);
-
   }
 
   private async handleIndexesInCollection(tenantID: string,
