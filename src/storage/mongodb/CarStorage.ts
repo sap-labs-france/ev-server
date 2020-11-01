@@ -40,14 +40,14 @@ export default class CarStorage {
     const aggregation = [];
     // Set the filters
     const filters: any = {};
-    // Search
     if (params.search) {
-      filters.$text = { $search: params.search };
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'vehicleModel': { $regex: searchRegex, $options: 'i' } },
+        { 'vehicleMake': { $regex: searchRegex, $options: 'i' } },
+        { 'vehicleModelVersion': { $regex: searchRegex, $options: 'i' } },
+      ];
     }
-    // Filters
-    aggregation.push({
-      $match: filters
-    });
     // Limit on Car for Basic Users
     if (!Utils.isEmptyArray(params.carCatalogIDs)) {
       aggregation.push({
@@ -65,9 +65,10 @@ export default class CarStorage {
         }
       });
     }
-    console.log('====================================');
-    console.log(JSON.stringify(aggregation, null, ' '));
-    console.log('====================================');
+    // Filters
+    aggregation.push({
+      $match: filters
+    });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -577,7 +578,11 @@ export default class CarStorage {
     const filters: FilterParams = {};
     // Search
     if (params.search) {
-      filters.$text = { $search: params.search };
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'vin': { $regex: searchRegex, $options: 'i' } },
+        { 'licensePlate': { $regex: searchRegex, $options: 'i' } },
+      ];
     }
     if (params.licensePlate) {
       filters.licensePlate = params.licensePlate;
@@ -591,10 +596,6 @@ export default class CarStorage {
         $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID))
       };
     }
-    // Filters
-    aggregation.push({
-      $match: filters
-    });
     // Filter on Users
     if (!Utils.isEmptyArray(params.userIDs) || params.withUsers) {
       DatabaseUtils.pushUserCarLookupInAggregation({
@@ -608,14 +609,15 @@ export default class CarStorage {
         filters['carUsers.default'] = true;
       }
     }
+    // Filters
+    aggregation.push({
+      $match: filters
+    });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
-    console.log('====================================');
-    console.log(JSON.stringify(aggregation, null, ' '));
-    console.log('====================================');
     // Count Records
     const carsCountMDB = await global.database.getCollection<DataResult<Car>>(tenantID, 'cars')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
