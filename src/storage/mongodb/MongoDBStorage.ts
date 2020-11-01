@@ -72,6 +72,10 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'assets', [
       { fields: { name: 'text' } },
     ]);
+    // Invoices
+    await this.handleIndexesInCollection(tenantID, 'invoices', [
+      { fields: { invoiceID: 'text' } },
+    ]);
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [
       { fields: { timestamp: 1 } },
