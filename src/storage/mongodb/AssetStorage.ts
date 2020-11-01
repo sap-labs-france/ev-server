@@ -316,7 +316,7 @@ export default class AssetStorage {
     await global.database.getCollection<any>(tenantID, 'assetimages')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteAsset', uniqueTimerID, id);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteAsset', uniqueTimerID, { id });
   }
 
   private static async saveAssetImage(tenantID: string, assetID: string, assetImageToSave: string): Promise<void> {
