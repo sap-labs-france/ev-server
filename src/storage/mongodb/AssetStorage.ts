@@ -126,7 +126,10 @@ export default class AssetStorage {
     const filters: FilterParams = {};
     // Search
     if (params.search) {
-      filters.$text = { $search: params.search };
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'name': { $regex: searchRegex, $options: 'i' } },
+      ];
     }
     // With no Site Area
     if (params.withNoSiteArea) {

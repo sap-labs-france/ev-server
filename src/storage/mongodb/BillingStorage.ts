@@ -57,8 +57,11 @@ export default class BillingStorage {
     // Search filters
     const filters: FilterParams = {};
     // Search
+    // Filter by other properties
     if (params.search) {
-      filters.$text = { $search: params.search };
+      filters.$or = [
+        { 'number': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
+      ];
     }
     if (!Utils.isEmptyArray(params.invoiceIDs)) {
       filters._id = {
