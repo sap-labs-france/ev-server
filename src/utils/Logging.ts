@@ -159,6 +159,9 @@ export default class Logging {
         if (res.getHeader('content-length')) {
           contentLengthKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
         }
+        if (Utils.isDevelopmentEnv()) {
+          console.log(`Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
+        }
         Logging.logSecurityDebug({
           tenantID: tenantID,
           user: req.user,
@@ -179,7 +182,6 @@ export default class Logging {
   }
 
   public static logExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
-    // Log
     Logging.logActionExceptionMessageAndSendResponse(ServerAction.HTTP_ERROR, error, req, res, next);
   }
 
