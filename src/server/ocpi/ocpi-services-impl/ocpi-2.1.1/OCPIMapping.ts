@@ -12,6 +12,7 @@ import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import CountryLanguage from 'country-language';
 import { DataResult } from '../../../../types/DataResult';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import OCPICredential from '../../../../types/ocpi/OCPICredential';
@@ -29,6 +30,7 @@ import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
+import countries from 'i18n-iso-countries';
 import moment from 'moment';
 
 /**
@@ -52,7 +54,7 @@ export default class OCPIMapping {
       address: `${site.address.address1} ${site.address.address2}`,
       city: site.address.city,
       postal_code: site.address.postalCode,
-      country: site.address.country,
+      country: countries.getAlpha3Code(site.address.country, CountryLanguage.getCountryLanguages(options.countryID, (err, languages) => languages[0].iso639_1)),
       coordinates: {
         latitude: site.address.coordinates[1].toString(),
         longitude: site.address.coordinates[0].toString()
@@ -356,7 +358,7 @@ export default class OCPIMapping {
       address: `${site.address.address1} ${site.address.address2}`,
       city: site.address.city,
       postal_code: site.address.postalCode,
-      country: site.address.country,
+      country: countries.getAlpha3Code(site.address.country, CountryLanguage.getCountryLanguages(countryId, (err, languages) => languages[0].iso639_1)),
       coordinates: {
         latitude: site.address.coordinates[1].toString(),
         longitude: site.address.coordinates[0].toString()
