@@ -74,6 +74,7 @@ export default class MongoDBStorage {
     ]);
     // Invoices
     await this.handleIndexesInCollection(tenantID, 'invoices', [
+      { fields: { invoiceID: 1 }, options: { unique: true } },
       { fields: { invoiceID: 'text' } },
     ]);
     // Logs
@@ -110,9 +111,10 @@ export default class MongoDBStorage {
     ]);
     // Cars
     await this.handleIndexesInCollection(tenantID, 'cars', [
-      { fields: { vin: 1, licensePlate: 1 }, options: { unique: true } }
+      { fields: { vin: 1, licensePlate: 1 }, options: { unique: true } },
+      { fields: { vin: 'text', licensePlate: 'text' } },
     ]);
-    // Cars
+    // Car Catalogs
     await this.handleIndexesInCollection(tenantID, 'carcatalogimages', [
       { fields: { carID: 1 } }
     ]);
@@ -122,10 +124,6 @@ export default class MongoDBStorage {
       { fields: { chargeBoxID: 1 } },
       { fields: { tagID: 1 } },
       { fields: { userID: 1 } }
-    ]);
-    // Invoices
-    await this.handleIndexesInCollection(tenantID, 'invoices', [
-      { fields: { invoiceID: 1 }, options: { unique: true } }
     ]);
     // Settings
     await this.handleIndexesInCollection(tenantID, 'settings', [
@@ -295,6 +293,12 @@ export default class MongoDBStorage {
         }
       }
     }
+    // Default Tenant
+    // Car Catalogs
+    await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'carcatalogs', [
+      { fields: { vehicleModel: 'text', vehicleMake: 'text', vehicleModelVersion: 'text' } },
+    ]);
+
   }
 
   private async handleIndexesInCollection(tenantID: string,
@@ -337,12 +341,12 @@ export default class MongoDBStorage {
             const foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
             if (!foundIndex) {
               if (Utils.isDevelopmentEnv()) {
-                console.log(`Drop index ${JSON.stringify(databaseIndex.key)} on collection ${tenantID}.${name}`);
+                console.log(`Drop index ${databaseIndex.name} on collection ${tenantID}.${name}`);
               }
               try {
                 await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
               } catch (error) {
-                console.error(`>>>>> Error in dropping index '${JSON.stringify(databaseIndex.key)}' in '${tenantCollectionName}': ${error.message}`);
+                console.error(`>>>>> Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`);
               }
             }
           }
