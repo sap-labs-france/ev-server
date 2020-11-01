@@ -17,17 +17,21 @@ export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<SettingDB> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSetting');
-    // Delegate querying
+    // Delegate query
     const settingMDB = await SettingStorage.getSettings(tenantID, { settingID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSetting', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSetting', uniqueTimerID, settingMDB);
     return settingMDB.count === 1 ? settingMDB.result[0] : null;
   }
 
   public static async getSettingByIdentifier(tenantID: string, identifier: string = Constants.UNKNOWN_STRING_ID): Promise<SettingDB> {
-    const settingResult = await SettingStorage.getSettings(
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSettingByIdentifier');
+    const settingsMDB = await SettingStorage.getSettings(
       tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return settingResult.count === 1 ? settingResult.result[0] : null;
+    // Debug
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSettingByIdentifier', uniqueTimerID, settingsMDB);
+    return settingsMDB.count === 1 ? settingsMDB.result[0] : null;
   }
 
   public static async saveSettings(tenantID: string, settingToSave: Partial<SettingDB>): Promise<string> {
@@ -66,7 +70,7 @@ export default class SettingStorage {
       { $set: settingMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveSetting', uniqueTimerID, { settingToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
     // Create
     return settingFilter._id.toHexString();
   }
@@ -318,18 +322,6 @@ export default class SettingStorage {
     if (params.identifier) {
       filters.identifier = params.identifier;
     }
-    // Date provided?
-    // if (params.dateFrom || params.dateTo) {
-    //   filters.createdOn = {};
-    //   // Start date
-    //   if (params.dateFrom) {
-    //     filters.createdOn.$gte = Utils.convertToDate(params.dateFrom);
-    //   }
-    //   // End date
-    //   if (params.dateTo) {
-    //     filters.createdOn.$lte = Utils.convertToDate(params.dateTo);
-    //   }
-    // }
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -368,7 +360,7 @@ export default class SettingStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSettings', uniqueTimerID, { params, dbParams });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
     // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),

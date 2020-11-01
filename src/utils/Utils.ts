@@ -1317,7 +1317,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint country code provided is not invalid',
+        message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is not invalid`,
         module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id

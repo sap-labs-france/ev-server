@@ -31,7 +31,7 @@ export default class OCPPStorage {
         timezone: authorize.timezone
       });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveAuthorize', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveAuthorize', uniqueTimerID, authorize);
   }
 
   static async getAuthorizes(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string},
@@ -94,7 +94,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getAuthorizes', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getAuthorizes', uniqueTimerID, authorizesMDB);
     // Ok
     return {
       count: (authorizesCountMDB.length > 0 ? authorizesCountMDB[0].count : 0),
@@ -117,7 +117,7 @@ export default class OCPPStorage {
         timezone: heartbeat.timezone
       });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveHeartbeat', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveHeartbeat', uniqueTimerID, heartbeat);
   }
 
   static async getStatusNotifications(tenantID: string,
@@ -184,7 +184,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getStatusNotifications', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getStatusNotifications', uniqueTimerID, statusNotificationsMDB);
     // Ok
     return {
       count: (statusNotificationsCountMDB.length > 0 ? statusNotificationsCountMDB[0].count : 0),
@@ -237,7 +237,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getLastStatusNotifications', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getLastStatusNotifications', uniqueTimerID, statusNotificationsMDB);
     // Ok
     return statusNotificationsMDB;
   }
@@ -265,7 +265,7 @@ export default class OCPPStorage {
     await global.database.getCollection<any>(tenantID, 'statusnotifications')
       .insertOne(statusNotificationMDB);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveStatusNotification', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveStatusNotification', uniqueTimerID, statusNotificationMDB);
   }
 
   static async saveDataTransfer(tenantID: string, dataTransfer: OCPPDataTransferRequestExtended): Promise<void> {
@@ -287,7 +287,7 @@ export default class OCPPStorage {
         timezone: dataTransfer.timezone
       });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveDataTransfer', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveDataTransfer', uniqueTimerID, dataTransfer);
   }
 
   static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotificationRequestExtended): Promise<void> {
@@ -312,7 +312,7 @@ export default class OCPPStorage {
         timestamp: timestamp
       });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveBootNotification', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveBootNotification', uniqueTimerID, bootNotification);
   }
 
   public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string},
@@ -367,7 +367,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getBootNotifications', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getBootNotifications', uniqueTimerID, bootNotificationsMDB);
     // Ok
     return {
       count: (bootNotificationsCountMDB.length > 0 ? bootNotificationsCountMDB[0].count : 0),
@@ -391,7 +391,7 @@ export default class OCPPStorage {
         timezone: diagnosticsStatusNotification.timezone
       });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveDiagnosticsStatusNotification', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveDiagnosticsStatusNotification', uniqueTimerID, diagnosticsStatusNotification);
   }
 
   static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<void> {
@@ -411,7 +411,7 @@ export default class OCPPStorage {
         timezone: firmwareStatusNotification.timezone
       });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveFirmwareStatusNotification', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveFirmwareStatusNotification', uniqueTimerID, firmwareStatusNotification);
   }
 
   static async saveMeterValues(tenantID: string, meterValuesToSave: OCPPNormalizedMeterValues) {
@@ -447,7 +447,7 @@ export default class OCPPStorage {
       }
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveMeterValues', uniqueTimerID, meterValuesToSave);
   }
 
   public static async getMeterValues(tenantID: string, params: { transactionId: number },
@@ -497,7 +497,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getMeterValues', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getMeterValues', uniqueTimerID, meterValuesMDB);
     // Ok
     return {
       count: (meterValuesCountMDB.length > 0 ? meterValuesCountMDB[0].count : 0),
