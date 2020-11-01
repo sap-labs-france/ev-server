@@ -21,7 +21,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'OCPIEndpointService';
 
 export default class OCPIEndpointService {
-  static async handleDeleteOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleDeleteOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteOcpiEndpoint', req.user);
@@ -56,7 +56,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleGetOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const endpointID = OCPIEndpointSecurity.filterOcpiEndpointRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, endpointID, MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
@@ -81,7 +81,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleGetOcpiEndpoints(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetOcpiEndpoints(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListOcpiEndpoints(req.user)) {
       throw new AppAuthError({
@@ -111,7 +111,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleCreateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleCreateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -147,7 +147,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleUpdateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleUpdateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body);
     // Check Mandatory fields
@@ -186,7 +186,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePingOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handlePingOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canPingOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -232,7 +232,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleTriggerJobsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleTriggerJobsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -261,7 +261,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePullLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handlePullLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -289,7 +289,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePullSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handlePullSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -317,7 +317,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePullTokensEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handlePullTokensEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -345,7 +345,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePullCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handlePullCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -373,7 +373,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleCheckCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleCheckCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -402,7 +402,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleCheckSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleCheckSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -431,7 +431,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleCheckLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleCheckLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -460,7 +460,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleSendEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleSendEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -489,7 +489,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleSendTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleSendTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -518,7 +518,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleUnregisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleUnregisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -567,7 +567,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleRegisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleRegisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -616,7 +616,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleGenerateLocalTokenOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGenerateLocalTokenOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
       throw new AppAuthError({
