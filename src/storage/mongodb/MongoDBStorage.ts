@@ -68,6 +68,10 @@ export default class MongoDBStorage {
       { fields: { 'address.coordinates': '2dsphere' } },
     ]);
     await this.handleIndexesInCollection(tenantID, 'eulas');
+    // Assets
+    await this.handleIndexesInCollection(tenantID, 'assets', [
+      { fields: { name: 'text' } },
+    ]);
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [
       { fields: { timestamp: 1 } },
