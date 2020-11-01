@@ -622,7 +622,7 @@ export default class OCPIMapping {
       case CurrentType.AC:
         return Utils.getChargingStationAmperagePerPhase(chargingStation, chargePoint, connectorId);
       case CurrentType.DC:
-        return Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+        return Math.round(Utils.getChargingStationPower(chargingStation, chargePoint, connectorId) / OCPIMapping.getChargingStationOCPIVoltage(chargingStation, chargePoint, connectorId));
       default:
         return null;
     }
