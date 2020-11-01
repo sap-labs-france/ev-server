@@ -296,9 +296,9 @@ export default abstract class WSConnection {
   }
 
   public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.RESULT_MESSAGE, commandName?: Command): Promise<unknown> {
-    // Send a message through WSConnection
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
+    // Send a message through WSConnection
     const tenant = await TenantStorage.getTenant(this.tenantID);
     // Create a promise
     return await new Promise((resolve, reject) => {
