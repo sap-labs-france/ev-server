@@ -114,7 +114,7 @@ export default class NotificationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getNotifications', uniqueTimerID, params);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
     // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
@@ -141,6 +141,6 @@ export default class NotificationStorage {
     await global.database.getCollection<Notification>(tenantID, 'notifications')
       .insertOne(ocpiEndpointMDB);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveNotification', uniqueTimerID, { notificationToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
   }
 }

@@ -19,7 +19,7 @@ export default class MigrationStorage {
       .aggregate(aggregation)
       .toArray();
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getMigrations', uniqueTimerID);
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getMigrations', uniqueTimerID, migrationsMDB);
     return migrationsMDB;
   }
 
@@ -39,6 +39,6 @@ export default class MigrationStorage {
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
       .insertOne(migrationMDB);
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveMigration', uniqueTimerID);
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveMigration', uniqueTimerID, migrationMDB);
   }
 }

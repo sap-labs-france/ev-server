@@ -26,14 +26,9 @@ export default class AssetStorage {
       },
       Constants.DB_PARAMS_SINGLE_RECORD
     );
-    let assetMDB: Asset = null;
-    // Check
-    if (assetsMDB && assetsMDB.count > 0) {
-      assetMDB = assetsMDB.result[0];
-    }
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getAsset', uniqueTimerID, assetsMDB);
-    return assetMDB;
+    return assetsMDB.count === 1 ? assetsMDB.result[0] : null;
   }
 
   public static async getAssetImage(tenantID: string, id: string): Promise<{ id: string; image: string }> {

@@ -58,7 +58,7 @@ describe('OCPI Endpoint tests (tenant utocpi)', function() {
       // Change entity
       testData.newOcpiEndpoint.name = 'NewName';
       testData.newOcpiEndpoint.baseUrl = 'http://new.url/versions';
-      testData.newOcpiEndpoint.countryCode = 'AA';
+      testData.newOcpiEndpoint.countryCode = 'FR';
       testData.newOcpiEndpoint.partyId = 'AA';
       testData.newOcpiEndpoint.localToken = 'newlocaltoken';
       testData.newOcpiEndpoint.token = 'newremotetoken';

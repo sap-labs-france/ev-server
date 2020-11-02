@@ -34,7 +34,7 @@ export default class RegistrationTokenStorage {
       { upsert: true, returnOriginal: false }
     );
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, { registrationToken });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, registrationTokenMDB);
     return registrationTokenMDB._id.toHexString();
   }
 
@@ -94,6 +94,7 @@ export default class RegistrationTokenStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokensCountMDB);
       return {
         count: (registrationTokensCountMDB.length > 0 ? registrationTokensCountMDB[0].count : 0),
         result: []
@@ -123,8 +124,7 @@ export default class RegistrationTokenStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID,
-      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokens);
     // Ok
     return {
       count: (registrationTokensCountMDB.length > 0 ?
@@ -140,7 +140,7 @@ export default class RegistrationTokenStorage {
     const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(
       tenantID, { tokenIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationToken', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationToken', uniqueTimerID, registrationTokensMDB);
     return registrationTokensMDB.count === 1 ? registrationTokensMDB.result[0] : null;
   }
 
