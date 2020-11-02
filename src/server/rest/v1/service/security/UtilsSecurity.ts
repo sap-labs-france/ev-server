@@ -38,6 +38,7 @@ export default class UtilsSecurity {
         for (let i = 0; i < request.SortFields.length; i++) {
           let sortField: string = request.SortFields[i];
           const order = sortField.startsWith('-') ? -1 : 1;
+          // Remove ordering prefix
           sortField = sortField.startsWith('-') ? sortField.substr(1) : sortField;
           // Check field ID
           if (sortField === 'id') {
