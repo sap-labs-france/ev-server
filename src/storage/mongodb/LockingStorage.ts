@@ -10,7 +10,7 @@ const MODULE_NAME = 'LockingStorage';
 export default class LockingStorage {
   public static async getLocks(): Promise<Lock[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLocks');
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks');
     const aggregation = [];
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
@@ -20,14 +20,14 @@ export default class LockingStorage {
       .aggregate(aggregation)
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getLocks', uniqueTimerID);
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks', uniqueTimerID, locksMDB);
     // Ok
     return locksMDB;
   }
 
   public static async insertLock(lockToSave: Lock): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'insertLock');
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'insertLock');
     // Transfer
     const lockMDB = {
       _id: lockToSave.id,
@@ -42,17 +42,17 @@ export default class LockingStorage {
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .insertOne(lockMDB);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'insertLock', uniqueTimerID, { lock: lockToSave });
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'insertLock', uniqueTimerID, lockToSave);
   }
 
   public static async deleteLock(lockToDelete: Lock): Promise<boolean> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteLock');
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteLock');
     // Delete
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .findOneAndDelete({ '_id': lockToDelete.id });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteLock', uniqueTimerID, { lock: lockToDelete });
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteLock', uniqueTimerID, result);
     return result.value !== null;
   }
 }

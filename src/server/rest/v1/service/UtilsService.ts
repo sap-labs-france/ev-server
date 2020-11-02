@@ -75,7 +75,7 @@ export default class UtilsService {
 
   public static async exportToCSV(req: Request, res: Response, attachementName: string,
     handleGetData: (req: Request) => Promise<DataResult<any>>,
-    handleConvertToCSV: (loggedUser: UserToken, data: any[], writeHeader: boolean) => string) {
+    handleConvertToCSV: (loggedUser: UserToken, data: any[], writeHeader: boolean) => string): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Set the attachment name

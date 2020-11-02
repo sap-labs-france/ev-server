@@ -37,6 +37,7 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import countries from 'i18n-iso-countries';
 import crypto from 'crypto';
 import fs from 'fs';
 import http from 'http';
@@ -65,10 +66,6 @@ export default class Utils {
       action, module, method,
       message: `HTTP error while processing the URL '${urlRequest}'`,
     });
-  }
-
-  public static isDevMode(): boolean {
-    return process.env.NODE_ENV === 'development';
   }
 
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
@@ -896,7 +893,12 @@ export default class Utils {
   }
 
   public static getChargingStationAmperagePerPhase(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
-    return Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId) / Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
+    const totalAmps = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+    const numberOfConnectedPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
+    if (totalAmps % numberOfConnectedPhases === 0) {
+      return totalAmps / numberOfConnectedPhases;
+    }
+    return Math.round(totalAmps / numberOfConnectedPhases);
   }
 
   public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
@@ -1081,14 +1083,9 @@ export default class Utils {
     return _evseBaseURL + '/settings#billing';
   }
 
-  public static isServerInProductionMode(): boolean {
-    const env = process.env.NODE_ENV || 'dev';
-    return (env === 'production');
-  }
-
   public static hideShowMessage(message: string): string {
     // Check Prod
-    if (Utils.isServerInProductionMode()) {
+    if (Utils.isProductionEnv()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
     }
     return message;
@@ -1311,6 +1308,16 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint base URL is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (ocpiEndpoint.countryCode && !countries.isValid(ocpiEndpoint.countryCode)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is not invalid`,
         module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
@@ -1627,6 +1634,10 @@ export default class Utils {
 
   public static isProductionEnv(): boolean {
     return process.env.NODE_ENV === 'production';
+  }
+
+  public static isTestEnv(): boolean {
+    return process.env.NODE_ENV === 'test';
   }
 
   public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
