@@ -562,7 +562,7 @@ export default class CarStorage {
   }
 
   public static async getCars(tenantID: string,
-    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string; withUsers?: boolean; defaultCar?: boolean } = {},
+    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string; withUsers?: boolean; defaultCar?: boolean; carMakers?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCars');
@@ -608,6 +608,15 @@ export default class CarStorage {
       if (params.defaultCar) {
         filters['carUsers.default'] = true;
       }
+    }
+    // Add Car Catalog
+    DatabaseUtils.pushCarCatalogLookupInAggregation({
+      tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
+      asField: 'carCatalog', oneToOneCardinality: true
+    });
+    // Filter on car maker
+    if (!Utils.isEmptyArray(params.carMakers)) {
+      filters['carCatalog.vehicleMake'] = { $in: params.carMakers };
     }
     // Filters
     aggregation.push({
@@ -672,11 +681,6 @@ export default class CarStorage {
         asField: 'carUsers.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
       }, { pipeline: carUsersPipeline, sort: dbParams.sort });
     }
-    // Add Car Catalog
-    DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
-      asField: 'carCatalog', oneToOneCardinality: true
-    });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
