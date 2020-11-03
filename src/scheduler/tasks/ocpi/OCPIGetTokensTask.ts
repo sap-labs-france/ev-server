@@ -30,7 +30,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PATCH_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_TOKENS, error);
     }
   }
 
@@ -61,7 +61,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_GET_TOKENS,
-          message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
+          message: `The get tokens process for endpoint ${ocpiEndpoint.name} is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);

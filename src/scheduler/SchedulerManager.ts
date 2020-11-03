@@ -13,6 +13,7 @@ import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
 import OCPICheckLocationsTask from './tasks/ocpi/OCPICheckLocationsTask';
 import OCPICheckSessionsTask from './tasks/ocpi/OCPICheckSessionsTask';
 import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
+import OCPIGetFullTokensTask from './tasks/ocpi/OCPIGetFullTokensTask';
 import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
@@ -93,6 +94,9 @@ export default class SchedulerManager {
             break;
           case 'OCPIGetTokensTask':
             schedulerTask = new OCPIGetTokensTask();
+            break;
+          case 'OCPIGetFullTokensTask':
+            schedulerTask = new OCPIGetFullTokensTask();
             break;
           case 'OCPIPushCdrsTask':
             schedulerTask = new OCPIPushCdrsTask();

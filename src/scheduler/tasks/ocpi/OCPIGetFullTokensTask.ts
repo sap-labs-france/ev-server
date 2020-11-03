@@ -14,69 +14,69 @@ import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
 
-const MODULE_NAME = 'OCPIGetLocationsTask';
+const MODULE_NAME = 'OCPIFullTokensTask';
 
-export default class OCPIGetLocationsTask extends SchedulerTask {
+export default class OCPIGetFullTokensTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         // Get all available endpoints
-        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
+        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const ocpiEndpoint of ocpiEndpoints.result) {
           await this.processOCPIEndpoint(tenant, ocpiEndpoint);
         }
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_FULL_TOKENS, error);
     }
   }
 
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'get-locations');
+    const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'get-tokens');
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
+            action: ServerAction.OCPI_GET_FULL_TOKENS,
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
           });
           return;
         } else if (!ocpiEndpoint.backgroundPatchJob) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
+            action: ServerAction.OCPI_GET_FULL_TOKENS,
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
           });
           return;
         }
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          message: `The get Locations process for endpoint ${ocpiEndpoint.name} is being processed`
+          action: ServerAction.OCPI_GET_FULL_TOKENS,
+          message: `The get full tokens process for endpoint ${ocpiEndpoint.name} is being processed`
         });
         // Build OCPI Client
-        const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+        const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Send EVSE statuses
-        const result = await ocpiClient.pullLocations();
+        const result = await ocpiClient.pullTokens(false);
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          message: `The GET Locations process for endpoint ${ocpiEndpoint.name} is completed`,
+          action: ServerAction.OCPI_GET_FULL_TOKENS,
+          message: `The get full tokens process for endpoint ${ocpiEndpoint.name} is completed)`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_LOCATIONS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_FULL_TOKENS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);
