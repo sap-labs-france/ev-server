@@ -177,7 +177,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Response request for unknown message id ${messageId} is not iterable`,
+              message: `Response request for message id ${messageId} is not iterable`,
               action: commandName
             });
           }
@@ -224,7 +224,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Error request for unknown message id ${messageId} is not iterable`,
+              message: `Error request for message id ${messageId} is not iterable`,
               action: commandName
             });
           }
@@ -296,9 +296,9 @@ export default abstract class WSConnection {
   }
 
   public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.RESULT_MESSAGE, commandName?: Command): Promise<unknown> {
-    // Send a message through WSConnection
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
+    // Send a message through WSConnection
     const tenant = await TenantStorage.getTenant(this.tenantID);
     // Create a promise
     return await new Promise((resolve, reject) => {
@@ -309,7 +309,7 @@ export default abstract class WSConnection {
         resolve(payload);
       }
       // Function that will receive the request's rejection
-      function rejectCallback(reason) {
+      function rejectCallback(reason: string|OCPPError) {
         // Build Exception
         self.requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);

@@ -41,7 +41,7 @@ export default class JsonRestWSConnection extends WSConnection {
       tenantID: this.getTenantID(),
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
-      message: event
+      message: event + ''
     });
   }
 
