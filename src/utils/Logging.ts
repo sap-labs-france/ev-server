@@ -113,14 +113,15 @@ export default class Logging {
 
   public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const tenantID = await Logging.retrieveTenantFromHttpRequest(req);
+      const userToken = Logging.getUserTokenFromHttpRequest(req);
+      const tenantID = await Logging.retrieveTenantFromHttpRequest(req, userToken);
       // Check perfs
       req['timestamp'] = new Date();
       // Log
       Logging.logSecurityDebug({
         tenantID,
         action: ServerAction.HTTP_REQUEST,
-        user: Logging.getUserTokenFromHttpRequest(req),
+        user: userToken,
         message: `Express HTTP Request << ${req.method} '${req.url}'`,
         module: MODULE_NAME, method: 'logExpressRequest',
         detailedMessages: {
@@ -704,9 +705,8 @@ export default class Logging {
     }
   }
 
-  private static async retrieveTenantFromHttpRequest(req: Request): Promise<string> {
+  private static async retrieveTenantFromHttpRequest(req: Request, userToken: UserToken): Promise<string> {
     // Try from Token
-    const userToken = Logging.getUserTokenFromHttpRequest(req);
     if (userToken) {
       return userToken.tenantID;
     }
