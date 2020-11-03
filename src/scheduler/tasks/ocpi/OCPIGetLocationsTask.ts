@@ -61,7 +61,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
           tenantID: tenant.id,
           action: ServerAction.OCPI_GET_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
+          message: `The get Locations process for endpoint ${ocpiEndpoint.name} is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
