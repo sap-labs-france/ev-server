@@ -92,7 +92,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Call the method
       result = await chargingStationClient[actionMethod](commandPayload);
       // Send Response
-      await this.sendMessage(messageId, result, MessageType.RESULT_MESSAGE);
+      await this.sendMessage(messageId, result, MessageType.CALL_RESULT_MESSAGE, commandName);
     } else {
       // Error
       throw new BackendError({
