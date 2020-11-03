@@ -31,6 +31,43 @@ export default class OICPMapping {
    * @return Array of OICP EVSEs
    */
   static convertChargingStation2MultipleEvses(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord[] {
+    // Loop through connectors and send one evse per connector
+    const connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    const evses = connectors.map((connector) => {
+      const evse: OICPEvseDataRecord = OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
+      return evse;
+    });
+    // Return all evses
+    return evses;
+  }
+
+  /**
+   * Get EVSE by connectorID
+   * @param {Tenant} tenant
+   * @param {*} chargingStation
+   * @return OICP EVSE
+   */
+  static getEvseByConnectorId(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connectorId: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
+    // Loop through connectors and send one evse per connector
+    const connectors = chargingStation.connectors.filter((connector) => (connector !== null) && (connector.connectorId === connectorId));
+    const evses = connectors.map((connector) => {
+      const evse: OICPEvseDataRecord = OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
+      return evse;
+    });
+    // Return evse
+    if (evses.length > 0) {
+      return evses[0];
+    }
+    return null;
+  }
+
+  /**
+   * Convert Connector to OICP EVSE
+   * @param {Tenant} tenant
+   * @param {*} connector
+   * @return EVSE
+   */
+  static convertConnector2Evse(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
     let accessible;
     if (chargingStation.public === true) {
       accessible = OICPAccessibility.FreePubliclyAccessible;
@@ -38,59 +75,54 @@ export default class OICPMapping {
       accessible = OICPAccessibility.RestrictedAccess;
     }
 
-    // Loop through connectors and send one evse per connector
-    const connectors = chargingStation.connectors.filter((connector) => connector !== null);
-    const evses = connectors.map((connector) => {
-      const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
-      const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;
-      evse.deltaType; // Optional
-      evse.lastUpdate; // Optional
-      evse.EvseID = evseID;
-      evse.ChargingPoolID; // Optional
-      evse.ChargingStationID; // Optional
-      evse.ChargingStationNames = [
-        {
-          lang: 'en',
-          value: chargingStation.id
-        }
-      ];
-      evse.HardwareManufacturer = chargingStation.chargePointVendor; // Optional
-      evse.ChargingStationImage; // Optional
-      evse.SubOperatorName; // Optional
-      evse.Address = OICPMapping.getOICPAddressIso19773FromSiteArea(siteArea);
-      evse.GeoCoordinates = OICPMapping.convertCoordinates2OICPGeoCoordinates(chargingStation.coordinates, OICPGeoCoordinatesResponseFormat.DecimalDegree); // Optional
-      evse.Plugs = [OICPMapping.convertConnector2OICPPlug(connector)];
-      evse.DynamicPowerLevel; // Optional
-      evse.ChargingFacilities = [OICPMapping.convertConnector2OICPChargingFacility(chargingStation, connector)];
-      evse.RenewableEnergy = false; // No information found for mandatory field
-      evse.EnergySource; // Optional
-      evse.EnvironmentalImpact; // Optional
-      evse.CalibrationLawDataAvailability = OICPCalibrationLawDataAvailability.NotAvailable; // No information found for mandatory field
-      evse.AuthenticationModes = [OICPAuthenticationMode.NfcRfidClassic]; // No information found for mandatory field
-      evse.MaxCapacity; // Optional
-      evse.PaymentOptions = [OICPPaymentOption.Contract]; // No information found for mandatory field
-      evse.ValueAddedServices = [OICPValueAddedService.None]; // No information found for mandatory field
-      evse.Accessibility = accessible;
-      evse.AccessibilityLocation; // Optional
-      evse.HotlinePhoneNumber = '+49123123123123'; // No information found for mandatory field
-      evse.AdditionalInfo; // Optional
-      evse.ChargingStationLocationReference; // Optional
-      evse.GeoChargingPointEntrance; // Optional
-      evse.IsOpen24Hours = true; // No information found for mandatory field
-      evse.OpeningTimes; // Optional
-      evse.ClearinghouseID; // Optional
-      evse.IsHubjectCompatible = true;
-      evse.DynamicInfoAvailable = OICPDynamicInfoAvailable.auto;
-
-      // Check addChargeBoxID flag
-      if (options && options.addChargeBoxID) {
-        evse.chargeBoxId = chargingStation.id;
+    const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;
+    evse.deltaType; // Optional
+    evse.lastUpdate; // Optional
+    evse.EvseID = evseID;
+    evse.ChargingPoolID; // Optional
+    evse.ChargingStationID; // Optional
+    evse.ChargingStationNames = [
+      {
+        lang: 'en',
+        value: chargingStation.id
       }
+    ];
+    evse.HardwareManufacturer = chargingStation.chargePointVendor; // Optional
+    evse.ChargingStationImage; // Optional
+    evse.SubOperatorName; // Optional
+    evse.Address = OICPMapping.getOICPAddressIso19773FromSiteArea(siteArea);
+    evse.GeoCoordinates = OICPMapping.convertCoordinates2OICPGeoCoordinates(chargingStation.coordinates, OICPGeoCoordinatesResponseFormat.DecimalDegree); // Optional
+    evse.Plugs = [OICPMapping.convertConnector2OICPPlug(connector)];
+    evse.DynamicPowerLevel; // Optional
+    evse.ChargingFacilities = [OICPMapping.convertConnector2OICPChargingFacility(chargingStation, connector)];
+    evse.RenewableEnergy = false; // No information found for mandatory field
+    evse.EnergySource; // Optional
+    evse.EnvironmentalImpact; // Optional
+    evse.CalibrationLawDataAvailability = OICPCalibrationLawDataAvailability.NotAvailable; // No information found for mandatory field
+    evse.AuthenticationModes = [OICPAuthenticationMode.NfcRfidClassic]; // No information found for mandatory field
+    evse.MaxCapacity; // Optional
+    evse.PaymentOptions = [OICPPaymentOption.Contract]; // No information found for mandatory field
+    evse.ValueAddedServices = [OICPValueAddedService.None]; // No information found for mandatory field
+    evse.Accessibility = accessible;
+    evse.AccessibilityLocation; // Optional
+    evse.HotlinePhoneNumber = '+49123123123123'; // No information found for mandatory field
+    evse.AdditionalInfo; // Optional
+    evse.ChargingStationLocationReference; // Optional
+    evse.GeoChargingPointEntrance; // Optional
+    evse.IsOpen24Hours = true; // No information found for mandatory field
+    evse.OpeningTimes; // Optional
+    evse.ClearinghouseID; // Optional
+    evse.IsHubjectCompatible = true;
+    evse.DynamicInfoAvailable = OICPDynamicInfoAvailable.auto;
 
-      return evse;
-    });
-    // Return all evses
-    return evses;
+    // Check addChargeBoxID flag
+    if (options && options.addChargeBoxID) {
+      evse.chargeBoxId = chargingStation.id;
+    }
+
+    // Return evse
+    return evse;
   }
 
   /**
@@ -373,8 +405,8 @@ export default class OICPMapping {
       case OICPGeoCoordinatesResponseFormat.DecimalDegree:
         return {
           DecimalDegree: {
-            Longitude: String(coordinates[0].toFixed(6)), // Fixed to 6 decimal places according to OICP requirements
-            Latitude: String(coordinates[1].toFixed(6))
+            Longitude: coordinates[0].toFixed(6), // Fixed to 6 decimal places according to OICP requirements
+            Latitude: coordinates[1].toFixed(6)
           }
         };
       case OICPGeoCoordinatesResponseFormat.DegreeMinuteSeconds:

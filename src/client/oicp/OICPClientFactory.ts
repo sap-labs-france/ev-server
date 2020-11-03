@@ -5,6 +5,7 @@ import Logging from '../../utils/Logging';
 import OICPClient from './OICPClient';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
 import OICPEndpointStorage from '../../storage/mongodb/OICPEndpointStorage';
+import { OICPRegistrationStatus } from '../../types/oicp/OICPRegistrationStatus';
 import { OICPRole } from '../../types/oicp/OICPRole';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
@@ -60,18 +61,17 @@ export default class OICPClientFactory {
   //   });
   // }
 
-  // Tbd: implement OICPEndpointStorage, OICPRegistrationStatus
-  // static async getAvailableOicpClient(tenant: Tenant, oicpRole: string): Promise<OICPClient> {
-  //   const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: oicpRole }, Constants.DB_PARAMS_MAX_LIMIT);
-  //   for (const oicpEndpoint of oicpEndpoints.result) {
-  //     if (oicpEndpoint.status === OICPRegistrationStatus.REGISTERED) {
-  //       const client = await OICPClientFactory.getOicpClient(tenant, oicpEndpoint);
-  //       return client;
-  //     }
-  //   }
-  // }
+  static async getAvailableOicpClient(tenant: Tenant, oicpRole: string): Promise<OICPClient> {
+    const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: oicpRole }, Constants.DB_PARAMS_MAX_LIMIT);
+    for (const oicpEndpoint of oicpEndpoints.result) {
+      if (oicpEndpoint.status === OICPRegistrationStatus.REGISTERED) {
+        const client = await OICPClientFactory.getOicpClient(tenant, oicpEndpoint);
+        return client;
+      }
+    }
+  }
 
-  // Tbd: implement OICPChargingStationClient, OICPRegistrationStatus, OICPEndpointStorage, getEmspOicpClient
+  // Tbd: implement OICPChargingStationClient, getEmspOicpClient
   // static async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<OICPChargingStationClient> {
   //   const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
   //   for (const oicpEndpoint of oicpEndpoints.result) {

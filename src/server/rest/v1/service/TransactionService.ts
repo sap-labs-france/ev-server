@@ -183,30 +183,45 @@ export default class TransactionService {
         action: action
       });
     }
-    // Check OCPI
-    if (!transaction.ocpiData) {
+    // Check if transaction was handled with Gireve or Hubject
+    if (transaction.ocpiData.session) { // Check OCPI
+      // CDR already pushed
+      if (transaction.ocpiData.cdr?.id) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
+          message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
+          module: MODULE_NAME, method: 'handlePushTransactionCdr',
+          user: req.user,
+          action: action
+        });
+      }
+      // Post CDR
+      await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+    } else if (transaction.oicpData.session) { // Check OICP
+      // CDR already pushed
+      if (transaction.oicpData.cdr?.SessionID) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
+          message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
+          module: MODULE_NAME, method: 'handlePushTransactionCdr',
+          user: req.user,
+          action: action
+        });
+      }
+      // Post CDR
+      await OCPPUtils.processOICPTransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+    } else {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
-        message: `The transaction ID '${transaction.id}' has no OCPI data`,
+        message: `The transaction ID '${transaction.id}' has no OCPI or OICP session data`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
         user: req.user,
         action: action
       });
     }
-    // CDR already pushed
-    if (transaction.ocpiData.cdr?.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
-        message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
-        module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user,
-        action: action
-      });
-    }
-    // Post CDR
-    await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
     // Save
     await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
     // Ok
@@ -216,7 +231,7 @@ export default class TransactionService {
       user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
       module: MODULE_NAME, method: 'handlePushTransactionCdr',
       message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-      detailedMessages: { cdr: transaction.ocpiData.cdr }
+      detailedMessages: { cdr: transaction.ocpiData.cdr || transaction.oicpData.cdr }
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

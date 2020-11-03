@@ -163,6 +163,7 @@ export enum ServerAction {
   OICP_SEND_CHARGING_NOTIFICATION_ERROR = 'OicpSendChargingNotificationError',
   OICP_ENPOINT_SEND_EVSE_STATUSES = 'OicpEndpointSendEVSEStatuses',
   OICP_ENPOINT_SEND_EVSES = 'OicpEndpointSendEVSEs',
+  OICP_PUSH_SESSIONS = 'OicpPushSessions',
 
 
   AUTHORIZE = 'Authorize',

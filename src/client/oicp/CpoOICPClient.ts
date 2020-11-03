@@ -5,16 +5,20 @@ import { OICPChargingNotification, OICPCode, OICPErrorClass } from '../../types/
 import { OICPChargingNotificationEndCpoSend, OICPChargingNotificationErrorCpoSend, OICPChargingNotificationProgressCpoSend, OICPChargingNotificationStartCpoSend } from '../../types/oicp/OICPChargingNotifications';
 import { OICPEVSEPricing, OICPPricingProductData } from '../../types/oicp/OICPPricing';
 import { OICPEvseDataRecord, OICPEvseStatusRecord, OICPOperatorEvseData, OICPOperatorEvseStatus } from '../../types/oicp/OICPEvse';
-import { OICPIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
+import { OICPIdentification, OICPRFIDIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
 import { OICPPushEVSEPricingCpoSend, OICPPushPricingProductDataCpoSend } from '../../types/oicp/OICPDynamicPricing';
+import { OICPSession, OICPSessionStatus } from '../../types/oicp/OICPSession';
 import { OicpIdentifier, OicpSetting, RoamingSettingsType, SettingDB, SettingDBContent } from '../../types/Setting';
+import Transaction, { TransactionAction } from '../../types/Transaction';
 
 import BackendError from '../../exception/BackendError';
+import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
+import { OICPAuthorizationStatus } from '../../types/oicp/OICPAuthentication';
 import { OICPChargeDetailRecord } from '../../types/oicp/OICPChargeDetailRecord';
 import OICPClient from './OICPClient';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
@@ -25,9 +29,9 @@ import { OICPPushEvseStatusCpoSend } from '../../types/oicp/OICPEvseStatus';
 import { OICPRole } from '../../types/oicp/OICPRole';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import Transaction from '../../types/Transaction';
 import _ from 'lodash';
 import axios from 'axios';
 import https from 'https';
@@ -46,6 +50,166 @@ export default class CpoOICPClient extends OICPClient {
     }
   }
 
+  async startSession(chargingStation: ChargingStation, transaction: Transaction): Promise<void> {
+    // Build payload
+    // Tbd: Hubject differentiates between different identification Methods. Eg. RFID, Remote start, QR Code, Plug&Charge
+    const rfidIdentification: OICPRFIDIdentification = {} as OICPRFIDIdentification;
+    const identification: OICPIdentification = {} as OICPIdentification;
+    rfidIdentification.UID = transaction.tagID;
+    identification.RFIDIdentification = rfidIdentification;
+
+    let siteArea;
+    if (!chargingStation.siteArea) {
+      siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
+    } else {
+      siteArea = chargingStation.siteArea;
+    }
+
+    const options = {
+      countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_SESSIONS),
+      partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_SESSIONS),
+      addChargeBoxID: true
+    };
+    const oicpEvse = OICPMapping.getEvseByConnectorId(this.tenant, siteArea, chargingStation, transaction.connectorId, options);
+
+    const oicpSession: OICPSession = {} as OICPSession;
+    oicpSession.start_datetime = transaction.timestamp;
+    oicpSession.kwh = 0;
+    oicpSession.identification = identification;
+    oicpSession.evse = oicpEvse;
+    oicpSession.currency = this.settings.currency;
+    oicpSession.status = OICPSessionStatus.PENDING;
+    oicpSession.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
+    oicpSession.last_updated = transaction.timestamp;
+    transaction.oicpData = {
+      session: oicpSession
+    };
+
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OICP_PUSH_SESSIONS,
+      message: `Start OICP Transaction ID (ID '${transaction.id}') to Hubject`,
+      module: MODULE_NAME, method: 'startSession',
+      detailedMessages: { payload: oicpSession }
+    });
+
+    // Call Hubject
+    const response = await this.authorizeStart(transaction);
+    // Save Session ID that was created by Hubject
+    transaction.oicpData.session.id = response.SessionID;
+
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OICP_PUSH_SESSIONS,
+      message: `Start OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response received from Hubject`,
+      module: MODULE_NAME, method: 'startSession',
+      detailedMessages: { response: response }
+    });
+  }
+
+  async updateSession(transaction: Transaction): Promise<void> {
+    if (!transaction.oicpData || !transaction.oicpData.session) {
+      throw new BackendError({
+        source: transaction.chargeBoxID,
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: 'OICP Session not started',
+        module: MODULE_NAME, method: 'updateSession',
+      });
+    }
+
+    // Send start notification to Hubject when actual energy flow starts
+    // Condition: When OICPSessionStatus.PENDING switches to OICPSessionStatus.ACTIVE
+    if (transaction.oicpData.session.status === OICPSessionStatus.PENDING) {
+      await this.sendChargingNotificationStart(transaction);
+    }
+
+    transaction.oicpData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
+    transaction.oicpData.session.last_updated = transaction.currentTimestamp;
+    transaction.oicpData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
+    transaction.oicpData.session.currency = this.settings.currency;
+    transaction.oicpData.session.status = OICPSessionStatus.ACTIVE;
+    // T transaction.oicpData.session.meterValueInBetween.push(transaction.currentMeterValue);
+
+    const sessionUpdate: Partial<OICPSession> = {
+      kwh: transaction.oicpData.session.kwh,
+      last_updated: transaction.oicpData.session.last_updated,
+      currency: transaction.oicpData.session.currency,
+      total_cost: transaction.oicpData.session.total_cost > 0 ? transaction.oicpData.session.total_cost : 0,
+      status: transaction.oicpData.session.status
+    };
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OICP_PUSH_SESSIONS,
+      message: 'Push session update to Hubject',
+      module: MODULE_NAME, method: 'updateSession',
+      detailedMessages: { payload: sessionUpdate }
+    });
+    // Call Hubject
+    const response = await this.sendChargingNotificationProgress(transaction);
+
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OICP_PUSH_SESSIONS,
+      message: `Update Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response received from Hubject`,
+      module: MODULE_NAME, method: 'updateSession',
+      detailedMessages: { response: response }
+    });
+  }
+
+  async stopSession(transaction: Transaction): Promise<void> {
+    if (!transaction.oicpData) {
+      throw new BackendError({
+        source: transaction.chargeBoxID,
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: `OICP data does not exists on Session ID '${transaction.id}'`,
+        module: MODULE_NAME, method: 'stopSession',
+      });
+    }
+    if (!transaction.oicpData.session) {
+      throw new BackendError({
+        source: transaction.chargeBoxID,
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
+        module: MODULE_NAME, method: 'stopSession',
+      });
+    }
+    if (!transaction.stop) {
+      throw new BackendError({
+        source: transaction.chargeBoxID,
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') not yet stopped`,
+        module: MODULE_NAME, method: 'stopSession',
+      });
+    }
+
+    transaction.oicpData.session.kwh = transaction.stop.totalConsumptionWh / 1000;
+    transaction.oicpData.session.total_cost = transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0;
+    transaction.oicpData.session.end_datetime = transaction.stop.timestamp;
+    transaction.oicpData.session.last_updated = transaction.stop.timestamp;
+    transaction.oicpData.session.status = OICPSessionStatus.COMPLETED;
+    // Ttransaction.oicpData.session.meterValueInBetween.push(transaction.currentMeterValue);
+
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OICP_PUSH_SESSIONS,
+      message: `Stop OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') to Hubject`,
+      module: MODULE_NAME, method: 'stopSession',
+      detailedMessages: { payload: transaction.oicpData.session }
+    });
+    // Call Hubject
+    const response = await this.authorizeStop(transaction);
+
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OICP_PUSH_SESSIONS,
+      message: `Push OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response retrieved from Hubject`,
+      module: MODULE_NAME, method: 'stopSession',
+      detailedMessages: { response: response }
+    });
+  }
 
   /**
    * Send all EVSEs
@@ -444,16 +608,26 @@ export default class CpoOICPClient extends OICPClient {
   /**
    * ERoaming Authorize Start
    */
-  async authorizeStart(identification: OICPIdentification): Promise<OICPAuthorizeStartCpoReceive> {
+  async authorizeStart(transaction: Transaction): Promise<OICPAuthorizeStartCpoReceive> {
     let authorizeResponse = {} as OICPAuthorizeStartCpoReceive;
     // Check for input parameter
-    if (!identification) {
+    if (!transaction.oicpData) {
       throw new BackendError({
-        action: ServerAction.OICP_AUTHORIZE_START,
-        message: 'Invalid parameters',
+        source: transaction.chargeBoxID,
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'authorizeStart',
       });
     }
+    if (!transaction.oicpData.session) {
+      throw new BackendError({
+        source: transaction.chargeBoxID,
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
+        module: MODULE_NAME, method: 'authorizeStart',
+      });
+    }
+
     // Get authorize start endpoint url
     // for QA - environment: https://service-qa.hubject.com/api/oicp/charging/v21/operators/{operatorID}/authorize/start
     // for PROD - environment: https://service.hubject.com/api/oicp/charging/v21/operators/{operatorID}/authorize/start
@@ -462,11 +636,11 @@ export default class CpoOICPClient extends OICPClient {
     // Build payload
     const payload: OICPAuthorizeStartCpoSend = {} as OICPAuthorizeStartCpoSend;
     payload.SessionID; // Optional
-    payload.CPOPartnerSessionID; // Optional
+    payload.CPOPartnerSessionID = String(transaction.id); // Optional
     payload.EMPPartnerSessionID; // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_AUTHORIZE_START);
-    payload.EvseID; // Optional
-    payload.Identification = identification;
+    payload.EvseID = transaction.oicpData.session.evse.EvseID; // Optional
+    payload.Identification = transaction.oicpData.session.identification;
     payload.PartnerProductID; // Optional
 
     // Log
@@ -486,7 +660,7 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload,
+    const response = await axios.post(fullUrl, payload,
       {
         headers: {
           'Content-Type': 'application/json'
@@ -494,22 +668,32 @@ export default class CpoOICPClient extends OICPClient {
         httpsAgent: httpsAgent
       });
     authorizeResponse = response.data as OICPAuthorizeStartCpoReceive;
+    if (authorizeResponse.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
+      throw new BackendError({
+        user: transaction.user,
+        action: ServerAction.START_TRANSACTION,
+        module: MODULE_NAME, method: 'authorizeStart',
+        message: `User '${transaction.user.id}' with Tag ID '${transaction.tagID}' cannot ${TransactionAction.START} Transaction thought OICP protocol due to missing Authorization`
+      });
+    }
+
     return authorizeResponse;
   }
 
   /**
    * ERoaming Authorize Stop
    */
-  async authorizeStop(identification: OICPIdentification, sessionID: OICPSessionID): Promise<OICPAuthorizeStopCpoReceive> {
+  async authorizeStop(transaction: Transaction): Promise<OICPAuthorizeStopCpoReceive> {
     let authorizeResponse = {} as OICPAuthorizeStopCpoReceive;
     // Check for input parameter
-    if (!identification) {
+    if (!transaction.oicpData.session) {
       throw new BackendError({
         action: ServerAction.OICP_AUTHORIZE_STOP,
         message: 'Invalid parameters',
         module: MODULE_NAME, method: 'authorizeStop',
       });
     }
+
     // Get authorize stop endpoint url
     // for QA - environment: https://service-qa.hubject.com/api/oicp/charging/v21/operators/{operatorID}/authorize/stop
     // for PROD - environment: https://service.hubject.com/api/oicp/charging/v21/operators/{operatorID}/authorize/stop
@@ -517,12 +701,12 @@ export default class CpoOICPClient extends OICPClient {
 
     // Build payload
     const payload: OICPAuthorizeStopCpoSend = {} as OICPAuthorizeStopCpoSend;
-    payload.SessionID = sessionID;
-    payload.CPOPartnerSessionID; // Optional
-    payload.EMPPartnerSessionID; // Optional
+    payload.SessionID = transaction.oicpData.session.id;
+    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_AUTHORIZE_STOP);
-    payload.EvseID; // Optional
-    payload.Identification = identification;
+    payload.EvseID = transaction.oicpData.session.evse.EvseID; // Optional
+    payload.Identification = transaction.oicpData.session.identification;
 
     // Log
     Logging.logDebug({
@@ -541,7 +725,7 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload,
+    const response = await axios.post(fullUrl, payload,
       {
         headers: {
           'Content-Type': 'application/json'
@@ -589,18 +773,18 @@ export default class CpoOICPClient extends OICPClient {
 
     const cdr: OICPChargeDetailRecord = {} as OICPChargeDetailRecord;
     cdr.SessionID = transaction.oicpData.session.id;
-    cdr.CPOPartnerSessionID; // Optional
-    cdr.EMPPartnerSessionID; // Optional
+    cdr.CPOPartnerSessionID = String(transaction.id); // Optional
+    cdr.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     cdr.EvseID = transaction.oicpData.session.evse.EvseID;
     cdr.Identification = transaction.oicpData.session.identification;
     cdr.ChargingStart = transaction.timestamp;
     cdr.ChargingEnd = transaction.stop.timestamp;
     cdr.SessionStart = transaction.oicpData.session.start_datetime;
     cdr.SessionEnd = transaction.oicpData.session.end_datetime;
-    cdr.MeterValueStart = transaction.meterStart; // Optional
-    cdr.MeterValueEnd = transaction.stop.meterStop; // Optional
-    cdr.MeterValueInBetween; // Optional
-    cdr.ConsumedEnergy = transaction.stop.totalConsumptionWh / 1000; // In kW.h
+    cdr.MeterValueStart = parseFloat((transaction.meterStart / 1000).toFixed(3)); // Optional
+    cdr.MeterValueEnd = parseFloat((transaction.stop.meterStop / 1000).toFixed(3)); // Optional
+    cdr.MeterValueInBetween = transaction.oicpData.session.meterValueInBetween.map((mV) => parseFloat((mV / 1000).toFixed(3))); // Optional
+    cdr.ConsumedEnergy = parseFloat((transaction.stop.totalConsumptionWh / 1000).toFixed(3)); // In kW.h
     cdr.SignedMeteringValues; // Optional
     cdr.CalibrationLawVerificationInfo; // Optional
     cdr.HubOperatorID; // Optional
@@ -626,7 +810,7 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload,
+    const response = await axios.post(fullUrl, payload,
       {
         headers: {
           'Content-Type': 'application/json'
@@ -687,7 +871,7 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload,
+    const response = await axios.post(fullUrl, payload,
       {
         headers: {
           'Content-Type': 'application/json'
@@ -738,7 +922,7 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload,
+    const response = await axios.post(fullUrl, payload,
       {
         headers: {
           'Content-Type': 'application/json'
@@ -781,13 +965,13 @@ export default class CpoOICPClient extends OICPClient {
     const payload: OICPChargingNotificationStartCpoSend = {} as OICPChargingNotificationStartCpoSend;
     payload.Type = OICPChargingNotification.Start;
     payload.SessionID = transaction.oicpData.session.id;
-    payload.CPOPartnerSessionID; // Optional
-    payload.EMPPartnerSessionID; // Optional
+    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.Identification = transaction.oicpData.session.identification; // Optional
     payload.EvseID = transaction.oicpData.session.evse.EvseID;
     payload.ChargingStart = transaction.timestamp;
     payload.SessionStart = transaction.oicpData.session.start_datetime; // Optional
-    payload.MeterValueStart = transaction.meterStart; // Optional
+    payload.MeterValueStart = parseFloat((transaction.meterStart / 1000).toFixed(3)); // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START); // Optional
     payload.PartnerProductID; // Optional
 
@@ -808,7 +992,7 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload,
+    const response = await axios.post(fullUrl, payload,
       {
         headers: {
           'Content-Type': 'application/json'
@@ -851,16 +1035,16 @@ export default class CpoOICPClient extends OICPClient {
     const payload: OICPChargingNotificationProgressCpoSend = {} as OICPChargingNotificationProgressCpoSend;
     payload.Type = OICPChargingNotification.Progress;
     payload.SessionID = transaction.oicpData.session.id;
-    payload.CPOPartnerSessionID; // Optional
-    payload.EMPPartnerSessionID; // Optional
+    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.Identification = transaction.oicpData.session.identification; // Optional
     payload.EvseID = transaction.oicpData.session.evse.EvseID;
     payload.ChargingStart = transaction.timestamp;
     payload.EventOcurred = transaction.currentTimestamp;
     payload.ChargingDuration = transaction.currentTimestamp.getTime() - transaction.timestamp.getTime(); // Optional Duration in milliseconds (Integer). Charging Duration = EventOccurred - Charging Duration. Same as transaction.currentTotalDurationSecs * 1000?
     payload.SessionStart = transaction.oicpData.session.start_datetime; // Optional
-    payload.ConsumedEnergyProgress = transaction.values[transaction.values.length - 1].cumulatedConsumptionWh / 1000; // In kW.h Optional
-    payload.MeterValueStart = transaction.meterStart; // Optional
+    payload.ConsumedEnergyProgress = parseFloat((transaction.currentTotalConsumptionWh / 1000).toFixed(3)); // In kW.h Optional
+    payload.MeterValueStart = parseFloat((transaction.meterStart / 1000).toFixed(3)); // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS); // Optional
     payload.PartnerProductID; // Optional
 
@@ -881,7 +1065,7 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload,
+    const response = await axios.post(fullUrl, payload,
       {
         headers: {
           'Content-Type': 'application/json'
@@ -932,21 +1116,21 @@ export default class CpoOICPClient extends OICPClient {
     const payload: OICPChargingNotificationEndCpoSend = {} as OICPChargingNotificationEndCpoSend;
     payload.Type = OICPChargingNotification.End;
     payload.SessionID = transaction.oicpData.session.id;
-    payload.CPOPartnerSessionID; // Optional
-    payload.EMPPartnerSessionID; // Optional
+    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.Identification = transaction.oicpData.session.identification; // Optional
     payload.EvseID = transaction.oicpData.session.evse.EvseID;
     payload.ChargingStart = transaction.timestamp; // Optional
     payload.ChargingEnd = transaction.stop.timestamp;
     payload.SessionStart = transaction.oicpData.session.start_datetime; // Optional
     payload.SessionEnd = transaction.oicpData.session.end_datetime; // Optional
-    payload.ConsumedEnergy = transaction.stop.totalConsumptionWh / 1000;
-    payload.MeterValueStart = transaction.meterStart; // Optional. kw or kWh?
-    payload.MeterValueEnd = transaction.stop.meterStop; // Optional. kW or kWh?
-    payload.MeterValueInBetween; // Optional
+    payload.ConsumedEnergy = parseFloat((transaction.stop.totalConsumptionWh / 1000).toFixed(3));
+    payload.MeterValueStart = parseFloat((transaction.meterStart / 1000).toFixed(3)); // Optional. kw or kWh?
+    payload.MeterValueEnd = parseFloat((transaction.stop.meterStop / 1000).toFixed(3)); // Optional. kW or kWh?
+    payload.MeterValueInBetween = transaction.oicpData.session.meterValueInBetween.map((mV) => parseFloat((mV / 1000).toFixed(3))); // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END); // Optional
     payload.PartnerProductID; // Optional
-    payload.PenaltyTimeStart;
+    payload.PenaltyTimeStart = transaction.stop.timestamp; // Optional
 
     // Log
     Logging.logDebug({
@@ -965,7 +1149,7 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload,
+    const response = await axios.post(fullUrl, payload,
       {
         headers: {
           'Content-Type': 'application/json'
@@ -1008,8 +1192,8 @@ export default class CpoOICPClient extends OICPClient {
     const payload: OICPChargingNotificationErrorCpoSend = {} as OICPChargingNotificationErrorCpoSend;
     payload.Type = OICPChargingNotification.Error;
     payload.SessionID = transaction.oicpData.session.id;
-    payload.CPOPartnerSessionID; // Optional
-    payload.EMPPartnerSessionID; // Optional
+    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.Identification = transaction.oicpData.session.identification; // Optional
     payload.EvseID = transaction.oicpData.session.evse.EvseID;
     payload.ErrorType = error;
@@ -1032,7 +1216,7 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload,
+    const response = await axios.post(fullUrl, payload,
       {
         headers: {
           'Content-Type': 'application/json'

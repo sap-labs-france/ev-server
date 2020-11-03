@@ -4,6 +4,7 @@ import Asset from '../types/Asset';
 import LockingManager from './LockingManager';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import SiteArea from '../types/SiteArea';
+import OICPEndpoint from '../types/oicp/OICPEndpoint';
 
 export default class LockingHelper {
   public static async createSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea): Promise<Lock|null> {
@@ -40,6 +41,14 @@ export default class LockingHelper {
 
   public static async createOCPIEndpointActionLock(tenantID: string, ocpiEndpoint: OCPIEndpoint, action: string): Promise<Lock|null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.OCPI_ENDPOINT, `${ocpiEndpoint.id}-${action}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async createOICPEndpointActionLock(tenantID: string, oicpEndpoint: OICPEndpoint, action: string): Promise<Lock|null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.OICP_ENDPOINT, `${oicpEndpoint.id}-${action}`);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }

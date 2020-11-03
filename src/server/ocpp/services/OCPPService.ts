@@ -371,8 +371,14 @@ export default class OCPPService {
             transaction.numberOfMeterValues >= 1) {
             transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
           }
-          // Handle OCPI
-          await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
+          // Indicator needed to decide if transaction is handled with either Gireve or Hubject.
+          if (transaction.ocpiData.session) {
+            // Handle OCPI
+            await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
+          } else if (transaction.oicpData.session) {
+            // Handle OICP
+            await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
+          }
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station
@@ -633,8 +639,14 @@ export default class OCPPService {
       await OCPPUtils.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
       // Billing
       await OCPPUtils.billTransaction(headers.tenantID, transaction, TransactionAction.START);
+      // Is it possible that a TagID is registered at Gireve and Hubject? Then only one Session for either Gireve or Hubject should be started.
+      // Workaround: Try to start a Session with Gireve first and if failed with Hubject
       // OCPI
       await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
+      // OICP
+      if (!transaction.ocpiData.session) {
+        await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
+      }
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Clean up Charging Station's connector transaction info
@@ -829,8 +841,14 @@ export default class OCPPService {
         // Save Consumption
         await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
       }
-      // OCPI
-      await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
+      // Indicator needed to decide if transaction is handled with either Gireve or Hubject.
+      if (transaction.ocpiData.session) {
+        // Handle OCPI
+        await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
+      } else if (transaction.oicpData.session) {
+        // Handle OICP
+        await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
+      }
       // Save the transaction
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Notify User
@@ -1027,8 +1045,14 @@ export default class OCPPService {
           lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
         // Build extra inactivity consumption
         await OCPPUtils.buildExtraConsumptionInactivity(tenantID, lastTransaction);
-        // OCPI: Post the CDR
-        await OCPPUtils.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
+        // Indicator needed to decide if transaction is handled with either Gireve or Hubject.
+        if (lastTransaction.ocpiData.session) {
+          // OCPI: Post the CDR
+          await OCPPUtils.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
+        } else if (lastTransaction.oicpData.session) {
+          // OICP: Post the CDR
+          await OCPPUtils.processOICPTransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
+        }
         // Save
         await TransactionStorage.saveTransaction(tenantID, lastTransaction);
         // Log
