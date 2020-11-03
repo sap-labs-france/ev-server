@@ -3,8 +3,8 @@ import WebSocket from 'ws';
 
 export enum MessageType {
   CALL_MESSAGE = 2, // Client-to-Server
-  RESULT_MESSAGE = 3, // Server-to-Client
-  ERROR_MESSAGE = 4, // Server-to-Client
+  CALL_RESULT_MESSAGE = 3, // Server-to-Client
+  CALL_ERROR_MESSAGE = 4, // Server-to-Client
 }
 
 export enum OcppErrorType {
