@@ -24,3 +24,7 @@ export interface CheckSessionNotStartedAfterAuthorizeTaskConfig extends TaskConf
   sessionShouldBeStartedAfterMins?: number;
   checkPastAuthorizeMins?: number;
 }
+
+export interface OCPIGetTokensTaskConfig extends TaskConfig {
+  partial?: boolean;
+}

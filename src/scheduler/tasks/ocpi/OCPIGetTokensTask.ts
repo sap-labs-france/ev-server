@@ -1,3 +1,5 @@
+import { OCPIGetTokensTaskConfig, TaskConfig } from '../../../types/TaskConfig';
+
 import Constants from '../../../utils/Constants';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -9,7 +11,6 @@ import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStat
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
-import { TaskConfig } from '../../../types/TaskConfig';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
@@ -25,7 +26,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
         // Get all available endpoints
         const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const ocpiEndpoint of ocpiEndpoints.result) {
-          await this.processOCPIEndpoint(tenant, ocpiEndpoint);
+          await this.processOCPIEndpoint(tenant, ocpiEndpoint, config);
         }
       }
     } catch (error) {
@@ -34,7 +35,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
     }
   }
 
-  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIGetTokensTaskConfig): Promise<void> {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'get-tokens');
     if (ocpiLock) {
@@ -66,7 +67,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Send EVSE statuses
-        const result = await ocpiClient.pullTokens();
+        const result = await ocpiClient.pullTokens(config.partial && config.partial);
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
