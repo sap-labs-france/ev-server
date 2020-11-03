@@ -17,10 +17,9 @@ export default class OCPIEndpointStorage {
   static async getOcpiEndpoint(tenantID: string, id: string): Promise<OCPIEndpoint> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoint');
-    const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { id: id }, Constants.DB_PARAMS_SINGLE_RECORD);
-
+    const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { ocpiEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoint', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoint', uniqueTimerID, endpointsMDB);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
@@ -28,9 +27,8 @@ export default class OCPIEndpointStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoinByLocalToken');
     const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { localToken: token }, Constants.DB_PARAMS_SINGLE_RECORD);
-
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoinByLocalToken', uniqueTimerID, { token });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoinByLocalToken', uniqueTimerID, endpointsMDB);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
@@ -56,7 +54,6 @@ export default class OCPIEndpointStorage {
     } else {
       ocpiEndpointFilter._id = new ObjectID();
     }
-
     const ocpiEndpointMDB: any = {
       _id: ocpiEndpointFilter._id,
       name: ocpiEndpointToSave.name,
@@ -83,13 +80,13 @@ export default class OCPIEndpointStorage {
       { $set: ocpiEndpointMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveOcpiEndpoint', uniqueTimerID, { ocpiEndpointToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveOcpiEndpoint', uniqueTimerID, ocpiEndpointMDB);
     // Create
     return ocpiEndpointFilter._id.toHexString();
   }
 
   // Delegate
-  static async getOcpiEndpoints(tenantID: string, params: { search?: string; role?: string; id?: string; localToken?: string }, dbParams: DbParams): Promise<DataResult<OCPIEndpoint>> {
+  static async getOcpiEndpoints(tenantID: string, params: { search?: string; role?: string; ocpiEndpointIDs?: string[]; localToken?: string }, dbParams: DbParams): Promise<DataResult<OCPIEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoints');
     // Check Tenant
@@ -104,16 +101,19 @@ export default class OCPIEndpointStorage {
     const aggregation: any[] = [];
     // Set the filters
     const filters: FilterParams = {};
-    // Source?
-    if (params.id) {
-      filters._id = Utils.convertToObjectID(params.id);
-    } else if (params.localToken) {
-      filters.localToken = params.localToken;
-    } else if (params.search) {
-      // Build filter
+    // Search
+    if (params.search) {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    if (params.ocpiEndpointIDs) {
+      filters._id = {
+        $in: params.ocpiEndpointIDs.map((ocpiEndpointID) => Utils.convertToObjectID(ocpiEndpointID))
+      };
+    }
+    if (params.localToken) {
+      filters.localToken = params.localToken;
     }
     if (params.role) {
       filters.role = params.role;
@@ -134,6 +134,7 @@ export default class OCPIEndpointStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsCountMDB);
       return {
         count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
         result: []
@@ -141,7 +142,6 @@ export default class OCPIEndpointStorage {
     }
     // Remove the limit
     aggregation.pop();
-
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
@@ -165,9 +165,8 @@ export default class OCPIEndpointStorage {
     const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
-
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, { params });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsMDB);
     // Ok
     return {
       count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),

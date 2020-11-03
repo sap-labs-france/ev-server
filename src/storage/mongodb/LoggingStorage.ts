@@ -113,6 +113,10 @@ export default class LoggingStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: FilterParams = {};
+    // Search
+    if (params.search) {
+      filters.$text = { $search: params.search };
+    }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
       filters.timestamp = {};
@@ -158,24 +162,6 @@ export default class LoggingStorage {
         $in: params.logIDs.map((logID) => Utils.convertToObjectID(logID))
       };
     }
-    // Search
-    if (params.search) {
-      const searchArray = [
-        { 'source': { $regex: params.search, $options: 'i' } },
-        { 'host': { $regex: params.search, $options: 'i' } },
-        { 'message': { $regex: params.search, $options: 'i' } },
-        { 'action': { $regex: params.search, $options: 'i' } }
-      ];
-      // Already exists?
-      if (filters.$or) {
-        filters.$and = [
-          { $or: [...filters.$or] },
-          { $or: [...searchArray] },
-        ];
-      } else {
-        filters.$or = searchArray;
-      }
-    }
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -199,7 +185,7 @@ export default class LoggingStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      Logging.traceEnd(tenantID, MODULE_NAME, 'getLogs', uniqueTimerID);
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getLogs', uniqueTimerID, loggingsCountMDB);
       return {
         count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
         result: []

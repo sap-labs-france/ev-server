@@ -30,7 +30,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_CDRS, error);
     }
   }
 

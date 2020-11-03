@@ -36,8 +36,10 @@ export default class CarStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
     // Set the filters
-    const filters: ({ _id?: number; $or?: any[] } | undefined) = {};
+    const filters: any = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -46,8 +48,6 @@ export default class CarStorage {
         { 'vehicleModelVersion': { $regex: searchRegex, $options: 'i' } },
       ];
     }
-    // Create Aggregation
-    const aggregation = [];
     // Limit on Car for Basic Users
     if (!Utils.isEmptyArray(params.carCatalogIDs)) {
       aggregation.push({
@@ -57,7 +57,6 @@ export default class CarStorage {
       });
     }
     if (params.carMaker) {
-      // Build filter
       aggregation.push({
         $match: {
           'vehicleMake': {
@@ -67,11 +66,9 @@ export default class CarStorage {
       });
     }
     // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
+    aggregation.push({
+      $match: filters
+    });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -84,6 +81,7 @@ export default class CarStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
+      Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogs', uniqueTimerID, carCatalogsCountMDB);
       return {
         count: (carCatalogsCountMDB.length > 0 ? carCatalogsCountMDB[0].count : 0),
         result: []
@@ -120,8 +118,7 @@ export default class CarStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogs', uniqueTimerID,
-      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogs', uniqueTimerID, carCatalogs);
     // Ok
     return {
       count: (carCatalogsCountMDB.length > 0 ?
@@ -303,7 +300,7 @@ export default class CarStorage {
       await CarStorage.saveCarImages(carToSave.id, carToSave.images);
     }
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarCatalog', uniqueTimerID, { carToSave });
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarCatalog', uniqueTimerID, carMDB);
     return carToSave.id;
   }
 
@@ -323,7 +320,7 @@ export default class CarStorage {
       );
     }
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImages', uniqueTimerID, { carID });
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImages', uniqueTimerID, carImagesToSave);
   }
 
   public static async getCarCatalogImages(id: number = Constants.UNKNOWN_NUMBER_ID, dbParams?: DbParams): Promise<DataResult<Image>> {
@@ -355,6 +352,7 @@ export default class CarStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
+      Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogImages', uniqueTimerID, carCatalogImagesCountMDB);
       return {
         count: (carCatalogImagesCountMDB.length > 0 ? carCatalogImagesCountMDB[0].count : 0),
         result: []
@@ -382,9 +380,7 @@ export default class CarStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogImages', uniqueTimerID,
-      { id, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
-    // Ok
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogImages', uniqueTimerID, carCatalogImages);
     return {
       count: (carCatalogImagesCountMDB.length > 0 ?
         (carCatalogImagesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carCatalogImagesCountMDB[0].count) : 0),
@@ -437,18 +433,17 @@ export default class CarStorage {
         carMaker: 1
       }
     });
-    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
+    const carMakersMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarMakers', uniqueTimerID, { result });
-    // Ok
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarMakers', uniqueTimerID, carMakersMDB);
     return {
-      count: result.length,
-      result: result
+      count: carMakersMDB.length,
+      result: carMakersMDB
     };
   }
 
@@ -480,7 +475,7 @@ export default class CarStorage {
       { upsert: true, returnOriginal: false }
     );
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCar', uniqueTimerID, { carToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCar', uniqueTimerID, carMDB);
     return carMDB._id.toHexString();
   }
 
@@ -509,7 +504,7 @@ export default class CarStorage {
       { upsert: true, returnOriginal: false }
     );
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCarUser', uniqueTimerID, { carUserToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCarUser', uniqueTimerID, carUserMDB);
     return carUserMDB._id;
   }
 
@@ -519,8 +514,8 @@ export default class CarStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // At least one user
+    const carUsersMDB = [];
     if (carUsersToSave && carUsersToSave.length > 0) {
-      const carUsersMDB = [];
       // Set
       for (const carUserToSave of carUsersToSave) {
         const carUserMDB = {
@@ -538,18 +533,18 @@ export default class CarStorage {
       await global.database.getCollection<any>(tenantID, 'carusers').insertMany(carUsersMDB);
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'insertCarUsers', uniqueTimerID, { carUsersToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'insertCarUsers', uniqueTimerID, carUsersMDB);
   }
 
-  public static async getCar(tenantID: string, carID: string = Constants.UNKNOWN_STRING_ID,
+  public static async getCar(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
     params?: { withUsers?: boolean, userIDs?: string[]; }, projectFields?: string[]): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCar');
     // Query single Car
     const carsMDB = await CarStorage.getCars(tenantID,
-      { carIDs: [carID], ...params },
+      { carIDs: [id], ...params },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCar', uniqueTimerID, { carID });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCar', uniqueTimerID, { id });
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
 
@@ -562,7 +557,7 @@ export default class CarStorage {
     const carsMDB = await CarStorage.getCars(tenantID,
       { licensePlate: licensePlate, vin: vin, ...params },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarByVinLicensePlate', uniqueTimerID, { vin, licensePlate });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarByVinLicensePlate', uniqueTimerID, carsMDB);
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
 
@@ -577,8 +572,11 @@ export default class CarStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
     // Set the filters
     const filters: FilterParams = {};
+    // Search
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -598,8 +596,6 @@ export default class CarStorage {
         $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID))
       };
     }
-    // Create Aggregation
-    const aggregation = [];
     // Filter on Users
     if (!Utils.isEmptyArray(params.userIDs) || params.withUsers) {
       DatabaseUtils.pushUserCarLookupInAggregation({
@@ -614,11 +610,9 @@ export default class CarStorage {
       }
     }
     // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
+    aggregation.push({
+      $match: filters
+    });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -631,6 +625,7 @@ export default class CarStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getCars', uniqueTimerID, carsCountMDB);
       return {
         count: (carsCountMDB.length > 0 ? carsCountMDB[0].count : 0),
         result: []
@@ -692,9 +687,7 @@ export default class CarStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCars', uniqueTimerID,
-      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
-    // Ok
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCars', uniqueTimerID, cars);
     return {
       count: (carsCountMDB.length > 0 ?
         (carsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carsCountMDB[0].count) : 0),
@@ -719,7 +712,6 @@ export default class CarStorage {
   public static async clearCarUserOwner(tenantID: string, carID: string): Promise<void> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'clearCarUserOwner');
     await Utils.checkTenant(tenantID);
-
     await global.database.getCollection<any>(tenantID, 'carusers').updateMany(
       {
         carID: Utils.convertToObjectID(carID),
@@ -740,7 +732,7 @@ export default class CarStorage {
     const carUsersMDB = await CarStorage.getCarUsers(tenantID,
       { carIDs: [carID], userIDs: [userID] },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarUserByCarUser', uniqueTimerID, { userID, carID });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarUserByCarUser', uniqueTimerID, carUsersMDB);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return carUsersMDB.count === 1 ? carUsersMDB.result[0] : null;
   }
@@ -753,7 +745,7 @@ export default class CarStorage {
     const carUsersMDB = await CarStorage.getCarUsers(tenantID,
       { carUsersIDs: [carUserID] },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarUser', uniqueTimerID, { carUserID });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarUser', uniqueTimerID, carUsersMDB);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return carUsersMDB.count === 1 ? carUsersMDB.result[0] : null;
   }
@@ -843,6 +835,7 @@ export default class CarStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getCarUsers', uniqueTimerID, carUsersCountMDB);
       return {
         count: (carUsersCountMDB.length > 0 ? carUsersCountMDB[0].count : 0),
         result: []
@@ -886,9 +879,7 @@ export default class CarStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarUsers', uniqueTimerID,
-      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
-    // Ok
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarUsers', uniqueTimerID, carUsers);
     return {
       count: (carUsersCountMDB.length > 0 ?
         (carUsersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carUsersCountMDB[0].count) : 0),

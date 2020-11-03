@@ -55,7 +55,7 @@ export default class Logging {
         delete Logging.traceCalls[key];
         found = true;
       }
-      console.log(`${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + (sizeof(data) / 1000) + 'Kb' : ''}`);
+      console.debug(`${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + Utils.roundTo(sizeof(data) / 1024, 2).toString() + 'Kb' : ''}`);
     }
   }
 
@@ -113,14 +113,15 @@ export default class Logging {
 
   public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const tenantID = await Logging.retrieveTenantFromHttpRequest(req);
+      const userToken = Logging.getUserTokenFromHttpRequest(req);
+      const tenantID = await Logging.retrieveTenantFromHttpRequest(req, userToken);
       // Check perfs
       req['timestamp'] = new Date();
       // Log
       Logging.logSecurityDebug({
         tenantID,
         action: ServerAction.HTTP_REQUEST,
-        user: Logging.getUserTokenFromHttpRequest(req),
+        user: userToken,
         message: `Express HTTP Request << ${req.method} '${req.url}'`,
         module: MODULE_NAME, method: 'logExpressRequest',
         detailedMessages: {
@@ -159,6 +160,9 @@ export default class Logging {
         if (res.getHeader('content-length')) {
           contentLengthKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
         }
+        if (Utils.isDevelopmentEnv()) {
+          console.debug(`Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
+        }
         Logging.logSecurityDebug({
           tenantID: tenantID,
           user: req.user,
@@ -179,7 +183,6 @@ export default class Logging {
   }
 
   public static logExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
-    // Log
     Logging.logActionExceptionMessageAndSendResponse(ServerAction.HTTP_ERROR, error, req, res, next);
   }
 
@@ -702,9 +705,8 @@ export default class Logging {
     }
   }
 
-  private static async retrieveTenantFromHttpRequest(req: Request): Promise<string> {
+  private static async retrieveTenantFromHttpRequest(req: Request, userToken: UserToken): Promise<string> {
     // Try from Token
-    const userToken = Logging.getUserTokenFromHttpRequest(req);
     if (userToken) {
       return userToken.tenantID;
     }
@@ -754,7 +756,7 @@ export default class Logging {
       found = true;
     }
     if (Utils.isDevelopmentEnv()) {
-      console.log(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`);
+      console.debug(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`);
     }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
       Logging.logError({

@@ -37,6 +37,7 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import countries from 'i18n-iso-countries';
 import crypto from 'crypto';
 import fs from 'fs';
 import http from 'http';
@@ -1307,6 +1308,16 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint base URL is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (ocpiEndpoint.countryCode && !countries.isValid(ocpiEndpoint.countryCode)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is not invalid`,
         module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id

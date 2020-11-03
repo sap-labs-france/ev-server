@@ -20,19 +20,19 @@ export default class BillingStorage {
       { invoiceIDs: [id] },
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoice', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoice', uniqueTimerID, invoicesMDB);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
-  public static async getInvoiceByBillingInvoiceID(tenantID: string, billingInvoiceID: string): Promise<BillingInvoice> {
+  public static async getInvoiceByBillingInvoiceID(tenantID: string, id: string): Promise<BillingInvoice> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getInvoice');
     // Query single Site
     const invoicesMDB = await BillingStorage.getInvoices(tenantID,
-      { billingInvoiceID: billingInvoiceID },
+      { billingInvoiceID: id },
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoice', uniqueTimerID, { billingInvoiceID });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoice', uniqueTimerID, { id });
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
@@ -52,16 +52,17 @@ export default class BillingStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
     // Search filters
     const filters: FilterParams = {};
+    // Search
     // Filter by other properties
     if (params.search) {
       filters.$or = [
         { 'number': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
     }
-    // Create Aggregation
-    const aggregation = [];
     if (!Utils.isEmptyArray(params.invoiceIDs)) {
       filters._id = {
         $in: params.invoiceIDs.map((invoiceID) => Utils.convertToObjectID(invoiceID))
@@ -108,6 +109,7 @@ export default class BillingStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoices', uniqueTimerID, invoicesCountMDB);
       return {
         count: (invoicesCountMDB.length > 0 ? invoicesCountMDB[0].count : 0),
         result: []
@@ -151,7 +153,7 @@ export default class BillingStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoices', uniqueTimerID, { params });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoices', uniqueTimerID, invoicesMDB);
     return {
       count: (invoicesCountMDB.length > 0 ?
         (invoicesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : invoicesCountMDB[0].count) : 0),
@@ -185,21 +187,21 @@ export default class BillingStorage {
       { upsert: true }
     );
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveInvoice', uniqueTimerID, { invoiceMDB });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveInvoice', uniqueTimerID, invoiceMDB);
     return invoiceMDB._id.toHexString();
   }
 
-  public static async saveInvoiceDocument(tenantID: string, invoiceDocument: BillingInvoiceDocument): Promise<BillingInvoiceDocument> {
+  public static async saveInvoiceDocument(tenantID: string, invoiceDocumentToSave: BillingInvoiceDocument): Promise<BillingInvoiceDocument> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveInvoiceDocument');
     // Build Request
     // Properties to save
     const invoiceDocumentMDB: any = {
-      _id: Utils.convertToObjectID(invoiceDocument.id),
-      type: invoiceDocument.type,
-      invoiceID: invoiceDocument.invoiceID,
-      encoding: invoiceDocument.encoding,
-      content: invoiceDocument.content
+      _id: Utils.convertToObjectID(invoiceDocumentToSave.id),
+      type: invoiceDocumentToSave.type,
+      invoiceID: invoiceDocumentToSave.invoiceID,
+      encoding: invoiceDocumentToSave.encoding,
+      content: invoiceDocumentToSave.content
     };
     // Modify and return the modified document
     await global.database.getCollection<BillingInvoiceDocument>(tenantID, 'invoicedocuments').findOneAndReplace(
@@ -208,7 +210,7 @@ export default class BillingStorage {
       { upsert: true }
     );
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveInvoiceDocument', uniqueTimerID, { id: invoiceDocumentMDB._id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveInvoiceDocument', uniqueTimerID, invoiceDocumentMDB);
     return invoiceDocumentMDB._id.toHexString();
   }
 
@@ -221,7 +223,7 @@ export default class BillingStorage {
     const invoiceDocumentMDB = await global.database.getCollection<BillingInvoiceDocument>(tenantID, 'invoicedocuments')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoiceDocument', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoiceDocument', uniqueTimerID, invoiceDocumentMDB);
     return invoiceDocumentMDB;
   }
 

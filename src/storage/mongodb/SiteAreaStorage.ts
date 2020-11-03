@@ -30,10 +30,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'addAssetsToSiteArea', uniqueTimerID, {
-      siteAreaID,
-      assetIDs
-    });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'addAssetsToSiteArea', uniqueTimerID, assetIDs);
   }
 
   public static async removeAssetsFromSiteArea(tenantID: string, siteAreaID: string, assetIDs: string[]): Promise<void> {
@@ -54,10 +51,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'removeAssetsFromSiteArea', uniqueTimerID, {
-      siteAreaID,
-      assetIDs
-    });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'removeAssetsFromSiteArea', uniqueTimerID, assetIDs);
   }
 
   public static async getSiteAreaImage(tenantID: string, id: string): Promise<Image> {
@@ -69,7 +63,7 @@ export default class SiteAreaStorage {
     const siteAreaImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'siteareaimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreaImage', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreaImage', uniqueTimerID, siteAreaImageMDB);
     return {
       id: id, image: siteAreaImageMDB ? siteAreaImageMDB.image : null
     };
@@ -82,7 +76,7 @@ export default class SiteAreaStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Exec
-    const siteAreaResult = await SiteAreaStorage.getSiteAreas(
+    const siteAreasMDB = await SiteAreaStorage.getSiteAreas(
       tenantID,
       {
         siteAreaIDs: [id],
@@ -93,12 +87,8 @@ export default class SiteAreaStorage {
       Constants.DB_PARAMS_SINGLE_RECORD
     );
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteArea', uniqueTimerID, {
-      id,
-      withChargingStations: params.withChargingStations,
-      withSite: params.withSite
-    });
-    return siteAreaResult.result[0];
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteArea', uniqueTimerID, siteAreasMDB);
+    return siteAreasMDB.count === 1 ? siteAreasMDB.result[0] : null;
   }
 
   public static async saveSiteArea(tenantID: string, siteAreaToSave: SiteArea, saveImage = false): Promise<string> {
@@ -143,7 +133,7 @@ export default class SiteAreaStorage {
       await SiteAreaStorage.saveSiteAreaImage(tenantID, siteAreaMDB._id.toHexString(), siteAreaToSave.image);
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteArea', uniqueTimerID, { siteAreaToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteArea', uniqueTimerID, siteAreaMDB);
     return siteAreaMDB._id.toHexString();
   }
 
@@ -224,6 +214,7 @@ export default class SiteAreaStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreas', uniqueTimerID, siteAreasCountMDB);
       return {
         count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
         result: []
@@ -306,8 +297,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreas', uniqueTimerID,
-      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreas', uniqueTimerID, siteAreasMDB);
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ?
@@ -334,10 +324,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'addChargingStationsToSiteArea', uniqueTimerID, {
-      siteAreaID,
-      chargingStationIDs
-    });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'addChargingStationsToSiteArea', uniqueTimerID, chargingStationIDs);
   }
 
   public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
@@ -358,10 +345,7 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'removeChargingStationsFromSiteArea', uniqueTimerID, {
-      siteAreaID,
-      chargingStationIDs
-    });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'removeChargingStationsFromSiteArea', uniqueTimerID, chargingStationIDs);
   }
 
   public static async deleteSiteArea(tenantID: string, id: string): Promise<void> {
@@ -397,7 +381,7 @@ export default class SiteAreaStorage {
       { '_id': { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } }
     );
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSiteAreas', uniqueTimerID, { siteAreaIDs });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSiteAreas', uniqueTimerID, siteAreaIDs);
   }
 
   public static async deleteSiteAreasFromSites(tenantID: string, siteIDs: string[]): Promise<void> {
@@ -412,7 +396,7 @@ export default class SiteAreaStorage {
     // Delete site areas
     await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSiteAreasFromSites', uniqueTimerID, { siteIDs });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSiteAreasFromSites', uniqueTimerID, siteIDs);
   }
 
   private static async saveSiteAreaImage(tenantID: string, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
@@ -427,6 +411,6 @@ export default class SiteAreaStorage {
       { upsert: true, returnOriginal: false }
     );
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteAreaImage', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteAreaImage', uniqueTimerID, siteAreaImageToSave);
   }
 }

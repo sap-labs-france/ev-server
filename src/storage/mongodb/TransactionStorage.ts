@@ -191,7 +191,7 @@ export default class TransactionStorage {
       transactionMDB,
       { upsert: true });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveTransaction', uniqueTimerID, { transactionToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveTransaction', uniqueTimerID, transactionMDB);
     // Return
     return transactionToSave.id;
   }
@@ -249,7 +249,7 @@ export default class TransactionStorage {
       transactionYears.push(i);
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionYears', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionYears', uniqueTimerID, firstTransactionsMDB);
     return transactionYears;
   }
 
@@ -521,6 +521,7 @@ export default class TransactionStorage {
     }
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactions', uniqueTimerID, transactionCountMDB);
       return {
         count: transactionCountMDB ? transactionCountMDB.count : 0,
         stats: transactionCountMDB ? transactionCountMDB : {},
@@ -586,7 +587,7 @@ export default class TransactionStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactions', uniqueTimerID, { params, dbParams });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactions', uniqueTimerID, transactionsMDB);
     return {
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
       stats: transactionCountMDB ? transactionCountMDB : {},
@@ -668,6 +669,7 @@ export default class TransactionStorage {
     }
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getRefundReports', uniqueTimerID, reportCountMDB);
       return {
         count: reportCountMDB ? reportCountMDB.count : 0,
         result: []
@@ -723,7 +725,7 @@ export default class TransactionStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getRefundReports', uniqueTimerID, { dbParams });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getRefundReports', uniqueTimerID, reportsMDB);
     return {
       count: reportCountMDB ? (reportCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : reportCountMDB.count) : 0,
       result: reportsMDB
@@ -880,7 +882,7 @@ export default class TransactionStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionsInError', uniqueTimerID, { params, dbParams });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionsInError', uniqueTimerID, transactionsMDB);
     return {
       count: transactionsMDB.length,
       result: transactionsMDB
@@ -895,12 +897,8 @@ export default class TransactionStorage {
     // Delegate work
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { transactionIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransaction', uniqueTimerID, { id });
-    // Found?
-    if (transactionsMDB && transactionsMDB.count > 0) {
-      return transactionsMDB.result[0];
-    }
-    return null;
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransaction', uniqueTimerID, transactionsMDB);
+    return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
   public static async getOCPITransaction(tenantID: string, sessionID: string): Promise<Transaction> {
@@ -911,12 +909,8 @@ export default class TransactionStorage {
     // Delegate work
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOCPITransaction', uniqueTimerID, { sessionID });
-    // Found?
-    if (transactionsMDB && transactionsMDB.count > 0) {
-      return transactionsMDB.result[0];
-    }
-    return null;
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getOCPITransaction', uniqueTimerID, transactionsMDB);
+    return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
   public static async getActiveTransaction(tenantID: string, chargeBoxID: string, connectorId: number): Promise<Transaction> {
@@ -954,15 +948,8 @@ export default class TransactionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getActiveTransaction', uniqueTimerID, {
-      chargeBoxID,
-      connectorId
-    });
-    // Found?
-    if (transactionsMDB && transactionsMDB.length > 0) {
-      return transactionsMDB[0];
-    }
-    return null;
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getActiveTransaction', uniqueTimerID, transactionsMDB);
+    return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
   public static async getLastTransaction(tenantID: string, chargeBoxID: string, connectorId: number): Promise<Transaction> {
@@ -1004,15 +991,8 @@ export default class TransactionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getLastTransaction', uniqueTimerID, {
-      chargeBoxID,
-      connectorId
-    });
-    // Found?
-    if (transactionsMDB && transactionsMDB.length > 0) {
-      return transactionsMDB[0];
-    }
-    return null;
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getLastTransaction', uniqueTimerID, transactionsMDB);
+    return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
   public static async _findAvailableID(tenantID: string): Promise<number> {
@@ -1142,15 +1122,15 @@ export default class TransactionStorage {
       }
     });
     // Read DB
-    const notifySessionNotStarted: NotifySessionNotStarted[] =
+    const notifySessionNotStartedMDB: NotifySessionNotStarted[] =
       await global.database.getCollection<NotifySessionNotStarted>(tenantID, 'authorizes')
         .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
         .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getNotStartedTransactions', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getNotStartedTransactions', uniqueTimerID, notifySessionNotStartedMDB);
     return {
-      count: notifySessionNotStarted.length,
-      result: notifySessionNotStarted
+      count: notifySessionNotStartedMDB.length,
+      result: notifySessionNotStartedMDB
     };
   }
 
@@ -1231,7 +1211,6 @@ export default class TransactionStorage {
           ] } },
           { $addFields: { 'errorCode': TransactionInErrorType.NO_BILLING_DATA } }
         ];
-        break;
       default:
         return [];
     }

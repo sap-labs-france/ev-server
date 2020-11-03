@@ -53,7 +53,7 @@ export default class LockingManager {
         message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock, error: error.message, stack: error.stack }
       });
-      Utils.isDevelopmentEnv() && console.debug(`Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+      Utils.isDevelopmentEnv() && console.error(`>>>>> Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
       return false;
     }
   }
