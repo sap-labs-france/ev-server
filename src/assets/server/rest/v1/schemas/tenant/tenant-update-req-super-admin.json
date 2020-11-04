@@ -2,107 +2,13 @@
     "title": "Tenant Update",
     "type": "object",
     "properties": {
-        "id": {
-            "type": "string",
-            "pattern": "^[0-9a-fA-F]{24}$",
-            "sanitize": "mongo"
-        },
-        "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100,
-            "sanitize": "mongo"
-        },
-        "email": {
-            "type": "string",
-            "format": "email",
-            "sanitize": "mongo"
-        },
-        "subdomain": {
-            "type": "string",
-            "pattern": "^[a-z0-9]*$",
-            "minLength": 1,
-            "maxLength": 20,
-            "sanitize": "mongo"
-        },
-        "logo": {
-            "type": "string",
-            "sanitize": "mongo"
-        },
-        "address": { "$ref": "common.json#/common/address" },
-        "components": {
-            "type": "object",
-            "properties": {
-                "ocpi": {
-                    "type": "object",
-                    "properties": {
-                        "active": { "type": "boolean", "sanitize": "mongo" },
-                        "type": { "type": "string", "sanitize": "mongo" }
-                    }
-                },
-                "refund": {
-                    "type": "object",
-                    "properties": {
-                        "active": { "type": "boolean", "sanitize": "mongo" },
-                        "type": { "type": "string", "sanitize": "mongo" }
-                    }
-                },
-                "pricing": {
-                    "type": "object",
-                    "properties": {
-                        "active": { "type": "boolean", "sanitize": "mongo" },
-                        "type": { "type": "string", "sanitize": "mongo" }
-                    }
-                },
-                "billing": {
-                    "type": "object",
-                    "properties": {
-                        "active": { "type": "boolean", "sanitize": "mongo" },
-                        "type": { "type": "string", "sanitize": "mongo" }
-                    }
-                },
-                "organization": {
-                    "type": "object",
-                    "properties": {
-                        "active": { "type": "boolean", "sanitize": "mongo" }
-                    }
-                },
-                "statistics": {
-                    "type": "object",
-                    "properties": {
-                        "active": { "type": "boolean", "sanitize": "mongo" }
-                    }
-                },
-                "analytics": {
-                    "type": "object",
-                    "properties": {
-                        "active": { "type": "boolean", "sanitize": "mongo" },
-                        "type": { "type": "string", "sanitize": "mongo" }
-                    }
-                }
-                ,
-                "smartCharging": {
-                    "type": "object",
-                    "properties": {
-                      "active": { "type": "boolean", "sanitize": "mongo" },
-                        "type": { "type": "string", "sanitize": "mongo" }
-                    }
-                },
-                "asset": {
-                    "type": "object",
-                    "properties": {
-                        "active": { "type": "boolean", "sanitize": "mongo" }
-                    }
-                },
-                "car": {
-                    "type": "object",
-                    "properties": {
-                        "active": { "type": "boolean" },
-                        "type": { "type": "string" }
-                    }
-                }
-            }
-        }
+        "id": { "$ref": "common.json#/definitions/id" },
+        "name": { "$ref": "common.json#/definitions/name"},
+        "email": { "$ref": "common.json#/definitions/email" },
+        "subdomain": { "$ref": "common.json#/definitions/subdomain" },
+        "logo": { "$ref": "common.json#/definitions/logo" },
+        "address": { "$ref": "common.json#/definitions/address" },
+        "components": { "$ref": "components.json#/definitions/components" }
     },
-    "required": ["id", "name", "email", "subdomain"]
+    "required": ["name", "email", "subdomain"]
 }

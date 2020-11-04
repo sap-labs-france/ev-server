@@ -13,14 +13,14 @@ export default class TenantValidator extends SchemaValidator {
   private _tenantDeleteReqSuperAdmin: any;
   private _tenantGetLogoReqSuperAdmin: any;
   private _tenantGetReqSuperAdmin: any;
-  private _tenantGetRespSuperAdmin: any;
 
   private constructor() {
     super('TenantValidator');
     this._tenantCreateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create-req-super-admin.json`, 'utf8'));
     this._tenantUpdateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update-req-super-admin.json`, 'utf8'));
     this._tenantDeleteReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete-req-super-admin.json`, 'utf8'));
-    // TODO: restliche Json nachladen
+    this._tenantGetReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get-req-super-admin.json`, 'utf8'));
+    this._tenantGetLogoReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get-logo-req-super-admin.json`, 'utf8'));
   }
 
   public static getInstance(): TenantValidator {
@@ -46,24 +46,22 @@ export default class TenantValidator extends SchemaValidator {
     return tenant;
   }
 
-  public validateTenantDeleteRequestSuperAdmin(request: Tenant): Tenant {
+  public validateTenantDeleteRequestSuperAdmin(request: any): string {
     // Validate schema
     this.validate(this._tenantDeleteReqSuperAdmin, request);
-    return request;
+    return request.ID;
   }
-
-  public validateGetLogoReqSuperAdmin(tenant: Tenant): Tenant {
+  
+  public validateGetLogoReqSuperAdmin(request: any): string {
     // Validate schema
-    this.validate(this._tenantGetLogoReqSuperAdmin, tenant);
-    return tenant;
+    this.validate(this._tenantGetLogoReqSuperAdmin, request);
+    return request.ID;
   }
 
-  public validateTenantGetReqSuperAdmin(tenant: Tenant): Tenant {
-    return tenant;
-  }
-
-  public validateTenantGetRespSuperAdmin(tenant: Tenant): Tenant {
-    return tenant;
+  public validateTenantGetReqSuperAdmin(request: any): string {
+    // Validate schema
+    this.validate(this._tenantGetReqSuperAdmin, request);
+    return request;
   }
 
   private validateComponentDependencies(tenant: Tenant) {

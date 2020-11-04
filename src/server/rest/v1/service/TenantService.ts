@@ -27,11 +27,9 @@ const MODULE_NAME = 'TenantService';
 export default class TenantService {
 
   public static async handleDeleteTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const id = TenantSecurity.filterTenantRequestByID(req.query);
     // Validate
-    // const filteredRequest = TenantValidator.getInstance().validateTenantDeleteRequestSuperAdmin(req.query);
-    UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
+    const tenantID = TenantValidator.getInstance().validateTenantDeleteRequestSuperAdmin(req.query);
+    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -39,12 +37,12 @@ export default class TenantService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleDeleteTenant',
-        value: id
+        value: tenantID
       });
     }
     // Get
-    const tenant = await TenantStorage.getTenant(id);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${id}' does not exist`,
+    const tenant = await TenantStorage.getTenant(tenantID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -75,8 +73,8 @@ export default class TenantService {
   }
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
+    // Validate
+    const tenantID = TenantValidator.getInstance().validateGetLogoReqSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenantLogo', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
@@ -100,8 +98,8 @@ export default class TenantService {
   }
 
   public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
+    // Validate
+    const tenantID = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
