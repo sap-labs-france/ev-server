@@ -39,6 +39,10 @@ export default class AxiosFactory {
         Logging.logAxiosError(tenantID, error);
         return Promise.reject(error);
       });
+      //
+      // FIX ME
+      // Error Message: Converting circular structure to JSON
+      //
       // Add a Response interceptor
       // axiosInstance.interceptors.response.use((response: AxiosResponse) => {
       //   Logging.logAxiosResponse(tenantID, response);
