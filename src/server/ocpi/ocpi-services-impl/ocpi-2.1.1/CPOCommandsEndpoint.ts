@@ -181,8 +181,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     // Save Auth
     await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
     // Start the transaction
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint);
+    this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => {});
     // Ok
     return this.getOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }

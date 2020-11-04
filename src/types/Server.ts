@@ -154,6 +154,7 @@ export enum ServerAction {
   AUTHORIZATIONS = 'Authorizations',
 
   DB_WATCH = 'DBWatch',
+  DB_MONITOR = 'DBMonitor',
 
   EXPRESS_SERVER = 'ExpressServer',
   ODATA_SERVER = 'ODataServer',

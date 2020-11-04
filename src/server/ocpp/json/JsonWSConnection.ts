@@ -83,7 +83,7 @@ export default class JsonWSConnection extends WSConnection {
       tenantID: this.getTenantID(),
       action: ServerAction.WS_ERROR,
       module: MODULE_NAME, method: 'onError',
-      message: event
+      message: event + ''
     });
   }
 
@@ -113,7 +113,7 @@ export default class JsonWSConnection extends WSConnection {
       // Log
       Logging.logChargingStationServerRespondAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
-      await this.sendMessage(messageId, result, MessageType.RESULT_MESSAGE);
+      await this.sendMessage(messageId, result, MessageType.CALL_RESULT_MESSAGE, commandName);
     } else {
       // Throw Exception
       throw new OCPPError({

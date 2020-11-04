@@ -166,7 +166,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           // Check if this corresponds to a request
           if (this.requests[messageJson[1]]) {
             // Check message type
-            if (messageJson[0] === MessageType.ERROR_MESSAGE) {
+            if (messageJson[0] === MessageType.CALL_ERROR_MESSAGE) {
               // Error message
               Logging.logError({
                 tenantID: this.tenantID,

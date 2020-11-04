@@ -1,3 +1,7 @@
+/**
+ * OCPPError
+ * Attributes name are part of the OCPP specification
+ */
 export default class OCPPError extends Error {
   public constructor(readonly params: {
     source: string;
@@ -5,7 +9,7 @@ export default class OCPPError extends Error {
     method: string;
     code: string;
     message: string;
-    detailedMessages?: any;
+    details?: any;
   }) {
     super(params.message);
 

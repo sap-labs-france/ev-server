@@ -55,7 +55,7 @@ if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 } else if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'development-build') {
   global.appRoot = path.resolve(__dirname, '../dist');
 } else {
-  console.log(`Unknown NODE_ENV '${process.env.NODE_ENV}' defined, exiting`);
+  console.error(`Unknown NODE_ENV '${process.env.NODE_ENV}' defined, exiting`);
   process.exit();
 }
 export default global;
