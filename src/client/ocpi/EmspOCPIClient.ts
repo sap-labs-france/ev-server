@@ -160,7 +160,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const sites = await SiteStorage.getSites(this.tenant.id, { companyIDs: [company.id] },
       Constants.DB_PARAMS_MAX_LIMIT);
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -195,7 +195,7 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
+    } while (nextResult);
     return sendResult;
   }
 
@@ -212,7 +212,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -247,7 +247,7 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
+    } while (nextResult);
     sendResult.total = sendResult.failure + sendResult.success;
     return sendResult;
   }
@@ -265,7 +265,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -300,7 +300,7 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
+    } while (nextResult);
     sendResult.total = sendResult.failure + sendResult.success;
     return sendResult;
   }

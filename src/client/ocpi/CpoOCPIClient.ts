@@ -65,7 +65,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tokensUrl = `${tokensUrl}?limit=100`;
     }
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -114,7 +114,7 @@ export default class CpoOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
+    } while (nextResult);
     return sendResult;
   }
 
