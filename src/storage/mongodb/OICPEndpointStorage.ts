@@ -51,16 +51,12 @@ export default class OICPEndpointStorage {
       name: oicpEndpointToSave.name,
       role: oicpEndpointToSave.role,
       baseUrl: oicpEndpointToSave.baseUrl,
-      localToken: oicpEndpointToSave.localToken,
-      token: oicpEndpointToSave.token,
       countryCode: oicpEndpointToSave.countryCode,
       partyId: oicpEndpointToSave.partyId,
       backgroundPatchJob: oicpEndpointToSave.backgroundPatchJob,
       status: oicpEndpointToSave.status,
-      version: oicpEndpointToSave.version,
       businessDetails: oicpEndpointToSave.businessDetails,
       availableEndpoints: oicpEndpointToSave.availableEndpoints,
-      versionUrl: oicpEndpointToSave.versionUrl,
       lastPatchJobOn: oicpEndpointToSave.lastPatchJobOn,
       lastPatchJobResult: oicpEndpointToSave.lastPatchJobResult
     };
@@ -78,7 +74,7 @@ export default class OICPEndpointStorage {
   }
 
   // Delegate
-  static async getOicpEndpoints(tenantID: string, params: { search?: string; role?: string; id?: string; localToken?: string }, dbParams: DbParams): Promise<DataResult<OICPEndpoint>> {
+  static async getOicpEndpoints(tenantID: string, params: { search?: string; role?: string; id?: string; }, dbParams: DbParams): Promise<DataResult<OICPEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOicpEndpoints');
     // Check Tenant
@@ -96,8 +92,6 @@ export default class OICPEndpointStorage {
     // Source?
     if (params.id) {
       filters._id = Utils.convertToObjectID(params.id);
-    } else if (params.localToken) {
-      filters.localToken = params.localToken;
     } else if (params.search) {
       // Build filter
       filters.$or = [
