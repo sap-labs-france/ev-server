@@ -90,7 +90,6 @@
     "cf-nodejs-logging-support": "^6.5.3",
     "cfenv": "^1.2.3",
     "cors": "^2.8.5",
-    "country-code-lookup": "0.0.18",
     "country-language": "^0.1.7",
     "ejs": "^3.1.5",
     "emailjs": "^3.3.0",

@@ -1,5 +1,5 @@
 import AxiosFactory from '../../utils/AxiosFactory';
-import { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import BackendError from '../../exception/BackendError';
 import { HTTPError } from '../../types/HTTPError';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
@@ -10,6 +10,7 @@ import Tenant from '../../types/Tenant';
 import { OICPJobResult } from '../../types/oicp/OICPJobResult';
 import { OICPOperatorID } from '../../types/oicp/OICPEvse';
 import Logging from '../../utils/Logging';
+import https from 'https';
 
 const MODULE_NAME = 'OICPClient';
 
@@ -27,11 +28,11 @@ export default abstract class OICPClient {
         module: MODULE_NAME, method: 'constructor',
       });
     }
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
     this.tenant = tenant;
     this.settings = settings;
     this.oicpEndpoint = oicpEndpoint;
     this.role = role.toLowerCase();
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) });
   }
 
   getLocalCountryCode(action: ServerAction): string {
@@ -103,6 +104,28 @@ export default abstract class OICPClient {
       });
     }
     return this.settings[this.role].clientCertificate;
+  }
+
+  getHttpsAgent(action: ServerAction): https.Agent {
+    const publicCert = this.getClientCertificate(action);
+    const privateKey = this.getPrivateKey(action);
+
+    const httpsAgent = new https.Agent({
+      rejectUnauthorized: false, // (NOTE: this will disable client verification)
+      cert: publicCert,
+      key: privateKey,
+      passphrase: ''
+    });
+    return httpsAgent;
+  }
+
+  getAxiosConfig(action: ServerAction): AxiosRequestConfig {
+    const axiosConfig: AxiosRequestConfig = {} as AxiosRequestConfig;
+    axiosConfig.httpsAgent = this.getHttpsAgent(action);
+    axiosConfig.headers = {
+      'Content-Type': 'application/json'
+    };
+    return axiosConfig;
   }
 
   protected getEndpointUrl(service: string, action: ServerAction): string {

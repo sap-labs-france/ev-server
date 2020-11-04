@@ -6,7 +6,7 @@ import Address from '../../../../types/Address';
 import BackendError from '../../../../exception/BackendError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import Constants from '../../../../utils/Constants';
-import CountryCodeLookup from 'country-code-lookup';
+import Countries from 'i18n-iso-countries';
 import { DataResult } from '../../../../types/DataResult';
 import OICPUtils from '../../OICPUtils';
 import { ServerAction } from '../../../../types/Server';
@@ -372,7 +372,8 @@ export default class OICPMapping {
     return oicpAddress;
   }
 
-  static convertCountry2CountryCode(country: string): OICPCountryCode { // The CountryCodeType allows for Alpha-3 country codes. For Alpha-3 (three-letter) country codes as defined in ISO 3166-1. Example: FRA France
+  // The CountryCodeType allows for Alpha-3 country codes. For Alpha-3 (three-letter) country codes as defined in ISO 3166-1. Example: FRA France
+  static convertCountry2CountryCode(country: string): OICPCountryCode {
     // Check input parameter
     if (!country) {
       throw new BackendError({
@@ -381,7 +382,7 @@ export default class OICPMapping {
         module: MODULE_NAME, method: 'convertCountry2CountryCode',
       });
     }
-    const countryCode = CountryCodeLookup.byCountry(country).iso3;
+    const countryCode = Countries.getAlpha3Code(country, 'en');
     // Check result
     if (!countryCode) {
       throw new BackendError({

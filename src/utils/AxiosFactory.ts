@@ -40,13 +40,13 @@ export default class AxiosFactory {
         return Promise.reject(error);
       });
       // Add a Response interceptor
-      axiosInstance.interceptors.response.use((response: AxiosResponse) => {
-        Logging.logAxiosResponse(tenantID, response);
-        return response;
-      }, async (error: AxiosError) => {
-        Logging.logAxiosError(tenantID, error);
-        return Promise.reject(error);
-      });
+      // axiosInstance.interceptors.response.use((response: AxiosResponse) => {
+      //   Logging.logAxiosResponse(tenantID, response);
+      //   return response;
+      // }, async (error: AxiosError) => {
+      //   Logging.logAxiosError(tenantID, error);
+      //   return Promise.reject(error);
+      // });
       // Add
       this.axiosInstances.set(tenantID, axiosInstance);
     }

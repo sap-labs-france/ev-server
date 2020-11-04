@@ -164,6 +164,7 @@ export enum ServerAction {
   OICP_ENPOINT_SEND_EVSE_STATUSES = 'OicpEndpointSendEVSEStatuses',
   OICP_ENPOINT_SEND_EVSES = 'OicpEndpointSendEVSEs',
   OICP_PUSH_SESSIONS = 'OicpPushSessions',
+  OICP_CREATE_AXIOS_INSTANCE = 'OicpCreateAxiosInstance',
 
 
   AUTHORIZE = 'Authorize',

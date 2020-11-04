@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { OICPActionType, OICPPushEvseDataCpoSend } from '../../types/oicp/OICPEvseData';
 import { OICPAuthorizeStartCpoReceive, OICPAuthorizeStartCpoSend, OICPAuthorizeStopCpoReceive, OICPAuthorizeStopCpoSend } from '../../types/oicp/OICPAuthorize';
 import { OICPChargingNotification, OICPCode, OICPErrorClass } from '../../types/oicp/OICPStatusCode';
@@ -8,7 +7,6 @@ import { OICPEvseDataRecord, OICPEvseStatusRecord, OICPOperatorEvseData, OICPOpe
 import { OICPIdentification, OICPRFIDIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
 import { OICPPushEVSEPricingCpoSend, OICPPushPricingProductDataCpoSend } from '../../types/oicp/OICPDynamicPricing';
 import { OICPSession, OICPSessionStatus } from '../../types/oicp/OICPSession';
-import { OicpIdentifier, OicpSetting, RoamingSettingsType, SettingDB, SettingDBContent } from '../../types/Setting';
 import Transaction, { TransactionAction } from '../../types/Transaction';
 
 import BackendError from '../../exception/BackendError';
@@ -27,14 +25,11 @@ import { OICPJobResult } from '../../types/oicp/OICPJobResult';
 import OICPMapping from '../../server/oicp/oicp-services-impl/oicp-2.3.0/OICPMapping';
 import { OICPPushEvseStatusCpoSend } from '../../types/oicp/OICPEvseStatus';
 import { OICPRole } from '../../types/oicp/OICPRole';
+import { OicpSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import _ from 'lodash';
-import axios from 'axios';
-import https from 'https';
 
 const MODULE_NAME = 'CpoOICPClient';
 
@@ -286,7 +281,7 @@ export default class CpoOICPClient extends OICPClient {
         sendResult.failure++;
         sendResult.chargeBoxIDsInFailure.concat(chargeBoxIDsToProcessFromInput);
         sendResult.logs.push(
-          `Failed to update the EVSEs from tenant '${this.tenant.id}': ${error.message}`
+          `Failed to update the EVSEs from tenant '${this.tenant.id}': ${String(error.message)}`
         );
       }
       // If (sendResult.failure > 0) {
@@ -422,7 +417,7 @@ export default class CpoOICPClient extends OICPClient {
         sendResult.failure++;
         sendResult.chargeBoxIDsInFailure.concat(chargeBoxIDsToProcessFromInput);
         sendResult.logs.push(
-          `Failed to update the EVSE Statuses from tenant '${this.tenant.id}': ${error.message}`
+          `Failed to update the EVSE Statuses from tenant '${this.tenant.id}': ${String(error.message)}`
         );
       }
       // If (sendResult.failure > 0) {
@@ -521,27 +516,13 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const publicCert = this.getClientCertificate(ServerAction.OICP_PUSH_EVSES);
-    const privateKey = this.getPrivateKey(ServerAction.OICP_PUSH_EVSES);
-
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: publicCert,
-      key: privateKey,
-      passphrase: ''
-    });
-
     // Call Hubject
-    await axios.post(fullUrl, payload, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      httpsAgent: httpsAgent
-    }).then(function(response) {
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
       console.log(response);
       pushEvseDataResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
-      console.log(error.response);
+      console.log(error.message);
     });
     return pushEvseDataResponse;
   }
@@ -583,20 +564,9 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_PUSH_EVSE_STATUSES),
-      key: this.getPrivateKey(ServerAction.OICP_PUSH_EVSE_STATUSES),
-      passphrase: ''
-    });
-
     // Call Hubject
-    await axios.post(fullUrl, String(JSON.stringify(payload)), {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      httpsAgent: httpsAgent
-    }).then(function(response) {
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
       console.log(response);
       pushEvseStatusResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
@@ -652,21 +622,8 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_AUTHORIZE_START),
-      key: this.getPrivateKey(ServerAction.OICP_AUTHORIZE_START),
-      passphrase: ''
-    });
-
     // Call Hubject
-    const response = await axios.post(fullUrl, payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        httpsAgent: httpsAgent
-      });
+    const response = await this.axiosInstance.post(fullUrl, payload);
     authorizeResponse = response.data as OICPAuthorizeStartCpoReceive;
     if (authorizeResponse.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
       throw new BackendError({
@@ -717,21 +674,8 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_AUTHORIZE_STOP),
-      key: this.getPrivateKey(ServerAction.OICP_AUTHORIZE_STOP),
-      passphrase: ''
-    });
-
     // Call Hubject
-    const response = await axios.post(fullUrl, payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        httpsAgent: httpsAgent
-      });
+    const response = await this.axiosInstance.post(fullUrl, payload);
     authorizeResponse = response.data as OICPAuthorizeStopCpoReceive;
     return authorizeResponse;
   }
@@ -802,22 +746,8 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload: transaction.oicpData.cdr }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_PUSH_CDRS),
-      key: this.getPrivateKey(ServerAction.OICP_PUSH_CDRS),
-      passphrase: ''
-    });
-
     // Call Hubject
-    const response = await axios.post(fullUrl, payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        httpsAgent: httpsAgent
-      });
-
+    const response = await this.axiosInstance.post(fullUrl, payload);
     pushCdrResponse = response.data as OICPAcknowledgment;
 
     Logging.logDebug({
@@ -863,21 +793,8 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_PUSH_EVSE_PRICING),
-      key: this.getPrivateKey(ServerAction.OICP_PUSH_EVSE_PRICING),
-      passphrase: ''
-    });
-
     // Call Hubject
-    const response = await axios.post(fullUrl, payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        httpsAgent: httpsAgent
-      });
+    const response = await this.axiosInstance.post(fullUrl, payload);
     pushEvsePricingResponse = response.data as OICPAcknowledgment;
     return pushEvsePricingResponse;
   }
@@ -914,21 +831,8 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_PUSH_PRICING_PRODUCT_DATA),
-      key: this.getPrivateKey(ServerAction.OICP_PUSH_PRICING_PRODUCT_DATA),
-      passphrase: ''
-    });
-
     // Call Hubject
-    const response = await axios.post(fullUrl, payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        httpsAgent: httpsAgent
-      });
+    const response = await this.axiosInstance.post(fullUrl, payload);
     pushPricingProductDataResponse = response.data as OICPAcknowledgment;
     return pushPricingProductDataResponse;
   }
@@ -984,21 +888,8 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START),
-      key: this.getPrivateKey(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START),
-      passphrase: ''
-    });
-
     // Call Hubject
-    const response = await axios.post(fullUrl, payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        httpsAgent: httpsAgent
-      });
+    const response = await this.axiosInstance.post(fullUrl, payload);
     notificationStartResponse = response.data as OICPAcknowledgment;
     return notificationStartResponse;
   }
@@ -1057,21 +948,8 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS),
-      key: this.getPrivateKey(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS),
-      passphrase: ''
-    });
-
     // Call Hubject
-    const response = await axios.post(fullUrl, payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        httpsAgent: httpsAgent
-      });
+    const response = await this.axiosInstance.post(fullUrl, payload);
     notificationProgressResponse = response.data as OICPAcknowledgment;
     return notificationProgressResponse;
   }
@@ -1141,21 +1019,8 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END),
-      key: this.getPrivateKey(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END),
-      passphrase: ''
-    });
-
     // Call Hubject
-    const response = await axios.post(fullUrl, payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        httpsAgent: httpsAgent
-      });
+    const response = await this.axiosInstance.post(fullUrl, payload);
     notificationEndResponse = response.data as OICPAcknowledgment;
     return notificationEndResponse;
   }
@@ -1208,21 +1073,8 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
 
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false, // (NOTE: this will disable client verification)
-      cert: this.getClientCertificate(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR),
-      key: this.getPrivateKey(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR),
-      passphrase: ''
-    });
-
     // Call Hubject
-    const response = await axios.post(fullUrl, payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        httpsAgent: httpsAgent
-      });
+    const response = await this.axiosInstance.post(fullUrl, payload);
     notificationErrorResponse = response.data as OICPAcknowledgment;
     return notificationErrorResponse;
   }
