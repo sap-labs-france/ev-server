@@ -243,6 +243,20 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             });
             continue;
           }
+          // Delete in e-Mobility
+          if (!invoiceInBilling && invoice) {
+            await BillingStorage.deleteInvoiceByInvoiceID(tenantID, invoiceIDInBilling);
+            actionsDone.inSuccess++;
+            Logging.logDebug({
+              tenantID: tenantID,
+              user: user,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+              module: MODULE_NAME, method: 'synchronizeInvoices',
+              message: `Billing invoice with ID '${invoiceIDInBilling}' has been deleted in e-Mobility`
+            });
+            continue;
+          }
           // Create / Update
           let userInInvoice: User;
           if (invoice) {
@@ -302,34 +316,16 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             detailedMessages: { invoiceInBilling }
           });
         } catch (error) {
-          if (error.statusCode === StatusCodes.NOT_FOUND) {
-            const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(tenantID, invoiceIDInBilling);
-            // Delete in e-Mobility
-            if (invoice) {
-              await BillingStorage.deleteInvoiceByInvoiceID(tenantID, invoiceIDInBilling);
-              actionsDone.inSuccess++;
-              Logging.logDebug({
-                tenantID: tenantID,
-                user: user,
-                source: Constants.CENTRAL_SERVER,
-                action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-                module: MODULE_NAME, method: 'synchronizeInvoices',
-                message: `Billing invoice with ID '${invoiceIDInBilling}' has been deleted in e-Mobility`
-              });
-              continue;
-            }
-          } else {
-            actionsDone.inError++;
-            Logging.logError({
-              tenantID: tenantID,
-              user: user,
-              source: Constants.CENTRAL_SERVER,
-              action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-              module: MODULE_NAME, method: 'synchronizeInvoices',
-              message: `Unable to process the invoice with ID '${invoiceIDInBilling}'`,
-              detailedMessages: { error: error.message, stack: error.stack, invoiceIDInBilling }
-            });
-          }
+          actionsDone.inError++;
+          Logging.logError({
+            tenantID: tenantID,
+            user: user,
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+            module: MODULE_NAME, method: 'synchronizeInvoices',
+            message: `Unable to process the invoice with ID '${invoiceIDInBilling}'`,
+            detailedMessages: { error: error.message, stack: error.stack, invoiceIDInBilling }
+          });
         }
       }
     }

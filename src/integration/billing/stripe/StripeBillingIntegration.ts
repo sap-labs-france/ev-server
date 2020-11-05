@@ -164,8 +164,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // Get Invoice
-    const stripeInvoice = await this.stripe.invoices.retrieve(id);
-    if (stripeInvoice) {
+    try {
+      const stripeInvoice = await this.stripe.invoices.retrieve(id);
       return {
         invoiceID: stripeInvoice.id,
         customerID: stripeInvoice.customer.toString(),
@@ -177,8 +177,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         nbrOfItems: stripeInvoice.lines.total_count,
         downloadUrl: stripeInvoice.invoice_pdf
       } as BillingInvoice;
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
