@@ -7,7 +7,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import { StatusCodes } from 'http-status-codes';
 import Transaction from '../../types/Transaction';
 import { UserInErrorType } from '../../types/InError';
 import UserStorage from '../../storage/mongodb/UserStorage';
