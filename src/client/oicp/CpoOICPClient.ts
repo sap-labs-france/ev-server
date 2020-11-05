@@ -124,7 +124,9 @@ export default class CpoOICPClient extends OICPClient {
     transaction.oicpData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
     transaction.oicpData.session.currency = this.settings.currency;
     transaction.oicpData.session.status = OICPSessionStatus.ACTIVE;
-    // T transaction.oicpData.session.meterValueInBetween.push(transaction.currentMeterValue);
+    if (transaction.lastConsumption) {
+      transaction.oicpData.session.meterValueInBetween.push(transaction.lastConsumption.value);
+    }
 
     const sessionUpdate: Partial<OICPSession> = {
       kwh: transaction.oicpData.session.kwh,
@@ -184,7 +186,9 @@ export default class CpoOICPClient extends OICPClient {
     transaction.oicpData.session.end_datetime = transaction.stop.timestamp;
     transaction.oicpData.session.last_updated = transaction.stop.timestamp;
     transaction.oicpData.session.status = OICPSessionStatus.COMPLETED;
-    // Ttransaction.oicpData.session.meterValueInBetween.push(transaction.currentMeterValue);
+    if (transaction.lastConsumption) {
+      transaction.oicpData.session.meterValueInBetween.push(transaction.lastConsumption.value);
+    }
 
     // Log
     Logging.logDebug({
@@ -195,6 +199,7 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload: transaction.oicpData.session }
     });
     // Call Hubject
+    await this.sendChargingNotificationEnd(transaction);
     const response = await this.authorizeStop(transaction);
 
     Logging.logDebug({
