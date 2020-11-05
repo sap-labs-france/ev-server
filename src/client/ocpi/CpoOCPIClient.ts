@@ -50,7 +50,7 @@ export default class CpoOCPIClient extends OCPIClient {
    */
   async pullTokens(partial = true): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -809,13 +809,13 @@ export default class CpoOCPIClient extends OCPIClient {
    */
   async sendEVSEStatuses(processAllEVSEs = true): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
       logs: [],
-      chargeBoxIDsInFailure: [],
-      chargeBoxIDsInSuccess: []
+      objectIDsInFailure: [],
+      objectIDsInSuccess: []
     };
     // Define get option
     const options = {
@@ -855,13 +855,13 @@ export default class CpoOCPIClient extends OCPIClient {
             try {
               await this.patchEVSEStatus(location.id, evse.uid, evse.status);
               sendResult.success++;
-              sendResult.chargeBoxIDsInSuccess.push(evse.chargeBoxId);
+              sendResult.objectIDsInSuccess.push(evse.chargeBoxId);
               sendResult.logs.push(
                 `Updated successfully status for Location ID '${location.id}', Charging Station ID '${evse.evse_id}'`
               );
             } catch (error) {
               sendResult.failure++;
-              sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
+              sendResult.objectIDsInFailure.push(evse.chargeBoxId);
               sendResult.logs.push(
                 `Failed to update the status of Location ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
               );
@@ -909,8 +909,8 @@ export default class CpoOCPIClient extends OCPIClient {
         successNbr: sendResult.success,
         failureNbr: sendResult.failure,
         totalNbr: sendResult.total,
-        chargeBoxIDsInFailure: _.uniq(sendResult.chargeBoxIDsInFailure),
-        chargeBoxIDsInSuccess: _.uniq(sendResult.chargeBoxIDsInSuccess)
+        chargeBoxIDsInFailure: _.uniq(sendResult.objectIDsInFailure),
+        chargeBoxIDsInSuccess: _.uniq(sendResult.objectIDsInFailure)
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {

@@ -142,7 +142,7 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async pullLocations(partial = true): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -201,7 +201,7 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async pullSessions(): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -254,7 +254,7 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async pullCdrs(): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
