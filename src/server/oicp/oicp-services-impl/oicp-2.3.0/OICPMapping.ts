@@ -7,6 +7,7 @@ import BackendError from '../../../../exception/BackendError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import Constants from '../../../../utils/Constants';
 import Countries from 'i18n-iso-countries';
+import CountryLanguage from 'country-language';
 import { DataResult } from '../../../../types/DataResult';
 import OICPUtils from '../../OICPUtils';
 import { ServerAction } from '../../../../types/Server';
@@ -91,7 +92,7 @@ export default class OICPMapping {
     evse.HardwareManufacturer = chargingStation.chargePointVendor; // Optional
     evse.ChargingStationImage; // Optional
     evse.SubOperatorName; // Optional
-    evse.Address = OICPMapping.getOICPAddressIso19773FromSiteArea(siteArea);
+    evse.Address = OICPMapping.getOICPAddressIso19773FromSiteArea(siteArea, options.countryID);
     evse.GeoCoordinates = OICPMapping.convertCoordinates2OICPGeoCoordinates(chargingStation.coordinates, OICPGeoCoordinatesResponseFormat.DecimalDegree); // Optional
     evse.Plugs = [OICPMapping.convertConnector2OICPPlug(connector)];
     evse.DynamicPowerLevel; // Optional
@@ -351,7 +352,7 @@ export default class OICPMapping {
     }
   }
 
-  static getOICPAddressIso19773FromSiteArea(siteArea: SiteArea): OICPAddressIso19773 {
+  static getOICPAddressIso19773FromSiteArea(siteArea: SiteArea, countryID: string): OICPAddressIso19773 {
     let address: Address;
     if (siteArea.address) {
       address = siteArea.address;
@@ -359,7 +360,7 @@ export default class OICPMapping {
       address = siteArea.site.address;
     }
     const oicpAddress: OICPAddressIso19773 = {} as OICPAddressIso19773;
-    oicpAddress.Country = OICPMapping.convertCountry2CountryCode(address.country); // OICP expects Alpha-3 county code.
+    oicpAddress.Country = OICPMapping.convertCountry2CountryCode(address.country, countryID); // OICP expects Alpha-3 county code.
     oicpAddress.City = address.city;
     oicpAddress.Street = `${address.address1} ${address.address2}`;
     oicpAddress.PostalCode = address.postalCode;
@@ -373,7 +374,7 @@ export default class OICPMapping {
   }
 
   // The CountryCodeType allows for Alpha-3 country codes. For Alpha-3 (three-letter) country codes as defined in ISO 3166-1. Example: FRA France
-  static convertCountry2CountryCode(country: string): OICPCountryCode {
+  static convertCountry2CountryCode(country: string, countryID: string): OICPCountryCode {
     // Check input parameter
     if (!country) {
       throw new BackendError({
@@ -382,7 +383,8 @@ export default class OICPMapping {
         module: MODULE_NAME, method: 'convertCountry2CountryCode',
       });
     }
-    const countryCode = Countries.getAlpha3Code(country, 'en');
+    const countryLanguage = CountryLanguage.getCountryLanguages(countryID, (err, languages) => languages[0].iso639_1);
+    const countryCode = Countries.getAlpha3Code(country, countryLanguage);
     // Check result
     if (!countryCode) {
       throw new BackendError({
