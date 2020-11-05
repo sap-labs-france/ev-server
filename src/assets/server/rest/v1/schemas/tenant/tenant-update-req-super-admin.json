@@ -10,5 +10,5 @@
         "address": { "$ref": "common.json#/definitions/address" },
         "components": { "$ref": "components.json#/definitions/components" }
     },
-    "required": ["name", "email", "subdomain"]
+    "required": ["id", "name", "email", "subdomain"]
 }
