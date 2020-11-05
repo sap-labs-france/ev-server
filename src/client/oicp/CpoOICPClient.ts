@@ -1,3 +1,4 @@
+import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OICPActionType, OICPPushEvseDataCpoSend } from '../../types/oicp/OICPEvseData';
 import { OICPAuthorizeStartCpoReceive, OICPAuthorizeStartCpoSend, OICPAuthorizeStopCpoReceive, OICPAuthorizeStopCpoSend } from '../../types/oicp/OICPAuthorize';
 import { OICPChargingNotification, OICPCode, OICPErrorClass } from '../../types/oicp/OICPStatusCode';
@@ -10,7 +11,6 @@ import { OICPSession, OICPSessionStatus } from '../../types/oicp/OICPSession';
 import Transaction, { TransactionAction } from '../../types/Transaction';
 
 import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
@@ -482,6 +482,45 @@ export default class CpoOICPClient extends OICPClient {
     await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
     // Return result
     return sendResult;
+  }
+
+  /**
+   * Update EVSE Status
+   */
+  async updateEVSEStatus(chargingStation: ChargingStation, connector: Connector): Promise<OICPAcknowledgment> {
+    if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: ServerAction.OICP_UPDATE_EVSE_STATUS,
+        message: 'Charging Station must be associated to a site area',
+        module: MODULE_NAME, method: 'updateEVSEStatus',
+      });
+    }
+    if (!chargingStation.issuer) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: ServerAction.OICP_UPDATE_EVSE_STATUS,
+        message: 'Only charging Station issued locally can be exposed to Hubject',
+        module: MODULE_NAME, method: 'updateEVSEStatus',
+      });
+    }
+    if (!chargingStation.public) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: ServerAction.OICP_UPDATE_EVSE_STATUS,
+        message: 'Private charging Station cannot be exposed to Hubject',
+        module: MODULE_NAME, method: 'updateEVSEStatus',
+      });
+    }
+    // Define get option
+    const options = {
+      addChargeBoxID: true,
+      countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
+      partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
+    };
+    const evseStatus = OICPMapping.convertConnector2EvseStatus(this.tenant, chargingStation, connector, options);
+    const response = await this.pushEvseStatus([evseStatus], OICPActionType.update);
+    return response;
   }
 
   /**

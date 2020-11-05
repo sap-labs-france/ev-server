@@ -136,21 +136,32 @@ export default class OICPMapping {
        // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
     const evseStatuses = connectors.map((connector) => {
-      const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
-      const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
-      evseStatus.EvseID = evseID;
-      evseStatus.EvseStatus = OICPMapping.convertStatus2OICPEvseStatus(connector.status);
-
-      // Check addChargeBoxID flag
-      if (options && options.addChargeBoxID) {
-        evseStatus.chargeBoxId = chargingStation.id;
-      }
-
+      const evseStatus = OICPMapping.convertConnector2EvseStatus(tenant, chargingStation, connector, options);
       return evseStatus;
     });
     // Return all EVSE Statuses
     return evseStatuses;
   }
+
+  /**
+   * Convert Connector to EVSE Status
+   * @param {Tenant} tenant
+   * @param {*} connector
+   * @return Array of OICP EVSE Statuses
+   */
+  static convertConnector2EvseStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
+   const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+   const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
+   evseStatus.EvseID = evseID;
+   evseStatus.EvseStatus = OICPMapping.convertStatus2OICPEvseStatus(connector.status);
+
+   // Check addChargeBoxID flag
+   if (options && options.addChargeBoxID) {
+     evseStatus.chargeBoxId = chargingStation.id;
+   }
+
+   return evseStatus;
+}
 
   /**
    * Get evses from SiteArea

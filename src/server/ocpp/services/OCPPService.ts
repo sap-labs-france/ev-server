@@ -12,6 +12,7 @@ import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
+import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
 import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -24,6 +25,8 @@ import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
+import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
+import { OICPRole } from '../../../types/oicp/OICPRole';
 import RegistrationToken from '../../../types/RegistrationToken';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import { ServerAction } from '../../../types/Server';
@@ -1002,6 +1005,8 @@ export default class OCPPService {
     await this.notifyStatusNotification(tenantID, chargingStation, statusNotification);
     // Send new status to IOP
     await this.updateOCPIStatus(tenantID, chargingStation, foundConnector);
+    // Send new status to Hubject
+    await this.updateOICPStatus(tenantID, chargingStation, foundConnector);
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
@@ -1097,6 +1102,27 @@ export default class OCPPService {
           module: MODULE_NAME, method: 'updateOCPIStatus',
           action: ServerAction.OCPI_PATCH_STATUS,
           message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+  }
+
+  private async updateOICPStatus(tenantID: string, chargingStation: ChargingStation, connector: Connector) {
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+    if (chargingStation.issuer && chargingStation.public && Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+      try {
+        const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
+        if (oicpClient) {
+          await oicpClient.updateEVSEStatus(chargingStation, connector);
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: tenantID,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'updateOICPStatus',
+          action: ServerAction.OICP_UPDATE_EVSE_STATUS,
+          message: `An error occurred while updating the charging station status of ${chargingStation.id}`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
