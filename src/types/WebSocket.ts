@@ -2,9 +2,9 @@ import WSClientConfiguration from './configuration/WSClientConfiguration';
 import WebSocket from 'ws';
 
 export enum MessageType {
-  CALL_MESSAGE = 2, // Client-to-Server
-  RESULT_MESSAGE = 3, // Server-to-Client
-  ERROR_MESSAGE = 4, // Server-to-Client
+  CALL_MESSAGE = 2, // Caller to Callee
+  CALL_RESULT_MESSAGE = 3, // Callee to Caller
+  CALL_ERROR_MESSAGE = 4, // Callee to Caller
 }
 
 export enum OcppErrorType {

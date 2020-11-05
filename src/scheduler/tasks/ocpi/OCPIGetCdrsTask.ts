@@ -30,7 +30,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_CDRS, error);
     }
   }
 
@@ -45,7 +45,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
           Logging.logDebug({
             tenantID: tenant.id,
             action: ServerAction.OCPI_GET_CDRS,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
           });
           return;
@@ -53,7 +53,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
           Logging.logDebug({
             tenantID: tenant.id,
             action: ServerAction.OCPI_GET_CDRS,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
           });
           return;
@@ -61,7 +61,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
         Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_GET_CDRS,
-          module: MODULE_NAME, method: 'patch',
+          module: MODULE_NAME, method: 'processOCPIEndpointatch',
           message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is being processed`
         });
         // Build OCPI Client
@@ -71,7 +71,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
         Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_GET_CDRS,
-          module: MODULE_NAME, method: 'patch',
+          module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is completed)`,
           detailedMessages: { result }
         });

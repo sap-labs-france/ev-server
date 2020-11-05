@@ -8,6 +8,7 @@ import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import { StatusCodes } from 'http-status-codes';
+import Utils from '../utils/Utils';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cluster from 'cluster';
@@ -18,11 +19,12 @@ import hpp from 'hpp';
 import http from 'http';
 import https from 'https';
 import locale from 'locale';
+import morgan from 'morgan';
 
 bodyParserXml(bodyParser);
 
 export default class ExpressTools {
-  public static initApplication(bodyLimit = '1mb'): express.Application {
+  public static initApplication(bodyLimit = '1mb', debug = false): express.Application {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -36,6 +38,18 @@ export default class ExpressTools {
       extended: false,
       limit: bodyLimit
     }));
+    // Debug
+    if (debug || Utils.isDevelopmentEnv()) {
+      app.use(morgan((tokens, req: Request, res: Response) =>
+        [
+          tokens.method(req, res),
+          tokens.url(req, res), '-',
+          tokens.status(req, res), '-',
+          tokens['response-time'](req, res) + 'ms', '-',
+          tokens.res(req, res, 'content-length') / 1000 + 'Kb',
+        ].join(' ')
+      ));
+    }
     app.use(hpp());
     app.use(bodyParser['xml']({
       limit: bodyLimit

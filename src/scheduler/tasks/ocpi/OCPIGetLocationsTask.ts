@@ -34,7 +34,6 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'get-locations');
@@ -62,7 +61,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
           tenantID: tenant.id,
           action: ServerAction.OCPI_GET_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
+          message: `The get Locations process for endpoint ${ocpiEndpoint.name} is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
