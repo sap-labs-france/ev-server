@@ -180,6 +180,7 @@
     "@types/ws": "^7.2.9",
     "@typescript-eslint/eslint-plugin": "^4.6.1",
     "@typescript-eslint/parser": "^4.6.1",
+    "autocannon": "^6.5.0",
     "chai": "^4.2.0",
     "chai-datetime": "^1.7.0",
     "chai-subset": "^1.6.0",
