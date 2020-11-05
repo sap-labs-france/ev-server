@@ -281,7 +281,7 @@ export default abstract class OCPIClient {
     }
     throw new BackendError({
       action, message: `No endpoint URL defined for service ${service}`,
-      module: MODULE_NAME, method: 'getLocalPartyID',
+      module: MODULE_NAME, method: 'getEndpointUrl',
     });
   }
 
