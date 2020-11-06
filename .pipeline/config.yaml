@@ -13,7 +13,8 @@ stages:
 
   IPScan and PPMS:
     whitesourceProductName: 'SHC - SAP E-MOBILITY BACKEND 1.0'
-    whitesourceProjectNames: ['SAP E-MOBILITY BACKEND 1.0'] # needed for automation of mapping requests # TODO
+    whitesourceProjectNames: ['ev-server -1'] # needed for automation of mapping requests
+    whitesourceProductVersion: '1'
     whitesourceProductToken: '1bc6180baace4de497ac4fcf27264aad435caf91baf648bab8171559467f4f49'
     whitesourceUserTokenCredentialsId: 'whitesourceUserTokenEmobility'
     executeWhitesourceScan: true
