@@ -86,7 +86,7 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Pushing of ${sendResult.logs.length} tokens has been done with errors (see details)`,
+        message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendTokens'
       });
@@ -95,7 +95,7 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Pushing of ${sendResult.logs.length} tokens has been done successfully (see details)`,
+        message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendTokens'
       });
