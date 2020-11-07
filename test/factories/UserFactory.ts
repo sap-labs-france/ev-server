@@ -32,6 +32,7 @@ const userFactory = Factory.define('user')
     sendSessionNotStarted: false,
     sendCarCatalogSynchronizationFailed: false,
     sendEndUserErrorNotification: false,
+    sendBillingNewInvoice: false
   }))
   .attr('role', 'B')
   .attr('status', 'A')

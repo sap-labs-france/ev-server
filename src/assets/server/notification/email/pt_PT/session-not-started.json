@@ -22,10 +22,10 @@
       "Você não iniciou a sessão na estação de carregamento <b> '<%- chargeBoxID %>' </b>, conector <b> '<% -connectorId %>' </b>.",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "View <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Com os melhores cumprimentos,",
       "EV Admins."

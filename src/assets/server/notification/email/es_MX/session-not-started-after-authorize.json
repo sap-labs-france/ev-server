@@ -22,10 +22,10 @@
       "Insignó en la estación de carga <strong> '<% - chargeBoxID%>' </strong> pero no inició ninguna sesión.",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "Ver <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Atentamente,",
       "EV Admins."

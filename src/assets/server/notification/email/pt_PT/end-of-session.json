@@ -27,10 +27,10 @@
       { "label": "Tempo Total de Inatividade", "value": "<%- totalInactivity %>" },
       { "label": "Nível de Bateria", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
-    "action": {
+    "actions": [{
       "title": "Ver Sessões",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "<%- (alternateUser ? 'O utilizador <b> '+ (alternateUser.firstName? AlternateUser.name +' '+ alternateUser.firstName: alternateUser.name) +' </b> interrompeu a sua sessão.' : '') %>",
       "",

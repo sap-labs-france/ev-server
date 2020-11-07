@@ -380,6 +380,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     try {
       const stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
+      invoice.downloadUrl = stripeInvoice.invoice_pdf;
+      invoice.status = BillingInvoiceStatus.OPEN;
+      invoice.downloadable = true;
+      await BillingStorage.saveInvoice(this.tenantID, invoice);
+      const invoicedocument = await this.downloadInvoiceDocument(invoice);
+      await BillingStorage.saveInvoiceDocument(this.tenantID, invoicedocument);
       return stripeInvoice.invoice_pdf;
     } catch (error) {
       throw new BackendError({
@@ -467,7 +473,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     };
     // Get the draft invoice
     const draftInvoices = await BillingStorage.getInvoices(this.tenantID,
-      { invoiceStatus: [BillingInvoiceStatus.DRAFT], userIDs: [transaction.userID] }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { invoiceStatus: [BillingInvoiceStatus.DRAFT], userIDs: [transaction.userID] }, { limit: 1, skip: 0, sort: { createdOn: -1 } });
     // Set
     invoice.invoice = draftInvoices.count > 0 ? draftInvoices.result[0] : null;
     if (invoice.invoice) {

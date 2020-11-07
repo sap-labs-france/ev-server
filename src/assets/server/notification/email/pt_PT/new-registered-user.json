@@ -23,10 +23,10 @@
       "",
       "Clique no link abaixo para ativá-lo."
     ],
-    "action": {
+    "actions": [{
       "title": "Ative sua conta",
       "url": "<%- evseDashboardVerifyEmailURL %>"
-    },
+    }],
     "afterActionLines": [
       "Com os melhores cumprimentos,",
       "EV Admins."

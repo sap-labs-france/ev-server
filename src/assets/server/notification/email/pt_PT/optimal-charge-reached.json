@@ -24,10 +24,10 @@
     "stats": [
       { "label": "Nível de Bateria", "value": "<%- stateOfCharge %> %" }
     ],
-    "action": {
+    "actions": [{
       "title": "Ver sessões",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Com os melhores cumprimentos,",
       "EV Admins."
