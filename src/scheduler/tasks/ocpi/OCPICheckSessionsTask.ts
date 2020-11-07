@@ -70,7 +70,7 @@ export default class OCPICheckSessionsTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_SESSIONS,
-          message: `The check sessions process for endpoint ${ocpiEndpoint.name} is completed)`,
+          message: `The check sessions process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
