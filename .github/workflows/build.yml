@@ -20,7 +20,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: npm install
-      run: npm install --package-lock-only && npm ci
+      run: npm ci
     - name: npm run build:prod
       run: npm run build:prod
 
@@ -39,6 +39,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: npm install
-      run: npm install --package-lock-only && npm ci
+      run: npm ci
     - name: npm build:prod
       run: npm run build:prod

@@ -217,7 +217,7 @@
         }
       },
       {
-        "name": "OCPIPatchLocationsTask",
+        "name": "OCPIPushLocationsTask",
         "active": false,
         "periodicity": "0 1 * * *",
         "config": {}

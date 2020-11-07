@@ -78,7 +78,6 @@ build/config.gypi
 
  *.orig
 /yarn.lock
-/package-lock.json
 
 .DS_Store
 Thumbs.db

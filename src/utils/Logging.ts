@@ -698,7 +698,8 @@ export default class Logging {
     try {
       // Decode the token
       if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        return jwtDecode(req.headers.authorization.slice(7));
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        return jwtDecode(req.headers.authorization.slice(7)) as UserToken;
       }
     } catch (error) {
       // Do nothing
