@@ -59,6 +59,42 @@ export default class UtilsSecurity {
     }
   }
 
+  // TODO: To remove in the next mobile deployment > 1.3.22
+  static filterSortForMobile(request, filteredRequest): void {
+    // Exist?
+    if (request.SortFields) {
+      // Sanitize
+      request.SortFields = sanitize(request.SortFields);
+      request.SortDirs = sanitize(request.SortDirs);
+      // Array?
+      if (Array.isArray(request.SortFields) && request.SortFields.length > 0) {
+        // Init
+        filteredRequest.Sort = {};
+        // Build
+        for (let i = 0; i < request.SortFields.length; i++) {
+          let sortField = request.SortFields[i];
+          // Check field ID
+          if (sortField === 'id') {
+            // In MongoDB it's '_id'
+            sortField = '_id';
+          }
+          // Set
+          filteredRequest.Sort[sortField] = (request.SortDirs[i] === 'asc' ? 1 : -1);
+        }
+      } else {
+        // Init
+        filteredRequest.Sort = {};
+        // Check field ID
+        if (request.SortFields === 'id') {
+          // In MongoDB it's '_id'
+          request.SortFields = '_id';
+        }
+        // Set
+        filteredRequest.Sort[request.SortFields] = (request.SortDirs === 'asc' ? 1 : -1);
+      }
+    }
+  }
+
   static filterSkipAndLimit(request: any, filteredRequest: any): void {
     // Limit
     UtilsSecurity.filterLimit(request, filteredRequest);
