@@ -953,7 +953,7 @@ export default class CpoOCPIClient extends OCPIClient {
 
   // Get ChargeBoxIDs in failure from previous job
   private getChargeBoxIDsInFailure(): string[] {
-    if (this.ocpiEndpoint.lastPatchJobResult && this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure) {
+    if (this.ocpiEndpoint.lastPatchJobResult?.chargeBoxIDsInFailure) {
       return this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure;
     }
     return [];

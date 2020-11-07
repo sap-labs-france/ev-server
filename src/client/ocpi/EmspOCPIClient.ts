@@ -51,13 +51,13 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async sendTokens(): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
       logs: [],
-      tokenIDsInFailure: [],
-      tokenIDsInSuccess: []
+      objectIDsInFailure: [],
+      objectIDsInSuccess: []
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
@@ -68,13 +68,13 @@ export default class EmspOCPIClient extends OCPIClient {
       try {
         await this.pushToken(token);
         sendResult.success++;
-        sendResult.tokenIDsInSuccess.push(token.uid);
+        sendResult.objectIDsInSuccess.push(token.uid);
         sendResult.logs.push(
           `Token ID '${token.uid}' successfully updated`
         );
       } catch (error) {
         sendResult.failure++;
-        sendResult.tokenIDsInFailure.push(token.uid);
+        sendResult.objectIDsInFailure.push(token.uid);
         sendResult.logs.push(
           `Failed to update Token ID '${token.uid}': ${error.message}`
         );
@@ -86,7 +86,7 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
+        message: `Pushing of ${sendResult.logs.length} tokens has been done with errors (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendTokens'
       });
@@ -95,7 +95,7 @@ export default class EmspOCPIClient extends OCPIClient {
       Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
+        message: `Pushing of ${sendResult.logs.length} tokens has been done successfully (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendTokens'
       });
@@ -108,8 +108,8 @@ export default class EmspOCPIClient extends OCPIClient {
         'successNbr': sendResult.success,
         'failureNbr': sendResult.failure,
         'totalNbr': sendResult.total,
-        'tokenIDsInFailure': _.uniq(sendResult.tokenIDsInFailure),
-        'tokenIDsInSuccess': _.uniq(sendResult.tokenIDsInSuccess)
+        'tokenIDsInFailure': _.uniq(sendResult.objectIDsInFailure),
+        'tokenIDsInSuccess': _.uniq(sendResult.objectIDsInSuccess)
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
