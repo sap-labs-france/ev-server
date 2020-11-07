@@ -25,6 +25,12 @@ export default class UtilsSecurity {
   }
 
   static filterSort(request, filteredRequest): void {
+    // Deprecated sorting?
+    if (Utils.objectHasProperty(request, 'SortDirs')) {
+      this.filterOldSort(request, filteredRequest);
+      console.log('>>> Error usage of deprecated sorting');
+      return;
+    }
     // Exist?
     if (request.SortFields) {
       // Sanitize
@@ -53,7 +59,7 @@ export default class UtilsSecurity {
   }
 
   // TODO: To remove in the next mobile deployment > 1.3.22
-  static filterSortForMobile(request, filteredRequest): void {
+  static filterOldSort(request, filteredRequest): void {
     // Exist?
     if (request.SortFields) {
       // Sanitize
