@@ -72,7 +72,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_GET_TOKENS,
-          message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed)`,
+          message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
