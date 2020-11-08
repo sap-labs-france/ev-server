@@ -25,10 +25,10 @@
       "",
       "Faça login em sua conta e esteja ciente do contrato de licença de utilizador final mais recente."
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Com os melhores cumprimentos,",
       "EV Admins."

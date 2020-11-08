@@ -66,6 +66,10 @@
       "title": "Synchro Factures",
       "body": "Impossible de synchronizer {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     },
+    "billingNewInvoice": {
+      "title": "Nouvelle facture",
+      "body": "Une nouvelle facture ({{invoiceNumber}}) est disponible"
+    },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",
       "body": "'{{userName}}' a reporté: '{{errorTitle}}' - '{{errorDescription}}' dans l'organisation '{{tenantName}}'"

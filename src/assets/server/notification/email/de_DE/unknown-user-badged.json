@@ -21,10 +21,10 @@
       "",
       "An der Ladestation <strong>'<%- chargeBoxID %>'</strong> hat sich gerade ein unbekannter Nutzer mit der Badge-ID <strong>'<%- badgeID %>'</strong> angemeldet."
     ],
-    "action": {
+    "actions": [{
       "title": "Nutzer badge",
       "url": "<%- evseDashboardTagURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

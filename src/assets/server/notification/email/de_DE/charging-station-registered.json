@@ -21,10 +21,10 @@
       "",
       "Die Ladestation <strong>'<%- chargeBoxID %>'</strong> wurde gerade mit dem zentralen Server verbunden."
     ],
-    "action": {
+    "actions": [{
       "title": "View <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

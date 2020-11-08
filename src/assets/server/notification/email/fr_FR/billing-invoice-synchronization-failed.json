@@ -21,10 +21,10 @@
       "",
       "Impossible de synchroniser <%- nbrInvoicesInError %> facture(s) avec le système de facturation."
     ],
-    "action": {
+    "actions": [{
       "title": "Voir Réglages",
       "url": "<%- evseDashboardBillingURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

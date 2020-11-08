@@ -1,10 +1,10 @@
 {
-  "subject": "Bornes Hors Ligne",
-  "tenant": "",
+  "subject": "Faturação - Nova Fatura",
+  "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Bornes Hors Ligne",
+      "title": "Faturação - Nova Fatura",
       "image": {
         "left": {
           "height": 60,
@@ -17,21 +17,22 @@
       }
     },
     "beforeActionLines": [
-      "Cher Administrateur,",
+      "Caro <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Les bornes suivantes sont hors ligne dans votre organisation : <strong><%- chargeBoxIDs %></strong>",
-      ""
+      "Uma nova fatura está disponível : <%- invoice.number %>."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Consultar",
+      "url": "<%- evseDashboardInvoiceURL %>"
+    }, {
+      "title": "Download",
+      "url": "<%- invoiceDownloadUrl %>"
     }],
     "afterActionLines": [
-      "Cordialement,",
+      "Com os melhores cumprimentos,",
       "EV Admins."
     ],
     "footer": {
     }
   }
 }
-
