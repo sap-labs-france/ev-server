@@ -289,7 +289,7 @@ export default class WSClient {
 ].forEach((property) => {
   Object.defineProperty(WSClient.prototype, property, {
     enumerable: true,
-    get(): typeof property {
+    get() {
       return this.ws.property;
     }
   });
