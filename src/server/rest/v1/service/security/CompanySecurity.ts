@@ -78,6 +78,7 @@ export default class CompanySecurity {
       filteredCompany = {};
       filteredCompany.id = company.id;
       filteredCompany.name = company.name;
+      filteredCompany.issuer = company.issuer;
       filteredCompany.logo = company.logo;
       filteredCompany.address = UtilsSecurity.filterAddressRequest(company.address);
       if (company.sites) {
@@ -96,7 +97,6 @@ export default class CompanySecurity {
 
   public static filterCompaniesResponse(companies: DataResult<Company>, loggedUser: UserToken): void {
     const filteredCompanies = [];
-
     if (!companies.result) {
       return null;
     }

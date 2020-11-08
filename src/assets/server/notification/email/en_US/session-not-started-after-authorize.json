@@ -22,10 +22,10 @@
       "You badged on the charging station <strong>'<%- chargeBoxID %>'</strong> but no session has been started.",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "View <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

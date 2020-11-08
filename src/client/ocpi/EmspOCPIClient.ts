@@ -51,13 +51,13 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async sendTokens(): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
       logs: [],
-      tokenIDsInFailure: [],
-      tokenIDsInSuccess: []
+      objectIDsInFailure: [],
+      objectIDsInSuccess: []
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
@@ -68,13 +68,13 @@ export default class EmspOCPIClient extends OCPIClient {
       try {
         await this.pushToken(token);
         sendResult.success++;
-        sendResult.tokenIDsInSuccess.push(token.uid);
+        sendResult.objectIDsInSuccess.push(token.uid);
         sendResult.logs.push(
           `Token ID '${token.uid}' successfully updated`
         );
       } catch (error) {
         sendResult.failure++;
-        sendResult.tokenIDsInFailure.push(token.uid);
+        sendResult.objectIDsInFailure.push(token.uid);
         sendResult.logs.push(
           `Failed to update Token ID '${token.uid}': ${error.message}`
         );
@@ -108,8 +108,8 @@ export default class EmspOCPIClient extends OCPIClient {
         'successNbr': sendResult.success,
         'failureNbr': sendResult.failure,
         'totalNbr': sendResult.total,
-        'tokenIDsInFailure': _.uniq(sendResult.tokenIDsInFailure),
-        'tokenIDsInSuccess': _.uniq(sendResult.tokenIDsInSuccess)
+        'tokenIDsInFailure': _.uniq(sendResult.objectIDsInFailure),
+        'tokenIDsInSuccess': _.uniq(sendResult.objectIDsInSuccess)
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
@@ -142,7 +142,7 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async pullLocations(partial = true): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -160,7 +160,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const sites = await SiteStorage.getSites(this.tenant.id, { companyIDs: [company.id] },
       Constants.DB_PARAMS_MAX_LIMIT);
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -195,13 +195,13 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
+    } while (nextResult);
     return sendResult;
   }
 
   async pullSessions(): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -212,7 +212,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -247,14 +247,14 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
+    } while (nextResult);
     sendResult.total = sendResult.failure + sendResult.success;
     return sendResult;
   }
 
   async pullCdrs(): Promise<OCPIJobResult> {
     // Result
-    const sendResult = {
+    const sendResult: OCPIJobResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -265,7 +265,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -300,7 +300,7 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
+    } while (nextResult);
     sendResult.total = sendResult.failure + sendResult.success;
     return sendResult;
   }
@@ -333,8 +333,8 @@ export default class EmspOCPIClient extends OCPIClient {
       } as Site;
       if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
         site.address.coordinates = [
-          location.coordinates.longitude,
-          location.coordinates.latitude
+          Utils.convertToFloat(location.coordinates.longitude),
+          Utils.convertToFloat(location.coordinates.latitude)
         ];
       }
       site.id = await SiteStorage.saveSite(this.tenant.id, site, false);
@@ -363,8 +363,8 @@ export default class EmspOCPIClient extends OCPIClient {
       } as SiteArea;
       if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
         siteArea.address.coordinates = [
-          location.coordinates.longitude,
-          location.coordinates.latitude
+          Utils.convertToFloat(location.coordinates.longitude),
+          Utils.convertToFloat(location.coordinates.latitude)
         ];
       }
       siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant.id, siteArea, false);

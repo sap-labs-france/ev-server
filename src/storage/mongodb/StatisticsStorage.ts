@@ -10,7 +10,7 @@ const MODULE_NAME = 'StatisticsStorage';
 export default class StatisticsStorage {
   static async getChargingStationStats(tenantID: string, filters: StatisticFilter, groupBy: string) {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStationStats');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStationStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -61,7 +61,6 @@ export default class StatisticsStorage {
     aggregation.push({
       $match: match
     });
-
     // Group
     switch (groupBy) {
       // By Consumption
@@ -74,7 +73,6 @@ export default class StatisticsStorage {
           }
         });
         break;
-
       // By Usage
       case StatsGroupBy.USAGE:
         aggregation.push({
@@ -84,7 +82,6 @@ export default class StatisticsStorage {
           }
         });
         break;
-
       // By Inactivity
       case StatsGroupBy.INACTIVITY:
         aggregation.push({
@@ -94,7 +91,6 @@ export default class StatisticsStorage {
           }
         });
         break;
-
       // By Transactions
       case StatsGroupBy.TRANSACTIONS:
         aggregation.push({
@@ -104,7 +100,6 @@ export default class StatisticsStorage {
           }
         });
         break;
-
       // By Pricing
       case StatsGroupBy.PRICING:
         aggregation.push({
@@ -115,7 +110,6 @@ export default class StatisticsStorage {
         });
         break;
     }
-
     // Sort
     aggregation.push({
       $sort: { '_id.month': 1, '_id.unit': 1, '_id.chargeBox': 1 }
@@ -125,13 +119,13 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getChargingStationStats', uniqueTimerID, { filters, groupBy });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, transactionStatsMDB);
     return transactionStatsMDB;
   }
 
   static async getUserStats(tenantID: string, filters: StatisticFilter, groupBy: string) {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserStats');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -182,7 +176,6 @@ export default class StatisticsStorage {
     aggregation.push({
       $match: match
     });
-
     // Group
     switch (groupBy) {
       // By Consumption
@@ -195,7 +188,6 @@ export default class StatisticsStorage {
           }
         });
         break;
-
       // By Usage
       case StatsGroupBy.USAGE:
         aggregation.push({
@@ -205,7 +197,6 @@ export default class StatisticsStorage {
           }
         });
         break;
-
       // By Inactivity
       case StatsGroupBy.INACTIVITY:
         aggregation.push({
@@ -215,7 +206,6 @@ export default class StatisticsStorage {
           }
         });
         break;
-
       // By Transactions
       case StatsGroupBy.TRANSACTIONS:
         aggregation.push({
@@ -225,7 +215,6 @@ export default class StatisticsStorage {
           }
         });
         break;
-
       // By Pricing
       case StatsGroupBy.PRICING:
         aggregation.push({
@@ -236,7 +225,6 @@ export default class StatisticsStorage {
         });
         break;
     }
-
     // Resolve Users
     aggregation.push({
       $lookup: {
@@ -259,7 +247,7 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUserStats', uniqueTimerID, { filters, groupBy });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getUserStats', uniqueTimerID, transactionStatsMDB);
     return transactionStatsMDB;
   }
 }

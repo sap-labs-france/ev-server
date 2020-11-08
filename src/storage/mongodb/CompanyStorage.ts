@@ -16,29 +16,24 @@ export default class CompanyStorage {
 
   public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Company> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompany');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompany');
     // Reuse
     const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
-    let company: Company = null;
-    // Check
-    if (companiesMDB && companiesMDB.count > 0) {
-      company = companiesMDB.result[0];
-    }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getCompany', uniqueTimerID, { id });
-    return company;
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompany', uniqueTimerID, companiesMDB);
+    return companiesMDB.count === 1 ? companiesMDB.result[0] : null;
   }
 
   public static async getCompanyLogo(tenantID: string, id: string): Promise<{ id: string; logo: string }> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompanyLogo');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
     const companyLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenantID, 'companylogos')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getCompanyLogo', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanyLogo', uniqueTimerID, companyLogoMDB);
     return {
       id: id,
       logo: companyLogoMDB ? companyLogoMDB.logo : null
@@ -47,7 +42,7 @@ export default class CompanyStorage {
 
   public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo = true): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveCompany');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set
@@ -79,10 +74,10 @@ export default class CompanyStorage {
     );
     // Save Logo
     if (saveLogo) {
-      await CompanyStorage._saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);
+      await CompanyStorage.saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveCompany', uniqueTimerID, { companyToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCompany', uniqueTimerID, companyMDB);
     return companyMDB._id.toHexString();
   }
 
@@ -91,7 +86,7 @@ export default class CompanyStorage {
       locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompanies');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
@@ -158,6 +153,7 @@ export default class CompanyStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesCountMDB);
       return {
         count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
         result: []
@@ -207,26 +203,25 @@ export default class CompanyStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const companies = await global.database.getCollection<any>(tenantID, 'companies')
+    const companiesMDB = await global.database.getCollection<any>(tenantID, 'companies')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getCompanies', uniqueTimerID,
-      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesMDB);
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
         (companiesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : companiesCountMDB[0].count) : 0),
-      result: companies
+      result: companiesMDB
     };
   }
 
   public static async deleteCompany(tenantID: string, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteCompany');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete sites associated with Company
@@ -238,12 +233,12 @@ export default class CompanyStorage {
     await global.database.getCollection<any>(tenantID, 'companylogos')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
   }
 
-  private static async _saveCompanyLogo(tenantID: string, companyID: string, companyLogoToSave: string): Promise<void> {
+  private static async saveCompanyLogo(tenantID: string, companyID: string, companyLogoToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveCompanyLogo');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
@@ -252,6 +247,6 @@ export default class CompanyStorage {
       { $set: { logo: companyLogoToSave } },
       { upsert: true });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveCompanyLogo', uniqueTimerID, {});
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCompanyLogo', uniqueTimerID, companyLogoToSave);
   }
 }

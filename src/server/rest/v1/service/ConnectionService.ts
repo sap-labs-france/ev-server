@@ -104,7 +104,8 @@ export default class ConnectionService {
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleCreateConnection',
       message: `Connection to '${connection.connectorId}' has been created successfully`,
-      action: action
+      action: action,
+      detailedMessages: { connection }
     });
     // Ok
     res.status(StatusCodes.OK).json(Object.assign({ id: req.user.tenantID }, Constants.REST_RESPONSE_SUCCESS));

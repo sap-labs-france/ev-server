@@ -21,10 +21,10 @@
       "",
       "No se pueden sincronizar <% - nbrUsersInError%> usuarios con el sistema de facturación."
     ],
-    "action": {
+    "actions": [{
       "title": "Ver configuración",
       "url": "<%- evseDashboardBillingURL %>"
-    },
+    }],
     "afterActionLines": [
       "Atentamente,",
       "EV Admins."

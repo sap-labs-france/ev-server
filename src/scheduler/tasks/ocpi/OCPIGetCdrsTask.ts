@@ -30,7 +30,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_CDRS, error);
     }
   }
 
@@ -72,7 +72,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
           tenantID: tenant.id,
           action: ServerAction.OCPI_GET_CDRS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is completed)`,
+          message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
