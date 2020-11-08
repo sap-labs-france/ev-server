@@ -290,7 +290,7 @@ export default class WSClient {
   Object.defineProperty(WSClient.prototype, property, {
     enumerable: true,
     get() {
-      return this.ws.property;
+      return this.ws[property];
     }
   });
 });
