@@ -27,10 +27,10 @@
       { "label": "Inactividad total", "value": "<%- totalInactivity %>" },
       { "label": "Nivel de batería", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
-    "action": {
+    "actions": [{
       "title": "Ver sesión",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "<%- (alternateUser ? 'L&#39;utilisateur <strong>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</strong> detuvo su sesión.' : '') %>",
       "",

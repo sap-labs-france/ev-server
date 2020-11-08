@@ -21,10 +21,10 @@
       "",
       "Es ist nicht möglich <%- nbrUsersInError %> Nutzer mit dem Fakturierungsservice zu synchronisieren."
     ],
-    "action": {
+    "actions": [{
       "title": "Einstellungen anzeigen",
       "url": "<%- evseDashboardBillingURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

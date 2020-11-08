@@ -26,10 +26,10 @@
       { "label": "Estimated Duration", "value": "<%- totalDuration %>" },
       { "label": "Battery Level", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
-    "action": {
+    "actions": [{
       "title": "View Session",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "You can now stop the session and move your vehicle.",
       "",

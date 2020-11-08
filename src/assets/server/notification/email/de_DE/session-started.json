@@ -21,10 +21,10 @@
       "",
       "Ihr elektrisches Fahrzeug wurde erfolgreich mit der Ladestation <strong>'<%- chargeBoxID %>'</strong>, Ladepunkt <strong>'<%- connectorId %>'</strong> verbunden."
     ],
-    "action": {
+    "actions": [{
       "title": "Ladevorgang anzeigen",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

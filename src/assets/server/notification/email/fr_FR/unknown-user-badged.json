@@ -21,10 +21,10 @@
       "",
       "Un utilisateur inconnu vient juste de badger sur <strong>'<%- chargeBoxID %>'</strong> avec le badge ID <strong>'<%- badgeID %>'</strong>."
     ],
-    "action": {
+    "actions": [{
       "title": "Editer Badge",
       "url": "<%- evseDashboardTagURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

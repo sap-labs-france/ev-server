@@ -35,10 +35,10 @@
         "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>"
       }
     ],
-    "action": {
+    "actions": [{
       "title": "Ladevorgang anzeigen",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Sie können den Ladevorgang jetzt beenden und ihr Fahrzeug entfernen.",
       "",
