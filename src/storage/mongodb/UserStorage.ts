@@ -273,6 +273,7 @@ export default class UserStorage {
         sendSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionNotStarted) : false,
         sendCarCatalogSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendCarCatalogSynchronizationFailed) : false,
         sendEndUserErrorNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndUserErrorNotification) : false,
+        sendComputeAndApplyChargingProfilesFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendComputeAndApplyChargingProfilesFailed) : false,
       },
       deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false
     };
@@ -1138,7 +1139,8 @@ export default class UserStorage {
         sendBillingSynchronizationFailed: false,
         sendSessionNotStarted: false,
         sendCarCatalogSynchronizationFailed: false,
-        sendEndUserErrorNotification: false
+        sendEndUserErrorNotification: false,
+        sendComputeAndApplyChargingProfilesFailed: false
       },
       role: UserRole.BASIC,
       status: UserStatus.PENDING,

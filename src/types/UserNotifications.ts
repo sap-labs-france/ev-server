@@ -18,6 +18,7 @@ export default interface UserNotifications {
   sendOfflineChargingStations: boolean;
   sendBillingSynchronizationFailed: boolean;
   sendCarCatalogSynchronizationFailed: boolean;
+  sendComputeAndApplyChargingProfilesFailed: boolean;
   sendSessionNotStarted: boolean;
   sendEndUserErrorNotification: boolean;
 }
@@ -59,6 +60,7 @@ export enum UserNotificationType {
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
+  CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'computeAndApplyChargingProfilesFailed',
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
   END_USER_ERROR_NOTIFICATION = 'EndUserErrorNotification'
 }
@@ -224,6 +226,12 @@ export interface BillingInvoiceSynchronizationFailedNotification extends BaseNot
 }
 export interface CarCatalogSynchronizationFailedNotification extends BaseNotification {
   nbrCarsInError: number;
+  evseDashboardURL: string;
+}
+
+export interface computeAndApplyChargingProfilesFailedNotification extends BaseNotification {
+  siteAreaName: string;
+  chargeBoxID: string;
   evseDashboardURL: string;
 }
 export interface NotificationSource {

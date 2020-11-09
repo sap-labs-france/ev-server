@@ -66,6 +66,8 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
         sendOfflineChargingStations: user.notifications?.sendOfflineChargingStations ? user.notifications.sendOfflineChargingStations : false,
         sendBillingSynchronizationFailed: user.notifications?.sendBillingSynchronizationFailed ? user.notifications.sendBillingSynchronizationFailed : false,
         sendCarCatalogSynchronizationFailed: user.notifications?.sendCarCatalogSynchronizationFailed ? user.notifications.sendCarCatalogSynchronizationFailed : false,
+        sendComputeAndApplyChargingProfilesFailed: user.notifications?.sendComputeAndApplyChargingProfilesFailed ?
+          user.notifications.sendComputeAndApplyChargingProfilesFailed : false,
         sendEndUserErrorNotification: user.notifications?.sendEndUserErrorNotification ? user.notifications.sendEndUserErrorNotification : false,
       };
       // Add new prop
@@ -82,7 +84,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.4';
+    return '1.5';
   }
 
   getName(): string {
