@@ -7,7 +7,6 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import Constants from '../../../../utils/Constants';
 import { DataResult } from '../../../../types/DataResult';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import I18nManager from '../../../../utils/I18nManager';
 import { Log } from '../../../../types/Log';
 import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
@@ -23,16 +22,11 @@ const MODULE_NAME = 'LoggingService';
 export default class LoggingService {
   public static async handleGetLogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get logs
-    const loggings = await LoggingService.getLogs(req);
-    // Filter
-    LoggingSecurity.filterLogsResponse(loggings, req.user);
-    // Return
-    res.json(loggings);
+    res.json(await LoggingService.getLogs(req));
     next();
   }
 
   public static async handleExportLogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Export
     await UtilsService.exportToCSV(req, res, 'exported-logs.csv',
       LoggingService.getLogs.bind(this), LoggingService.convertToCSV.bind(this));
   }
@@ -41,29 +35,25 @@ export default class LoggingService {
     // Filter
     const filteredRequest = LoggingSecurity.filterLogRequest(req.query);
     // Get logs
-    const logging = await LoggingStorage.getLog(req.user.tenantID, filteredRequest.ID);
+    const logging = await LoggingStorage.getLog(req.user.tenantID, filteredRequest.ID, [
+      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
+      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+    ]);
     // Check auth
     if (!Authorizations.canReadLog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.LOGGING,
-        module: MODULE_NAME,
-        method: 'handleGetLog'
+        action: Action.READ, entity: Entity.LOGGING,
+        module: MODULE_NAME, method: 'handleGetLog'
       });
     }
     // Return
-    res.json(
-      LoggingSecurity.filterLogResponse(
-        logging, req.user, true
-      )
-    );
+    res.json(logging);
     next();
   }
 
   private static convertToCSV(loggedUser: UserToken, loggings: Log[], writeHeader = true): string {
-    const i18nManager = new I18nManager(loggedUser.locale);
     let csv = '';
     // Header
     if (writeHeader) {
@@ -136,7 +126,10 @@ export default class LoggingService {
       skip: filteredRequest.Skip,
       sort: filteredRequest.Sort,
       onlyRecordCount: filteredRequest.OnlyRecordCount
-    });
+    }, [
+      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
+      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages'
+    ]);
     return loggings;
   }
 }

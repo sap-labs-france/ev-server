@@ -37,6 +37,7 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import countries from 'i18n-iso-countries';
 import crypto from 'crypto';
 import fs from 'fs';
 import http from 'http';
@@ -65,10 +66,6 @@ export default class Utils {
       action, module, method,
       message: `HTTP error while processing the URL '${urlRequest}'`,
     });
-  }
-
-  public static isDevMode(): boolean {
-    return process.env.NODE_ENV === 'development';
   }
 
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
@@ -895,6 +892,15 @@ export default class Utils {
     return totalAmps;
   }
 
+  public static getChargingStationAmperagePerPhase(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+    const totalAmps = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+    const numberOfConnectedPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
+    if (totalAmps % numberOfConnectedPhases === 0) {
+      return totalAmps / numberOfConnectedPhases;
+    }
+    return Math.round(totalAmps / numberOfConnectedPhases);
+  }
+
   public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
     let amperageLimit = 0;
     if (chargingStation) {
@@ -1053,38 +1059,38 @@ export default class Utils {
 
   public static async buildEvseTagURL(tenantID: string, tag: Tag): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    // Add
-    return _evseBaseURL + '/users#tag?TagID=' + tag.id;
+    return `${Utils.buildEvseURL(tenant.subdomain)}/users#tag?TagID=${tag.id}`;
   }
 
 
   public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
+    return `${Utils.buildEvseURL(tenant.subdomain)}/charging-stations?ChargingStationID=${chargingStation.id}${hash}`;
   }
 
   public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId: number, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/transactions?TransactionID=' + transactionId.toString() + hash;
+    return `${Utils.buildEvseURL(tenant.subdomain)}/transactions?TransactionID=${transactionId.toString()}${hash}`;
   }
 
   public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/settings#billing';
+    return `${Utils.buildEvseURL(tenant.subdomain)}/settings#billing`;
   }
 
-  public static isServerInProductionMode(): boolean {
-    const env = process.env.NODE_ENV || 'dev';
-    return (env === 'production');
+  public static async buildEvseBillingInvoicesURL(tenantID: string): Promise<string> {
+    const tenant = await TenantStorage.getTenant(tenantID);
+    return `${Utils.buildEvseURL(tenant.subdomain)}/invoices`;
+  }
+
+  public static async buildEvseBillingDownloadInvoicesURL(tenantID: string, invoiceID: string): Promise<string> {
+    const tenant = await TenantStorage.getTenant(tenantID);
+    return `${Utils.buildEvseURL(tenant.subdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
   public static hideShowMessage(message: string): string {
     // Check Prod
-    if (Utils.isServerInProductionMode()) {
+    if (Utils.isProductionEnv()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
     }
     return message;
@@ -1307,6 +1313,16 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint base URL is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (ocpiEndpoint.countryCode && !countries.isValid(ocpiEndpoint.countryCode)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is not invalid`,
         module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
@@ -1623,6 +1639,10 @@ export default class Utils {
 
   public static isProductionEnv(): boolean {
     return process.env.NODE_ENV === 'production';
+  }
+
+  public static isTestEnv(): boolean {
+    return process.env.NODE_ENV === 'test';
   }
 
   public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {

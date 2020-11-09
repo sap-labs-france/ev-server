@@ -26,7 +26,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Initialize express app
-    this.expressApplication = ExpressTools.initApplication();
+    this.expressApplication = ExpressTools.initApplication(null, centralSystemConfig.debug);
     // Initialize the HTTP server
     this.httpServer = ExpressTools.createHttpServer(this.centralSystemConfig, this.expressApplication);
     // Mount express-sanitizer middleware

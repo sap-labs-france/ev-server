@@ -166,7 +166,7 @@ export default abstract class WSConnection {
           await this.handleRequest(messageId, commandName, commandPayload);
           break;
         // Outcome Message
-        case MessageType.RESULT_MESSAGE:
+        case MessageType.CALL_RESULT_MESSAGE:
           // Respond
           // eslint-disable-next-line no-case-declarations
           let responseCallback: Function;
@@ -177,7 +177,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Response request for unknown message id ${messageId} is not iterable`,
+              message: `Response request for message id ${messageId} is not iterable`,
               action: commandName
             });
           }
@@ -187,7 +187,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Response for unknown message id ${messageId}`,
+              message: `Response request for unknown message id ${messageId}`,
               action: commandName
             });
           }
@@ -195,14 +195,14 @@ export default abstract class WSConnection {
           responseCallback(commandName);
           break;
         // Error Message
-        case MessageType.ERROR_MESSAGE:
+        case MessageType.CALL_ERROR_MESSAGE:
           // Log
           Logging.logError({
             tenantID: this.getTenantID(),
             module: MODULE_NAME,
-            method: 'sendMessage',
-            action: ServerAction.WS_ERROR,
-            message: `Error occurred when calling the command '${commandName}'`,
+            method: 'onMessage',
+            action: commandName,
+            message: `Error occurred '${commandName}' with message content '${commandPayload}'`,
             detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
           });
           if (!this.requests[messageId]) {
@@ -211,7 +211,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Error for unknown message id ${messageId}`,
+              message: `Error request for unknown message id ${messageId}`,
               action: commandName
             });
           }
@@ -224,7 +224,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Error request for unknown message id ${messageId} is not iterable`,
+              message: `Error request for message id ${messageId} is not iterable`,
               action: commandName
             });
           }
@@ -235,7 +235,7 @@ export default abstract class WSConnection {
             method: 'onMessage',
             code: commandName,
             message: commandPayload,
-            detailedMessages: { errorDetails }
+            details: { errorDetails }
           }));
           break;
         // Error
@@ -277,39 +277,35 @@ export default abstract class WSConnection {
     return this.serverIPPort;
   }
 
-  public async send(command, messageType = MessageType.CALL_MESSAGE): Promise<unknown> {
-    // Send Message
-    return this.sendMessage(Utils.generateUUID(), command, messageType);
-  }
-
-  public async sendError(messageId, err): Promise<unknown> {
-    // Check exception: only OCPP error are accepted
+  public async sendError(messageId, err: Error|OCPPError): Promise<unknown> {
+    // Check exception type: only OCPP error are accepted
     const error = (err instanceof OCPPError ? err : new OCPPError({
       source: this.getChargingStationID(),
       module: MODULE_NAME,
       method: 'sendError',
       code: OcppErrorType.INTERNAL_ERROR,
-      message: err.message
+      message: err.message,
+      details: { err }
     }));
     // Send error
-    return this.sendMessage(messageId, error, MessageType.ERROR_MESSAGE);
+    return this.sendMessage(messageId, error, MessageType.CALL_ERROR_MESSAGE);
   }
 
-  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.RESULT_MESSAGE, commandName?: Command): Promise<unknown> {
-    // Send a message through WSConnection
+  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.CALL_RESULT_MESSAGE, commandName?: Command|ServerAction): Promise<unknown> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
+    // Send a message through WSConnection
     const tenant = await TenantStorage.getTenant(this.tenantID);
     // Create a promise
     return await new Promise((resolve, reject) => {
       let messageToSend;
       // Function that will receive the request's response
-      function responseCallback(payload) {
+      function responseCallback(payload): void {
         // Send the response
         resolve(payload);
       }
       // Function that will receive the request's rejection
-      function rejectCallback(reason) {
+      function rejectCallback(reason: string|OCPPError): void {
         // Build Exception
         self.requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
@@ -325,13 +321,13 @@ export default abstract class WSConnection {
           messageToSend = JSON.stringify([messageType, messageId, commandName, commandParams]);
           break;
         // Response
-        case MessageType.RESULT_MESSAGE:
+        case MessageType.CALL_RESULT_MESSAGE:
           // Build response
           messageToSend = JSON.stringify([messageType, messageId, commandParams]);
           break;
         // Error Message
-        case MessageType.ERROR_MESSAGE:
-          // Build Message
+        case MessageType.CALL_ERROR_MESSAGE:
+          // Build Error Message
           messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OcppErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
           break;
       }
@@ -343,7 +339,7 @@ export default abstract class WSConnection {
         // Reject it
         return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant?.name})`);
       }
-      // Request?
+      // Response?
       if (messageType !== MessageType.CALL_MESSAGE) {
         // Yes: send Ok
         resolve();

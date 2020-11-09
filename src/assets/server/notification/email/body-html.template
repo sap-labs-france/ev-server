@@ -26,7 +26,7 @@
       </tr>
     </table>
     <!-- Content -->
-    <table width="768" bgcolor="white" border="0" cellspacing="0" cellpadding="0">
+    <table width="768" bgcolor="white" border="0" cellspacing="0" cellpadding="0" style="border-spacing: 0 15px;">
       <!-- Before Action -->
       <tr><td colspan="3" style="padding: 10px 0;">&nbsp;</td></tr>
       <% for (var i = 0; i < body.beforeActionLines.length; i++) { %>
@@ -63,19 +63,21 @@
         <% } %>
       <% } %>
       <!-- Action -->
-      <% if (body.action) { %>
-        <tr><td colspan="3" style="padding: 10px 0;">&nbsp;</td></tr>
-        <tr>
+      <% if (body.actions) { %>
+        <tr><td colspan="3">&nbsp;</td></tr>
+        <% for (var i = 0; i < body.actions.length; i++) { %>
+        <tr style="margin-bottom: 10px;">
           <td style="width: 30%;"></td>
           <td align="center" height="50" style="background-color: #1976d2;border-radius: 10px;">
-            <a id="action-url" style="text-decoration:none;" href="<%- body.action.url %>" target="_blank">
+            <a id="action-url" style="text-decoration:none;" href="<%- body.actions[i].url %>" target="_blank">
               <font size="4" color="white" face="sans-serif">
-                <strong><%- body.action.title %></strong>
+                <strong><%- body.actions[i].title %></strong>
               </font>
             </a>
           </td>
-          <td style="width: 30%;"></td>
+          <td style="width: 30%"></td>
         </tr>
+        <% } %>
         <tr><td colspan="3" style="padding: 10px 0;">&nbsp;</td></tr>
       <% } %>
       <!-- After Action -->

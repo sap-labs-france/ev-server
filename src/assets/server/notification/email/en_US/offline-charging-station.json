@@ -22,10 +22,10 @@
       "The following charging stations are offline in your organization: <strong><%- chargeBoxIDs %></strong>",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

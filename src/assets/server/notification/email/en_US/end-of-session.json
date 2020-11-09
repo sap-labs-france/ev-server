@@ -27,10 +27,10 @@
       { "label": "Total Inactivity", "value": "<%- totalInactivity %>" },
       { "label": "Battery Level", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
-    "action": {
+    "actions": [{
       "title": "View Session",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "<%- (alternateUser ? 'The user <strong>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</strong> has stopped your session.' : '') %>",
       "",

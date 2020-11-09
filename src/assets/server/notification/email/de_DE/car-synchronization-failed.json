@@ -22,10 +22,10 @@
       "Es ist nicht möglich <%- nbrCarsInError %> Fahrzeuge mit dem Fahrzeugdaten-Provider zu synchronisieren.",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

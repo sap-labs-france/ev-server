@@ -21,10 +21,10 @@
       "",
       "Não foi possível sincronizar <%- nbrUsersInError %> utilizadores (s) com o provedor de serviços de cobrança."
     ],
-    "action": {
+    "actions": [{
       "title": "Mostrar Configurações",
       "url": "<%- evseDashboardBillingURL %>"
-    },
+    }],
     "afterActionLines": [
       "Com os melhores cumprimentos,",
       "EV Admins."

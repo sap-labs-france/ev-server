@@ -415,6 +415,7 @@ export default class CarService {
       {
         search: filteredRequest.Search,
         userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        carMakers: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
         withUsers: filteredRequest.WithUsers
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
