@@ -70,6 +70,10 @@
       "title": "Anwenden der Smart Cherging-Profile fehlgeschlagen",
       "body": "Es war nicht möglich die Ladeprofile für '{{chargeBoxID}}' auf dem Standortbereich '{{siteAreaName}}' in der Organisation '{{tenantName}}' anzuwenden"
     },
+    "billingNewInvoice": {
+      "title": "New invoice",
+      "body": "A new invoice ({{invoiceNumber}}) is now available"
+    },
     "endUserErrorNotification": {
       "title": "Ein Nutzer hat einen Fehler gemeldet",
       "body": "'{{userName}}' hat foglenden Fehler: '{{errorTitle}}' - '{{errorDescription}}' in Organisaion '{{tenantName}}' gemeldet"

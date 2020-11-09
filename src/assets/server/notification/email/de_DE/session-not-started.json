@@ -22,10 +22,10 @@
       "Sie haben an Ladestation <strong>'<%- chargeBoxID %>'</strong>, Ladepunkt <strong>'<%- connectorId %>'</strong>. keinen Ladevorgang gestartet",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "<%- chargeBoxID %> anzeigen",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

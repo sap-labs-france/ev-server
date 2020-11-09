@@ -70,7 +70,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_CDRS,
-          message: `The check cdrs process for endpoint ${ocpiEndpoint.name} is completed)`,
+          message: `The check cdrs process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {

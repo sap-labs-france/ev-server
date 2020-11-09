@@ -1,10 +1,10 @@
 {
-  "subject": "Bornes Hors Ligne",
-  "tenant": "",
+  "subject": "Facturation - Nouvelle facture",
+  "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Bornes Hors Ligne",
+      "title": "Facturation - Nouvelle facture",
       "image": {
         "left": {
           "height": 60,
@@ -17,14 +17,16 @@
       }
     },
     "beforeActionLines": [
-      "Cher Administrateur,",
+      "Cher <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Les bornes suivantes sont hors ligne dans votre organisation : <strong><%- chargeBoxIDs %></strong>",
-      ""
+      "Une nouvelle facture est disponible : <%- invoice.number %>."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Consulter",
+      "url": "<%- evseDashboardInvoiceURL %>"
+    }, {
+      "title": "Télécharger",
+      "url": "<%- invoiceDownloadUrl %>"
     }],
     "afterActionLines": [
       "Cordialement,",
@@ -34,4 +36,3 @@
     }
   }
 }
-

@@ -69,6 +69,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
         sendComputeAndApplyChargingProfilesFailed: user.notifications?.sendComputeAndApplyChargingProfilesFailed ?
           user.notifications.sendComputeAndApplyChargingProfilesFailed : false,
         sendEndUserErrorNotification: user.notifications?.sendEndUserErrorNotification ? user.notifications.sendEndUserErrorNotification : false,
+        sendBillingNewInvoice: user.notifications?.sendBillingNewInvoice ? user.notifications.sendBillingNewInvoice : false,
       };
       // Add new prop
       if (user.role === UserRole.ADMIN) {

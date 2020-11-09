@@ -25,6 +25,40 @@ export default class UtilsSecurity {
   }
 
   static filterSort(request, filteredRequest): void {
+    // Deprecated sorting?
+    if (Utils.objectHasProperty(request, 'SortDirs')) {
+      this.filterOldSort(request, filteredRequest);
+      return;
+    }
+    // Exist?
+    if (request.SortFields) {
+      // Sanitize
+      request.SortFields = sanitize(request.SortFields);
+      request.SortFields = request.SortFields.split('|');
+      // Array?
+      if (request.SortFields.length > 0) {
+        // Init
+        filteredRequest.Sort = {};
+        // Build
+        for (let i = 0; i < request.SortFields.length; i++) {
+          let sortField: string = request.SortFields[i];
+          const order = sortField.startsWith('-') ? -1 : 1;
+          // Remove ordering prefix
+          sortField = sortField.startsWith('-') ? sortField.substr(1) : sortField;
+          // Check field ID
+          if (sortField === 'id') {
+            // In MongoDB it's '_id'
+            sortField = '_id';
+          }
+          // Set
+          filteredRequest.Sort[sortField] = order;
+        }
+      }
+    }
+  }
+
+  // TODO: To remove in the next mobile deployment > 1.3.22
+  static filterOldSort(request, filteredRequest): void {
     // Exist?
     if (request.SortFields) {
       // Sanitize

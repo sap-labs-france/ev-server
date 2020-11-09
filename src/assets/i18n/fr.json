@@ -70,6 +70,10 @@
       "title": "Applying Smart Charging-Profiles failed",
       "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
     },
+    "billingNewInvoice": {
+      "title": "Nouvelle facture",
+      "body": "Une nouvelle facture ({{invoiceNumber}}) est disponible"
+    },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",
       "body": "'{{userName}}' a reporté: '{{errorTitle}}' - '{{errorDescription}}' dans l'organisation '{{tenantName}}'"

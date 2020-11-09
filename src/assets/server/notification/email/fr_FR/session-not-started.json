@@ -22,10 +22,10 @@
       "Vous n'avez pas démarré votre session sur la borne <strong>'<%- chargeBoxID %>'</strong>, connecteur <strong>'<%- connectorId %>'</strong>.",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "Voir <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."
