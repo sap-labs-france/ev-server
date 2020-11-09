@@ -141,7 +141,7 @@ export default class Bootstrap {
 
   private static startServerWorkers(serverName: string): void {
     Bootstrap.numWorkers = Configuration.getClusterConfig().numWorkers;
-    function onlineCb(worker): void {
+    function onlineCb(worker: cluster.Worker): void {
       // Log
       const logMsg = `${serverName} server worker ${worker.id} is online`;
       Logging.logInfo({
@@ -153,7 +153,7 @@ export default class Bootstrap {
       // eslint-disable-next-line no-console
       console.log(logMsg);
     }
-    function exitCb(worker, code, signal?): void {
+    function exitCb(worker: cluster.Worker, code, signal?): void {
       // Log
       const logMsg = serverName + ' server worker ' + worker.id.toString() + ' died with code: ' + code + ', and signal: ' + signal +
         '.\n Starting new ' + serverName + ' server worker';

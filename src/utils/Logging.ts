@@ -586,7 +586,7 @@ export default class Logging {
     // Host
     log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
     // Process
-    log.process = cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master';
+    log.process = log.process ? log.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master');
     // Anonymize message
     Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check

@@ -71,15 +71,15 @@ export default class CentralRestServer {
 
   startSocketIO(): void {
     // Log
-    const logMsg = 'Starting REST SocketIO Server';
+    const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME, method: 'startSocketIO',
       action: ServerAction.STARTUP,
-      message: logMsg + '...'
+      message: logMsg
     });
     // eslint-disable-next-line no-console
-    console.log(`${logMsg} ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master...'}`);
+    console.log(logMsg);
     // Init Socket IO
     CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer);
     CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {
