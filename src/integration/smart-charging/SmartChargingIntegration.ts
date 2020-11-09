@@ -57,7 +57,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
           source: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
-          message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed, because of  '${chargingProfile.chargingStationID}'. It was excluded from smart charging automatically`,
+          message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed, because of  '${chargingProfile.chargingStationID}'. It has been excluded from smart charging automatically`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
