@@ -4,12 +4,13 @@ import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 import Constants from './Constants';
 import Logging from './Logging';
 import { StatusCodes } from 'http-status-codes';
+import Utils from './Utils';
 
 const MODULE_NAME = 'AxiosFactory';
 
 export default class AxiosFactory {
   private static axiosInstances: Map<string, AxiosInstance> = new Map();
-  private static readonly maxRetries: number = 3;
+  private static readonly maxRetries: number = Utils.isDevelopmentEnv() ? 1 : 3;
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() { }

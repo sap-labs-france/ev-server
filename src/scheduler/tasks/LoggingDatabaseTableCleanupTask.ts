@@ -40,7 +40,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
           Logging.logSecurityInfo({
             tenantID: tenantID,
             action: ServerAction.LOGS_CLEANUP,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'deleteLogs',
             message: `${result.n} Log(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
           });
         } else {
@@ -48,7 +48,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
           Logging.logError({
             tenantID: tenantID,
             action: ServerAction.LOGS_CLEANUP,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'deleteLogs',
             message: `An error occurred when deleting Logs before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
             detailedMessages: { result }
           });
@@ -63,7 +63,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
           Logging.logSecurityInfo({
             tenantID: tenantID,
             action: ServerAction.LOGS_CLEANUP,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'deleteLogs',
             message: `${result.n} Security Log(s) have been deleted before '${moment(securityDeleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
           });
         } else {
@@ -71,7 +71,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
           Logging.logSecurityError({
             tenantID: tenantID,
             action: ServerAction.LOGS_CLEANUP,
-            module: MODULE_NAME, method: 'run',
+            module: MODULE_NAME, method: 'deleteLogs',
             message: `An error occurred when deleting Security Logs before '${moment(securityDeleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
             detailedMessages: { result }
           });

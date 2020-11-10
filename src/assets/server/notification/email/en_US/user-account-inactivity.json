@@ -25,10 +25,10 @@
       "",
       "Please login to your account and be aware of the latest end-user license agreement."
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

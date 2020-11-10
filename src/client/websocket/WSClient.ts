@@ -9,23 +9,6 @@ import axiosRetry from 'axios-retry';
 const MODULE_NAME = 'WSClient';
 
 export default class WSClient {
-
-  public get CONNECTING(): number {
-    return WebSocket.CONNECTING;
-  }
-
-  public get CLOSING(): number {
-    return WebSocket.CLOSING;
-  }
-
-  public get CLOSED(): number {
-    return WebSocket.CLOSED;
-  }
-
-  public get OPEN(): number {
-    return WebSocket.OPEN;
-  }
-
   public onopen: Function;
   public onerror: Function;
   public onclose: Function;
@@ -154,7 +137,7 @@ export default class WSClient {
     if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
       (this.autoReconnectRetryCount < this.autoReconnectMaxRetries || this.autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {
       this.autoReconnectRetryCount++;
-      Utils.sleep(axiosRetry.exponentialDelay(this.autoReconnectRetryCount)).catch(() => {});
+      Utils.sleep(axiosRetry.exponentialDelay(this.autoReconnectRetryCount)).catch(() => { });
       setTimeout(() => {
         if (this.dbLogging) {
           // Informational message
@@ -269,6 +252,8 @@ export default class WSClient {
  */
 ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
   Object.defineProperty(WSClient.prototype, method, {
+    configurable: true,
+    enumerable: true,
     get(): Function {
       return this.ws[method];
     },
@@ -281,6 +266,8 @@ export default class WSClient {
 });
 ['onreconnect', 'onmaximum'].forEach((method) => {
   Object.defineProperty(WSClient.prototype, method, {
+    configurable: true,
+    enumerable: true,
     get(): Function {
       return this.callbacks[method];
     },
@@ -291,10 +278,20 @@ export default class WSClient {
 });
 
 /**
- * Add `readyState` property
+ * Add some ws properties
  */
-Object.defineProperty(WSClient.prototype, 'readyState', {
-  get(): number {
-    return this.ws.readyState;
-  }
+[
+  'binaryType',
+  'bufferedAmount',
+  'extensions',
+  'protocol',
+  'readyState'
+].forEach((property) => {
+  Object.defineProperty(WSClient.prototype, property, {
+    enumerable: true,
+    get() {
+      return this.ws[property];
+    }
+  });
 });
+

@@ -41,7 +41,7 @@ export default class JsonRestWSConnection extends WSConnection {
       tenantID: this.getTenantID(),
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
-      message: event
+      message: event + ''
     });
   }
 
@@ -92,7 +92,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Call the method
       result = await chargingStationClient[actionMethod](commandPayload);
       // Send Response
-      await this.sendMessage(messageId, result, MessageType.RESULT_MESSAGE);
+      await this.sendMessage(messageId, result, MessageType.CALL_RESULT_MESSAGE, commandName);
     } else {
       // Error
       throw new BackendError({

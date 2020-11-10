@@ -289,7 +289,7 @@ export default class UserService {
           tag.userID = user.id;
           await UserStorage.saveTag(req.user.tenantID, tag);
         } else {
-          await UserStorage.deleteTag(req.user.tenantID, user.id, tag);
+          await UserStorage.deleteTag(req.user.tenantID, tag.id);
         }
       }
     } else {
@@ -1079,7 +1079,7 @@ export default class UserService {
       });
     }
     // Get Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true });
+    const tag = await UserStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${tagId}' does not exist`,
       MODULE_NAME, 'handleDeleteTag', req.user);
     // Only current organizations tags can be deleted
@@ -1105,7 +1105,7 @@ export default class UserService {
       });
     }
     // Delete the Tag
-    await UserStorage.deleteTag(req.user.tenantID, tag.userID, tag);
+    await UserStorage.deleteTag(req.user.tenantID, tag.id);
     // OCPI
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {
@@ -1257,7 +1257,7 @@ export default class UserService {
     // Check
     await Utils.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
-    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true });
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
     // Only current organization Tag can be updated

@@ -7,10 +7,13 @@ import Tenant from '../types/Tenant';
 export default class Constants {
   public static readonly CSV_SEPARATOR = '\t'; // Cannot store regex in enum
 
+  public static readonly PERF_MAX_DATA_VOLUME_KB = 64;
+  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 250;
+
   public static readonly AXIOS_TIMEOUT = 60000;
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
-  public static readonly DB_RECORD_COUNT_CEIL = 2000;
+  public static readonly DB_RECORD_COUNT_CEIL = 500;
   public static readonly DB_RECORD_COUNT_NO_LIMIT = Number.MAX_SAFE_INTEGER;
   public static readonly DB_UNDETERMINED_NBR_OF_RECORDS = -1;
 
@@ -21,10 +24,10 @@ export default class Constants {
   public static readonly EXPORT_PAGE_SIZE = 1000;
 
   public static readonly DEFAULT_TENANT = 'default';
-  public static readonly DEFAULT_TENANT_OBJECT= {
+  public static readonly DEFAULT_TENANT_OBJECT= Object.freeze({
     id: Constants.DEFAULT_TENANT,
     name: Constants.DEFAULT_TENANT
-  } as Tenant;
+  } as Tenant);
 
   public static readonly UNKNOWN_OBJECT_ID: string = '000000000000000000000000';
   public static readonly UNKNOWN_STRING_ID: string = '000000000000000000000000';
@@ -78,7 +81,7 @@ export default class Constants {
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
 
-  public static readonly REGEX_VALIDATION_LATITUDE = /^-?([1-8]?[1-9]|[1-9]0)\.{0,1}[0-9]*$/;
+  public static readonly REGEX_VALIDATION_LATITUDE = /^-?([1-8]?[0-9]|[0-9]0)\.{0,1}[0-9]*$/;
   public static readonly REGEX_VALIDATION_LONGITUDE = /^-?([1]?[0-7][0-9]|[1]?[0-8][0]|[1-9]?[0-9])\.{0,1}[0-9]*$/;
   public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
 

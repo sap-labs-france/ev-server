@@ -66,6 +66,10 @@
       "title": "La sincronización de la factura falló",
       "body": "No ha sido posible sincronizar {{nbrInvoicesInError}} facturas con el servicio del proveedor de facturación de la organización '{{tenantName}}'"
     },
+    "billingNewInvoice": {
+      "title": "New invoice",
+      "body": "A new invoice ({{invoiceNumber}}) is now available"
+    },
     "endUserErrorNotification": {
       "title": "Un usuario ha reportado un error",
       "body": "'{{userName}}' reportó: '{{errorTitle}}' - '{{errorDescription}}' en la organización '{{tenantName}}'"

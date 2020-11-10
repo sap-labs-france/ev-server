@@ -135,6 +135,7 @@ export default class TransactionSecurity {
       filteredTransaction.chargeBoxID = transaction.chargeBoxID;
       filteredTransaction.siteID = transaction.siteID;
       filteredTransaction.siteAreaID = transaction.siteAreaID;
+      filteredTransaction.issuer = transaction.issuer;
       filteredTransaction.connectorId = transaction.connectorId;
       filteredTransaction.meterStart = transaction.meterStart;
       filteredTransaction.timestamp = transaction.timestamp;

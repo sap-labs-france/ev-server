@@ -18,11 +18,11 @@ export default class NotificationStorage {
       sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
     dbParams: DbParams): Promise<DataResult<Notification>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getNotifications');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -114,7 +114,7 @@ export default class NotificationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getNotifications', uniqueTimerID, params);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
     // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
@@ -124,7 +124,7 @@ export default class NotificationStorage {
 
   static async saveNotification(tenantID: string, notificationToSave: Partial<Notification>): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveNotification');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const ocpiEndpointMDB: any = {
@@ -141,6 +141,6 @@ export default class NotificationStorage {
     await global.database.getCollection<Notification>(tenantID, 'notifications')
       .insertOne(ocpiEndpointMDB);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveNotification', uniqueTimerID, { notificationToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
   }
 }

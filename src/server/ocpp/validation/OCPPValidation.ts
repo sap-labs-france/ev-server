@@ -95,7 +95,7 @@ export default class OCPPValidation extends SchemaValidator {
     meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     // Check Connector ID
     if (meterValues.connectorId === 0) {
-      // KEBA: Connector ID must be > 0 according OCPP
+      // KEBA: Connector ID must be > 0 according to OCPP
       Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id,

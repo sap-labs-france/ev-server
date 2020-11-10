@@ -124,6 +124,7 @@ export enum ServerAction {
   OCPI_CHECK_TOKENS = 'OcpiCheckTokens',
   OCPI_PUSH_TOKENS = 'OcpiPushTokens',
   OCPI_PUSH_SESSIONS = 'OcpiPushSessions',
+  OCPI_PUSH_LOCATIONS = 'OcpiPushLocations',
   OCPI_PUSH_CDRS = 'OcpiPushCdrs',
   OCPI_PULL_CDRS = 'OcpiPullCdrs',
   OCPI_PULL_LOCATIONS = 'OcpiPullLocations',
@@ -135,9 +136,6 @@ export enum ServerAction {
   OCPI_UNLOCK_CONNECTOR = 'OcpiUnlockConnector',
   OCPI_GET_VERSIONS = 'OcpiGetVersions',
   OCPI_GET_LOCATIONS = 'OcpiGetLocations',
-  OCPI_GET_SESSIONS = 'OcpiGetSessions',
-  OCPI_GET_TOKENS = 'OcpiGetTokens',
-  OCPI_GET_CDRS = 'OcpiGetCdrs',
   OCPI_GET_TARIFF = 'OcpiGetTariff',
   OCPI_GET_TARIFFS = 'OcpiGetTariffs',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
@@ -154,6 +152,7 @@ export enum ServerAction {
   AUTHORIZATIONS = 'Authorizations',
 
   DB_WATCH = 'DBWatch',
+  DB_MONITOR = 'DBMonitor',
 
   EXPRESS_SERVER = 'ExpressServer',
   ODATA_SERVER = 'ODataServer',
@@ -360,6 +359,7 @@ export enum ServerAction {
   BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
   BILLING_CREATE_TRANSACTION_INVOICE = 'BillingCreateTransactionInvoice',
+  BILLING_NEW_INVOICE = 'BillingNewInvoice',
 
   MONGO_DB = 'MongoDB',
 
@@ -373,9 +373,9 @@ export enum ServerAction {
   HTTP_ERROR = 'HttpError',
 
   // RESTful API
-  SIGNIN = 'signin',
-  SIGNON = 'signon',
-  SIGNOUT = 'signout',
+  REST_SIGNIN = 'signin',
+  REST_SIGNON = 'signon',
+  REST_SIGNOUT = 'signout',
   REST_PASSWORD_RESET = 'passwordreset',
   REST_PING = 'ping',
   REST_TENANTS = 'tenants'

@@ -15,7 +15,7 @@ const MODULE_NAME = 'OCPPStorage';
 export default class OCPPStorage {
   static async saveAuthorize(tenantID: string, authorize: OCPPAuthorizeRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveAuthorize');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveAuthorize');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const timestamp = Utils.convertToDate(authorize.timestamp);
@@ -31,17 +31,17 @@ export default class OCPPStorage {
         timezone: authorize.timezone
       });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveAuthorize', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveAuthorize', uniqueTimerID, authorize);
   }
 
   static async getAuthorizes(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string},
     dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAuthorizes');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAuthorizes');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -94,7 +94,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getAuthorizes', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getAuthorizes', uniqueTimerID, authorizesMDB);
     // Ok
     return {
       count: (authorizesCountMDB.length > 0 ? authorizesCountMDB[0].count : 0),
@@ -104,7 +104,7 @@ export default class OCPPStorage {
 
   static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveHeartbeat');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveHeartbeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const timestamp = Utils.convertToDate(heartbeat.timestamp);
@@ -117,18 +117,18 @@ export default class OCPPStorage {
         timezone: heartbeat.timezone
       });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveHeartbeat', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveHeartbeat', uniqueTimerID, heartbeat);
   }
 
   static async getStatusNotifications(tenantID: string,
     params: { dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string },
     dbParams: DbParams): Promise<DataResult<OCPPStatusNotificationRequestExtended>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getStatusNotifications');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getStatusNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -184,7 +184,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getStatusNotifications', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getStatusNotifications', uniqueTimerID, statusNotificationsMDB);
     // Ok
     return {
       count: (statusNotificationsCountMDB.length > 0 ? statusNotificationsCountMDB[0].count : 0),
@@ -196,7 +196,7 @@ export default class OCPPStorage {
     params: { dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string }):
     Promise<OCPPStatusNotificationRequestExtended[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLastStatusNotifications');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastStatusNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the filters
@@ -237,14 +237,14 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getLastStatusNotifications', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getLastStatusNotifications', uniqueTimerID, statusNotificationsMDB);
     // Ok
     return statusNotificationsMDB;
   }
 
   static async saveStatusNotification(tenantID: string, statusNotificationToSave: OCPPStatusNotificationRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveStatusNotification');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveStatusNotification');
     // Set
     const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
     // Check Tenant
@@ -265,12 +265,12 @@ export default class OCPPStorage {
     await global.database.getCollection<any>(tenantID, 'statusnotifications')
       .insertOne(statusNotificationMDB);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveStatusNotification', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveStatusNotification', uniqueTimerID, statusNotificationMDB);
   }
 
   static async saveDataTransfer(tenantID: string, dataTransfer: OCPPDataTransferRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveDataTransfer');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveDataTransfer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -287,12 +287,12 @@ export default class OCPPStorage {
         timezone: dataTransfer.timezone
       });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveDataTransfer', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveDataTransfer', uniqueTimerID, dataTransfer);
   }
 
   static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotificationRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveBootNotification');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveBootNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Insert
@@ -312,17 +312,17 @@ export default class OCPPStorage {
         timestamp: timestamp
       });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveBootNotification', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveBootNotification', uniqueTimerID, bootNotification);
   }
 
   public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string},
     dbParams: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getBootNotifications');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getBootNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -367,7 +367,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getBootNotifications', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getBootNotifications', uniqueTimerID, bootNotificationsMDB);
     // Ok
     return {
       count: (bootNotificationsCountMDB.length > 0 ? bootNotificationsCountMDB[0].count : 0),
@@ -377,7 +377,7 @@ export default class OCPPStorage {
 
   static async saveDiagnosticsStatusNotification(tenantID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveDiagnosticsStatusNotification');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveDiagnosticsStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
@@ -391,12 +391,12 @@ export default class OCPPStorage {
         timezone: diagnosticsStatusNotification.timezone
       });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveDiagnosticsStatusNotification', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveDiagnosticsStatusNotification', uniqueTimerID, diagnosticsStatusNotification);
   }
 
   static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveFirmwareStatusNotification');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveFirmwareStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -411,12 +411,12 @@ export default class OCPPStorage {
         timezone: firmwareStatusNotification.timezone
       });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveFirmwareStatusNotification', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveFirmwareStatusNotification', uniqueTimerID, firmwareStatusNotification);
   }
 
   static async saveMeterValues(tenantID: string, meterValuesToSave: OCPPNormalizedMeterValues) {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveMeterValues');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveMeterValues');
     // Check
     await Utils.checkTenant(tenantID);
     // Save all
@@ -447,17 +447,17 @@ export default class OCPPStorage {
       }
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveMeterValues', uniqueTimerID, meterValuesToSave);
   }
 
   public static async getMeterValues(tenantID: string, params: { transactionId: number },
     dbParams: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getMeterValues');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getMeterValues');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -497,7 +497,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getMeterValues', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getMeterValues', uniqueTimerID, meterValuesMDB);
     // Ok
     return {
       count: (meterValuesCountMDB.length > 0 ? meterValuesCountMDB[0].count : 0),

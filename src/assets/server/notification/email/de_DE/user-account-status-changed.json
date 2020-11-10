@@ -21,10 +21,10 @@
       "",
       "Ihr Account wurde von einem Administrator <strong><%- (user.status === 'A' ? 'aktiviert' : 'ausgesetzt'); %></strong>."
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."
