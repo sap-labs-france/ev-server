@@ -1,4 +1,4 @@
-export interface OCPIJobResult {
+export interface OCPIResult {
   success: number;
   failure: number;
   total: number;

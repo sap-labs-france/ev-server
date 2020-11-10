@@ -289,7 +289,7 @@ export default class UserService {
           tag.userID = user.id;
           await UserStorage.saveTag(req.user.tenantID, tag);
         } else {
-          await UserStorage.deleteTag(req.user.tenantID, user.id, tag);
+          await UserStorage.deleteTag(req.user.tenantID, tag.id);
         }
       }
     } else {
@@ -1105,7 +1105,7 @@ export default class UserService {
       });
     }
     // Delete the Tag
-    await UserStorage.deleteTag(req.user.tenantID, tag.userID, tag);
+    await UserStorage.deleteTag(req.user.tenantID, tag.id);
     // OCPI
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {

@@ -59,12 +59,12 @@ export default class Logging {
       console.debug(`${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''}`);
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Data volume should be kept below ${Constants.PERF_MAX_DATA_VOLUME_KB}kB`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Data volume must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`));
         console.warn('====================================');
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution time should be kept below ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution time must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
         console.warn('====================================');
       }
     }
@@ -175,12 +175,12 @@ export default class Logging {
           console.debug(`Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
           if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
             console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Data volume should be kept below ${Constants.PERF_MAX_DATA_VOLUME_KB}kB`));
+            console.warn(new Error(`Tenant ID '${tenantID}': Data volume must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`));
             console.warn('====================================');
           }
           if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
             console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Execution time should be kept below ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms`));
+            console.warn(new Error(`Tenant ID '${tenantID}': Execution time must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
             console.warn('====================================');
           }
         }
@@ -232,12 +232,12 @@ export default class Logging {
       sizeOfDataKB = Utils.roundTo(response.config.headers['Content-Length'] / 1024, 2);
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Data volume should be kept below ${Constants.PERF_MAX_DATA_VOLUME_KB}`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Data volume must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`));
         console.warn('====================================');
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution time should be kept below ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution time must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
         console.warn('====================================');
       }
     }
@@ -250,6 +250,7 @@ export default class Logging {
         status: response.status,
         statusText: response.statusText,
         request: Utils.cloneObject(response.config),
+        headers: Utils.cloneObject(response.headers),
         response: Utils.cloneObject(response.data)
       }
     });
@@ -791,7 +792,7 @@ export default class Logging {
       console.debug(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`);
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution time should be kept below ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution time must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
         console.warn('====================================');
       }
     }
