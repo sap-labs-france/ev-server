@@ -67,7 +67,7 @@ export default class OCPIPushLocationsTask extends SchedulerTask {
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Send EVSE statuses
-        const sendResult = await ocpiClient.sendEVSEStatuses(config.processAllEVSEs ? config.processAllEVSEs : false);
+        const sendResult = await ocpiClient.sendEVSEStatuses(!Utils.isUndefined(config.processAllEVSEs) ? config.processAllEVSEs : false);
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',

@@ -10,7 +10,7 @@ export default class Constants {
   public static readonly PERF_MAX_DATA_VOLUME_KB = 64;
   public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 250;
 
-  public static readonly AXIOS_TIMEOUT = 60000;
+  public static readonly AXIOS_DEFAULT_TIMEOUT = 60000;
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
   public static readonly DB_RECORD_COUNT_CEIL = 500;
