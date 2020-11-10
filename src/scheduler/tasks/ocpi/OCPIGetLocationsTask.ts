@@ -31,7 +31,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_LOCATIONS, error);
     }
   }
 
@@ -44,15 +44,16 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_LOCATIONS,
+            action: ServerAction.OCPI_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
           });
           return;
-        } else if (!ocpiEndpoint.backgroundPatchJob) {
+        }
+        if (!ocpiEndpoint.backgroundPatchJob) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_LOCATIONS,
+            action: ServerAction.OCPI_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
           });
@@ -60,7 +61,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
         }
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `The get Locations process for endpoint ${ocpiEndpoint.name} is being processed`
         });
@@ -70,14 +71,14 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
         const result = await ocpiClient.pullLocations(config.partial && config.partial);
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `The GET Locations process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_LOCATIONS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_LOCATIONS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

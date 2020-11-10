@@ -255,8 +255,7 @@ export default class OCPIEndpointService {
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
     // Send EVSE statuses
-    const result = await ocpiClient.triggerJobs();
-    // Return result
+    const result = await ocpiClient.triggerAllOcpiActions();
     res.json(result);
     next();
   }

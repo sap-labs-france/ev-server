@@ -104,8 +104,7 @@ export default class UserStorage {
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
-  public static async getUserByEmail(tenantID: string, email: string): Promise<User> {
-    // Check
+  public static async getUserByEmail(tenantID: string, email: string, params: { withTag?: boolean } = {}): Promise<User> {
     if (!email) {
       return null;
     }
@@ -114,7 +113,7 @@ export default class UserStorage {
     // Get user
     const userMDB = await UserStorage.getUsers(tenantID, {
       email: email,
-      withTag: true
+      withTag: params.withTag
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getUserByEmail', uniqueTimerID, userMDB);
@@ -346,7 +345,7 @@ export default class UserStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, 'clearTagUserDefault', uniqueTimerID, { userID });
   }
 
-  public static async deleteTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
+  public static async deleteTag(tenantID: string, tagID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteTag');
     // Check Tenant
@@ -354,11 +353,10 @@ export default class UserStorage {
     // Delete
     await global.database.getCollection<any>(tenantID, 'tags').deleteOne(
       {
-        '_id': tag.id,
-        'userID': Utils.convertToObjectID(userID)
+        '_id': tagID,
       });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteTag', uniqueTimerID, { id: userID, tag: tag });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteTag', uniqueTimerID, { id: tagID });
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
