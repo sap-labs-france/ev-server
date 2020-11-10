@@ -59,6 +59,8 @@ export default class EmspOCPIClient extends OCPIClient {
       objectIDsInFailure: [],
       objectIDsInSuccess: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
     // Get all tokens
@@ -99,11 +101,12 @@ export default class EmspOCPIClient extends OCPIClient {
     }
     // Save
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PUSH_TOKENS,
       MODULE_NAME, 'sendTokens', result,
-      '{{inSuccess}} Token(s) were successfully pushed',
-      '{{inError}} Token(s) failed to be pushed',
-      '{{inSuccess}} Token(s) were successfully pushed and {{inError}} failed to be pushed',
+      `{{inSuccess}} Token(s) were successfully pushed in ${executionDurationSecs}s`,
+      `{{inError}} Token(s) failed to be pushed in ${executionDurationSecs}s`,
+      `{{inSuccess}} Token(s) were successfully pushed and {{inError}} failed to be pushed in ${executionDurationSecs}s`,
       'No Tokens have been pushed'
     );
     return result;
@@ -131,6 +134,8 @@ export default class EmspOCPIClient extends OCPIClient {
       total: 0,
       logs: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Get locations endpoint url
     let locationsUrl = this.getEndpointUrl('locations', ServerAction.OCPI_PULL_LOCATIONS);
     if (partial) {
@@ -176,11 +181,12 @@ export default class EmspOCPIClient extends OCPIClient {
         nextResult = false;
       }
     } while (nextResult);
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_LOCATIONS,
       MODULE_NAME, 'pullLocations', result,
-      '{{inSuccess}} Location(s) were successfully pulled',
-      '{{inError}} Location(s) failed to be pulled',
-      '{{inSuccess}} Location(s) were successfully pulled and {{inError}} failed to be pulled',
+      `{{inSuccess}} Location(s) were successfully pulled in ${executionDurationSecs}s`,
+      `{{inError}} Location(s) failed to be pulled in ${executionDurationSecs}s`,
+      `{{inSuccess}} Location(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s`,
       'No Locations have been pulled'
     );
     return result;
@@ -194,6 +200,8 @@ export default class EmspOCPIClient extends OCPIClient {
       total: 0,
       logs: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Get sessions endpoint url
     let sessionsUrl = this.getEndpointUrl('sessions', ServerAction.OCPI_PULL_SESSIONS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
@@ -233,11 +241,12 @@ export default class EmspOCPIClient extends OCPIClient {
       }
     } while (nextResult);
     result.total = result.failure + result.success;
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_SESSIONS,
       MODULE_NAME, 'pullSessions', result,
-      '{{inSuccess}} Session(s) were successfully pulled',
-      '{{inError}} Session(s) failed to be pulled',
-      '{{inSuccess}} Session(s) were successfully pulled and {{inError}} failed to be pulled',
+      `{{inSuccess}} Session(s) were successfully pulled in ${executionDurationSecs}s`,
+      `{{inError}} Session(s) failed to be pulled in ${executionDurationSecs}s`,
+      `{{inSuccess}} Session(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s`,
       'No Sessions have been pulled'
     );
     return result;
@@ -251,6 +260,8 @@ export default class EmspOCPIClient extends OCPIClient {
       total: 0,
       logs: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Get cdrs endpoint url
     let cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_PULL_CDRS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
@@ -290,11 +301,12 @@ export default class EmspOCPIClient extends OCPIClient {
       }
     } while (nextResult);
     result.total = result.failure + result.success;
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_CDRS,
       MODULE_NAME, 'pullCdrs', result,
-      '{{inSuccess}} CDR(s) were successfully pulled',
-      '{{inError}} CDR(s) failed to be pulled',
-      '{{inSuccess}} CDR(s) were successfully pulled and {{inError}} failed to be pulled',
+      `{{inSuccess}} CDR(s) were successfully pulled in ${executionDurationSecs}s`,
+      `{{inError}} CDR(s) failed to be pulled in ${executionDurationSecs}s`,
+      `{{inSuccess}} CDR(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s`,
       'No CDRs have been pulled'
     );
     return result;

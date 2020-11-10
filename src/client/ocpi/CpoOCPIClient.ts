@@ -53,6 +53,8 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Get tokens endpoint url
     let tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_PULL_TOKENS);
     if (partial) {
@@ -108,11 +110,12 @@ export default class CpoOCPIClient extends OCPIClient {
         nextResult = false;
       }
     } while (nextResult);
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_TOKENS,
       MODULE_NAME, 'pullTokens', result,
-      '{{inSuccess}} token(s) were successfully pulled',
-      '{{inError}} token(s) failed to be pulled',
-      '{{inSuccess}} token(s) were successfully pulled and {{inError}} failed to be pulled',
+      `{{inSuccess}} token(s) were successfully pulled in ${executionDurationSecs}s`,
+      `{{inError}} token(s) failed to be pulled in ${executionDurationSecs}s`,
+      `{{inSuccess}} token(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s`,
       'No tokens have been pulled'
     );
     return result;
@@ -654,6 +657,8 @@ export default class CpoOCPIClient extends OCPIClient {
       objectIDsInFailure: [],
       objectIDsInSuccess: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     const transactions = await TransactionStorage.getTransactions(this.tenant.id, {
       issuer: true,
       ocpiCdrChecked: false
@@ -677,11 +682,12 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       result.total++;
     }
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_CDRS,
       MODULE_NAME, 'checkCdrs', result,
-      '{{inSuccess}} CDR(s) were successfully checked',
-      '{{inError}} CDR(s) failed to be checked',
-      '{{inSuccess}} CDR(s) were successfully checked and {{inError}} failed to be checked',
+      `{{inSuccess}} CDR(s) were successfully checked in ${executionDurationSecs}s`,
+      `{{inError}} CDR(s) failed to be checked in ${executionDurationSecs}s`,
+      `{{inSuccess}} CDR(s) were successfully checked and {{inError}} failed to be checked in ${executionDurationSecs}s`,
       'No CDRs have been checked'
     );
     return result;
@@ -697,11 +703,12 @@ export default class CpoOCPIClient extends OCPIClient {
       objectIDsInFailure: [],
       objectIDsInSuccess: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     const transactions = await TransactionStorage.getTransactions(this.tenant.id, {
       issuer: true,
       ocpiSessionChecked: false
     }, Constants.DB_PARAMS_MAX_LIMIT);
-
     for (const transaction of transactions.result) {
       if (transaction.stop && transaction.stop.timestamp) {
         try {
@@ -722,11 +729,12 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       result.total++;
     }
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_SESSIONS,
       MODULE_NAME, 'checkSessions', result,
-      '{{inSuccess}} Session(s) were successfully checked',
-      '{{inError}} Session(s) failed to be checked',
-      '{{inSuccess}} Session(s) were successfully checked and {{inError}} failed to be checked',
+      `{{inSuccess}} Session(s) were successfully checked in ${executionDurationSecs}s`,
+      `{{inError}} Session(s) failed to be checked in ${executionDurationSecs}s`,
+      `{{inSuccess}} Session(s) were successfully checked and {{inError}} failed to be checked in ${executionDurationSecs}s`,
       'No Sessions have been checked'
     );
     return result;
@@ -782,6 +790,8 @@ export default class CpoOCPIClient extends OCPIClient {
       objectIDsInFailure: [],
       objectIDsInSuccess: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Define get option
     const options = {
       addChargeBoxID: true,
@@ -811,11 +821,12 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       result.total++;
     }
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_LOCATIONS,
       MODULE_NAME, 'checkLocations', result,
-      '{{inSuccess}} Location(s) were successfully checked',
-      '{{inError}} Location(s) failed to be checked',
-      '{{inSuccess}} Location(s) were successfully checked and {{inError}} failed to be checked',
+      `{{inSuccess}} Location(s) were successfully checked in ${executionDurationSecs}s`,
+      `{{inError}} Location(s) failed to be checked in ${executionDurationSecs}s`,
+      `{{inSuccess}} Location(s) were successfully checked and {{inError}} failed to be checked in ${executionDurationSecs}s`,
       'No Locations have been checked'
     );
     return result;
@@ -834,6 +845,8 @@ export default class CpoOCPIClient extends OCPIClient {
       objectIDsInFailure: [],
       objectIDsInSuccess: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Define get option
     const options = {
       addChargeBoxID: true,
@@ -916,12 +929,13 @@ export default class CpoOCPIClient extends OCPIClient {
       };
     }
     // Save
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PATCH_STATUS,
       MODULE_NAME, 'sendEVSEStatuses', result,
-      '{{inSuccess}} EVSE Status(es) were successfully patched',
-      '{{inError}} EVSE Status(es) failed to be patched',
-      '{{inSuccess}} EVSE Status(es) were successfully patched and {{inError}} failed to be patched',
+      `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s`,
+      `{{inError}} EVSE Status(es) failed to be patched in ${executionDurationSecs}s`,
+      `{{inSuccess}} EVSE Status(es) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
       'No EVSE Status have been patched'
     );
     // Return result
