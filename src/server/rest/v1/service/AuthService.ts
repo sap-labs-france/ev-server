@@ -15,7 +15,6 @@ import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
-import SessionHashService from './SessionHashService';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
@@ -881,8 +880,10 @@ export default class AuthService {
     // Reset wrong number of trial
     await UserStorage.saveUserPassword(tenantID, user.id,
       { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
-    // Yes: build payload
-    const payload: UserToken = await Authorizations.buildUserToken(tenantID, user);
+    // Get the tags (limited) to avoid an overweighted token
+    const tags = await UserStorage.getTags(tenantID, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
+    // Yes: build token
+    const payload: UserToken = await Authorizations.buildUserToken(tenantID, user, tags.result);
     // Build token
     let token: string;
     // Role Demo?
