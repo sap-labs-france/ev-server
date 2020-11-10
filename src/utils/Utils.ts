@@ -2055,7 +2055,8 @@ export default class Utils {
   }
 
   public static isChargingStationIDValid(name: string): boolean {
-    return /^[A-Za-z0-9_-]*$/.test(name);
+    // eslint-disable-next-line no-useless-escape
+    return /^[A-Za-z0-9_\.\-~]*$/.test(name);
   }
 
   public static isPasswordValid(password: string): boolean {
