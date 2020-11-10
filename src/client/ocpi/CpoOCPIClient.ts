@@ -28,6 +28,8 @@ import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import User from '../../types/User';
+import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
 import moment from 'moment';
@@ -53,6 +55,8 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: []
     };
+    // EMSP Users
+    const emspUsers = new Map<string, User>();
     // Perfs trace
     const startTime = new Date().getTime();
     // Get tokens endpoint url
@@ -94,7 +98,18 @@ export default class CpoOCPIClient extends OCPIClient {
       });
       for (const token of response.data.data as OCPIToken[]) {
         try {
-          await OCPITokensService.updateToken(this.tenant.id, this.ocpiEndpoint, token);
+          // Build user email
+          const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+          // Check cache
+          let emspUser = emspUsers.get(email);
+          if (!emspUser) {
+            // Get User from DB
+            emspUser = await UserStorage.getUserByEmail(this.tenant.id, email);
+            if (emspUser) {
+              emspUsers.set(email, emspUser);
+            }
+          }
+          await OCPITokensService.updateToken(this.tenant.id, this.ocpiEndpoint, token, emspUser);
           result.success++;
         } catch (error) {
           result.failure++;
