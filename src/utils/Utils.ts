@@ -24,6 +24,7 @@ import { HTTPError } from '../types/HTTPError';
 import { HttpEndUserReportErrorRequest } from '../types/requests/HttpNotificationRequest';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { ObjectID } from 'mongodb';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -173,6 +174,54 @@ export default class Utils {
 
   public static async sleep(ms): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  public static logOcpiResult(
+    tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string,
+    messageNoSuccessNoError: string): void {
+    // Replace
+    messageSuccess = messageSuccess.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageError = messageError.replace('{{inError}}', ocpiResult.failure.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', ocpiResult.failure.toString());
+    if (Utils.isEmptyArray(ocpiResult.logs)) {
+      ocpiResult.logs = null;
+    }
+    // Success and Error
+    if (ocpiResult.success > 0 && ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccessAndError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.success > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccess,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageNoSuccessNoError,
+        detailedMessages: ocpiResult.logs
+      });
+    }
   }
 
   public static logActionsResponse(

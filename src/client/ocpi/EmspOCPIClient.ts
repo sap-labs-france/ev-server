@@ -14,9 +14,9 @@ import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
+import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../types/ocpi/OCPISession';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
@@ -49,9 +49,9 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  async sendTokens(): Promise<OCPIJobResult> {
+  async sendTokens(): Promise<OCPIResult> {
     // Result
-    const sendResult: OCPIJobResult = {
+    const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -64,52 +64,29 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get all tokens
     const tokensResult = await OCPIMapping.getAllTokens(this.tenant, 0, 0);
     for (const token of tokensResult.result) {
-      sendResult.total++;
+      result.total++;
       try {
         await this.pushToken(token);
-        sendResult.success++;
-        sendResult.objectIDsInSuccess.push(token.uid);
-        sendResult.logs.push(
-          `Token ID '${token.uid}' successfully updated`
-        );
+        result.success++;
+        result.objectIDsInSuccess.push(token.uid);
       } catch (error) {
-        sendResult.failure++;
-        sendResult.objectIDsInFailure.push(token.uid);
-        sendResult.logs.push(
+        result.failure++;
+        result.objectIDsInFailure.push(token.uid);
+        result.logs.push(
           `Failed to update Token ID '${token.uid}': ${error.message}`
         );
       }
     }
-    // Log error if any
-    if (sendResult.failure > 0) {
-      // Log error if failure
-      Logging.logError({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
-        detailedMessages: { logs: sendResult.logs },
-        module: MODULE_NAME, method: 'sendTokens'
-      });
-    } else if (sendResult.success > 0) {
-      // Log info
-      Logging.logInfo({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
-        detailedMessages: { logs: sendResult.logs },
-        module: MODULE_NAME, method: 'sendTokens'
-      });
-    }
     // Save result in ocpi endpoint
     this.ocpiEndpoint.lastPatchJobOn = startDate;
     // Set result
-    if (sendResult) {
+    if (result) {
       this.ocpiEndpoint.lastPatchJobResult = {
-        'successNbr': sendResult.success,
-        'failureNbr': sendResult.failure,
-        'totalNbr': sendResult.total,
-        'tokenIDsInFailure': _.uniq(sendResult.objectIDsInFailure),
-        'tokenIDsInSuccess': _.uniq(sendResult.objectIDsInSuccess)
+        'successNbr': result.success,
+        'failureNbr': result.failure,
+        'totalNbr': result.total,
+        'tokenIDsInFailure': _.uniq(result.objectIDsInFailure),
+        'tokenIDsInSuccess': _.uniq(result.objectIDsInSuccess)
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
@@ -122,8 +99,14 @@ export default class EmspOCPIClient extends OCPIClient {
     }
     // Save
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
-    // Return result
-    return sendResult;
+    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PUSH_TOKENS,
+      MODULE_NAME, 'sendTokens', result,
+      '{{inSuccess}} Token(s) were successfully pushed',
+      '{{inError}} Token(s) failed to be pushed',
+      '{{inSuccess}} Token(s) were successfully pushed and {{inError}} failed to be pushed',
+      'No Tokens have been pushed'
+    );
+    return result;
   }
 
   async getCompany(): Promise<Company> {
@@ -140,9 +123,9 @@ export default class EmspOCPIClient extends OCPIClient {
     return company;
   }
 
-  async pullLocations(partial = true): Promise<OCPIJobResult> {
+  async pullLocations(partial = true): Promise<OCPIResult> {
     // Result
-    const sendResult: OCPIJobResult = {
+    const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -178,13 +161,10 @@ export default class EmspOCPIClient extends OCPIClient {
       for (const location of response.data.data as OCPILocation[]) {
         try {
           await this.processLocation(location, company, sites.result);
-          sendResult.success++;
-          sendResult.logs.push(
-            `Location '${location.name}' successfully updated`
-          );
+          result.success++;
         } catch (error) {
-          sendResult.failure++;
-          sendResult.logs.push(
+          result.failure++;
+          result.logs.push(
             `Failed to update Location '${location.name}': ${error.message}`
           );
         }
@@ -196,12 +176,19 @@ export default class EmspOCPIClient extends OCPIClient {
         nextResult = false;
       }
     } while (nextResult);
-    return sendResult;
+    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_LOCATIONS,
+      MODULE_NAME, 'pullLocations', result,
+      '{{inSuccess}} Location(s) were successfully pulled',
+      '{{inError}} Location(s) failed to be pulled',
+      '{{inSuccess}} Location(s) were successfully pulled and {{inError}} failed to be pulled',
+      'No Locations have been pulled'
+    );
+    return result;
   }
 
-  async pullSessions(): Promise<OCPIJobResult> {
+  async pullSessions(): Promise<OCPIResult> {
     // Result
-    const sendResult: OCPIJobResult = {
+    const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -230,13 +217,10 @@ export default class EmspOCPIClient extends OCPIClient {
       for (const session of response.data.data as OCPISession[]) {
         try {
           await OCPISessionsService.updateTransaction(this.tenant.id, session);
-          sendResult.success++;
-          sendResult.logs.push(
-            `OCPI Session '${session.id}' successfully updated`
-          );
+          result.success++;
         } catch (error) {
-          sendResult.failure++;
-          sendResult.logs.push(
+          result.failure++;
+          result.logs.push(
             `Failed to update OCPI Transaction ID '${session.id}': ${error.message}`
           );
         }
@@ -248,13 +232,20 @@ export default class EmspOCPIClient extends OCPIClient {
         nextResult = false;
       }
     } while (nextResult);
-    sendResult.total = sendResult.failure + sendResult.success;
-    return sendResult;
+    result.total = result.failure + result.success;
+    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_SESSIONS,
+      MODULE_NAME, 'pullSessions', result,
+      '{{inSuccess}} Session(s) were successfully pulled',
+      '{{inError}} Session(s) failed to be pulled',
+      '{{inSuccess}} Session(s) were successfully pulled and {{inError}} failed to be pulled',
+      'No Sessions have been pulled'
+    );
+    return result;
   }
 
-  async pullCdrs(): Promise<OCPIJobResult> {
+  async pullCdrs(): Promise<OCPIResult> {
     // Result
-    const sendResult: OCPIJobResult = {
+    const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
@@ -283,13 +274,10 @@ export default class EmspOCPIClient extends OCPIClient {
       for (const cdr of response.data.data as OCPICdr[]) {
         try {
           await OCPISessionsService.processCdr(this.tenant.id, cdr);
-          sendResult.success++;
-          sendResult.logs.push(
-            `CDR ID '${cdr.id}' successfully updated`
-          );
+          result.success++;
         } catch (error) {
-          sendResult.failure++;
-          sendResult.logs.push(
+          result.failure++;
+          result.logs.push(
             `Failed to update CDR ID '${cdr.id}': ${error.message}`
           );
         }
@@ -301,8 +289,15 @@ export default class EmspOCPIClient extends OCPIClient {
         nextResult = false;
       }
     } while (nextResult);
-    sendResult.total = sendResult.failure + sendResult.success;
-    return sendResult;
+    result.total = result.failure + result.success;
+    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_CDRS,
+      MODULE_NAME, 'pullCdrs', result,
+      '{{inSuccess}} CDR(s) were successfully pulled',
+      '{{inError}} CDR(s) failed to be pulled',
+      '{{inSuccess}} CDR(s) were successfully pulled and {{inError}} failed to be pulled',
+      'No CDRs have been pulled'
+    );
+    return result;
   }
 
   async processLocation(location: OCPILocation, company: Company, sites: Site[]): Promise<void> {
@@ -593,7 +588,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return response.data.data as OCPICommandResponse;
   }
 
-  async triggerJobs(): Promise<{ tokens: OCPIJobResult; locations: OCPIJobResult; sessions: OCPIJobResult; cdrs: OCPIJobResult }> {
+  async triggerAllOcpiActions(): Promise<{ tokens: OCPIResult; locations: OCPIResult; sessions: OCPIResult; cdrs: OCPIResult }> {
     return {
       tokens: await this.sendTokens(),
       locations: await this.pullLocations(false),

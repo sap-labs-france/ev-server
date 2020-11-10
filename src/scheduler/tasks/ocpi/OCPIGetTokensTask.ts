@@ -31,7 +31,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_TOKENS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_TOKENS, error);
     }
   }
 
@@ -45,15 +45,16 @@ export default class OCPIGetTokensTask extends SchedulerTask {
           Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_GET_TOKENS,
+            action: ServerAction.OCPI_PULL_TOKENS,
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
           });
           return;
-        } else if (!ocpiEndpoint.backgroundPatchJob) {
+        }
+        if (!ocpiEndpoint.backgroundPatchJob) {
           Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_GET_TOKENS,
+            action: ServerAction.OCPI_PULL_TOKENS,
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
           });
           return;
@@ -61,23 +62,23 @@ export default class OCPIGetTokensTask extends SchedulerTask {
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_GET_TOKENS,
+          action: ServerAction.OCPI_PULL_TOKENS,
           message: `The get tokens process for endpoint ${ocpiEndpoint.name} is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Send EVSE statuses
-        const result = await ocpiClient.pullTokens(config.partial && config.partial);
+        const result = await ocpiClient.pullTokens(config.partial);
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_GET_TOKENS,
+          action: ServerAction.OCPI_PULL_TOKENS,
           message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_TOKENS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_TOKENS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);
