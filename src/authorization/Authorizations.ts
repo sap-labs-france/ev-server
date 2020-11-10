@@ -114,7 +114,7 @@ export default class Authorizations {
     return requestedSites.filter((site) => sites.has(site));
   }
 
-  public static async buildUserToken(tenantID: string, user: User): Promise<UserToken> {
+  public static async buildUserToken(tenantID: string, user: User, tags: Tag[]): Promise<UserToken> {
     const companyIDs = new Set<string>();
     const siteIDs = [];
     const siteAdminIDs = [];
@@ -155,7 +155,7 @@ export default class Authorizations {
       'name': user.name,
       'mobile': user.mobile,
       'email': user.email,
-      'tagIDs': user.tags ? user.tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
+      'tagIDs': tags ? tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
       'language': Utils.getLanguageFromLocale(user.locale),
@@ -797,7 +797,7 @@ export default class Authorizations {
     // Check Auth if local user
     if (user.issuer && authAction) {
       // Build the JWT Token
-      const userToken = await Authorizations.buildUserToken(tenantID, user);
+      const userToken = await Authorizations.buildUserToken(tenantID, user, [tag]);
       // Authorized?
       const context = {
         user: transaction ? transaction.userID : null,
