@@ -1,4 +1,5 @@
 import RefundReport, { RefundStatus } from '../../types/Refund';
+import Transaction, { OcpiData } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import global, { FilterParams } from './../../types/GlobalType';
 
@@ -10,7 +11,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/Notification';
 import { ServerAction } from '../../types/Server';
-import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
@@ -1038,6 +1038,25 @@ export default class TransactionStorage {
     } while (existingTransaction);
     // Debug
     Logging.traceEnd(MODULE_NAME, '_findAvailableID', uniqueTimerID);
+  }
+
+  public static async getOcpiDataFromTransaction(tenantID: string, transactionID: number = Constants.UNKNOWN_NUMBER_ID): Promise<OcpiData> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransaction');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Get OcpiData
+    const ocpiDataMDB = await global.database.getCollection<any>(tenantID, 'transactions')
+      .aggregate([
+        { $match: { _id: transactionID } },
+        { $project: { _id: 0, ocpiData: 1 } }
+      ]).toArray();
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'getTransaction', uniqueTimerID, { transactionID });
+    if (ocpiDataMDB && ocpiDataMDB.length > 0 && ocpiDataMDB[0].ocpiData) {
+      return ocpiDataMDB[0].ocpiData;
+    }
+    return {};
   }
 
   public static async getNotStartedTransactions(tenantID: string,

@@ -631,6 +631,26 @@ export default class TransactionService {
       TransactionService.getTransactions.bind(this), TransactionService.convertToCSV.bind(this));
   }
 
+  public static async handleGetOcpiDataFromTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: MODULE_NAME,
+        method: 'handleGetOcpiDataFromTransaction'
+      });
+    }
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetOcpiDataFromTransaction', req.user);
+    // Get Ocpi Data
+    res.json(await TransactionStorage.getOcpiDataFromTransaction(req.user.tenantID, filteredRequest.ID));
+    next();
+  }
+
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {

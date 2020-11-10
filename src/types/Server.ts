@@ -239,6 +239,8 @@ export enum ServerAction {
   TRANSACTION = 'Transaction',
   TRANSACTION_CONSUMPTION = 'TransactionConsumption',
 
+  GET_OCPI_DATA = 'GetOcpiData',
+
   CHARGING_STATION_CONSUMPTION_STATISTICS = 'ChargingStationConsumptionStatistics',
   CHARGING_STATION_USAGE_STATISTICS = 'ChargingStationUsageStatistics',
   CHARGING_STATION_INACTIVITY_STATISTICS = 'ChargingStationInactivityStatistics',
