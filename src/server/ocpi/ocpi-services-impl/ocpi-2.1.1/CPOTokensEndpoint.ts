@@ -121,7 +121,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
         });
       }
     }
-    await OCPITokensService.updateToken(tenant.id, ocpiEndpoint, updatedToken);
+    await OCPITokensService.updateToken(tenant.id, ocpiEndpoint, updatedToken, user);
     return OCPIUtils.success();
   }
 
