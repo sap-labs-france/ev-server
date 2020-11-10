@@ -28,7 +28,6 @@ export default class UtilsSecurity {
     // Deprecated sorting?
     if (Utils.objectHasProperty(request, 'SortDirs')) {
       this.filterOldSort(request, filteredRequest);
-      console.log('>>> Error usage of deprecated sorting');
       return;
     }
     // Exist?
