@@ -1009,7 +1009,7 @@ export default class UserStorage {
     params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSites');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Clone before updating the values
@@ -1060,7 +1060,7 @@ export default class UserStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      Logging.traceEnd(tenantID, MODULE_NAME, 'UserStorage', uniqueTimerID, sitesCountMDB);
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getUserSites', uniqueTimerID, sitesCountMDB);
       return {
         count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
         result: []
@@ -1097,7 +1097,7 @@ export default class UserStorage {
         allowDiskUse: true
       }).toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'UserStorage', uniqueTimerID, siteUsersMDB);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getUserSites', uniqueTimerID, siteUsersMDB);
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
