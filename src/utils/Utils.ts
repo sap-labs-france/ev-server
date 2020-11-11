@@ -53,8 +53,6 @@ import validator from 'validator';
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
-  private static tenants = [];
-
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
     if (axiosError.response) {
@@ -506,10 +504,6 @@ export default class Utils {
     }
   }
 
-  public static clearTenants(): void {
-    Utils.tenants = [];
-  }
-
   public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
@@ -518,10 +512,6 @@ export default class Utils {
         method: 'checkTenant',
         message: 'The Tenant ID is mandatory'
       });
-    }
-    // Check in cache
-    if (Utils.tenants.includes(tenantID)) {
-      return Promise.resolve(null);
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?
@@ -544,7 +534,6 @@ export default class Utils {
         });
       }
     }
-    Utils.tenants.push(tenantID);
   }
 
   public static convertToBoolean(value: any): boolean {

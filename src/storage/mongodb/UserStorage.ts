@@ -87,68 +87,37 @@ export default class UserStorage {
     return eula;
   }
 
-  public static async getUserByTagId(tenantID: string, tagID: string): Promise<User> {
-    if (!tagID) {
-      return null;
-    }
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserByTagId');
-    // Get user
+  public static async getUserByTagId(tenantID: string, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
     const tagMDB = await UserStorage.getTag(tenantID, tagID, { withUser: true });
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getUserByTagId', uniqueTimerID, tagMDB);
     return tagMDB ? tagMDB.user : null;
   }
 
-  public static async getUserByEmail(tenantID: string, email: string): Promise<User> {
-    if (!email) {
-      return null;
-    }
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserByEmail');
-    // Get user
+  public static async getUserByEmail(tenantID: string, email: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID, {
       email: email,
     }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getUserByEmail', uniqueTimerID, userMDB);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
-  public static async getUserByPasswordResetHash(tenantID: string, passwordResetHash: string): Promise<User> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserByPasswordResetHash');
-    // Get user
+  public static async getUserByPasswordResetHash(tenantID: string, passwordResetHash: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID, {
       passwordResetHash: passwordResetHash
     }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getUserByPasswordResetHash', uniqueTimerID, userMDB);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
   public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<User> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUser');
-    // Get user
     const userMDB = await UserStorage.getUsers(tenantID,
       {
         userIDs: [id],
       }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getUser', uniqueTimerID, userMDB);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
   public static async getUserByBillingID(tenantID: string, billingID: string): Promise<User> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserByBillingID');
-    // Get user
     const userMDB = await UserStorage.getUsers(tenantID, {
       billingUserID: billingID
     }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getUserByBillingID', uniqueTimerID, userMDB);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
@@ -715,16 +684,11 @@ export default class UserStorage {
 
   public static async getTag(tenantID: string, id: string,
     params: { withUser?: boolean; withNbrTransactions?: boolean } = {}): Promise<Tag> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTag');
-    // Get tag
     const tagMDB = await UserStorage.getTags(tenantID, {
       tagIDs: [id],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
     }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTag', uniqueTimerID, tagMDB);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
   }
 

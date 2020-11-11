@@ -391,6 +391,7 @@ export default class OCPIMapping {
     const consumptions = await ConsumptionStorage.getTransactionConsumptions(
       tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
     if (consumptions.result) {
+      // Build based on consumptions
       for (const consumption of consumptions.result) {
         const chargingPeriod = this.buildChargingPeriod(consumption);
         if (chargingPeriod && chargingPeriod.dimensions && chargingPeriod.dimensions.length > 0) {
@@ -398,6 +399,7 @@ export default class OCPIMapping {
         }
       }
     } else {
+      // Build first/last consumption (if no consumptions is gathered)
       const consumption: number = transaction.stop ? transaction.stop.totalConsumptionWh : transaction.currentTotalConsumptionWh;
       chargingPeriods.push({
         start_date_time: transaction.timestamp,
@@ -703,15 +705,6 @@ export default class OCPIMapping {
     }
   }
 
-  /**
-   * Convert ID to evse ID compliant to eMI3 by replacing all non alphanumeric characters by '*'
-   */
-  private static convert2evseid(id: string): string {
-    if (id) {
-      return id.replace(/[\W_]+/g, '*').toUpperCase();
-    }
-  }
-
   private static buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
     const chargingPeriod: OCPIChargingPeriod = {
       start_date_time: consumption.startedAt,
@@ -722,12 +715,6 @@ export default class OCPIMapping {
         type: CdrDimensionType.ENERGY,
         volume: consumption.consumptionWh / 1000
       });
-      if (consumption.limitAmps > 0) {
-        chargingPeriod.dimensions.push({
-          type: CdrDimensionType.MAX_CURRENT,
-          volume: consumption.limitAmps
-        });
-      }
     } else {
       const duration: number = moment(consumption.endedAt).diff(consumption.startedAt, 'hours', true);
       if (duration > 0) {

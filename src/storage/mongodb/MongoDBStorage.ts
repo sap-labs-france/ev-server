@@ -279,7 +279,7 @@ export default class MongoDBStorage {
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
       // Database creation Lock
-      const createDatabaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, 'create-database');
+      const createDatabaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, 'check-database');
       if (await LockingManager.acquire(createDatabaseLock)) {
         try {
           // Create tenant collections
@@ -304,62 +304,53 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    // Indexes collection Lock
-    const createCollection = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE_INDEX, `collection-${tenantID}.${name}`);
-    if (await LockingManager.acquire(createCollection)) {
+    // Get all the collections
+    const currentCollections = await this.db.listCollections().toArray();
+    const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
+    const foundCollection = currentCollections.find((collection) => collection.name === tenantCollectionName);
+    // Create
+    if (!foundCollection) {
       try {
-        // Get all the collections
-        const currentCollections = await this.db.listCollections().toArray();
-        const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
-        const foundCollection = currentCollections.find((collection) => collection.name === tenantCollectionName);
-        // Create
-        if (!foundCollection) {
+        await this.db.createCollection(tenantCollectionName);
+      } catch (error) {
+        console.error(`>>>>> Error in creating collection '${tenantCollectionName}': ${error.message}`);
+      }
+    }
+    // Indexes?
+    if (indexes) {
+      // Get current indexes
+      const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
+      // Drop indexes
+      for (const databaseIndex of databaseIndexes) {
+        if (databaseIndex.key._id) {
+          continue;
+        }
+        const foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
+        if (!foundIndex) {
+          if (Utils.isDevelopmentEnv()) {
+            console.log(`Drop index ${databaseIndex.name} on collection ${tenantID}.${name}`);
+          }
           try {
-            await this.db.createCollection(tenantCollectionName);
+            await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
           } catch (error) {
-            console.error(`>>>>> Error in creating collection '${tenantCollectionName}': ${error.message}`);
+            console.error(`>>>>> Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`);
           }
         }
-        // Indexes?
-        if (indexes) {
-          // Get current indexes
-          const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-          // Drop indexes
-          for (const databaseIndex of databaseIndexes) {
-            if (databaseIndex.key._id) {
-              continue;
-            }
-            const foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
-            if (!foundIndex) {
-              if (Utils.isDevelopmentEnv()) {
-                console.log(`Drop index ${databaseIndex.name} on collection ${tenantID}.${name}`);
-              }
-              try {
-                await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
-              } catch (error) {
-                console.error(`>>>>> Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`);
-              }
-            }
+      }
+      // Create indexes
+      for (const index of indexes) {
+        const foundIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
+        if (!foundIndex) {
+          if (Utils.isDevelopmentEnv()) {
+            console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
           }
-          // Create indexes
-          for (const index of indexes) {
-            const foundIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
-            if (!foundIndex) {
-              if (Utils.isDevelopmentEnv()) {
-                console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
-              }
-              try {
-                // eslint-disable-next-line @typescript-eslint/await-thenable
-                await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-              } catch (error) {
-                console.error(`>>>>> Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message}`);
-              }
-            }
+          try {
+            // eslint-disable-next-line @typescript-eslint/await-thenable
+            await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+          } catch (error) {
+            console.error(`>>>>> Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message}`);
           }
         }
-      } finally {
-        // Release the creation Lock
-        await LockingManager.release(createCollection);
       }
     }
   }

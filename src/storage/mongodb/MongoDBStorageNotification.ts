@@ -5,6 +5,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
+import TenantStorage from './TenantStorage';
 import { TransactionNotificationData } from '../../types/SingleChangeNotification';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
@@ -146,7 +147,7 @@ export default class MongoDBStorageNotification {
         break;
       case 'tenants':
         this.centralRestServer.notifyTenant(tenantID, action, { id: documentID });
-        Utils.clearTenants();
+        TenantStorage.clearCache(documentID);
         break;
       case 'transactions':
         this.handleTransactionChange(tenantID, documentID, action, changeEvent);
