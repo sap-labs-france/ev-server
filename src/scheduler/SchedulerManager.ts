@@ -24,6 +24,7 @@ import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTa
 import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
+import Utils from '../utils/Utils';
 import cron from 'node-cron';
 
 const MODULE_NAME = 'SchedulerManager';
@@ -31,7 +32,7 @@ const MODULE_NAME = 'SchedulerManager';
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
 
-  static init() {
+  public static init() {
     // Active?
     if (SchedulerManager.schedulerConfig.active) {
       // Log
@@ -130,7 +131,15 @@ export default class SchedulerManager {
             });
         }
         if (schedulerTask) {
-          cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config));
+          // Handle number of instances
+          let numberOfInstance = 1;
+          if (Utils.objectHasProperty(task, 'numberOfInstance')) {
+            numberOfInstance = task.numberOfInstance;
+          }
+          // Register
+          for (let i = 0; i < numberOfInstance; i++) {
+            cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config));
+          }
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.SCHEDULER,

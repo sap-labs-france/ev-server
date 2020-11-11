@@ -98,9 +98,15 @@ export default class CpoOCPIClient extends OCPIClient {
         message: `${numberOfTags.toString()} Tokens retrieved from ${tokensUrl}`,
         module: MODULE_NAME, method: 'pullTokens'
       });
+      // Get all Tags at once from the DB
+      const tagIDs: string[] = [];
+      for (const token of response.data.data as OCPIToken[]) {
+        tagIDs.push(token.uid);
+      }
+      const tags = (await UserStorage.getTags(this.tenant.id, { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT)).result;
       for (const token of response.data.data as OCPIToken[]) {
         try {
-          // Build user email
+          // Get eMSP user
           const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
           // Check cache
           let emspUser = emspUsers.get(email);
@@ -111,7 +117,9 @@ export default class CpoOCPIClient extends OCPIClient {
               emspUsers.set(email, emspUser);
             }
           }
-          await OCPITokensService.updateToken(this.tenant.id, this.ocpiEndpoint, token, emspUser);
+          // Get the Tag
+          const emspTag = tags.find((tag) => tag.id === token.uid);
+          await OCPITokensService.updateToken(this.tenant.id, this.ocpiEndpoint, token, emspTag, emspUser);
           result.success++;
         } catch (error) {
           result.failure++;
