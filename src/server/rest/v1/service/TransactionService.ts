@@ -236,23 +236,21 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterUnassignedTransactionsCountRequest(req.query);
-    if (!filteredRequest.UserID) {
+    if (!filteredRequest.TagID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'UserID must be provided',
-        module: MODULE_NAME,
-        method: 'handleGetUnassignedTransactionsCount',
-        user: req.user,
-        action: action
+        message: 'Tag ID must be provided',
+        module: MODULE_NAME, method: 'handleGetUnassignedTransactionsCount',
+        user: req.user, action: action
       });
     }
     // Get the user
-    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID, { withTag: true });
-    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.TagID);
+    UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
-    const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, user);
+    const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, tag.id);
     // Return
     res.json(count);
     next();
@@ -297,20 +295,31 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionSecurity.filterAssignTransactionsToUser(req.query);
     // Check
+    if (!filteredRequest.TagID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag ID must be provided',
+        module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
+        user: req.user, action: action
+      });
+    }
     if (!filteredRequest.UserID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleAssignTransactionsToUser',
-        user: req.user,
-        action: action
+        module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
+        user: req.user, action: action
       });
     }
     // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID, { withTag: true });
+    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
+      MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
+    // Get the tag
+    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.TagID);
+    UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     if (!user.issuer) {
       throw new AppError({
@@ -318,12 +327,22 @@ export default class TransactionService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User not issued by the organization',
         module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
-        user: req.user, actionOnUser: user,
+        user: req.user,
+        action: action
+      });
+    }
+    if (!tag.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag not issued by the organization',
+        module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
+        user: req.user,
         action: action
       });
     }
     // Assign
-    await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user);
+    await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user.id, tag.id);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

@@ -488,17 +488,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.START_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.START_SESSION;
-    const user = await UserStorage.getUserByTagId(this.tenant.id, tagId);
-    if (!user || user.deleted || !user.issuer) {
-      throw new BackendError({
-        action: ServerAction.OCPI_START_SESSION,
-        source: chargingStation.id,
-        message: `OCPI Remote Start Session is not available for user with Tag ID '${tagId}'`,
-        module: MODULE_NAME, method: 'remoteStartSession',
-        detailedMessages: { user: user }
-      });
-    }
-    const tag = user.tags.find((value) => value.id === tagId);
+    const tag = await UserStorage.getTag(this.tenant.id, tagId, { withUser: true });
     if (!tag || !tag.issuer || !tag.active) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
@@ -508,11 +498,20 @@ export default class EmspOCPIClient extends OCPIClient {
         detailedMessages: { tag: tag }
       });
     }
+    if (!tag.user || tag.user.deleted || !tag.user.issuer) {
+      throw new BackendError({
+        action: ServerAction.OCPI_START_SESSION,
+        source: chargingStation.id,
+        message: `OCPI Remote Start Session is not available for user with Tag ID '${tagId}'`,
+        module: MODULE_NAME, method: 'remoteStartSession',
+        detailedMessages: { user: tag.user }
+      });
+    }
     const token: OCPIToken = {
       uid: tag.id,
       type: OCPITokenType.RFID,
-      auth_id: user.id,
-      visual_number: user.id,
+      auth_id: tag.user.id,
+      visual_number: tag.user.id,
       issuer: this.tenant.name,
       valid: true,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,

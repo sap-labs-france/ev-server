@@ -443,7 +443,8 @@ export default class OCPPService {
             message: `Unable to authorize user '${user.id}' not issued locally`
           });
         }
-        const tag = user.tags.find(((value) => value.id === authorize.idTag));
+        // Get tag
+        const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
         if (!tag?.ocpiToken) {
           throw new BackendError({
             user: user,

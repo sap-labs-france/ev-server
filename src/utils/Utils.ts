@@ -563,16 +563,16 @@ export default class Utils {
     return result;
   }
 
-  public static convertToDate(date: any): Date {
+  public static convertToDate(value: any): Date {
     // Check
-    if (!date) {
+    if (!value) {
       return null;
     }
     // Check Type
-    if (!(date instanceof Date)) {
-      return new Date(date);
+    if (!(value instanceof Date)) {
+      return new Date(value);
     }
-    return date;
+    return value;
   }
 
   public static replaceSpecialCharsInCSVValueParam(value: string): string {
@@ -1879,19 +1879,6 @@ export default class Utils {
         user: req.user.id,
         actionOnUser: filteredRequest.id
       });
-    }
-    if (filteredRequest.tags) {
-      if (!Utils.areTagsValid(filteredRequest.tags)) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags '${JSON.stringify(filteredRequest.tags)}' is/are not valid`,
-          module: MODULE_NAME,
-          method: 'checkIfUserValid',
-          user: req.user.id,
-          actionOnUser: filteredRequest.id
-        });
-      }
     }
     if (filteredRequest.plateID && !Utils.isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError({
