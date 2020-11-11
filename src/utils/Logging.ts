@@ -204,7 +204,8 @@ export default class Logging {
   }
 
   public static logExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
-    Logging.logActionExceptionMessageAndSendResponse(ServerAction.HTTP_ERROR, error, req, res, next);
+    Logging.logActionExceptionMessageAndSendResponse(
+      error['params'] && error['params']['action'] ? error['params']['action'] : ServerAction.HTTP_ERROR, error, req, res, next);
   }
 
   public static logAxiosRequest(tenantID: string, request: AxiosRequestConfig): void {

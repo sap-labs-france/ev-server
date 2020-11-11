@@ -45,4 +45,44 @@ export default class LockingHelper {
     }
     return lock;
   }
+
+  public static async createOCPIPushCpoCdrsLock(tenantID: string): Promise<Lock|null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, 'push-cdr');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async createOCPIPullEmspTokensLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'pull-emsp-tokens');
+  }
+
+  public static async createOCPICheckCpoCdrsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'check-cpo-cdrs');
+  }
+
+  public static async createOCPICheckCpoLocationsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'check-cpo-locations');
+  }
+
+  public static async createOCPICheckCpoSessionsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'check-cpo-sessions');
+  }
+
+  public static async createOCPIPullEmspCdrsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'pull-emsp-cdrs');
+  }
+
+  public static async createOCPIPullEmspLocationsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'pull-emsp-locations');
+  }
+
+  public static async createOCPIPullEmspSessionsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'pull-emsp-sessions');
+  }
+
+  public static async createOCPIPatchCpoLocationsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'patch-cpo-locations');
+  }
 }

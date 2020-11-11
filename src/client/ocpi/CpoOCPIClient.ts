@@ -69,6 +69,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     let nextResult = true;
     do {
+      const startTimeLoop = new Date().getTime();
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -90,10 +91,11 @@ export default class CpoOCPIClient extends OCPIClient {
           detailedMessages: { data: response.data }
         });
       }
+      const numberOfTags = response.data.data.length;
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
-        message: `${response.data.data.length.toString()} Tokens retrieved from ${tokensUrl}`,
+        message: `${numberOfTags.toString()} Tokens retrieved from ${tokensUrl}`,
         module: MODULE_NAME, method: 'pullTokens'
       });
       for (const token of response.data.data as OCPIToken[]) {
@@ -124,6 +126,13 @@ export default class CpoOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
+      const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.OCPI_PULL_TOKENS,
+        message: `${numberOfTags.toString()} Tokens processed in ${executionDurationLoopSecs}s`,
+        module: MODULE_NAME, method: 'pullTokens'
+      });
     } while (nextResult);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_TOKENS,
@@ -970,15 +979,6 @@ export default class CpoOCPIClient extends OCPIClient {
       return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
     }
     return [];
-  }
-
-  async triggerAllOcpiActions(): Promise<{ tokens: OCPIResult; locations: OCPIResult; cdrs: OCPIResult; sessions: OCPIResult }> {
-    return {
-      tokens: await this.pullTokens(false),
-      locations: await this.sendEVSEStatuses(),
-      cdrs: await this.checkCdrs(),
-      sessions: await this.checkSessions()
-    };
   }
 
   // Get ChargeBoxIDs in failure from previous job
