@@ -71,23 +71,12 @@ export default class SiteAreaStorage {
 
   public static async getSiteArea(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
     params: { withSite?: boolean; withChargingStations?: boolean } = {}): Promise<SiteArea> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteArea');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Exec
-    const siteAreasMDB = await SiteAreaStorage.getSiteAreas(
-      tenantID,
-      {
-        siteAreaIDs: [id],
-        withSite: params.withSite,
-        withChargingStations: params.withChargingStations,
-        withAvailableChargingStations: true
-      },
-      Constants.DB_PARAMS_SINGLE_RECORD
-    );
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteArea', uniqueTimerID, siteAreasMDB);
+    const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenantID, {
+      siteAreaIDs: [id],
+      withSite: params.withSite,
+      withChargingStations: params.withChargingStations,
+      withAvailableChargingStations: true
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return siteAreasMDB.count === 1 ? siteAreasMDB.result[0] : null;
   }
 
@@ -349,12 +338,7 @@ export default class SiteAreaStorage {
   }
 
   public static async deleteSiteArea(tenantID: string, id: string): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSiteArea');
-    // Delete singular site area
     await SiteAreaStorage.deleteSiteAreas(tenantID, [id]);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSiteArea', uniqueTimerID, { id });
   }
 
   public static async deleteSiteAreas(tenantID: string, siteAreaIDs: string[]): Promise<void> {

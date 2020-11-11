@@ -53,8 +53,6 @@ import validator from 'validator';
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
-  private static tenants = [];
-
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
     if (axiosError.response) {
@@ -506,10 +504,6 @@ export default class Utils {
     }
   }
 
-  public static clearTenants(): void {
-    Utils.tenants = [];
-  }
-
   public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
@@ -518,10 +512,6 @@ export default class Utils {
         method: 'checkTenant',
         message: 'The Tenant ID is mandatory'
       });
-    }
-    // Check in cache
-    if (Utils.tenants.includes(tenantID)) {
-      return Promise.resolve(null);
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?
@@ -544,7 +534,6 @@ export default class Utils {
         });
       }
     }
-    Utils.tenants.push(tenantID);
   }
 
   public static convertToBoolean(value: any): boolean {
@@ -563,16 +552,16 @@ export default class Utils {
     return result;
   }
 
-  public static convertToDate(date: any): Date {
+  public static convertToDate(value: any): Date {
     // Check
-    if (!date) {
+    if (!value) {
       return null;
     }
     // Check Type
-    if (!(date instanceof Date)) {
-      return new Date(date);
+    if (!(value instanceof Date)) {
+      return new Date(value);
     }
-    return date;
+    return value;
   }
 
   public static replaceSpecialCharsInCSVValueParam(value: string): string {
@@ -1880,19 +1869,6 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.tags) {
-      if (!Utils.areTagsValid(filteredRequest.tags)) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags '${JSON.stringify(filteredRequest.tags)}' is/are not valid`,
-          module: MODULE_NAME,
-          method: 'checkIfUserValid',
-          user: req.user.id,
-          actionOnUser: filteredRequest.id
-        });
-      }
-    }
     if (filteredRequest.plateID && !Utils.isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -2055,7 +2031,8 @@ export default class Utils {
   }
 
   public static isChargingStationIDValid(name: string): boolean {
-    return /^[A-Za-z0-9_-]*$/.test(name);
+    // eslint-disable-next-line no-useless-escape
+    return /^[A-Za-z0-9_\.\-~]*$/.test(name);
   }
 
   public static isPasswordValid(password: string): boolean {

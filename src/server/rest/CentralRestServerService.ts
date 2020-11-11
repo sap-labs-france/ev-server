@@ -85,7 +85,6 @@ class RequestMapper {
           [ServerAction.BILLING_CREATE_TRANSACTION_INVOICE]: BillingService.handleCreateTransactionInvoice.bind(this),
           [ServerAction.OCPI_ENPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_TRIGGER_JOBS]: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_CHECK_CDRS]: OCPIEndpointService.handleCheckCdrsEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_CHECK_LOCATIONS]: OCPIEndpointService.handleCheckLocationsEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_CHECK_SESSIONS]: OCPIEndpointService.handleCheckSessionsEndpoint.bind(this),

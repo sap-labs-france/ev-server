@@ -780,8 +780,6 @@ export default class Authorizations {
     }
     // Check User
     const user = await UserStorage.getUser(tenantID, tag.user.id);
-    // Repush the tag in user
-    user.tags = [tag];
     // User status
     if (user.status !== UserStatus.ACTIVE) {
       // Reject but save ok

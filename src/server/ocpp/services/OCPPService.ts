@@ -331,7 +331,7 @@ export default class OCPPService {
           message: 'No relevant Meter Values to save',
           detailedMessages: { meterValues }
         });
-        // Process values
+      // Process values
       } else {
         // Handle Meter Value only for transaction
         // eslint-disable-next-line no-lonely-if
@@ -443,13 +443,22 @@ export default class OCPPService {
             message: `Unable to authorize user '${user.id}' not issued locally`
           });
         }
-        const tag = user.tags.find(((value) => value.id === authorize.idTag));
-        if (!tag?.ocpiToken) {
+        // Get tag
+        const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
+        if (!tag) {
           throw new BackendError({
             user: user,
             action: ServerAction.AUTHORIZE,
             module: MODULE_NAME, method: 'handleAuthorize',
-            message: `user '${user.id}' with tag '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
+            message: `Tag ID '${authorize.idTag}' does not exists`
+          });
+        }
+        if (!tag.ocpiToken) {
+          throw new BackendError({
+            user: user,
+            action: ServerAction.AUTHORIZE,
+            module: MODULE_NAME, method: 'handleAuthorize',
+            message: `Tag ID '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
           });
         }
         const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
@@ -943,8 +952,8 @@ export default class OCPPService {
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&
-      foundConnector.errorCode === statusNotification.errorCode &&
-      foundConnector.info === statusNotification.info) {
+        foundConnector.errorCode === statusNotification.errorCode &&
+        foundConnector.info === statusNotification.info) {
       // No Change: Do not save it
       Logging.logWarning({
         tenantID: tenantID,

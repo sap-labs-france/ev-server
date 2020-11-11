@@ -1,4 +1,5 @@
 import AuthorizationConfiguration from './AuthorizationConfiguration';
+import AxiosConfiguration from './AxiosConfiguration';
 import CentralSystemConfiguration from './CentralSystemConfiguration';
 import CentralSystemFrontEndConfiguration from './CentralSystemFrontEndConfiguration';
 import CentralSystemRestServiceConfiguration from './CentralSystemRestServiceConfiguration';
@@ -49,5 +50,6 @@ export interface Configuration {
   HealthCheck?: HealthCheckConfiguration;
   Migration?: MigrationConfiguration;
   EVDatabase?: EVDatabaseConfiguration;
-  ChargingStationTemplates: ChargingStationTemplatesConfiguration;
+  ChargingStationTemplates?: ChargingStationTemplatesConfiguration;
+  Axios?: AxiosConfiguration
 }

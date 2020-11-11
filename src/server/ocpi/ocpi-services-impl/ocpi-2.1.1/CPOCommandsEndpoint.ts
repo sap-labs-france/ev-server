@@ -83,11 +83,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const user = await UserStorage.getUserByTagId(tenant.id, startSession.token.uid);
-    if (!user || user.deleted || user.issuer) {
-      return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
-    }
-    const localToken = user.tags.find((tag) => tag.id === startSession.token.uid);
+    const localToken = await UserStorage.getTag(tenant.id, startSession.token.uid, { withUser: true });
     if (!localToken || !localToken.active || !localToken.ocpiToken || !localToken.ocpiToken.valid) {
       Logging.logDebug({
         tenantID: tenant.id,
@@ -95,6 +91,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         message: `Start Transaction with Token ID '${startSession.token.uid}' is invalid`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
+      return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
+    }
+    if (!localToken.user || localToken.user.deleted || localToken.user.issuer) {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     let chargingStation: ChargingStation;

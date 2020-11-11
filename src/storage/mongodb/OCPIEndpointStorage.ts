@@ -13,22 +13,13 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'OCPIEndpointStorage';
 
 export default class OCPIEndpointStorage {
-
   static async getOcpiEndpoint(tenantID: string, id: string): Promise<OCPIEndpoint> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoint');
     const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { ocpiEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoint', uniqueTimerID, endpointsMDB);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
   static async getOcpiEndpointByLocalToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoinByLocalToken');
     const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { localToken: token }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoinByLocalToken', uniqueTimerID, endpointsMDB);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 

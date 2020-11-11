@@ -4,13 +4,11 @@ import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 import Constants from './Constants';
 import Logging from './Logging';
 import { StatusCodes } from 'http-status-codes';
-import Utils from './Utils';
 
 const MODULE_NAME = 'AxiosFactory';
 
 export default class AxiosFactory {
   private static axiosInstances: Map<string, AxiosInstance> = new Map();
-  private static readonly maxRetries: number = Utils.isDevelopmentEnv() ? 1 : 3;
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() { }
@@ -25,7 +23,7 @@ export default class AxiosFactory {
     }
     // Set timeout
     if (!instanceConfiguration.axiosConfig.timeout) {
-      instanceConfiguration.axiosConfig.timeout = Constants.AXIOS_TIMEOUT;
+      instanceConfiguration.axiosConfig.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
     }
     // Get from map
     let axiosInstance = this.axiosInstances.get(tenantID);
@@ -61,7 +59,7 @@ export default class AxiosFactory {
       axiosRetryConfig = {} as IAxiosRetryConfig;
     }
     if (!axiosRetryConfig.retries) {
-      axiosRetryConfig.retries = AxiosFactory.maxRetries;
+      axiosRetryConfig.retries = 3;
     }
     if (!axiosRetryConfig.retryCondition) {
       axiosRetryConfig.retryCondition = AxiosFactory.isNetworkOrDefaultIdempotentRequestError.bind(this);
