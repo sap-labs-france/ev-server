@@ -15,7 +15,7 @@ const MODULE_NAME = 'OCPITokensService';
 
 export default class OCPITokensService {
 
-  public static async updateToken(tenantId: string, ocpiEndpoint: OCPIEndpoint, token: OCPIToken, emspUser: User): Promise<void> {
+  public static async updateToken(tenantId: string, ocpiEndpoint: OCPIEndpoint, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
     if (!OCPITokensService.validateToken(token)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -40,7 +40,16 @@ export default class OCPITokensService {
         });
       }
       // Check the tag
-      const tag = await this.checkExistingTag(tenantId, token);
+      if (tag && tag.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkExistingTag',
+          errorCode: StatusCodes.CONFLICT,
+          message: 'Token already exists in the current organization',
+          detailedMessages: token,
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      }
       const tagToSave = {
         id: token.uid,
         issuer: false,
@@ -57,7 +66,16 @@ export default class OCPITokensService {
     } else {
       // Unknown User
       // Check the Tag
-      const tag = await this.checkExistingTag(tenantId, token);
+      if (tag && tag.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkExistingTag',
+          errorCode: StatusCodes.CONFLICT,
+          message: 'Token already exists in the current organization',
+          detailedMessages: token,
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      }
       // Create User
       emspUser = {
         issuer: false,
@@ -98,20 +116,5 @@ export default class OCPITokensService {
       return false;
     }
     return true;
-  }
-
-  private static async checkExistingTag(tenantId: string, token: OCPIToken): Promise<Tag> {
-    const tag = await UserStorage.getTag(tenantId, token.uid);
-    if (tag && tag.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'checkExistingTag',
-        errorCode: StatusCodes.CONFLICT,
-        message: 'Token already exists in the current organization',
-        detailedMessages: token,
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-      });
-    }
-    return tag;
   }
 }
