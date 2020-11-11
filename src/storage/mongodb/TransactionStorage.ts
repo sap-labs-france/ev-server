@@ -196,36 +196,36 @@ export default class TransactionStorage {
     return transactionToSave.id;
   }
 
-  public static async assignTransactionsToUser(tenantID: string, user: User): Promise<void> {
+  public static async assignTransactionsToUser(tenantID: string, userID: string, tagID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'assignTransactionsToUser');
     // Assign transactions
     await global.database.getCollection(tenantID, 'transactions').updateMany({
       $and: [
         { 'userID': null },
-        { 'tagID': { $in: user.tags.map((tag) => tag.id) } }
+        { 'tagID': tagID }
       ]
     }, {
       $set: {
-        userID: Utils.convertToObjectID(user.id)
+        userID: Utils.convertToObjectID(userID)
       }
     });
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'assignTransactionsToUser', uniqueTimerID);
   }
 
-  public static async getUnassignedTransactionsCount(tenantID: string, user: User): Promise<number> {
+  public static async getUnassignedTransactionsCount(tenantID: string, tagID: string): Promise<number> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'assignTransactionsToUser');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUnassignedTransactionsCount');
     // Get the number of unassigned transactions
     const unassignedCount = await global.database.getCollection<Transaction>(tenantID, 'transactions').find({
       $and: [
         { 'userID': null },
-        { 'tagID': { $in: user.tags.map((tag) => tag.id) } }
+        { 'tagID': tagID }
       ]
     }).count();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'assignTransactionsToUser', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getUnassignedTransactionsCount', uniqueTimerID);
     return unassignedCount;
   }
 

@@ -31,6 +31,7 @@ import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
@@ -82,7 +83,7 @@ export default class OCPPUtils {
     switch (transactionAction) {
       case TransactionAction.START:
         // eslint-disable-next-line no-case-declarations
-        const tag = user.tags.find(((value) => value.id === transaction.tagID));
+        const tag = await UserStorage.getTag(tenantID, transaction.tagID);
         if (!tag.ocpiToken) {
           throw new BackendError({
             user: user,

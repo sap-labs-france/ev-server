@@ -22,12 +22,17 @@ export default class TransactionSecurity {
     return { transactionIds: request.transactionIds.map(sanitize) };
   }
 
-  public static filterAssignTransactionsToUser(request: HttpAssignTransactionsToUserRequest): HttpAssignTransactionsToUserRequest {
-    return { UserID: request.UserID ? sanitize(request.UserID) : null };
+  public static filterAssignTransactionsToUser(request: any): HttpAssignTransactionsToUserRequest {
+    return {
+      TagID: sanitize(request.TagID),
+      UserID: sanitize(request.UserID),
+    };
   }
 
   static filterUnassignedTransactionsCountRequest(request: any): HttpUnassignTransactionsToUserRequest {
-    return { UserID: request.UserID ? sanitize(request.UserID) : null };
+    return {
+      TagID: sanitize(request.TagID),
+    };
   }
 
   public static filterTransactionRequestByID(request: any): number {

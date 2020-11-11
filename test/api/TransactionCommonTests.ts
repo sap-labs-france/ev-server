@@ -24,7 +24,7 @@ export default class TransactionCommonTests {
   public centralUserService: CentralServerService;
   public currentPricingSetting;
   public pricekWh = 2;
-  public transactionUser: User;
+  public transactionUser;
   public transactionUserService: CentralServerService;
 
   public constructor(tenantContext: TenantContext, centralUserContext) {

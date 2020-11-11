@@ -235,10 +235,9 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
-    const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
-    if (user) {
-      const tag = user.tags.find((value) => value.id === tokenId);
-      if (!user.issuer && user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
+    const tag = await UserStorage.getTag(tenant.id, tokenId, { withUser: true });
+    if (tag && tag.user) {
+      if (!tag.user.issuer && tag.user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
         return tag.ocpiToken;
       }
     }
