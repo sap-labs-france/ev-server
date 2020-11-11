@@ -598,13 +598,4 @@ export default class EmspOCPIClient extends OCPIClient {
     });
     return response.data.data as OCPICommandResponse;
   }
-
-  async triggerAllOcpiActions(): Promise<{ tokens: OCPIResult; locations: OCPIResult; sessions: OCPIResult; cdrs: OCPIResult }> {
-    return {
-      tokens: await this.sendTokens(),
-      locations: await this.pullLocations(false),
-      sessions: await this.pullSessions(),
-      cdrs: await this.pullCdrs(),
-    };
-  }
 }

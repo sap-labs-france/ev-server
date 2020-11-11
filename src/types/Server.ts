@@ -101,7 +101,6 @@ export enum ServerAction {
 
   OCPI_ENPOINT_CREATE = 'OcpiEndpointCreate',
   OCPI_ENPOINT_PING = 'OcpiEndpointPing',
-  OCPI_ENPOINT_TRIGGER_JOBS = 'OcpiEndpointTriggerJobs',
   OCPI_ENPOINT_CHECK_CDRS = 'OcpiEndpointCheckCdrs',
   OCPI_ENPOINT_CHECK_LOCATIONS = 'OcpiEndpointCheckLocations',
   OCPI_ENPOINT_CHECK_SESSIONS = 'OcpiEndpointCheckSessions',
