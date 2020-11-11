@@ -60,11 +60,11 @@
     },
     "billingUserSynchronizationFailed": {
       "title": "Benutzersynchronisierung fehlgeschlagen",
-      "body": "Die Synchronisierung der Benutzer(n) {{nbrUsersInError}} mit dem Bezahl-Dienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
+      "body": "Die Synchronisierung von {{nbrUsersInError}} Nutzer(n)  mit dem Bezahldienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
     },
     "billingInvoiceSynchronizationFailed": {
       "title": "Rechnungssynchronisierung fehlgeschlagen",
-      "body": "Es war nicht möglich {{nbrInvoicesInError}} Rechnung(en) mit dem Abrechnungsdienstleister in der Organisation '{{tenantName}}' zu Synchronisieren"
+      "body": "Die Synchronisierung von {{nbrInvoicesInError}} Rechnung(en) mit dem Abrechnungsdienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
     },
     "billingNewInvoice": {
       "title": "Neue Rechnung",
