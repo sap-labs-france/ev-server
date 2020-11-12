@@ -68,6 +68,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tokensUrl = `${tokensUrl}?limit=100`;
     }
     let nextResult = true;
+    let totalNumberOfToken = 0;
     do {
       const startTimeLoop = new Date().getTime();
       // Log
@@ -92,6 +93,7 @@ export default class CpoOCPIClient extends OCPIClient {
         });
       }
       const numberOfTags = response.data.data.length;
+      totalNumberOfToken += numberOfTags;
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
@@ -135,10 +137,11 @@ export default class CpoOCPIClient extends OCPIClient {
         nextResult = false;
       }
       const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
+      const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
-        message: `${numberOfTags.toString()} Tokens processed in ${executionDurationLoopSecs}s`,
+        message: `${numberOfTags.toString()} Tokens processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token processed in ${executionDurationTotalLoopSecs}s`,
         module: MODULE_NAME, method: 'pullTokens'
       });
     } while (nextResult);
@@ -647,7 +650,6 @@ export default class CpoOCPIClient extends OCPIClient {
       issuer: true,
       ocpiCdrChecked: false
     }, Constants.DB_PARAMS_MAX_LIMIT);
-
     for (const transaction of transactions.result) {
       try {
         if (await this.checkCdr(transaction)) {
@@ -832,7 +834,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PATCH_STATUS,
-      message: `Patch OCPI Charging Station ID '${evseUID}' status at ${fullUrl}`,
+      message: `Patch OCPI Charging Station ID '${evseUID}' status to '${newStatus}' at ${fullUrl}`,
       module: MODULE_NAME, method: 'patchEVSEStatus',
       detailedMessages: { payload }
     });
