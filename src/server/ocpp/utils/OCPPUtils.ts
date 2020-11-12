@@ -41,97 +41,109 @@ const MODULE_NAME = 'OCPPUtils';
 export default class OCPPUtils {
   public static async processOCPITransaction(tenantID: string, transaction: Transaction,
     chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
-    if (!transaction.user || transaction.user.issuer) {
-      return;
-    }
-    const user: User = transaction.user;
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    let action: ServerAction;
-    switch (transactionAction) {
-      case TransactionAction.START:
-        action = ServerAction.START_TRANSACTION;
-        break;
-      case TransactionAction.UPDATE:
-        action = ServerAction.UPDATE_TRANSACTION;
-        break;
-      case TransactionAction.STOP:
-      case TransactionAction.END:
-        action = ServerAction.STOP_TRANSACTION;
-        break;
-    }
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-      throw new BackendError({
-        user: user,
-        action: action,
-        module: MODULE_NAME,
-        method: 'processOCPITransaction',
-        message: `Unable to ${transactionAction} a Transaction for User '${user.id}' not issued locally`
-      });
-    }
-    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-    if (!ocpiClient) {
-      throw new BackendError({
-        user: user,
-        action: action,
-        module: MODULE_NAME,
-        method: 'processOCPITransaction',
-        message: `OCPI component requires at least one CPO endpoint to ${transactionAction} a Session`
-      });
-    }
-    let authorizationId;
-    let authorizations: DataResult<OCPPAuthorizeRequestExtended>;
-    switch (transactionAction) {
-      case TransactionAction.START:
-        // eslint-disable-next-line no-case-declarations
-        const tag = await UserStorage.getTag(tenantID, transaction.tagID);
-        if (!tag.ocpiToken) {
-          throw new BackendError({
-            user: user,
-            action: action,
-            module: MODULE_NAME,
-            method: 'processOCPITransaction',
-            message: `User '${Utils.buildUserFullName(user)}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Transaction thought OCPI protocol due to missing OCPI Token`
-          });
-        }
-        // Retrieve Authorization ID
-        authorizations = await OCPPStorage.getAuthorizes(tenant.id, {
-          dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
-          chargeBoxID: transaction.chargeBoxID,
-          tagID: transaction.tagID
-        }, Constants.DB_PARAMS_MAX_LIMIT);
-        // Found ID?
-        if (authorizations && authorizations.result && authorizations.result.length > 0) {
-          // Get the first non used Authorization OCPI ID
-          for (const authorization of authorizations.result) {
-            if (authorization.authorizationId) {
-              const ocpiTransaction = await TransactionStorage.getOCPITransaction(tenant.id, authorization.authorizationId);
-              // OCPI ID not used yet
-              if (!ocpiTransaction) {
-                authorizationId = authorization.authorizationId;
-                break;
+    try {
+      if (!transaction.user || transaction.user.issuer) {
+        return;
+      }
+      const user: User = transaction.user;
+      const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+      let action: ServerAction;
+      switch (transactionAction) {
+        case TransactionAction.START:
+          action = ServerAction.START_TRANSACTION;
+          break;
+        case TransactionAction.UPDATE:
+          action = ServerAction.UPDATE_TRANSACTION;
+          break;
+        case TransactionAction.STOP:
+        case TransactionAction.END:
+          action = ServerAction.STOP_TRANSACTION;
+          break;
+      }
+      if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+        throw new BackendError({
+          user: user,
+          action: action,
+          module: MODULE_NAME,
+          method: 'processOCPITransaction',
+          message: `Unable to ${transactionAction} a Transaction for User '${user.id}' not issued locally`
+        });
+      }
+      const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+      if (!ocpiClient) {
+        throw new BackendError({
+          user: user,
+          action: action,
+          module: MODULE_NAME,
+          method: 'processOCPITransaction',
+          message: `OCPI component requires at least one CPO endpoint to ${transactionAction} a Session`
+        });
+      }
+      let authorizationId;
+      let authorizations: DataResult<OCPPAuthorizeRequestExtended>;
+      switch (transactionAction) {
+        case TransactionAction.START:
+          // eslint-disable-next-line no-case-declarations
+          const tag = await UserStorage.getTag(tenantID, transaction.tagID);
+          if (!tag.ocpiToken) {
+            throw new BackendError({
+              user: user,
+              action: action,
+              module: MODULE_NAME,
+              method: 'processOCPITransaction',
+              message: `User '${Utils.buildUserFullName(user)}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Transaction thought OCPI protocol due to missing OCPI Token`
+            });
+          }
+          // Retrieve Authorization ID
+          authorizations = await OCPPStorage.getAuthorizes(tenant.id, {
+            dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
+            chargeBoxID: transaction.chargeBoxID,
+            tagID: transaction.tagID
+          }, Constants.DB_PARAMS_MAX_LIMIT);
+          // Found ID?
+          if (authorizations && authorizations.result && authorizations.result.length > 0) {
+            // Get the first non used Authorization OCPI ID
+            for (const authorization of authorizations.result) {
+              if (authorization.authorizationId) {
+                const ocpiTransaction = await TransactionStorage.getOCPITransaction(tenant.id, authorization.authorizationId);
+                // OCPI ID not used yet
+                if (!ocpiTransaction) {
+                  authorizationId = authorization.authorizationId;
+                  break;
+                }
               }
             }
           }
-        }
-        if (!authorizationId) {
-          throw new BackendError({
-            user: user,
-            action: action,
-            module: MODULE_NAME, method: 'processOCPITransaction',
-            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} Transaction thought OCPI protocol due to missing Authorization`
-          });
-        }
-        await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
-        break;
-      case TransactionAction.UPDATE:
-        await ocpiClient.updateSession(transaction);
-        break;
-      case TransactionAction.STOP:
-        await ocpiClient.stopSession(transaction);
-        break;
-      case TransactionAction.END:
-        await ocpiClient.postCdr(transaction);
-        break;
+          if (!authorizationId) {
+            throw new BackendError({
+              user: user,
+              action: action,
+              module: MODULE_NAME, method: 'processOCPITransaction',
+              message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} Transaction thought OCPI protocol due to missing Authorization`
+            });
+          }
+          await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
+          break;
+        case TransactionAction.UPDATE:
+          await ocpiClient.updateSession(transaction);
+          break;
+        case TransactionAction.STOP:
+          await ocpiClient.stopSession(transaction);
+          break;
+        case TransactionAction.END:
+          await ocpiClient.postCdr(transaction);
+          break;
+      }
+    } catch (error) {
+      Logging.logError({
+        tenantID: tenantID,
+        user: transaction.userID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PUSH_SESSIONS,
+        module: MODULE_NAME, method: 'processOCPITransaction',
+        message: `Cannot ${transactionAction} Transaction ID '${transaction.id}' thought OCPI protocol`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
     }
   }
 

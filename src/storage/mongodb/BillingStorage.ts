@@ -13,26 +13,16 @@ const MODULE_NAME = 'BillingStorage';
 
 export default class BillingStorage {
   public static async getInvoice(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<BillingInvoice> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getInvoice');
-    // Query single Site
-    const invoicesMDB = await BillingStorage.getInvoices(tenantID,
-      { invoiceIDs: [id] },
-      Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoice', uniqueTimerID, invoicesMDB);
+    const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
+      invoiceIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
   public static async getInvoiceByBillingInvoiceID(tenantID: string, id: string): Promise<BillingInvoice> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getInvoice');
-    // Query single Site
-    const invoicesMDB = await BillingStorage.getInvoices(tenantID,
-      { billingInvoiceID: id },
-      Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoice', uniqueTimerID, { id });
+    const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
+      billingInvoiceID: id
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 

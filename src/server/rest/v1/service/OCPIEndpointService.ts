@@ -412,7 +412,7 @@ export default class OCPIEndpointService {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_CHECK_CDRS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
-        message: 'Error in checking the OCPI CDRs: cannot acquire the lock',
+        message: 'Error in checking the OCPI CDRs: csannot acquire the lock',
         module: MODULE_NAME, method: 'handleCheckCdrsEndpoint',
       });
     }
