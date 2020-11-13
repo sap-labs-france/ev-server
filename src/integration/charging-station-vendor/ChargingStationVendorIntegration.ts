@@ -388,41 +388,46 @@ export default abstract class ChargingStationVendorIntegration {
       }
       // Check first matching Charging Profile
       if (chargingStation.capabilities && chargingStation.capabilities.supportChargingProfiles) {
-        // Get the current Charging Plan
+        // Get the current Charging Profiles
+        const chargingProfiles = (await ChargingStationStorage.getChargingProfiles(tenantID, {
+          chargingStationIDs: [chargingStation.id]
+        }, Constants.DB_PARAMS_MAX_LIMIT)).result;
         // Check the TX Charging Profiles from the DB
-        let chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          {
-            chargingStationIDs: [chargingStation.id], connectorID: connectorID,
-            profilePurposeType: ChargingProfilePurposeType.TX_PROFILE
-          }, Constants.DB_PARAMS_MAX_LIMIT);
-        let result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
+        const txChargingProfiles = chargingProfiles.filter((chargingProfile) =>
+          chargingProfile.connectorID === connectorID &&
+          chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.TX_PROFILE
+        );
+        // Check
+        let result = this.getCurrentConnectorLimitFromProfiles(
+          tenantID, chargingStation, chargePoint, connectorID, txChargingProfiles);
         if (result) {
           return result;
         }
         // Check the TX Default Charging Profiles from the DB
-        chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          {
-            chargingStationIDs: [chargingStation.id], connectorID: 0,
-            profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE
-          }, Constants.DB_PARAMS_MAX_LIMIT);
-        if (chargingProfiles.result.length === 0) {
-          chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-            {
-              chargingStationIDs: [chargingStation.id], connectorID: connectorID,
-              profilePurposeType: ChargingProfilePurposeType.TX_DEFAULT_PROFILE
-            }, Constants.DB_PARAMS_MAX_LIMIT);
+        let txDefaultChargingProfiles = chargingProfiles.filter((chargingProfile) =>
+          chargingProfile.connectorID === 0 &&
+          chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.TX_DEFAULT_PROFILE
+        );
+        if (txDefaultChargingProfiles.length === 0) {
+          txDefaultChargingProfiles = chargingProfiles.filter((chargingProfile) =>
+            chargingProfile.connectorID === connectorID &&
+            chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.TX_DEFAULT_PROFILE
+          );
         }
-        result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
+        // Check
+        result = this.getCurrentConnectorLimitFromProfiles(
+          tenantID, chargingStation, chargePoint, connectorID, txDefaultChargingProfiles);
         if (result) {
           return result;
         }
         // Check the Max Charging Profiles from the DB
-        chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-          {
-            chargingStationIDs: [chargingStation.id], connectorID: connectorID,
-            profilePurposeType: ChargingProfilePurposeType.CHARGE_POINT_MAX_PROFILE
-          }, Constants.DB_PARAMS_MAX_LIMIT);
-        result = this.getCurrentConnectorLimitFromProfiles(tenantID, chargingStation, chargePoint, connectorID, chargingProfiles.result);
+        const maxChargingProfiles = chargingProfiles.filter((chargingProfile) =>
+          chargingProfile.connectorID === connectorID &&
+          chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.CHARGE_POINT_MAX_PROFILE
+        );
+        // Check
+        result = this.getCurrentConnectorLimitFromProfiles(
+          tenantID, chargingStation, chargePoint, connectorID, maxChargingProfiles);
         if (result) {
           return result;
         }

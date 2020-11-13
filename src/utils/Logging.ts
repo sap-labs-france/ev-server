@@ -48,14 +48,26 @@ export default class Logging {
   public static traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): void {
     if (Utils.isDevelopmentEnv()) {
       // Compute duration if provided
-      let executionDurationSecs: number;
+      let executionDurationMillis: number;
       let found = false;
       if (Logging.traceCalls[key]) {
-        executionDurationSecs = (new Date().getTime() - Logging.traceCalls[key]);
+        executionDurationMillis = (new Date().getTime() - Logging.traceCalls[key]);
         delete Logging.traceCalls[key];
         found = true;
       }
-      console.debug(`${module}.${method} ${found ? '- ' + executionDurationSecs.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + Utils.roundTo(sizeof(data) / 1024, 2).toString() + 'Kb' : ''}`);
+      const sizeOfDataKB = Utils.roundTo(sizeof(data) / 1024, 2);
+      const numberOfRecords = Array.isArray(data) ? data.length : 0;
+      console.debug(`${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''}${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`);
+      if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+        console.warn('====================================');
+        console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`));
+        console.warn('====================================');
+      }
+      if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+        console.warn('====================================');
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
+        console.warn('====================================');
+      }
     }
   }
 
@@ -151,23 +163,33 @@ export default class Logging {
           tenantID = req.user.tenantID;
         }
         // Compute duration
-        let durationSecs = 0;
+        let executionDurationMillis = 0;
         if (req['timestamp']) {
-          durationSecs = (new Date().getTime() - req['timestamp'].getTime()) / 1000;
+          executionDurationMillis = (new Date().getTime() - req['timestamp'].getTime());
         }
         // Compute Length
-        let contentLengthKB = 0;
+        let sizeOfDataKB = 0;
         if (res.getHeader('content-length')) {
-          contentLengthKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
+          sizeOfDataKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
         }
         if (Utils.isDevelopmentEnv()) {
-          console.debug(`Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
+          console.debug(`Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
+          if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+            console.warn('====================================');
+            console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`));
+            console.warn('====================================');
+          }
+          if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+            console.warn('====================================');
+            console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
+            console.warn('====================================');
+          }
         }
         Logging.logSecurityDebug({
           tenantID: tenantID,
           user: req.user,
           action: ServerAction.HTTP_RESPONSE,
-          message: `Express HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
+          message: `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
           module: MODULE_NAME, method: 'logExpressResponse',
           detailedMessages: {
             request: req.url,
@@ -183,7 +205,8 @@ export default class Logging {
   }
 
   public static logExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
-    Logging.logActionExceptionMessageAndSendResponse(ServerAction.HTTP_ERROR, error, req, res, next);
+    Logging.logActionExceptionMessageAndSendResponse(
+      error['params'] && error['params']['action'] ? error['params']['action'] : ServerAction.HTTP_ERROR, error, req, res, next);
   }
 
   public static logAxiosRequest(tenantID: string, request: AxiosRequestConfig): void {
@@ -201,24 +224,38 @@ export default class Logging {
 
   public static logAxiosResponse(tenantID: string, response: AxiosResponse): void {
     // Compute duration
-    let durationSecs = 0;
+    let executionDurationMillis: number;
     if (response.config['timestamp']) {
-      durationSecs = (new Date().getTime() - response.config['timestamp'].getTime()) / 1000;
+      executionDurationMillis = (new Date().getTime() - response.config['timestamp'].getTime());
     }
     // Compute Length
-    let contentLengthKB = 0;
+    let sizeOfDataKB = 0;
     if (response.config.headers['Content-Length']) {
-      contentLengthKB = Utils.roundTo(response.config.headers['Content-Length'] / 1024, 2);
+      sizeOfDataKB = Utils.roundTo(response.config.headers['Content-Length'] / 1024, 2);
+    }
+    if (Utils.isDevelopmentEnv()) {
+      console.log(`Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`);
+      if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+        console.warn('====================================');
+        console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`));
+        console.warn('====================================');
+      }
+      if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+        console.warn('====================================');
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
+        console.warn('====================================');
+      }
     }
     Logging.logSecurityDebug({
       tenantID: tenantID,
       action: ServerAction.HTTP_RESPONSE,
-      message: `Axios HTTP Response - ${(durationSecs > 0) ? durationSecs : '?'}s - ${(contentLengthKB > 0) ? contentLengthKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+      message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
       module: MODULE_NAME, method: 'interceptor',
       detailedMessages: {
         status: response.status,
         statusText: response.statusText,
         request: Utils.cloneObject(response.config),
+        headers: Utils.cloneObject(response.headers),
         response: Utils.cloneObject(response.data)
       }
     });
@@ -698,7 +735,8 @@ export default class Logging {
     try {
       // Decode the token
       if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        return jwtDecode(req.headers.authorization.slice(7));
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        return jwtDecode(req.headers.authorization.slice(7)) as UserToken;
       }
     } catch (error) {
       // Do nothing
@@ -748,22 +786,27 @@ export default class Logging {
 
   private static traceChargingStationActionEnd(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): void {
     // Compute duration if provided
-    let executionDurationSecs: number;
+    let executionDurationMillis: number;
     let found = false;
     if (Logging.traceCalls[`${chargeBoxID}~action`]) {
-      executionDurationSecs = (new Date().getTime() - Logging.traceCalls[`${chargeBoxID}~action`]) / 1000;
+      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[`${chargeBoxID}~action`]);
       delete Logging.traceCalls[`${chargeBoxID}~action`];
       found = true;
     }
     if (Utils.isDevelopmentEnv()) {
-      console.debug(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`);
+      console.debug(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`);
+      if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+        console.warn('====================================');
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
+        console.warn('====================================');
+      }
     }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
       Logging.logError({
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: `${direction} OCPP Request has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
+        message: `${direction} OCPP Request has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`,
         action: action,
         detailedMessages
       });
@@ -772,7 +815,7 @@ export default class Logging {
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: `${direction} OCPP Request has been processed ${found ? 'in ' + executionDurationSecs.toString() + ' secs' : ''}`,
+        message: `${direction} OCPP Request has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`,
         action: action,
         detailedMessages
       });

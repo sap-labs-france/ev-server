@@ -83,7 +83,7 @@ class TestData {
 }
 
 
-async function generateTransaction(user: User, chargingStationContext): Promise<number> {
+async function generateTransaction(user, chargingStationContext): Promise<number> {
   const connectorId = 1;
   const tagId = user.tags[0].id;
   const meterStart = 0;

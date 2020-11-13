@@ -21,10 +21,10 @@
       "",
       "Error occurred on <strong>'<%- chargeBoxID %>'</strong>, connector <strong>'<%- connectorId %>'</strong>: <strong><%- error %></strong>."
     ],
-    "action": {
+    "actions": [{
       "title": "View Error",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

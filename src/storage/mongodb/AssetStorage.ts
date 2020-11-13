@@ -15,19 +15,10 @@ const MODULE_NAME = 'AssetStorage';
 export default class AssetStorage {
   public static async getAsset(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
     params: { withSiteArea?: boolean} = {}): Promise<Asset> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAsset');
-    // Reuse
-    const assetsMDB = await AssetStorage.getAssets(
-      tenantID,
-      {
-        assetIDs: [id],
-        withSiteArea: params.withSiteArea
-      },
-      Constants.DB_PARAMS_SINGLE_RECORD
-    );
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getAsset', uniqueTimerID, assetsMDB);
+    const assetsMDB = await AssetStorage.getAssets(tenantID, {
+      assetIDs: [id],
+      withSiteArea: params.withSiteArea
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return assetsMDB.count === 1 ? assetsMDB.result[0] : null;
   }
 

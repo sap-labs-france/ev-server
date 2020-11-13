@@ -15,12 +15,9 @@ const MODULE_NAME = 'CompanyStorage';
 export default class CompanyStorage {
 
   public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Company> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompany');
-    // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompany', uniqueTimerID, companiesMDB);
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, {
+      companyIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return companiesMDB.count === 1 ? companiesMDB.result[0] : null;
   }
 

@@ -1,0 +1,38 @@
+{
+  "subject": "Facturation - Nouvelle facture",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Facturation - Nouvelle facture",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Cher <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Une nouvelle facture est disponible : <%- invoice.number %>."
+    ],
+    "actions": [{
+      "title": "Consulter",
+      "url": "<%- evseDashboardInvoiceURL %>"
+    }, {
+      "title": "Télécharger",
+      "url": "<%- invoiceDownloadUrl %>"
+    }],
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

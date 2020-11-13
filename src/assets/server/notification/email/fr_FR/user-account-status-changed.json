@@ -21,10 +21,10 @@
       "",
       "Votre compte a été <strong><%- (user.status === 'A' ? 'activé' : 'suspendu'); %></strong> par un administrateur."
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

@@ -15,22 +15,15 @@ const MODULE_NAME = 'SettingStorage';
 
 export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<SettingDB> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSetting');
-    // Delegate query
-    const settingMDB = await SettingStorage.getSettings(tenantID, { settingID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSetting', uniqueTimerID, settingMDB);
+    const settingMDB = await SettingStorage.getSettings(tenantID, {
+      settingID: id
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return settingMDB.count === 1 ? settingMDB.result[0] : null;
   }
 
   public static async getSettingByIdentifier(tenantID: string, identifier: string = Constants.UNKNOWN_STRING_ID): Promise<SettingDB> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSettingByIdentifier');
     const settingsMDB = await SettingStorage.getSettings(
       tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSettingByIdentifier', uniqueTimerID, settingsMDB);
     return settingsMDB.count === 1 ? settingsMDB.result[0] : null;
   }
 

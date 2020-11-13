@@ -334,7 +334,7 @@ export default class OCPPService {
           message: 'No relevant Meter Values to save',
           detailedMessages: { meterValues }
         });
-        // Process values
+      // Process values
       } else {
         // Handle Meter Value only for transaction
         // eslint-disable-next-line no-lonely-if
@@ -452,13 +452,22 @@ export default class OCPPService {
             message: `Unable to authorize user '${user.id}' not issued locally`
           });
         }
-        const tag = user.tags.find(((value) => value.id === authorize.idTag));
-        if (!tag?.ocpiToken) {
+        // Get tag
+        const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
+        if (!tag) {
           throw new BackendError({
             user: user,
             action: ServerAction.AUTHORIZE,
             module: MODULE_NAME, method: 'handleAuthorize',
-            message: `user '${user.id}' with tag '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
+            message: `Tag ID '${authorize.idTag}' does not exists`
+          });
+        }
+        if (!tag.ocpiToken) {
+          throw new BackendError({
+            user: user,
+            action: ServerAction.AUTHORIZE,
+            module: MODULE_NAME, method: 'handleAuthorize',
+            message: `Tag ID '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
           });
         }
         const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
@@ -962,8 +971,8 @@ export default class OCPPService {
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&
-      foundConnector.errorCode === statusNotification.errorCode &&
-      foundConnector.info === statusNotification.info) {
+        foundConnector.errorCode === statusNotification.errorCode &&
+        foundConnector.info === statusNotification.info) {
       // No Change: Do not save it
       Logging.logWarning({
         tenantID: tenantID,
@@ -1001,10 +1010,10 @@ export default class OCPPService {
     await this.checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, foundConnector);
     // Notify admins
     await this.notifyStatusNotification(tenantID, chargingStation, statusNotification);
-    // Send new status to IOP
-    await this.updateOCPIStatus(tenantID, chargingStation, foundConnector);
     // Send new status to Hubject
     await this.updateOICPStatus(tenantID, chargingStation, foundConnector);
+    // Send new status to IOP
+    await this.updateOCPIConnectorStatus(tenantID, chargingStation, foundConnector);
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
@@ -1033,7 +1042,7 @@ export default class OCPPService {
         Utils.objectHasProperty(statusNotification, 'timestamp')) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
-        tenantID, chargingStation.id, connector.connectorId);
+        tenantID, chargingStation.id, connector.connectorId, { withChargingStation: true, withUser: true });
       // Session is finished
       if (lastTransaction && lastTransaction.stop && !lastTransaction.stop.extraInactivityComputed) {
         const transactionStopTimestamp = Utils.convertToDate(lastTransaction.stop.timestamp);
@@ -1087,7 +1096,7 @@ export default class OCPPService {
     }
   }
 
-  private async updateOCPIStatus(tenantID: string, chargingStation: ChargingStation, connector: Connector) {
+  private async updateOCPIConnectorStatus(tenantID: string, chargingStation: ChargingStation, connector: Connector) {
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     if (chargingStation.issuer && chargingStation.public && Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
@@ -1099,7 +1108,7 @@ export default class OCPPService {
         Logging.logError({
           tenantID: tenantID,
           source: chargingStation.id,
-          module: MODULE_NAME, method: 'updateOCPIStatus',
+          module: MODULE_NAME, method: 'updateOCPIConnectorStatus',
           action: ServerAction.OCPI_PATCH_STATUS,
           message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
           detailedMessages: { error: error.message, stack: error.stack }

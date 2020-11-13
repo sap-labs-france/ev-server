@@ -182,9 +182,11 @@ export default class UserService {
       });
     }
     // Check user
-    const user = await UserStorage.getUser(req.user.tenantID, id, { withTag: true });
-    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`,
-      MODULE_NAME, 'handleDeleteUser', req.user);
+    const user = await UserStorage.getUser(req.user.tenantID, id);
+    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
+    // Get tags
+    const tags = (await UserStorage.getTags(req.user.tenantID,
+      { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
     // Deleted
     if (user.deleted) {
       throw new AppError({
@@ -280,7 +282,7 @@ export default class UserService {
       await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
         { verificationToken: null, verifiedAt: null });
       // Disable/Delete Tags
-      for (const tag of user.tags) {
+      for (const tag of tags) {
         if (tag.transactionsCount > 0) {
           tag.active = false;
           tag.deleted = true;
@@ -289,7 +291,7 @@ export default class UserService {
           tag.userID = user.id;
           await UserStorage.saveTag(req.user.tenantID, tag);
         } else {
-          await UserStorage.deleteTag(req.user.tenantID, user.id, tag);
+          await UserStorage.deleteTag(req.user.tenantID, tag.id);
         }
       }
     } else {
@@ -302,7 +304,7 @@ export default class UserService {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
         const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (ocpiClient) {
-          for (const tag of user.tags) {
+          for (const tag of tags) {
             await ocpiClient.pushToken({
               uid: tag.id,
               type: OCPITokenType.RFID,
@@ -441,7 +443,6 @@ export default class UserService {
       email: filteredRequest.email.toLowerCase(),
       lastChangedBy: lastChangedBy,
       lastChangedOn: lastChangedOn,
-      tags: []
     };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
@@ -1105,7 +1106,7 @@ export default class UserService {
       });
     }
     // Delete the Tag
-    await UserStorage.deleteTag(req.user.tenantID, tag.userID, tag);
+    await UserStorage.deleteTag(req.user.tenantID, tag.id);
     // OCPI
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {
@@ -1355,7 +1356,7 @@ export default class UserService {
     let csv = '';
     // Header
     if (writeHeader) {
-      csv = `ID${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}First Name${Constants.CSV_SEPARATOR}Role${Constants.CSV_SEPARATOR}Status${Constants.CSV_SEPARATOR}Email${Constants.CSV_SEPARATOR}Nbr Badges${Constants.CSV_SEPARATOR}Badges${Constants.CSV_SEPARATOR}EULA Accepted On${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Changed On${Constants.CSV_SEPARATOR}Changed By\r\n`;
+      csv = `ID${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}First Name${Constants.CSV_SEPARATOR}Role${Constants.CSV_SEPARATOR}Status${Constants.CSV_SEPARATOR}Email${Constants.CSV_SEPARATOR}EULA Accepted On${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Changed On${Constants.CSV_SEPARATOR}Changed By\r\n`;
     }
     // Content
     for (const user of users) {
@@ -1365,8 +1366,6 @@ export default class UserService {
       csv += `${user.role}` + Constants.CSV_SEPARATOR;
       csv += `${user.status}` + Constants.CSV_SEPARATOR;
       csv += `${user.email}` + Constants.CSV_SEPARATOR;
-      csv += `${user.tags ? user.tags.length : 0}` + Constants.CSV_SEPARATOR;
-      csv += `${user.tags ? user.tags.map((tag) => tag.id).join(',') : ''}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.eulaAcceptedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.createdOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.lastChangedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
@@ -1401,7 +1400,6 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
-        withTag: filteredRequest.WithTag,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
@@ -1409,7 +1407,6 @@ export default class UserService {
         excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
         includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
         notAssignedToCarID: filteredRequest.NotAssignedToCarID,
-        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
       },
       {
         limit: filteredRequest.Limit,

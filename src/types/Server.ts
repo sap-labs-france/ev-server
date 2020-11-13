@@ -101,7 +101,6 @@ export enum ServerAction {
 
   OCPI_ENPOINT_CREATE = 'OcpiEndpointCreate',
   OCPI_ENPOINT_PING = 'OcpiEndpointPing',
-  OCPI_ENPOINT_TRIGGER_JOBS = 'OcpiEndpointTriggerJobs',
   OCPI_ENPOINT_CHECK_CDRS = 'OcpiEndpointCheckCdrs',
   OCPI_ENPOINT_CHECK_LOCATIONS = 'OcpiEndpointCheckLocations',
   OCPI_ENPOINT_CHECK_SESSIONS = 'OcpiEndpointCheckSessions',
@@ -124,6 +123,7 @@ export enum ServerAction {
   OCPI_CHECK_TOKENS = 'OcpiCheckTokens',
   OCPI_PUSH_TOKENS = 'OcpiPushTokens',
   OCPI_PUSH_SESSIONS = 'OcpiPushSessions',
+  OCPI_PUSH_LOCATIONS = 'OcpiPushLocations',
   OCPI_PUSH_CDRS = 'OcpiPushCdrs',
   OCPI_PULL_CDRS = 'OcpiPullCdrs',
   OCPI_PULL_LOCATIONS = 'OcpiPullLocations',
@@ -135,9 +135,6 @@ export enum ServerAction {
   OCPI_UNLOCK_CONNECTOR = 'OcpiUnlockConnector',
   OCPI_GET_VERSIONS = 'OcpiGetVersions',
   OCPI_GET_LOCATIONS = 'OcpiGetLocations',
-  OCPI_GET_SESSIONS = 'OcpiGetSessions',
-  OCPI_GET_TOKENS = 'OcpiGetTokens',
-  OCPI_GET_CDRS = 'OcpiGetCdrs',
   OCPI_GET_TARIFF = 'OcpiGetTariff',
   OCPI_GET_TARIFFS = 'OcpiGetTariffs',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
@@ -380,6 +377,7 @@ export enum ServerAction {
   BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
   BILLING_CREATE_TRANSACTION_INVOICE = 'BillingCreateTransactionInvoice',
+  BILLING_NEW_INVOICE = 'BillingNewInvoice',
 
   MONGO_DB = 'MongoDB',
 

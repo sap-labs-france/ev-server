@@ -24,6 +24,7 @@ import { HTTPError } from '../types/HTTPError';
 import { HttpEndUserReportErrorRequest } from '../types/requests/HttpNotificationRequest';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { OCPIResult } from '../types/ocpi/OCPIResult';
 import OICPEndpoint from '../types/oicp/OICPEndpoint';
 import { ObjectID } from 'mongodb';
 import { Request } from 'express';
@@ -53,8 +54,6 @@ import validator from 'validator';
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
-  private static tenants = [];
-
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
     if (axiosError.response) {
@@ -174,6 +173,54 @@ export default class Utils {
 
   public static async sleep(ms): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  public static logOcpiResult(
+    tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string,
+    messageNoSuccessNoError: string): void {
+    // Replace
+    messageSuccess = messageSuccess.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageError = messageError.replace('{{inError}}', ocpiResult.failure.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', ocpiResult.failure.toString());
+    if (Utils.isEmptyArray(ocpiResult.logs)) {
+      ocpiResult.logs = null;
+    }
+    // Success and Error
+    if (ocpiResult.success > 0 && ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccessAndError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.success > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccess,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageNoSuccessNoError,
+        detailedMessages: ocpiResult.logs
+      });
+    }
   }
 
   public static logActionsResponse(
@@ -458,10 +505,6 @@ export default class Utils {
     }
   }
 
-  public static clearTenants(): void {
-    Utils.tenants = [];
-  }
-
   public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
@@ -470,10 +513,6 @@ export default class Utils {
         method: 'checkTenant',
         message: 'The Tenant ID is mandatory'
       });
-    }
-    // Check in cache
-    if (Utils.tenants.includes(tenantID)) {
-      return Promise.resolve(null);
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?
@@ -496,7 +535,6 @@ export default class Utils {
         });
       }
     }
-    Utils.tenants.push(tenantID);
   }
 
   public static convertToBoolean(value: any): boolean {
@@ -515,16 +553,16 @@ export default class Utils {
     return result;
   }
 
-  public static convertToDate(date: any): Date {
+  public static convertToDate(value: any): Date {
     // Check
-    if (!date) {
+    if (!value) {
       return null;
     }
     // Check Type
-    if (!(date instanceof Date)) {
-      return new Date(date);
+    if (!(value instanceof Date)) {
+      return new Date(value);
     }
-    return date;
+    return value;
   }
 
   public static replaceSpecialCharsInCSVValueParam(value: string): string {
@@ -1060,28 +1098,33 @@ export default class Utils {
 
   public static async buildEvseTagURL(tenantID: string, tag: Tag): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    // Add
-    return _evseBaseURL + '/users#tag?TagID=' + tag.id;
+    return `${Utils.buildEvseURL(tenant.subdomain)}/users#tag?TagID=${tag.id}`;
   }
 
 
   public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
+    return `${Utils.buildEvseURL(tenant.subdomain)}/charging-stations?ChargingStationID=${chargingStation.id}${hash}`;
   }
 
   public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId: number, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/transactions?TransactionID=' + transactionId.toString() + hash;
+    return `${Utils.buildEvseURL(tenant.subdomain)}/transactions?TransactionID=${transactionId.toString()}${hash}`;
   }
 
   public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/settings#billing';
+    return `${Utils.buildEvseURL(tenant.subdomain)}/settings#billing`;
+  }
+
+  public static async buildEvseBillingInvoicesURL(tenantID: string): Promise<string> {
+    const tenant = await TenantStorage.getTenant(tenantID);
+    return `${Utils.buildEvseURL(tenant.subdomain)}/invoices`;
+  }
+
+  public static async buildEvseBillingDownloadInvoicesURL(tenantID: string, invoiceID: string): Promise<string> {
+    const tenant = await TenantStorage.getTenant(tenantID);
+    return `${Utils.buildEvseURL(tenant.subdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
   public static hideShowMessage(message: string): string {
@@ -1869,19 +1912,6 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.tags) {
-      if (!Utils.areTagsValid(filteredRequest.tags)) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags '${JSON.stringify(filteredRequest.tags)}' is/are not valid`,
-          module: MODULE_NAME,
-          method: 'checkIfUserValid',
-          user: req.user.id,
-          actionOnUser: filteredRequest.id
-        });
-      }
-    }
     if (filteredRequest.plateID && !Utils.isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -2044,7 +2074,8 @@ export default class Utils {
   }
 
   public static isChargingStationIDValid(name: string): boolean {
-    return /^[A-Za-z0-9_-]*$/.test(name);
+    // eslint-disable-next-line no-useless-escape
+    return /^[A-Za-z0-9_\.\-~]*$/.test(name);
   }
 
   public static isPasswordValid(password: string): boolean {

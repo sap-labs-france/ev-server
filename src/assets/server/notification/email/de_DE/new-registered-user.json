@@ -23,10 +23,10 @@
       "",
       "Bitte öffnen Sie den folgenden Link um ihn zu aktivieren"
     ],
-    "action": {
+    "actions": [{
       "title": "Aktivierungslink",
       "url": "<%- evseDashboardVerifyEmailURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen,",
       "EV Admins."

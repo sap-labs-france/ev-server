@@ -15,13 +15,9 @@ const MODULE_NAME = 'CarStorage';
 
 export default class CarStorage {
   public static async getCarCatalog(id: number = Constants.UNKNOWN_NUMBER_ID, projectFields?: string[]): Promise<CarCatalog> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalog');
-    // Query single Site
-    const carCatalogsMDB = await CarStorage.getCarCatalogs(
-      { carCatalogIDs: [id] },
-      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalog', uniqueTimerID, { id });
+    const carCatalogsMDB = await CarStorage.getCarCatalogs({
+      carCatalogIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carCatalogsMDB.count === 1 ? carCatalogsMDB.result[0] : null;
   }
 
@@ -538,31 +534,26 @@ export default class CarStorage {
 
   public static async getCar(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
     params?: { withUsers?: boolean, userIDs?: string[]; }, projectFields?: string[]): Promise<Car> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCar');
-    // Query single Car
-    const carsMDB = await CarStorage.getCars(tenantID,
-      { carIDs: [id], ...params },
-      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCar', uniqueTimerID, { id });
+    const carsMDB = await CarStorage.getCars(tenantID, {
+      carIDs: [id],
+      ...params
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
 
   public static async getCarByVinLicensePlate(tenantID: string,
     licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
     params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCarByVinLicensePlate');
-    // Query single Car
-    const carsMDB = await CarStorage.getCars(tenantID,
-      { licensePlate: licensePlate, vin: vin, ...params },
-      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarByVinLicensePlate', uniqueTimerID, carsMDB);
+    const carsMDB = await CarStorage.getCars(tenantID, {
+      licensePlate: licensePlate,
+      vin: vin,
+      ...params
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
 
   public static async getCars(tenantID: string,
-    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string; withUsers?: boolean; defaultCar?: boolean } = {},
+    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string; withUsers?: boolean; defaultCar?: boolean; carMakers?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCars');
@@ -608,6 +599,15 @@ export default class CarStorage {
       if (params.defaultCar) {
         filters['carUsers.default'] = true;
       }
+    }
+    // Add Car Catalog
+    DatabaseUtils.pushCarCatalogLookupInAggregation({
+      tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
+      asField: 'carCatalog', oneToOneCardinality: true
+    });
+    // Filter on car maker
+    if (!Utils.isEmptyArray(params.carMakers)) {
+      filters['carCatalog.vehicleMake'] = { $in: params.carMakers };
     }
     // Filters
     aggregation.push({
@@ -672,11 +672,6 @@ export default class CarStorage {
         asField: 'carUsers.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
       }, { pipeline: carUsersPipeline, sort: dbParams.sort });
     }
-    // Add Car Catalog
-    DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
-      asField: 'carCatalog', oneToOneCardinality: true
-    });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -726,27 +721,18 @@ export default class CarStorage {
   public static async getCarUserByCarUser(tenantID: string,
     carID: string = Constants.UNKNOWN_STRING_ID, userID: string = Constants.UNKNOWN_STRING_ID,
     projectFields?: string[]): Promise<UserCar> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCarUserByCarUser');
-    // Query single Car
-    const carUsersMDB = await CarStorage.getCarUsers(tenantID,
-      { carIDs: [carID], userIDs: [userID] },
-      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarUserByCarUser', uniqueTimerID, carUsersMDB);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const carUsersMDB = await CarStorage.getCarUsers(tenantID, {
+      carIDs: [carID],
+      userIDs: [userID]
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carUsersMDB.count === 1 ? carUsersMDB.result[0] : null;
   }
 
   public static async getCarUser(tenantID: string, carUserID: string = Constants.UNKNOWN_STRING_ID,
     projectFields?: string[]): Promise<UserCar> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCarUser');
-    // Query single Car
-    const carUsersMDB = await CarStorage.getCarUsers(tenantID,
-      { carUsersIDs: [carUserID] },
-      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCarUser', uniqueTimerID, carUsersMDB);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const carUsersMDB = await CarStorage.getCarUsers(tenantID, {
+      carUsersIDs: [carUserID]
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carUsersMDB.count === 1 ? carUsersMDB.result[0] : null;
   }
 

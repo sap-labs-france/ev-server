@@ -21,10 +21,10 @@
       "",
       "Ocorreu um erro em <b> '<%- chargeBoxID %>' </b>, conector <b> '<%- connectorId %>' </b>: <b> <%- error %> </b>."
     ],
-    "action": {
+    "actions": [{
       "title": "Ver Erros",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Com os melhores cumprimentos,",
       "EV Admins."

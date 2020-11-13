@@ -134,13 +134,9 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationToken(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<RegistrationToken> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getRegistrationToken');
-    // Reuse
-    const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(
-      tenantID, { tokenIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationToken', uniqueTimerID, registrationTokensMDB);
+    const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(tenantID, {
+      tokenIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return registrationTokensMDB.count === 1 ? registrationTokensMDB.result[0] : null;
   }
 

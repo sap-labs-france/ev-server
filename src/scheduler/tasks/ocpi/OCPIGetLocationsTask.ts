@@ -1,3 +1,5 @@
+import { OCPIGetLocationsTaskConfig, TaskConfig } from '../../../types/TaskConfig';
+
 import Constants from '../../../utils/Constants';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -9,7 +11,6 @@ import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStat
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
-import { TaskConfig } from '../../../types/TaskConfig';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
@@ -25,33 +26,34 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
         // Get all available endpoints
         const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const ocpiEndpoint of ocpiEndpoints.result) {
-          await this.processOCPIEndpoint(tenant, ocpiEndpoint);
+          await this.processOCPIEndpoint(tenant, ocpiEndpoint, config);
         }
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_LOCATIONS, error);
     }
   }
 
-  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIGetLocationsTaskConfig): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'get-locations');
+    const ocpiLock = await LockingHelper.createOCPIPullEmspLocationsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_LOCATIONS,
+            action: ServerAction.OCPI_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
           });
           return;
-        } else if (!ocpiEndpoint.backgroundPatchJob) {
+        }
+        if (!ocpiEndpoint.backgroundPatchJob) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_LOCATIONS,
+            action: ServerAction.OCPI_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
           });
@@ -59,24 +61,24 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
         }
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `The get Locations process for endpoint ${ocpiEndpoint.name} is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
         // Send EVSE statuses
-        const result = await ocpiClient.pullLocations();
+        const result = await ocpiClient.pullLocations(config.partial);
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `The GET Locations process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_LOCATIONS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_LOCATIONS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

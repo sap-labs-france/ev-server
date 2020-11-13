@@ -1,5 +1,5 @@
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import { LockEntity } from '../../../types/Locking';
+import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
@@ -22,8 +22,8 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         // Get the lock
-        const ocpiLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.TRANSACTION, 'ocpi-push-cdrs');
-        if (await LockingManager.acquire(ocpiLock)) {
+        const ocpiLock = await LockingHelper.createOCPIPushCpoCdrsLock(tenant.id);
+        if (ocpiLock) {
           try {
             // Get all Transaction with no CDR
             const transactionsMDB: {_id: number}[] = await global.database.getCollection<{_id: number}>(tenant.id, 'transactions')

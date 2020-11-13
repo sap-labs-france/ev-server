@@ -21,10 +21,10 @@
       "",
       "Your electric vehicle is successfully connected to the charging station <strong>'<%- chargeBoxID %>'</strong>, connector <strong>'<%- connectorId %>'</strong>."
     ],
-    "action": {
+    "actions": [{
       "title": "View Session",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

@@ -33,9 +33,9 @@ export default class OCPPCommonTests {
   public chargingStationConnector1: OCPPStatusNotificationRequest;
   public chargingStationConnector2: OCPPStatusNotificationRequest;
 
-  public transactionStartUser: User;
+  public transactionStartUser;
   public transactionStartUserService: CentralServerService;
-  public transactionStopUser: User;
+  public transactionStopUser;
 
   public energyActiveImportStartMeterValue: number;
   public energyActiveImportEndMeterValue: number;

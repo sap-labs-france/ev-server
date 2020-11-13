@@ -132,13 +132,10 @@ export default class ChargingStationStorage {
 
   public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
     params: { includeDeleted?: boolean } = {}): Promise<ChargingStation> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStation');
-    // Query single Charging Station
-    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID,
-      { chargingStationIDs: [id], withSite: true, ...params }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStation', uniqueTimerID, chargingStationsMDB);
+    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
+      chargingStationIDs: [id],
+      withSite: true, ...params
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
@@ -602,11 +599,6 @@ export default class ChargingStationStorage {
   }
 
   public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string): Promise<string> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcppParameterValue');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Get the config
     const configuration = await ChargingStationStorage.getOcppParameters(tenantID, chargeBoxID);
     let value: string = null;
     if (configuration) {
@@ -620,8 +612,6 @@ export default class ChargingStationStorage {
         return true;
       });
     }
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcppParameterValue', uniqueTimerID, configuration);
     return value;
   }
 
@@ -683,14 +673,9 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingProfile(tenantID: string, id: string): Promise<ChargingProfile> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingProfile');
-    // Query single Site
-    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenantID,
-      { chargingProfileID: id },
-      Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingProfile', uniqueTimerID, chargingProfilesMDB);
+    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenantID, {
+      chargingProfileID: id
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
   }
 
