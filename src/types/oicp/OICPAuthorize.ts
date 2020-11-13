@@ -29,7 +29,7 @@ export interface OICPAuthorizeStartCpoReceive { // NOTE: This message describes 
   ProviderID?: OICPProviderID, // The ProviderID is defined by Hubject and is used to identify the EMP. In case of a positive authorization this field will be filled.
   AuthorizationStatus: OICPAuthorizationStatus, // Information specifying whether the user is authorized to charge or not.
   StatusCode: OICPStatusCode, // Structured status details. Can be used to specify the reason for a failed authorization
-  AuthorizationStopIdentifications?: OICPIdentification[] // A pricing product name (for identifying a tariff) that must be unique
+  AuthorizationStopIdentifications?: OICPIdentification[] // A list of Identification data that is authorized to stop the charging process.
 }
 
 //

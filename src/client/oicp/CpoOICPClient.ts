@@ -5,7 +5,7 @@ import { OICPChargingNotification, OICPCode, OICPErrorClass } from '../../types/
 import { OICPChargingNotificationEndCpoSend, OICPChargingNotificationErrorCpoSend, OICPChargingNotificationProgressCpoSend, OICPChargingNotificationStartCpoSend } from '../../types/oicp/OICPChargingNotifications';
 import { OICPEVSEPricing, OICPPricingProductData } from '../../types/oicp/OICPPricing';
 import { OICPEvseDataRecord, OICPEvseStatusRecord, OICPOperatorEvseData, OICPOperatorEvseStatus } from '../../types/oicp/OICPEvse';
-import { OICPIdentification, OICPRFIDIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
+import { OICPIdentification, OICPRFIDmifarefamilyIdentification } from '../../types/oicp/OICPIdentification';
 import { OICPPushEVSEPricingCpoSend, OICPPushPricingProductDataCpoSend } from '../../types/oicp/OICPDynamicPricing';
 import { OICPSession, OICPSessionStatus } from '../../types/oicp/OICPSession';
 import Transaction, { TransactionAction } from '../../types/Transaction';
@@ -48,10 +48,10 @@ export default class CpoOICPClient extends OICPClient {
   async startSession(chargingStation: ChargingStation, transaction: Transaction): Promise<void> {
     // Build payload
     // Tbd: Hubject differentiates between different identification Methods. Eg. RFID, Remote start, QR Code, Plug&Charge
-    const rfidIdentification: OICPRFIDIdentification = {} as OICPRFIDIdentification;
     const identification: OICPIdentification = {} as OICPIdentification;
+    const rfidIdentification: OICPRFIDmifarefamilyIdentification = {} as OICPRFIDmifarefamilyIdentification;
     rfidIdentification.UID = transaction.tagID;
-    identification.RFIDIdentification = rfidIdentification;
+    identification.RFIDMifareFamilyIdentification = rfidIdentification;
 
     let siteArea;
     if (!chargingStation.siteArea) {
@@ -93,6 +93,8 @@ export default class CpoOICPClient extends OICPClient {
     const response = await this.authorizeStart(transaction);
     // Save Session ID that was created by Hubject
     transaction.oicpData.session.id = response.SessionID;
+    transaction.oicpData.session.empPartnerSessionID = response.EMPPartnerSessionID;
+    transaction.oicpData.session.providerID = response.ProviderID;
 
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -113,46 +115,57 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
 
-    // Send start notification to Hubject when actual energy flow starts
-    // Condition: When OICPSessionStatus.PENDING switches to OICPSessionStatus.ACTIVE
-    if (transaction.oicpData.session.status === OICPSessionStatus.PENDING) {
-      await this.sendChargingNotificationStart(transaction);
+    // Hubject restriction: "Progress Notification can be sent only at interval of at least 300 seconds." (5 Minutes)
+    const date = transaction.currentTimestamp; // New Date();
+    const t1 = date.getTime();
+    const t2 = transaction.oicpData.session.last_updated.getTime();
+    const updateDuration = ((t1 - t2) / 1000);
+    console.log('update duration: ', updateDuration);
+    if (updateDuration >= 300 || transaction.oicpData.session.status === OICPSessionStatus.PENDING) {
+      transaction.oicpData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
+      transaction.oicpData.session.last_updated = transaction.currentTimestamp;
+      transaction.oicpData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
+      transaction.oicpData.session.currency = this.settings.currency;
+      // If (transaction.lastConsumption) {
+      //   transaction.oicpData.session.meterValueInBetween.push(transaction.lastConsumption.value);
+      // }
+
+      const sessionUpdate: Partial<OICPSession> = {
+        kwh: transaction.oicpData.session.kwh,
+        last_updated: transaction.oicpData.session.last_updated,
+        currency: transaction.oicpData.session.currency,
+        total_cost: transaction.oicpData.session.total_cost > 0 ? transaction.oicpData.session.total_cost : 0,
+        status: transaction.oicpData.session.status
+      };
+      // Log
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: 'Push session update to Hubject',
+        module: MODULE_NAME, method: 'updateSession',
+        detailedMessages: { payload: sessionUpdate }
+      });
+
+      // Call Hubject
+      let response;
+      if (transaction.oicpData.session.status === OICPSessionStatus.PENDING) {
+        // Send start notification to Hubject when actual energy flow starts
+        // Condition: When OICPSessionStatus.PENDING switches to OICPSessionStatus.ACTIVE
+        transaction.oicpData.session.status = OICPSessionStatus.ACTIVE;
+        response = await this.sendChargingNotificationStart(transaction);
+      } else {
+        // Send progress notification
+        response = await this.sendChargingNotificationProgress(transaction);
+      }
+
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: `Update Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response received from Hubject`,
+        module: MODULE_NAME, method: 'updateSession',
+        detailedMessages: { response: response }
+      });
     }
-
-    transaction.oicpData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
-    transaction.oicpData.session.last_updated = transaction.currentTimestamp;
-    transaction.oicpData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
-    transaction.oicpData.session.currency = this.settings.currency;
-    transaction.oicpData.session.status = OICPSessionStatus.ACTIVE;
-    if (transaction.lastConsumption) {
-      transaction.oicpData.session.meterValueInBetween.push(transaction.lastConsumption.value);
-    }
-
-    const sessionUpdate: Partial<OICPSession> = {
-      kwh: transaction.oicpData.session.kwh,
-      last_updated: transaction.oicpData.session.last_updated,
-      currency: transaction.oicpData.session.currency,
-      total_cost: transaction.oicpData.session.total_cost > 0 ? transaction.oicpData.session.total_cost : 0,
-      status: transaction.oicpData.session.status
-    };
-    // Log
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OICP_PUSH_SESSIONS,
-      message: 'Push session update to Hubject',
-      module: MODULE_NAME, method: 'updateSession',
-      detailedMessages: { payload: sessionUpdate }
-    });
-    // Call Hubject
-    const response = await this.sendChargingNotificationProgress(transaction);
-
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OICP_PUSH_SESSIONS,
-      message: `Update Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response received from Hubject`,
-      module: MODULE_NAME, method: 'updateSession',
-      detailedMessages: { response: response }
-    });
   }
 
   async stopSession(transaction: Transaction): Promise<void> {
@@ -186,9 +199,9 @@ export default class CpoOICPClient extends OICPClient {
     transaction.oicpData.session.end_datetime = transaction.stop.timestamp;
     transaction.oicpData.session.last_updated = transaction.stop.timestamp;
     transaction.oicpData.session.status = OICPSessionStatus.COMPLETED;
-    if (transaction.lastConsumption) {
-      transaction.oicpData.session.meterValueInBetween.push(transaction.lastConsumption.value);
-    }
+    // If (transaction.lastConsumption) {
+    //   transaction.oicpData.session.meterValueInBetween.push(transaction.lastConsumption.value);
+    // }
 
     // Log
     Logging.logDebug({
@@ -240,9 +253,6 @@ export default class CpoOICPClient extends OICPClient {
     let evsesToProcess: OICPEvseDataRecord[] = [];
     let chargeBoxIDsToProcessFromInput = [];
 
-    // Only one endpoint call for multiple EVSE Statuses
-    sendResult.total = 1;
-
     // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
     //    - EVSEs (ChargingStations) in error from previous push
     //    - EVSEs (ChargingStations) with status notification from latest pushDate
@@ -273,18 +283,21 @@ export default class CpoOICPClient extends OICPClient {
       }
     }
 
+    // Only one endpoint call for multiple EVSEs
+    sendResult.total = evsesToProcess.length;
+
     if (evsesToProcess) {
       // Process it if not empty
       try {
         await this.pushEvseData(evsesToProcess, actionType);
-        sendResult.success++;
-        sendResult.chargeBoxIDsInSuccess.concat(chargeBoxIDsToProcessFromInput);
+        sendResult.success = sendResult.total;
+        sendResult.chargeBoxIDsInSuccess.push(...chargeBoxIDsToProcessFromInput);
         sendResult.logs.push(
           `Pushed/Updated successfully EVSEs from tenant '${this.tenant.id}'`
         );
       } catch (error) {
-        sendResult.failure++;
-        sendResult.chargeBoxIDsInFailure.concat(chargeBoxIDsToProcessFromInput);
+        sendResult.failure = sendResult.total;
+        sendResult.chargeBoxIDsInFailure.push(...chargeBoxIDsToProcessFromInput);
         sendResult.logs.push(
           `Failed to update the EVSEs from tenant '${this.tenant.id}': ${String(error.message)}`
         );
@@ -308,7 +321,7 @@ export default class CpoOICPClient extends OICPClient {
       Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_EVSES,
-        message: `Pushing of ${chargeBoxIDsToProcessFromInput.length} EVSEs has been done with errors (see details)`,
+        message: `Pushing of ${sendResult.failure} EVSEs has been done with errors (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendEVSEs'
       });
@@ -317,7 +330,7 @@ export default class CpoOICPClient extends OICPClient {
       Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_EVSES,
-        message: `Pushing of ${chargeBoxIDsToProcessFromInput.length} EVSEs has been done successfully (see details)`,
+        message: `Pushing of ${sendResult.success} EVSEs has been done successfully (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendEVSEs'
       });
@@ -377,10 +390,7 @@ export default class CpoOICPClient extends OICPClient {
     let evseStatusesToProcess: OICPEvseStatusRecord[] = [];
     let chargeBoxIDsToProcessFromInput = [];
 
-    // Only one endpoint call for multiple EVSE Statuses
-    sendResult.total = 1;
-
-    // To DO: Check if all EVSE Statuses should be processed - in case of delta send - process only following EVSEs:
+    // Check if all EVSE Statuses should be processed - in case of delta send - process only following EVSEs:
     //    - EVSEs (ChargingStations) in error from previous push
     //    - EVSEs (ChargingStations) with status notification from latest pushDate
     if (processAllEVSEs) {
@@ -410,17 +420,20 @@ export default class CpoOICPClient extends OICPClient {
       }
     }
 
+    // Only one endpoint call for multiple EVSE Statuses
+    sendResult.total = evseStatusesToProcess.length;
+
     if (evseStatusesToProcess) {
       try {
         await this.pushEvseStatus(evseStatusesToProcess, actionType);
-        sendResult.success++;
-        sendResult.chargeBoxIDsInSuccess.concat(chargeBoxIDsToProcessFromInput);
+        sendResult.success = sendResult.total;
+        sendResult.chargeBoxIDsInSuccess.push(...chargeBoxIDsToProcessFromInput);
         sendResult.logs.push(
           `Pushed/Updated successfully EVSE Statuses from tenant '${this.tenant.id}'`
         );
       } catch (error) {
-        sendResult.failure++;
-        sendResult.chargeBoxIDsInFailure.concat(chargeBoxIDsToProcessFromInput);
+        sendResult.failure = sendResult.total;
+        sendResult.chargeBoxIDsInFailure.push(...chargeBoxIDsToProcessFromInput);
         sendResult.logs.push(
           `Failed to update the EVSE Statuses from tenant '${this.tenant.id}': ${String(error.message)}`
         );
@@ -444,7 +457,7 @@ export default class CpoOICPClient extends OICPClient {
       Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_EVSE_STATUSES,
-        message: `Pushing of ${chargeBoxIDsToProcessFromInput.length} EVSE Statuses has been done with errors (see details)`,
+        message: `Pushing of ${sendResult.failure} EVSE Statuses has been done with errors (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendEvseStatuses'
       });
@@ -453,7 +466,7 @@ export default class CpoOICPClient extends OICPClient {
       Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_EVSE_STATUSES,
-        message: `Pushing of ${chargeBoxIDsToProcessFromInput.length} EVSE Statuses has been done successfully (see details)`,
+        message: `Pushing of ${sendResult.success} EVSE Statuses has been done successfully (see details)`,
         detailedMessages: { logs: sendResult.logs },
         module: MODULE_NAME, method: 'sendEvseStatuses'
       });
@@ -563,10 +576,10 @@ export default class CpoOICPClient extends OICPClient {
     // Call Hubject
     await this.axiosInstance.post(fullUrl, payload
     ).then(function(response) {
-      console.log(response);
+      console.log('Success! pushEvseData: ', response);
       pushEvseDataResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
-      console.log(error.message);
+      console.log('Error! pushEvseData: ',error.message);
     });
     return pushEvseDataResponse;
   }
@@ -611,10 +624,10 @@ export default class CpoOICPClient extends OICPClient {
     // Call Hubject
     await this.axiosInstance.post(fullUrl, payload
     ).then(function(response) {
-      console.log(response);
+      console.log('Success! pushEvseStatus: ', response);
       pushEvseStatusResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
-      console.log(error.response);
+      console.log('Error! pushEvseStatus: ', error.response);
     });
     return pushEvseStatusResponse;
   }
@@ -650,12 +663,14 @@ export default class CpoOICPClient extends OICPClient {
     // Build payload
     const payload: OICPAuthorizeStartCpoSend = {} as OICPAuthorizeStartCpoSend;
     payload.SessionID; // Optional
-    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    if (transaction.id) {
+      payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    }
     payload.EMPPartnerSessionID; // Optional
-    payload.OperatorID = this.getOperatorID(ServerAction.OICP_AUTHORIZE_START);
     payload.EvseID = transaction.oicpData.session.evse.EvseID; // Optional
     payload.Identification = transaction.oicpData.session.identification;
     payload.PartnerProductID; // Optional
+    payload.OperatorID = this.getOperatorID(ServerAction.OICP_AUTHORIZE_START);
 
     // Log
     Logging.logDebug({
@@ -667,8 +682,13 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload);
-    authorizeResponse = response.data as OICPAuthorizeStartCpoReceive;
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
+      console.log('Success! authorizeStart: ', response);
+      authorizeResponse = response.data as OICPAuthorizeStartCpoReceive;
+    }).catch((error) => {
+      console.log('Error! authorizeStart: ', error.response);
+    });
     if (authorizeResponse.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
       throw new BackendError({
         user: transaction.user,
@@ -703,7 +723,9 @@ export default class CpoOICPClient extends OICPClient {
     // Build payload
     const payload: OICPAuthorizeStopCpoSend = {} as OICPAuthorizeStopCpoSend;
     payload.SessionID = transaction.oicpData.session.id;
-    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    if (transaction.id) {
+      payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    }
     payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_AUTHORIZE_STOP);
     payload.EvseID = transaction.oicpData.session.evse.EvseID; // Optional
@@ -719,8 +741,14 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload);
-    authorizeResponse = response.data as OICPAuthorizeStopCpoReceive;
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
+      console.log('Success! authorizeStop: ', response);
+      authorizeResponse = response.data as OICPAuthorizeStopCpoReceive;
+    }).catch((error) => {
+      console.log('Error! authorizeStop: ', error);
+    });
+
     return authorizeResponse;
   }
 
@@ -761,7 +789,9 @@ export default class CpoOICPClient extends OICPClient {
 
     const cdr: OICPChargeDetailRecord = {} as OICPChargeDetailRecord;
     cdr.SessionID = transaction.oicpData.session.id;
-    cdr.CPOPartnerSessionID = String(transaction.id); // Optional
+    if (transaction.id) {
+      cdr.CPOPartnerSessionID = String(transaction.id); // Optional
+    }
     cdr.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     cdr.EvseID = transaction.oicpData.session.evse.EvseID;
     cdr.Identification = transaction.oicpData.session.identification;
@@ -771,7 +801,7 @@ export default class CpoOICPClient extends OICPClient {
     cdr.SessionEnd = transaction.oicpData.session.end_datetime;
     cdr.MeterValueStart = parseFloat((transaction.meterStart / 1000).toFixed(3)); // Optional
     cdr.MeterValueEnd = parseFloat((transaction.stop.meterStop / 1000).toFixed(3)); // Optional
-    cdr.MeterValueInBetween = transaction.oicpData.session.meterValueInBetween.map((mV) => parseFloat((mV / 1000).toFixed(3))); // Optional
+    cdr.MeterValueInBetween; // = transaction.oicpData.session.meterValueInBetween.map((mV) => parseFloat((mV / 1000).toFixed(3))); // Optional
     cdr.ConsumedEnergy = parseFloat((transaction.stop.totalConsumptionWh / 1000).toFixed(3)); // In kW.h
     cdr.SignedMeteringValues; // Optional
     cdr.CalibrationLawVerificationInfo; // Optional
@@ -791,15 +821,20 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload);
-    pushCdrResponse = response.data as OICPAcknowledgment;
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
+      console.log('Success! pushCdr: ', response);
+      pushCdrResponse = response.data as OICPAcknowledgment;
+    }).catch((error) => {
+      console.log('Error! pushCdr: ', error.response);
+    });
 
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OICP_PUSH_CDRS,
       message: `Push CDR of OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response retrieved from ${fullUrl}`,
       module: MODULE_NAME, method: 'pushCdr',
-      detailedMessages: { response: response.data }
+      detailedMessages: { response: pushCdrResponse }
     });
 
     return pushCdrResponse;
@@ -838,8 +873,13 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload);
-    pushEvsePricingResponse = response.data as OICPAcknowledgment;
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
+      console.log('Success! pushEvsePricing: ', response);
+      pushEvsePricingResponse = response.data as OICPAcknowledgment;
+    }).catch((error) => {
+      console.log('Error! pushEvsePricing: ', error.response);
+    });
     return pushEvsePricingResponse;
   }
 
@@ -876,8 +916,13 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload);
-    pushPricingProductDataResponse = response.data as OICPAcknowledgment;
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
+      console.log('Success! pushPricingProductData: ', response);
+      pushPricingProductDataResponse = response.data as OICPAcknowledgment;
+    }).catch((error) => {
+      console.log('Error! pushPricingProductData: ', error.response);
+    });
     return pushPricingProductDataResponse;
   }
 
@@ -913,7 +958,9 @@ export default class CpoOICPClient extends OICPClient {
     const payload: OICPChargingNotificationStartCpoSend = {} as OICPChargingNotificationStartCpoSend;
     payload.Type = OICPChargingNotification.Start;
     payload.SessionID = transaction.oicpData.session.id;
-    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    if (transaction.id) {
+      payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    }
     payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.Identification = transaction.oicpData.session.identification; // Optional
     payload.EvseID = transaction.oicpData.session.evse.EvseID;
@@ -933,8 +980,13 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload);
-    notificationStartResponse = response.data as OICPAcknowledgment;
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
+      console.log('Success! sendChargingNotificationStart: ', response);
+      notificationStartResponse = response.data as OICPAcknowledgment;
+    }).catch((error) => {
+      console.log('Error! sendChargingNotificationStart: ', error.response);
+    });
     return notificationStartResponse;
   }
 
@@ -970,12 +1022,14 @@ export default class CpoOICPClient extends OICPClient {
     const payload: OICPChargingNotificationProgressCpoSend = {} as OICPChargingNotificationProgressCpoSend;
     payload.Type = OICPChargingNotification.Progress;
     payload.SessionID = transaction.oicpData.session.id;
-    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    if (transaction.id) {
+      payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    }
     payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.Identification = transaction.oicpData.session.identification; // Optional
     payload.EvseID = transaction.oicpData.session.evse.EvseID;
     payload.ChargingStart = transaction.timestamp;
-    payload.EventOcurred = transaction.currentTimestamp;
+    payload.EventOccurred = transaction.currentTimestamp;
     payload.ChargingDuration = transaction.currentTimestamp.getTime() - transaction.timestamp.getTime(); // Optional Duration in milliseconds (Integer). Charging Duration = EventOccurred - Charging Duration. Same as transaction.currentTotalDurationSecs * 1000?
     payload.SessionStart = transaction.oicpData.session.start_datetime; // Optional
     payload.ConsumedEnergyProgress = parseFloat((transaction.currentTotalConsumptionWh / 1000).toFixed(3)); // In kW.h Optional
@@ -993,8 +1047,13 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload);
-    notificationProgressResponse = response.data as OICPAcknowledgment;
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
+      console.log('Success! sendChargingNotificationProgress: ', response);
+      notificationProgressResponse = response.data as OICPAcknowledgment;
+    }).catch((error) => {
+      console.log('Error! sendChargingNotificationProgress: ', error.response);
+    });
     return notificationProgressResponse;
   }
 
@@ -1038,7 +1097,9 @@ export default class CpoOICPClient extends OICPClient {
     const payload: OICPChargingNotificationEndCpoSend = {} as OICPChargingNotificationEndCpoSend;
     payload.Type = OICPChargingNotification.End;
     payload.SessionID = transaction.oicpData.session.id;
-    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    if (transaction.id) {
+      payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    }
     payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.Identification = transaction.oicpData.session.identification; // Optional
     payload.EvseID = transaction.oicpData.session.evse.EvseID;
@@ -1049,7 +1110,7 @@ export default class CpoOICPClient extends OICPClient {
     payload.ConsumedEnergy = parseFloat((transaction.stop.totalConsumptionWh / 1000).toFixed(3));
     payload.MeterValueStart = parseFloat((transaction.meterStart / 1000).toFixed(3)); // Optional. kw or kWh?
     payload.MeterValueEnd = parseFloat((transaction.stop.meterStop / 1000).toFixed(3)); // Optional. kW or kWh?
-    payload.MeterValueInBetween = transaction.oicpData.session.meterValueInBetween.map((mV) => parseFloat((mV / 1000).toFixed(3))); // Optional
+    payload.MeterValueInBetween; // = transaction.oicpData.session.meterValueInBetween.map((mV) => parseFloat((mV / 1000).toFixed(3))); // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END); // Optional
     payload.PartnerProductID; // Optional
     payload.PenaltyTimeStart = transaction.stop.timestamp; // Optional
@@ -1064,8 +1125,13 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload);
-    notificationEndResponse = response.data as OICPAcknowledgment;
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
+      console.log('Success! sendChargingNotificationEnd: ', response);
+      notificationEndResponse = response.data as OICPAcknowledgment;
+    }).catch((error) => {
+      console.log('Error! sendChargingNotificationEnd: ', error.response);
+    });
     return notificationEndResponse;
   }
 
@@ -1101,7 +1167,9 @@ export default class CpoOICPClient extends OICPClient {
     const payload: OICPChargingNotificationErrorCpoSend = {} as OICPChargingNotificationErrorCpoSend;
     payload.Type = OICPChargingNotification.Error;
     payload.SessionID = transaction.oicpData.session.id;
-    payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    if (transaction.id) {
+      payload.CPOPartnerSessionID = String(transaction.id); // Optional
+    }
     payload.EMPPartnerSessionID = transaction.oicpData.session.empPartnerSessionID; // Optional
     payload.Identification = transaction.oicpData.session.identification; // Optional
     payload.EvseID = transaction.oicpData.session.evse.EvseID;
@@ -1118,8 +1186,13 @@ export default class CpoOICPClient extends OICPClient {
     });
 
     // Call Hubject
-    const response = await this.axiosInstance.post(fullUrl, payload);
-    notificationErrorResponse = response.data as OICPAcknowledgment;
+    await this.axiosInstance.post(fullUrl, payload
+    ).then(function(response) {
+      console.log('Success! sendChargingNotificationError: ', response);
+      notificationErrorResponse = response.data as OICPAcknowledgment;
+    }).catch((errors) => {
+      console.log('Error! sendChargingNotificationError: ', errors.response);
+    });
     return notificationErrorResponse;
   }
 

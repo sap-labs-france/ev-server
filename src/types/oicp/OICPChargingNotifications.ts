@@ -32,7 +32,7 @@ export interface OICPChargingNotificationProgressCpoSend {
   Identification?: OICPIdentification, // Authentication data
   EvseID: OICPEvseID, // The ID that identifies the charging spot.
   ChargingStart: Date, // The date and time at which the charging process started.
-  EventOcurred: Date, // The date and time at which the charging progress parameters are captured.
+  EventOccurred: Date, // The date and time at which the charging progress parameters are captured.
   ChargingDuration?: number, // Integer. Charging Duration = EventOccurred - Charging Duration. It is a time in millisecond. Either ChargingDuration or ConsumedEnergyProgress should be provided. Both can also be provided with each progress notification.
   SessionStart?: Date, // The date and time at which the session started, e.g. swipe of RFID or cable connected.
   ConsumedEnergyProgress?: number, // Decimal (,3). This is consumed energy when from Start of charging process till the charging progress notification generated (EventOccurred). Either ChargingDuration or ConsumedEnergyProgress should be provided. Both can also be provided with each progress notification.

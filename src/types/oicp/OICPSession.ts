@@ -1,10 +1,12 @@
 import { OICPEvseDataRecord } from './OICPEvse';
 import { OICPIdentification } from './OICPIdentification';
+import { OICPProviderID } from './OICPAuthentication';
 
 export interface OICPSession {
   id: string;
   identification: OICPIdentification;
   empPartnerSessionID: string;
+  providerID: OICPProviderID;
   start_datetime: Date;
   end_datetime?: Date;
   kwh: number;

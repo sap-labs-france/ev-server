@@ -185,6 +185,12 @@ export default class TransactionStorage {
         transactionMDB.ocpiData.cdrCheckedOn = transactionToSave.ocpiData.cdrCheckedOn;
       }
     }
+    if (transactionToSave.oicpData) {
+      transactionMDB.oicpData = {
+        session: transactionToSave.oicpData.session,
+        cdr: transactionToSave.oicpData.cdr
+      };
+    }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { '_id': Utils.convertToInt(transactionToSave.id) },
