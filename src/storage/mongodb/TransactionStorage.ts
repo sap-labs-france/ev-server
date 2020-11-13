@@ -939,7 +939,8 @@ export default class TransactionStorage {
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
-  public static async getLastTransaction(tenantID: string, chargeBoxID: string, connectorId: number): Promise<Transaction> {
+  public static async getLastTransaction(tenantID: string, chargeBoxID: string, connectorId: number,
+    params: { withChargingStation?: boolean; withUser?: boolean; }): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastTransaction');
     // Check
@@ -952,6 +953,30 @@ export default class TransactionStorage {
         'connectorId': Utils.convertToInt(connectorId)
       }
     });
+    // Sort
+    aggregation.push({
+      $sort: {
+        timestamp: -1
+      }
+    });
+    // The last one
+    aggregation.push({
+      $limit: 1
+    });
+    // Add Charging Station
+    if (params.withChargingStation) {
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+        asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+    }
+    // Add User
+    if (params.withUser) {
+      DatabaseUtils.pushUserLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'userID', foreignField: '_id',
+        asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+    }
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
     // Convert Object ID to string
@@ -960,20 +985,14 @@ export default class TransactionStorage {
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Set to null
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
-    // Sort
-    aggregation.push({ $sort: { timestamp: -1 } });
-    // The last one
-    aggregation.push({ $limit: 1 });
-    // Add Charge Box
-    DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
-      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-    });
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Read DB
+    console.log('====================================');
+    console.log(JSON.stringify(aggregation, null, ' '));
+    console.log('====================================');
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
