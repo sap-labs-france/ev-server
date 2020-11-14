@@ -44,10 +44,8 @@ export default class TransactionService {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Action.UPDATE,
-          entity: Entity.TRANSACTION,
-          module: MODULE_NAME,
-          method: 'handleSynchronizeRefundedTransactions'
+          action: Action.UPDATE, entity: Entity.TRANSACTION,
+          module: MODULE_NAME, method: 'handleSynchronizeRefundedTransactions'
         });
       }
 
@@ -74,8 +72,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Transaction IDs must be provided',
-        module: MODULE_NAME,
-        method: 'handleRefundTransactions',
+        module: MODULE_NAME, method: 'handleRefundTransactions',
         user: req.user,
         action: action
       });
@@ -110,10 +107,8 @@ export default class TransactionService {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Action.REFUND_TRANSACTION,
-          entity: Entity.TRANSACTION,
-          module: MODULE_NAME,
-          method: 'handleRefundTransactions',
+          action: Action.REFUND_TRANSACTION, entity: Entity.TRANSACTION,
+          module: MODULE_NAME, method: 'handleRefundTransactions',
           value: transaction.id.toString()
         });
       }
@@ -129,10 +124,8 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'No Refund Implementation Found',
-        module: MODULE_NAME,
-        method: 'handleRefundTransactions',
-        user: req.user,
-        action: action
+        module: MODULE_NAME, method: 'handleRefundTransactions',
+        user: req.user, action: action
       });
     }
     const refundedTransactions = await refundConnector.refund(req.user.tenantID, user.id, transactionsToRefund);
@@ -179,8 +172,7 @@ export default class TransactionService {
         errorCode: HTTPError.TRANSACTION_NOT_FROM_TENANT,
         message: `The transaction ID '${transaction.id}' belongs to an external organization`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user,
-        action: action
+        user: req.user, action: action
       });
     }
     // Check OCPI
@@ -190,8 +182,7 @@ export default class TransactionService {
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
         message: `The transaction ID '${transaction.id}' has no OCPI data`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user,
-        action: action
+        user: req.user, action: action
       });
     }
     // CDR already pushed
@@ -201,8 +192,7 @@ export default class TransactionService {
         errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
         message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user,
-        action: action
+        user: req.user, action: action
       });
     }
     // Post CDR
@@ -228,10 +218,8 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.TRANSACTION,
-        module: MODULE_NAME,
-        method: 'handleGetUnassignedTransactionsCount'
+        action: Action.UPDATE, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleGetUnassignedTransactionsCount'
       });
     }
     // Filter
@@ -286,10 +274,8 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.TRANSACTION,
-        module: MODULE_NAME,
-        method: 'handleAssignTransactionsToUser'
+        action: Action.UPDATE, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleAssignTransactionsToUser'
       });
     }
     // Filter
@@ -327,8 +313,7 @@ export default class TransactionService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User not issued by the organization',
         module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
-        user: req.user,
-        action: action
+        user: req.user, action: action
       });
     }
     if (!tag.issuer) {
@@ -337,8 +322,7 @@ export default class TransactionService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Tag not issued by the organization',
         module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
-        user: req.user,
-        action: action
+        user: req.user, action: action
       });
     }
     // Assign
@@ -378,8 +362,7 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.TRANSACTION,
+        action: Action.DELETE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleDeleteTransactions',
         value: transactionsIds.toString()
       });
@@ -400,10 +383,8 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.TRANSACTION,
-        module: MODULE_NAME,
-        method: 'handleTransactionSoftStop',
+        action: Action.UPDATE, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleTransactionSoftStop',
         value: transactionId.toString()
       });
     }
@@ -468,10 +449,8 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.TRANSACTION,
-        module: MODULE_NAME,
-        method: 'handleGetConsumptionFromTransaction',
+        action: Action.READ, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleGetConsumptionFromTransaction',
         value: transaction.id.toString()
       });
     }
@@ -481,10 +460,8 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `,
-        module: MODULE_NAME,
-        method: 'handleGetConsumptionFromTransaction',
-        user: req.user,
-        action: action
+        module: MODULE_NAME, method: 'handleGetConsumptionFromTransaction',
+        user: req.user, action: action
       });
     }
     // Get the consumption
@@ -513,10 +490,8 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.TRANSACTION,
-        module: MODULE_NAME,
-        method: 'handleGetTransaction',
+        action: Action.READ, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleGetTransaction',
         value: filteredRequest.ID.toString()
       });
     }
@@ -534,10 +509,8 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
-        module: MODULE_NAME,
-        method: 'handleGetChargingStationTransactions'
+        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        module: MODULE_NAME, method: 'handleGetChargingStationTransactions'
       });
     }
     // Filter
@@ -603,10 +576,8 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
-        module: MODULE_NAME,
-        method: 'handleGetRefundReports'
+        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        module: MODULE_NAME, method: 'handleGetRefundReports'
       });
     }
     const filter: any = { stop: { $exists: true } };
@@ -656,10 +627,8 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
-        module: MODULE_NAME,
-        method: 'handleGetTransactionsInError'
+        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        module: MODULE_NAME, method: 'handleGetTransactionsInError'
       });
     }
     const filter: any = {};
@@ -719,7 +688,6 @@ export default class TransactionService {
   }
 
   public static convertToCSV(loggedUser: UserToken, transactions: Transaction[], writeHeader = true): string {
-    const i18nManager = new I18nManager(loggedUser.locale);
     let csv = '';
     // Header
     if (writeHeader) {
@@ -831,10 +799,8 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
-        module: MODULE_NAME,
-        method: 'handleGetTransactionsToRefund'
+        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        module: MODULE_NAME, method: 'handleGetTransactionsToRefund'
       });
     }
     // Filter
@@ -861,7 +827,13 @@ export default class TransactionService {
         connectorId: filteredRequest.ConnectorId ? filteredRequest.ConnectorId : null,
         inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      [
+        'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone',
+        'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+        'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
+        'user.id', 'user.name', 'user.firstName', 'user.email', 'billingData.invoiceID', 'ocpiWithNoCdr'
+      ]
     );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);

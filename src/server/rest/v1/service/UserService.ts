@@ -1413,7 +1413,9 @@ export default class UserService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
-      }
+      },
+      ['id', 'name', 'firstName', 'email', 'role', 'status','issuer', 'billingData', 'createdOn', 'createdBy',
+        'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion']
     );
     // Filter
     UserSecurity.filterUsersResponse(users, req.user);

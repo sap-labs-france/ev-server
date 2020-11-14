@@ -64,6 +64,8 @@ export default class MongoDBStorage {
     });
     // Users
     await this.handleIndexesInCollection(tenantID, 'users', [
+      { fields: { deleted: 1, name: 1 } },
+      { fields: { issuer: 1, name: 1 } },
       { fields: { email: 1 }, options: { unique: true } },
       { fields: { 'address.coordinates': '2dsphere' } },
     ]);
@@ -96,6 +98,8 @@ export default class MongoDBStorage {
     ]);
     // Tags
     await this.handleIndexesInCollection(tenantID, 'tags', [
+      { fields: { deleted: 1, createdOn: 1 } },
+      { fields: { issuer: 1, createdOn: 1 } },
       { fields: { userID: 1 } }
     ]);
     // Sites/Users
@@ -117,7 +121,7 @@ export default class MongoDBStorage {
     ]);
     // Transactions
     await this.handleIndexesInCollection(tenantID, 'transactions', [
-      { fields: { timestamp: 1 } },
+      { fields: { issuer: 1, timestamp: 1 } },
       { fields: { chargeBoxID: 1 } },
       { fields: { tagID: 1 } },
       { fields: { userID: 1 } }

@@ -143,6 +143,7 @@ export default class TransactionSecurity {
       filteredTransaction.issuer = transaction.issuer;
       filteredTransaction.connectorId = transaction.connectorId;
       filteredTransaction.meterStart = transaction.meterStart;
+      filteredTransaction.ocpiWithNoCdr = transaction.ocpiWithNoCdr;
       filteredTransaction.timestamp = transaction.timestamp;
       filteredTransaction.timezone = transaction.timezone;
       if (Utils.objectHasProperty(transaction, 'price')) {
