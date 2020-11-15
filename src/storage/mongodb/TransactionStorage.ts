@@ -550,6 +550,16 @@ export default class TransactionStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Add OCPI CDR exists
+    aggregation.push({
+      $addFields: {
+        ocpiWithNoCdr: {
+          $cond: {
+            if: { $and: [ { $gt: ['$ocpiData', null] }, { $not: { $gt: ['$ocpiData.cdr', null] } } ] }, then: true, else: false
+          }
+        }
+      }
+    });
     // Charge Box
     DatabaseUtils.pushChargingStationLookupInAggregation({
       tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
@@ -702,13 +712,8 @@ export default class TransactionStorage {
     });
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'user',
-      localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
@@ -990,9 +995,6 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Read DB
-    console.log('====================================');
-    console.log(JSON.stringify(aggregation, null, ' '));
-    console.log('====================================');
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();

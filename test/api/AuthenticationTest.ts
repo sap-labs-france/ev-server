@@ -91,23 +91,6 @@ describe('Authentication Service (tenant utall)', function() {
       expect(user.eulaAcceptedVersion).to.be.above(0);
       expect(user.createdBy).to.be.undefined;
       expect(user.createdOn).to.not.be.null;
-      expect(user.costCenter).to.be.null;
-      expect(user.iNumber).to.be.null;
-      expect(user.mobile).to.be.null;
-      expect(user.phone).to.be.null;
-      expect(user).to.have.property('notifications');
-      expect(user.notifications).not.null;
-      expect(user.notifications).not.undefined;
-      expect(user.notifications).to.have.property('sendSessionStarted');
-      expect(user.notifications.sendSessionStarted).to.eql(true);
-      expect(user.notifications).to.have.property('sendOptimalChargeReached');
-      expect(user.notifications.sendOptimalChargeReached).to.eql(true);
-      expect(user.notifications).to.have.property('sendEndOfCharge');
-      expect(user.notifications.sendEndOfCharge).to.eql(true);
-      expect(user.notifications).to.have.property('sendEndOfSession');
-      expect(user.notifications.sendEndOfSession).to.eql(true);
-      expect(user.notifications).to.have.property('sendUserAccountStatusChanged');
-      expect(user.notifications.sendUserAccountStatusChanged).to.eql(true);
     });
 
 
