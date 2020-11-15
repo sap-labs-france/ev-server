@@ -135,7 +135,7 @@ export default class TenantService {
     }
     // Filter
     const filteredRequest = TenantSecurity.filterTenantsRequest(req.query);
-    const projectFields = [ 'id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'];
+    const projectFields = ['id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'];
     if (filteredRequest.WithComponents) {
       projectFields.push('components');
     }

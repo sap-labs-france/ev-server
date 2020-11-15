@@ -992,7 +992,7 @@ export default class OCPPService {
     // Notify admins
     await this.notifyStatusNotification(tenantID, chargingStation, statusNotification);
     // Send new status to IOP
-    await this.updateOCPIStatus(tenantID, chargingStation, foundConnector);
+    await this.updateOCPIConnectorStatus(tenantID, chargingStation, foundConnector);
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
@@ -1021,7 +1021,7 @@ export default class OCPPService {
         Utils.objectHasProperty(statusNotification, 'timestamp')) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
-        tenantID, chargingStation.id, connector.connectorId);
+        tenantID, chargingStation.id, connector.connectorId, { withChargingStation: true, withUser: true });
       // Session is finished
       if (lastTransaction && lastTransaction.stop && !lastTransaction.stop.extraInactivityComputed) {
         const transactionStopTimestamp = Utils.convertToDate(lastTransaction.stop.timestamp);
@@ -1067,7 +1067,7 @@ export default class OCPPService {
     }
   }
 
-  private async updateOCPIStatus(tenantID: string, chargingStation: ChargingStation, connector: Connector) {
+  private async updateOCPIConnectorStatus(tenantID: string, chargingStation: ChargingStation, connector: Connector) {
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     if (chargingStation.issuer && chargingStation.public && Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
@@ -1079,7 +1079,7 @@ export default class OCPPService {
         Logging.logError({
           tenantID: tenantID,
           source: chargingStation.id,
-          module: MODULE_NAME, method: 'updateOCPIStatus',
+          module: MODULE_NAME, method: 'updateOCPIConnectorStatus',
           action: ServerAction.OCPI_PATCH_STATUS,
           message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
           detailedMessages: { error: error.message, stack: error.stack }
