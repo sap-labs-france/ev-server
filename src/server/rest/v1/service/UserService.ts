@@ -1414,8 +1414,11 @@ export default class UserService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['id', 'name', 'firstName', 'email', 'role', 'status','issuer', 'billingData', 'createdOn', 'createdBy',
-        'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion']
+      [
+        'id', 'name', 'firstName', 'email', 'role', 'status','issuer', 'createdOn', 'createdBy',
+        'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+        'billingData.customerID', 'billingData.lastChangedOn'
+      ]
     );
     // Filter
     UserSecurity.filterUsersResponse(users, req.user);
