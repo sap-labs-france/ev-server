@@ -555,9 +555,7 @@ export default class TransactionStorage {
       $addFields: {
         ocpiWithNoCdr: {
           $cond: {
-            if: { $and: [ { $gt: ['$ocpiData', null] }, { $not: { $gt: ['$ocpiData.cdr', null] } } ] },
-            then: true,
-            else: false
+            if: { $and: [ { $gt: ['$ocpiData', null] }, { $not: { $gt: ['$ocpiData.cdr', null] } } ] }, then: true, else: false
           }
         }
       }
@@ -714,13 +712,8 @@ export default class TransactionStorage {
     });
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'user',
-      localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
+      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);

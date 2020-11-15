@@ -15,7 +15,6 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
-import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import OCPPService from '../../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
@@ -551,22 +550,35 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsActive(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Return
-    res.json(await TransactionService.getTransactions(req, false));
+    const transactions = await TransactionService.getTransactions(req, false, [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId',
+      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+    ]);
+    res.json(transactions);
     next();
   }
 
   public static async handleGetTransactionsCompleted(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Return
-    res.json(await TransactionService.getTransactions(req));
+    const transactions = await TransactionService.getTransactions(req, true, [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId',
+      'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr'
+    ]);
+    res.json(transactions);
     next();
   }
 
   public static async handleGetTransactionsToRefund(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Only e-Mobility transactions
     req.query.issuer = 'true';
-    // Return
-    res.json(await TransactionService.getTransactions(req));
+    // Call
+    const transactions = await TransactionService.getTransactions(req, true, [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId',
+      'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
+      'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr'
+    ]);
+    res.json(transactions);
     next();
   }
 
@@ -793,8 +805,8 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, completedTransactions = true): Promise<DataResult<Transaction>> {
-    // Check auth
+  private static async getTransactions(req: Request, completedTransactions = true, projectFields): Promise<DataResult<Transaction>> {
+    // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -802,6 +814,17 @@ export default class TransactionService {
         action: Action.LIST, entity: Entity.TRANSACTIONS,
         module: MODULE_NAME, method: 'handleGetTransactionsToRefund'
       });
+    }
+    // Check Users
+    if (Authorizations.canListUsers(req.user)) {
+      if (!projectFields) {
+        projectFields = [];
+      }
+      projectFields = [
+        ...projectFields,
+        'user.id', 'user.name', 'user.firstName', 'user.email',
+        'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
+      ];
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
@@ -828,15 +851,8 @@ export default class TransactionService {
         inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone',
-        'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-        'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
-        'user.id', 'user.name', 'user.firstName', 'user.email', 'billingData.invoiceID', 'ocpiWithNoCdr'
-      ]
+      projectFields
     );
-    // Filter
-    TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     return transactions;
   }
 }
