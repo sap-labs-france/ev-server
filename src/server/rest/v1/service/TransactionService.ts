@@ -559,6 +559,7 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsCompleted(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Get transaction
     const transactions = await TransactionService.getTransactions(req, true, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -569,20 +570,26 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsToRefund(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetTransactionsToRefund');
     // Only e-Mobility transactions
     req.query.issuer = 'true';
     // Call
     const transactions = await TransactionService.getTransactions(req, true, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId',
-      'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
+      'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID'
     ]);
     res.json(transactions);
     next();
   }
 
   public static async handleGetRefundReports(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetRefundReports');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
