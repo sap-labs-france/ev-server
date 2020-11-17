@@ -1090,7 +1090,7 @@ export default class OCPPCommonTests {
     expect(response.transactionId).to.not.equal(0);
     const transactionId = response.transactionId;
     // Update connector status
-    chargingStationConnector.status = 'Occupied';
+    chargingStationConnector.status = ChargePointStatus.OCCUPIED;
     chargingStationConnector.timestamp = new Date().toISOString();
     const statusNotificationResponse = await this.chargingStationContext.setConnectorStatus(chargingStationConnector);
     expect(statusNotificationResponse).to.eql({});

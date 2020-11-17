@@ -1,3 +1,5 @@
+import { ChargePointStatus, OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
+
 import CentralServerService from '../client/CentralServerService';
 import ChargingStationContext from './ChargingStationContext';
 import ContextDefinition from './ContextDefinition';
@@ -5,7 +7,6 @@ import Factory from '../../factories/Factory';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPService from '../ocpp/OCPPService';
-import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
 import RegistrationToken from '../../types/RegistrationToken';
 import SiteArea from '../../types/SiteArea';
 import SiteAreaContext from './SiteAreaContext';
@@ -279,7 +280,7 @@ export default class TenantContext {
     for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
       createdChargingStation.connectors[i] = {
         connectorId: i + 1,
-        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : 'Available'),
+        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : ChargePointStatus.AVAILABLE),
         errorCode: (connectorsDef && connectorsDef[i].errorCode ? connectorsDef[i].errorCode : 'NoError'),
         timestamp: (connectorsDef && connectorsDef[i].timestamp ? connectorsDef[i].timestamp : new Date().toISOString()),
         type: (connectorsDef && connectorsDef[i].type ? connectorsDef[i].type : 'U'),
@@ -362,7 +363,7 @@ export default class TenantContext {
     for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
       createdChargingStation.connectors[i] = {
         connectorId: i + 1,
-        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : 'Available'),
+        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : ChargePointStatus.AVAILABLE),
         errorCode: (connectorsDef && connectorsDef[i].errorCode ? connectorsDef[i].errorCode : 'NoError'),
         timestamp: (connectorsDef && connectorsDef[i].timestamp ? connectorsDef[i].timestamp : new Date().toISOString()),
         type: (connectorsDef && connectorsDef[i].type ? connectorsDef[i].type : 'U'),
@@ -451,7 +452,7 @@ export default class TenantContext {
     for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
       createdChargingStation.connectors[i] = {
         connectorId: i + 1,
-        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : 'Available'),
+        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : ChargePointStatus.AVAILABLE),
         errorCode: (connectorsDef && connectorsDef[i].errorCode ? connectorsDef[i].errorCode : 'NoError'),
         timestamp: (connectorsDef && connectorsDef[i].timestamp ? connectorsDef[i].timestamp : new Date().toISOString()),
         type: (connectorsDef && connectorsDef[i].type ? connectorsDef[i].type : 'CCS'),

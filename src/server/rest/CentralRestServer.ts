@@ -156,7 +156,7 @@ export default class CentralRestServer {
     // Check and send notification change for single record
     setInterval(() => {
       // Send
-      while (CentralRestServer.singleChangeNotifications.length > 0) {
+      while (!Utils.isEmptyArray(CentralRestServer.singleChangeNotifications)) {
         const notification = CentralRestServer.singleChangeNotifications.shift();
         CentralRestServer.socketIOServer.to(notification.tenantID).emit(notification.entity, notification);
       }
@@ -165,7 +165,7 @@ export default class CentralRestServer {
     // Check and send notification change for list
     setInterval(() => {
       // Send
-      while (CentralRestServer.changeNotifications.length > 0) {
+      while (!Utils.isEmptyArray(CentralRestServer.changeNotifications)) {
         const notification = CentralRestServer.changeNotifications.shift();
         CentralRestServer.socketIOServer.to(notification.tenantID).emit(notification.entity, notification);
       }
