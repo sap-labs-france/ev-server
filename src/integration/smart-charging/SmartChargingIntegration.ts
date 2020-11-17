@@ -114,8 +114,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
 
   private async handleRefusedChargingProfile(tenantID: string, chargingProfile: ChargingProfile, siteAreaName: string): Promise<boolean> {
     // Retry setting the cp 2 more times
-    const retries = 3;
-    for (let tryCount = 2; tryCount <= retries; tryCount++) {
+    for (let i = 0; i < 2; i++) {
       try {
         // Set Charging Profile
         await OCPPUtils.setAndSaveChargingProfile(this.tenantID, chargingProfile);
@@ -127,14 +126,16 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
           source: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'handleRefusedChargingProfile',
-          message: `Setting Charging Profiles for '${chargingProfile.chargingStationID}' failed for the ${tryCount}. time.`,
+          message: 'Setting Charging Profiles failed 3 times.',
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
+    // Remove Charging Station from Smart Charging
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     chargingStation.excludeFromSmartCharging = true;
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
+    // Notify Admins
     await NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenantID,
       { chargeBoxID: chargingProfile.chargingStationID,
         siteAreaName: siteAreaName,

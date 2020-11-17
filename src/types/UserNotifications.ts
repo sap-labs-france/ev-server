@@ -64,7 +64,7 @@ export enum UserNotificationType {
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
-  CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'computeAndApplyChargingProfilesFailed',
+  CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'ComputeAndApplyChargingProfilesFailed',
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
   END_USER_ERROR_NOTIFICATION = 'EndUserErrorNotification'
 }
