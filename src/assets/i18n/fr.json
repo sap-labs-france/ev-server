@@ -67,7 +67,7 @@
       "body": "Impossible de synchronizer {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
-      "title": "Applying Smart Charging-Profiles failed",
+      "title": "Charging Profiles failed",
       "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
     },
     "billingNewInvoice": {
