@@ -4,7 +4,7 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Smart Charging Error",
+      "title": "Charging Profiles Failed",
       "image": {
         "left": {
           "height": 60,
@@ -19,8 +19,9 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "Applying the Charging Profiles for <strong>'<%- chargeBoxID %>'</strong>, failed three times.",
-      "The charging station was excluded from smart charging automatically"
+      "Applying the charging profiles for <strong>'<%- chargeBoxID %>'</strong> failed three times.",
+      "",
+      "The charging station was excluded from smart charging management automatically."
     ],
     "action": {
       "title": "e-Mobility",

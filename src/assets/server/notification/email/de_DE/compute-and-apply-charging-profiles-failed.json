@@ -4,7 +4,7 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Smart Charging Fehler",
+      "title": "Charging Profiles fehlgeschlagen",
       "image": {
         "left": {
           "height": 60,
@@ -20,7 +20,8 @@
       "Sehr geehrter Administrator,",
       "",
       "Das Anwenden der Ladeprofile für Ladestation <strong>'<%- chargeBoxID %>'</strong>, ist drei mal fehlgeschlagen.",
-      "Die Ladestation wird automatisch vom Smart Charging ausgeschlossen"
+      "",
+      "Die Ladestation wird automatisch vom Smart Charging ausgeschlossen."
     ],
     "action": {
       "title": "e-Mobility",

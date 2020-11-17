@@ -1,10 +1,10 @@
 {
-  "subject": "Smart Charging - Applying Charging Profiles failed",
+  "subject": "Charge Intelligente - Erreur lors de l'envoie des profils de charge",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Smart Charging Error",
+      "title": "Profils de Charge",
       "image": {
         "left": {
           "height": 60,
@@ -17,10 +17,11 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Cher Administrateur,",
       "",
-      "Applying the Charging Profiles for <strong>'<%- chargeBoxID %>'</strong>, failed three times.",
-      "The charging station was excluded from smart charging automatically"
+      "Les profils de charge envoyés à <strong>'<%- chargeBoxID %>'</strong> ont échoué trois fois.",
+      "",
+      "Cette borne a donc été exclue de la gestion de la charge intelligente automatiquement."
     ],
     "action": {
       "title": "e-Mobility",
