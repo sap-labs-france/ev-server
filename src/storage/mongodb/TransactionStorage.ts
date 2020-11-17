@@ -319,7 +319,7 @@ export default class TransactionStorage {
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
-    // Charge Box
+    // User
     if (params.userIDs) {
       filters.userID = { $in: params.userIDs.map((siteID) => Utils.convertToObjectID(siteID)) };
     }
@@ -550,22 +550,30 @@ export default class TransactionStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add OCPI CDR exists
-    aggregation.push({
-      $addFields: {
-        ocpiWithNoCdr: {
-          $cond: {
-            if: { $and: [{ $gt: ['$ocpiData', null] }, { $not: { $gt: ['$ocpiData.cdr', null] } }] }, then: true, else: false
+    // Add if OCPI CDR exists
+    if (projectFields && projectFields.includes('ocpiWithNoCdr')) {
+      aggregation.push({
+        $addFields: {
+          ocpiWithNoCdr: {
+            $cond: { if: { $and: [{ $gt: ['$ocpiData', null] }, { $not: { $gt: ['$ocpiData.cdr', null] } }] }, then: true, else: false }
           }
         }
-      }
-    });
+      });
+    }
     // Charge Box
     DatabaseUtils.pushChargingStationLookupInAggregation({
       tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
       asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
+    // Add Connector and Status
+    if (projectFields && projectFields.includes('status')) {
+      aggregation.push({
+        $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } }
+      }, {
+        $addFields: { status: '$connector.status' }
+      });
+    }
     // Users
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
@@ -741,18 +749,11 @@ export default class TransactionStorage {
       search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
       siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
       withChargeBoxes?: boolean; errorType?: TransactionInErrorType[];
-    },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
+    }, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionsInError');
     // Check
     await Utils.checkTenant(tenantID);
-    // Clone before updating the values
-    dbParams = Utils.cloneObject(dbParams);
-    // Check Limit
-    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
-    // Check Skip
-    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Build filters
     const match: any = { stop: { $exists: true } };
     // Filter?
@@ -859,23 +860,6 @@ export default class TransactionStorage {
     // Set to null
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
-    // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { timestamp: -1 };
-    }
-    if (!dbParams.sort.timestamp) {
-      aggregation.push({
-        $sort: { ...dbParams.sort, timestamp: -1 }
-      });
-    } else {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    }
-    // Skip
-    aggregation.push({
-      $skip: dbParams.skip
-    });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -893,10 +877,11 @@ export default class TransactionStorage {
     };
   }
 
-  public static async getTransaction(tenantID: string, id: number = Constants.UNKNOWN_NUMBER_ID): Promise<Transaction> {
+  public static async getTransaction(tenantID: string, id: number = Constants.UNKNOWN_NUMBER_ID,
+    projectFields?: string[]): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, {
       transactionIDs: [id]
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 

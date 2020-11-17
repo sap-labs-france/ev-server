@@ -1037,7 +1037,7 @@ export default class OCPPService {
         // Build extra inactivity consumption
         await OCPPUtils.buildExtraConsumptionInactivity(tenantID, lastTransaction);
         // OCPI: Post the CDR
-        await OCPPUtils.processOCPITransaction(tenantID, lastTransaction, chargingStation, TransactionAction.END);
+        await this.processOCPITransaction(tenantID, lastTransaction, chargingStation);
         // Save
         await TransactionStorage.saveTransaction(tenantID, lastTransaction);
         // Log
@@ -1050,6 +1050,20 @@ export default class OCPPService {
           message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
           detailedMessages: [statusNotification, connector, lastTransaction]
         });
+      }
+    }
+  }
+
+  private async processOCPITransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(tenantID, transaction.id);
+    if (ocpiLock) {
+      try {
+        // Process
+        await OCPPUtils.processOCPITransaction(tenantID, transaction, chargingStation, TransactionAction.END);
+      } finally {
+        // Release the lock
+        await LockingManager.release(ocpiLock);
       }
     }
   }
