@@ -67,8 +67,8 @@
       "body": "Impossible de synchronizer {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
-      "title": "Charging Profiles failed",
-      "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
+      "title": "Profils de Charge",
+      "body": "Impossible d'appliquer les profils de charge sur '{{chargeBoxID}}' de la zone '{{siteAreaName}}' dans l'organization '{{tenantName}}'"
     },
     "billingNewInvoice": {
       "title": "Nouvelle facture",
