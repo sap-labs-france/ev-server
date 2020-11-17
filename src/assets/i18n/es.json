@@ -66,6 +66,10 @@
       "title": "La sincronización de la factura falló",
       "body": "No ha sido posible sincronizar {{nbrInvoicesInError}} facturas con el servicio del proveedor de facturación de la organización '{{tenantName}}'"
     },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Charging Profiles failed",
+      "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
+    },
     "billingNewInvoice": {
       "title": "New invoice",
       "body": "A new invoice ({{invoiceNumber}}) is now available"

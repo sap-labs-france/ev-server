@@ -66,6 +66,10 @@
       "title": "Rechnungssynchronisierung fehlgeschlagen",
       "body": "Die Synchronisierung von {{nbrInvoicesInError}} Rechnung(en) mit dem Abrechnungsdienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
     },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Charging Profiles fehlgeschlagen",
+      "body": "Es war nicht möglich die Ladeprofile für '{{chargeBoxID}}' auf dem Standortbereich '{{siteAreaName}}' in der Organisation '{{tenantName}}' anzuwenden"
+    },
     "billingNewInvoice": {
       "title": "Neue Rechnung",
       "body": "Eine neue Rechnung ({{invoiceNumber}}) ist jetzt verfügbar"

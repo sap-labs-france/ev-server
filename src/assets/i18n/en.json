@@ -66,6 +66,10 @@
       "title": "Invoice Synchro Failed",
       "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
     },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Charging Profiles failed",
+      "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
+    },
     "billingNewInvoice": {
       "title": "New invoice",
       "body": "A new invoice ({{invoiceNumber}}) is now available"
