@@ -242,7 +242,7 @@ export interface CarCatalogSynchronizationFailedNotification extends BaseNotific
   evseDashboardURL: string;
 }
 
-export interface computeAndApplyChargingProfilesFailedNotification extends BaseNotification {
+export interface ComputeAndApplyChargingProfilesFailedNotification extends BaseNotification {
   siteAreaName: string;
   chargeBoxID: string;
   evseDashboardURL: string;
