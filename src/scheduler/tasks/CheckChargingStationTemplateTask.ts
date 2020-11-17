@@ -68,10 +68,10 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         for (const connector of chargingStation.connectors) {
           // Amperage limit
           if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
-            connector.amperageLimit = connector.amperage;
+            connector.amperageLimit = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
             chargingStationUpdated = true;
-          } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connector.amperage) {
-            connector.amperageLimit = connector.amperage;
+          } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId)) {
+            connector.amperageLimit = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
             chargingStationUpdated = true;
           }
           // Phase Assignment

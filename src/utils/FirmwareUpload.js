@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -99,6 +101,6 @@ switch (cmd) {
     deleteFirmwareFile(firmwareFile);
     break;
   default:
-    console.log(`Usage: - node FirmwareUpload.js (put|get) <file>
-       - node FirmwareUpload.js delete <file id>`)
+    console.log(`Usage: - ./FirmwareUpload.js (put|get) <file>
+       - ./FirmwareUpload.js delete <file id>`)
 }

@@ -46,7 +46,7 @@ export default class ExpressTools {
           tokens.url(req, res), '-',
           tokens.status(req, res), '-',
           tokens['response-time'](req, res) + 'ms', '-',
-          tokens.res(req, res, 'content-length') / 1000 + 'Kb',
+          tokens.res(req, res, 'content-length') / 1024 + 'Kb',
         ].join(' ')
       ));
     }
@@ -113,7 +113,7 @@ export default class ExpressTools {
     // Default listen callback
     function defaultListenCb(): void {
       // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerAddress(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}'`;
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerAddress(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'startServer',
@@ -121,7 +121,7 @@ export default class ExpressTools {
         message: logMsg
       });
       // eslint-disable-next-line no-console
-      console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
+      console.log(logMsg);
     }
     let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
@@ -130,9 +130,8 @@ export default class ExpressTools {
       cb = defaultListenCb;
     }
     // Log
-    const logMsg = `Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
     // eslint-disable-next-line no-console
-    console.log(logMsg);
+    console.log(`Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`);
 
     // Listen
     if (serverConfig.host && serverConfig.port && listen) {

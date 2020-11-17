@@ -69,7 +69,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when data is written out
    * @public
    */
-  public send(data, options?, callback?: (err?: Error) => void): void {
+  public send(data, options?: { mask?: boolean; binary?: boolean; compress?: boolean; fin?: boolean }, callback?: (err?: Error) => void): void {
     this.ws.send(data, options, callback);
   }
 
@@ -116,7 +116,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when the pong is sent
    * @public
    */
-  public pong(data?, mask?, callback?): void {
+  public pong(data?, mask?, callback?: (err: Error) => void): void {
     this.ws.pong(data, mask, callback);
   }
 
