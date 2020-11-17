@@ -1466,9 +1466,9 @@ export default class Utils {
       });
     }
     // Check Max Limitation of each Schedule
-    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
-    const numberOfConnectors = filteredRequest.connectorID === 0 ?
-      (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
+    // const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
+    // const numberOfConnectors = filteredRequest.connectorID === 0 ?
+    //   (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
     const maxAmpLimit = Utils.getChargingStationAmperageLimit(
       chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
