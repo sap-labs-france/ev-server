@@ -67,7 +67,7 @@
       "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
-      "title": "Anwenden der Smart Cherging-Profile fehlgeschlagen",
+      "title": "Cherging Profiles fehlgeschlagen",
       "body": "Es war nicht möglich die Ladeprofile für '{{chargeBoxID}}' auf dem Standortbereich '{{siteAreaName}}' in der Organisation '{{tenantName}}' anzuwenden"
     },
     "billingNewInvoice": {
