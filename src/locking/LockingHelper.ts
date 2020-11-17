@@ -47,7 +47,15 @@ export default class LockingHelper {
   }
 
   public static async createOCPIPushCpoCdrsLock(tenantID: string): Promise<Lock|null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, 'push-cdr');
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, 'push-cdrs');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async createOCPIPushCpoCdrLock(tenantID: string, transactionID: number): Promise<Lock|null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `push-cdr-${transactionID}`);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
