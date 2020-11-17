@@ -133,7 +133,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.status).to.equal(200);
         const chargingStation = response.data;
         for (let i = 0; i < chargingStation.connectors.length; i++) {
-          expect(chargingStation.connectors[i].status).to.equal('Available');
+          expect(chargingStation.connectors[i].status).to.equal(ChargePointStatus.AVAILABLE);
         }
       });
 

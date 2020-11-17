@@ -33,9 +33,9 @@ export default class OCPPCommonTests {
   public chargingStationConnector1: OCPPStatusNotificationRequest;
   public chargingStationConnector2: OCPPStatusNotificationRequest;
 
-  public transactionStartUser: User;
+  public transactionStartUser;
   public transactionStartUserService: CentralServerService;
-  public transactionStopUser: User;
+  public transactionStopUser;
 
   public energyActiveImportStartMeterValue: number;
   public energyActiveImportEndMeterValue: number;
@@ -624,7 +624,6 @@ export default class OCPPCommonTests {
     expect(response.data).to.deep['containSubset']({
       'chargeBoxID': this.newTransaction.chargeBoxID,
       'connectorId': this.newTransaction.connectorId,
-      'signedData': (withSignedData ? this.transactionStartSignedData : ''),
       'stop': {
         'price': this.totalPrice,
         'pricingSource': 'simple',
@@ -634,7 +633,6 @@ export default class OCPPCommonTests {
         'totalInactivitySecs': this.transactionTotalInactivitySecs,
         'inactivityStatus': InactivityStatus.INFO,
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
-        'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'user': {
           'id': this.transactionStopUser.id,
           'name': this.transactionStopUser.name,
@@ -662,6 +660,7 @@ export default class OCPPCommonTests {
         const instantWatts = this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs);
         expect(value).to.include({
           'date': transactionCurrentTime.toISOString(),
+          'startedAt': transactionCurrentTime.toISOString(),
           'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
             null, this.newTransaction.connectorId, instantWatts),
           'instantWatts': instantWatts,
@@ -677,6 +676,7 @@ export default class OCPPCommonTests {
       } else {
         expect(value).to.include({
           'date': transactionCurrentTime.toISOString(),
+          'startedAt': transactionCurrentTime.toISOString(),
           'instantVolts': checkNewMeterValues ? this.voltageMeterValues[i] : 0,
           'instantVoltsL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
           'instantVoltsL2': checkNewMeterValues ? this.voltageL2MeterValues[i] : 0,
@@ -1090,7 +1090,7 @@ export default class OCPPCommonTests {
     expect(response.transactionId).to.not.equal(0);
     const transactionId = response.transactionId;
     // Update connector status
-    chargingStationConnector.status = 'Occupied';
+    chargingStationConnector.status = ChargePointStatus.OCCUPIED;
     chargingStationConnector.timestamp = new Date().toISOString();
     const statusNotificationResponse = await this.chargingStationContext.setConnectorStatus(chargingStationConnector);
     expect(statusNotificationResponse).to.eql({});

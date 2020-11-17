@@ -101,7 +101,6 @@ export enum ServerAction {
 
   OCPI_ENPOINT_CREATE = 'OcpiEndpointCreate',
   OCPI_ENPOINT_PING = 'OcpiEndpointPing',
-  OCPI_ENPOINT_TRIGGER_JOBS = 'OcpiEndpointTriggerJobs',
   OCPI_ENPOINT_CHECK_CDRS = 'OcpiEndpointCheckCdrs',
   OCPI_ENPOINT_CHECK_LOCATIONS = 'OcpiEndpointCheckLocations',
   OCPI_ENPOINT_CHECK_SESSIONS = 'OcpiEndpointCheckSessions',
@@ -136,9 +135,6 @@ export enum ServerAction {
   OCPI_UNLOCK_CONNECTOR = 'OcpiUnlockConnector',
   OCPI_GET_VERSIONS = 'OcpiGetVersions',
   OCPI_GET_LOCATIONS = 'OcpiGetLocations',
-  OCPI_GET_SESSIONS = 'OcpiGetSessions',
-  OCPI_GET_TOKENS = 'OcpiGetTokens',
-  OCPI_GET_CDRS = 'OcpiGetCdrs',
   OCPI_GET_TARIFF = 'OcpiGetTariff',
   OCPI_GET_TARIFFS = 'OcpiGetTariffs',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',

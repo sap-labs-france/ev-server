@@ -24,6 +24,7 @@ import { HTTPError } from '../types/HTTPError';
 import { HttpEndUserReportErrorRequest } from '../types/requests/HttpNotificationRequest';
 import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { ObjectID } from 'mongodb';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -52,8 +53,6 @@ import validator from 'validator';
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
-  private static tenants = [];
-
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
     if (axiosError.response) {
@@ -173,6 +172,54 @@ export default class Utils {
 
   public static async sleep(ms): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  public static logOcpiResult(
+    tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string,
+    messageNoSuccessNoError: string): void {
+    // Replace
+    messageSuccess = messageSuccess.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageError = messageError.replace('{{inError}}', ocpiResult.failure.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', ocpiResult.failure.toString());
+    if (Utils.isEmptyArray(ocpiResult.logs)) {
+      ocpiResult.logs = null;
+    }
+    // Success and Error
+    if (ocpiResult.success > 0 && ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccessAndError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.success > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccess,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageNoSuccessNoError,
+        detailedMessages: ocpiResult.logs
+      });
+    }
   }
 
   public static logActionsResponse(
@@ -457,10 +504,6 @@ export default class Utils {
     }
   }
 
-  public static clearTenants(): void {
-    Utils.tenants = [];
-  }
-
   public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
@@ -469,10 +512,6 @@ export default class Utils {
         method: 'checkTenant',
         message: 'The Tenant ID is mandatory'
       });
-    }
-    // Check in cache
-    if (Utils.tenants.includes(tenantID)) {
-      return Promise.resolve(null);
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?
@@ -495,7 +534,6 @@ export default class Utils {
         });
       }
     }
-    Utils.tenants.push(tenantID);
   }
 
   public static convertToBoolean(value: any): boolean {
@@ -514,16 +552,16 @@ export default class Utils {
     return result;
   }
 
-  public static convertToDate(date: any): Date {
+  public static convertToDate(value: any): Date {
     // Check
-    if (!date) {
+    if (!value) {
       return null;
     }
     // Check Type
-    if (!(date instanceof Date)) {
-      return new Date(date);
+    if (!(value instanceof Date)) {
+      return new Date(value);
     }
-    return date;
+    return value;
   }
 
   public static replaceSpecialCharsInCSVValueParam(value: string): string {
@@ -1322,7 +1360,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is not invalid`,
+        message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is invalid`,
         module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
@@ -1428,9 +1466,9 @@ export default class Utils {
       });
     }
     // Check Max Limitation of each Schedule
-    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
-    const numberOfConnectors = filteredRequest.connectorID === 0 ?
-      (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
+    // const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
+    // const numberOfConnectors = filteredRequest.connectorID === 0 ?
+    //   (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
     const maxAmpLimit = Utils.getChargingStationAmperageLimit(
       chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
@@ -1831,19 +1869,6 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.tags) {
-      if (!Utils.areTagsValid(filteredRequest.tags)) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags '${JSON.stringify(filteredRequest.tags)}' is/are not valid`,
-          module: MODULE_NAME,
-          method: 'checkIfUserValid',
-          user: req.user.id,
-          actionOnUser: filteredRequest.id
-        });
-      }
-    }
     if (filteredRequest.plateID && !Utils.isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -2006,7 +2031,8 @@ export default class Utils {
   }
 
   public static isChargingStationIDValid(name: string): boolean {
-    return /^[A-Za-z0-9_-]*$/.test(name);
+    // eslint-disable-next-line no-useless-escape
+    return /^[A-Za-z0-9_\.\-~]*$/.test(name);
   }
 
   public static isPasswordValid(password: string): boolean {

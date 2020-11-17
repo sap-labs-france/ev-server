@@ -1,4 +1,5 @@
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
+import AxiosConfiguration from '../types/configuration/AxiosConfiguration';
 import CentralSystemConfiguration from '../types/configuration/CentralSystemConfiguration';
 import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSystemFrontEndConfiguration';
 import CentralSystemRestServiceConfiguration from '../types/configuration/CentralSystemRestServiceConfiguration';
@@ -315,6 +316,20 @@ export default class Configuration {
       Configuration.getConfig().ChargingStationTemplates.templatesFilePath = `${global.appRoot}/assets/charging-station-templates/charging-stations.json`;
     }
     return Configuration.getConfig().ChargingStationTemplates;
+  }
+
+  static getAxiosConfig(): AxiosConfiguration {
+    // Read conf and set defaults values
+    if (Utils.isUndefined(Configuration.getConfig().Axios)) {
+      Configuration.getConfig().Axios = {} as AxiosConfiguration;
+    }
+    if (Utils.isUndefined(Configuration.getConfig().Axios.timeout)) {
+      Configuration.getConfig().Axios.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
+    }
+    if (Utils.isUndefined(Configuration.getConfig().Axios.retries)) {
+      Configuration.getConfig().Axios.retries = Utils.isDevelopmentEnv() ? 1 : 3;
+    }
+    return Configuration.getConfig().Axios;
   }
 
   // Read the config file

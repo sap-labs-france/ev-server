@@ -30,29 +30,30 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_CDRS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
     }
   }
 
   // eslint-disable-next-line no-unused-vars
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'get-cdrs');
+    const ocpiLock = await LockingHelper.createOCPIPullEmspCdrsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_CDRS,
+            action: ServerAction.OCPI_PULL_CDRS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
           });
           return;
-        } else if (!ocpiEndpoint.backgroundPatchJob) {
+        }
+        if (!ocpiEndpoint.backgroundPatchJob) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_CDRS,
+            action: ServerAction.OCPI_PULL_CDRS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
           });
@@ -60,7 +61,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
         }
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_CDRS,
+          action: ServerAction.OCPI_PULL_CDRS,
           module: MODULE_NAME, method: 'processOCPIEndpointatch',
           message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is being processed`
         });
@@ -70,14 +71,14 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
         const result = await ocpiClient.pullCdrs();
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_CDRS,
+          action: ServerAction.OCPI_PULL_CDRS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_CDRS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

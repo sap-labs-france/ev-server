@@ -144,9 +144,6 @@ export default class UserSecurity {
         if (user.billingData) {
           filteredUser.billingData = user.billingData;
         }
-        if (!Utils.isEmptyArray(user.tags)) {
-          filteredUser.tags = user.tags.map((tag) => UserSecurity.filterTagResponse(tag, loggedUser));
-        }
       } else {
         // Set only necessary info
         // Demo user?

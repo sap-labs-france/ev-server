@@ -5,11 +5,12 @@ export interface HttpTransactionsRefundRequest {
 }
 
 export interface HttpAssignTransactionsToUserRequest {
-  UserID?: string;
+  UserID: string;
+  TagID: string;
 }
 
 export interface HttpUnassignTransactionsToUserRequest {
-  UserID?: string;
+  TagID: string;
 }
 
 export interface HttpTransactionRequest {

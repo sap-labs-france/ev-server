@@ -31,13 +31,13 @@ class TestData {
   public tenantContext: TenantContext;
   public centralUserContext: any;
   public centralUserService: CentralServerService;
-  public userContext: User;
+  public userContext;
   public userService: CentralServerService;
   public siteContext: SiteContext;
   public siteAreaContext: SiteAreaContext;
   public chargingStationContext: ChargingStationContext;
   public chargingStationContext1: ChargingStationContext;
-  public createdUsers: User[] = [];
+  public createdUsers = [];
   public isForcedSynchro: boolean;
   public pending = false;
 

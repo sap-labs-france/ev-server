@@ -1,10 +1,13 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
+import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import { HTTPAuthError } from '../../../../types/HTTPError';
+import LockingHelper from '../../../../locking/LockingHelper';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
@@ -14,6 +17,7 @@ import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationS
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
+import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -22,6 +26,9 @@ const MODULE_NAME = 'OCPIEndpointService';
 
 export default class OCPIEndpointService {
   static async handleDeleteOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.DELETE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleDeleteOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteOcpiEndpoint', req.user);
@@ -30,10 +37,8 @@ export default class OCPIEndpointService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleDeleteOcpiEndpoint',
+        action: Action.DELETE, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleDeleteOcpiEndpoint',
         value: filteredRequest.ID
       });
     }
@@ -57,6 +62,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleGetOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoint');
     // Filter
     const endpointID = OCPIEndpointSecurity.filterOcpiEndpointRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, endpointID, MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
@@ -65,10 +73,8 @@ export default class OCPIEndpointService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleGetOcpiEndpoint',
+        action: Action.READ, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleGetOcpiEndpoint',
         value: endpointID
       });
     }
@@ -82,15 +88,16 @@ export default class OCPIEndpointService {
   }
 
   static async handleGetOcpiEndpoints(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.LIST, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoints');
     // Check auth
     if (!Authorizations.canListOcpiEndpoints(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.OCPI_ENDPOINTS,
-        module: MODULE_NAME,
-        method: 'handleGetOcpiEndpoints'
+        action: Action.LIST, entity: Entity.OCPI_ENDPOINTS,
+        module: MODULE_NAME, method: 'handleGetOcpiEndpoints'
       });
     }
     // Filter
@@ -112,15 +119,16 @@ export default class OCPIEndpointService {
   }
 
   static async handleCreateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.CREATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCreateOcpiEndpoint');
     // Check auth
     if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleCreateOcpiEndpoint'
+        action: Action.CREATE, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleCreateOcpiEndpoint'
       });
     }
     // Filter
@@ -148,6 +156,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleUpdateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUpdateOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body);
     // Check Mandatory fields
@@ -157,10 +168,8 @@ export default class OCPIEndpointService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleUpdateOcpiEndpoint',
+        action: Action.UPDATE, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleUpdateOcpiEndpoint',
         value: filteredRequest.id
       });
     }
@@ -187,15 +196,16 @@ export default class OCPIEndpointService {
   }
 
   static async handlePingOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePingOcpiEndpoint');
     // Check auth
     if (!Authorizations.canPingOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.PING,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handlePingOcpiEndpoint'
+        action: Action.PING, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handlePingOcpiEndpoint'
       });
     }
     // Filter
@@ -232,45 +242,17 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleTriggerJobsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleTriggerJobsEndpoint'
-      });
-    }
-    // Filter
-    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleTriggerJobsEndpoint', req.user);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleTriggerJobsEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
-    // Send EVSE statuses
-    const result = await ocpiClient.triggerJobs();
-    // Return result
-    res.json(result);
-    next();
-  }
-
   static async handlePullLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullLocationsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handlePullLocationsEndpoint'
+        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handlePullLocationsEndpoint'
       });
     }
     // Filter
@@ -281,24 +263,40 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-    const result = await ocpiClient.pullLocations(false);
-    // Return result
-    res.json(result);
-    next();
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPIPullEmspLocationsLock(tenant.id, ocpiEndpoint);
+    if (!ocpiLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_LOCATIONS,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        message: 'Error in pulling the OCPI Locations: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handlePullLocationsEndpoint',
+      });
+    }
+    try {
+      // Build OCPI Client
+      const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+      const result = await ocpiClient.pullLocations(false);
+      // Return result
+      res.json(result);
+      next();
+    } finally {
+      await LockingManager.release(ocpiLock);
+    }
   }
 
   static async handlePullSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullSessionsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handlePullLocationsEndpoint'
+        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handlePullLocationsEndpoint'
       });
     }
     // Filter
@@ -309,24 +307,40 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-    const result = await ocpiClient.pullSessions();
-    // Return result
-    res.json(result);
-    next();
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPIPullEmspSessionsLock(tenant.id, ocpiEndpoint);
+    if (!ocpiLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_SESSIONS,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        message: 'Error in pulling the OCPI Sessions: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handlePullSessionsEndpoint',
+      });
+    }
+    try {
+      // Build OCPI Client
+      const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+      const result = await ocpiClient.pullSessions();
+      // Return result
+      res.json(result);
+      next();
+    } finally {
+      await LockingManager.release(ocpiLock);
+    }
   }
 
   static async handlePullTokensEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullTokensEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handlePullTokensEndpoint'
+        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handlePullTokensEndpoint'
       });
     }
     // Filter
@@ -337,24 +351,40 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullTokensEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-    const result = await ocpiClient.pullTokens(false);
-    // Return result
-    res.json(result);
-    next();
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPIPullEmspTokensLock(tenant.id, ocpiEndpoint);
+    if (!ocpiLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_TOKENS,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        message: 'Error in pulling the OCPI tokens: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handlePullTokensEndpoint',
+      });
+    }
+    try {
+      // Build OCPI Client
+      const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+      const result = await ocpiClient.pullTokens(false);
+      // Return result
+      res.json(result);
+      next();
+    } finally {
+      await LockingManager.release(ocpiLock);
+    }
   }
 
   static async handlePullCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullCdrsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handlePullCdrsEndpoint'
+        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handlePullCdrsEndpoint'
       });
     }
     // Filter
@@ -365,24 +395,40 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-    const result = await ocpiClient.pullCdrs();
-    // Return result
-    res.json(result);
-    next();
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPIPullEmspCdrsLock(tenant.id, ocpiEndpoint);
+    if (!ocpiLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_CDRS,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        message: 'Error in pulling the OCPI CDRs: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handlePullCdrsEndpoint',
+      });
+    }
+    try {
+      // Build OCPI Client
+      const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+      const result = await ocpiClient.pullCdrs();
+      // Return result
+      res.json(result);
+      next();
+    } finally {
+      await LockingManager.release(ocpiLock);
+    }
   }
 
   static async handleCheckCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckCdrsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleCheckCdrsOcpiEndpoint'
+        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleCheckCdrsOcpiEndpoint'
       });
     }
     // Filter
@@ -393,25 +439,41 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-    // Send EVSE statuses
-    const sendResult = await ocpiClient.checkCdrs();
-    // Return result
-    res.json(sendResult);
-    next();
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPICheckCpoCdrsLock(tenant.id, ocpiEndpoint);
+    if (!ocpiLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_CHECK_CDRS,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        message: 'Error in checking the OCPI CDRs: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handleCheckCdrsEndpoint',
+      });
+    }
+    try {
+      // Build OCPI Client
+      const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+      // Send EVSE statuses
+      const sendResult = await ocpiClient.checkCdrs();
+      // Return result
+      res.json(sendResult);
+      next();
+    } finally {
+      await LockingManager.release(ocpiLock);
+    }
   }
 
   static async handleCheckSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckSessionsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleCheckSessionsOcpiEndpoint'
+        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleCheckSessionsOcpiEndpoint'
       });
     }
     // Filter
@@ -422,25 +484,41 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-    // Send EVSE statuses
-    const sendResult = await ocpiClient.checkSessions();
-    // Return result
-    res.json(sendResult);
-    next();
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPICheckCpoSessionsLock(tenant.id, ocpiEndpoint);
+    if (!ocpiLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_CHECK_SESSIONS,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        message: 'Error in checking the OCPI Sessions: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handleCheckSessionsEndpoint',
+      });
+    }
+    try {
+      // Build OCPI Client
+      const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+      // Send EVSE statuses
+      const sendResult = await ocpiClient.checkSessions();
+      // Return result
+      res.json(sendResult);
+      next();
+    } finally {
+      await LockingManager.release(ocpiLock);
+    }
   }
 
   static async handleCheckLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckLocationsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleCheckLocationsEndpoint'
+        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleCheckLocationsEndpoint'
       });
     }
     // Filter
@@ -451,25 +529,41 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckLocationsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-    // Send EVSE statuses
-    const sendResult = await ocpiClient.checkLocations();
-    // Return result
-    res.json(sendResult);
-    next();
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPICheckCpoLocationsLock(tenant.id, ocpiEndpoint);
+    if (!ocpiLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_CHECK_LOCATIONS,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        message: 'Error in checking the OCPI Locations: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handleCheckLocationsEndpoint',
+      });
+    }
+    try {
+      // Build OCPI Client
+      const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+      // Send EVSE statuses
+      const sendResult = await ocpiClient.checkLocations();
+      // Return result
+      res.json(sendResult);
+      next();
+    } finally {
+      await LockingManager.release(ocpiLock);
+    }
   }
 
   static async handleSendEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleSendEVSEStatusesOcpiEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleSendEVSEStatusesOcpiEndpoint'
+        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleSendEVSEStatusesOcpiEndpoint'
       });
     }
     // Filter
@@ -480,25 +574,41 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSendEVSEStatusesOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-    // Send EVSE statuses
-    const sendResult = await ocpiClient.sendEVSEStatuses();
-    // Return result
-    res.json(sendResult);
-    next();
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPIPatchCpoLocationsLock(tenant.id, ocpiEndpoint);
+    if (!ocpiLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PATCH_LOCATIONS,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        message: 'Error in patching the OCPI Locations: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handleSendEVSEStatusesOcpiEndpoint',
+      });
+    }
+    try {
+      // Build OCPI Client
+      const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+      // Send EVSE statuses
+      const sendResult = await ocpiClient.sendEVSEStatuses();
+      // Return result
+      res.json(sendResult);
+      next();
+    } finally {
+      await LockingManager.release(ocpiLock);
+    }
   }
 
   static async handleSendTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleSendTokensOcpiEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.TRIGGER_JOB,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleSendTokensOcpiEndpoint'
+        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleSendTokensOcpiEndpoint'
       });
     }
     // Filter
@@ -519,15 +629,16 @@ export default class OCPIEndpointService {
   }
 
   static async handleUnregisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUnregisterOcpiEndpoint');
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.REGISTER,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleUnregisterOcpiEndpoint'
+        action: Action.REGISTER, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint'
       });
     }
     // Filter
@@ -568,15 +679,16 @@ export default class OCPIEndpointService {
   }
 
   static async handleRegisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleRegisterOcpiEndpoint');
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.REGISTER,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleRegisterOcpiEndpoint'
+        action: Action.REGISTER, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint'
       });
     }
     // Filter
@@ -617,15 +729,16 @@ export default class OCPIEndpointService {
   }
 
   static async handleGenerateLocalTokenOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGenerateLocalTokenOcpiEndpoint');
     // Check auth
     if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.GENERATE_LOCAL_TOKEN,
-        entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME,
-        method: 'handleGenerateLocalTokenOcpiEndpoint'
+        action: Action.GENERATE_LOCAL_TOKEN, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint'
       });
     }
     // Filter

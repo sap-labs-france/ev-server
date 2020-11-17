@@ -130,8 +130,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
       });
     }
-    const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
-    if (!user) {
+    const tag = await UserStorage.getTag(tenant.id, tokenId, { withUser: true });
+    if (!tag?.user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'authorizeRequest',
@@ -140,14 +140,13 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const tag = user.tags.find((value) => value.id === tokenId);
     let allowedStatus: OCPIAllowed;
-    if (user.deleted) {
+    if (tag.user.deleted) {
       allowedStatus = OCPIAllowed.EXPIRED;
     } else if (!tag.issuer) {
       allowedStatus = OCPIAllowed.NOT_ALLOWED;
     } else {
-      switch (user.status) {
+      switch (tag.user.status) {
         case UserStatus.ACTIVE:
           allowedStatus = OCPIAllowed.ALLOWED;
           break;

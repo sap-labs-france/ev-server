@@ -35,13 +35,14 @@ export default class JsonRestWSConnection extends WSConnection {
     }
   }
 
-  public onError(event: Event): void {
+  public onError(errorEvent: ErrorEvent): void {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
-      message: event + ''
+      message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
+      detailedMessages: `${JSON.stringify(errorEvent)}`
     });
   }
 
