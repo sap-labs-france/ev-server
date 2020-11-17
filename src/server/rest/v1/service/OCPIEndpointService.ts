@@ -17,6 +17,7 @@ import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationS
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
+import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -25,6 +26,9 @@ const MODULE_NAME = 'OCPIEndpointService';
 
 export default class OCPIEndpointService {
   static async handleDeleteOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.DELETE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleDeleteOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteOcpiEndpoint', req.user);
@@ -58,6 +62,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleGetOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoint');
     // Filter
     const endpointID = OCPIEndpointSecurity.filterOcpiEndpointRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, endpointID, MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
@@ -81,6 +88,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleGetOcpiEndpoints(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.LIST, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoints');
     // Check auth
     if (!Authorizations.canListOcpiEndpoints(req.user)) {
       throw new AppAuthError({
@@ -109,6 +119,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleCreateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.CREATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCreateOcpiEndpoint');
     // Check auth
     if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -143,6 +156,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleUpdateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUpdateOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body);
     // Check Mandatory fields
@@ -180,6 +196,9 @@ export default class OCPIEndpointService {
   }
 
   static async handlePingOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePingOcpiEndpoint');
     // Check auth
     if (!Authorizations.canPingOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -224,6 +243,9 @@ export default class OCPIEndpointService {
   }
 
   static async handlePullLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullLocationsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -265,6 +287,9 @@ export default class OCPIEndpointService {
   }
 
   static async handlePullSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullSessionsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -306,6 +331,9 @@ export default class OCPIEndpointService {
   }
 
   static async handlePullTokensEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullTokensEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -347,6 +375,9 @@ export default class OCPIEndpointService {
   }
 
   static async handlePullCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullCdrsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -388,6 +419,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleCheckCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckCdrsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -430,6 +464,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleCheckSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckSessionsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -472,6 +509,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleCheckLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckLocationsEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -514,6 +554,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleSendEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleSendEVSEStatusesOcpiEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -556,6 +599,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleSendTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleSendTokensOcpiEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -583,6 +629,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleUnregisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUnregisterOcpiEndpoint');
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -630,6 +679,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleRegisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleRegisterOcpiEndpoint');
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -677,6 +729,9 @@ export default class OCPIEndpointService {
   }
 
   static async handleGenerateLocalTokenOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGenerateLocalTokenOcpiEndpoint');
     // Check auth
     if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
       throw new AppAuthError({
