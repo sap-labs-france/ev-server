@@ -67,7 +67,7 @@
       "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
-      "title": "Applying Smart Charging-Profiles failed",
+      "title": "Charging Profiles failed",
       "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
     },
     "billingNewInvoice": {
