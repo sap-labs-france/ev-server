@@ -83,9 +83,13 @@ export default class UtilsService {
     // Get the total number of Logs
     req.query.OnlyRecordCount = 'true';
     let data = await handleGetData(req);
-    const count = data.count;
+    let count = data.count;
     delete req.query.OnlyRecordCount;
     let skip = 0;
+    // Limit the number of records
+    if (count > Constants.EXPORT_RECORD_MAX_COUNT) {
+      count = Constants.EXPORT_RECORD_MAX_COUNT;
+    }
     // Handle closed socket
     let connectionClosed = false;
     req.connection.on('close', () => {
