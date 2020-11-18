@@ -463,7 +463,7 @@ export default class CpoOCPIClient extends OCPIClient {
       action: ServerAction.OCPI_PUSH_CDRS,
       message: `Post CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}`,
       module: MODULE_NAME, method: 'stopSession',
-      detailedMessages: { payload: transaction.ocpiData.cdr }
+      detailedMessages: { cdr: transaction.ocpiData.cdr }
     });
     // Call IOP
     const response = await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
@@ -479,7 +479,7 @@ export default class CpoOCPIClient extends OCPIClient {
       action: ServerAction.OCPI_PUSH_CDRS,
       message: `Post CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') has been done successfully`,
       module: MODULE_NAME, method: 'postCdr',
-      detailedMessages: { response: response.data }
+      detailedMessages: { response: response.data, cdr: transaction.ocpiData.cdr }
     });
   }
 
