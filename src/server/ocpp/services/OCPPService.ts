@@ -1037,7 +1037,7 @@ export default class OCPPService {
         // Build extra inactivity consumption
         await OCPPUtils.buildExtraConsumptionInactivity(tenantID, lastTransaction);
         // OCPI: Post the CDR
-        await this.processOCPITransaction(tenantID, lastTransaction, chargingStation);
+        await this.checkAndSendOCPITransactionCdr(tenantID, lastTransaction, chargingStation);
         // Save
         await TransactionStorage.saveTransaction(tenantID, lastTransaction);
         // Log
@@ -1054,7 +1054,7 @@ export default class OCPPService {
     }
   }
 
-  private async processOCPITransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
+  private async checkAndSendOCPITransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(tenantID, transaction.id);
     if (ocpiLock) {
