@@ -855,6 +855,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      source: chargingStationID,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: `Patch OCPI Charging Station ID '${evseUID}' status to '${newStatus}' at ${fullUrl}`,
       module: MODULE_NAME, method: 'patchEVSEStatus',
