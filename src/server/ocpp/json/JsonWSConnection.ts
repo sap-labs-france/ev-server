@@ -77,13 +77,14 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  public onError(event: Event): void {
+  public onError(errorEvent: ErrorEvent): void {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
       action: ServerAction.WS_ERROR,
       module: MODULE_NAME, method: 'onError',
-      message: event + ''
+      message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
+      detailedMessages: `${JSON.stringify(errorEvent)}`
     });
   }
 

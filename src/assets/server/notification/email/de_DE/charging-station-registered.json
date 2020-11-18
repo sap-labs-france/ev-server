@@ -22,7 +22,7 @@
       "Die Ladestation <strong>'<%- chargeBoxID %>'</strong> wurde gerade mit dem zentralen Server verbunden."
     ],
     "actions": [{
-      "title": "View <%- chargeBoxID %>",
+      "title": "Anzeigen <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [

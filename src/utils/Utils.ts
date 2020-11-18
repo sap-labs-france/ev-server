@@ -975,7 +975,7 @@ export default class Utils {
     return amperageLimit;
   }
 
-  public static isEmptyArray(array: any): boolean {
+  public static isEmptyArray(array: any[]): boolean {
     if (!array) {
       return true;
     }
@@ -983,6 +983,10 @@ export default class Utils {
       return false;
     }
     return true;
+  }
+
+  static isEmptyObject(obj: any): boolean {
+    return !Object.keys(obj).length;
   }
 
   public static findDuplicatesInArray(arr: any[]): any[] {
@@ -1360,7 +1364,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is not invalid`,
+        message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is invalid`,
         module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
@@ -1466,9 +1470,9 @@ export default class Utils {
       });
     }
     // Check Max Limitation of each Schedule
-    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
-    const numberOfConnectors = filteredRequest.connectorID === 0 ?
-      (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
+    // const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
+    // const numberOfConnectors = filteredRequest.connectorID === 0 ?
+    //   (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
     const maxAmpLimit = Utils.getChargingStationAmperageLimit(
       chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {

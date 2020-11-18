@@ -1,5 +1,6 @@
 import { Action, Entity } from '../../types/Authorization';
 import { Adapter, Room, SocketId } from 'socket.io-adapter';
+import { Server, Socket } from 'socket.io';
 import SingleChangeNotification, { NotificationData } from '../../types/SingleChangeNotification';
 import express, { NextFunction, Request, Response } from 'express';
 
@@ -14,7 +15,6 @@ import Constants from '../../utils/Constants';
 import ExpressTools from '../ExpressTools';
 import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
-import { Server } from 'socket.io';
 import { ServerAction } from '../../types/Server';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
@@ -24,6 +24,10 @@ import sanitize from 'express-sanitizer';
 import socketioJwt from 'socketio-jwt';
 
 const MODULE_NAME = 'CentralRestServer';
+
+interface SocketJwt extends Socket {
+  decoded_token: UserToken;
+}
 
 export default class CentralRestServer {
   private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
@@ -68,7 +72,7 @@ export default class CentralRestServer {
 
   async startSocketIO(): Promise<void> {
     // Log
-    const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master...'}`;
+    const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME, method: 'startSocketIO',
@@ -79,7 +83,7 @@ export default class CentralRestServer {
     console.log(logMsg);
     // Init Socket IO Server
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    CentralRestServer.socketIOServer = new Server(CentralRestServer.restHttpServer, {
+    CentralRestServer.socketIOServer = require('socket.io')(CentralRestServer.restHttpServer, {
       cors: {
         origin: true,
         methods: ['GET', 'POST']
@@ -104,7 +108,7 @@ export default class CentralRestServer {
       });
     });
     // Handle Socket IO connection
-    CentralRestServer.socketIOServer.on('connect', (socket) => {
+    CentralRestServer.socketIOServer.on('connect', (socket: SocketJwt) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'startSocketIO',
@@ -166,7 +170,7 @@ export default class CentralRestServer {
     // Check and send notification change for single record
     setInterval(() => {
       // Send
-      while (CentralRestServer.singleChangeNotifications.length > 0) {
+      while (!Utils.isEmptyArray(CentralRestServer.singleChangeNotifications)) {
         const notification = CentralRestServer.singleChangeNotifications.shift();
         CentralRestServer.socketIOServer.to(notification.tenantID).emit(notification.entity, notification);
       }
@@ -175,7 +179,7 @@ export default class CentralRestServer {
     // Check and send notification change for list
     setInterval(() => {
       // Send
-      while (CentralRestServer.changeNotifications.length > 0) {
+      while (!Utils.isEmptyArray(CentralRestServer.changeNotifications)) {
         const notification = CentralRestServer.changeNotifications.shift();
         CentralRestServer.socketIOServer.to(notification.tenantID).emit(notification.entity, notification);
       }

@@ -8,7 +8,7 @@ export default class Constants {
   public static readonly CSV_SEPARATOR = '\t'; // Cannot store regex in enum
 
   public static readonly PERF_MAX_DATA_VOLUME_KB = 64;
-  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 500;
+  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 250;
 
   public static readonly AXIOS_DEFAULT_TIMEOUT = 60000;
 
