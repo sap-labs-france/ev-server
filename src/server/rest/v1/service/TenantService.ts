@@ -218,7 +218,7 @@ export default class TenantService {
     await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, { passwordResetHash: resetHash });
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
-      '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+      '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
