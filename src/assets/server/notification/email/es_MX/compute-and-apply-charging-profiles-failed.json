@@ -1,10 +1,10 @@
 {
-  "subject": "Abrechnung - Neue Rechnung",
+  "subject": "Smart Charging - Applying Charging Profiles failed",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Abrechnung - Neue Rechnung",
+      "title": "Charging Profiles Failed",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,18 @@
       }
     },
     "beforeActionLines": [
-      "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
+      "Dear Administrator,",
       "",
-      "Eine neue Rechnung ist verfügbar : <%- invoice.number %>."
+      "Applying the charging profiles for <strong>'<%- chargeBoxID %>'</strong> failed three times.",
+      "",
+      "The charging station was excluded from smart charging management automatically."
     ],
-    "actions": [{
-      "title": "Anzeigen",
-      "url": "<%- evseDashboardInvoiceURL %>"
-    }, {
-      "title": "Download",
-      "url": "<%- invoiceDownloadUrl %>"
-    }],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
     "afterActionLines": [
-      "Mit freundlichen Grüßen",
+      "Best Regards,",
       "EV Admins."
     ],
     "footer": {

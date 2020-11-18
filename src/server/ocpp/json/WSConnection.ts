@@ -30,7 +30,7 @@ export default abstract class WSConnection {
   private readonly clientIP: string|string[];
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
-  private requests: any = {};
+  private requests: { [id: string]: [(payload?) => void, (reason?: string|OCPPError) => void] } = {};
   private tenantIsValid: boolean;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
@@ -145,7 +145,7 @@ export default abstract class WSConnection {
     }
   }
 
-  public onError(event: Event): void {
+  public onError(errorEvent: ErrorEvent): void {
   }
 
   public onClose(closeEvent: CloseEvent): void {
@@ -277,7 +277,7 @@ export default abstract class WSConnection {
     return this.serverIPPort;
   }
 
-  public async sendError(messageId, err: Error|OCPPError): Promise<unknown> {
+  public async sendError(messageId: string, err: Error|OCPPError): Promise<unknown> {
     // Check exception type: only OCPP error are accepted
     const error = (err instanceof OCPPError ? err : new OCPPError({
       source: this.getChargingStationID(),

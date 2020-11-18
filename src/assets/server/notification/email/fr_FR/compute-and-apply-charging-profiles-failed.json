@@ -1,10 +1,10 @@
 {
-  "subject": "Abrechnung - Neue Rechnung",
+  "subject": "Charge Intelligente - Erreur lors de l'envoie des profils de charge",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Abrechnung - Neue Rechnung",
+      "title": "Profils de Charge",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,18 @@
       }
     },
     "beforeActionLines": [
-      "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
+      "Cher Administrateur,",
       "",
-      "Eine neue Rechnung ist verfügbar : <%- invoice.number %>."
+      "Les profils de charge envoyés à <strong>'<%- chargeBoxID %>'</strong> ont échoué trois fois.",
+      "",
+      "Cette borne a donc été exclue de la gestion de la charge intelligente automatiquement."
     ],
-    "actions": [{
-      "title": "Anzeigen",
-      "url": "<%- evseDashboardInvoiceURL %>"
-    }, {
-      "title": "Download",
-      "url": "<%- invoiceDownloadUrl %>"
-    }],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
     "afterActionLines": [
-      "Mit freundlichen Grüßen",
+      "Best Regards,",
       "EV Admins."
     ],
     "footer": {

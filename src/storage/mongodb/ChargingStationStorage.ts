@@ -916,7 +916,7 @@ export default class ChargingStationStorage {
       }
       case ChargingStationInErrorType.CONNECTOR_ERROR:
         return [
-          { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: 'Faulted' } }] } },
+          { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: ChargePointStatus.FAULTED } }] } },
           { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTOR_ERROR } }
         ];
       case ChargingStationInErrorType.MISSING_SITE_AREA:

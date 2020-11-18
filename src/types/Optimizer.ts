@@ -67,7 +67,7 @@ export interface OptimizerFuseTreeNode {
   children?: OptimizerFuseTreeNode[];
 }
 
-export interface ConnectorPower {
+export interface ConnectorAmps {
   numberOfConnectedPhase: number;
   totalAmps: number;
 }

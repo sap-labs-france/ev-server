@@ -135,7 +135,7 @@ export default class ChargingStationSecurity {
     }
     // Sort Connector
     filteredChargingStation.connectors.sort(
-      (connector1, connector2) => connector1.connectorId - connector2.connectorId);
+      (connector1, connector2) => connector1 && connector2 ? connector1.connectorId - connector2.connectorId : 0);
     // Created By / Last Changed By
     UtilsSecurity.filterCreatedAndLastChanged(
       filteredChargingStation, chargingStation, loggedUser);
