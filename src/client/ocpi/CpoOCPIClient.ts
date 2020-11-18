@@ -142,7 +142,7 @@ export default class CpoOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
-        message: `${numberOfTags.toString()} Tokens processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token processed in ${executionDurationTotalLoopSecs}s`,
+        message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token(s) processed in ${executionDurationTotalLoopSecs}s`,
         module: MODULE_NAME, method: 'pullTokens'
       });
     } while (nextResult);
