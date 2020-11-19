@@ -1181,11 +1181,11 @@ export default class OCPPUtils {
       });
       return templateUpdateResult;
     }
-    let logMsg: string;
+    let noTemplateMatchingLogMsg: string;
     if (chargingStation.templateHash) {
-      logMsg = 'No template matching the charging station has been found but one matched previously. Keeping the previous template configuration';
+      noTemplateMatchingLogMsg = 'No template matching the charging station has been found but one matched previously. Keeping the previous template configuration';
     } else {
-      logMsg = 'No template matching the charging station has been found';
+      noTemplateMatchingLogMsg = 'No template matching the charging station has been found';
     }
     // Log
     Logging.logWarning({
@@ -1193,7 +1193,7 @@ export default class OCPPUtils {
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-      message: logMsg,
+      message: noTemplateMatchingLogMsg,
       detailedMessages: { chargingStation }
     });
     return templateUpdateResult;
@@ -1216,7 +1216,7 @@ export default class OCPPUtils {
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
-            message: `No Connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
+            message: `No connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
           });
           return false;
         }
@@ -1270,7 +1270,8 @@ export default class OCPPUtils {
                 }
               }
             }
-            return true;
+            // Template on connector id = connectorID applied, break the loop to continue the static method execution. Never return here.
+            break;
           }
         }
       }
