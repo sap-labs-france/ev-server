@@ -82,8 +82,7 @@ export default class CentralRestServer {
     // eslint-disable-next-line no-console
     console.log(logMsg);
     // Init Socket IO Server
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    CentralRestServer.socketIOServer = require('socket.io')(CentralRestServer.restHttpServer, {
+    CentralRestServer.socketIOServer = new Server(CentralRestServer.restHttpServer, {
       cors: {
         origin: true,
         methods: ['GET', 'POST']
@@ -98,12 +97,12 @@ export default class CentralRestServer {
         callback: false
       });
     });
-    CentralRestServer.socketIOServer.sockets.on('authenticated', (socket) => {
+    CentralRestServer.socketIOServer.sockets.on('authenticated', (socket: SocketJwt) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'startSocketIO',
         action: ServerAction.SOCKET_IO,
-        message: `SocketIO client authenticated from ${socket.handshake.headers.origin}`,
+        message: `SocketIO client authenticated from ${socket.handshake.headers[origin]}`,
         detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
       });
     });
@@ -113,17 +112,17 @@ export default class CentralRestServer {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'startSocketIO',
         action: ServerAction.SOCKET_IO,
-        message: 'SocketIO client is trying to connect from ' + socket.handshake.headers.origin,
+        message: 'SocketIO client is trying to connect from ' + socket.handshake.headers[origin],
         detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
       });
       const userToken: UserToken = socket.decoded_token;
       if (!userToken || !userToken.tenantID) {
-        CentralRestServer.centralSystemRestConfig.debug && console.error('SocketIO client is trying to connect without token from ' + socket.handshake.headers.origin);
+        CentralRestServer.centralSystemRestConfig.debug && console.error('SocketIO client is trying to connect without token from ' + socket.handshake.headers[origin]);
         Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'startSocketIO',
           action: ServerAction.SOCKET_IO,
-          message: 'SocketIO client is trying to connect without token from ' + socket.handshake.headers.origin,
+          message: 'SocketIO client is trying to connect without token from ' + socket.handshake.headers[origin],
           detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
         });
         socket.disconnect(true);
