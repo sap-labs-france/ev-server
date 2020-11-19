@@ -23,6 +23,7 @@ export default class Constants {
   public static readonly DB_PARAMS_COUNT_ONLY: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true, sort: null });
 
   public static readonly EXPORT_PAGE_SIZE = 1000;
+  public static readonly EXPORT_RECORD_MAX_COUNT = 100000;
 
   public static readonly DEFAULT_TENANT = 'default';
   public static readonly DEFAULT_TENANT_OBJECT= Object.freeze({

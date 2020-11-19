@@ -142,7 +142,7 @@ export default class CpoOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
-        message: `${numberOfTags.toString()} Tokens processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token processed in ${executionDurationTotalLoopSecs}s`,
+        message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token(s) processed in ${executionDurationTotalLoopSecs}s`,
         module: MODULE_NAME, method: 'pullTokens'
       });
     } while (nextResult);
@@ -463,7 +463,7 @@ export default class CpoOCPIClient extends OCPIClient {
       action: ServerAction.OCPI_PUSH_CDRS,
       message: `Post CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}`,
       module: MODULE_NAME, method: 'stopSession',
-      detailedMessages: { payload: transaction.ocpiData.cdr }
+      detailedMessages: { cdr: transaction.ocpiData.cdr }
     });
     // Call IOP
     const response = await this.axiosInstance.post(cdrsUrl, transaction.ocpiData.cdr,
@@ -479,7 +479,7 @@ export default class CpoOCPIClient extends OCPIClient {
       action: ServerAction.OCPI_PUSH_CDRS,
       message: `Post CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') has been done successfully`,
       module: MODULE_NAME, method: 'postCdr',
-      detailedMessages: { response: response.data }
+      detailedMessages: { response: response.data, cdr: transaction.ocpiData.cdr }
     });
   }
 
@@ -855,6 +855,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      source: chargingStationID,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: `Patch OCPI Charging Station ID '${evseUID}' status to '${newStatus}' at ${fullUrl}`,
       module: MODULE_NAME, method: 'patchEVSEStatus',

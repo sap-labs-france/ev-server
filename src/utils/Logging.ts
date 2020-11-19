@@ -125,15 +125,18 @@ export default class Logging {
 
   public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userToken = Logging.getUserTokenFromHttpRequest(req);
-      const tenantID = await Logging.retrieveTenantFromHttpRequest(req, userToken);
+      // Decode the Token
+      const decodedToken = Logging.getDecodedTokenFromHttpRequest(req);
+      // Get the Tenant
+      const tenantID = await Logging.retrieveTenantFromHttpRequest(req, decodedToken);
       // Check perfs
       req['timestamp'] = new Date();
+      req['tenantID'] = tenantID;
       // Log
       Logging.logSecurityDebug({
         tenantID,
         action: ServerAction.HTTP_REQUEST,
-        user: userToken,
+        user: (Utils.objectHasProperty(decodedToken, 'id') ? decodedToken as UserToken : null),
         message: `Express HTTP Request << ${req.method} '${req.url}'`,
         module: MODULE_NAME, method: 'logExpressRequest',
         detailedMessages: {
@@ -159,8 +162,8 @@ export default class Logging {
       try {
         // Retrieve Tenant ID if available
         let tenantID: string;
-        if (req.user) {
-          tenantID = req.user.tenantID;
+        if (req['tenantID']) {
+          tenantID = req['tenantID'];
         }
         // Compute duration
         let executionDurationMillis = 0;
@@ -730,23 +733,37 @@ export default class Logging {
     }
   }
 
-  private static getUserTokenFromHttpRequest(req: Request): UserToken {
+  private static getDecodedTokenFromHttpRequest(req: Request): any {
     // Retrieve Tenant ID from JWT token if available
     try {
-      // Decode the token
       if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        return jwtDecode(req.headers.authorization.slice(7)) as UserToken;
+        // Decode the token (REST)
+        try {
+          return jwtDecode(req.headers.authorization.slice(7));
+        } catch (error) {
+          // Try Base 64 decoding (OCPI)
+          return JSON.parse(Buffer.from(req.headers.authorization.slice(7), 'base64').toString());
+        }
       }
     } catch (error) {
       // Do nothing
     }
   }
 
-  private static async retrieveTenantFromHttpRequest(req: Request, userToken: UserToken): Promise<string> {
+  private static async retrieveTenantFromHttpRequest(req: Request, decodedToken: any): Promise<string> {
     // Try from Token
-    if (userToken) {
-      return userToken.tenantID;
+    if (decodedToken) {
+      // REST
+      if (Utils.objectHasProperty(decodedToken, 'tenantID')) {
+        return decodedToken.tenantID;
+      }
+      // OCPI
+      if (Utils.objectHasProperty(decodedToken, 'tid')) {
+        const tenant = await TenantStorage.getTenantBySubdomain(decodedToken.tid);
+        if (tenant) {
+          return tenant.id;
+        }
+      }
     }
     // Try from body
     if (req.body?.tenant && req.body.tenant !== '') {
