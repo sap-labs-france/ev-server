@@ -707,7 +707,7 @@ export default class OCPIMapping {
 
   private static buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
     const chargingPeriod: OCPIChargingPeriod = {
-      start_date_time: consumption.startedAt,
+      start_date_time: consumption.endedAt,
       dimensions: []
     };
     if (consumption.consumptionWh > 0) {
