@@ -1,0 +1,35 @@
+{
+  "subject": "Billing - User Synchronization Failed",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Billing - User Synchronization Failed",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear Administrator,",
+      "",
+      "Unable to synchronize <%- nbrUsersInError %> user(s) with Billing service provider."
+    ],
+    "actions": [{
+      "title": "View Settings",
+      "url": "<%- evseDashboardBillingURL %>"
+    }],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

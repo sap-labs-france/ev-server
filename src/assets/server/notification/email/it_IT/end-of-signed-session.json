@@ -1,0 +1,23 @@
+{
+  "subject": "Session Finished - Signed Session",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "stats": [
+      { "label": "Charger", "value": "<%- chargeBoxID %>" },
+      { "label": "Connector", "value": "<%- connectorId %>" },
+      { "label": "Badge ID", "value": "<%- tagId %>" },
+      { "label": "Start time", "value": "<%- startDate %>" },
+      { "label": "End time", "value": "<%- endDate %>" },
+      { "label": "Start counter", "value": "<%- meterStart %> kWh" },
+      { "label": "Start counter", "value": "<%- meterStop %> kWh" },
+      { "label": "Consumption", "value": "<%- totalConsumption %> kWh" },
+      { "label": "Cost", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informativ)" },
+      { "label": "Contract for", "value":"LOCAL (informativ)" }
+    ],
+    "transactionId": "<%- transactionId %>",
+    "startSignedData": "<%- startSignedData %>",
+    "endSignedData": "<%- endSignedData %>"
+  }
+}
+
