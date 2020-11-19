@@ -66,6 +66,14 @@
       "title": "Sincronizzazione Fattura Fallita",
       "body": "Impossibile sincronizzare {{nbrInvoicesInError}} fatture con il fornitore di servizi di fatturazione nell'organizzazione '{{tenantName}}'"
     },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Charging Profiles failed",
+      "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
+    },
+    "billingNewInvoice": {
+      "title": "New invoice",
+      "body": "A new invoice ({{invoiceNumber}}) is now available"
+    },
     "endUserErrorNotification": {
       "title": "Un utente ha riportato un errore",
       "body": "'{{userName}}' ha riportato: '{{errorTitle}}' - '{{errorDescription}}' nell'organizzazione '{{tenantName}}'"
@@ -75,5 +83,8 @@
     "generatedUser": "Utenza generata per '{{email}}'",
     "chargingStopSiteArea": "Caricando {{totalConsumption}} kWh a {{siteArea}} (finito a {{time}})",
     "chargingStopChargeBox": "Caricando {{totalConsumption}} kWh alla stazione di ricarica {{chargeBox}} (finito a  {{time}})"
+  },
+  "tags": {
+    "virtualBadge": "Virtual Badge"
   }
 }
