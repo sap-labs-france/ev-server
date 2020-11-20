@@ -1,7 +1,6 @@
-import { HttpSiteAssignUsersRequest, HttpSiteOwnerRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteImageRequest, HttpSiteOwnerRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../../types/requests/HttpSiteRequest';
 
 import Authorizations from '../../../../../authorization/Authorizations';
-import CompanySecurity from './CompanySecurity';
 import { DataResult } from '../../../../../types/DataResult';
 import Site from '../../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
@@ -50,6 +49,13 @@ export default class SiteSecurity {
 
   public static filterSiteRequestByID(request: any): string {
     return sanitize(request.ID);
+  }
+
+  public static filterSiteImageRequest(request: any): HttpSiteImageRequest {
+    return {
+      ID: sanitize(request.ID),
+      TenantID: sanitize(request.TenantID),
+    };
   }
 
   public static filterSiteUsersRequest(request: any): HttpSiteUsersRequest {
@@ -104,11 +110,13 @@ export default class SiteSecurity {
     const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
-    filteredRequest.image = sanitize(request.image);
     filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
     filteredRequest.autoUserSiteAssignment =
-      UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
+    UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
     filteredRequest.companyID = sanitize(request.companyID);
+    if (Utils.objectHasProperty(request, 'image')) {
+      filteredRequest.image = sanitize(request.image);
+    }
     return filteredRequest;
   }
 
