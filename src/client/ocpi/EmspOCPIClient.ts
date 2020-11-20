@@ -57,7 +57,6 @@ export default class EmspOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
-      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -70,7 +69,6 @@ export default class EmspOCPIClient extends OCPIClient {
       try {
         await this.pushToken(token);
         result.success++;
-        result.objectIDsInSuccess.push(token.uid);
       } catch (error) {
         result.failure++;
         result.objectIDsInFailure.push(token.uid);
@@ -88,7 +86,6 @@ export default class EmspOCPIClient extends OCPIClient {
         'failureNbr': result.failure,
         'totalNbr': result.total,
         'tokenIDsInFailure': _.uniq(result.objectIDsInFailure),
-        'tokenIDsInSuccess': _.uniq(result.objectIDsInSuccess)
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
@@ -96,7 +93,6 @@ export default class EmspOCPIClient extends OCPIClient {
         'failureNbr': 0,
         'totalNbr': 0,
         'tokenIDsInFailure': [],
-        'tokenIDsInSuccess': []
       };
     }
     // Save

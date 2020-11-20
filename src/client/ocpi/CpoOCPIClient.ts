@@ -565,7 +565,6 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
-      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -578,7 +577,6 @@ export default class CpoOCPIClient extends OCPIClient {
         try {
           if (await this.checkSession(transaction)) {
             result.success++;
-            result.objectIDsInSuccess.push(String(transaction.id));
           } else {
             result.failure++;
             result.objectIDsInFailure.push(String(transaction.id));
@@ -612,7 +610,6 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
-      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -630,7 +627,6 @@ export default class CpoOCPIClient extends OCPIClient {
         try {
           if (await this.checkLocation(location)) {
             result.success++;
-            result.objectIDsInSuccess.push(String(location.id));
           } else {
             result.failure++;
             result.objectIDsInFailure.push(String(location.id));
@@ -664,7 +660,6 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
-      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -676,7 +671,6 @@ export default class CpoOCPIClient extends OCPIClient {
       try {
         if (await this.checkCdr(transaction)) {
           result.success++;
-          result.objectIDsInSuccess.push(String(transaction.id));
         } else {
           result.failure++;
           result.objectIDsInFailure.push(String(transaction.id));
@@ -712,7 +706,6 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
-      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -754,7 +747,6 @@ export default class CpoOCPIClient extends OCPIClient {
             try {
               await this.patchEVSEStatus(evse.chargeBoxId, location.id, evse.uid, evse.status);
               result.success++;
-              result.objectIDsInSuccess.push(evse.chargeBoxId);
             } catch (error) {
               result.failure++;
               result.objectIDsInFailure.push(evse.chargeBoxId);
