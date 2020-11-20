@@ -39,22 +39,20 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
-    const projectFields = [ 'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
-      'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal',
-      'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
-      'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP' ];
-    // Get the cars
+    // Get the Cars
     const carCatalogs = await CarStorage.getCarCatalogs(
       {
         search: filteredRequest.Search,
         carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      projectFields
+      [
+        'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
+        'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
+        'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'
+      ]
     );
-    // Filter
-    CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
-    // Return
     res.json(carCatalogs);
     next();
   }
@@ -102,19 +100,23 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImage', req.user);
     // Get the car Image
-    const carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID, ['image']);
+    const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
     // Return
-    let header = 'image';
-    let encoding: BufferEncoding = 'base64';
-    // Remove encoding header
-    if (carCatalog.image.startsWith('data:image/')) {
-      header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
-      encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
-      carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
+    if (carCatalog?.image) {
+      // Remove encoding header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (carCatalog?.image.startsWith('data:image/')) {
+        header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
+        encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
+        carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
+      }
+      // Revert to binary
+      res.setHeader('content-type', header);
+      res.send(Buffer.from(carCatalog.image, encoding));
+    } else {
+      res.send(null);
     }
-    // Revert to binary
-    res.setHeader('content-type', header);
-    res.send(Buffer.from(carCatalog.image, encoding));
     next();
   }
 

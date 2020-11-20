@@ -42,7 +42,7 @@ export default class CarSecurity {
 
   public static filterCarCatalogRequest(request: any): HttpCarCatalogByIDRequest {
     const filteredRequest: HttpCarCatalogByIDRequest = {
-      ID: sanitize(request.ID),
+      ID: Utils.convertToInt(sanitize(request.ID)),
     } as HttpCarCatalogByIDRequest;
     return filteredRequest;
   }
