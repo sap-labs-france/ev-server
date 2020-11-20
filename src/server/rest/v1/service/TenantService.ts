@@ -112,14 +112,13 @@ export default class TenantService {
       });
     }
     // Get it
-    const tenant = await TenantStorage.getTenant(tenantID);
+    const tenant = await TenantStorage.getTenant(tenantID,
+      [ 'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo']
+    );
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
       MODULE_NAME, 'handleGetTenant', req.user);
     // Return
-    res.json(
-      // Filter
-      TenantSecurity.filterTenantResponse(tenant, req.user)
-    );
+    res.json(tenant);
     next();
   }
 
@@ -135,7 +134,9 @@ export default class TenantService {
     }
     // Filter
     const filteredRequest = TenantSecurity.filterTenantsRequest(req.query);
-    const projectFields = ['id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'];
+    const projectFields = [
+      'id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+    ];
     if (filteredRequest.WithComponents) {
       projectFields.push('components');
     }
@@ -147,8 +148,6 @@ export default class TenantService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
       projectFields);
-    // Filter
-    TenantSecurity.filterTenantsResponse(tenants, req.user);
     // Return
     res.json(tenants);
     next();
