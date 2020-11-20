@@ -144,7 +144,6 @@ class RequestMapper {
           [ServerAction.TENANT_LOGO]: TenantService.handleGetTenantLogo.bind(this),
           [ServerAction.SITE_AREAS]: SiteAreaService.handleGetSiteAreas.bind(this),
           [ServerAction.SITE_AREA]: SiteAreaService.handleGetSiteArea.bind(this),
-          [ServerAction.SITE_AREA_IMAGE]: SiteAreaService.handleGetSiteAreaImage.bind(this),
           [ServerAction.SITE_AREA_CONSUMPTION]: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
           [ServerAction.USERS]: UserService.handleGetUsers.bind(this),
           [ServerAction.USER_SITES]: UserService.handleGetSites.bind(this),
@@ -303,6 +302,9 @@ export default class CentralRestServerService {
               break;
             case ServerAction.SITE_IMAGE:
               await SiteService.handleGetSiteImage(action, req, res, next);
+              break;
+            case ServerAction.SITE_AREA_IMAGE:
+              await SiteAreaService.handleGetSiteAreaImage(action, req, res, next);
               break;
             // Firmware Download
             case ServerAction.FIRMWARE_DOWNLOAD:

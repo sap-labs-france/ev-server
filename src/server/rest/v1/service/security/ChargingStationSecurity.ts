@@ -131,7 +131,7 @@ export default class ChargingStationSecurity {
       }
     }
     if (chargingStation.siteArea) {
-      filteredChargingStation.siteArea = SiteAreaSecurity.filterSiteAreaResponse(chargingStation.siteArea, loggedUser);
+      filteredChargingStation.siteArea = chargingStation.siteArea;
     }
     // Sort Connector
     filteredChargingStation.connectors.sort(
@@ -160,7 +160,7 @@ export default class ChargingStationSecurity {
       filteredChargingStation.id = chargingStation.id;
     }
     if (chargingStation.siteArea) {
-      filteredChargingStation.siteArea = SiteAreaSecurity.filterMinimalSiteAreaResponse(chargingStation.siteArea, loggedUser);
+      filteredChargingStation.siteArea = chargingStation.siteArea;
     }
     return filteredChargingStation;
   }

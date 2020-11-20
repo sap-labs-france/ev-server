@@ -103,13 +103,13 @@ export default class SiteSecurity {
   }
 
   public static _filterSiteRequest(request: any): Partial<Site> {
-    const filteredRequest: any = {};
-    filteredRequest.name = sanitize(request.name);
-    filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
-    filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
-    filteredRequest.autoUserSiteAssignment =
-    UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
-    filteredRequest.companyID = sanitize(request.companyID);
+    const filteredRequest = {
+      name: sanitize(request.name),
+      address: UtilsSecurity.filterAddressRequest(request.address),
+      public: UtilsSecurity.filterBoolean(request.public),
+      autoUserSiteAssignment: UtilsSecurity.filterBoolean(request.autoUserSiteAssignment),
+      companyID: sanitize(request.companyID),
+    } as Partial<Site>;
     if (Utils.objectHasProperty(request, 'image')) {
       filteredRequest.image = sanitize(request.image);
     }

@@ -248,13 +248,16 @@ export default class DatabaseUtils {
     aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
   }
 
-  public static projectFields(aggregation: any[], projectedFields: string[]): void {
+  public static projectFields(aggregation: any[], projectedFields: string[], removedFields: string[] = []): void {
     if (projectedFields) {
       const project = {
         $project: {}
       };
       for (const projectedField of projectedFields) {
         project.$project[projectedField] = 1;
+      }
+      for (const removedField of removedFields) {
+        project.$project[removedField] = 0;
       }
       aggregation.push(project);
     }
