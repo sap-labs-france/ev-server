@@ -67,11 +67,12 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         // Check Connectors
         for (const connector of chargingStation.connectors) {
           // Amperage limit
+          const connectorAmperageLimit = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
           if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
-            connector.amperageLimit = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
+            connector.amperageLimit = connectorAmperageLimit;
             chargingStationUpdated = true;
-          } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId)) {
-            connector.amperageLimit = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
+          } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimit) {
+            connector.amperageLimit = connectorAmperageLimit;
             chargingStationUpdated = true;
           }
           // Phase Assignment
@@ -101,11 +102,11 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
           if (chargingStationTemplateUpdated.technicalUpdated) {
             sectionsUpdated.push('Technical');
           }
-          if (chargingStationTemplateUpdated.ocppUpdated) {
-            sectionsUpdated.push('OCPP');
-          }
           if (chargingStationTemplateUpdated.capabilitiesUpdated) {
             sectionsUpdated.push('Capabilities');
+          }
+          if (chargingStationTemplateUpdated.ocppUpdated) {
+            sectionsUpdated.push('OCPP');
           }
           Logging.logInfo({
             tenantID: tenant.id,

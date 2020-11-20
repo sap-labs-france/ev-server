@@ -975,7 +975,7 @@ export default class Utils {
     return amperageLimit;
   }
 
-  public static isEmptyArray(array: any): boolean {
+  public static isEmptyArray(array: any[]): boolean {
     if (!array) {
       return true;
     }
@@ -983,6 +983,10 @@ export default class Utils {
       return false;
     }
     return true;
+  }
+
+  static isEmptyObject(obj: any): boolean {
+    return !Object.keys(obj).length;
   }
 
   public static findDuplicatesInArray(arr: any[]): any[] {
