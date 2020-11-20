@@ -640,7 +640,7 @@ export default class TransactionService {
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
-      userProject = ['userID', 'user.id', 'user.name', 'user.firstName', 'user.email',];
+      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
