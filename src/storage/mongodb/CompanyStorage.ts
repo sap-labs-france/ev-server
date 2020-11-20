@@ -193,7 +193,8 @@ export default class CompanyStorage {
               { $toString: '$_id' },
               `&TenantID=${tenantID}&LastChangedOn=`,
               { $toString: '$lastChangedOn' }
-            ] }
+            ]
+          }
         }
       });
     }
