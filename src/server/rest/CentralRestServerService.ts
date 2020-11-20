@@ -129,7 +129,6 @@ class RequestMapper {
           [ServerAction.BOOT_NOTIFICATION]: ChargingStationService.handleGetBootNotifications.bind(this),
           [ServerAction.COMPANIES]: CompanyService.handleGetCompanies.bind(this),
           [ServerAction.COMPANY]: CompanyService.handleGetCompany.bind(this),
-          [ServerAction.COMPANY_LOGO]: CompanyService.handleGetCompanyLogo.bind(this),
           [ServerAction.ASSETS]: AssetService.handleGetAssets.bind(this),
           [ServerAction.ASSET]: AssetService.handleGetAsset.bind(this),
           [ServerAction.ASSET_IMAGE]: AssetService.handleGetAssetImage.bind(this),
@@ -299,6 +298,9 @@ export default class CentralRestServerService {
               break;
             case ServerAction.CAR_CATALOG_IMAGE:
               await CarService.handleGetCarCatalogImage(action, req, res, next);
+              break;
+            case ServerAction.COMPANY_LOGO:
+              await CompanyService.handleGetCompanyLogo(action, req, res, next);
               break;
             // Firmware Download
             case ServerAction.FIRMWARE_DOWNLOAD:

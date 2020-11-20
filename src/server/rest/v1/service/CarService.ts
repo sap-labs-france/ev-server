@@ -33,18 +33,16 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.CAR_CATALOGS,
-        module: MODULE_NAME,
-        method: 'handleGetCarCatalogs'
+        action: Action.LIST, entity: Entity.CAR_CATALOGS,
+        module: MODULE_NAME, method: 'handleGetCarCatalogs'
       });
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
-    const projectFields = ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+    const projectFields = [ 'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
       'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal',
       'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
-      'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'];
+      'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP' ];
     // Get the cars
     const carCatalogs = await CarStorage.getCarCatalogs(
       {
@@ -71,10 +69,8 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME,
-        method: 'handleGetCarCatalog'
+        action: Action.LIST, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'handleGetCarCatalog'
       });
     }
     // Filter
@@ -84,12 +80,14 @@ export default class CarService {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Get the car
       carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID,
-        ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
+        [
+          'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
           'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower',
-          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp']);
+          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
+        ]);
     } else {
       // Get the car
       carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID);
@@ -130,10 +128,8 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME,
-        method: 'handleGetCarCatalogImages'
+        action: Action.READ, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'handleGetCarCatalogImages'
       });
     }
     // Filter
