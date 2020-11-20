@@ -207,6 +207,11 @@ export default class RegistrationTokenService {
       });
     }
     const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokensRequest(req.query);
+    // Check User
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
+    }
     // Get the tokens
     const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(req.user.tenantID,
       {
@@ -219,7 +224,10 @@ export default class RegistrationTokenService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [ 'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate', 'siteAreaID', 'siteArea.name' ]
+      [
+        'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate', 'siteAreaID', 'siteArea.name',
+        ...userProject
+      ]
     );
     // Build OCPP URLs
     registrationTokens.result.forEach((registrationToken) => {
