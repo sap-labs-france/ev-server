@@ -112,7 +112,7 @@ export default class SiteAreaSecurity {
         filteredSiteArea.connectorStats = siteArea.connectorStats;
       }
       if (siteArea.site) {
-        filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site, loggedUser);
+        filteredSiteArea.site = siteArea.site;
       }
       if (siteArea.chargingStations) {
         filteredSiteArea.chargingStations = siteArea.chargingStations.map((chargingStation) =>
