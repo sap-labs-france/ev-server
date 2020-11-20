@@ -612,9 +612,7 @@ export default class UserService {
         action: action
       });
     }
-    // Ok
     res.json(
-      // Filter
       UserSecurity.filterUserResponse(user, req.user)
     );
     next();
@@ -695,7 +693,7 @@ export default class UserService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID']
+      [ 'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID' ]
     );
     // Filter
     userSites.result = userSites.result.map((userSite) => ({
