@@ -1550,7 +1550,12 @@ export default class OCPPUtils {
       // Add the existing custom params
       const customParams = ocppParametersFromDB.result.filter((customParam) => customParam.custom);
       if (!Utils.isEmptyArray(customParams)) {
-        chargingStationOcppParameters.configuration = chargingStationOcppParameters.configuration.concat(customParams);
+        for (const customParam of customParams) {
+          const foundCustomParam = chargingStationOcppParameters.configuration.find((configuration) => configuration.key === customParam.key);
+          if (!foundCustomParam) {
+            chargingStationOcppParameters.configuration.push(customParam);
+          }
+        }
       }
       // Save config
       await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
