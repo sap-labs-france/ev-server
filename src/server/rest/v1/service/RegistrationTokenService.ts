@@ -73,7 +73,7 @@ export default class RegistrationTokenService {
     registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
     // Ok
-    res.json(RegistrationTokenSecurity.filterRegistrationTokenResponse(registrationToken, req.user));
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -124,7 +124,7 @@ export default class RegistrationTokenService {
     registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
     // Ok
-    res.json(RegistrationTokenSecurity.filterRegistrationTokenResponse(registrationToken, req.user));
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -218,7 +218,8 @@ export default class RegistrationTokenService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
-      }
+      },
+      [ 'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate', 'siteAreaID', 'siteArea.name' ]
     );
     // Build OCPP URLs
     registrationTokens.result.forEach((registrationToken) => {
@@ -227,8 +228,6 @@ export default class RegistrationTokenService {
       registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
       return registrationToken;
     });
-    // Filter
-    RegistrationTokenSecurity.filterRegistrationTokensResponse(registrationTokens, req.user);
     // Ok
     res.json(registrationTokens);
     next();
