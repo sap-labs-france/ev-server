@@ -76,24 +76,23 @@ export default class TenantService {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenantLogo', req.user);
-    // Check auth
-    if (!Authorizations.canReadTenant(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.READ, entity: Entity.TENANT,
-        module: MODULE_NAME, method: 'handleGetTenantLogo',
-        value: tenantID
-      });
-    }
-    // Get Tenant
-    const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
-      MODULE_NAME, 'handleGetTenantLogo', req.user);
     // Get Logo
     const tenantLogo = await TenantStorage.getTenantLogo(tenantID);
     // Return
-    res.json(tenantLogo);
+    if (tenantLogo?.logo) {
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      // Remove encoding header
+      if (tenantLogo.logo.startsWith('data:image/')) {
+        header = tenantLogo.logo.substring(5, tenantLogo.logo.indexOf(';'));
+        encoding = tenantLogo.logo.substring(tenantLogo.logo.indexOf(';') + 1, tenantLogo.logo.indexOf(',')) as BufferEncoding;
+        tenantLogo.logo = tenantLogo.logo.substring(tenantLogo.logo.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(tenantLogo.logo ? Buffer.from(tenantLogo.logo, encoding) : null);
+    } else {
+      res.send(null);
+    }
     next();
   }
 
@@ -246,7 +245,7 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    const tenantUpdate = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
@@ -254,18 +253,18 @@ export default class TenantService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleUpdateTenant',
-        value: tenantUpdate.id
+        value: filteredRequest.id
       });
     }
     // Get
-    const tenant = await TenantStorage.getTenant(tenantUpdate.id);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`,
+    const tenant = await TenantStorage.getTenant(filteredRequest.id);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTenant', req.user);
     // Check if smart charging is deactivated in all site areas when deactivated in super tenant
-    if (tenantUpdate.components && tenantUpdate.components.smartCharging &&
-      tenant.components && tenant.components.smartCharging &&
-      !tenantUpdate.components.smartCharging.active && tenant.components.smartCharging.active) {
-      const siteAreas = await SiteAreaStorage.getSiteAreas(tenantUpdate.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
+    if (filteredRequest.components && filteredRequest.components.smartCharging &&
+        tenant.components && tenant.components.smartCharging &&
+        !filteredRequest.components.smartCharging.active && tenant.components.smartCharging.active) {
+      const siteAreas = await SiteAreaStorage.getSiteAreas(filteredRequest.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
       if (siteAreas.count !== 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -278,20 +277,28 @@ export default class TenantService {
         });
       }
     }
+    tenant.name = filteredRequest.name;
+    tenant.address = filteredRequest.address;
+    tenant.components = filteredRequest.components;
+    tenant.email = filteredRequest.email;
+    tenant.subdomain = filteredRequest.subdomain;
+    if (Utils.objectHasProperty(filteredRequest, 'logo')) {
+      tenant.logo = filteredRequest.logo;
+    }
     // Update timestamp
-    tenantUpdate.lastChangedBy = { 'id': req.user.id };
-    tenantUpdate.lastChangedOn = new Date();
+    tenant.lastChangedBy = { 'id': req.user.id };
+    tenant.lastChangedOn = new Date();
     // Update Tenant
-    await TenantStorage.saveTenant(tenantUpdate);
+    await TenantStorage.saveTenant(tenant, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     // Update with components
-    await TenantService.updateSettingsWithComponents(tenantUpdate, req);
+    await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleUpdateTenant',
-      message: `Tenant '${tenantUpdate.name}' has been updated successfully`,
+      message: `Tenant '${filteredRequest.name}' has been updated successfully`,
       action: action,
-      detailedMessages: { tenant: tenantUpdate }
+      detailedMessages: { tenant }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

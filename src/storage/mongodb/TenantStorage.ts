@@ -31,7 +31,8 @@ export default class TenantStorage {
     if (!tenant) {
       // Call DB
       const tenantsMDB = await TenantStorage.getTenants({
-        tenantIDs: [id]
+        tenantIDs: [id],
+        withLogo: true,
       }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
       // Add in cache
       if (tenantsMDB.count > 0) {
@@ -214,14 +215,18 @@ export default class TenantStorage {
     });
     // Company Logo
     if (params.withLogo) {
-      DatabaseUtils.pushCollectionLookupInAggregation('tenantlogos',
-        {
-          tenantID: null, aggregation, localField: '_id', foreignField: '_id',
-          asField: 'tenantlogos', oneToOneCardinality: true
+      aggregation.push({
+        $addFields: {
+          logo: {
+            $concat: [
+              `${Utils.buildRestServerURL()}/client/util/TenantLogo?ID=`,
+              { $toString: '$_id' },
+              '&LastChangedOn=',
+              { $toString: '$lastChangedOn' }
+            ]
+          }
         }
-      );
-      // Rename
-      DatabaseUtils.pushRenameField(aggregation, 'tenantlogos.logo', 'logo');
+      });
     }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
