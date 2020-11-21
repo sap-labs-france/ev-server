@@ -684,12 +684,12 @@ export default class UserStorage {
   }
 
   public static async getTag(tenantID: string, id: string,
-    params: { withUser?: boolean; withNbrTransactions?: boolean } = {}): Promise<Tag> {
+    params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await UserStorage.getTags(tenantID, {
       tagIDs: [id],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
   }
 

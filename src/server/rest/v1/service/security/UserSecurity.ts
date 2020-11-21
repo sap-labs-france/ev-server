@@ -221,24 +221,6 @@ export default class UserSecurity {
     users.result = filteredUsers;
   }
 
-  static filterTagsResponse(tags: DataResult<Tag>, loggedUser: UserToken): void {
-    const filteredTags = [];
-    if (!tags.result) {
-      return null;
-    }
-    if (!Authorizations.canListTags(loggedUser)) {
-      return null;
-    }
-    for (const tag of tags.result) {
-      // Filter
-      const filteredTag = UserSecurity.filterTagResponse(tag, loggedUser);
-      if (filteredTag) {
-        filteredTags.push(filteredTag);
-      }
-    }
-    tags.result = filteredTags;
-  }
-
   public static filterTagUpdateRequest(request: any, loggedUser: UserToken): Partial<Tag> {
     return UserSecurity.filterTagRequest(request, loggedUser);
   }
@@ -258,31 +240,6 @@ export default class UserSecurity {
         default: UtilsSecurity.filterBoolean(tag.default),
         userID: sanitize(tag.userID)
       } as Tag;
-    }
-    return filteredTag;
-  }
-
-  static filterTagResponse(tag: Tag, loggedUser: UserToken): Tag {
-    const filteredTag = {} as Tag;
-    if (!tag) {
-      return null;
-    }
-    // Check auth
-    if (Authorizations.canReadTag(loggedUser)) {
-      filteredTag.id = tag.id;
-      filteredTag.issuer = tag.issuer;
-      filteredTag.description = tag.description;
-      filteredTag.active = tag.active;
-      filteredTag.transactionsCount = tag.transactionsCount;
-      filteredTag.userID = tag.userID;
-      filteredTag.default = tag.default;
-      if (tag.user) {
-        filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser);
-      }
-      // Created By / Last Changed By
-      if (Authorizations.canUpdateTag(loggedUser)) {
-        UtilsSecurity.filterCreatedAndLastChanged(filteredTag, tag, loggedUser);
-      }
     }
     return filteredTag;
   }

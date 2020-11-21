@@ -1024,11 +1024,21 @@ export default class UserService {
     const tagID = UserSecurity.filterTagRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, tagID, MODULE_NAME, 'handleGetTag', req.user);
     // Get the tag
-    const tag = await UserStorage.getTag(req.user.tenantID, tagID, { withUser: true });
+    const tag = await UserStorage.getTag(req.user.tenantID, tagID, { withUser: true },
+      [
+        'id', 'issuer', 'description', 'active', 'transactionsCount', 'default',
+        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
+      ]
+    );
     UtilsService.assertObjectExists(action, tag, `Tag with ID '${tagID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
+    // Check Users
+    if (!Authorizations.canReadUser(req.user, tag.userID)) {
+      delete tag.userID;
+      delete tag.user;
+    }
     // Return
-    res.json(UserSecurity.filterTagResponse(tag, req.user));
+    res.json(tag);
     next();
   }
 
@@ -1042,6 +1052,14 @@ export default class UserService {
         module: MODULE_NAME, method: 'handleGetTags'
       });
     }
+    // Check Users
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [
+        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+      ];
+    }
     // Filter
     const filteredRequest = UserSecurity.filterTagsRequest(req.query);
     // Get the tags
@@ -1053,11 +1071,11 @@ export default class UserService {
         withUser: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email',
-        'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'],
+      [
+        'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
+        'createdOn', 'lastChangedOn', ...userProject
+      ],
     );
-    // Filter
-    UserSecurity.filterTagsResponse(tags, req.user);
     // Return
     res.json(tags);
     next();
