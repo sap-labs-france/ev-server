@@ -35,7 +35,7 @@ export default class RegistrationTokenSecurity {
 
   static filterRegistrationTokensRequest(request: any): HttpRegistrationTokensRequest {
     const filteredRequest = {
-      siteAreaID: sanitize(request.siteAreaID)
+      SiteAreaID: sanitize(request.SiteAreaID)
     };
 
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);

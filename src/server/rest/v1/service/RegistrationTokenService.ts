@@ -73,7 +73,7 @@ export default class RegistrationTokenService {
     registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json(Object.assign({ id: registrationToken.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -215,7 +215,7 @@ export default class RegistrationTokenService {
     // Get the tokens
     const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(req.user.tenantID,
       {
-        siteAreaID: filteredRequest.siteAreaID,
+        siteAreaID: filteredRequest.SiteAreaID,
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, null),
       },
       {
@@ -225,7 +225,8 @@ export default class RegistrationTokenService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
-        'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate', 'siteAreaID', 'siteArea.name',
+        'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+        'siteAreaID', 'siteArea.name',
         ...userProject
       ]
     );

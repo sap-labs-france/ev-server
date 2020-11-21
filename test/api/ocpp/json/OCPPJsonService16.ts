@@ -8,7 +8,7 @@ import config from '../../../config';
 import { performance } from 'perf_hooks';
 
 export default class OCPPJsonService16 extends OCPPService {
-  private wsSessions: any;
+  private wsSessions: Map<string, any>;
   private requestHandler: any;
 
   public constructor(serverUrl, requestHandler) {
@@ -80,7 +80,6 @@ export default class OCPPJsonService16 extends OCPPService {
 
   public async handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload) {
     let result = {};
-
     if (this.requestHandler && typeof this.requestHandler['handle' + commandName] === 'function') {
       result = await this.requestHandler['handle' + commandName](commandPayload);
     }
@@ -146,6 +145,10 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   private async send(chargeBoxIdentity: string, message: any): Promise<any> {
+    // Debug
+    // console.log('OCPP Request ====================================');
+    // console.log({ chargeBoxIdentity, message });
+    // console.log('====================================');
     // WS Opened?
     if (!this.wsSessions.get(chargeBoxIdentity)) {
       // Open WS

@@ -50,7 +50,7 @@
     "autocannon": "autocannon",
     "mochatest": "cross-env TS_NODE_FILES=true mocha test/**/*Test.ts",
     "mochatest:parallel": "cross-env TS_NODE_FILES=true mocha-parallel-tests test/**/*Test.ts",
-    "mochatest:charger": "cross-env TS_NODE_FILES=true mocha test/**/OCPP*Test.ts",
+    "mochatest:chargingStation": "cross-env TS_NODE_FILES=true mocha test/**/OCPP*Test.ts",
     "mochatest:ocpi": "cross-env TS_NODE_FILES=true mocha test/**/OCPI*Test.ts",
     "mochatest:tenant": "cross-env TS_NODE_FILES=true mocha test/**/*TenantTest.ts",
     "mochatest:org": "cross-env TS_NODE_FILES=true mocha test/**/*OrgTest.ts",
