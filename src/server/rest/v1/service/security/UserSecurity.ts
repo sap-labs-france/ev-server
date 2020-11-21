@@ -1,12 +1,9 @@
 import { HttpSitesAssignUserRequest, HttpTagsRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
-import User, { UserRole } from '../../../../../types/User';
 
 import Authorizations from '../../../../../authorization/Authorizations';
-import Constants from '../../../../../utils/Constants';
-import { DataResult } from '../../../../../types/DataResult';
 import Tag from '../../../../../types/Tag';
-import { UserInError } from '../../../../../types/InError';
 import UserNotifications from '../../../../../types/UserNotifications';
+import { UserRole } from '../../../../../types/User';
 import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
@@ -104,121 +101,6 @@ export default class UserSecurity {
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
-  }
-
-  // User
-  static filterUserResponse(user: User | UserInError, loggedUser: UserToken): User {
-    const filteredUser: User = {} as User;
-    if (!user) {
-      return null;
-    }
-    // Check auth
-    if (Authorizations.canReadUser(loggedUser, user.id)) {
-      // Admin?
-      if (Authorizations.canUpdateUser(loggedUser, user.id)) {
-        filteredUser.id = user.id;
-        filteredUser.issuer = user.issuer;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
-        filteredUser.email = user.email;
-        filteredUser.locale = user.locale;
-        filteredUser.phone = user.phone;
-        filteredUser.mobile = user.mobile;
-        filteredUser.notificationsActive = user.notificationsActive;
-        if (user.notifications) {
-          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.role, user.notifications);
-        }
-        filteredUser.iNumber = user.iNumber;
-        filteredUser.costCenter = user.costCenter;
-        filteredUser.status = user.status;
-        filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
-        filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
-        filteredUser.plateID = user.plateID;
-        filteredUser.role = user.role;
-        if (Utils.objectHasProperty(user, 'errorCode')) {
-          (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
-        }
-        if (user.address) {
-          filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
-        }
-        if (user.billingData) {
-          filteredUser.billingData = user.billingData;
-        }
-      } else {
-        // Set only necessary info
-        // Demo user?
-        if (Authorizations.isDemo(loggedUser)) {
-          filteredUser.id = null;
-          filteredUser.name = Constants.ANONYMIZED_VALUE;
-          filteredUser.firstName = Constants.ANONYMIZED_VALUE;
-        } else {
-          filteredUser.id = user.id;
-          filteredUser.name = user.name;
-          filteredUser.firstName = user.firstName;
-        }
-        filteredUser.issuer = user.issuer;
-        filteredUser.email = user.email;
-        filteredUser.locale = user.locale;
-        filteredUser.phone = user.phone;
-        filteredUser.mobile = user.mobile;
-        filteredUser.notificationsActive = user.notificationsActive;
-        if (user.notifications) {
-          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.role, user.notifications);
-        }
-        filteredUser.iNumber = user.iNumber;
-        filteredUser.costCenter = user.costCenter;
-        filteredUser.plateID = user.plateID;
-        filteredUser.role = user.role;
-        if (Utils.objectHasProperty(user, 'errorCode')) {
-          (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
-        }
-        if (user.address) {
-          filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
-        }
-      }
-      // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(filteredUser, user, loggedUser);
-    }
-    return filteredUser;
-  }
-
-  // User
-  static filterMinimalUserResponse(user: User, loggedUser: UserToken): User {
-    const filteredUser = {} as User;
-    if (!user) {
-      return null;
-    }
-    // Check auth
-    if (Authorizations.canReadUser(loggedUser, user.id)) {
-      // Demo user?
-      if (Authorizations.isDemo(loggedUser)) {
-        filteredUser.id = null;
-        filteredUser.name = Constants.ANONYMIZED_VALUE;
-        filteredUser.firstName = Constants.ANONYMIZED_VALUE;
-        filteredUser.email = Constants.ANONYMIZED_VALUE;
-      } else {
-        filteredUser.id = user.id;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
-        filteredUser.email = user.email;
-      }
-    }
-    return filteredUser;
-  }
-
-  static filterUsersResponse(users: DataResult<User | UserInError>, loggedUser: UserToken): void {
-    const filteredUsers = [];
-    if (!users.result) {
-      return null;
-    }
-    for (const user of users.result) {
-      // Filter
-      const filteredUser = UserSecurity.filterUserResponse(user, loggedUser);
-      if (filteredUser) {
-        filteredUsers.push(filteredUser);
-      }
-    }
-    users.result = filteredUsers;
   }
 
   public static filterTagUpdateRequest(request: any, loggedUser: UserToken): Partial<Tag> {

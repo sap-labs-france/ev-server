@@ -19,7 +19,6 @@ import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../../../types/Server';
-import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
@@ -598,7 +597,12 @@ export default class UserService {
       });
     }
     // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, userID);
+    const user = await UserStorage.getUser(req.user.tenantID, userID,
+      [
+        'id', 'name', 'firstName', 'email', 'role', 'status','issuer', 'locale', 'deleted', 'plateID',
+        'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+      ]
+    );
     UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
     // Deleted?
@@ -612,9 +616,7 @@ export default class UserService {
         action: action
       });
     }
-    res.json(
-      UserSecurity.filterUserResponse(user, req.user)
-    );
+    res.json(user);
     next();
   }
 
@@ -741,14 +743,12 @@ export default class UserService {
         onlyRecordCount: filteredRequest.OnlyRecordCount,
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort
-      }
+      },
+      [
+        'id', 'name', 'firstName', 'email', 'role', 'status','issuer',
+        'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
+      ]
     );
-    // Filter
-    UserSecurity.filterUsersResponse(users, req.user);
-    // Limit to 100
-    if (users.result.length > 100) {
-      users.result.length = 100;
-    }
     // Return
     res.json(users);
     next();
@@ -1026,7 +1026,7 @@ export default class UserService {
     // Get the tag
     const tag = await UserStorage.getTag(req.user.tenantID, tagID, { withUser: true },
       [
-        'id', 'issuer', 'description', 'active', 'transactionsCount', 'default',
+        'id', 'issuer', 'description', 'active', 'default',
         'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
       ]
     );
@@ -1436,8 +1436,6 @@ export default class UserService {
         'billingData.customerID', 'billingData.lastChangedOn'
       ]
     );
-    // Filter
-    UserSecurity.filterUsersResponse(users, req.user);
     return users;
   }
 }

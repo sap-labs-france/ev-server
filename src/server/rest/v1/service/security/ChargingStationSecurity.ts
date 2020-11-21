@@ -104,7 +104,7 @@ export default class ChargingStationSecurity {
           currentType: connector.currentType,
           voltage: connector.voltage,
           amperage: connector.amperage,
-          user: UserSecurity.filterMinimalUserResponse(connector.user, loggedUser),
+          user: connector.user,
           phaseAssignmentToGrid: connector.phaseAssignmentToGrid
         };
       });

@@ -302,15 +302,8 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID']
+      [ 'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID' ]
     );
-    // Filter
-    users.result = users.result.map((siteuser) => ({
-      siteID: siteuser.siteID,
-      siteAdmin: siteuser.siteAdmin,
-      siteOwner: siteuser.siteOwner,
-      user: UserSecurity.filterUserResponse(siteuser.user, req.user)
-    }));
     res.json(users);
     next();
   }
