@@ -388,12 +388,6 @@ export default class Utils {
     return connectorStats;
   }
 
-  public static getChargingStationHeartbeatMaxIntervalSecs(): number {
-    // Get Heartbeat Interval from conf
-    const config = Configuration.getChargingStationConfig();
-    return config.heartbeatIntervalSecs * 3;
-  }
-
   /**
    * Map user locale (en_US, fr_FR...) to language (en, fr...)
    * @param locale

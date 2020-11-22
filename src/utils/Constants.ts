@@ -70,7 +70,7 @@ export default class Constants {
 
   public static readonly ANONYMIZED_VALUE = '####';
 
-  public static readonly WS_DEFAULT_KEEPALIVE = 30; // Seconds
+  public static readonly WS_DEFAULT_KEEPALIVE = 180; // Seconds
   public static readonly WS_RECONNECT_DISABLED = 0;
   public static readonly WS_RECONNECT_UNLIMITED = -1;
   public static readonly WS_DEFAULT_RECONNECT_MAX_RETRIES = -1;
@@ -133,6 +133,7 @@ export default class Constants {
     { 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null },
     { 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null },
     { 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null },
+    { 'key': 'HeartBeatInterval', 'readonly': false, 'value': null },
     { 'key': 'HeartbeatInterval', 'readonly': false, 'value': null },
     { 'key': 'LightIntensity', 'readonly': false, 'value': null },
     { 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null },

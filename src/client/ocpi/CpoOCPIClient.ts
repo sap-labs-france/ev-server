@@ -93,7 +93,7 @@ export default class CpoOCPIClient extends OCPIClient {
           detailedMessages: { data: response.data }
         });
       }
-      const numberOfTags = response.data.data.length;
+      const numberOfTags: number = response.data.data.length;
       totalNumberOfToken += numberOfTags;
       Logging.logDebug({
         tenantID: this.tenant.id,

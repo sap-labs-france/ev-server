@@ -12,6 +12,7 @@ import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import OCPITokensService from './OCPITokensService';
 import OCPIUtils from '../../OCPIUtils';
+import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -76,6 +77,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     Logging.logDebug({
       tenantID: tenant.id,
+      action: ServerAction.OCPI_PUSH_TOKEN,
       module: MODULE_NAME, method: 'putToken',
       message: `Updating Token ID '${tokenId}' for eMSP '${countryCode}/${partyId}'`
     });
@@ -83,7 +85,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     if (!updatedToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'patchToken',
+        module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing content to put token ${tokenId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -95,7 +97,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       if (tag.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'patchToken',
+          module: MODULE_NAME, method: 'putToken',
           errorCode: StatusCodes.NOT_FOUND,
           message: `Invalid User found for Token ID '${tokenId}', Token does not belongs to OCPI`,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -104,7 +106,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       if (tag.user?.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'patchToken',
+          module: MODULE_NAME, method: 'putToken',
           errorCode: StatusCodes.NOT_FOUND,
           message: `Invalid User found for Token ID '${tokenId}', Token issued locally`,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -113,7 +115,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       if (tag.user.name !== OCPIUtils.buildOperatorName(countryCode, partyId)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'patchToken',
+          module: MODULE_NAME, method: 'putToken',
           errorCode: StatusCodes.CONFLICT,
           message: `Invalid User found for Token ID '${tokenId}', Token belongs to another partner`,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -139,6 +141,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     Logging.logDebug({
       tenantID: tenant.id,
+      action: ServerAction.OCPI_PATCH_TOKEN,
       module: MODULE_NAME, method: 'patchToken',
       message: `Patching Token ID '${tokenId}' for eMSP '${countryCode}/${partyId}'`
     });

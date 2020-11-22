@@ -12,7 +12,7 @@ export interface Log {
   module: string;
   method: string;
   timestamp?: Date;
-  action?: ServerAction;
+  action: ServerAction;
   type?: LogType;
   message: string;
   user?: User|UserToken|string;

@@ -7,10 +7,10 @@ import CentralSystemServerConfiguration from '../types/configuration/CentralSyst
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
 import ChargingStationTemplatesConfiguration from '../types/configuration/ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
-import { Configuration as ConfigurationType } from '../types/configuration/Configuration';
+import { Configuration as ConfigurationData } from '../types/configuration/Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
-import EVDatabaseConfiguration from '../types/configuration/EVDatabaseAPIConfiguration';
+import EVDatabaseConfiguration from '../types/configuration/EVDatabaseConfiguration';
 import EmailConfiguration from '../types/configuration/EmailConfiguration';
 import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration';
 import HealthCheckConfiguration from '../types/configuration/HealthCheckConfiguration';
@@ -34,7 +34,7 @@ import os from 'os';
 const _appEnv = cfenv.getAppEnv();
 
 export default class Configuration {
-  private static config: ConfigurationType;
+  private static config: ConfigurationData;
 
   private constructor() {}
 
@@ -255,12 +255,31 @@ export default class Configuration {
   public static getChargingStationConfig(): ChargingStationConfiguration {
     // Read conf and set defaults values
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
-    if (!Utils.isUndefined(chargingStationConfiguration.useServerLocalIPForRemoteCommand)) {
-      console.log('Deprecated configuration key usage \'ChargingStation.useServerLocalIPForRemoteCommand\'');
-      if (!Utils.isUndefined(chargingStationConfiguration.secureLocalServer)) {
-        console.log('Deprecated configuration key usage \'ChargingStation.secureLocalServer\'');
+    Configuration.deprecateConfigurationKey('heartbeatIntervalSecs', 'ChargingStation', 'Please use \'heartbeatIntervalOCPPSSecs\' and \'heartbeatIntervalOCPPJSecs\' instead');
+    if (Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPSSecs)) {
+      if (!Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+        chargingStationConfiguration.heartbeatIntervalOCPPSSecs = chargingStationConfiguration.heartbeatIntervalSecs;
+      } else {
+        chargingStationConfiguration.heartbeatIntervalOCPPSSecs = 180;
       }
     }
+    if (Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPJSecs)) {
+      if (!Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+        chargingStationConfiguration.heartbeatIntervalOCPPJSecs = chargingStationConfiguration.heartbeatIntervalSecs;
+      } else {
+        chargingStationConfiguration.heartbeatIntervalOCPPJSecs = 3600;
+      }
+    }
+    if (Utils.isUndefined(chargingStationConfiguration.maxLastSeenIntervalSecs)) {
+      if (!Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+        chargingStationConfiguration.maxLastSeenIntervalSecs = 3 * chargingStationConfiguration.heartbeatIntervalSecs;
+      } else {
+        chargingStationConfiguration.maxLastSeenIntervalSecs = 540;
+      }
+    }
+    delete chargingStationConfiguration.heartbeatIntervalSecs;
+    Configuration.deprecateConfigurationKey('useServerLocalIPForRemoteCommand', 'ChargingStation');
+    Configuration.deprecateConfigurationKey('secureLocalServer', 'ChargingStation');
     return chargingStationConfiguration;
   }
 
@@ -327,13 +346,19 @@ export default class Configuration {
       Configuration.getConfig().Axios.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
     }
     if (Utils.isUndefined(Configuration.getConfig().Axios.retries)) {
-      Configuration.getConfig().Axios.retries = Utils.isDevelopmentEnv() ? 1 : 3;
+      Configuration.getConfig().Axios.retries = 3;
     }
     return Configuration.getConfig().Axios;
   }
 
+  private static deprecateConfigurationKey(key: string, configSectionName: string, logMsgToAppend = '') {
+    if (!Utils.isUndefined(Configuration.getConfig()[configSectionName][key])) {
+      console.warn(`Deprecated configuration key '${key}' usage in section '${configSectionName}'${logMsgToAppend && '. ' + logMsgToAppend}`);
+    }
+  }
+
   // Read the config file
-  private static getConfig(): ConfigurationType {
+  private static getConfig(): ConfigurationData {
     if (!this.config) {
       this.config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8'));
     }
