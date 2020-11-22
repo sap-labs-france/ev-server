@@ -79,7 +79,7 @@ export default abstract class WSConnection {
       });
     }
     let logMsg = `Unknown type WS connection attempts with URL: '${req.url}'`;
-    let action: ServerAction = ServerAction.WS_CONNECTION;
+    let action: ServerAction = ServerAction.WS_CONNECTION_OPENED;
     if (req.url.startsWith('/REST')) {
       logMsg = `REST service connection attempts to Charging Station with URL: '${req.url}'`;
       action = ServerAction.WS_REST_CONNECTION_OPENED;
