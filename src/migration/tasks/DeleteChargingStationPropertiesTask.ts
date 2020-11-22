@@ -18,7 +18,7 @@ export default class DeleteChargingStationPropertiesTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    // Delete the property from the collection
+    // Delete the properties from the collection
     const result = await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').updateMany(
       {},
       { $unset: { currentServerLocalIPAddress: '', currentServerLocalIPAddressPort: '' } }

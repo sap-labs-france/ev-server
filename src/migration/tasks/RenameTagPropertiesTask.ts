@@ -18,7 +18,7 @@ export default class RenameTagPropertiesTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    // Rename the property in the collection
+    // Rename the properties in the collection
     const result = await global.database.getCollection<Tag>(tenant.id, 'tags').updateMany(
       {},
       { $rename: { 'internal': 'issuer', 'provider': 'description' } }
