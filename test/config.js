@@ -185,12 +185,12 @@ const config = convict({
   },
   wsClient: {
     autoReconnectMaxRetries: {
-      doc: 'Web Socket client re-connection max retries.',
+      doc: 'WebSocket client re-connection max retries.',
       format: 'int',
       default: 10,
     },
     autoReconnectTimeout: {
-      doc: 'Web Socket client re-connection timeout.',
+      doc: 'WebSocket client re-connection timeout.',
       format: 'int',
       default: 0,
     },

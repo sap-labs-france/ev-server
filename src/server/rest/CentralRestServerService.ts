@@ -129,7 +129,6 @@ class RequestMapper {
           [ServerAction.BOOT_NOTIFICATION]: ChargingStationService.handleGetBootNotifications.bind(this),
           [ServerAction.COMPANIES]: CompanyService.handleGetCompanies.bind(this),
           [ServerAction.COMPANY]: CompanyService.handleGetCompany.bind(this),
-          [ServerAction.COMPANY_LOGO]: CompanyService.handleGetCompanyLogo.bind(this),
           [ServerAction.ASSETS]: AssetService.handleGetAssets.bind(this),
           [ServerAction.ASSET]: AssetService.handleGetAsset.bind(this),
           [ServerAction.ASSET_IMAGE]: AssetService.handleGetAssetImage.bind(this),
@@ -139,14 +138,11 @@ class RequestMapper {
           [ServerAction.ASSET_CONSUMPTION]: AssetService.handleGetAssetConsumption.bind(this),
           [ServerAction.SITES]: SiteService.handleGetSites.bind(this),
           [ServerAction.SITE]: SiteService.handleGetSite.bind(this),
-          [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
           [ServerAction.SITE_USERS]: SiteService.handleGetUsers.bind(this),
           [ServerAction.TENANTS]: TenantService.handleGetTenants.bind(this),
           [ServerAction.TENANT]: TenantService.handleGetTenant.bind(this),
-          [ServerAction.TENANT_LOGO]: TenantService.handleGetTenantLogo.bind(this),
           [ServerAction.SITE_AREAS]: SiteAreaService.handleGetSiteAreas.bind(this),
           [ServerAction.SITE_AREA]: SiteAreaService.handleGetSiteArea.bind(this),
-          [ServerAction.SITE_AREA_IMAGE]: SiteAreaService.handleGetSiteAreaImage.bind(this),
           [ServerAction.SITE_AREA_CONSUMPTION]: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
           [ServerAction.USERS]: UserService.handleGetUsers.bind(this),
           [ServerAction.USER_SITES]: UserService.handleGetSites.bind(this),
@@ -299,6 +295,18 @@ export default class CentralRestServerService {
               break;
             case ServerAction.CAR_CATALOG_IMAGE:
               await CarService.handleGetCarCatalogImage(action, req, res, next);
+              break;
+            case ServerAction.COMPANY_LOGO:
+              await CompanyService.handleGetCompanyLogo(action, req, res, next);
+              break;
+            case ServerAction.SITE_IMAGE:
+              await SiteService.handleGetSiteImage(action, req, res, next);
+              break;
+            case ServerAction.SITE_AREA_IMAGE:
+              await SiteAreaService.handleGetSiteAreaImage(action, req, res, next);
+              break;
+            case ServerAction.TENANT_LOGO:
+              await TenantService.handleGetTenantLogo(action, req, res, next);
               break;
             // Firmware Download
             case ServerAction.FIRMWARE_DOWNLOAD:
