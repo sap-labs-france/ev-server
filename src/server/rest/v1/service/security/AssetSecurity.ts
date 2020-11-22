@@ -1,11 +1,6 @@
 import { HttpAssetConsumptionRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../../types/requests/HttpAssetRequest';
 
 import Asset from '../../../../../types/Asset';
-import Authorizations from '../../../../../authorization/Authorizations';
-import Consumption from '../../../../../types/Consumption';
-import { DataResult } from '../../../../../types/DataResult';
-import SiteAreaSecurity from './SiteAreaSecurity';
-import UserToken from '../../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 

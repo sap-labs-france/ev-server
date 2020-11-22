@@ -1,13 +1,9 @@
 import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../../types/ChargingProfile';
 import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../../types/requests/HttpChargingStationRequest';
-import { OCPPBootNotificationRequestExtended, OCPPStatusNotificationRequestExtended } from '../../../../../types/ocpp/OCPPServer';
 
-import Authorizations from '../../../../../authorization/Authorizations';
 import { Command } from '../../../../../types/ChargingStation';
-import { DataResult } from '../../../../../types/DataResult';
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../../types/requests/HttpDatabaseRequest';
-import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';

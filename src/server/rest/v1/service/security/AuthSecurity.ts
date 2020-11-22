@@ -1,7 +1,6 @@
 import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import Constants from '../../../../../utils/Constants';
-import Eula from '../../../../../types/Eula';
 import { Request } from 'express';
 import { UserStatus } from '../../../../../types/User';
 import UtilsSecurity from './UtilsSecurity';
