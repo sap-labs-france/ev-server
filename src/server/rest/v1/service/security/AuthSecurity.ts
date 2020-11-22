@@ -80,15 +80,4 @@ export default class AuthSecurity {
     }
     return filteredRequest as {Language: string; tenant: string};
   }
-
-  static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement: Eula): Eula {
-    const filteredEndUserLicenseAgreement = {} as Eula;
-
-    if (!endUserLicenseAgreement) {
-      return null;
-    }
-    // Set
-    filteredEndUserLicenseAgreement.text = endUserLicenseAgreement.text;
-    return filteredEndUserLicenseAgreement;
-  }
 }
