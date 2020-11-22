@@ -2,6 +2,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
+import Tag from '../../types/Tag';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
@@ -17,8 +18,8 @@ export default class RenameTagPropertiesTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    // Add the status property to the refunded transactions
-    const result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
+    // Rename the property in the collection
+    const result = await global.database.getCollection<Tag>(tenant.id, 'tags').updateMany(
       {},
       { $rename: { 'internal': 'issuer', 'provider': 'description' } }
     );

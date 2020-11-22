@@ -65,7 +65,7 @@ export default class ChargingStationSecurity {
       filteredChargingStation.powerLimitUnit = chargingStation.powerLimitUnit;
       filteredChargingStation.lastReboot = chargingStation.lastReboot;
       filteredChargingStation.issuer = chargingStation.issuer;
-      filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
+      filteredChargingStation.lastSeen = chargingStation.lastSeen;
       filteredChargingStation.maximumPower = chargingStation.maximumPower;
       filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
       filteredChargingStation.chargePointModel = chargingStation.chargePointModel;

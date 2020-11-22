@@ -1074,6 +1074,17 @@ export default class OCPPUtils {
                     });
                     continue;
                   }
+                  if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
+                    Logging.logWarning({
+                      tenantID: tenantID,
+                      source: chargingStation.id,
+                      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+                      module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+                      message: `Template contains heartbeat interval value setting for OCPP Parameter key '${parameter}' in OCPP Standard parameters, skipping. Remove it from template`,
+                      detailedMessages: { chargingStationTemplate }
+                    });
+                    continue;
+                  }
                   chargingStation.ocppStandardParameters.push({
                     key: parameter,
                     value: ocppStandardParameters.parameters[parameter]
@@ -1122,6 +1133,17 @@ export default class OCPPUtils {
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
                       message: `Template contains setting for power limitation OCPP Parameter key '${parameter}' in OCPP Vendor parameters, skipping. Remove it from template!`,
+                      detailedMessages: { chargingStationTemplate }
+                    });
+                    continue;
+                  }
+                  if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
+                    Logging.logWarning({
+                      tenantID: tenantID,
+                      source: chargingStation.id,
+                      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+                      module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+                      message: `Template contains heartbeat interval value setting for OCPP Parameter key '${parameter}' in OCPP Vendor parameters, skipping. Remove it from template`,
                       detailedMessages: { chargingStationTemplate }
                     });
                     continue;
@@ -1181,11 +1203,11 @@ export default class OCPPUtils {
       });
       return templateUpdateResult;
     }
-    let noTemplateMatchingLogMsg: string;
+    let noMatchingTemplateLogMsg: string;
     if (chargingStation.templateHash) {
-      noTemplateMatchingLogMsg = 'No template matching the charging station has been found but one matched previously. Keeping the previous template configuration';
+      noMatchingTemplateLogMsg = 'No template matching the charging station has been found but one matched previously. Keeping the previous template configuration';
     } else {
-      noTemplateMatchingLogMsg = 'No template matching the charging station has been found';
+      noMatchingTemplateLogMsg = 'No template matching the charging station has been found';
     }
     // Log
     Logging.logWarning({
@@ -1193,7 +1215,7 @@ export default class OCPPUtils {
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-      message: noTemplateMatchingLogMsg,
+      message: noMatchingTemplateLogMsg,
       detailedMessages: { chargingStation }
     });
     return templateUpdateResult;

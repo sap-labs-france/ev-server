@@ -60,8 +60,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     // Update
     for (const chargingStation of chargingStations.result) {
       try {
-        const chargingStationTemplateUpdated =
-          await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation);
+        const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation);
         // Enrich
         let chargingStationUpdated = false;
         // Check Connectors

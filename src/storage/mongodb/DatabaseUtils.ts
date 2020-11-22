@@ -1,3 +1,4 @@
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
@@ -379,9 +380,9 @@ export default class DatabaseUtils {
             {
               $gte: [
                 {
-                  $divide: [{ $subtract: [new Date(), '$lastHeartBeat'] }, 1000]
+                  $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000]
                 },
-                Utils.getChargingStationHeartbeatMaxIntervalSecs()
+                Configuration.getChargingStationConfig().maxLastSeenIntervalSecs
               ]
             }
           ]

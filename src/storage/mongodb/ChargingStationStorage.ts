@@ -191,9 +191,9 @@ export default class ChargingStationStorage {
         $in: params.chargingStationIDs
       };
     }
-    // Filter on last heart beat
+    // Filter on lastSeen
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
-      filters.lastHeartBeat = { $lte: params.offlineSince };
+      filters.lastSeen = { $lte: params.offlineSince };
     }
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
@@ -497,7 +497,7 @@ export default class ChargingStationStorage {
       ocppVersion: chargingStationToSave.ocppVersion,
       ocppProtocol: chargingStationToSave.ocppProtocol,
       cfApplicationIDAndInstanceIndex: chargingStationToSave.cfApplicationIDAndInstanceIndex,
-      lastHeartBeat: chargingStationToSave.lastHeartBeat,
+      lastSeen: chargingStationToSave.lastSeen,
       deleted: Utils.convertToBoolean(chargingStationToSave.deleted),
       lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
       chargingStationURL: chargingStationToSave.chargingStationURL,
@@ -549,10 +549,10 @@ export default class ChargingStationStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnector', uniqueTimerID, updatedFields);
   }
 
-  public static async saveChargingStationHeartBeat(tenantID: string, id: string,
-    params: { lastHeartBeat: Date; currentIPAddress?: string | string[] }): Promise<void> {
+  public static async saveChargingStationLastSeen(tenantID: string, id: string,
+    params: { lastSeen: Date; currentIPAddress?: string | string[] }): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationHeartBeat');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationLastSeen');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set data
@@ -562,7 +562,7 @@ export default class ChargingStationStorage {
       { $set: params },
       { upsert: true });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationHeartBeat', uniqueTimerID, params);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationLastSeen', uniqueTimerID, params);
   }
 
   public static async saveChargingStationFirmwareStatus(tenantID: string, id: string, firmwareUpdateStatus: OCPPFirmwareStatus): Promise<void> {
@@ -908,9 +908,9 @@ export default class ChargingStationStorage {
         { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
       case ChargingStationInErrorType.CONNECTION_BROKEN: {
-        const inactiveDate = new Date(new Date().getTime() - Utils.getChargingStationHeartbeatMaxIntervalSecs() * 1000);
+        const inactiveDate = new Date(new Date().getTime() - Configuration.getChargingStationConfig().maxLastSeenIntervalSecs * 1000);
         return [
-          { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
+          { $match: { 'lastSeen': { $lte: inactiveDate } } },
           { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }
         ];
       }
