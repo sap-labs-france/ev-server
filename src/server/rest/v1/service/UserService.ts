@@ -19,7 +19,6 @@ import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../../../types/Server';
-import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
@@ -598,7 +597,12 @@ export default class UserService {
       });
     }
     // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, userID);
+    const user = await UserStorage.getUser(req.user.tenantID, userID,
+      [
+        'id', 'name', 'firstName', 'email', 'role', 'status','issuer', 'locale', 'deleted', 'plateID',
+        'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+      ]
+    );
     UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
     // Deleted?
@@ -612,9 +616,7 @@ export default class UserService {
         action: action
       });
     }
-    res.json(
-      UserSecurity.filterUserResponse(user, req.user)
-    );
+    res.json(user);
     next();
   }
 
@@ -741,14 +743,12 @@ export default class UserService {
         onlyRecordCount: filteredRequest.OnlyRecordCount,
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort
-      }
+      },
+      [
+        'id', 'name', 'firstName', 'email', 'role', 'status','issuer',
+        'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
+      ]
     );
-    // Filter
-    UserSecurity.filterUsersResponse(users, req.user);
-    // Limit to 100
-    if (users.result.length > 100) {
-      users.result.length = 100;
-    }
     // Return
     res.json(users);
     next();
@@ -1024,11 +1024,21 @@ export default class UserService {
     const tagID = UserSecurity.filterTagRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, tagID, MODULE_NAME, 'handleGetTag', req.user);
     // Get the tag
-    const tag = await UserStorage.getTag(req.user.tenantID, tagID, { withUser: true });
+    const tag = await UserStorage.getTag(req.user.tenantID, tagID, { withUser: true },
+      [
+        'id', 'issuer', 'description', 'active', 'default',
+        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
+      ]
+    );
     UtilsService.assertObjectExists(action, tag, `Tag with ID '${tagID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
+    // Check Users
+    if (!Authorizations.canReadUser(req.user, tag.userID)) {
+      delete tag.userID;
+      delete tag.user;
+    }
     // Return
-    res.json(UserSecurity.filterTagResponse(tag, req.user));
+    res.json(tag);
     next();
   }
 
@@ -1042,6 +1052,14 @@ export default class UserService {
         module: MODULE_NAME, method: 'handleGetTags'
       });
     }
+    // Check Users
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [
+        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+      ];
+    }
     // Filter
     const filteredRequest = UserSecurity.filterTagsRequest(req.query);
     // Get the tags
@@ -1053,11 +1071,11 @@ export default class UserService {
         withUser: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email',
-        'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'],
+      [
+        'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
+        'createdOn', 'lastChangedOn', ...userProject
+      ],
     );
-    // Filter
-    UserSecurity.filterTagsResponse(tags, req.user);
     // Return
     res.json(tags);
     next();
@@ -1418,8 +1436,6 @@ export default class UserService {
         'billingData.customerID', 'billingData.lastChangedOn'
       ]
     );
-    // Filter
-    UserSecurity.filterUsersResponse(users, req.user);
     return users;
   }
 }

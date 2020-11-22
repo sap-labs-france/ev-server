@@ -70,13 +70,14 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSite?: boolean; withChargingStations?: boolean } = {}): Promise<SiteArea> {
+    params: { withSite?: boolean; withChargingStations?: boolean } = {}, projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenantID, {
       siteAreaIDs: [id],
       withSite: params.withSite,
       withChargingStations: params.withChargingStations,
-      withAvailableChargingStations: true
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+      withAvailableChargingStations: true,
+      withImage: true,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return siteAreasMDB.count === 1 ? siteAreasMDB.result[0] : null;
   }
 
@@ -130,7 +131,7 @@ export default class SiteAreaStorage {
     params: {
       siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
       withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -242,6 +243,21 @@ export default class SiteAreaStorage {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
         asField: 'chargingStations'
+      });
+    }
+    // Site Area Image
+    if (params.withImage) {
+      aggregation.push({
+        $addFields: {
+          image: {
+            $concat: [
+              `${Utils.buildRestServerURL()}/client/util/SiteAreaImage?ID=`,
+              { $toString: '$_id' },
+              `&TenantID=${tenantID}&LastChangedOn=`,
+              { $toString: '$lastChangedOn' }
+            ]
+          }
+        }
       });
     }
     // Convert Object ID to string

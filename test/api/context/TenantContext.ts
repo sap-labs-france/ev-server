@@ -533,7 +533,7 @@ export default class TenantContext {
   }
 
   async getRegistrationToken(siteAreaID: string): Promise<RegistrationToken> {
-    const registrationTokenResponse = await this.centralAdminServerService.registrationApi.readAll({ siteAreaID: siteAreaID });
+    const registrationTokenResponse = await this.centralAdminServerService.registrationApi.readAll({ SiteAreaID: siteAreaID });
     expect(registrationTokenResponse.status).eq(200);
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;
