@@ -23,7 +23,6 @@ import OCPIServiceConfiguration from '../types/configuration/OCPIServiceConfigur
 import ODataServiceConfiguration from '../types/configuration/ODataServiceConfiguration';
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
-import Utils from './Utils';
 import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
 import cfenv from 'cfenv';
@@ -140,13 +139,13 @@ export default class Configuration {
         centralSystemRestService.port = _appEnv.port;
         centralSystemRestService.host = _appEnv.bind;
       }
-      if (Utils.isUndefined(centralSystemRestService.socketIO)) {
+      if (Configuration.isUndefined(centralSystemRestService.socketIO)) {
         centralSystemRestService.socketIO = true;
       }
-      if (Utils.isUndefined(centralSystemRestService.socketIOSingleNotificationIntervalSecs)) {
+      if (Configuration.isUndefined(centralSystemRestService.socketIOSingleNotificationIntervalSecs)) {
         centralSystemRestService.socketIOSingleNotificationIntervalSecs = 1;
       }
-      if (Utils.isUndefined(centralSystemRestService.socketIOListNotificationIntervalSecs)) {
+      if (Configuration.isUndefined(centralSystemRestService.socketIOListNotificationIntervalSecs)) {
         centralSystemRestService.socketIOListNotificationIntervalSecs = 5;
       }
     }
@@ -256,22 +255,22 @@ export default class Configuration {
     // Read conf and set defaults values
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
     Configuration.deprecateConfigurationKey('heartbeatIntervalSecs', 'ChargingStation', 'Please use \'heartbeatIntervalOCPPSSecs\' and \'heartbeatIntervalOCPPJSecs\' instead');
-    if (Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPSSecs)) {
-      if (!Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+    if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPSSecs)) {
+      if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
         chargingStationConfiguration.heartbeatIntervalOCPPSSecs = chargingStationConfiguration.heartbeatIntervalSecs;
       } else {
         chargingStationConfiguration.heartbeatIntervalOCPPSSecs = 180;
       }
     }
-    if (Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPJSecs)) {
-      if (!Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+    if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPJSecs)) {
+      if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
         chargingStationConfiguration.heartbeatIntervalOCPPJSecs = chargingStationConfiguration.heartbeatIntervalSecs;
       } else {
         chargingStationConfiguration.heartbeatIntervalOCPPJSecs = 3600;
       }
     }
-    if (Utils.isUndefined(chargingStationConfiguration.maxLastSeenIntervalSecs)) {
-      if (!Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+    if (Configuration.isUndefined(chargingStationConfiguration.maxLastSeenIntervalSecs)) {
+      if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
         chargingStationConfiguration.maxLastSeenIntervalSecs = 3 * chargingStationConfiguration.heartbeatIntervalSecs;
       } else {
         chargingStationConfiguration.maxLastSeenIntervalSecs = 540;
@@ -292,13 +291,13 @@ export default class Configuration {
   // WSClient
   public static getWSClientConfig(): WSClientConfiguration {
     // Read conf and set defaults values
-    if (Utils.isUndefined(Configuration.getConfig().WSClient)) {
+    if (Configuration.isUndefined(Configuration.getConfig().WSClient)) {
       Configuration.getConfig().WSClient = {} as WSClientConfiguration;
     }
-    if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectMaxRetries)) {
+    if (Configuration.isUndefined(Configuration.getConfig().WSClient.autoReconnectMaxRetries)) {
       Configuration.getConfig().WSClient.autoReconnectMaxRetries = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES;
     }
-    if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectTimeout)) {
+    if (Configuration.isUndefined(Configuration.getConfig().WSClient.autoReconnectTimeout)) {
       Configuration.getConfig().WSClient.autoReconnectTimeout = Constants.WS_DEFAULT_RECONNECT_TIMEOUT;
     }
     return Configuration.getConfig().WSClient;
@@ -306,10 +305,10 @@ export default class Configuration {
 
   public static getHealthCheckConfig(): HealthCheckConfiguration {
     // Read conf and set defaults values
-    if (Utils.isUndefined(Configuration.getConfig().HealthCheck)) {
+    if (Configuration.isUndefined(Configuration.getConfig().HealthCheck)) {
       Configuration.getConfig().HealthCheck = {} as HealthCheckConfiguration;
     }
-    if (Utils.isUndefined(Configuration.getConfig().HealthCheck.enabled)) {
+    if (Configuration.isUndefined(Configuration.getConfig().HealthCheck.enabled)) {
       Configuration.getConfig().HealthCheck.enabled = true;
     }
     return Configuration.getConfig().HealthCheck;
@@ -317,10 +316,10 @@ export default class Configuration {
 
   public static getMigrationConfig(): MigrationConfiguration {
     // Read conf and set defaults values
-    if (Utils.isUndefined(Configuration.getConfig().Migration)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Migration)) {
       Configuration.getConfig().Migration = {} as MigrationConfiguration;
     }
-    if (Utils.isUndefined(Configuration.getConfig().Migration.active)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Migration.active)) {
       Configuration.getConfig().Migration.active = false;
     }
     return Configuration.getConfig().Migration;
@@ -328,10 +327,10 @@ export default class Configuration {
 
   static getChargingStationTemplatesConfig(): ChargingStationTemplatesConfiguration {
     // Read conf and set defaults values
-    if (Utils.isUndefined(Configuration.getConfig().ChargingStationTemplates)) {
+    if (Configuration.isUndefined(Configuration.getConfig().ChargingStationTemplates)) {
       Configuration.getConfig().ChargingStationTemplates = {} as ChargingStationTemplatesConfiguration;
     }
-    if (Utils.isUndefined(Configuration.getConfig().ChargingStationTemplates.templatesFilePath)) {
+    if (Configuration.isUndefined(Configuration.getConfig().ChargingStationTemplates.templatesFilePath)) {
       Configuration.getConfig().ChargingStationTemplates.templatesFilePath = `${global.appRoot}/assets/charging-station-templates/charging-stations.json`;
     }
     return Configuration.getConfig().ChargingStationTemplates;
@@ -339,20 +338,20 @@ export default class Configuration {
 
   static getAxiosConfig(): AxiosConfiguration {
     // Read conf and set defaults values
-    if (Utils.isUndefined(Configuration.getConfig().Axios)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Axios)) {
       Configuration.getConfig().Axios = {} as AxiosConfiguration;
     }
-    if (Utils.isUndefined(Configuration.getConfig().Axios.timeout)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Axios.timeout)) {
       Configuration.getConfig().Axios.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
     }
-    if (Utils.isUndefined(Configuration.getConfig().Axios.retries)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Axios.retries)) {
       Configuration.getConfig().Axios.retries = 3;
     }
     return Configuration.getConfig().Axios;
   }
 
   private static deprecateConfigurationKey(key: string, configSectionName: string, logMsgToAppend = '') {
-    if (!Utils.isUndefined(Configuration.getConfig()[configSectionName][key])) {
+    if (!Configuration.isUndefined(Configuration.getConfig()[configSectionName][key])) {
       console.warn(`Deprecated configuration key '${key}' usage in section '${configSectionName}'${logMsgToAppend && '. ' + logMsgToAppend}`);
     }
   }
@@ -363,6 +362,11 @@ export default class Configuration {
       this.config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8'));
     }
     return this.config;
+  }
+
+  // Declare a class private helper for undefined detection to avoid circular dependency with mocha and the Utils helper
+  private static isUndefined(obj: any): boolean {
+    return typeof obj === 'undefined';
   }
 }
 
