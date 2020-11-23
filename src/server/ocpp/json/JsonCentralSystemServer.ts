@@ -103,6 +103,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       return false;
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleProtocols = (protocols: string | string[], request: http.IncomingMessage): boolean | string => {
       // Check the protocols and ensure protocol used as ocpp1.6 or nothing (should create an error)
       if (Array.isArray(protocols)) {
@@ -170,7 +171,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
               action: ServerAction.WS_JSON_CONNECTION_CLOSED,
               module: this.MODULE_NAME,
               method: 'createWSServer',
-              message: `WebSocket does not respond to ping (IP: ${jsonWSConnection.getClientIP().toString()}) , terminating`
+              message: `WebSocket does not respond to ping (IP: ${jsonWSConnection.getClientIP().toString()}), terminating`
             });
             jsonWSConnection.getWSConnection().terminate();
           }
