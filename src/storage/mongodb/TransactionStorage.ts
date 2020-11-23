@@ -569,7 +569,15 @@ export default class TransactionStorage {
     // Add Connector and Status
     if (projectFields && projectFields.includes('status')) {
       aggregation.push({
-        $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } }
+        $addFields: {
+          connector: {
+            $arrayElemAt: [
+              '$chargeBox.connectors', {
+                $indexOfArray: ['$chargeBox.connectors.connectorId', 1]
+              }
+            ]
+          }
+        }
       }, {
         $addFields: { status: '$connector.status' }
       });
