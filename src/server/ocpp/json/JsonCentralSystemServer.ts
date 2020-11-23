@@ -176,7 +176,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
             jsonWSConnection.getWSConnection().terminate();
           }
           jsonWSConnection.isConnectionAlive = false;
-          jsonWSConnection.getWSConnection().ping((): void => {});
+          jsonWSConnection.getWSConnection().ping((): void => { });
         }
       }, this.keepAliveIntervalValue);
     }
