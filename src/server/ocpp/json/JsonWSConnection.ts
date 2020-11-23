@@ -110,7 +110,6 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPing(): Promise<void> {
-    this.isConnectionAlive = true;
     await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
       lastSeen: new Date()
     });
