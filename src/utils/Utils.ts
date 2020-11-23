@@ -601,7 +601,7 @@ export default class Utils {
   }
 
   public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.convertToFloat((pricePerkWh * consumptionWh).toFixed(2));
+    return Utils.convertToFloat((pricePerkWh * (consumptionWh / 1000)).toFixed(2));
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
