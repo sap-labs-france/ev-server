@@ -22,7 +22,6 @@ export default abstract class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
-  protected readonly serverIPPort: string;
   protected readonly chargingStationID: string;
   protected readonly tenantID: string;
   private readonly token: string;
@@ -30,7 +29,7 @@ export default abstract class WSConnection {
   private readonly clientIP: string|string[];
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
-  private requests: { [id: string]: [(payload?) => void, (reason?: string|OCPPError) => void] } = {};
+  private requests: { [id: string]: [(payload?) => void, (reason?: string|OCPPError) => void] };
   private tenantIsValid: boolean;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
@@ -49,6 +48,7 @@ export default abstract class WSConnection {
     });
     // Default
     this.tenantIsValid = false;
+    this.requests = {};
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
       // Remove '/'
@@ -268,10 +268,6 @@ export default abstract class WSConnection {
 
   public getClientIP(): string|string[] {
     return this.clientIP;
-  }
-
-  public getServerIPPort(): string {
-    return this.serverIPPort;
   }
 
   public async sendError(messageId: string, err: Error|OCPPError): Promise<unknown> {

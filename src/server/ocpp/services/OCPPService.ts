@@ -145,7 +145,7 @@ export default class OCPPService {
             source: chargingStation.id,
             action: ServerAction.BOOT_NOTIFICATION,
             module: MODULE_NAME, method: 'handleBootNotification',
-            message: 'Boot Notif Rejected: Attribute mismatch: ' +
+            message: 'Boot Notification Rejected: Attribute mismatch: ' +
               (bootNotification.chargePointVendor !== chargingStation.chargePointVendor ?
                 `Got chargePointVendor='${bootNotification.chargePointVendor}' but expected '${chargingStation.chargePointVendor}'! ` : '') +
               (bootNotification.chargePointModel !== chargingStation.chargePointModel ?
