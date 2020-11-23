@@ -1,4 +1,5 @@
 import AuthorizationConfiguration from './AuthorizationConfiguration';
+import AxiosConfiguration from './AxiosConfiguration';
 import CentralSystemConfiguration from './CentralSystemConfiguration';
 import CentralSystemFrontEndConfiguration from './CentralSystemFrontEndConfiguration';
 import CentralSystemRestServiceConfiguration from './CentralSystemRestServiceConfiguration';
@@ -7,7 +8,7 @@ import ChargingStationConfiguration from './ChargingStationConfiguration';
 import ChargingStationTemplatesConfiguration from './ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from './ClusterConfiguration';
 import CryptoConfiguration from './CryptoConfiguration';
-import EVDatabaseConfiguration from './EVDatabaseAPIConfiguration';
+import EVDatabaseConfiguration from './EVDatabaseConfiguration';
 import EmailConfiguration from './EmailConfiguration';
 import FirebaseConfiguration from './FirebaseConfiguration';
 import HealthCheckConfiguration from './HealthCheckConfiguration';
@@ -49,5 +50,8 @@ export interface Configuration {
   HealthCheck?: HealthCheckConfiguration;
   Migration?: MigrationConfiguration;
   EVDatabase?: EVDatabaseConfiguration;
-  ChargingStationTemplates: ChargingStationTemplatesConfiguration;
+  ChargingStationTemplates?: ChargingStationTemplatesConfiguration;
+  Axios?: AxiosConfiguration
 }
+
+export type ConfigurationSection = CryptoConfiguration|ClusterConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|WSClientConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LoggingConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration;

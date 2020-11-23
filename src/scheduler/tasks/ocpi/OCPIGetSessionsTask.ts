@@ -30,13 +30,13 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_SESSIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_SESSIONS, error);
     }
   }
 
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'get-sessions');
+    const ocpiLock = await LockingHelper.createOCPIPullEmspSessionsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
@@ -44,7 +44,7 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
           Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_GET_SESSIONS,
+            action: ServerAction.OCPI_PULL_SESSIONS,
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
           });
           return;
@@ -52,7 +52,7 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
           Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_GET_SESSIONS,
+            action: ServerAction.OCPI_PULL_SESSIONS,
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
           });
           return;
@@ -60,7 +60,7 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_GET_SESSIONS,
+          action: ServerAction.OCPI_PULL_SESSIONS,
           message: `The get sessions process for endpoint ${ocpiEndpoint.name} is being processed`
         });
         // Build OCPI Client
@@ -70,13 +70,13 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_GET_SESSIONS,
+          action: ServerAction.OCPI_PULL_SESSIONS,
           message: `The get sessions process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_SESSIONS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_SESSIONS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

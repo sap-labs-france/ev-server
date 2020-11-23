@@ -98,7 +98,7 @@ export default class ConsumptionStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
-  static async getAssetConsumptions(tenantID: string, params: { assetID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
+  static async getAssetConsumptions(tenantID: string, params: { assetID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetConsumptions');
     // Check
@@ -166,6 +166,8 @@ export default class ConsumptionStorage {
         startedAt: 1
       }
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
       .aggregate(...aggregation, { allowDiskUse: true })
@@ -175,7 +177,9 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getSiteAreaConsumptions(tenantID: string, params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
+  static async getSiteAreaConsumptions(tenantID: string,
+    params: { siteAreaID: string; startDate: Date; endDate: Date },
+    projectFields?: string[]): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaConsumptions');
     // Check
@@ -245,6 +249,8 @@ export default class ConsumptionStorage {
         startedAt: 1
       }
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields, ['_id']);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
       .aggregate(...aggregation, { allowDiskUse: true })
@@ -254,7 +260,8 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getTransactionConsumptions(tenantID: string, params: { transactionId: number }, dbParams: DbParams): Promise<DataResult<Consumption>> {
+  static async getTransactionConsumptions(tenantID: string, params: { transactionId: number },
+    dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT, projectFields?: string[]): Promise<DataResult<Consumption>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionConsumptions');
     // Check
@@ -273,24 +280,10 @@ export default class ConsumptionStorage {
         transactionId: Utils.convertToInt(params.transactionId)
       }
     });
-    // Limit records?
-    if (!dbParams.onlyRecordCount) {
-      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
-    }
-    // Count Records
-    const consumptionsCountMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
-      .toArray();
-    // Check if only the total count is requested
-    if (dbParams.onlyRecordCount) {
-      Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionConsumptions', uniqueTimerID, consumptionsCountMDB);
-      return {
-        count: (consumptionsCountMDB.length > 0 ? consumptionsCountMDB[0].count : 0),
-        result: []
-      };
-    }
-    // Remove the limit
-    aggregation.pop();
+    // TODO: To remove when new version of Mobile App will be released (> V1.3.22)
+    aggregation.push({
+      $addFields: { date: '$startedAt' }
+    });
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
@@ -310,6 +303,8 @@ export default class ConsumptionStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -317,8 +312,7 @@ export default class ConsumptionStorage {
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionConsumptions', uniqueTimerID, consumptionsMDB);
     return {
-      count: (consumptionsCountMDB.length > 0 ?
-        (consumptionsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : consumptionsCountMDB[0].count) : 0),
+      count: consumptionsMDB.length,
       result: consumptionsMDB
     };
   }
@@ -362,7 +356,7 @@ export default class ConsumptionStorage {
     return consumption;
   }
 
-  static async getOptimizedTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
+  static async getOptimizedTransactionConsumptions(tenantID: string, params: { transactionId: number }, projectFields?: string[]): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOptimizedTransactionConsumptions');
     // Check
@@ -376,9 +370,11 @@ export default class ConsumptionStorage {
       }
     });
     aggregation.push({
-      $addFields: {
-        roundedInstantPower: { $round: [{ $divide: ['$instantWatts', 100] }] }
-      }
+      $addFields: { roundedInstantPower: { $round: [{ $divide: ['$instantWatts', 100] }] } }
+    });
+    // TODO: To remove when new version of Mobile App will be released (> V1.3.22)
+    aggregation.push({
+      $addFields: { date: '$startedAt' }
     });
     // Triming excess values
     aggregation.push({
@@ -397,6 +393,8 @@ export default class ConsumptionStorage {
     aggregation.push({
       $sort: { 'consumptions.startedAt': 1 }
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })

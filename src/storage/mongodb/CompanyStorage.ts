@@ -14,13 +14,11 @@ const MODULE_NAME = 'CompanyStorage';
 
 export default class CompanyStorage {
 
-  public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Company> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompany');
-    // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompany', uniqueTimerID, companiesMDB);
+  public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<Company> {
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, {
+      companyIDs: [id],
+      withLogo: true,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return companiesMDB.count === 1 ? companiesMDB.result[0] : null;
   }
 
@@ -187,14 +185,18 @@ export default class CompanyStorage {
     }
     // Company Logo
     if (params.withLogo) {
-      DatabaseUtils.pushCollectionLookupInAggregation('companylogos',
-        {
-          tenantID, aggregation, localField: '_id', foreignField: '_id',
-          asField: 'companylogos', oneToOneCardinality: true
+      aggregation.push({
+        $addFields: {
+          logo: {
+            $concat: [
+              `${Utils.buildRestServerURL()}/client/util/CompanyLogo?ID=`,
+              { $toString: '$_id' },
+              `&TenantID=${tenantID}&LastChangedOn=`,
+              { $toString: '$lastChangedOn' }
+            ]
+          }
         }
-      );
-      // Rename
-      DatabaseUtils.pushRenameField(aggregation, 'companylogos.logo', 'logo');
+      });
     }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);

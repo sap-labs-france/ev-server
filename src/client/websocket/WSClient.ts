@@ -53,7 +53,7 @@ export default class WSClient {
     this.ws.on('error', this.onError.bind(this));
     // Handle Socket close
     this.ws.on('close', this.onClose.bind(this));
-    // A new WS have just been created, reinstantiate the saved callbacks on it
+    // A new WS have just been created, re-instantiate the saved callbacks on it
     this.reinstantiateCbs();
   }
 
@@ -69,7 +69,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when data is written out
    * @public
    */
-  public send(data, options?, callback?: (err?: Error) => void): void {
+  public send(data, options?: { mask?: boolean; binary?: boolean; compress?: boolean; fin?: boolean }, callback?: (err?: Error) => void): void {
     this.ws.send(data, options, callback);
   }
 
@@ -116,7 +116,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when the pong is sent
    * @public
    */
-  public pong(data?, mask?, callback?): void {
+  public pong(data?, mask?, callback?: (err: Error) => void): void {
     this.ws.pong(data, mask, callback);
   }
 

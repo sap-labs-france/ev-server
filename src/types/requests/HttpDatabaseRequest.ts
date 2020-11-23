@@ -3,6 +3,6 @@ export default interface HttpDatabaseRequest {
   Limit: number;
   OnlyRecordCount?: boolean;
   SortFields: string[];
-  SortDirs: string[];
+  SortDirs: string[]; // TODO: Deprecated: remove it
   Sort: any;
 }

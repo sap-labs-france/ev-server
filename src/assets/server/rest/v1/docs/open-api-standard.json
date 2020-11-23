@@ -120,9 +120,6 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
-          },
-          {
-            "$ref": "#/components/parameters/SortDirs"
           }
         ],
         "tags": [
@@ -500,20 +497,6 @@
         "required": false,
         "schema": {
           "type": "string"
-        }
-      },
-      "SortDirs": {
-        "in": "query",
-        "name": "SortDirs",
-        "description": "Sorted directions",
-        "required": false,
-        "example": "asc",
-        "schema": {
-          "type": "string",
-          "enum": [
-            "asc",
-            "desc"
-          ]
         }
       }
     }

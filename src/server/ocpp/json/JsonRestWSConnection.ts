@@ -1,3 +1,5 @@
+import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
+
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
@@ -5,7 +7,6 @@ import Logging from '../../../utils/Logging';
 import { MessageType } from '../../../types/WebSocket';
 import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
-import WebSocket from 'ws';
 import global from '../../../types/GlobalType';
 import http from 'http';
 
@@ -35,13 +36,15 @@ export default class JsonRestWSConnection extends WSConnection {
     }
   }
 
-  public onError(event: Event): void {
+  public onError(errorEvent: ErrorEvent): void {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
-      message: event + ''
+      message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
+      detailedMessages: `${JSON.stringify(errorEvent)}`
     });
   }
 

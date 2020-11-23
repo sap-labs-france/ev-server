@@ -85,15 +85,9 @@ export default class LoggingStorage {
   }
 
   public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields: string[]): Promise<Log> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLog');
-    // Query single Site
-    const logsMDB = await LoggingStorage.getLogs(tenantID,
-      { logIDs: [id] },
-      Constants.DB_PARAMS_SINGLE_RECORD,
-      projectFields);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getLog', uniqueTimerID, { id });
+    const logsMDB = await LoggingStorage.getLogs(tenantID, {
+      logIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 

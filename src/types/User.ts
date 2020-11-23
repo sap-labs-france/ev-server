@@ -33,7 +33,6 @@ export default interface User extends CreatedUpdatedProps {
   passwordBlockedUntil: Date;
   verificationToken?: string;
   verifiedAt?: Date;
-  tags?: Tag[];
   billingData?: BillingUserData;
   mobileOs: string;
   mobileToken: string;

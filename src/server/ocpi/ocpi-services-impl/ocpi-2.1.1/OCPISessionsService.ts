@@ -13,6 +13,7 @@ import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
+import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -27,7 +28,7 @@ export default class OCPISessionsService {
     if (!OCPISessionsService.validateSession(session)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'updateSession',
+        module: MODULE_NAME, method: 'updateTransaction',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
         detailedMessages: { session },
@@ -46,7 +47,7 @@ export default class OCPISessionsService {
       if (!user) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'updateSession',
+          module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No User found for auth_id ${session.auth_id}`,
           detailedMessages: { session },
@@ -59,7 +60,7 @@ export default class OCPISessionsService {
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'updateSession',
+          module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No Charging Station found for ID '${evse.uid}'`,
           detailedMessages: { session },
@@ -69,7 +70,7 @@ export default class OCPISessionsService {
       if (chargingStation.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'updateSession',
+          module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `OCPI Transaction is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: { session },
@@ -117,8 +118,9 @@ export default class OCPISessionsService {
     if (moment(session.last_updated).isBefore(transaction.lastConsumption.timestamp)) {
       Logging.logDebug({
         tenantID: tenantId,
+        action: ServerAction.OCPI_PUSH_SESSION,
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'updateSession',
+        module: MODULE_NAME, method: 'updateTransaction',
         message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session }
       });
@@ -167,7 +169,7 @@ export default class OCPISessionsService {
     if (!OCPISessionsService.validateCdr(cdr)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'postCdrRequest',
+        module: MODULE_NAME, method: 'processCdr',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cdr object is invalid',
         detailedMessages: { cdr },
@@ -178,7 +180,7 @@ export default class OCPISessionsService {
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'postCdrRequest',
+        module: MODULE_NAME, method: 'processCdr',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
         detailedMessages: { cdr },

@@ -43,17 +43,17 @@ export default class LockingManager {
         message: `Acquired successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock }
       });
-      Utils.isDevelopmentEnv() && console.debug(`Acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+      Utils.isDevelopmentEnv() && console.debug(`Acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`);
       return true;
     } catch (error) {
-      Logging.logError({
+      Logging.logWarning({
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
-        message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
+        message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID}`,
         detailedMessages: { lock, error: error.message, stack: error.stack }
       });
-      Utils.isDevelopmentEnv() && console.error(`>>>>> Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+      Utils.isDevelopmentEnv() && console.warn(`>>>>> Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`);
       return false;
     }
   }
@@ -62,7 +62,7 @@ export default class LockingManager {
     // Delete
     const result = await LockingStorage.deleteLock(lock);
     if (!result) {
-      Logging.logError({
+      Logging.logWarning({
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'release',
         action: ServerAction.LOCKING,
@@ -78,7 +78,7 @@ export default class LockingManager {
       message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
       detailedMessages: { lock }
     });
-    Utils.isDevelopmentEnv() && console.debug(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+    Utils.isDevelopmentEnv() && console.debug(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`);
     return true;
   }
 

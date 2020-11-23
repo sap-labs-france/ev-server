@@ -1,0 +1,37 @@
+{
+  "subject": "Smart Charging - Anwenden der Ladeprofile fehlgeschlagen",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Charging Profiles fehlgeschlagen",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Sehr geehrter Administrator,",
+      "",
+      "Das Anwenden der Ladeprofile für Ladestation <strong>'<%- chargeBoxID %>'</strong>, ist drei mal fehlgeschlagen.",
+      "",
+      "Die Ladestation wird automatisch vom Smart Charging ausgeschlossen."
+    ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

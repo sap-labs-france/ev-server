@@ -9,6 +9,7 @@ import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -25,6 +26,7 @@ export default class OCPIClientFactory {
       if (!ocpiSettings && ocpiSettings.ocpi) {
         Logging.logError({
           tenantID: tenant.id,
+          action: ServerAction.OCPI_SETTINGS,
           module: MODULE_NAME, method: 'getOcpiClient',
           message: 'OCPI Settings are not configured'
         });
@@ -45,6 +47,7 @@ export default class OCPIClientFactory {
     }
     Logging.logError({
       tenantID: tenant.id,
+      action: ServerAction.OCPI_CLIENT_INITIALIZATION,
       module: MODULE_NAME, method: 'getCpoOcpiClient',
       message: `CPO OCPI Client is not compatible with endpoint role '${ocpiEndpoint.role}'`
     });
@@ -57,6 +60,7 @@ export default class OCPIClientFactory {
     }
     Logging.logError({
       tenantID: tenant.id,
+      action: ServerAction.OCPI_CLIENT_INITIALIZATION,
       module: MODULE_NAME, method: 'getEmspOcpiClient',
       message: `EMSP OCPI Client is not compatible with endpoint role '${ocpiEndpoint.role}'`
     });

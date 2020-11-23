@@ -176,7 +176,7 @@ export default class OCPIUtils {
    * @param {*} countryCode the country code of the eMSP
    * @param {*} partyId the party identifier of the eMSP
    */
-  public static buildUserEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
+  public static buildEmspEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
     if (token && token.issuer) {
       return `${token.issuer}@${partyId}.${countryCode}`;
     }

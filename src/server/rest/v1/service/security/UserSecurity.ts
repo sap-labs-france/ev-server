@@ -1,14 +1,9 @@
 import { HttpSitesAssignUserRequest, HttpTagsRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
-import User, { UserDefaultTagCar, UserRole } from '../../../../../types/User';
 
 import Authorizations from '../../../../../authorization/Authorizations';
-import { Car } from '../../../../../types/Car';
-import CarSecurity from './CarSecurity';
-import Constants from '../../../../../utils/Constants';
-import { DataResult } from '../../../../../types/DataResult';
 import Tag from '../../../../../types/Tag';
-import { UserInError } from '../../../../../types/InError';
 import UserNotifications from '../../../../../types/UserNotifications';
+import { UserRole } from '../../../../../types/User';
 import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
@@ -109,142 +104,6 @@ export default class UserSecurity {
     return filteredRequest;
   }
 
-  // User
-  static filterUserResponse(user: User | UserInError, loggedUser: UserToken): User {
-    const filteredUser: User = {} as User;
-    if (!user) {
-      return null;
-    }
-    // Check auth
-    if (Authorizations.canReadUser(loggedUser, user.id)) {
-      // Admin?
-      if (Authorizations.canUpdateUser(loggedUser, user.id)) {
-        filteredUser.id = user.id;
-        filteredUser.issuer = user.issuer;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
-        filteredUser.email = user.email;
-        filteredUser.locale = user.locale;
-        filteredUser.phone = user.phone;
-        filteredUser.mobile = user.mobile;
-        filteredUser.notificationsActive = user.notificationsActive;
-        if (user.notifications) {
-          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.role, user.notifications);
-        }
-        filteredUser.iNumber = user.iNumber;
-        filteredUser.costCenter = user.costCenter;
-        filteredUser.status = user.status;
-        filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
-        filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
-        filteredUser.plateID = user.plateID;
-        filteredUser.role = user.role;
-        if (Utils.objectHasProperty(user, 'errorCode')) {
-          (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
-        }
-        if (user.address) {
-          filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
-        }
-        if (user.billingData) {
-          filteredUser.billingData = user.billingData;
-        }
-        if (!Utils.isEmptyArray(user.tags)) {
-          filteredUser.tags = user.tags.map((tag) => UserSecurity.filterTagResponse(tag, loggedUser));
-        }
-      } else {
-        // Set only necessary info
-        // Demo user?
-        if (Authorizations.isDemo(loggedUser)) {
-          filteredUser.id = null;
-          filteredUser.name = Constants.ANONYMIZED_VALUE;
-          filteredUser.firstName = Constants.ANONYMIZED_VALUE;
-        } else {
-          filteredUser.id = user.id;
-          filteredUser.name = user.name;
-          filteredUser.firstName = user.firstName;
-        }
-        filteredUser.issuer = user.issuer;
-        filteredUser.email = user.email;
-        filteredUser.locale = user.locale;
-        filteredUser.phone = user.phone;
-        filteredUser.mobile = user.mobile;
-        filteredUser.notificationsActive = user.notificationsActive;
-        if (user.notifications) {
-          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.role, user.notifications);
-        }
-        filteredUser.iNumber = user.iNumber;
-        filteredUser.costCenter = user.costCenter;
-        filteredUser.plateID = user.plateID;
-        filteredUser.role = user.role;
-        if (Utils.objectHasProperty(user, 'errorCode')) {
-          (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
-        }
-        if (user.address) {
-          filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
-        }
-      }
-      // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(filteredUser, user, loggedUser);
-    }
-    return filteredUser;
-  }
-
-  // User
-  static filterMinimalUserResponse(user: User, loggedUser: UserToken): User {
-    const filteredUser = {} as User;
-    if (!user) {
-      return null;
-    }
-    // Check auth
-    if (Authorizations.canReadUser(loggedUser, user.id)) {
-      // Demo user?
-      if (Authorizations.isDemo(loggedUser)) {
-        filteredUser.id = null;
-        filteredUser.name = Constants.ANONYMIZED_VALUE;
-        filteredUser.firstName = Constants.ANONYMIZED_VALUE;
-        filteredUser.email = Constants.ANONYMIZED_VALUE;
-      } else {
-        filteredUser.id = user.id;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
-        filteredUser.email = user.email;
-      }
-    }
-    return filteredUser;
-  }
-
-  static filterUsersResponse(users: DataResult<User | UserInError>, loggedUser: UserToken): void {
-    const filteredUsers = [];
-    if (!users.result) {
-      return null;
-    }
-    for (const user of users.result) {
-      // Filter
-      const filteredUser = UserSecurity.filterUserResponse(user, loggedUser);
-      if (filteredUser) {
-        filteredUsers.push(filteredUser);
-      }
-    }
-    users.result = filteredUsers;
-  }
-
-  static filterTagsResponse(tags: DataResult<Tag>, loggedUser: UserToken): void {
-    const filteredTags = [];
-    if (!tags.result) {
-      return null;
-    }
-    if (!Authorizations.canListTags(loggedUser)) {
-      return null;
-    }
-    for (const tag of tags.result) {
-      // Filter
-      const filteredTag = UserSecurity.filterTagResponse(tag, loggedUser);
-      if (filteredTag) {
-        filteredTags.push(filteredTag);
-      }
-    }
-    tags.result = filteredTags;
-  }
-
   public static filterTagUpdateRequest(request: any, loggedUser: UserToken): Partial<Tag> {
     return UserSecurity.filterTagRequest(request, loggedUser);
   }
@@ -264,43 +123,6 @@ export default class UserSecurity {
         default: UtilsSecurity.filterBoolean(tag.default),
         userID: sanitize(tag.userID)
       } as Tag;
-    }
-    return filteredTag;
-  }
-
-  public static filterUserDefaultTagResponse(tag: Tag, car: Car, loggedUser: UserToken): UserDefaultTagCar {
-    const filteredUserDefaultTagCar = {} as UserDefaultTagCar;
-    // Check auth
-    if (tag && Authorizations.canReadTag(loggedUser, tag.userID)) {
-      filteredUserDefaultTagCar.tag = this.filterTagResponse(tag, loggedUser);
-    }
-    if (Authorizations.canReadCar(loggedUser)) {
-      filteredUserDefaultTagCar.car = CarSecurity.filterCarResponse(car, loggedUser);
-    }
-    return filteredUserDefaultTagCar;
-  }
-
-  static filterTagResponse(tag: Tag, loggedUser: UserToken): Tag {
-    const filteredTag = {} as Tag;
-    if (!tag) {
-      return null;
-    }
-    // Check auth
-    if (Authorizations.canReadTag(loggedUser, tag.userID)) {
-      filteredTag.id = tag.id;
-      filteredTag.issuer = tag.issuer;
-      filteredTag.description = tag.description;
-      filteredTag.active = tag.active;
-      filteredTag.transactionsCount = tag.transactionsCount;
-      filteredTag.userID = tag.userID;
-      filteredTag.default = tag.default;
-      if (tag.user) {
-        filteredTag.user = UserSecurity.filterMinimalUserResponse(tag.user, loggedUser);
-      }
-      // Created By / Last Changed By
-      if (Authorizations.canUpdateTag(loggedUser)) {
-        UtilsSecurity.filterCreatedAndLastChanged(filteredTag, tag, loggedUser);
-      }
     }
     return filteredTag;
   }
@@ -327,6 +149,7 @@ export default class UserSecurity {
       sendSmtpAuthError: false,
       sendOfflineChargingStations: false,
       sendEndUserErrorNotification: false,
+      sendComputeAndApplyChargingProfilesFailed: false,
     };
     // Admin Notif only
     if (role === UserRole.ADMIN) {
@@ -341,6 +164,7 @@ export default class UserSecurity {
         sendSmtpAuthError: notifications ? UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError) : false,
         sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
         sendEndUserErrorNotification: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndUserErrorNotification) : false,
+        sendComputeAndApplyChargingProfilesFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendComputeAndApplyChargingProfilesFailed) : false,
       };
     }
     return filteredNotifications;

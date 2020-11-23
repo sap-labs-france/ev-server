@@ -31,28 +31,29 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_LOCATIONS, error);
     }
   }
 
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIGetLocationsTaskConfig): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'get-locations');
+    const ocpiLock = await LockingHelper.createOCPIPullEmspLocationsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_LOCATIONS,
+            action: ServerAction.OCPI_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
           });
           return;
-        } else if (!ocpiEndpoint.backgroundPatchJob) {
+        }
+        if (!ocpiEndpoint.backgroundPatchJob) {
           Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_GET_LOCATIONS,
+            action: ServerAction.OCPI_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
           });
@@ -60,24 +61,24 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
         }
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `The get Locations process for endpoint ${ocpiEndpoint.name} is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
         // Send EVSE statuses
-        const result = await ocpiClient.pullLocations(config.partial && config.partial);
+        const result = await ocpiClient.pullLocations(config.partial);
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `The GET Locations process for endpoint ${ocpiEndpoint.name} is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_LOCATIONS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_LOCATIONS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

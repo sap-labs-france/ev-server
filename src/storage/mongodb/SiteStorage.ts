@@ -17,15 +17,12 @@ const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withCompany?: boolean } = {}): Promise<Site> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSite');
-    // Query single Site
-    const sitesMDB = await SiteStorage.getSites(tenantID,
-      { siteIDs: [id], withCompany: params.withCompany },
-      Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSite', uniqueTimerID, sitesMDB);
+    params: { withCompany?: boolean } = {}, projectFields?: string[]): Promise<Site> {
+    const sitesMDB = await SiteStorage.getSites(tenantID, {
+      siteIDs: [id],
+      withCompany: params.withCompany,
+      withImage: true,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }
 
@@ -308,7 +305,7 @@ export default class SiteStorage {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean;
       withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number; withImage?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
@@ -428,6 +425,21 @@ export default class SiteStorage {
         asField: 'company', oneToOneCardinality: true
       });
     }
+    // Site Image
+    if (params.withImage) {
+      aggregation.push({
+        $addFields: {
+          image: {
+            $concat: [
+              `${Utils.buildRestServerURL()}/client/util/SiteImage?ID=`,
+              { $toString: '$_id' },
+              `&TenantID=${tenantID}&LastChangedOn=`,
+              { $toString: '$lastChangedOn' }
+            ]
+          }
+        }
+      });
+    }
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'companyID');
     // Add Last Changed / Created
@@ -479,12 +491,7 @@ export default class SiteStorage {
   }
 
   public static async deleteSite(tenantID: string, id: string): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSite');
-    // Delegate
     await SiteStorage.deleteSites(tenantID, [id]);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSite', uniqueTimerID, { id });
   }
 
   public static async deleteSites(tenantID: string, ids: string[]): Promise<void> {

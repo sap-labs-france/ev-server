@@ -37,7 +37,7 @@ export default class OCPIPushLocationsTask extends SchedulerTask {
 
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIPushLocationsTaskConfig): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIEndpointActionLock(tenant.id, ocpiEndpoint, 'patch-locations');
+    const ocpiLock = await LockingHelper.createOCPIPatchCpoLocationsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
@@ -67,7 +67,7 @@ export default class OCPIPushLocationsTask extends SchedulerTask {
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Send EVSE statuses
-        const sendResult = await ocpiClient.sendEVSEStatuses(config.processAllEVSEs ? config.processAllEVSEs : false);
+        const sendResult = await ocpiClient.sendEVSEStatuses(!Utils.isUndefined(config.processAllEVSEs) ? config.processAllEVSEs : false);
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
