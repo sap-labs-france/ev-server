@@ -39,7 +39,7 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationTokens(tenantID: string,
-    params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
+    params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams):
     Promise<DataResult<RegistrationToken>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getRegistrationTokens');
@@ -119,10 +119,6 @@ export default class RegistrationTokenStorage {
     aggregation.push({
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const registrationTokens = await global.database.getCollection<any>(tenantID, 'registrationtokens')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })

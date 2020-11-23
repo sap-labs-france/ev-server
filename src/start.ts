@@ -191,7 +191,7 @@ export default class Bootstrap {
 
   private static startMaster(): void {
     try {
-      if (Bootstrap.isClusterEnabled && Utils.isEmptyObject(cluster.workers)) {
+      if (Bootstrap.isClusterEnabled && Utils.isEmptyArray(cluster.workers)) {
         Bootstrap.startServerWorkers('Main');
       }
     } catch (error) {

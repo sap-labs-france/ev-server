@@ -149,7 +149,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           // Log
           Logging.logException(
             error,
-            ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
+            ServerAction.WS_REST_CONNECTION_CLOSED,
             this.chargingStation.id,
             MODULE_NAME, 'onError',
             this.tenantID

@@ -114,6 +114,12 @@ describe('Car Tests', function() {
           expect(response.status).to.equal(500);
         });
 
+        it('Should not be able to get car catalog debug object', async () => {
+          const response = await testData.centralService.carApi.readCarCatalog(carID);
+          expect(response.status).to.equal(200);
+          expect(response.data).to.not.have.property('hash');
+        });
+
         it('Should be able to create a new car', async () => {
           // Create
           const newCar = Factory.car.build();

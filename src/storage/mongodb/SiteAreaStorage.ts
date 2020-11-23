@@ -70,14 +70,13 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSite?: boolean; withChargingStations?: boolean } = {}, projectFields?: string[]): Promise<SiteArea> {
+    params: { withSite?: boolean; withChargingStations?: boolean } = {}): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenantID, {
       siteAreaIDs: [id],
       withSite: params.withSite,
       withChargingStations: params.withChargingStations,
-      withAvailableChargingStations: true,
-      withImage: true,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      withAvailableChargingStations: true
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return siteAreasMDB.count === 1 ? siteAreasMDB.result[0] : null;
   }
 
@@ -131,7 +130,7 @@ export default class SiteAreaStorage {
     params: {
       siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
       withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -245,21 +244,6 @@ export default class SiteAreaStorage {
         asField: 'chargingStations'
       });
     }
-    // Site Area Image
-    if (params.withImage) {
-      aggregation.push({
-        $addFields: {
-          image: {
-            $concat: [
-              `${Utils.buildRestServerURL()}/client/util/SiteAreaImage?ID=`,
-              { $toString: '$_id' },
-              `&TenantID=${tenantID}&LastChangedOn=`,
-              { $toString: '$lastChangedOn' }
-            ]
-          }
-        }
-      });
-    }
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Add Last Changed / Created
@@ -269,7 +253,7 @@ export default class SiteAreaStorage {
     // Project
     if (projectFields) {
       DatabaseUtils.projectFields(aggregation,
-        [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastSeen',
+        [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat',
           'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.public', 'chargingStations.inactive']);
     }
     // Read DB

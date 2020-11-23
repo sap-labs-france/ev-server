@@ -25,15 +25,14 @@ export default class TenantStorage {
     }
   }
 
-  public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<Tenant> {
+  public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Tenant> {
     // Check in cache
     const tenant = TenantStorage.tenants.get(id);
     if (!tenant) {
       // Call DB
       const tenantsMDB = await TenantStorage.getTenants({
-        tenantIDs: [id],
-        withLogo: true,
-      }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+        tenantIDs: [id]
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
       // Add in cache
       if (tenantsMDB.count > 0) {
         TenantStorage.tenants.set(id, tenantsMDB.result[0]);
@@ -215,18 +214,14 @@ export default class TenantStorage {
     });
     // Company Logo
     if (params.withLogo) {
-      aggregation.push({
-        $addFields: {
-          logo: {
-            $concat: [
-              `${Utils.buildRestServerURL()}/client/util/TenantLogo?ID=`,
-              { $toString: '$_id' },
-              '&LastChangedOn=',
-              { $toString: '$lastChangedOn' }
-            ]
-          }
+      DatabaseUtils.pushCollectionLookupInAggregation('tenantlogos',
+        {
+          tenantID: null, aggregation, localField: '_id', foreignField: '_id',
+          asField: 'tenantlogos', oneToOneCardinality: true
         }
-      });
+      );
+      // Rename
+      DatabaseUtils.pushRenameField(aggregation, 'tenantlogos.logo', 'logo');
     }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
@@ -269,8 +264,6 @@ export default class TenantStorage {
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenantDB');
     // Delete
     await global.database.deleteTenantDatabase(id);
-    // Update cache
-    TenantStorage.clearCache(id);
     // Debug
     Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenantDB', uniqueTimerID, { id });
   }

@@ -42,6 +42,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'ChargingStationService';
 
 export default class ChargingStationService {
+
   public static async handleUpdateChargingStationParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body);
@@ -241,7 +242,8 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE, entity: Entity.CHARGING_STATION,
+        action: Action.UPDATE,
+        entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
         value: chargingStation.id
       });
@@ -354,15 +356,11 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.CHARGING_PROFILES,
-        module: MODULE_NAME, method: 'handleGetChargingProfiles'
+        action: Action.LIST,
+        entity: Entity.CHARGING_PROFILES,
+        module: MODULE_NAME,
+        method: 'handleGetChargingProfiles'
       });
-    }
-    // Profiles of the charging station?
-    let profilesProject: string[] = [ 'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel' ];
-    if (filteredRequest.ChargeBoxID) {
-      // Enhanced the projection
-      profilesProject = ['profile'];
     }
     // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
@@ -372,13 +370,9 @@ export default class ChargingStationService {
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: true,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null), },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
-        'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower',
-        ...profilesProject
-      ]);
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     // Build the result
+    ChargingStationSecurity.filterChargingProfilesResponse(chargingProfiles, req.user);
     res.json(chargingProfiles);
     next();
   }
@@ -399,8 +393,10 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'handleTriggerSmartCharging',
+        action: Action.UPDATE,
+        entity: Entity.SITE_AREA,
+        module: MODULE_NAME,
+        method: 'handleTriggerSmartCharging',
         value: filteredRequest.siteAreaID
       });
     }
@@ -475,8 +471,10 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'handleUpdateChargingProfile',
+        action: Action.UPDATE,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME,
+        method: 'handleUpdateChargingProfile',
         value: chargingStation.id
       });
     }
@@ -532,7 +530,8 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE, entity: Entity.CHARGING_STATION,
+        action: Action.UPDATE,
+        entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingProfile',
         value: chargingStation.id
       });
@@ -571,8 +570,10 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'handleGetChargingStationOcppParameters',
+        action: Action.READ,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME,
+        method: 'handleGetChargingStationOcppParameters',
         value: chargingStation.id
       });
     }
@@ -592,8 +593,10 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'handleRequestChargingStationOcppParameters',
+        action: Action.READ,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME,
+        method: 'handleRequestChargingStationOcppParameters',
         value: filteredRequest.chargeBoxID
       });
     }
@@ -642,8 +645,10 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'handleDeleteChargingStation',
+        action: Action.DELETE,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME,
+        method: 'handleDeleteChargingStation',
         value: chargingStationID
       });
     }
@@ -714,22 +719,15 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'handleGetChargingStation',
+        action: Action.READ,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME,
+        method: 'handleGetChargingStation',
         value: filteredRequest.ID
       });
     }
     // Query charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ID, {},
-      [
-        'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
-        'siteArea.site.id', 'siteArea.site.name', 'voltage', 'coordinates', 'forceInactive', 'firmwareUpdateStatus',
-        'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
-        'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
-        'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
-      ]
-    );
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStation', req.user);
     // Deleted?
@@ -743,7 +741,10 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    res.json(chargingStation);
+    res.json(
+      // Filter
+      ChargingStationSecurity.filterChargingStationResponse(chargingStation, req.user)
+    );
     next();
   }
 
@@ -803,8 +804,10 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
-        module: MODULE_NAME, method: 'handleGetChargingStations'
+        action: Action.LIST,
+        entity: Entity.CHARGING_STATIONS,
+        module: MODULE_NAME,
+        method: 'handleGetChargingStations'
       });
     }
     // Filter
@@ -838,12 +841,14 @@ export default class ChargingStationService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
-      },
-      [
-        'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'errorCodeDetails', 'errorCode', 'lastSeen',
-        'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
-      ]
+      }
     );
+    // Build the result
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user);
+    // Limit to 100
+    if (chargingStations.result.length > 100) {
+      chargingStations.result.length = 100;
+    }
     // Return
     res.json(chargingStations);
     next();
@@ -855,8 +860,10 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
-        module: MODULE_NAME, method: 'handleGetStatusNotifications'
+        action: Action.LIST,
+        entity: Entity.CHARGING_STATIONS,
+        module: MODULE_NAME,
+        method: 'handleGetStatusNotifications'
       });
     }
     // Filter
@@ -864,6 +871,8 @@ export default class ChargingStationService {
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+    // Set
+    statusNotifications.result = ChargingStationSecurity.filterStatusNotificationsResponse(statusNotifications.result, req.user);
     // Return
     res.json(statusNotifications);
     next();
@@ -874,9 +883,11 @@ export default class ChargingStationService {
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
-        user: req.user, action: Action.LIST,
+        user: req.user,
+        action: Action.LIST,
         entity: Entity.CHARGING_STATIONS,
-        module: MODULE_NAME, method: 'handleGetBootNotifications'
+        module: MODULE_NAME,
+        method: 'handleGetBootNotifications'
       });
     }
     // Filter
@@ -884,6 +895,8 @@ export default class ChargingStationService {
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+    // Set
+    bootNotifications.result = ChargingStationSecurity.filterBootNotificationsResponse(bootNotifications.result, req.user);
     // Return
     res.json(bootNotifications);
     next();
@@ -1180,11 +1193,6 @@ export default class ChargingStationService {
     }
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
-    // Check Users
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email' ];
-    }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {
@@ -1205,17 +1213,10 @@ export default class ChargingStationService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
-      },
-      [
-        'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
-        'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name',
-        'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
-        'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
-        'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID',
-        ...userProject
-      ]
+      }
     );
+    // Filter
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user);
     return chargingStations;
   }
 
@@ -1241,7 +1242,7 @@ export default class ChargingStationService {
     const i18nManager = new I18nManager(loggedUser.locale);
     // Header
     if (writeHeader) {
-      csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Seen${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+      csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
     }
     // Content
     for (const chargingStation of chargingStations) {
@@ -1262,7 +1263,7 @@ export default class ChargingStationService {
       csv += `${chargingStation.firmwareVersion}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.ocppVersion}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.ocppProtocol}` + Constants.CSV_SEPARATOR;
-      csv += `${i18nManager.formatDateTime(chargingStation.lastSeen, 'L')} ${i18nManager.formatDateTime(chargingStation.lastSeen, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${i18nManager.formatDateTime(chargingStation.lastHeartBeat, 'L')} ${i18nManager.formatDateTime(chargingStation.lastHeartBeat, 'LT')}` + Constants.CSV_SEPARATOR;
       csv += `${i18nManager.formatDateTime(chargingStation.lastReboot, 'L')} ${i18nManager.formatDateTime(chargingStation.lastReboot, 'LT')}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.maximumPower}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.powerLimitUnit}\r\n`;

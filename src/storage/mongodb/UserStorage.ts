@@ -106,11 +106,11 @@ export default class UserStorage {
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
-  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<User> {
+  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID,
       {
         userIDs: [id],
-      }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
@@ -684,12 +684,12 @@ export default class UserStorage {
   }
 
   public static async getTag(tenantID: string, id: string,
-    params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
+    params: { withUser?: boolean; withNbrTransactions?: boolean } = {}): Promise<Tag> {
     const tagMDB = await UserStorage.getTags(tenantID, {
       tagIDs: [id],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
   }
 

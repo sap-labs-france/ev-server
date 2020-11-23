@@ -456,7 +456,7 @@ export default class CentralRestServer {
         }
       }
       if (!dups) {
-        // Add it
+      // Add it
         CentralRestServer.singleChangeNotifications.push(notification);
       }
     }

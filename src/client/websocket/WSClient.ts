@@ -53,7 +53,7 @@ export default class WSClient {
     this.ws.on('error', this.onError.bind(this));
     // Handle Socket close
     this.ws.on('close', this.onClose.bind(this));
-    // A new WS have just been created, re-instantiate the saved callbacks on it
+    // A new WS have just been created, reinstantiate the saved callbacks on it
     this.reinstantiateCbs();
   }
 

@@ -1,5 +1,5 @@
 import { MessageType, OcppErrorType } from '../../../types/WebSocket';
-import WebSocket, { CloseEvent, ErrorEvent, MessageEvent, OPEN } from 'ws';
+import WebSocket, { OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -22,6 +22,7 @@ export default abstract class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
+  protected readonly serverIPPort: string;
   protected readonly chargingStationID: string;
   protected readonly tenantID: string;
   private readonly token: string;
@@ -29,7 +30,7 @@ export default abstract class WSConnection {
   private readonly clientIP: string|string[];
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
-  private requests: { [id: string]: [(payload?) => void, (reason?: string|OCPPError) => void] };
+  private requests: { [id: string]: [(payload?) => void, (reason?: string|OCPPError) => void] } = {};
   private tenantIsValid: boolean;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
@@ -42,13 +43,12 @@ export default abstract class WSConnection {
     this.wsServer = wsServer;
     Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
-      action: ServerAction.WS_CONNECTION_OPENED,
+      action: ServerAction.WS_JSON_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'constructor',
       message: `WS connection opening attempts with URL: '${req.url}'`,
     });
     // Default
     this.tenantIsValid = false;
-    this.requests = {};
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
       // Remove '/'
@@ -79,17 +79,14 @@ export default abstract class WSConnection {
       });
     }
     let logMsg = `Unknown type WS connection attempts with URL: '${req.url}'`;
-    let action: ServerAction = ServerAction.WS_CONNECTION_OPENED;
     if (req.url.startsWith('/REST')) {
       logMsg = `REST service connection attempts to Charging Station with URL: '${req.url}'`;
-      action = ServerAction.WS_REST_CONNECTION_OPENED;
     } else if (req.url.startsWith('/OCPP16')) {
       logMsg = `Charging Station connection attempts with URL: '${req.url}'`;
-      action = ServerAction.WS_JSON_CONNECTION_OPENED;
     }
     Logging.logDebug({
       tenantID: this.tenantID,
-      action: action,
+      action: ServerAction.WS_CONNECTION,
       module: MODULE_NAME, method: 'constructor',
       message: logMsg,
     });
@@ -111,11 +108,11 @@ export default abstract class WSConnection {
       throw backendError;
     }
     // Handle incoming messages
-    this.wsConnection.on('message',this.onMessage.bind(this));
-    // Handle Socket error
-    this.wsConnection.on('error', this.onError.bind(this));
+    this.wsConnection.onmessage = this.onMessage.bind(this);
+    // Handle Error on Socket
+    this.wsConnection.onerror = this.onError.bind(this);
     // Handle Socket close
-    this.wsConnection.on('close', this.onClose.bind(this));
+    this.wsConnection.onclose = this.onClose.bind(this);
   }
 
   public async initialize(): Promise<void> {
@@ -148,11 +145,17 @@ export default abstract class WSConnection {
     }
   }
 
+  public onError(errorEvent: ErrorEvent): void {
+  }
+
+  public onClose(closeEvent: CloseEvent): void {
+  }
+
   public async onMessage(messageEvent: MessageEvent): Promise<void> {
     let [messageType, messageId, commandName, commandPayload, errorDetails] = [0, '', ServerAction.CHARGING_STATION, '', ''];
     try {
       // Parse the message
-      [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.toString());
+      [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.data);
       // Initialize: done in the message as init could be lengthy and first message may be lost
       await this.initialize();
       // Check the Type of message
@@ -270,6 +273,10 @@ export default abstract class WSConnection {
     return this.clientIP;
   }
 
+  public getServerIPPort(): string {
+    return this.serverIPPort;
+  }
+
   public async sendError(messageId: string, err: Error|OCPPError): Promise<unknown> {
     // Check exception type: only OCPP error are accepted
     const error = (err instanceof OCPPError ? err : new OCPPError({
@@ -330,7 +337,7 @@ export default abstract class WSConnection {
         this.wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`WebSocket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant?.name})`);
+        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant?.name})`);
       }
       // Response?
       if (messageType !== MessageType.CALL_MESSAGE) {
@@ -338,7 +345,7 @@ export default abstract class WSConnection {
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name})`), Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name}`), Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
   }
@@ -350,10 +357,10 @@ export default abstract class WSConnection {
   public getTenantID(): string {
     // Check
     if (this.isTenantValid()) {
-      // Ok
+      // Ok verified
       return this.tenantID;
     }
-    // No, go to the master tenant
+    // No: go to the master tenant
     return Constants.DEFAULT_TENANT;
   }
 
@@ -374,8 +381,4 @@ export default abstract class WSConnection {
   }
 
   public abstract async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
-
-  public abstract onError(errorEvent: ErrorEvent): void;
-
-  public abstract onClose(closeEvent: CloseEvent): void;
 }

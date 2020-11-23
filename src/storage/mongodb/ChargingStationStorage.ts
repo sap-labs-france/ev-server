@@ -131,11 +131,11 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-    params: { includeDeleted?: boolean } = {}, projectFields?: string[]): Promise<ChargingStation> {
+    params: { includeDeleted?: boolean } = {}): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       chargingStationIDs: [id],
       withSite: true, ...params
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
@@ -191,9 +191,9 @@ export default class ChargingStationStorage {
         $in: params.chargingStationIDs
       };
     }
-    // Filter on lastSeen
+    // Filter on last heart beat
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
-      filters.lastSeen = { $lte: params.offlineSince };
+      filters.lastHeartBeat = { $lte: params.offlineSince };
     }
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
@@ -355,7 +355,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationsInError(tenantID: string,
     params: { search?: string; siteIDs?: string[]; siteAreaIDs: string[]; errorType?: string[] },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationInError>> {
+    dbParams: DbParams): Promise<DataResult<ChargingStationInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
     // Check Tenant
@@ -456,8 +456,6 @@ export default class ChargingStationStorage {
     });
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
@@ -499,7 +497,7 @@ export default class ChargingStationStorage {
       ocppVersion: chargingStationToSave.ocppVersion,
       ocppProtocol: chargingStationToSave.ocppProtocol,
       cfApplicationIDAndInstanceIndex: chargingStationToSave.cfApplicationIDAndInstanceIndex,
-      lastSeen: chargingStationToSave.lastSeen,
+      lastHeartBeat: chargingStationToSave.lastHeartBeat,
       deleted: Utils.convertToBoolean(chargingStationToSave.deleted),
       lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
       chargingStationURL: chargingStationToSave.chargingStationURL,
@@ -551,10 +549,10 @@ export default class ChargingStationStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnector', uniqueTimerID, updatedFields);
   }
 
-  public static async saveChargingStationLastSeen(tenantID: string, id: string,
-    params: { lastSeen: Date; currentIPAddress?: string | string[] }): Promise<void> {
+  public static async saveChargingStationHeartBeat(tenantID: string, id: string,
+    params: { lastHeartBeat: Date; currentIPAddress?: string | string[] }): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationLastSeen');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationHeartBeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set data
@@ -564,7 +562,7 @@ export default class ChargingStationStorage {
       { $set: params },
       { upsert: true });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationLastSeen', uniqueTimerID, params);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationHeartBeat', uniqueTimerID, params);
   }
 
   public static async saveChargingStationFirmwareStatus(tenantID: string, id: string, firmwareUpdateStatus: OCPPFirmwareStatus): Promise<void> {
@@ -684,8 +682,7 @@ export default class ChargingStationStorage {
   public static async getChargingProfiles(tenantID: string,
     params: {
       search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
-      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
-      withSiteArea?: boolean; siteIDs?: string[];
+      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean; siteIDs?: string[];
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
@@ -911,9 +908,9 @@ export default class ChargingStationStorage {
         { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
       case ChargingStationInErrorType.CONNECTION_BROKEN: {
-        const inactiveDate = new Date(new Date().getTime() - Configuration.getChargingStationConfig().maxLastSeenIntervalSecs * 1000);
+        const inactiveDate = new Date(new Date().getTime() - Utils.getChargingStationHeartbeatMaxIntervalSecs() * 1000);
         return [
-          { $match: { 'lastSeen': { $lte: inactiveDate } } },
+          { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
           { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }
         ];
       }

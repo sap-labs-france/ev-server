@@ -33,26 +33,30 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.CAR_CATALOGS,
-        module: MODULE_NAME, method: 'handleGetCarCatalogs'
+        action: Action.LIST,
+        entity: Entity.CAR_CATALOGS,
+        module: MODULE_NAME,
+        method: 'handleGetCarCatalogs'
       });
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
-    // Get the Cars
+    const projectFields = ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+      'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal',
+      'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
+      'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'];
+    // Get the cars
     const carCatalogs = await CarStorage.getCarCatalogs(
       {
         search: filteredRequest.Search,
         carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
-        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-        'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
-        'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'
-      ]
+      projectFields
     );
+    // Filter
+    CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
+    // Return
     res.json(carCatalogs);
     next();
   }
@@ -67,25 +71,31 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME, method: 'handleGetCarCatalog'
+        action: Action.LIST,
+        entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME,
+        method: 'handleGetCarCatalog'
       });
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalog', req.user);
-    // Get the car
-    const carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID,
-      [
-        'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
-        'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
-        'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
-        'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-        'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
-        'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
-      ]);
+    let carCatalog;
+    if (!Authorizations.isSuperAdmin(req.user)) {
+      // Get the car
+      carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID,
+        ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
+          'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
+          'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
+          'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower',
+          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp']);
+    } else {
+      // Get the car
+      carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID);
+    }
     // Return
-    res.json(carCatalog);
+    res.json(CarSecurity.filterCarCatalogResponse(carCatalog, req.user));
     next();
   }
 
@@ -94,23 +104,19 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImage', req.user);
     // Get the car Image
-    const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
+    const carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID, ['image']);
     // Return
-    if (carCatalog?.image) {
-      // Remove encoding header
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      if (carCatalog?.image.startsWith('data:image/')) {
-        header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
-        encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
-        carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
-      }
-      // Revert to binary
-      res.setHeader('content-type', header);
-      res.send(Buffer.from(carCatalog.image, encoding));
-    } else {
-      res.send(null);
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (carCatalog.image.startsWith('data:image/')) {
+      header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
+      encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
+      carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
     }
+    // Revert to binary
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(carCatalog.image, encoding));
     next();
   }
 
@@ -124,8 +130,10 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ, entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME, method: 'handleGetCarCatalogImages'
+        action: Action.READ,
+        entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME,
+        method: 'handleGetCarCatalogImages'
       });
     }
     // Filter
@@ -187,7 +195,9 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarMakersRequest(req.query);
     // Get car makers
-    const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search }, [ 'carMaker' ]);
+    const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search });
+    // Filter
+    CarSecurity.filterCarMakersResponse(carMakers, req.user);
     res.json(carMakers);
     next();
   }
@@ -400,12 +410,6 @@ export default class CarService {
       });
     }
     const filteredRequest = CarSecurity.filterCarsRequest(req.query);
-    // Check User
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
-        'carUsers.user.name', 'carUsers.user.firstName', ];
-    }
     // Get cars
     const cars = await CarStorage.getCars(req.user.tenantID,
       {
@@ -414,12 +418,10 @@ export default class CarService {
         carMakers: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
         withUsers: filteredRequest.WithUsers
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
-        'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
-        ...userProject
-      ]);
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+    // Filter
+    CarSecurity.filterCarsResponse(cars, req.user);
+    // Return
     res.json(cars);
     next();
   }
@@ -439,28 +441,13 @@ export default class CarService {
     }
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
-    // Check User
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
-        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
-      ];
-    }
     // Get the car
     const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID, {
       withUsers: true,
       userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
-    },
-    [
-      'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
-      'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
-      'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-      'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-      'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase',
-      ...userProject
-    ]);
+    });
     // Return
-    res.json(car);
+    res.json(CarSecurity.filterCarResponse(car, req.user));
     next();
   }
 
@@ -486,8 +473,9 @@ export default class CarService {
         search: filteredRequest.Search,
         carIDs: [filteredRequest.CarID]
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'carID', 'default', 'owner', 'user.id', 'user.name', 'user.firstName', 'user.email' ]);
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+    // Filter
+    CarSecurity.filterUsersCarsResponse(usersCars, req.user);
     // Return
     res.json(usersCars);
     next();

@@ -13,15 +13,13 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'OCPIEndpointStorage';
 
 export default class OCPIEndpointStorage {
-  static async getOcpiEndpoint(tenantID: string, id: string, projectFields?: string[]): Promise<OCPIEndpoint> {
-    const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(
-      tenantID, { ocpiEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  static async getOcpiEndpoint(tenantID: string, id: string): Promise<OCPIEndpoint> {
+    const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { ocpiEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
-  static async getOcpiEndpointByLocalToken(tenantID: string, token: string, projectFields?: string[]): Promise<OCPIEndpoint> {
-    const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(
-      tenantID, { localToken: token }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  static async getOcpiEndpointByLocalToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
+    const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { localToken: token }, Constants.DB_PARAMS_SINGLE_RECORD);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
@@ -79,9 +77,7 @@ export default class OCPIEndpointStorage {
   }
 
   // Delegate
-  static async getOcpiEndpoints(tenantID: string,
-    params: { search?: string; role?: string; ocpiEndpointIDs?: string[]; localToken?: string },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OCPIEndpoint>> {
+  static async getOcpiEndpoints(tenantID: string, params: { search?: string; role?: string; ocpiEndpointIDs?: string[]; localToken?: string }, dbParams: DbParams): Promise<DataResult<OCPIEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoints');
     // Check Tenant
@@ -156,8 +152,6 @@ export default class OCPIEndpointStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })

@@ -86,36 +86,42 @@ export default class CompanyService {
       });
     }
     // Get it
-    const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID,
-      [ 'id', 'name', 'issuer', 'logo', 'address' ]);
+    const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID);
     UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetCompany', req.user);
     // Return
-    res.json(company);
+    res.json(
+      // Filter
+      CompanySecurity.filterCompanyResponse(company, req.user)
+    );
     next();
   }
 
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompanyLogo');
     // Filter
-    const filteredRequest = CompanySecurity.filterCompanyLogoRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
-    // Get the Logo
-    const companyLogo = await CompanyStorage.getCompanyLogo(filteredRequest.TenantID, filteredRequest.ID);
-    // Return
-    if (companyLogo?.logo) {
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (companyLogo.logo.startsWith('data:image/')) {
-        header = companyLogo.logo.substring(5, companyLogo.logo.indexOf(';'));
-        encoding = companyLogo.logo.substring(companyLogo.logo.indexOf(';') + 1, companyLogo.logo.indexOf(',')) as BufferEncoding;
-        companyLogo.logo = companyLogo.logo.substring(companyLogo.logo.indexOf(',') + 1);
-      }
-      res.setHeader('content-type', header);
-      res.send(companyLogo.logo ? Buffer.from(companyLogo.logo, encoding) : null);
-    } else {
-      res.send(null);
+    const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
+    // Check auth
+    if (!Authorizations.canReadCompany(req.user, companyID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'handleGetCompanyLogo',
+        value: companyID
+      });
     }
+    // Get Company
+    const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
+    UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`,
+      MODULE_NAME, 'handleGetCompanyLogo', req.user);
+    // Get the Logo
+    const companyLogo = await CompanyStorage.getCompanyLogo(req.user.tenantID, companyID);
+    // Return
+    res.json(companyLogo);
     next();
   }
 
@@ -132,11 +138,6 @@ export default class CompanyService {
         module: MODULE_NAME, method: 'handleGetCompanies'
       });
     }
-    // Check User
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
-    }
     // Filter
     const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
     // Get the companies
@@ -151,8 +152,10 @@ export default class CompanyService {
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn', ...userProject ]
+      [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']
     );
+    // Filter
+    CompanySecurity.filterCompaniesResponse(companies, req.user);
     // Return
     res.json(companies);
     next();
@@ -233,13 +236,11 @@ export default class CompanyService {
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;
-    if (Utils.objectHasProperty(filteredRequest, 'logo')) {
-      company.logo = filteredRequest.logo;
-    }
+    company.logo = filteredRequest.logo;
     company.lastChangedBy = { 'id': req.user.id };
     company.lastChangedOn = new Date();
     // Update Company
-    await CompanyStorage.saveCompany(req.user.tenantID, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
+    await CompanyStorage.saveCompany(req.user.tenantID, company);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

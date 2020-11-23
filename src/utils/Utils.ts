@@ -337,6 +337,7 @@ export default class Utils {
         continue;
       }
       // Check connectors
+      Utils.checkAndUpdateConnectorsStatus(chargingStation);
       connectorStats.totalChargers++;
       // Handle Connectors
       if (!chargingStation.connectors) {
@@ -386,6 +387,53 @@ export default class Utils {
       }
     }
     return connectorStats;
+  }
+
+  public static getChargingStationHeartbeatMaxIntervalSecs(): number {
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    return config.heartbeatIntervalSecs * 3;
+  }
+
+  public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation): void {
+    // Cannot charge in //
+    if (chargingStation.chargePoints) {
+      for (const chargePoint of chargingStation.chargePoints) {
+        if (chargePoint.cannotChargeInParallel) {
+          let lockAllConnectors = false;
+          // Check
+          for (const connectorID of chargePoint.connectorIDs) {
+            const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+            if (!connector) {
+              continue;
+            }
+            if (connector.status !== ChargePointStatus.AVAILABLE) {
+              lockAllConnectors = true;
+              break;
+            }
+          }
+          // Lock?
+          if (lockAllConnectors) {
+            for (const connectorID of chargePoint.connectorIDs) {
+              const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+              if (!connector) {
+                continue;
+              }
+              if (connector.status === ChargePointStatus.AVAILABLE) {
+                // Check OCPP Version
+                if (chargingStation.ocppVersion === OCPPVersion.VERSION_15) {
+                  // Set OCPP 1.5 Occupied
+                  connector.status = ChargePointStatus.OCCUPIED;
+                } else {
+                  // Set OCPP 1.6 Unavailable
+                  connector.status = ChargePointStatus.UNAVAILABLE;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -597,11 +645,11 @@ export default class Utils {
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 6);
+    return Utils.convertToFloat((pricePerkWh * (consumptionWh / 1000)).toFixed(6));
   }
 
   public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 2);
+    return Utils.convertToFloat((pricePerkWh * consumptionWh).toFixed(2));
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -927,7 +975,7 @@ export default class Utils {
     return amperageLimit;
   }
 
-  public static isEmptyArray(array: any[]): boolean {
+  public static isEmptyArray(array: any): boolean {
     if (!array) {
       return true;
     }
@@ -935,10 +983,6 @@ export default class Utils {
       return false;
     }
     return true;
-  }
-
-  static isEmptyObject(obj: any): boolean {
-    return !Object.keys(obj).length;
   }
 
   public static findDuplicatesInArray(arr: any[]): any[] {
@@ -1121,8 +1165,7 @@ export default class Utils {
   }
 
   public static roundTo(number: number, scale: number): number {
-    const roundPower = Math.pow(10, scale);
-    return Math.round(number * roundPower) / roundPower;
+    return Utils.convertToFloat(number.toFixed(scale));
   }
 
   public static firstLetterInUpperCase(value: string): string {

@@ -57,9 +57,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           // Log
           Logging.logError({
             tenantID: scsc.tenantID,
-            action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
-            source: scsc.chargingStation.id,
-            module: MODULE_NAME, method: 'getChargingStationClient',
+            module: MODULE_NAME, method: 'constructor',
             message: `OCPP version ${scsc.chargingStation.ocppVersion} not supported`
           });
           reject(`OCPP version ${scsc.chargingStation.ocppVersion} not supported`);
@@ -72,9 +70,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           // Log
           Logging.logError({
             tenantID: scsc.tenantID,
-            action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
             source: scsc.chargingStation.id,
-            module: MODULE_NAME, method: 'getChargingStationClient',
+            module: MODULE_NAME, method: 'constructor',
             message: `Error when creating SOAP client: ${error.toString()}`,
             detailedMessages: { error: error.message, stack: error.stack }
           });

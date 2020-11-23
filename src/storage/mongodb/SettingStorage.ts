@@ -14,16 +14,16 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'SettingStorage';
 
 export default class SettingStorage {
-  public static async getSetting(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<SettingDB> {
+  public static async getSetting(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<SettingDB> {
     const settingMDB = await SettingStorage.getSettings(tenantID, {
       settingID: id
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return settingMDB.count === 1 ? settingMDB.result[0] : null;
   }
 
-  public static async getSettingByIdentifier(tenantID: string, identifier: string = Constants.UNKNOWN_STRING_ID, projectFields?: string[]): Promise<SettingDB> {
+  public static async getSettingByIdentifier(tenantID: string, identifier: string = Constants.UNKNOWN_STRING_ID): Promise<SettingDB> {
     const settingsMDB = await SettingStorage.getSettings(
-      tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
     return settingsMDB.count === 1 ? settingsMDB.result[0] : null;
   }
 

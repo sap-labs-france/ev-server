@@ -302,8 +302,15 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [ 'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID' ]
+      ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID']
     );
+    // Filter
+    users.result = users.result.map((siteuser) => ({
+      siteID: siteuser.siteID,
+      siteAdmin: siteuser.siteAdmin,
+      siteOwner: siteuser.siteOwner,
+      user: UserSecurity.filterUserResponse(siteuser.user, req.user)
+    }));
     res.json(users);
     next();
   }
@@ -375,12 +382,13 @@ export default class SiteService {
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID,
-      { withCompany: filteredRequest.WithCompany },
-      [ 'id', 'name', 'issuer', 'image', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'public' ]);
+      { withCompany: filteredRequest.WithCompany });
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSite', req.user);
     // Return
-    res.json(site);
+    res.json(
+      SiteSecurity.filterSiteResponse(site, req.user)
+    );
     next();
   }
 
@@ -399,11 +407,6 @@ export default class SiteService {
     }
     // Filter
     const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
-    // Check User
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
-    }
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
       {
@@ -424,37 +427,43 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [
-        'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-        'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-        ...userProject
-      ]
+      ['id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+        'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']
     );
+    // Build the result
+    if (sites.result && sites.result.length > 0) {
+      // Filter
+      SiteSecurity.filterSitesResponse(sites, req.user);
+    }
     res.json(sites);
     next();
   }
 
   public static async handleGetSiteImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSiteImage');
     // Filter
-    const filteredRequest = SiteSecurity.filterSiteImageRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
-    // Get the image
-    const siteImage = await SiteStorage.getSiteImage(filteredRequest.TenantID, filteredRequest.ID);
-    // Return
-    if (siteImage?.image) {
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (siteImage.image.startsWith('data:image/')) {
-        header = siteImage.image.substring(5, siteImage.image.indexOf(';'));
-        encoding = siteImage.image.substring(siteImage.image.indexOf(';') + 1, siteImage.image.indexOf(',')) as BufferEncoding;
-        siteImage.image = siteImage.image.substring(siteImage.image.indexOf(',') + 1);
-      }
-      res.setHeader('content-type', header);
-      res.send(siteImage.image ? Buffer.from(siteImage.image, encoding) : null);
-    } else {
-      res.send(null);
+    const siteID = SiteSecurity.filterSiteRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'handleGetSiteImage', req.user);
+    // Check auth
+    if (!Authorizations.canReadSite(req.user, siteID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleGetSiteImage',
+        value: siteID
+      });
     }
+    // Get it
+    const site = await SiteStorage.getSite(req.user.tenantID, siteID);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`,
+      MODULE_NAME, 'handleGetSiteImage', req.user);
+    // Get the image
+    const siteImage = await SiteStorage.getSiteImage(req.user.tenantID, siteID);
+    // Return
+    res.json(siteImage);
     next();
   }
 
@@ -498,7 +507,7 @@ export default class SiteService {
       createdOn: new Date()
     } as Site;
     // Save
-    site.id = await SiteStorage.saveSite(req.user.tenantID, site);
+    site.id = await SiteStorage.saveSite(req.user.tenantID, site, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -518,6 +527,8 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
+    // Check
+    Utils.checkIfSiteValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
       throw new AppAuthError({
@@ -532,8 +543,6 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
       MODULE_NAME, 'handleUpdateSite', req.user);
-    // Check
-    Utils.checkIfSiteValid(filteredRequest, req);
     // OCPI Company
     if (!company.issuer) {
       throw new AppError({
@@ -561,18 +570,10 @@ export default class SiteService {
       });
     }
     // Update
-    site.name = filteredRequest.name;
-    site.public = filteredRequest.public;
-    site.autoUserSiteAssignment = filteredRequest.autoUserSiteAssignment;
-    site.companyID = filteredRequest.companyID;
-    site.address = filteredRequest.address;
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
-    if (Utils.objectHasProperty(filteredRequest, 'image')) {
-      site.image = filteredRequest.image;
-    }
     // Save
-    await SiteStorage.saveSite(req.user.tenantID, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
+    await SiteStorage.saveSite(req.user.tenantID, { ...site, ...filteredRequest }, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

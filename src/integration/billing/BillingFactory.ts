@@ -2,7 +2,6 @@ import { BillingSetting, BillingSettingsType } from '../../types/Setting';
 
 import BillingIntegration from './BillingIntegration';
 import Logging from '../../utils/Logging';
-import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import StripeBillingIntegration from './stripe/StripeBillingIntegration';
 import Tenant from '../../types/Tenant';
@@ -32,7 +31,6 @@ export default class BillingFactory {
       }
       Logging.logDebug({
         tenantID: tenant.id,
-        action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'getBillingImpl',
         message: 'Billing settings are not configured'
       });

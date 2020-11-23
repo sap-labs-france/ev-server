@@ -93,7 +93,7 @@ export default class CpoOCPIClient extends OCPIClient {
           detailedMessages: { data: response.data }
         });
       }
-      const numberOfTags: number = response.data.data.length;
+      const numberOfTags = response.data.data.length;
       totalNumberOfToken += numberOfTags;
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -142,7 +142,7 @@ export default class CpoOCPIClient extends OCPIClient {
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
-        message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token(s) processed in ${executionDurationTotalLoopSecs}s`,
+        message: `${numberOfTags.toString()} Tokens processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token processed in ${executionDurationTotalLoopSecs}s`,
         module: MODULE_NAME, method: 'pullTokens'
       });
     } while (nextResult);
@@ -565,6 +565,7 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
+      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -577,6 +578,7 @@ export default class CpoOCPIClient extends OCPIClient {
         try {
           if (await this.checkSession(transaction)) {
             result.success++;
+            result.objectIDsInSuccess.push(String(transaction.id));
           } else {
             result.failure++;
             result.objectIDsInFailure.push(String(transaction.id));
@@ -610,6 +612,7 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
+      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -627,6 +630,7 @@ export default class CpoOCPIClient extends OCPIClient {
         try {
           if (await this.checkLocation(location)) {
             result.success++;
+            result.objectIDsInSuccess.push(String(location.id));
           } else {
             result.failure++;
             result.objectIDsInFailure.push(String(location.id));
@@ -660,6 +664,7 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
+      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -671,6 +676,7 @@ export default class CpoOCPIClient extends OCPIClient {
       try {
         if (await this.checkCdr(transaction)) {
           result.success++;
+          result.objectIDsInSuccess.push(String(transaction.id));
         } else {
           result.failure++;
           result.objectIDsInFailure.push(String(transaction.id));
@@ -706,6 +712,7 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
+      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -747,6 +754,7 @@ export default class CpoOCPIClient extends OCPIClient {
             try {
               await this.patchEVSEStatus(evse.chargeBoxId, location.id, evse.uid, evse.status);
               result.success++;
+              result.objectIDsInSuccess.push(evse.chargeBoxId);
             } catch (error) {
               result.failure++;
               result.objectIDsInFailure.push(evse.chargeBoxId);
@@ -847,7 +855,6 @@ export default class CpoOCPIClient extends OCPIClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
-      source: chargingStationID,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: `Patch OCPI Charging Station ID '${evseUID}' status to '${newStatus}' at ${fullUrl}`,
       module: MODULE_NAME, method: 'patchEVSEStatus',

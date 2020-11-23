@@ -17,12 +17,11 @@ const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withCompany?: boolean } = {}, projectFields?: string[]): Promise<Site> {
+    params: { withCompany?: boolean } = {}): Promise<Site> {
     const sitesMDB = await SiteStorage.getSites(tenantID, {
       siteIDs: [id],
-      withCompany: params.withCompany,
-      withImage: true,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      withCompany: params.withCompany
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }
 
@@ -305,7 +304,7 @@ export default class SiteStorage {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean;
       withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number; withImage?: boolean;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
@@ -423,21 +422,6 @@ export default class SiteStorage {
       DatabaseUtils.pushCompanyLookupInAggregation({
         tenantID, aggregation, localField: 'companyID', foreignField: '_id',
         asField: 'company', oneToOneCardinality: true
-      });
-    }
-    // Site Image
-    if (params.withImage) {
-      aggregation.push({
-        $addFields: {
-          image: {
-            $concat: [
-              `${Utils.buildRestServerURL()}/client/util/SiteImage?ID=`,
-              { $toString: '$_id' },
-              `&TenantID=${tenantID}&LastChangedOn=`,
-              { $toString: '$lastChangedOn' }
-            ]
-          }
-        }
       });
     }
     // Convert Object ID to string
