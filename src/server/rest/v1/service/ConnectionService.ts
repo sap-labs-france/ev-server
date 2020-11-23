@@ -27,8 +27,7 @@ export default class ConnectionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Connection\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleGetConnection',
+        module: MODULE_NAME, method: 'handleGetConnection',
         user: req.user
       });
     }
@@ -37,22 +36,22 @@ export default class ConnectionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.CONNECTION,
-        module: MODULE_NAME,
-        method: 'handleGetConnection',
+        action: Action.READ, entity: Entity.CONNECTION,
+        module: MODULE_NAME, method: 'handleGetConnection',
         value: connectionID
       });
     }
+    // Check User
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
+    }
     // Get it
-    const connection = await ConnectionStorage.getConnection(req.user.tenantID, connectionID);
+    const connection = await ConnectionStorage.getConnection(req.user.tenantID, connectionID,
+      [ 'id', 'connectorId', 'createdAt', 'validUntil', 'lastChangedOn', 'createdOn', ...userProject ]);
     UtilsService.assertObjectExists(action, connection, `Connection ID '${connectionID}' does not exist`,
       MODULE_NAME, 'handleGetConnection', req.user);
-    // Return
-    res.json(
-      // Filter
-      ConnectionSecurity.filterConnectionResponse(connection, req.user)
-    );
+    res.json(connection);
     next();
   }
 
@@ -62,19 +61,20 @@ export default class ConnectionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.CONNECTIONS,
-        module: MODULE_NAME,
-        method: 'handleGetConnections'
+        action: Action.LIST, entity: Entity.CONNECTIONS,
+        module: MODULE_NAME, method: 'handleGetConnections'
       });
     }
     // Filter
     const filteredRequest = ConnectionSecurity.filterConnectionsRequest(req.query);
+    // Check Users
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
+    }
     // Get
-    const connections = await ConnectionStorage.getConnectionsByUserId(req.user.tenantID, filteredRequest.UserID);
-    // Filter
-    ConnectionSecurity.filterConnectionsResponse(connections, req.user);
-    // Return
+    const connections = await ConnectionStorage.getConnectionsByUserId(req.user.tenantID, filteredRequest.UserID,
+      [ 'id', 'connectorId', 'createdAt', 'validUntil', 'lastChangedOn', 'createdOn', ...userProject ]);
     res.json(connections);
     next();
   }
@@ -85,10 +85,8 @@ export default class ConnectionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.CONNECTION,
-        module: MODULE_NAME,
-        method: 'handleCreateConnection'
+        action: Action.CREATE, entity: Entity.CONNECTION,
+        module: MODULE_NAME, method: 'handleCreateConnection'
       });
     }
     // Filter

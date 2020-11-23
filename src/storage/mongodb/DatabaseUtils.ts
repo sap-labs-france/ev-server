@@ -1,3 +1,4 @@
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
@@ -248,13 +249,16 @@ export default class DatabaseUtils {
     aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
   }
 
-  public static projectFields(aggregation: any[], projectedFields: string[]): void {
+  public static projectFields(aggregation: any[], projectedFields: string[], removedFields: string[] = []): void {
     if (projectedFields) {
       const project = {
         $project: {}
       };
       for (const projectedField of projectedFields) {
         project.$project[projectedField] = 1;
+      }
+      for (const removedField of removedFields) {
+        project.$project[removedField] = 0;
       }
       aggregation.push(project);
     }
@@ -379,9 +383,9 @@ export default class DatabaseUtils {
             {
               $gte: [
                 {
-                  $divide: [{ $subtract: [new Date(), '$lastHeartBeat'] }, 1000]
+                  $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000]
                 },
-                Utils.getChargingStationHeartbeatMaxIntervalSecs()
+                Configuration.getChargingStationConfig().maxLastSeenIntervalSecs
               ]
             }
           ]

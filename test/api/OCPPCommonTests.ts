@@ -266,7 +266,7 @@ export default class OCPPCommonTests {
     expect(response).to.eql({});
     response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector2);
     expect(response).to.eql({});
-    // Attention: connector status is always 'Unavailable', if too much time has passed since last heartbeat!!
+    // Warning: connector status is always 'Unavailable' if too much time has passed since last seen!
     response = await this.chargingStationContext.sendHeartbeat();
     // Now we can test the connector status!
     const foundChargingStation = await this.chargingStationContext.readChargingStation();
@@ -1118,7 +1118,7 @@ export default class OCPPCommonTests {
       'tagID': this.transactionStartUser.tags[0].id,
       'meterStart': meterStart,
       'userID': this.transactionStartUser.id,
-      'siteAreaID': this.chargingStationContext.getChargingStation().siteAreaID,
+      'siteAreaID': this.chargingStationContext.getChargingStation().siteAreaID ? this.chargingStationContext.getChargingStation().siteAreaID : null,
       'siteID': this.chargingStationContext.getChargingStation().siteArea ? this.chargingStationContext.getChargingStation().siteArea.siteID : null,
       'user': {
         'id': this.transactionStartUser.id,

@@ -20,19 +20,16 @@ export default class CentralRestServerAuthentication {
               // Delegate
               await AuthService.handleLogIn(action, req, res, next);
               break;
-
             // Register User
             case ServerAction.REGISTER_USER:
               // Delegate
               await AuthService.handleRegisterUser(action, req, res, next);
               break;
-
             // Reset password
             case ServerAction.PASSWORD_RESET:
               // Delegate
               await AuthService.handleUserPasswordReset(action, req, res, next);
               break;
-
             // Resend verification email
             case ServerAction.RESEND_VERIFICATION_MAIL:
               // Delegate
@@ -54,25 +51,21 @@ export default class CentralRestServerAuthentication {
               // Delegate
               AuthService.handleUserLogOut(action, req, res, next);
               break;
-
             // End-user license agreement
             case ServerAction.END_USER_LICENSE_AGREEMENT:
               // Delegate
               await AuthService.handleGetEndUserLicenseAgreement(action, req, res, next);
               break;
-
             // Check Eula
             case ServerAction.CHECK_END_USER_LICENSE_AGREEMENT:
               // Delegate
               await AuthService.handleCheckEndUserLicenseAgreement(action, req, res, next);
               break;
-
             // Verify Email
             case ServerAction.VERIFY_EMAIL:
               // Delegate
               await AuthService.handleVerifyEmail(action, req, res, next);
               break;
-
             default:
               // Delegate
               UtilsService.handleUnknownAction(action, req, res, next);
