@@ -364,7 +364,7 @@ export default class Configuration {
     return this.config;
   }
 
-  // Declare a class private helper for undefined detection to avoid circular dependency with mocha and the Utils helper
+  // Declare a class private helper for undefined detection to avoid circular dependency with mocha and Utils helpers
   private static isUndefined(obj: any): boolean {
     return typeof obj === 'undefined';
   }
