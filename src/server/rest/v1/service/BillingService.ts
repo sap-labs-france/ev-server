@@ -271,8 +271,10 @@ export default class BillingService {
     }
     // Get taxes
     const taxes = await billingImpl.getTaxes();
+    // Filter
+    const filteredTaxes = BillingSecurity.filterTaxesResponse(taxes, req.user);
     // Return
-    res.json(taxes);
+    res.json(filteredTaxes);
     next();
   }
 
@@ -287,11 +289,6 @@ export default class BillingService {
         entity: Entity.INVOICES, action: Action.LIST,
         module: MODULE_NAME, method: 'handleGetInvoices',
       });
-    }
-    // Check Users
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
     const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
@@ -309,11 +306,9 @@ export default class BillingService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
-      },
-      [
-        'id', 'number', 'status', 'amount', 'createdOn', 'nbrOfItems', 'currency', 'downloadable',
-        ...userProject
-      ]);
+      });
+    // Filter
+    BillingSecurity.filterInvoicesResponse(invoices, req.user);
     // Return
     res.json(invoices);
     next();

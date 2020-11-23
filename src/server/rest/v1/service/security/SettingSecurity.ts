@@ -1,6 +1,9 @@
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, Setting, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
+import Authorizations from '../../../../../authorization/Authorizations';
+import TenantComponents from '../../../../../types/TenantComponents';
+import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -186,5 +189,59 @@ export default class SettingSecurity {
       }
     }
     return settings;
+  }
+
+  public static filterSettingResponse(setting: SettingDB, loggedUser: UserToken, contentFilter = false): SettingDB {
+    let filteredSetting: SettingDB;
+    if (!setting) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadSetting(loggedUser, setting)) {
+      filteredSetting = setting;
+      if (contentFilter) {
+        filteredSetting.content = SettingSecurity.filterAuthorizedSettingContent(loggedUser, setting);
+      }
+      // Created By / Last Changed By
+      UtilsSecurity.filterCreatedAndLastChanged(
+        filteredSetting, setting, loggedUser);
+    }
+    return filteredSetting;
+  }
+
+  public static filterSettingsResponse(settings, loggedUser: UserToken, contentFilter = false): SettingDB[] {
+    const filteredSettings: SettingDB[] = [];
+
+    if (!settings) {
+      return null;
+    }
+    if (!Authorizations.canListSettings(loggedUser)) {
+      return null;
+    }
+    for (const setting of settings) {
+      // Filter
+      const filteredSetting = SettingSecurity.filterSettingResponse(setting, loggedUser, contentFilter);
+      // Ok?
+      if (filteredSetting) {
+        // Add
+        filteredSettings.push(filteredSetting);
+      }
+    }
+    return filteredSettings;
+  }
+
+  private static filterAuthorizedSettingContent(loggedUser: UserToken, setting: SettingDB) {
+    if (!setting.content) {
+      return null;
+    }
+    if (Authorizations.isSuperAdmin(loggedUser) || setting.identifier !== TenantComponents.ANALYTICS) {
+      return setting.content;
+    }
+    if (setting.content.links && Array.isArray(setting.content.links)) {
+      const filteredLinks = setting.content.links.filter((link) => !link.role || link.role === '' ||
+          (link.role && link.role.includes(loggedUser.role)));
+      setting.content.links = filteredLinks;
+    }
+    return setting.content;
   }
 }

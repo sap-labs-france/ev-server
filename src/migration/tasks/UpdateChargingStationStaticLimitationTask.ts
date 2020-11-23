@@ -81,7 +81,8 @@ export default class UpdateChargingStationStaticLimitationTask extends Migration
               // Get max connector amps
               const connector = Utils.getConnectorFromID(chargingStation, connectorID);
               if (connector) {
-                connector.amperageLimit = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorID);
+                const amperageConnectorMax = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorID);
+                connector.amperageLimit = amperageConnectorMax;
               }
             }
             await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);

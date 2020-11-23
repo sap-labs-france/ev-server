@@ -3,7 +3,6 @@ import { AssetConnectionType, AssetSetting } from '../../types/Setting';
 import AssetIntegration from './AssetIntegration';
 import Logging from '../../utils/Logging';
 import SchneiderAssetIntegration from './schneider/SchneiderAssetIntegration';
-import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -35,7 +34,6 @@ export default class AssetFactory {
       }
       Logging.logDebug({
         tenantID: tenant.id,
-        action: ServerAction.ASSET,
         module: MODULE_NAME, method: 'getAssetImpl',
         message: 'Asset settings are not configured'
       });

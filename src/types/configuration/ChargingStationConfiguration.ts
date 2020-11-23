@@ -1,7 +1,5 @@
 export default interface ChargingStationConfiguration {
-  heartbeatIntervalSecs?: number;
-  heartbeatIntervalOCPPSSecs: number;
-  heartbeatIntervalOCPPJSecs: number;
+  heartbeatIntervalSecs: number;
   checkEndOfChargeNotificationAfterMin: number;
   notifBeforeEndOfChargeEnabled: boolean;
   notifBeforeEndOfChargePercent: number;
@@ -10,5 +8,4 @@ export default interface ChargingStationConfiguration {
   notifStopTransactionAndUnlockConnector: boolean;
   useServerLocalIPForRemoteCommand?: boolean;
   secureLocalServer?: boolean;
-  maxLastSeenIntervalSecs: number;
 }

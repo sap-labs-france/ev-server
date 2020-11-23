@@ -79,14 +79,11 @@ export default class OCPIEndpointService {
       });
     }
     // Get it
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, endpointID,
-      [
-        'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'patchJobStatus', 'localToken', 'token',
-        'patchJobResult.successNbr', 'patchJobResult.failureNbr', 'patchJobResult.totalNbr'
-      ]);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, endpointID);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${endpointID}' does not exist`,
       MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
-    res.json(ocpiEndpoint);
+    // Return
+    res.json(OCPIEndpointSecurity.filterOcpiEndpointResponse(ocpiEndpoint, req.user));
     next();
   }
 
@@ -103,11 +100,6 @@ export default class OCPIEndpointService {
         module: MODULE_NAME, method: 'handleGetOcpiEndpoints'
       });
     }
-    // Check User
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
-    }
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointsRequest(req.query);
     // Get all ocpiendpoints
@@ -119,13 +111,9 @@ export default class OCPIEndpointService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
-      },
-      [
-        'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'lastChangedOn', 'lastPatchJobOn',
-        'backgroundPatchJob', 'localToken', 'token',
-        'lastPatchJobResult.successNbr', 'lastPatchJobResult.failureNbr', 'lastPatchJobResult.totalNbr',
-        ...userProject
-      ]);
+      });
+    OCPIEndpointSecurity.filterOcpiEndpointsResponse(ocpiEndpoints, req.user);
+    // Return
     res.json(ocpiEndpoints);
     next();
   }

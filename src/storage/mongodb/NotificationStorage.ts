@@ -16,7 +16,7 @@ export default class NotificationStorage {
   static async getNotifications(tenantID: string,
     params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string;
       sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
+    dbParams: DbParams): Promise<DataResult<Notification>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getNotifications');
     // Check Tenant
@@ -109,8 +109,6 @@ export default class NotificationStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const notificationsMDB = await global.database.getCollection<any>(tenantID, 'notifications')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })

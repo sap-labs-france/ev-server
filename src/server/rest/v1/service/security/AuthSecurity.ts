@@ -1,6 +1,7 @@
 import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import Constants from '../../../../../utils/Constants';
+import Eula from '../../../../../types/Eula';
 import { Request } from 'express';
 import { UserStatus } from '../../../../../types/User';
 import UtilsSecurity from './UtilsSecurity';
@@ -78,5 +79,16 @@ export default class AuthSecurity {
       filteredRequest.tenant = sanitize(request.headers.tenant);
     }
     return filteredRequest as {Language: string; tenant: string};
+  }
+
+  static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement: Eula): Eula {
+    const filteredEndUserLicenseAgreement = {} as Eula;
+
+    if (!endUserLicenseAgreement) {
+      return null;
+    }
+    // Set
+    filteredEndUserLicenseAgreement.text = endUserLicenseAgreement.text;
+    return filteredEndUserLicenseAgreement;
   }
 }

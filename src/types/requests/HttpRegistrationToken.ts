@@ -2,7 +2,7 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 import RegistrationToken from '../RegistrationToken';
 
 export interface HttpRegistrationTokensRequest extends HttpDatabaseRequest {
-  SiteAreaID: string;
+  siteAreaID: string;
 }
 
 export interface HttpRegistrationTokensResponse {

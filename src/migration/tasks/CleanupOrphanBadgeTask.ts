@@ -18,7 +18,7 @@ export default class CleanupOrphanBadgeTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    // Delete the property from the collection
+    // Add the status property to the refunded transactions
     const tagCollection = global.database.getCollection<any>(tenant.id, 'tags');
     const tags = await tagCollection.find().toArray();
 

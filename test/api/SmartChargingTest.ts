@@ -16,6 +16,7 @@ import SmartChargingFactory from '../../src/integration/smart-charging/SmartChar
 import SmartChargingIntegration from '../../src/integration/smart-charging/SmartChargingIntegration';
 import TenantContext from './context/TenantContext';
 import Transaction from '../types/Transaction';
+import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';

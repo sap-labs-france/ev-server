@@ -1,7 +1,10 @@
-import { HttpCompaniesRequest, HttpCompanyLogoRequest } from '../../../../../types/requests/HttpCompanyRequest';
-
+import Authorizations from '../../../../../authorization/Authorizations';
 import Company from '../../../../../types/Company';
+import { DataResult } from '../../../../../types/DataResult';
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
+import { HttpCompaniesRequest } from '../../../../../types/requests/HttpCompanyRequest';
+import SiteSecurity from './SiteSecurity';
+import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -10,13 +13,6 @@ export default class CompanySecurity {
 
   public static filterCompanyRequestByID(request: any): string {
     return sanitize(request.ID);
-  }
-
-  public static filterCompanyLogoRequest(request: any): HttpCompanyLogoRequest {
-    return {
-      ID: sanitize(request.ID),
-      TenantID: sanitize(request.TenantID),
-    };
   }
 
   public static filterCompanyRequest(request: any): HttpByIDRequest {
@@ -64,13 +60,56 @@ export default class CompanySecurity {
   }
 
   public static _filterCompanyRequest(request: any): Partial<Company> {
-    const filteredRequest = {
+    return {
       name: sanitize(request.name),
-      address: UtilsSecurity.filterAddressRequest(request.address)
-    } as Partial<Company>;
-    if (Utils.objectHasProperty(request, 'logo')) {
-      filteredRequest.logo = sanitize(request.logo);
+      address: UtilsSecurity.filterAddressRequest(request.address),
+      logo: request.logo
+    };
+  }
+
+  public static filterCompanyResponse(company: Company, loggedUser: UserToken): Company {
+    let filteredCompany;
+    if (!company) {
+      return null;
     }
-    return filteredRequest;
+    // Check auth
+    if (Authorizations.canReadCompany(loggedUser, company.id)) {
+      // Set only necessary info
+      filteredCompany = {};
+      filteredCompany.id = company.id;
+      filteredCompany.name = company.name;
+      filteredCompany.issuer = company.issuer;
+      filteredCompany.logo = company.logo;
+      filteredCompany.address = UtilsSecurity.filterAddressRequest(company.address);
+      if (company.sites) {
+        filteredCompany.sites = company.sites.map((site) => SiteSecurity.filterSiteResponse(site, loggedUser));
+      }
+      if (Utils.objectHasProperty(company, 'distanceMeters')) {
+        filteredCompany.distanceMeters = company.distanceMeters;
+      }
+      // Created By / Last Changed By
+      if (Authorizations.canUpdateCompany(loggedUser)) {
+        UtilsSecurity.filterCreatedAndLastChanged(filteredCompany, company, loggedUser);
+      }
+    }
+    return filteredCompany;
+  }
+
+  public static filterCompaniesResponse(companies: DataResult<Company>, loggedUser: UserToken): void {
+    const filteredCompanies = [];
+    if (!companies.result) {
+      return null;
+    }
+    if (!Authorizations.canListCompanies(loggedUser)) {
+      return null;
+    }
+    for (const company of companies.result) {
+      // Add
+      const filteredCompany = CompanySecurity.filterCompanyResponse(company, loggedUser);
+      if (filteredCompany) {
+        filteredCompanies.push(filteredCompany);
+      }
+    }
+    companies.result = filteredCompanies;
   }
 }

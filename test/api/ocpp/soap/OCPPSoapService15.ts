@@ -12,7 +12,7 @@ export default class OCPPSoapService15 extends OCPPService {
     this.client = null;
   }
 
-  public getVersion(): OCPPVersion {
+  public getVersion() {
     return OCPPVersion.VERSION_15;
   }
 

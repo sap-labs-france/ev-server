@@ -1,4 +1,3 @@
-import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
@@ -7,7 +6,7 @@ import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 
-const MODULE_NAME = 'RenameChargingStationPropertiesTask';
+const MODULE_NAME = 'RenameTagPropertiesTask';
 
 export default class RenameChargingStationPropertiesTask extends MigrationTask {
   async migrate(): Promise<void> {
@@ -18,10 +17,10 @@ export default class RenameChargingStationPropertiesTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    // Rename the property in the collection
-    const result = await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').updateMany(
+    // Add the status property to the refunded transactions
+    const result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
       {},
-      { $rename: { 'lastHeartBeat': 'lastSeen' } }
+      { $rename: { 'private': 'public' } }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {
@@ -35,7 +34,7 @@ export default class RenameChargingStationPropertiesTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.1';
+    return '1.0';
   }
 
   getName(): string {

@@ -113,7 +113,6 @@ export default class ContextBuilder {
       }
     }
     // Check if tenant exists
-    TenantStorage.clearCache();
     const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);

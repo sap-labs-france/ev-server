@@ -21,9 +21,9 @@ export default class JsonChargingStationService {
     const result = await this.handle('BootNotification', headers, payload);
     // Return the response
     return {
-      currentTime: result.currentTime,
-      status: result.status,
-      interval: result.heartbeatInterval
+      'currentTime': result.currentTime,
+      'status': result.status,
+      'interval': result.heartbeatInterval
     };
   }
 
@@ -32,7 +32,7 @@ export default class JsonChargingStationService {
     const result = await this.handle('Heartbeat', headers, payload);
     // Return the response
     return {
-      currentTime: result.currentTime
+      'currentTime': result.currentTime
     };
   }
 
@@ -55,8 +55,8 @@ export default class JsonChargingStationService {
     const result = await this.handle('Authorize', headers, payload);
     // Return the response
     return {
-      idTagInfo: {
-        status: result.status
+      'idTagInfo': {
+        'status': result.status
       }
     };
   }
@@ -80,9 +80,9 @@ export default class JsonChargingStationService {
     const result = await this.handle('StartTransaction', headers, payload);
     // Return the response
     return {
-      transactionId: result.transactionId,
-      idTagInfo: {
-        status: result.status
+      'transactionId': result.transactionId,
+      'idTagInfo': {
+        'status': result.status
       }
     };
   }
@@ -92,7 +92,7 @@ export default class JsonChargingStationService {
     const result = await this.handle('DataTransfer', headers, payload);
     // Return the response
     return {
-      status: result.status
+      'status': result.status
     };
   }
 
@@ -101,8 +101,8 @@ export default class JsonChargingStationService {
     const result = await this.handle('StopTransaction', headers, payload);
     // Return the response
     return {
-      idTagInfo: {
-        status: result.status
+      'idTagInfo': {
+        'status': result.status
       }
     };
   }

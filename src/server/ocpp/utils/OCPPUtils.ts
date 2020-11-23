@@ -962,7 +962,6 @@ export default class OCPPUtils {
       capabilitiesUpdated: false,
       ocppUpdated: false,
     };
-    const sectionsNotMatched: string[] = [];
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
     // Copy from template
@@ -997,6 +996,8 @@ export default class OCPPUtils {
         }
         // Already updated?
         if (chargingStation.templateHashCapabilities !== chargingStationTemplate.hashCapabilities) {
+          chargingStation.templateHashCapabilities = chargingStationTemplate.hashCapabilities;
+          templateUpdateResult.capabilitiesUpdated = true;
           // Handle capabilities
           chargingStation.capabilities = {} as ChargingStationCapabilities;
           if (Utils.objectHasProperty(chargingStationTemplate, 'capabilities')) {
@@ -1020,23 +1021,20 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
-                chargingStation.templateHashCapabilities = chargingStationTemplate.hashCapabilities;
-                templateUpdateResult.capabilitiesUpdated = true;
                 if (Utils.objectHasProperty(capabilities.capabilities, 'supportChargingProfiles') &&
                   !capabilities.capabilities.supportChargingProfiles) {
                   chargingStation.excludeFromSmartCharging = !capabilities.capabilities.supportChargingProfiles;
                 }
                 chargingStation.capabilities = capabilities.capabilities;
                 break;
-              } else {
-                delete chargingStation.templateHashCapabilities;
-                sectionsNotMatched.push('Capabilities');
               }
             }
           }
         }
         // Already updated?
         if (chargingStation.templateHashOcppStandard !== chargingStationTemplate.hashOcppStandard) {
+          chargingStation.templateHashOcppStandard = chargingStationTemplate.hashOcppStandard;
+          templateUpdateResult.ocppUpdated = true;
           // Handle OCPP Standard Parameters
           chargingStation.ocppStandardParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppStandardParameters')) {
@@ -1060,8 +1058,6 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
-                chargingStation.templateHashOcppStandard = chargingStationTemplate.hashOcppStandard;
-                templateUpdateResult.ocppUpdated = true;
                 for (const parameter in ocppStandardParameters.parameters) {
                   if (OCPPUtils.isOcppParamForPowerLimitationKey(parameter, chargingStation)) {
                     Logging.logError({
@@ -1074,32 +1070,20 @@ export default class OCPPUtils {
                     });
                     continue;
                   }
-                  if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
-                    Logging.logWarning({
-                      tenantID: tenantID,
-                      source: chargingStation.id,
-                      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-                      module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-                      message: `Template contains heartbeat interval value setting for OCPP Parameter key '${parameter}' in OCPP Standard parameters, skipping. Remove it from template`,
-                      detailedMessages: { chargingStationTemplate }
-                    });
-                    continue;
-                  }
                   chargingStation.ocppStandardParameters.push({
                     key: parameter,
                     value: ocppStandardParameters.parameters[parameter]
                   });
                 }
                 break;
-              } else {
-                delete chargingStation.templateHashOcppStandard;
-                sectionsNotMatched.push('OCPPStandard');
               }
             }
           }
         }
         // Already updated?
         if (chargingStation.templateHashOcppVendor !== chargingStationTemplate.hashOcppVendor) {
+          chargingStation.templateHashOcppVendor = chargingStationTemplate.hashOcppVendor;
+          templateUpdateResult.ocppUpdated = true;
           // Handle OCPP Vendor Parameters
           chargingStation.ocppVendorParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppVendorParameters')) {
@@ -1123,8 +1107,6 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
-                chargingStation.templateHashOcppVendor = chargingStationTemplate.hashOcppVendor;
-                templateUpdateResult.ocppUpdated = true;
                 for (const parameter in ocppVendorParameters.parameters) {
                   if (OCPPUtils.isOcppParamForPowerLimitationKey(parameter, chargingStation)) {
                     Logging.logError({
@@ -1137,40 +1119,26 @@ export default class OCPPUtils {
                     });
                     continue;
                   }
-                  if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
-                    Logging.logWarning({
-                      tenantID: tenantID,
-                      source: chargingStation.id,
-                      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-                      module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-                      message: `Template contains heartbeat interval value setting for OCPP Parameter key '${parameter}' in OCPP Vendor parameters, skipping. Remove it from template`,
-                      detailedMessages: { chargingStationTemplate }
-                    });
-                    continue;
-                  }
                   chargingStation.ocppVendorParameters.push({
                     key: parameter,
                     value: ocppVendorParameters.parameters[parameter]
                   });
                 }
                 break;
-              } else {
-                delete chargingStation.templateHashOcppVendor;
-                sectionsNotMatched.push('OCPPVendor');
               }
             }
           }
         }
         // Log
-        const sectionsUpdated: string[] = [];
+        const sectionsUpdated = [];
         if (templateUpdateResult.technicalUpdated) {
           sectionsUpdated.push('Technical');
         }
-        if (templateUpdateResult.capabilitiesUpdated) {
-          sectionsUpdated.push('Capabilities');
-        }
         if (templateUpdateResult.ocppUpdated) {
           sectionsUpdated.push('OCPP');
+        }
+        if (templateUpdateResult.capabilitiesUpdated) {
+          sectionsUpdated.push('Capabilities');
         }
         Logging.logInfo({
           tenantID: tenantID,
@@ -1178,18 +1146,8 @@ export default class OCPPUtils {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
           message: `Template applied and updated the following sections: ${sectionsUpdated.join(', ')}`,
-          detailedMessages: { templateUpdateResult, chargingStationTemplate, chargingStation }
+          detailedMessages: { templateUpdateResult, chargingStationTemplate }
         });
-        if (!Utils.isEmptyArray(sectionsNotMatched)) {
-          Logging.logWarning({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-            module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-            message: `Template applied and not matched the following sections: ${sectionsNotMatched.join(', ')}`,
-            detailedMessages: { templateUpdateResult, chargingStationTemplate, chargingStation }
-          });
-        }
         return templateUpdateResult;
       }
       // Log
@@ -1199,15 +1157,9 @@ export default class OCPPUtils {
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
         message: 'Template has already been applied',
-        detailedMessages: { chargingStationTemplate, chargingStation }
+        detailedMessages: { chargingStationTemplate }
       });
       return templateUpdateResult;
-    }
-    let noMatchingTemplateLogMsg: string;
-    if (chargingStation.templateHash) {
-      noMatchingTemplateLogMsg = 'No template matching the charging station has been found but one matched previously. Keeping the previous template configuration';
-    } else {
-      noMatchingTemplateLogMsg = 'No template matching the charging station has been found';
     }
     // Log
     Logging.logWarning({
@@ -1215,7 +1167,7 @@ export default class OCPPUtils {
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-      message: noMatchingTemplateLogMsg,
+      message: 'No Template has been found!',
       detailedMessages: { chargingStation }
     });
     return templateUpdateResult;
@@ -1238,7 +1190,7 @@ export default class OCPPUtils {
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
-            message: `No connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
+            message: `No Connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
           });
           return false;
         }
@@ -1292,8 +1244,7 @@ export default class OCPPUtils {
                 }
               }
             }
-            // Template on connector id = connectorID applied, break the loop to continue the static method execution. Never return here.
-            break;
+            return true;
           }
         }
       }
@@ -1572,12 +1523,7 @@ export default class OCPPUtils {
       // Add the existing custom params
       const customParams = ocppParametersFromDB.result.filter((customParam) => customParam.custom);
       if (!Utils.isEmptyArray(customParams)) {
-        for (const customParam of customParams) {
-          const foundCustomParam = chargingStationOcppParameters.configuration.find((configuration) => configuration.key === customParam.key);
-          if (!foundCustomParam) {
-            chargingStationOcppParameters.configuration.push(customParam);
-          }
-        }
+        chargingStationOcppParameters.configuration = chargingStationOcppParameters.configuration.concat(customParams);
       }
       // Save config
       await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);

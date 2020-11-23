@@ -140,13 +140,11 @@
     "debug": false
   },
   "ChargingStation": {
-    "heartbeatIntervalOCPPSSecs": 180,
-    "heartbeatIntervalOCPPJSecs": 3600,
+    "heartbeatIntervalSecs": 180,
     "notifBeforeEndOfChargeEnabled": true,
     "notifBeforeEndOfChargePercent": 85,
     "notifEndOfChargeEnabled": true,
-    "notifStopTransactionAndUnlockConnector": false,
-    "maxLastSeenIntervalSecs": 540
+    "notifStopTransactionAndUnlockConnector": false
   },
   "Locales": {
     "default": "en_US",

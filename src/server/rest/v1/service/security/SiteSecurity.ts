@@ -1,6 +1,11 @@
-import { HttpSiteAssignUsersRequest, HttpSiteImageRequest, HttpSiteOwnerRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteOwnerRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../../types/requests/HttpSiteRequest';
 
+import Authorizations from '../../../../../authorization/Authorizations';
+import CompanySecurity from './CompanySecurity';
+import { DataResult } from '../../../../../types/DataResult';
 import Site from '../../../../../types/Site';
+import SiteAreaSecurity from './SiteAreaSecurity';
+import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -45,13 +50,6 @@ export default class SiteSecurity {
 
   public static filterSiteRequestByID(request: any): string {
     return sanitize(request.ID);
-  }
-
-  public static filterSiteImageRequest(request: any): HttpSiteImageRequest {
-    return {
-      ID: sanitize(request.ID),
-      TenantID: sanitize(request.TenantID),
-    };
   }
 
   public static filterSiteUsersRequest(request: any): HttpSiteUsersRequest {
@@ -103,17 +101,75 @@ export default class SiteSecurity {
   }
 
   public static _filterSiteRequest(request: any): Partial<Site> {
-    const filteredRequest = {
-      name: sanitize(request.name),
-      address: UtilsSecurity.filterAddressRequest(request.address),
-      public: UtilsSecurity.filterBoolean(request.public),
-      autoUserSiteAssignment: UtilsSecurity.filterBoolean(request.autoUserSiteAssignment),
-      companyID: sanitize(request.companyID),
-    } as Partial<Site>;
-    if (Utils.objectHasProperty(request, 'image')) {
-      filteredRequest.image = sanitize(request.image);
-    }
+    const filteredRequest: any = {};
+    filteredRequest.name = sanitize(request.name);
+    filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
+    filteredRequest.image = sanitize(request.image);
+    filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
+    filteredRequest.autoUserSiteAssignment =
+      UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
+    filteredRequest.companyID = sanitize(request.companyID);
     return filteredRequest;
+  }
+
+  static filterSiteResponse(site: Site, loggedUser: UserToken): Site {
+    let filteredSite;
+    if (!site) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadSite(loggedUser, site.id)) {
+      // Set only necessary info
+      filteredSite = {};
+      filteredSite.id = site.id;
+      filteredSite.name = site.name;
+      filteredSite.companyID = site.companyID;
+      filteredSite.autoUserSiteAssignment = site.autoUserSiteAssignment;
+      filteredSite.public = site.public;
+      filteredSite.issuer = site.issuer;
+      if (Utils.objectHasProperty(site, 'address')) {
+        filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
+      }
+      if (site.company) {
+        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
+      }
+      if (site.siteAreas) {
+        filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse({
+          count: site.siteAreas.length,
+          result: site.siteAreas
+        }, loggedUser);
+      }
+      if (site.connectorStats) {
+        filteredSite.connectorStats = site.connectorStats;
+      }
+      if (Utils.objectHasProperty(site, 'distanceMeters')) {
+        filteredSite.distanceMeters = site.distanceMeters;
+      }
+      // Created By / Last Changed By
+      if (Authorizations.canUpdateSite(loggedUser, site.id)) {
+        UtilsSecurity.filterCreatedAndLastChanged(filteredSite, site, loggedUser);
+      }
+    }
+    return filteredSite;
+  }
+
+  static filterSitesResponse(sites: DataResult<Site>, loggedUser) {
+    const filteredSites = [];
+
+    if (!sites.result) {
+      return null;
+    }
+    if (!Authorizations.canListSites(loggedUser)) {
+      return null;
+    }
+    for (const site of sites.result) {
+      // Filter
+      const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
+      if (filteredSite) {
+        filteredSites.push(filteredSite);
+      }
+    }
+    sites.result = filteredSites;
   }
 }
 

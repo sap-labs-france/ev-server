@@ -1,5 +1,8 @@
+import Authorizations from '../../../../../authorization/Authorizations';
 import Connection from '../../../../../types/Connection';
+import { DataResult } from '../../../../../types/DataResult';
 import { HttpConnectionsRequest } from '../../../../../types/requests/HttpConnectionRequest';
+import UserToken from '../../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
@@ -33,6 +36,46 @@ export default class ConnectionSecurity {
 
   public static filterConnectionCreateRequest(request: any): Connection {
     return ConnectionSecurity.filterConnectionRequest(request);
+  }
+
+  public static filterConnectionResponse(connection: Connection, loggedUser: UserToken): Connection {
+    let filteredConnection: Connection;
+    if (!connection) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadConnection(loggedUser, connection.userId)) {
+      // Set only necessary info
+      filteredConnection = {
+        id: connection.id,
+        connectorId: connection.connectorId,
+        createdAt: connection.createdAt,
+        validUntil: connection.validUntil,
+      } as Connection;
+      // Created By / Last Changed By
+      UtilsSecurity.filterCreatedAndLastChanged(
+        filteredConnection, connection, loggedUser);
+    }
+    return filteredConnection;
+  }
+
+  public static filterConnectionsResponse(connections: DataResult<Connection>, loggedUser: UserToken): DataResult<Connection> {
+    const filteredConnections = [];
+    if (!connections.result) {
+      return null;
+    }
+    if (!Authorizations.canListConnections(loggedUser)) {
+      return null;
+    }
+    for (const connection of connections.result) {
+      // Filter
+      const filteredConnection = ConnectionSecurity.filterConnectionResponse(connection, loggedUser);
+      if (filteredConnection) {
+        // Add
+        filteredConnections.push(filteredConnection);
+      }
+    }
+    connections.result = filteredConnections;
   }
 
   private static filterConnectionRequest(request: any): Connection {

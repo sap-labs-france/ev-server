@@ -1,6 +1,6 @@
-import { MessageType, WSClientOptions } from '../../../../src/types/WebSocket';
-import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
+import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse } from '../../../../src/types/ocpp/OCPPServer';
 
+import { MessageType } from '../../../../src/types/WebSocket';
 import OCPPService from '../OCPPService';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
@@ -8,7 +8,7 @@ import config from '../../../config';
 import { performance } from 'perf_hooks';
 
 export default class OCPPJsonService16 extends OCPPService {
-  private wsSessions: Map<string, any>;
+  private wsSessions: any;
   private requestHandler: any;
 
   public constructor(serverUrl, requestHandler) {
@@ -18,16 +18,16 @@ export default class OCPPJsonService16 extends OCPPService {
     this.requestHandler = requestHandler;
   }
 
-  public getVersion(): OCPPVersion {
-    return OCPPVersion.VERSION_16;
+  public getVersion() {
+    return '1.6';
   }
 
-  public async openConnection(chargeBoxIdentity: string) {
+  public async openConnection(chargeBoxIdentity) {
     // eslint-disable-next-line no-undef
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = {};
-      const wsClientOptions: WSClientOptions = {
+      const wsClientOptions = {
         protocols: 'ocpp1.6',
         autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
         autoReconnectMaxRetries: config.get('wsClient').autoReconnectMaxRetries
@@ -78,15 +78,16 @@ export default class OCPPJsonService16 extends OCPPService {
     });
   }
 
-  public async handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload): Promise<void> {
+  public async handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload) {
     let result = {};
+
     if (this.requestHandler && typeof this.requestHandler['handle' + commandName] === 'function') {
       result = await this.requestHandler['handle' + commandName](commandPayload);
     }
     await this.send(chargeBoxIdentity, this.buildResponse(messageId, result));
   }
 
-  public closeConnection(): void {
+  public closeConnection() {
     // Close
     if (this.wsSessions) {
       this.wsSessions.forEach((session) => session.connection.close());
@@ -145,10 +146,6 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   private async send(chargeBoxIdentity: string, message: any): Promise<any> {
-    // Debug
-    // console.log('OCPP Request ====================================');
-    // console.log({ chargeBoxIdentity, message });
-    // console.log('====================================');
     // WS Opened?
     if (!this.wsSessions.get(chargeBoxIdentity)) {
       // Open WS

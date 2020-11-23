@@ -26,16 +26,6 @@ export default class BaseApi {
       t0 = performance.now();
       // Execute with Axios
       httpResponse = await axiosInstance(httpRequest);
-      // Debug
-      // console.log('HTTP Request ====================================');
-      // console.log(httpRequest.baseURL);
-      // console.log(httpRequest.url);
-      // console.log(httpRequest.method);
-      // console.log(httpRequest.data);
-      // console.log(httpResponse.status);
-      // console.log(httpResponse.statusText);
-      // console.log(httpResponse.data);
-      // console.log('====================================');
       t1 = performance.now();
     } catch (error) {
       // Handle errors
