@@ -597,11 +597,11 @@ export default class Utils {
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.convertToFloat((pricePerkWh * (consumptionWh / 1000)).toFixed(6));
+    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 6);
   }
 
   public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.convertToFloat((pricePerkWh * (consumptionWh / 1000)).toFixed(2));
+    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 2);
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -1121,7 +1121,8 @@ export default class Utils {
   }
 
   public static roundTo(number: number, scale: number): number {
-    return Utils.convertToFloat(number.toFixed(scale));
+    const roundPower = Math.pow(10, scale);
+    return Math.round(number * roundPower) / roundPower;
   }
 
   public static firstLetterInUpperCase(value: string): string {
