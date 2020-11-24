@@ -177,7 +177,9 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getSiteAreaConsumptions(tenantID: string, params: { siteAreaID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
+  static async getSiteAreaConsumptions(tenantID: string,
+    params: { siteAreaID: string; startDate: Date; endDate: Date },
+    projectFields?: string[]): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaConsumptions');
     // Check
@@ -248,7 +250,7 @@ export default class ConsumptionStorage {
       }
     });
     // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
+    DatabaseUtils.projectFields(aggregation, projectFields, ['_id']);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
       .aggregate(...aggregation, { allowDiskUse: true })

@@ -55,9 +55,7 @@ export default class CarStorage {
     if (params.carMaker) {
       aggregation.push({
         $match: {
-          'vehicleMake': {
-            $in: params.carMaker
-          }
+          'vehicleMake': { $in: params.carMaker }
         }
       });
     }
@@ -99,6 +97,19 @@ export default class CarStorage {
     // Limit
     aggregation.push({
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+    });
+    // Car Image
+    aggregation.push({
+      $addFields: {
+        image: {
+          $concat: [
+            `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+            { $toString: '$_id' },
+            '&LastChangedOn=',
+            { $toString: '$lastChangedOn' }
+          ]
+        }
+      }
     });
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(Constants.DEFAULT_TENANT, aggregation);
@@ -319,6 +330,20 @@ export default class CarStorage {
     Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImages', uniqueTimerID, carImagesToSave);
   }
 
+  public static async getCarCatalogImage(id: number): Promise<{ id: number; image: string }> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogImage');
+    // Read DB
+    const carCatalogImageMDB = await global.database.getCollection<{ _id: number; image: string }>(Constants.DEFAULT_TENANT, 'carcatalogs')
+      .findOne({ _id: id });
+    // Debug
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogImage', uniqueTimerID, carCatalogImageMDB);
+    return {
+      id: id,
+      image: carCatalogImageMDB ? carCatalogImageMDB.image : null
+    };
+  }
+
   public static async getCarCatalogImages(id: number = Constants.UNKNOWN_NUMBER_ID, dbParams?: DbParams): Promise<DataResult<Image>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogImages');
@@ -384,13 +409,11 @@ export default class CarStorage {
     };
   }
 
-  public static async getCarMakers(
-    params: { search?: string } = {}): Promise<DataResult<CarMaker>> {
+  public static async getCarMakers(params: { search?: string } = {}, projectFields?: string[]): Promise<DataResult<CarMaker>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarMakers');
     // Set the filters
     const filters: ({ $or?: any[] } | undefined) = {};
-
     if (params.search) {
       filters.$or = [
         { 'vehicleMake': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } },
@@ -429,6 +452,8 @@ export default class CarStorage {
         carMaker: 1
       }
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     const carMakersMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
@@ -652,6 +677,19 @@ export default class CarStorage {
     // Limit
     aggregation.push({
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+    });
+    // Car Image
+    aggregation.push({
+      $addFields: {
+        'carCatalog.image': {
+          $concat: [
+            `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+            '$carCatalog.id',
+            '&LastChangedOn=',
+            { $toString: '$carCatalog.lastChangedOn' }
+          ]
+        }
+      }
     });
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);

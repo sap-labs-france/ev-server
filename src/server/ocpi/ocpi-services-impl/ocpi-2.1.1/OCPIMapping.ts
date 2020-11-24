@@ -373,7 +373,7 @@ export default class OCPIMapping {
           latitude: chargingStation.coordinates[1].toString(),
           longitude: chargingStation.coordinates[0].toString()
         },
-        last_updated: chargingStation.lastHeartBeat
+        last_updated: chargingStation.lastSeen
       }],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: {
@@ -538,7 +538,7 @@ export default class OCPIMapping {
         status: OCPIMapping.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: [OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, evseID)],
-        last_updated: chargingStation.lastHeartBeat,
+        last_updated: chargingStation.lastSeen,
         coordinates: {
           latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
           longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
@@ -573,7 +573,7 @@ export default class OCPIMapping {
       status: OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
       connectors: connectors,
-      last_updated: chargingStation.lastHeartBeat,
+      last_updated: chargingStation.lastSeen,
       coordinates: {
         latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
         longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
@@ -715,7 +715,7 @@ export default class OCPIMapping {
 
   private static buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
     const chargingPeriod: OCPIChargingPeriod = {
-      start_date_time: consumption.startedAt,
+      start_date_time: consumption.endedAt,
       dimensions: []
     };
     if (consumption.consumptionWh > 0) {
