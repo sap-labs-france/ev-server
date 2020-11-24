@@ -1,3 +1,10 @@
+// Get the supported locales for moment
+import 'moment/locale/fr';
+import 'moment/locale/de';
+import 'moment/locale/es';
+import 'moment/locale/en-us';
+import 'moment/locale/pt-br';
+
 import Constants from './Constants';
 import Intl from 'intl';
 import Utils from './Utils';
@@ -20,11 +27,6 @@ export default class I18nManager {
   }
 
   public static async initialize() {
-    // Get the supported locales for moment
-    require('moment/locale/fr');
-    require('moment/locale/de');
-    require('moment/locale/es');
-    require('moment/locale/en-gb');
     // Get translation files
     i18n.translations['en'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
     i18n.translations['fr'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/fr.json`, 'utf8'));
@@ -50,7 +52,7 @@ export default class I18nManager {
     if (currency) {
       return new Intl.NumberFormat(this.language, { style: 'currency', currency }).format(value);
     }
-    return this.formatNumber(Math.round(value * 100) / 100);
+    return this.formatNumber(Utils.roundTo(value, 2));
   }
 
   public formatPercentage(value: number): string {
