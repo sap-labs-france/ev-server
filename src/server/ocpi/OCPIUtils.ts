@@ -5,6 +5,7 @@ import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import { Request } from 'express';
+import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 /**
@@ -205,11 +206,11 @@ export default class OCPIUtils {
   public static generateLocalToken(tenantSubdomain: string): string {
     const newToken: any = {};
     // Generate random
-    newToken.ak = Math.floor(Math.random() * 100);
+    newToken.ak = Utils.getRandomInt(100);
     // Fill new Token with tenant subdomain
     newToken.tid = tenantSubdomain;
     // Generate random
-    newToken.zk = Math.floor(Math.random() * 100);
+    newToken.zk = Utils.getRandomInt(100);
     // Return in Base64
     return OCPIUtils.btoa(JSON.stringify(newToken));
   }
