@@ -1127,9 +1127,9 @@ export default class Utils {
     return recordLimit;
   }
 
-  public static roundTo(number: number, scale: number): number {
+  public static roundTo(value: number, scale: number): number {
     const roundPower = Math.pow(10, scale);
-    return Math.round(number * roundPower) / roundPower;
+    return Math.round(value * roundPower) / roundPower;
   }
 
   public static firstLetterInUpperCase(value: string): string {
