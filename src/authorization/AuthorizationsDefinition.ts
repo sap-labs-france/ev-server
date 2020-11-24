@@ -209,6 +209,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     grants: [
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.COMPANY, action: Action.READ, attributes: ['*'] },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
