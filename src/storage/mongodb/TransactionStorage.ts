@@ -1004,7 +1004,7 @@ export default class TransactionStorage {
     let existingTransaction: Transaction;
     do {
       // Generate new transaction ID
-      const id = Utils.getRandomInt();
+      const id = Utils.getRandomIntSafe();
       existingTransaction = await TransactionStorage.getTransaction(tenantID, id);
       if (existingTransaction) {
         Logging.logWarning({

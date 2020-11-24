@@ -50,7 +50,7 @@ export default class I18nManager {
     if (currency) {
       return new Intl.NumberFormat(this.language, { style: 'currency', currency }).format(value);
     }
-    return this.formatNumber(Math.round(value * 100) / 100);
+    return this.formatNumber(Utils.roundTo(value, 2));
   }
 
   public formatPercentage(value: number): string {

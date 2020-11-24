@@ -70,9 +70,9 @@ export default class Utils {
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     if (currentType === CurrentType.AC &&
-       (transaction.currentInstantAmpsL1 > 0 && (transaction.currentInstantAmpsL2 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
-       (transaction.currentInstantAmpsL2 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
-       (transaction.currentInstantAmpsL3 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL2 === 0))) {
+      (transaction.currentInstantAmpsL1 > 0 && (transaction.currentInstantAmpsL2 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL2 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL3 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL2 === 0))) {
       return false;
     }
     return true;
@@ -110,8 +110,8 @@ export default class Utils {
   public static checkIfPhasesProvidedInTransactionInProgress(transaction: Transaction): boolean {
     return transaction.currentInstantAmps > 0 &&
       (transaction.currentInstantAmpsL1 > 0 ||
-       transaction.currentInstantAmpsL2 > 0 ||
-       transaction.currentInstantAmpsL3 > 0);
+        transaction.currentInstantAmpsL2 > 0 ||
+        transaction.currentInstantAmpsL3 > 0);
   }
 
   public static getNumberOfUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
@@ -302,7 +302,7 @@ export default class Utils {
     } else {
       tagID += 'F';
     }
-    tagID += Math.floor((Math.random() * 2147483648) + 1);
+    tagID += Utils.getRandomIntSafe();
     return tagID;
   }
 
@@ -1014,8 +1014,15 @@ export default class Utils {
     fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
   }
 
-  public static getRandomInt(): number {
-    return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
+  public static getRandomInt(max: number, min = 0): number {
+    if (min) {
+      return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+    return Math.floor(Math.random() * max + 1);
+  }
+
+  public static getRandomIntSafe(): number {
+    return Utils.getRandomInt(2147483648); // INT32 (signed: issue in Schneider)
   }
 
   public static buildRestServerURL(): string {
@@ -1244,7 +1251,7 @@ export default class Utils {
 
   public static generatePassword(): string {
     let password = '';
-    const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
+    const randomLength = Utils.getRandomInt(Constants.PWD_MAX_LENGTH, Constants.PWD_MIN_LENGTH);
     while (!Utils.isPasswordStrongEnough(password)) {
       // eslint-disable-next-line no-useless-escape
       password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
