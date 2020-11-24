@@ -2,7 +2,7 @@
 import 'moment/locale/fr';
 import 'moment/locale/de';
 import 'moment/locale/es';
-import 'moment/locale/en-us';
+import 'moment/locale/en-gb';
 import 'moment/locale/pt-br';
 
 import Constants from './Constants';
