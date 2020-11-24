@@ -536,11 +536,7 @@ export default class AuthService {
     }
     // Get it
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, filteredRequest.Language);
-    res.json(
-      // Filter
-      AuthSecurity.filterEndUserLicenseAgreementResponse(
-        endUserLicenseAgreement)
-    );
+    res.json(endUserLicenseAgreement);
     next();
   }
 

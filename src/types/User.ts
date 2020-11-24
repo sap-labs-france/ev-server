@@ -1,7 +1,6 @@
 import Address from './Address';
 import { BillingUserData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import Tag from './Tag';
 import UserNotifications from './UserNotifications';
 
 export default interface User extends CreatedUpdatedProps {

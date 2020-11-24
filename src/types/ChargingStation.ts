@@ -32,7 +32,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppVersion: OCPPVersion;
   ocppProtocol: OCPPProtocol;
   cfApplicationIDAndInstanceIndex: string;
-  lastHeartBeat: Date;
+  lastSeen: Date;
   deleted: boolean;
   inactive: boolean;
   forceInactive: boolean;

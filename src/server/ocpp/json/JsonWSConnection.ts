@@ -1,9 +1,11 @@
 import { MessageType, OcppErrorType } from '../../../types/WebSocket';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
@@ -13,12 +15,12 @@ import OCPPError from '../../../exception/OcppError';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
-import WebSocket from 'ws';
 import http from 'http';
 
 const MODULE_NAME = 'JsonWSConnection';
 
 export default class JsonWSConnection extends WSConnection {
+  public isConnectionAlive: boolean;
   private chargingStationClient: ChargingStationClient;
   private chargingStationService: JsonChargingStationService;
   private headers: OCPPHeader;
@@ -45,6 +47,11 @@ export default class JsonWSConnection extends WSConnection {
           message: `Protocol ${wsConnection.protocol} not supported`
         });
     }
+    this.isConnectionAlive = true;
+    // Handle Socket ping
+    this.getWSConnection().on('ping', this.onPing.bind(this));
+    // Handle Socket pong
+    this.getWSConnection().on('pong', this.onPong.bind(this));
   }
 
   public async initialize(): Promise<void> {
@@ -81,7 +88,8 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
-      action: ServerAction.WS_ERROR,
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
       message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
       detailedMessages: `${JSON.stringify(errorEvent)}`
@@ -99,6 +107,19 @@ export default class JsonWSConnection extends WSConnection {
     });
     // Remove the connection
     this.wsServer.removeJsonConnection(this);
+  }
+
+  public async onPing(): Promise<void> {
+    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
+      lastSeen: new Date()
+    });
+  }
+
+  public async onPong(): Promise<void> {
+    this.isConnectionAlive = true;
+    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
+      lastSeen: new Date()
+    });
   }
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {

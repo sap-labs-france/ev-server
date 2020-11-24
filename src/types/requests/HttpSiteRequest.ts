@@ -18,6 +18,10 @@ export interface HttpSitesRequest extends HttpDatabaseRequest {
   LocMaxDistanceMeters?: number;
 }
 
+export interface HttpSiteImageRequest extends HttpByIDRequest {
+  TenantID: string;
+}
+
 export interface HttpSiteAssignUsersRequest {
   siteID: string;
   userIDs: string[];
