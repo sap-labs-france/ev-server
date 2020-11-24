@@ -472,12 +472,22 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (transaction && !Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!Authorizations.canReadUser(req.user, transaction.userID)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
-      delete transaction.stop.user;
-      delete transaction.stop.userID;
+      if (transaction.stop) {
+        delete transaction.stop.user;
+        delete transaction.stop.userID;
+      }
+    }
+    // Check Tags
+    if (!Authorizations.canReadTag(req.user)) {
+      // Remove Tag
+      delete transaction.tagID;
+      if (transaction.stop) {
+        delete transaction.stop.tagID;
+      }
     }
     // Check Dates
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime &&
@@ -549,12 +559,22 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (transaction && !Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!Authorizations.canReadUser(req.user, transaction.userID)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
-      delete transaction.stop.user;
-      delete transaction.stop.userID;
+      if (transaction.stop) {
+        delete transaction.stop.user;
+        delete transaction.stop.userID;
+      }
+    }
+    // Check Tags
+    if (!Authorizations.canReadTag(req.user)) {
+      // Remove Tag
+      delete transaction.tagID;
+      if (transaction.stop) {
+        delete transaction.stop.tagID;
+      }
     }
     // Return
     res.json(transaction);
@@ -564,7 +584,7 @@ export default class TransactionService {
   public static async handleGetChargingStationTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr'
@@ -588,7 +608,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionsActive(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: false }, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice'
     ]);
@@ -599,9 +619,9 @@ export default class TransactionService {
   public static async handleGetTransactionsCompleted(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.tagID', 'stop.meterStop', 'billingData.invoiceID', 'ocpiWithNoCdr'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpiWithNoCdr'
     ]);
     res.json(transactions);
     next();
@@ -615,7 +635,7 @@ export default class TransactionService {
     req.query.issuer = 'true';
     // Call
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID'
@@ -642,6 +662,11 @@ export default class TransactionService {
     if (Authorizations.canListUsers(req.user)) {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
+    // Check Tags
+    let tagProject: string[] = [];
+    if (Authorizations.canListTags(req.user)) {
+      tagProject = [ 'tagID' ];
+    }
     const filter: any = { stop: { $exists: true } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
@@ -663,10 +688,8 @@ export default class TransactionService {
       skip: filteredRequest.Skip,
       sort: filteredRequest.Sort,
       onlyRecordCount: filteredRequest.OnlyRecordCount
-    }, [
-      'id',
-      ...userProject
-    ]);
+    },
+    [ 'id', ...userProject, ...tagProject ]);
     // Return
     res.json(reports);
     next();
@@ -681,7 +704,7 @@ export default class TransactionService {
   public static async getCompletedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     // Get transaction
     return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true }, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr'
     ]);
@@ -695,7 +718,7 @@ export default class TransactionService {
 
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, { completedTransactions: true }, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID'
@@ -759,7 +782,7 @@ export default class TransactionService {
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
       { ...filter, search: filteredRequest.Search }, [
-        'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId',
+        'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
         'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
       ]);
     // Return
@@ -890,6 +913,15 @@ export default class TransactionService {
           ...projectFields,
           'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
           'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
+        ];
+      }
+    }
+    // Check Tags
+    if (Authorizations.canListTags(req.user)) {
+      if (projectFields) {
+        projectFields = [
+          ...projectFields,
+          'tagID', 'stop.tagID'
         ];
       }
     }

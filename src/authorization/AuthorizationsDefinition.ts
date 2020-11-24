@@ -207,7 +207,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   demo: {
     grants: [
-      { resource: Entity.USER, action: Action.READ, attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
