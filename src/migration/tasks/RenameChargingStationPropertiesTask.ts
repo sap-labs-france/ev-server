@@ -34,7 +34,7 @@ export default class RenameChargingStationPropertiesTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.0';
+    return '1.2';
   }
 
   getName(): string {

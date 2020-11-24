@@ -602,7 +602,7 @@ export default class OCPPCommonTests {
         'price': this.totalPrice,
         'priceUnit': 'EUR',
         'pricingSource': PricingSettingsType.SIMPLE,
-        'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
+        'roundedPrice': Utils.roundTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
@@ -627,7 +627,7 @@ export default class OCPPCommonTests {
       'stop': {
         'price': this.totalPrice,
         'pricingSource': 'simple',
-        'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
+        'roundedPrice': Utils.roundTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
         'totalInactivitySecs': this.transactionTotalInactivitySecs,

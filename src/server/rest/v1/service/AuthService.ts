@@ -250,7 +250,7 @@ export default class AuthService {
     // Get the i18n translation class
     const i18nManager = new I18nManager(newUser.locale);
     const tag: Tag = {
-      id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt().toString(),
+      id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomIntSafe().toString(),
       active: true,
       issuer: true,
       userID: newUser.id,
