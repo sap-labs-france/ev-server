@@ -1,5 +1,6 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
+
 import BackendError from '../../exception/BackendError';
 import { BillingSetting } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
@@ -478,47 +479,47 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return billingUser;
   }
 
-  async abstract checkConnection(): Promise<void>;
+  abstract checkConnection(): Promise<void>;
 
-  async abstract getUpdatedUserIDsInBilling(): Promise<string[]>;
+  abstract getUpdatedUserIDsInBilling(): Promise<string[]>;
 
-  async abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
+  abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
-  async abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;
+  abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;
 
-  async abstract stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
+  abstract stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
 
-  async abstract checkIfUserCanBeCreated(user: User): Promise<boolean>;
+  abstract checkIfUserCanBeCreated(user: User): Promise<boolean>;
 
-  async abstract checkIfUserCanBeUpdated(user: User): Promise<boolean>;
+  abstract checkIfUserCanBeUpdated(user: User): Promise<boolean>;
 
-  async abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
+  abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
 
-  async abstract getUser(id: string): Promise<BillingUser>;
+  abstract getUser(id: string): Promise<BillingUser>;
 
-  async abstract getUserByEmail(email: string): Promise<BillingUser>;
+  abstract getUserByEmail(email: string): Promise<BillingUser>;
 
-  async abstract getUsers(): Promise<BillingUser[]>;
+  abstract getUsers(): Promise<BillingUser[]>;
 
-  async abstract createUser(user: User): Promise<BillingUser>;
+  abstract createUser(user: User): Promise<BillingUser>;
 
-  async abstract updateUser(user: User): Promise<BillingUser>;
+  abstract updateUser(user: User): Promise<BillingUser>;
 
-  async abstract deleteUser(user: User): Promise<void>;
+  abstract deleteUser(user: User): Promise<void>;
 
-  async abstract userExists(user: User): Promise<boolean>;
+  abstract userExists(user: User): Promise<boolean>;
 
-  async abstract getTaxes(): Promise<BillingTax[]>;
+  abstract getTaxes(): Promise<BillingTax[]>;
 
-  async abstract getInvoice(id: string): Promise<BillingInvoice>;
+  abstract getInvoice(id: string): Promise<BillingInvoice>;
 
-  async abstract getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]>;
+  abstract getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]>;
 
-  async abstract createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<BillingInvoiceItem>;
+  abstract createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<BillingInvoiceItem>;
 
-  async abstract createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
+  abstract createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
 
-  async abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
+  abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
 
-  async abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
+  abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
 }

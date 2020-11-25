@@ -374,7 +374,7 @@ export default abstract class WSConnection {
     return this.wsConnection.readyState === OPEN;
   }
 
-  public abstract async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
+  public abstract handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
 
   public abstract onError(errorEvent: ErrorEvent): void;
 
