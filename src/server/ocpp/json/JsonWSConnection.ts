@@ -13,6 +13,7 @@ import JsonChargingStationService from './services/JsonChargingStationService';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
+import OCPPUtils from '../utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
 import http from 'http';
@@ -110,16 +111,12 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPing(): Promise<void> {
-    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
-      lastSeen: new Date()
-    });
+    await this.updateChargingStationLastSeen();
   }
 
   public async onPong(): Promise<void> {
     this.isConnectionAlive = true;
-    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
-      lastSeen: new Date()
-    });
+    await this.updateChargingStationLastSeen();
   }
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
@@ -154,6 +151,14 @@ export default class JsonWSConnection extends WSConnection {
       return this.chargingStationClient;
     }
     return null;
+  }
+
+  private async updateChargingStationLastSeen(): Promise<void> {
+    // Get Charging Station
+    const chargingStation = await OCPPUtils.checkAndGetChargingStation(this.getChargingStationID(), this.getTenantID());
+    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), chargingStation.id, {
+      lastSeen: new Date()
+    });
   }
 }
 
