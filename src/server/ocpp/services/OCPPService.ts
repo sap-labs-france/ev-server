@@ -1,6 +1,7 @@
 import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
+import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import { Action } from '../../../types/Authorization';
@@ -19,7 +20,6 @@ import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import { OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
@@ -203,9 +203,35 @@ export default class OCPPService {
       });
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
+        let result: OCPPChangeConfigurationCommandResult;
+        // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
+        let HeartBeatIntervalSettingFailure = false;
+        result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
+          key: 'HeartBeatInterval',
+          value: heartbeatIntervalSecs
+        }, false);
+        if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+          HeartBeatIntervalSettingFailure = true;
+        }
+        result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
+          key: 'HeartbeatInterval',
+          value: heartbeatIntervalSecs
+        }, false);
+        let HeartbeatIntervalSettingFailure = false;
+        if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+          HeartbeatIntervalSettingFailure = true;
+        }
+        if (HeartBeatIntervalSettingFailure && HeartbeatIntervalSettingFailure) {
+          Logging.logError({
+            tenantID: headers.tenantID,
+            action: ServerAction.BOOT_NOTIFICATION,
+            source: chargingStation.id,
+            module: MODULE_NAME, method: 'handleBootNotification',
+            message: `Cannot set heartbeat interval OCPP Parameters on '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
+          });
+        }
         // Get config and save it
-        const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
-          headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
+        result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
           Logging.logError({
             tenantID: headers.tenantID,
