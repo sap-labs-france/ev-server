@@ -124,8 +124,6 @@ export default abstract class WSConnection {
       // Check Tenant?
       await Utils.checkTenant(this.tenantID);
       this.tenantIsValid = true;
-      // Check Charging Station ID?
-      await OCPPUtils.checkAndGetChargingStation(this.getChargingStationID(), this.getTenantID());
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the Charging Station from the Rest server
