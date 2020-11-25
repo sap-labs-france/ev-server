@@ -301,6 +301,10 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteImageRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteAreaImage', req.user);
+    // TODO: To remove when new version of Mobile App will be released (> V1.3.22)
+    if (req.user) {
+      filteredRequest.TenantID = req.user.tenantID;
+    }
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(filteredRequest.TenantID, filteredRequest.ID);
     // Return

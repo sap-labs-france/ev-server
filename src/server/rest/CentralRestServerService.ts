@@ -144,6 +144,8 @@ class RequestMapper {
           [ServerAction.SITE_AREAS]: SiteAreaService.handleGetSiteAreas.bind(this),
           [ServerAction.SITE_AREA]: SiteAreaService.handleGetSiteArea.bind(this),
           [ServerAction.SITE_AREA_CONSUMPTION]: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
+          // TODO: To remove the 'SITE_AREA_IMAGE' when new version of Mobile App will be released (> V1.3.22)
+          [ServerAction.SITE_AREA_IMAGE]: SiteAreaService.handleGetSiteAreaImage.bind(this),
           [ServerAction.USERS]: UserService.handleGetUsers.bind(this),
           [ServerAction.USER_SITES]: UserService.handleGetSites.bind(this),
           [ServerAction.USERS_IN_ERROR]: UserService.handleGetUsersInError.bind(this),
