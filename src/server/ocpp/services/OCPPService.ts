@@ -175,7 +175,7 @@ export default class OCPPService {
       }
       const currentTenant = await TenantStorage.getTenant(headers.tenantID);
       // Enrich Charging Station from templates
-      const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
+      const chargingStationTemplateUpdateResult = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Save Boot Notification
@@ -231,7 +231,8 @@ export default class OCPPService {
           });
         }
         // Get config and save it
-        result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
+        result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(headers.tenantID, chargingStation,
+          chargingStationTemplateUpdateResult.ocppStandardUpdated || chargingStationTemplateUpdateResult.ocppVendorUpdated);
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
           Logging.logError({
             tenantID: headers.tenantID,
