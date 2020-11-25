@@ -559,7 +559,7 @@ export default class ChargingStationStorage {
     await Utils.checkTenant(tenantID);
     // Set data
     // Modify and return the modified document
-    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: params },
       { upsert: true });
