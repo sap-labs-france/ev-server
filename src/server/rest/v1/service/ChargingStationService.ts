@@ -1212,7 +1212,7 @@ export default class ChargingStationService {
         'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name',
         'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
-        'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID',
+        'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints',
         ...userProject
       ]
     );
