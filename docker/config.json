@@ -207,7 +207,7 @@
         "name": "AssetGetConsumptionTask",
         "active": true,
         "periodicity": "* * * * *"
-			},
+      },
       {
         "name": "CheckUserAccountInactivityTask",
         "active": false,

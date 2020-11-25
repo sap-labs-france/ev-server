@@ -330,6 +330,12 @@ export default class ChargingStationStorage {
         asField: 'siteArea.site', oneToOneCardinality: true
       });
     }
+    // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
+    aggregation.push({
+      '$addFields': {
+        'lastHeartBeat': '$lastSeen'
+      }
+    });
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert siteID back to string after having queried the site
@@ -559,7 +565,7 @@ export default class ChargingStationStorage {
     await Utils.checkTenant(tenantID);
     // Set data
     // Modify and return the modified document
-    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: params },
       { upsert: true });
