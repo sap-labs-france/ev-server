@@ -567,8 +567,7 @@ export default class ChargingStationStorage {
     // Modify and return the modified document
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
-      { $set: params },
-      { upsert: true });
+      { $set: params });
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationLastSeen', uniqueTimerID, params);
   }
