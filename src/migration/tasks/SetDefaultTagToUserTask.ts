@@ -21,16 +21,18 @@ export default class SetDefaultTagToUserTask extends MigrationTask {
     let modifiedCount = 0;
     const users = await UserStorage.getUsers(tenant.id, {
       issuer: true,
-      withTag: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
     if (users.count > 0) {
       for (const user of users.result) {
-        if (user.tags.length === 1 && !user.tags[0].default) {
-          await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
-            { '_id': user.tags[0].id },
-            { $set: { 'default': true } }
-          );
-          modifiedCount++;
+        const tagsMDB = await UserStorage.getTags(tenant.id, {
+          userIDs: [user.id]
+        }, Constants.DB_PARAMS_SINGLE_RECORD);
+        if (tagsMDB.count === 1) {
+          if (!tagsMDB.result[0].default) {
+            tagsMDB.result[0].default = true;
+            await UserStorage.saveTag(tenant.id, tagsMDB.result[0]);
+            modifiedCount++;
+          }
         }
       }
     }

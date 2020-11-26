@@ -600,7 +600,7 @@ export default class UserService {
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, userID,
       [
-        'id', 'name', 'firstName', 'email', 'role', 'status','issuer', 'locale', 'deleted', 'plateID',
+        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'deleted', 'plateID',
         'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
       ]
     );
@@ -696,7 +696,7 @@ export default class UserService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [ 'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID' ]
+      ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID']
     );
     // Filter
     userSites.result = userSites.result.map((userSite) => ({
@@ -746,7 +746,7 @@ export default class UserService {
         sort: filteredRequest.Sort
       },
       [
-        'id', 'name', 'firstName', 'email', 'role', 'status','issuer',
+        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
         'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
       ]
     );
@@ -1069,23 +1069,33 @@ export default class UserService {
       userIDs: [userID],
       defaultTag: true,
       active: true
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, [
+      'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default'
+    ]);
     if (tagsMDB.count < 1) {
       tagsMDB = await UserStorage.getTags(req.user.tenantID, {
         userIDs: [userID],
         active: true
-      }, Constants.DB_PARAMS_SINGLE_RECORD);
+      }, Constants.DB_PARAMS_SINGLE_RECORD,[
+        'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default'
+      ]);
     }
     const tag = tagsMDB.count > 0 ? tagsMDB.result[0] : null;
     let carsMDB = await CarStorage.getCars(req.user.tenantID,
       { userIDs: [userID], defaultCar: true },
-      Constants.DB_PARAMS_SINGLE_RECORD);
+      Constants.DB_PARAMS_SINGLE_RECORD,[
+        'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+        'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+      ]);
     carsMDB = carsMDB.count > 0 ? carsMDB : await CarStorage.getCars(req.user.tenantID,
       { userIDs: [userID] },
-      Constants.DB_PARAMS_SINGLE_RECORD);
+      Constants.DB_PARAMS_SINGLE_RECORD,[
+        'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+        'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+      ]);
     const car = carsMDB.count > 0 ? carsMDB.result[0] : null;
     // Return
-    res.json(UserSecurity.filterUserDefaultTagResponse(tag, car, req.user));
+    res.json({ tag, car });
     next();
   }
 
@@ -1510,7 +1520,7 @@ export default class UserService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
-        'id', 'name', 'firstName', 'email', 'role', 'status','issuer', 'createdOn', 'createdBy',
+        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
         'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
         'billingData.customerID', 'billingData.lastChangedOn'
       ]
