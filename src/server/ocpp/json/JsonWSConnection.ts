@@ -110,16 +110,12 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPing(): Promise<void> {
-    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
-      lastSeen: new Date()
-    });
+    await this.updateChargingStationLastSeen();
   }
 
   public async onPong(): Promise<void> {
     this.isConnectionAlive = true;
-    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
-      lastSeen: new Date()
-    });
+    await this.updateChargingStationLastSeen();
   }
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
@@ -154,6 +150,12 @@ export default class JsonWSConnection extends WSConnection {
       return this.chargingStationClient;
     }
     return null;
+  }
+
+  private async updateChargingStationLastSeen(): Promise<void> {
+    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
+      lastSeen: new Date()
+    });
   }
 }
 

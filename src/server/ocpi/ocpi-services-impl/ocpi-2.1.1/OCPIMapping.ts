@@ -415,7 +415,7 @@ export default class OCPIMapping {
           start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
           dimensions: [{
             type: CdrDimensionType.PARKING_TIME,
-            volume: parseFloat((inactivity / 3600).toFixed(3))
+            volume: Utils.roundTo(inactivity / 3600, 3)
           }]
         });
       }
@@ -670,24 +670,32 @@ export default class OCPIMapping {
       voltage: voltage,
       amperage: amperage,
       power_type: OCPIMapping.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
-      tariff_id: OCPIMapping.buildTariffID(tenant),
+      tariff_id: OCPIMapping.buildTariffID(tenant, chargingStation),
       last_updated: chargingStation.lastSeen
     };
   }
 
-  // TODO: Implement the tariff module under dev in Gireve
+  // TODO: Implement the tariff module under dev in Gireve, to provide in UI later on
   // FIXME: add tariff id from the simple pricing settings remapping
-  private static buildTariffID(tenant: Tenant): string {
+  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
     switch (tenant?.id) {
       // SLF
       case '5be7fb271014d90008992f06':
-        return 'FR*SLF_AC_Sud2';
+        // Check Site Area
+        switch (chargingStation.siteAreaID) {
+          // Mougins - South
+          case '5abebb1b4bae1457eb565e98':
+            return 'FR*SLF_AC_Sud2';
+          // Mougins - South - Fastcharging
+          case '5b72cef274ae30000855e458':
+            return 'FR*SLF_DC_Sud';
+        }
+        break;
       // Proviridis
       case '5e2701b248aaa90007904cca':
         return '1';
-      default:
-        return '';
     }
+    return '';
   }
 
   /**
@@ -720,7 +728,7 @@ export default class OCPIMapping {
       if (duration > 0) {
         chargingPeriod.dimensions.push({
           type: CdrDimensionType.PARKING_TIME,
-          volume: parseFloat(duration.toFixed(3))
+          volume: Utils.roundTo(duration, 3)
         });
       }
     }

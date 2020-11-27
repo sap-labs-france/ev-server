@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
@@ -215,7 +215,7 @@ export default class OCPPUtils {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = Utils.convertToFloat((transaction.currentCumulatedPrice + consumption.amount).toFixed(6));
+              consumption.cumulatedAmount = Utils.roundTo(transaction.currentCumulatedPrice + consumption.amount, 6);
             }
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
           }
@@ -233,15 +233,15 @@ export default class OCPPUtils {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = Utils.convertToFloat((transaction.currentCumulatedPrice + consumption.amount).toFixed(6));
+              consumption.cumulatedAmount = Utils.roundTo(transaction.currentCumulatedPrice + consumption.amount, 6);
             }
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
             // Update Transaction
             if (!transaction.stop) {
               transaction.stop = {} as TransactionStop;
             }
-            transaction.stop.price = Utils.convertToFloat(transaction.currentCumulatedPrice.toFixed(6));
-            transaction.stop.roundedPrice = Utils.convertToFloat((transaction.currentCumulatedPrice).toFixed(2));
+            transaction.stop.price = Utils.roundTo(transaction.currentCumulatedPrice, 6);
+            transaction.stop.roundedPrice = Utils.roundTo(transaction.currentCumulatedPrice, 2);
             transaction.stop.priceUnit = pricedConsumption.currencyCode;
             transaction.stop.pricingSource = pricedConsumption.pricingSource;
           }
@@ -957,24 +957,29 @@ export default class OCPPUtils {
   }
 
   public static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
+    const templateUpdate: TemplateUpdate = {
+      chargingStationUpdate: false,
+      technicalUpdate: false,
+      capabilitiesUpdate: false,
+      ocppStandardUpdate: false,
+      ocppVendorUpdate: false,
+    };
     const templateUpdateResult: TemplateUpdateResult = {
       technicalUpdated: false,
       capabilitiesUpdated: false,
-      ocppUpdated: false,
+      ocppStandardUpdated: false,
+      ocppVendorUpdated: false,
     };
-    const sectionsNotMatched: string[] = [];
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
     // Copy from template
     if (chargingStationTemplate) {
       // Already updated?
       if (chargingStation.templateHash !== chargingStationTemplate.hash) {
-        chargingStation.templateHash = chargingStationTemplate.hash;
+        templateUpdate.chargingStationUpdate = true;
         // Check Technical Hash
         if (chargingStation.templateHashTechnical !== chargingStationTemplate.hashTechnical) {
-          templateUpdateResult.technicalUpdated = true;
-          // Set the hash
-          chargingStation.templateHashTechnical = chargingStationTemplate.hashTechnical;
+          templateUpdate.technicalUpdate = true;
           if (Utils.objectHasProperty(chargingStationTemplate.technical, 'maximumPower')) {
             chargingStation.maximumPower = chargingStationTemplate.technical.maximumPower;
           }
@@ -994,9 +999,13 @@ export default class OCPPUtils {
                 tenantID, chargingStation, connector.connectorId, chargingStationTemplate);
             }
           }
+          // Set the hash
+          chargingStation.templateHashTechnical = chargingStationTemplate.hashTechnical;
+          templateUpdateResult.technicalUpdated = true;
         }
         // Already updated?
         if (chargingStation.templateHashCapabilities !== chargingStationTemplate.hashCapabilities) {
+          templateUpdate.capabilitiesUpdate = true;
           // Handle capabilities
           chargingStation.capabilities = {} as ChargingStationCapabilities;
           if (Utils.objectHasProperty(chargingStationTemplate, 'capabilities')) {
@@ -1020,23 +1029,21 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
-                chargingStation.templateHashCapabilities = chargingStationTemplate.hashCapabilities;
-                templateUpdateResult.capabilitiesUpdated = true;
                 if (Utils.objectHasProperty(capabilities.capabilities, 'supportChargingProfiles') &&
                   !capabilities.capabilities.supportChargingProfiles) {
                   chargingStation.excludeFromSmartCharging = !capabilities.capabilities.supportChargingProfiles;
                 }
                 chargingStation.capabilities = capabilities.capabilities;
+                chargingStation.templateHashCapabilities = chargingStationTemplate.hashCapabilities;
+                templateUpdateResult.capabilitiesUpdated = true;
                 break;
-              } else {
-                delete chargingStation.templateHashCapabilities;
-                sectionsNotMatched.push('Capabilities');
               }
             }
           }
         }
         // Already updated?
         if (chargingStation.templateHashOcppStandard !== chargingStationTemplate.hashOcppStandard) {
+          templateUpdate.ocppStandardUpdate = true;
           // Handle OCPP Standard Parameters
           chargingStation.ocppStandardParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppStandardParameters')) {
@@ -1060,8 +1067,6 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
-                chargingStation.templateHashOcppStandard = chargingStationTemplate.hashOcppStandard;
-                templateUpdateResult.ocppUpdated = true;
                 for (const parameter in ocppStandardParameters.parameters) {
                   if (OCPPUtils.isOcppParamForPowerLimitationKey(parameter, chargingStation)) {
                     Logging.logError({
@@ -1090,16 +1095,16 @@ export default class OCPPUtils {
                     value: ocppStandardParameters.parameters[parameter]
                   });
                 }
+                chargingStation.templateHashOcppStandard = chargingStationTemplate.hashOcppStandard;
+                templateUpdateResult.ocppStandardUpdated = true;
                 break;
-              } else {
-                delete chargingStation.templateHashOcppStandard;
-                sectionsNotMatched.push('OCPPStandard');
               }
             }
           }
         }
         // Already updated?
         if (chargingStation.templateHashOcppVendor !== chargingStationTemplate.hashOcppVendor) {
+          templateUpdate.ocppVendorUpdate = true;
           // Handle OCPP Vendor Parameters
           chargingStation.ocppVendorParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppVendorParameters')) {
@@ -1123,8 +1128,6 @@ export default class OCPPUtils {
               }
               // Found?
               if (matchFirmware && matchOcpp) {
-                chargingStation.templateHashOcppVendor = chargingStationTemplate.hashOcppVendor;
-                templateUpdateResult.ocppUpdated = true;
                 for (const parameter in ocppVendorParameters.parameters) {
                   if (OCPPUtils.isOcppParamForPowerLimitationKey(parameter, chargingStation)) {
                     Logging.logError({
@@ -1153,24 +1156,33 @@ export default class OCPPUtils {
                     value: ocppVendorParameters.parameters[parameter]
                   });
                 }
+                chargingStation.templateHashOcppVendor = chargingStationTemplate.hashOcppVendor;
+                templateUpdateResult.ocppVendorUpdated = true;
                 break;
-              } else {
-                delete chargingStation.templateHashOcppVendor;
-                sectionsNotMatched.push('OCPPVendor');
               }
             }
           }
         }
         // Log
         const sectionsUpdated: string[] = [];
+        const sectionsNotMatched: string[] = [];
         if (templateUpdateResult.technicalUpdated) {
           sectionsUpdated.push('Technical');
         }
         if (templateUpdateResult.capabilitiesUpdated) {
           sectionsUpdated.push('Capabilities');
         }
-        if (templateUpdateResult.ocppUpdated) {
+        if (templateUpdateResult.ocppStandardUpdated || templateUpdateResult.ocppVendorUpdated) {
           sectionsUpdated.push('OCPP');
+        }
+        if (templateUpdate.capabilitiesUpdate && !templateUpdateResult.capabilitiesUpdated) {
+          sectionsNotMatched.push('Capabilities');
+        }
+        if (templateUpdate.ocppStandardUpdate && !templateUpdateResult.ocppStandardUpdated) {
+          sectionsNotMatched.push('OCPPStandard');
+        }
+        if (templateUpdate.ocppVendorUpdate && !templateUpdateResult.ocppVendorUpdated) {
+          sectionsNotMatched.push('OCPPVendor');
         }
         Logging.logInfo({
           tenantID: tenantID,
@@ -1190,6 +1202,7 @@ export default class OCPPUtils {
             detailedMessages: { templateUpdateResult, chargingStationTemplate, chargingStation }
           });
         }
+        chargingStation.templateHash = chargingStationTemplate.hash;
         return templateUpdateResult;
       }
       // Log

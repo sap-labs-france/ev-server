@@ -136,7 +136,7 @@ export default class OCPISessionsService {
     transaction.currentTimestamp = session.last_updated;
     transaction.price = session.total_cost;
     transaction.priceUnit = session.currency;
-    transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
+    transaction.roundedPrice = Utils.roundTo(session.total_cost, 2);
     transaction.lastConsumption = {
       value: session.kwh * 1000,
       timestamp: session.last_updated
@@ -150,7 +150,7 @@ export default class OCPISessionsService {
         price: session.total_cost,
         priceUnit: session.currency,
         pricingSource: 'ocpi',
-        roundedPrice: Utils.convertToFloat(session.total_cost.toFixed(2)),
+        roundedPrice: Utils.roundTo(session.total_cost, 2),
         stateOfCharge: 0,
         tagID: session.auth_id,
         timestamp: stopTimestamp,
@@ -201,7 +201,7 @@ export default class OCPISessionsService {
     }
     transaction.priceUnit = cdr.currency;
     transaction.price = cdr.total_cost;
-    transaction.roundedPrice = Utils.convertToFloat(cdr.total_cost.toFixed(2));
+    transaction.roundedPrice = Utils.roundTo(cdr.total_cost, 2);
     transaction.currentTimestamp = cdr.last_updated;
     transaction.stop = {
       extraInactivityComputed: false,
@@ -210,7 +210,7 @@ export default class OCPISessionsService {
       price: cdr.total_cost,
       priceUnit: cdr.currency,
       pricingSource: 'ocpi',
-      roundedPrice: Utils.convertToFloat(cdr.total_cost.toFixed(2)),
+      roundedPrice: Utils.roundTo(cdr.total_cost, 2),
       stateOfCharge: 0,
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,

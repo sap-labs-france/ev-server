@@ -9,6 +9,7 @@ import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
+import OCPPUtils from '../utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
@@ -373,7 +374,7 @@ export default abstract class WSConnection {
     return this.wsConnection.readyState === OPEN;
   }
 
-  public abstract async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
+  public abstract handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
 
   public abstract onError(errorEvent: ErrorEvent): void;
 

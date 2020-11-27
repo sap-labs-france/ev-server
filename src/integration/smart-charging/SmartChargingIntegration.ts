@@ -144,7 +144,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     return false;
   }
 
-  async abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
+  abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
 
-  async abstract checkConnection(): Promise<void>;
+  abstract checkConnection(): Promise<void>;
 }
