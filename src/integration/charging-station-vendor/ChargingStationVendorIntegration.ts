@@ -27,7 +27,7 @@ export default abstract class ChargingStationVendorIntegration {
 
   public async setStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
     chargePoint?: ChargePoint, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
-    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, 0);
+    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint);
     const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
     if (chargePoint.excludeFromPowerLimitation) {
       Logging.logWarning({

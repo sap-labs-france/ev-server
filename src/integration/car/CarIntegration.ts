@@ -93,9 +93,9 @@ export default abstract class CarIntegration {
     return actionsDone;
   }
 
-  public abstract async getCarCatalogs(): Promise<CarCatalog[]>;
+  public abstract getCarCatalogs(): Promise<CarCatalog[]>;
 
-  public abstract async getCarCatalogThumb(carCatalog: CarCatalog): Promise<string>;
+  public abstract getCarCatalogThumb(carCatalog: CarCatalog): Promise<string>;
 
-  public abstract async getCarCatalogImages(carCatalog: CarCatalog): Promise<string[]>;
+  public abstract getCarCatalogImages(carCatalog: CarCatalog): Promise<string[]>;
 }

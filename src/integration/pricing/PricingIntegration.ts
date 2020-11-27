@@ -16,9 +16,9 @@ export default abstract class PricingIntegration<T extends PricingSetting> {
     return this.setting;
   }
 
-  async abstract startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption>;
+  abstract startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption>;
 
-  async abstract updateSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption>;
+  abstract updateSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption>;
 
-  async abstract stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption>;
+  abstract stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption>;
 }

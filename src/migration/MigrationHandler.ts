@@ -18,6 +18,7 @@ import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import CleanupSiteAreasTask from './tasks/CleanupSiteAreasTask';
 import Constants from '../utils/Constants';
 import DeleteChargingStationPropertiesTask from './tasks/DeleteChargingStationPropertiesTask';
+import FixedConsumptionRoundedPriceTask from './tasks/FixedConsumptionRoundedPriceTask';
 import InitialCarImportTask from './tasks/InitialCarImportTask';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
@@ -99,6 +100,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddDefaultPropertyToTagsTask());
         currentMigrationTasks.push(new SetDefaultTagToUserTask());
         currentMigrationTasks.push(new DeleteChargingStationPropertiesTask());
+        currentMigrationTasks.push(new FixedConsumptionRoundedPriceTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

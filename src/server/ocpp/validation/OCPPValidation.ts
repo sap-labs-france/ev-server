@@ -14,7 +14,6 @@ const MODULE_NAME = 'OCPPValidation';
 export default class OCPPValidation extends SchemaValidator {
   private static instance: OCPPValidation|null = null;
 
-  public validate: any;
   private _bootNotificationRequest: any;
   private _authorizeRequest: any;
   private _statusNotificationRequest: any;
