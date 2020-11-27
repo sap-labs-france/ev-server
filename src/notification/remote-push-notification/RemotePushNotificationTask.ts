@@ -344,7 +344,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       title, body, user, { 'invoiceNumber': data.invoice.number.toString() }, severity);
   }
 
-  private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: Record<string, unknown>, severity?: NotificationSeverity) {
+  private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
     // Checks
     if (!this.initialized) {
       return Promise.resolve();
