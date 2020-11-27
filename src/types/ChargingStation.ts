@@ -57,10 +57,19 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   };
 }
 
+export interface TemplateUpdate {
+  chargingStationUpdate: boolean;
+  technicalUpdate: boolean;
+  capabilitiesUpdate: boolean;
+  ocppStandardUpdate: boolean;
+  ocppVendorUpdate: boolean;
+}
+
 export interface TemplateUpdateResult {
   technicalUpdated: boolean;
   capabilitiesUpdated: boolean;
-  ocppUpdated: boolean;
+  ocppStandardUpdated: boolean;
+  ocppVendorUpdated: boolean;
 }
 
 export interface OcppCommand {
@@ -207,12 +216,12 @@ export interface ChargingStationTemplate {
   ocppStandardParameters: {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: any;
+    parameters: Record<string, string>;
   }[];
   ocppVendorParameters: {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: any;
+    parameters: Record<string, string>;
   }[];
 }
 
