@@ -10,11 +10,17 @@ export default class TenantValidator extends SchemaValidator {
   private static _instance: TenantValidator | undefined;
   private _tenantCreateReqSuperAdmin: any;
   private _tenantUpdateReqSuperAdmin: any;
+  private _tenantDeleteReqSuperAdmin: any;
+  private _tenantGetLogoReqSuperAdmin: any;
+  private _tenantGetReqSuperAdmin: any;
 
   private constructor() {
     super('TenantValidator');
     this._tenantCreateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create-req-super-admin.json`, 'utf8'));
     this._tenantUpdateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update-req-super-admin.json`, 'utf8'));
+    this._tenantDeleteReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete-req-super-admin.json`, 'utf8'));
+    this._tenantGetReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get-req-super-admin.json`, 'utf8'));
+    this._tenantGetLogoReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get-logo-req-super-admin.json`, 'utf8'));
   }
 
   public static getInstance(): TenantValidator {
@@ -38,6 +44,24 @@ export default class TenantValidator extends SchemaValidator {
     // Validate deps between components
     this.validateComponentDependencies(tenant);
     return tenant;
+  }
+
+  public validateTenantDeleteRequestSuperAdmin(request: any): string {
+    // Validate schema
+    this.validate(this._tenantDeleteReqSuperAdmin, request);
+    return request.ID;
+  }
+  
+  public validateGetLogoReqSuperAdmin(request: any): string {
+    // Validate schema
+    this.validate(this._tenantGetLogoReqSuperAdmin, request);
+    return request.ID;
+  }
+
+  public validateTenantGetReqSuperAdmin(request: any): string {
+    // Validate schema
+    this.validate(this._tenantGetReqSuperAdmin, request);
+    return request.ID;
   }
 
   private validateComponentDependencies(tenant: Tenant) {
