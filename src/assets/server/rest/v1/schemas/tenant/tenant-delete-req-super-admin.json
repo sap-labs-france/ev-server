@@ -1,0 +1,10 @@
+{
+    "title": "Tenant Delete",
+    "type": "object",
+    "properties": {
+        "ID": { "$ref": "common.json#/definitions/id" }
+    },
+    "required": [
+        "ID"
+    ]
+}
