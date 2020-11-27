@@ -344,7 +344,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       title, body, user, { 'invoiceNumber': data.invoice.number.toString() }, severity);
   }
 
-  private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: object, severity?: NotificationSeverity) {
+  private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: Record<string, unknown>, severity?: NotificationSeverity) {
     // Checks
     if (!this.initialized) {
       return Promise.resolve();
@@ -393,7 +393,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     });
   }
 
-  private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, data: object, severity: NotificationSeverity): admin.messaging.MessagingPayload {
+  private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, data: Record<string, unknown>, severity: NotificationSeverity): admin.messaging.MessagingPayload {
     // Build message
     const message: admin.messaging.MessagingPayload = {
       notification: {

@@ -128,7 +128,7 @@ export default class OCPPService {
           if (siteArea) {
             chargingStation.siteAreaID = token.siteAreaID;
             // Set the same coordinates
-            if (siteArea.address && siteArea.address.coordinates && siteArea.address.coordinates.length === 2) {
+            if (siteArea?.address?.coordinates?.length === 2) {
               chargingStation.coordinates = siteArea.address.coordinates;
             }
           }

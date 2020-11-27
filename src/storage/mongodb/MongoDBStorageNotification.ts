@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../types/Authorization';
 
 import CentralRestServer from '../../server/rest/CentralRestServer';
+import { ChangeStreamOptions } from 'mongodb';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
@@ -10,9 +11,9 @@ import { TransactionNotificationData } from '../../types/SingleChangeNotificatio
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
-const _pipeline = [];
-const _options = {
-  'fullDocument': 'default'
+const _pipeline: Record<string, unknown>[] = [];
+const _options: ChangeStreamOptions = {
+  fullDocument: 'default'
 };
 
 const MODULE_NAME = 'MongoDBStorageNotification';

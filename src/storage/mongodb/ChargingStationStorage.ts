@@ -421,7 +421,8 @@ export default class ChargingStationStorage {
     const facets: any = { $facet: {} };
     if (!Utils.isEmptyArray(params.errorType)) {
       // Check allowed
-      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
+      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION)
+          && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
@@ -769,7 +770,7 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const chargingProfilesCountMDB = await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+    const chargingProfilesCountMDB = await global.database.getCollection<DataResult<ChargingProfile>>(tenantID, 'chargingprofiles')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -939,7 +940,7 @@ export default class ChargingStationStorage {
 
   private static filterConnectorMDB(connector: Connector): ConnectorMDB {
     if (connector) {
-      const newConnector: ConnectorMDB = {
+      const filteredConnector: ConnectorMDB = {
         connectorId: Utils.convertToInt(connector.connectorId),
         currentInstantWatts: Utils.convertToFloat(connector.currentInstantWatts),
         currentStateOfCharge: connector.currentStateOfCharge,
@@ -970,7 +971,7 @@ export default class ChargingStationStorage {
             csPhaseL3: connector.phaseAssignmentToGrid.csPhaseL3,
           } : null,
       };
-      return newConnector;
+      return filteredConnector;
     }
     return null;
   }
