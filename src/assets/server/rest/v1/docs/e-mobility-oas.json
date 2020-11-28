@@ -15,11 +15,11 @@
     },
     {
       "description": "Localhost - Dev - Tenant Management",
-      "url": "http://localhost/v1/api"
+      "url": "http://localhost:8080/v1/api"
     },
     {
       "description": "Localhost - Dev - Auth Management",
-      "url": "http://localhost/v1/auth"
+      "url": "http://localhost:8080/v1/auth"
     }
   ],
   "info": {
@@ -233,7 +233,7 @@
     },
     "/signin": {
       "post": {
-        "description": "Login",
+        "description": "Sign in",
         "requestBody": {
           "content": {
             "application/json": {
