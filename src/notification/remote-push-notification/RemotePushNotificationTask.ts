@@ -19,7 +19,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   constructor() {
     // Init
-    if (this.firebaseConfig && this.firebaseConfig.type && this.firebaseConfig.type.length > 0) {
+    if (this.firebaseConfig?.type?.length > 0) {
       try {
         admin.initializeApp({
           credential: admin.credential.cert({

@@ -359,19 +359,21 @@ export default class ChargingStationService {
       });
     }
     // Profiles of the charging station?
-    let profilesProject: string[] = [ 'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel' ];
+    let profilesProject: string[] = ['profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'];
     if (filteredRequest.ChargeBoxID) {
       // Enhanced the projection
       profilesProject = ['profile'];
     }
     // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { search: filteredRequest.Search,
+      {
+        search: filteredRequest.Search,
         chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: true,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null), },
+        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+      },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
@@ -1183,7 +1185,7 @@ export default class ChargingStationService {
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email' ];
+      userProject = ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email'];
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
@@ -1308,7 +1310,7 @@ export default class ChargingStationService {
           });
           // Check
           if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
             // Reboot?
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
               Logging.logWarning({

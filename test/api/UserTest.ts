@@ -179,7 +179,7 @@ describe('User tests', function() {
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(response).to.be.transactionValid;
           response = await testData.userService.userApi.deleteTag(tagId);
-          expect(response.status).to.equal(575);
+          expect(response.idTagInfo.status).to.equal(575);
           const tag = (await testData.userService.userApi.readTag(tagId)).data;
           expect(tag).to.not.be.null;
         });
