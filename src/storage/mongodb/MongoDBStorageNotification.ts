@@ -11,14 +11,14 @@ import { TransactionNotificationData } from '../../types/SingleChangeNotificatio
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
-const _pipeline: Record<string, unknown>[] = [];
-const _options: ChangeStreamOptions = {
-  fullDocument: 'default'
-};
-
 const MODULE_NAME = 'MongoDBStorageNotification';
 
 export default class MongoDBStorageNotification {
+  private defaultWatchPipeline: Record<string, unknown>[] = [];
+  private defaultWatchOptions: ChangeStreamOptions = {
+    fullDocument: 'default'
+  };
+
   private dbConfig: StorageConfiguration;
   private centralRestServer: CentralRestServer;
 
@@ -77,7 +77,7 @@ export default class MongoDBStorageNotification {
         });
         return;
       }
-      const dbChangeStream = global.database.watch(_pipeline, _options);
+      const dbChangeStream = global.database.watch(this.defaultWatchPipeline, this.defaultWatchOptions);
       dbChangeStream.on('change', (change: { [key: string]: any }) => {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         let tenantID, collection, documentID;
