@@ -62,7 +62,7 @@ export default class NotificationService {
     // Filter
     const filteredRequest = NotificationSecurity.filterEndUserReportErrorRequest(req.body);
     // Check if Notification is valid
-    Utils.checkIfEndUserErrorNotificationValid(filteredRequest, req);
+    UtilsService.checkIfEndUserErrorNotificationValid(filteredRequest, req);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,

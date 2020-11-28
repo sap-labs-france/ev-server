@@ -472,7 +472,7 @@ export default class CarStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveCar');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const carMDB: any = {
       _id: carToSave.id ? Utils.convertToObjectID(carToSave.id) : new ObjectID(),
@@ -504,7 +504,7 @@ export default class CarStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveCarUser');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const carUserMDB: any = {
       _id: Cypher.hash(`${carUserToSave.carID}~${carUserToSave.user.id}`),
@@ -533,7 +533,7 @@ export default class CarStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'insertCarUsers');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // At least one user
     const carUsersMDB = [];
     if (carUsersToSave && carUsersToSave.length > 0) {
@@ -730,7 +730,7 @@ export default class CarStorage {
 
   public static async clearCarUserDefault(tenantID: string, userID: string): Promise<void> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'clearCarUserDefault');
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     await global.database.getCollection<any>(tenantID, 'carusers').updateMany(
       {
         userID: Utils.convertToObjectID(userID),
@@ -744,7 +744,7 @@ export default class CarStorage {
 
   public static async clearCarUserOwner(tenantID: string, carID: string): Promise<void> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'clearCarUserOwner');
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     await global.database.getCollection<any>(tenantID, 'carusers').updateMany(
       {
         carID: Utils.convertToObjectID(carID),

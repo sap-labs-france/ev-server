@@ -24,7 +24,7 @@ export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
               {
                 nbrInvoicesInError: synchronizeAction.inError,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-                evseDashboardBillingURL: await Utils.buildEvseBillingSettingsURL(tenant.id)
+                evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
               }
             );
           }

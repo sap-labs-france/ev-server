@@ -146,7 +146,7 @@ export default class OCPIEndpointService {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointCreateRequest(req.body);
     // Check Mandatory fields
-    Utils.checkIfOCPIEndpointValid(filteredRequest, req);
+    UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
     const ocpiEndpoint: OCPIEndpoint = {
       ...filteredRequest,
       createdBy: { id: req.user.id },
@@ -174,7 +174,7 @@ export default class OCPIEndpointService {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body);
     // Check Mandatory fields
-    Utils.checkIfOCPIEndpointValid(filteredRequest, req);
+    UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -223,7 +223,7 @@ export default class OCPIEndpointService {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointPingRequest(req.body);
     // Check Mandatory fields
-    Utils.checkIfOCPIEndpointValid(filteredRequest, req);
+    UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, filteredRequest);

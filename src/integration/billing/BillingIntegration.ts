@@ -145,7 +145,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       }
     }
     // Log
-    Utils.logActionsResponse(tenantID, ServerAction.BILLING_SYNCHRONIZE_USERS,
+    Logging.logActionsResponse(tenantID, ServerAction.BILLING_SYNCHRONIZE_USERS,
       MODULE_NAME, 'synchronizeUsers', actionsDone,
       '{{inSuccess}} user(s) were successfully synchronized',
       '{{inError}} user(s) failed to be synchronized',
@@ -332,7 +332,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       }
     }
     // Log
-    Utils.logActionsResponse(tenantID, ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+    Logging.logActionsResponse(tenantID, ServerAction.BILLING_SYNCHRONIZE_INVOICES,
       MODULE_NAME, 'synchronizeInvoices', actionsDone,
       '{{inSuccess}} invoice(s) were successfully synchronized',
       '{{inError}} invoice(s) failed to be synchronized',
@@ -358,9 +358,9 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       invoice.user,
       {
         user: invoice.user,
-        evseDashboardInvoiceURL: await Utils.buildEvseBillingInvoicesURL(this.tenantID),
+        evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(tenant.subdomain),
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-        invoiceDownloadUrl: await Utils.buildEvseBillingDownloadInvoicesURL(this.tenantID, invoice.id),
+        invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, invoice.id),
         invoice: invoice
       }
     ).catch(() => { });

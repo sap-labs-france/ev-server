@@ -1,5 +1,5 @@
 {
-    "title": "Tenant Create",
+    "title": "Create one Tenant",
     "type": "object",
     "properties": {
         "id": { "$ref": "common.json#/definitions/id" },
@@ -8,7 +8,7 @@
         "subdomain": { "$ref": "common.json#/definitions/subdomain" },
         "logo": { "$ref": "common.json#/definitions/logo" },
         "address": { "$ref": "common.json#/definitions/address" },
-        "components": { "$ref": "components.json#/definitions/components" }
+        "components": { "$ref": "tenant-components.json#/definitions/components" }
     },
     "required": ["name", "email", "subdomain"]
 }

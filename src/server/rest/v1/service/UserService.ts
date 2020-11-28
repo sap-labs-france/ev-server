@@ -433,7 +433,7 @@ export default class UserService {
     // Clean up request
     delete filteredRequest.passwords;
     // Check User validity
-    Utils.checkIfUserValid(filteredRequest, user, req);
+    UtilsService.checkIfUserValid(filteredRequest, user, req);
     // Update user
     user = {
       ...user,
@@ -767,7 +767,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
     // Check Mandatory fields
-    Utils.checkIfUserValid(filteredRequest, null, req);
+    UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get the email
     const foundUser = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
     if (foundUser) {
@@ -1175,7 +1175,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterTagCreateRequest(req.body, req.user);
     // Check
-    await Utils.checkIfUserTagIsValid(filteredRequest, req);
+    await UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check Tag
     const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
     if (tag) {
@@ -1272,7 +1272,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterTagUpdateRequest(req.body, req.user);
     // Check
-    await Utils.checkIfUserTagIsValid(filteredRequest, req);
+    await UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
     const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
