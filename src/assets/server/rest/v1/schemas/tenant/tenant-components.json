@@ -1,5 +1,5 @@
 {
-    "$id": "components.json",
+    "$id": "tenant-components.json",
     "definitions": {
         "components": {
             "type": "object",

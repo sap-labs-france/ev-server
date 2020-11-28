@@ -478,7 +478,7 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
     // Check
-    Utils.checkIfSiteValid(filteredRequest, req);
+    UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
@@ -537,7 +537,7 @@ export default class SiteService {
     UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
       MODULE_NAME, 'handleUpdateSite', req.user);
     // Check
-    Utils.checkIfSiteValid(filteredRequest, req);
+    UtilsService.checkIfSiteValid(filteredRequest, req);
     // OCPI Company
     if (!company.issuer) {
       throw new AppError({

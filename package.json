@@ -184,6 +184,7 @@
     "chai": "^4.2.0",
     "chai-datetime": "^1.7.0",
     "chai-subset": "^1.6.0",
+    "circular-dependency-plugin": "^5.2.2",
     "clean-webpack-plugin": "^3.0.0",
     "clinic": "^7.0.0",
     "convict": "^6.0.0",

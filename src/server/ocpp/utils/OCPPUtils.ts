@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
@@ -16,6 +16,7 @@ import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../types/DataResult';
+import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import Logging from '../../../utils/Logging';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -34,7 +35,9 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
+import _ from 'lodash';
 import moment from 'moment';
+import url from 'url';
 
 const MODULE_NAME = 'OCPPUtils';
 
@@ -868,7 +871,7 @@ export default class OCPPUtils {
         // Handle current Connector limitation
         await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
         // Handle current Site Area limitation
-        await Utils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
+        await OCPPUtils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Consumption
         if (Utils.convertToFloat(meterValue.value) > lastConsumption.value) {
           // Compute consumption
@@ -904,6 +907,36 @@ export default class OCPPUtils {
       }
       // Return
       return consumption;
+    }
+  }
+
+  public static async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption): Promise<void> {
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && siteArea) {
+      // Get limit of the site area
+      consumption.limitSiteAreaWatts = 0;
+      // Maximum power of the Site Area provided?
+      if (siteArea && siteArea.maximumPower) {
+        consumption.limitSiteAreaWatts = siteArea.maximumPower;
+        consumption.limitSiteAreaAmps = siteArea.maximumPower / siteArea.voltage;
+        consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
+      } else {
+        // Compute it for Charging Stations
+        const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+        for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
+          for (const connector of chargingStationOfSiteArea.connectors) {
+            consumption.limitSiteAreaWatts += connector.power;
+          }
+        }
+        consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / siteArea.voltage);
+        consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
+        // Save Site Area max consumption
+        if (siteArea) {
+          siteArea.maximumPower = consumption.limitSiteAreaWatts;
+          await SiteAreaStorage.saveSiteArea(tenantID, siteArea);
+        }
+      }
+      consumption.smartChargingActive = siteArea.smartCharging;
     }
   }
 
@@ -1418,6 +1451,32 @@ export default class OCPPUtils {
     });
   }
 
+  public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
+    // Normalize
+    OCPPUtils.normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
+    OCPPUtils.normalizeOneSOAPParam(headers, 'Action');
+    OCPPUtils.normalizeOneSOAPParam(headers, 'To');
+    OCPPUtils.normalizeOneSOAPParam(headers, 'From.Address');
+    OCPPUtils.normalizeOneSOAPParam(headers, 'ReplyTo.Address');
+    // Parse the request (lower case for fucking charging station DBT URL registration)
+    const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
+    const tenantID = urlParts.query.tenantid as string;
+    const token = urlParts.query.token;
+    // Check
+    await DatabaseUtils.checkTenant(tenantID);
+    // Set the Tenant ID
+    headers.tenantID = tenantID;
+    headers.token = token;
+    if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
+      throw new BackendError({
+        source: headers.chargeBoxIdentity,
+        module: MODULE_NAME,
+        method: 'normalizeAndCheckSOAPParams',
+        message: 'The Charging Station ID is invalid'
+      });
+    }
+  }
+
   public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken): Promise<string> {
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
@@ -1853,5 +1912,12 @@ export default class OCPPUtils {
       }
     }
     return false;
+  }
+
+  private static normalizeOneSOAPParam(headers: any, name: string) {
+    const val = _.get(headers, name);
+    if (val && val.$value) {
+      _.set(headers, name, val.$value);
+    }
   }
 }

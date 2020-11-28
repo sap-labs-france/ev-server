@@ -379,7 +379,7 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetSecurity.filterAssetCreateRequest(req.body);
     // Check Asset
-    Utils.checkIfAssetValid(filteredRequest, req);
+    UtilsService.checkIfAssetValid(filteredRequest, req);
     // Check Site Area
     if (filteredRequest.siteAreaID) {
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
@@ -443,7 +443,7 @@ export default class AssetService {
     UtilsService.assertObjectExists(action, asset, `Site Area with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateAsset', req.user);
     // Check Mandatory fields
-    Utils.checkIfAssetValid(filteredRequest, req);
+    UtilsService.checkIfAssetValid(filteredRequest, req);
     // Update
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;

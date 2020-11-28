@@ -174,7 +174,7 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyCreateRequest(req.body);
     // Check
-    Utils.checkIfCompanyValid(filteredRequest, req);
+    UtilsService.checkIfCompanyValid(filteredRequest, req);
     // Create company
     const newCompany: Company = {
       ...filteredRequest,
@@ -218,7 +218,7 @@ export default class CompanyService {
     UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check Mandatory fields
-    Utils.checkIfCompanyValid(filteredRequest, req);
+    UtilsService.checkIfCompanyValid(filteredRequest, req);
     // OCPI Company
     if (!company.issuer) {
       throw new AppError({

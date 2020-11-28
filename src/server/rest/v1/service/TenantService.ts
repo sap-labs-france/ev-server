@@ -8,6 +8,8 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import { LockEntity } from '../../../../types/Locking';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
@@ -15,7 +17,6 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
-import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidation';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -122,6 +123,8 @@ export default class TenantService {
   }
 
   public static async handleGetTenants(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Validate
+    const filteredRequest = TenantValidator.getInstance().validateTenantsGetReqSuperAdmin(req.query);
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
@@ -132,7 +135,6 @@ export default class TenantService {
       });
     }
     // Filter
-    const filteredRequest = TenantSecurity.filterTenantsRequest(req.query);
     const projectFields = [
       'id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
     ];
@@ -145,7 +147,7 @@ export default class TenantService {
         search: filteredRequest.Search,
         withLogo: filteredRequest.WithLogo,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) },
       projectFields);
     // Return
     res.json(tenants);
@@ -196,7 +198,16 @@ export default class TenantService {
     // Update with components
     await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Create DB collections
-    await TenantStorage.createTenantDB(filteredRequest.id);
+    // Database creation Lock
+    const createDatabaseLock = LockingManager.createExclusiveLock(filteredRequest.id, LockEntity.DATABASE, 'create-database');
+    if (await LockingManager.acquire(createDatabaseLock)) {
+      try {
+        await TenantStorage.createTenantDB(filteredRequest.id);
+      } finally {
+        // Release the database creation Lock
+        await LockingManager.release(createDatabaseLock);
+      }
+    }
     // Create Admin user in tenant
     const tenantUser: User = UserStorage.createNewUser() as User;
     tenantUser.name = filteredRequest.name;

@@ -200,7 +200,7 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarCreateRequest(req.body);
     // Check
-    Utils.checkIfCarValid(filteredRequest, req);
+    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canCreateCar(req.user)) {
       throw new AppAuthError({
@@ -305,7 +305,7 @@ export default class CarService {
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.id, 'CarSecurity', 'filterCarUpdateRequest', req.user);
     // Check
-    Utils.checkIfCarValid(filteredRequest, req);
+    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateCar(req.user)) {
       throw new AppAuthError({

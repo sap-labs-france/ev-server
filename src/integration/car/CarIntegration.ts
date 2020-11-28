@@ -83,7 +83,7 @@ export default abstract class CarIntegration {
       }
     }
     // Log
-    Utils.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS,
+    Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS,
       MODULE_NAME, 'synchronizeCarCatalogs', actionsDone,
       '{{inSuccess}} car(s) were successfully synchronized',
       '{{inError}} car(s) failed to be synchronized',

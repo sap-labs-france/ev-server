@@ -153,7 +153,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
               Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationTemplateOcppParameters(tenant.id, chargingStation),
               `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in updating OCPP Parameters`);
             // Log
-            Utils.logActionsResponse(
+            Logging.logActionsResponse(
               tenant.id,
               ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
               MODULE_NAME, 'applyTemplateToChargingStations', updatedOcppParameters,

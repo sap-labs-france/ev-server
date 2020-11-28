@@ -16,7 +16,7 @@ export default class RegistrationTokenStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveRegistrationToken');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const registrationTokenMDB = {
       _id: registrationToken.id ? Utils.convertToObjectID(registrationToken.id) : new ObjectID(),
@@ -44,7 +44,7 @@ export default class RegistrationTokenStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getRegistrationTokens');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit

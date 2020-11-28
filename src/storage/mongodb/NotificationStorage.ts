@@ -20,7 +20,7 @@ export default class NotificationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getNotifications');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -128,7 +128,7 @@ export default class NotificationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveNotification');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const ocpiEndpointMDB: any = {
       _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
       userID: Utils.convertToObjectID(notificationToSave.userID),

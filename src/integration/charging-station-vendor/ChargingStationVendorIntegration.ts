@@ -90,7 +90,8 @@ export default abstract class ChargingStationVendorIntegration {
         detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, ocppLimitAmpValue: ocppLimitAmpValue }
       });
       // Change the OCPP Parameter
-      // FIXME: trigger conditional reset?
+      // TODO: Circular deps:
+      //
       result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenantID, chargingStation, {
         key: chargePoint.ocppParamForPowerLimitation,
         value: ocppLimitAmpValue.toString()

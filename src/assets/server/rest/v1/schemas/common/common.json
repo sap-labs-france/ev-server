@@ -24,6 +24,18 @@
             "maxLength": 20,
             "sanitize": "mongo"
         },
+        "search": {
+            "type": "string",
+            "sanitize": "mongo"
+        },
+        "limit": {
+            "type": "integer",
+            "sanitize": "mongo"
+        },
+        "sortFields": {
+            "type": "string",
+            "sanitize": "mongo"
+        },
         "logo": {
             "type": "string",
             "sanitize": "mongo"

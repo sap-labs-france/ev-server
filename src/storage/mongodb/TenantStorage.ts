@@ -5,8 +5,6 @@ import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import { LockEntity } from '../../types/Locking';
-import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import Tenant from '../../types/Tenant';
@@ -120,17 +118,8 @@ export default class TenantStorage {
   public static async createTenantDB(tenantID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'createTenantDB');
-    // Database creation Lock
-    const createDatabaseLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE, 'create-database');
-    if (await LockingManager.acquire(createDatabaseLock)) {
-      try {
-        // Create tenant collections
-        await global.database.checkAndCreateTenantDatabase(tenantID);
-      } finally {
-        // Release the database creation Lock
-        await LockingManager.release(createDatabaseLock);
-      }
-    }
+    // Create tenant collections
+    await global.database.checkAndCreateTenantDatabase(tenantID);
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'createTenantDB', uniqueTimerID, { tenantID });
   }
@@ -279,7 +268,7 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTenantLogo');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
       .findOne({ _id: Utils.convertToObjectID(tenantID) });
@@ -295,7 +284,7 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveTenantLogo');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenantlogos').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(tenantID) },
