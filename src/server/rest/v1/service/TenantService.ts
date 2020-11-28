@@ -124,7 +124,7 @@ export default class TenantService {
 
   public static async handleGetTenants(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantsGetReqSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantsGetReqSuperAdmin(req.query);
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
@@ -147,7 +147,7 @@ export default class TenantService {
         search: filteredRequest.Search,
         withLogo: filteredRequest.WithLogo,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) },
       projectFields);
     // Return
     res.json(tenants);

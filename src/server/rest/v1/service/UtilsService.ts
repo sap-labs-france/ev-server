@@ -143,6 +143,37 @@ export default class UtilsService {
     }
   }
 
+  public static httpSortFieldsToMongoDB(httpSortFields: string): any {
+    // Exist?
+    if (httpSortFields) {
+      const dbSortField: any = {};
+      // Sanitize
+      const sortFields = httpSortFields.split('|');
+      // Array?
+      if (httpSortFields.length > 0) {
+        // Init
+        dbSortField.Sort = {};
+        // Build
+        for (let sortField of sortFields) {
+          // Order
+          const order = sortField.startsWith('-') ? -1 : 1;
+          // Remove the '-'
+          if (order === -1) {
+            sortField = sortField.substr(1);
+          }
+          // Check field ID
+          if (sortField === 'id') {
+            // In MongoDB it's '_id'
+            sortField = '_id';
+          }
+          // Set
+          dbSortField.Sort[sortField] = order;
+        }
+      }
+      return dbSortField;
+    }
+  }
+
   public static assertComponentIsActiveFromToken(userToken: UserToken, component: TenantComponents,
     action: Action, entity: Entity, module: string, method: string): void {
     // Check from token

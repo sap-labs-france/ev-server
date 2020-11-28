@@ -4,6 +4,7 @@ import { HTTPError } from '../../../../types/HTTPError';
 import { HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
 import SchemaValidator from './SchemaValidator';
 import Tenant from '../../../../types/Tenant';
+import UtilsService from '../service/UtilsService';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
