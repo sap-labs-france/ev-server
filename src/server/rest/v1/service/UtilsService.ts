@@ -149,26 +149,21 @@ export default class UtilsService {
       const dbSortField: any = {};
       // Sanitize
       const sortFields = httpSortFields.split('|');
-      // Array?
-      if (httpSortFields.length > 0) {
-        // Init
-        dbSortField.Sort = {};
-        // Build
-        for (let sortField of sortFields) {
-          // Order
-          const order = sortField.startsWith('-') ? -1 : 1;
-          // Remove the '-'
-          if (order === -1) {
-            sortField = sortField.substr(1);
-          }
-          // Check field ID
-          if (sortField === 'id') {
-            // In MongoDB it's '_id'
-            sortField = '_id';
-          }
-          // Set
-          dbSortField.Sort[sortField] = order;
+      // Build
+      for (let sortField of sortFields) {
+        // Order
+        const order = sortField.startsWith('-') ? -1 : 1;
+        // Remove the '-'
+        if (order === -1) {
+          sortField = sortField.substr(1);
         }
+        // Check field ID
+        if (sortField === 'id') {
+          // In MongoDB it's '_id'
+          sortField = '_id';
+        }
+        // Set
+        dbSortField[sortField] = order;
       }
       return dbSortField;
     }
