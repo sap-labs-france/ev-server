@@ -91,7 +91,6 @@ export default abstract class ChargingStationVendorIntegration {
       });
       // Change the OCPP Parameter
       // TODO: Circular deps:
-      //
       result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenantID, chargingStation, {
         key: chargePoint.ocppParamForPowerLimitation,
         value: ocppLimitAmpValue.toString()
