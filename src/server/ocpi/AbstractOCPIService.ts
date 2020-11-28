@@ -103,6 +103,7 @@ export default abstract class AbstractOCPIService {
         await this.processEndpointAction(action, req, res, next);
         break;
     }
+    next();
   }
 
   /**

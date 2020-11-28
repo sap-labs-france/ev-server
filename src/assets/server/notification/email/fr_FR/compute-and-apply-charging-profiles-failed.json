@@ -1,0 +1,37 @@
+{
+  "subject": "Charge Intelligente - Erreur lors de l'envoie des profils de charge",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Profils de Charge",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Cher Administrateur,",
+      "",
+      "Les profils de charge envoyés à <strong>'<%- chargeBoxID %>'</strong> ont échoué trois fois.",
+      "",
+      "Cette borne a donc été exclue de la gestion de la charge intelligente automatiquement."
+    ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

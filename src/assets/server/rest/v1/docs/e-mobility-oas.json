@@ -895,20 +895,6 @@
         "schema": {
           "type": "string"
         }
-      },
-      "SortDirs": {
-        "in": "query",
-        "name": "SortDirs",
-        "description": "Sorted directions",
-        "required": false,
-        "example": "asc",
-        "schema": {
-          "type": "string",
-          "enum": [
-            "asc",
-            "desc"
-          ]
-        }
       }
     }
   }

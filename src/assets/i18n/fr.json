@@ -66,6 +66,10 @@
       "title": "Synchro Factures",
       "body": "Impossible de synchronizer {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Profils de Charge",
+      "body": "Impossible d'appliquer les profils de charge sur '{{chargeBoxID}}' de la zone '{{siteAreaName}}' dans l'organization '{{tenantName}}'"
+    },
     "billingNewInvoice": {
       "title": "Nouvelle facture",
       "body": "Une nouvelle facture ({{invoiceNumber}}) est disponible"

@@ -66,6 +66,10 @@
       "title": "Falha na sincronização da fatura",
       "body": "Falha ao sincronizar {{nbrInvoicesInError}} a fatura com o provedor de serviços de faturação do '{{tenantName}}'"
     },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Charging Profiles failed",
+      "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
+    },
     "endUserErrorNotification": {
       "title": "Um utilizador reportou um erro",
       "body": "'{{userName}}' reportou: '{{errorTitle}}' - '{{errorDescription}}' do '{{tenantName}}'"

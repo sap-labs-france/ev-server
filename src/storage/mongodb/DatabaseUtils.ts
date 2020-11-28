@@ -1,10 +1,15 @@
+import BackendError from '../../exception/BackendError';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
+
+const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
 
@@ -248,13 +253,16 @@ export default class DatabaseUtils {
     aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
   }
 
-  public static projectFields(aggregation: any[], projectedFields: string[]): void {
+  public static projectFields(aggregation: any[], projectedFields: string[], removedFields: string[] = []): void {
     if (projectedFields) {
       const project = {
         $project: {}
       };
       for (const projectedField of projectedFields) {
         project.$project[projectedField] = 1;
+      }
+      for (const removedField of removedFields) {
+        project.$project[removedField] = 0;
       }
       aggregation.push(project);
     }
@@ -369,6 +377,40 @@ export default class DatabaseUtils {
     }
   }
 
+  public static async checkTenant(tenantID: string): Promise<void> {
+    if (!tenantID) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkTenant',
+        message: 'The Tenant ID is mandatory'
+      });
+    }
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Valid Object ID?
+      if (!ObjectID.isValid(tenantID)) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'checkTenant',
+          message: `Invalid Tenant ID '${tenantID}'`
+        });
+      }
+      // Get the Tenant
+      const tenant = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOne({
+        '_id': Utils.convertToObjectID(tenantID)
+      });
+      if (!tenant) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'checkTenant',
+          message: `Invalid Tenant ID '${tenantID}'`
+        });
+      }
+    }
+  }
+
   private static buildChargingStationInactiveFlagQuery(): Record<string, any> {
     // Add inactive field
     return {
@@ -379,9 +421,9 @@ export default class DatabaseUtils {
             {
               $gte: [
                 {
-                  $divide: [{ $subtract: [new Date(), '$lastHeartBeat'] }, 1000]
+                  $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000]
                 },
-                Utils.getChargingStationHeartbeatMaxIntervalSecs()
+                Configuration.getChargingStationConfig().maxLastSeenIntervalSecs
               ]
             }
           ]

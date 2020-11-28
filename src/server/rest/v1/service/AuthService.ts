@@ -15,7 +15,6 @@ import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
-import SessionHashService from './SessionHashService';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
@@ -215,7 +214,7 @@ export default class AuthService {
       });
     }
     // Check Mandatory field
-    Utils.checkIfUserValid(filteredRequest as User, null, req);
+    UtilsService.checkIfUserValid(filteredRequest as User, null, req);
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     if (user) {
@@ -251,7 +250,7 @@ export default class AuthService {
     // Get the i18n translation class
     const i18nManager = new I18nManager(newUser.locale);
     const tag: Tag = {
-      id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt().toString(),
+      id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomIntSafe().toString(),
       active: true,
       issuer: true,
       userID: newUser.id,
@@ -301,7 +300,7 @@ export default class AuthService {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-        '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
+        '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
       NotificationHandler.sendNewRegisteredUser(
         tenantID,
@@ -379,7 +378,7 @@ export default class AuthService {
     });
     // Send notification
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
-      '/#/define-password?hash=' + resetHash;
+      '/define-password?hash=' + resetHash;
     // Send Request Password (Async)
     NotificationHandler.sendRequestPassword(
       tenantID,
@@ -537,11 +536,7 @@ export default class AuthService {
     }
     // Get it
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, filteredRequest.Language);
-    res.json(
-      // Filter
-      AuthSecurity.filterEndUserLicenseAgreementResponse(
-        endUserLicenseAgreement)
-    );
+    res.json(endUserLicenseAgreement);
     next();
   }
 
@@ -792,7 +787,7 @@ export default class AuthService {
     });
     // Send notification
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-      '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+      '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
     // Send Verification Email (Async)
     NotificationHandler.sendVerificationEmail(
@@ -881,8 +876,10 @@ export default class AuthService {
     // Reset wrong number of trial
     await UserStorage.saveUserPassword(tenantID, user.id,
       { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
-    // Yes: build payload
-    const payload: UserToken = await Authorizations.buildUserToken(tenantID, user);
+    // Get the tags (limited) to avoid an overweighted token
+    const tags = await UserStorage.getTags(tenantID, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
+    // Yes: build token
+    const payload: UserToken = await Authorizations.buildUserToken(tenantID, user, tags.result);
     // Build token
     let token: string;
     // Role Demo?

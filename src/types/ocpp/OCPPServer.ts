@@ -13,13 +13,13 @@ export interface OCPPBootNotificationRequest {
 }
 
 export interface OCPPBootNotificationRequestExtended extends OCPPBootNotificationRequest {
-  endpoint: string|string[];
+  endpoint: string | string[];
   id: string;
   chargeBoxID: string;
-  currentIPAddress: string|string[];
-  ocppProtocol: string;
-  ocppVersion: string;
-  lastHeartBeat: Date;
+  currentIPAddress: string | string[];
+  ocppProtocol: OCPPProtocol;
+  ocppVersion: OCPPVersion;
+  lastSeen: Date;
   timestamp: Date;
   lastReboot: Date;
 }
@@ -90,12 +90,12 @@ export interface OCPPMeterValuesRequest {
 export interface OCPP15MeterValuesRequest {
   connectorId: number;
   transactionId?: number;
-  values: OCPP15MeterValue|OCPP15MeterValue[];
+  values: OCPP15MeterValue | OCPP15MeterValue[];
 }
 
 export interface OCPP15MeterValue {
   timestamp: string;
-  value: OCPP15MeterValueValue|OCPP15MeterValueValue[];
+  value: OCPP15MeterValueValue | OCPP15MeterValueValue[];
 }
 
 export interface OCPP15MeterValueValue {
@@ -281,7 +281,7 @@ export interface OCPPAuthorizeResponse {
 
 export interface OCPPIdTagInfo {
   status: OCPPAuthorizationStatus;
-  expiryDate?: string;
+  expiryDate?: Date;
   parentIdTag?: string;
 }
 
@@ -390,11 +390,11 @@ export interface OCPPStopTransactionRequest {
   timestamp: string;
   transactionId: number;
   reason?: OCPPReason;
-  transactionData?: OCPP15TransactionData|OCPPMeterValue[];
+  transactionData?: OCPP15TransactionData | OCPPMeterValue[];
 }
 
 export interface OCPP15TransactionData {
-  values: OCPP15MeterValue|OCPP15MeterValue[];
+  values: OCPP15MeterValue | OCPP15MeterValue[];
 }
 
 export enum OCPPReason {

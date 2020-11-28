@@ -235,10 +235,9 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
-    const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
-    if (user) {
-      const tag = user.tags.find((value) => value.id === tokenId);
-      if (!user.issuer && user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
+    const tag = await UserStorage.getTag(tenant.id, tokenId, { withUser: true });
+    if (tag && tag.user) {
+      if (!tag.user.issuer && tag.user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
         return tag.ocpiToken;
       }
     }
@@ -374,7 +373,7 @@ export default class OCPIMapping {
           latitude: chargingStation.coordinates[1].toString(),
           longitude: chargingStation.coordinates[0].toString()
         },
-        last_updated: chargingStation.lastHeartBeat
+        last_updated: chargingStation.lastSeen
       }],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: {
@@ -390,8 +389,9 @@ export default class OCPIMapping {
     }
     const chargingPeriods: OCPIChargingPeriod[] = [];
     const consumptions = await ConsumptionStorage.getTransactionConsumptions(
-      tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
+      tenantID, { transactionId: transaction.id });
     if (consumptions.result) {
+      // Build based on consumptions
       for (const consumption of consumptions.result) {
         const chargingPeriod = this.buildChargingPeriod(consumption);
         if (chargingPeriod && chargingPeriod.dimensions && chargingPeriod.dimensions.length > 0) {
@@ -399,6 +399,7 @@ export default class OCPIMapping {
         }
       }
     } else {
+      // Build first/last consumption (if no consumptions is gathered)
       const consumption: number = transaction.stop ? transaction.stop.totalConsumptionWh : transaction.currentTotalConsumptionWh;
       chargingPeriods.push({
         start_date_time: transaction.timestamp,
@@ -414,7 +415,7 @@ export default class OCPIMapping {
           start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
           dimensions: [{
             type: CdrDimensionType.PARKING_TIME,
-            volume: parseFloat((inactivity / 3600).toFixed(3))
+            volume: Utils.roundTo(inactivity / 3600, 3)
           }]
         });
       }
@@ -537,7 +538,7 @@ export default class OCPIMapping {
         status: OCPIMapping.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: [OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, evseID)],
-        last_updated: chargingStation.lastHeartBeat,
+        last_updated: chargingStation.lastSeen,
         coordinates: {
           latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
           longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
@@ -572,7 +573,7 @@ export default class OCPIMapping {
       status: OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
       connectors: connectors,
-      last_updated: chargingStation.lastHeartBeat,
+      last_updated: chargingStation.lastSeen,
       coordinates: {
         latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
         longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
@@ -669,24 +670,32 @@ export default class OCPIMapping {
       voltage: voltage,
       amperage: amperage,
       power_type: OCPIMapping.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
-      tariff_id: OCPIMapping.buildTariffID(tenant),
-      last_updated: chargingStation.lastHeartBeat
+      tariff_id: OCPIMapping.buildTariffID(tenant, chargingStation),
+      last_updated: chargingStation.lastSeen
     };
   }
 
-  // TODO: Implement the tariff module under dev in Gireve
+  // TODO: Implement the tariff module under dev in Gireve, to provide in UI later on
   // FIXME: add tariff id from the simple pricing settings remapping
-  private static buildTariffID(tenant: Tenant): string {
+  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
     switch (tenant?.id) {
       // SLF
       case '5be7fb271014d90008992f06':
-        return 'FR*SLF_AC_Sud2';
+        // Check Site Area
+        switch (chargingStation.siteAreaID) {
+          // Mougins - South
+          case '5abebb1b4bae1457eb565e98':
+            return 'FR*SLF_AC_Sud2';
+          // Mougins - South - Fastcharging
+          case '5b72cef274ae30000855e458':
+            return 'FR*SLF_DC_Sud';
+        }
+        break;
       // Proviridis
       case '5e2701b248aaa90007904cca':
         return '1';
-      default:
-        return '';
     }
+    return '';
   }
 
   /**
@@ -704,18 +713,9 @@ export default class OCPIMapping {
     }
   }
 
-  /**
-   * Convert ID to evse ID compliant to eMI3 by replacing all non alphanumeric characters by '*'
-   */
-  private static convert2evseid(id: string): string {
-    if (id) {
-      return id.replace(/[\W_]+/g, '*').toUpperCase();
-    }
-  }
-
   private static buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
     const chargingPeriod: OCPIChargingPeriod = {
-      start_date_time: consumption.startedAt,
+      start_date_time: consumption.endedAt,
       dimensions: []
     };
     if (consumption.consumptionWh > 0) {
@@ -723,18 +723,12 @@ export default class OCPIMapping {
         type: CdrDimensionType.ENERGY,
         volume: consumption.consumptionWh / 1000
       });
-      if (consumption.limitAmps > 0) {
-        chargingPeriod.dimensions.push({
-          type: CdrDimensionType.MAX_CURRENT,
-          volume: consumption.limitAmps
-        });
-      }
     } else {
       const duration: number = moment(consumption.endedAt).diff(consumption.startedAt, 'hours', true);
       if (duration > 0) {
         chargingPeriod.dimensions.push({
           type: CdrDimensionType.PARKING_TIME,
-          volume: parseFloat(duration.toFixed(3))
+          volume: Utils.roundTo(duration, 3)
         });
       }
     }

@@ -577,10 +577,10 @@ export default class ContextDefinition {
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
     },
+    // Smart Charging must be deactivated. (Connection to CS will fail, because they do not exist)
     { // With smart charging three phased
       id: '5ce249a2372f0b1c8caf5442',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`,
-      smartCharging: true,
       numberOfPhases: 3,
       maximumPower: 100000,
       voltage: 230,
@@ -589,7 +589,6 @@ export default class ContextDefinition {
     { // With smart charging single phased
       id: '5ce249a2372f0b1c8caf5443',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
-      smartCharging: true,
       numberOfPhases: 1,
       maximumPower: 100000,
       voltage: 230,
@@ -598,7 +597,6 @@ export default class ContextDefinition {
     { // With smart charging DC
       id: '5ce249a2372f0b1c8caf5444',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`,
-      smartCharging: true,
       numberOfPhases: 3,
       maximumPower: 200000,
       voltage: 230,

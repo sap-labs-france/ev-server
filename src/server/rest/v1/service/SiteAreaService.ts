@@ -269,8 +269,21 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteArea', req.user);
+    // Get it
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
+      {
+        withSite: filteredRequest.WithSite,
+        withChargingStations: filteredRequest.WithChargingStations
+      },
+      [
+        'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
+        'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
+      ]
+    );
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
+      MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
+    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -279,44 +292,32 @@ export default class SiteAreaService {
         value: filteredRequest.ID
       });
     }
-    // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
-      { withSite: filteredRequest.WithSite, withChargingStations: filteredRequest.WithChargingStations });
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteArea', req.user);
     // Return
-    res.json(
-      // Filter
-      SiteAreaSecurity.filterSiteAreaResponse(siteArea, req.user)
-    );
+    res.json(siteArea);
     next();
   }
 
   public static async handleGetSiteAreaImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.READ, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteAreaImage');
     // Filter
-    const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'handleGetSiteAreaImage', req.user);
-    // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, siteAreaID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.READ, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'handleGetSiteAreaImage',
-        value: siteAreaID
-      });
-    }
+    const filteredRequest = SiteAreaSecurity.filterSiteImageRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteAreaImage', req.user);
     // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteAreaImage', req.user);
-    // Get it
-    const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
+    const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(filteredRequest.TenantID, filteredRequest.ID);
     // Return
-    res.json(siteAreaImage);
+    if (siteAreaImage?.image) {
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      // Remove encoding header
+      if (siteAreaImage.image.startsWith('data:image/')) {
+        header = siteAreaImage.image.substring(5, siteAreaImage.image.indexOf(';'));
+        encoding = siteAreaImage.image.substring(siteAreaImage.image.indexOf(';') + 1, siteAreaImage.image.indexOf(',')) as BufferEncoding;
+        siteAreaImage.image = siteAreaImage.image.substring(siteAreaImage.image.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(siteAreaImage.image ? Buffer.from(siteAreaImage.image, encoding) : null);
+    } else {
+      res.send(null);
+    }
     next();
   }
 
@@ -348,11 +349,11 @@ export default class SiteAreaService {
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
-        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy']
+      [
+        'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+      ]
     );
-    // Filter
-    SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
     // Return
     res.json(siteAreas);
     next();
@@ -367,7 +368,8 @@ export default class SiteAreaService {
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME,
       'handleGetSiteAreaConsumption', req.user);
     // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID, {},
+      [ 'id', 'name', 'siteID' ]);
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.SiteAreaID}' does not exist`,
       MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check auth
@@ -408,9 +410,11 @@ export default class SiteAreaService {
       siteAreaID: filteredRequest.SiteAreaID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
-    });
+    }, [ 'startedAt', 'instantAmps', 'instantWatts', 'limitAmps', 'limitWatts' ]);
+    // Assign
+    siteArea.values = consumptions;
     // Return
-    res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(siteArea, consumptions, req.user));
+    res.json(siteArea);
     next();
   }
 
@@ -421,7 +425,7 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
     // Check
-    Utils.checkIfSiteAreaValid(filteredRequest, req);
+    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canCreateSiteArea(req.user, filteredRequest.siteID)) {
       throw new AppAuthError({
@@ -499,7 +503,7 @@ export default class SiteAreaService {
       });
     }
     // Check Mandatory fields
-    Utils.checkIfSiteAreaValid(filteredRequest, req);
+    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
@@ -518,9 +522,11 @@ export default class SiteAreaService {
     // Update
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
-    siteArea.image = filteredRequest.image;
     siteArea.maximumPower = filteredRequest.maximumPower;
     siteArea.voltage = filteredRequest.voltage;
+    if (Utils.objectHasProperty(filteredRequest, 'image')) {
+      siteArea.image = filteredRequest.image;
+    }
     if (filteredRequest.smartCharging && filteredRequest.numberOfPhases === 1) {
       for (const chargingStation of siteArea.chargingStations) {
         for (const connector of chargingStation.connectors) {
@@ -551,7 +557,7 @@ export default class SiteAreaService {
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Update Site Area
-    await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
+    await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     // Retrigger Smart Charging
     if (filteredRequest.smartCharging) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-undef

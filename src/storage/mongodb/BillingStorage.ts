@@ -13,26 +13,16 @@ const MODULE_NAME = 'BillingStorage';
 
 export default class BillingStorage {
   public static async getInvoice(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<BillingInvoice> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getInvoice');
-    // Query single Site
-    const invoicesMDB = await BillingStorage.getInvoices(tenantID,
-      { invoiceIDs: [id] },
-      Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoice', uniqueTimerID, invoicesMDB);
+    const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
+      invoiceIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
   public static async getInvoiceByBillingInvoiceID(tenantID: string, id: string): Promise<BillingInvoice> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getInvoice');
-    // Query single Site
-    const invoicesMDB = await BillingStorage.getInvoices(tenantID,
-      { billingInvoiceID: id },
-      Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getInvoice', uniqueTimerID, { id });
+    const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
+      billingInvoiceID: id
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
@@ -45,7 +35,7 @@ export default class BillingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getInvoices');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -218,7 +208,7 @@ export default class BillingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getInvoiceDocument');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const invoiceDocumentMDB = await global.database.getCollection<BillingInvoiceDocument>(tenantID, 'invoicedocuments')
       .findOne({ _id: Utils.convertToObjectID(id) });
@@ -231,7 +221,7 @@ export default class BillingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteInvoice');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete the Invoice
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
@@ -246,7 +236,7 @@ export default class BillingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteInvoice');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete the Invoice
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices')
       .findOneAndDelete({ 'invoiceID': id });

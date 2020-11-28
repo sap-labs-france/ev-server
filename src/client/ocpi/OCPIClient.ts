@@ -1,5 +1,6 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
+
 import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -8,7 +9,6 @@ import Logging from '../../utils/Logging';
 import OCPICredential from '../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
@@ -40,10 +40,7 @@ export default abstract class OCPIClient {
     this.role = role.toLowerCase();
   }
 
-  /**
-   * Ping Ocpi Endpoint
-   */
-  async ping() {
+  async ping(): Promise<any> {
     const pingResult: any = {};
     // Try to access base Url (GET .../versions)
     // Access versions API
@@ -66,7 +63,7 @@ export default abstract class OCPIClient {
     return pingResult;
   }
 
-  async unregister() {
+  async unregister(): Promise<any> {
     const unregisterResult: any = {};
     try {
       // Get available version.
@@ -105,10 +102,7 @@ export default abstract class OCPIClient {
     return unregisterResult;
   }
 
-  /**
-   * Register Ocpi Endpoint
-   */
-  async register() {
+  async register(): Promise<any> {
     const registerResult: any = {};
     try {
       // Get available version.
@@ -159,10 +153,7 @@ export default abstract class OCPIClient {
     return registerResult;
   }
 
-  /**
-   * GET /ocpi/{role}/versions
-   */
-  async getVersions() {
+  async getVersions(): Promise<any> {
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_VERSIONS,
@@ -180,7 +171,7 @@ export default abstract class OCPIClient {
   /**
    * GET /ocpi/{role}/{version}
    */
-  async getServices() {
+  async getServices(): Promise<any> {
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,
@@ -281,13 +272,11 @@ export default abstract class OCPIClient {
     }
     throw new BackendError({
       action, message: `No endpoint URL defined for service ${service}`,
-      module: MODULE_NAME, method: 'getLocalPartyID',
+      module: MODULE_NAME, method: 'getEndpointUrl',
     });
   }
 
   protected getLocalEndpointUrl(service: string): string {
     return `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${this.role}/${this.ocpiEndpoint.version}/${service}`;
   }
-
-  async abstract triggerJobs(): Promise<{ tokens: OCPIJobResult; locations: OCPIJobResult; sessions: OCPIJobResult; cdrs: OCPIJobResult }>;
 }

@@ -1,3 +1,4 @@
+
 const config = {
   mode: 'development',
   optimization: {

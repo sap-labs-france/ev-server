@@ -2,6 +2,7 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 
+import { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -11,14 +12,13 @@ import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { ServerAction } from '../types/Server';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
-import jwtDecode from 'jwt-decode';
 import os from 'os';
 import sizeof from 'object-sizeof';
 
@@ -56,15 +56,16 @@ export default class Logging {
         found = true;
       }
       const sizeOfDataKB = Utils.roundTo(sizeof(data) / 1024, 2);
-      console.debug(`${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''}`);
+      const numberOfRecords = Array.isArray(data) ? data.length : 0;
+      console.debug(`${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''}${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`);
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Data volume should be kept below ${Constants.PERF_MAX_DATA_VOLUME_KB}kB`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`));
         console.warn('====================================');
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution time should be kept below ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
         console.warn('====================================');
       }
     }
@@ -122,17 +123,15 @@ export default class Logging {
     Logging.logError(log);
   }
 
-  public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async logExpressRequest(tenantID: string, decodedToken, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userToken = Logging.getUserTokenFromHttpRequest(req);
-      const tenantID = await Logging.retrieveTenantFromHttpRequest(req, userToken);
       // Check perfs
       req['timestamp'] = new Date();
       // Log
       Logging.logSecurityDebug({
         tenantID,
         action: ServerAction.HTTP_REQUEST,
-        user: userToken,
+        user: (Utils.objectHasProperty(decodedToken, 'id') ? decodedToken as UserToken : null),
         message: `Express HTTP Request << ${req.method} '${req.url}'`,
         module: MODULE_NAME, method: 'logExpressRequest',
         detailedMessages: {
@@ -153,13 +152,102 @@ export default class Logging {
     }
   }
 
+  public static logActionsResponse(
+    tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string,
+    messageNoSuccessNoError: string): void {
+    // Replace
+    messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
+    messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', actionsResponse.inError.toString());
+    // Success and Error
+    if (actionsResponse.inSuccess > 0 && actionsResponse.inError > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccessAndError
+      });
+    } else if (actionsResponse.inSuccess > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccess
+      });
+    } else if (actionsResponse.inError > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageError
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageNoSuccessNoError
+      });
+    }
+  }
+
+  public static logOcpiResult(
+    tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string,
+    messageNoSuccessNoError: string): void {
+    // Replace
+    messageSuccess = messageSuccess.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageError = messageError.replace('{{inError}}', ocpiResult.failure.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', ocpiResult.failure.toString());
+    if (Utils.isEmptyArray(ocpiResult.logs)) {
+      ocpiResult.logs = null;
+    }
+    // Success and Error
+    if (ocpiResult.success > 0 && ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccessAndError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.success > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccess,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageNoSuccessNoError,
+        detailedMessages: ocpiResult.logs
+      });
+    }
+  }
+
   public static logExpressResponse(req: Request, res: Response, next: NextFunction): void {
     res.on('finish', () => {
       try {
         // Retrieve Tenant ID if available
         let tenantID: string;
-        if (req.user) {
-          tenantID = req.user.tenantID;
+        if (req['tenantID']) {
+          tenantID = req['tenantID'];
         }
         // Compute duration
         let executionDurationMillis = 0;
@@ -175,12 +263,12 @@ export default class Logging {
           console.debug(`Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
           if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
             console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Data volume should be kept below ${Constants.PERF_MAX_DATA_VOLUME_KB}kB`));
+            console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`));
             console.warn('====================================');
           }
           if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
             console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Execution time should be kept below ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms`));
+            console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
             console.warn('====================================');
           }
         }
@@ -204,7 +292,8 @@ export default class Logging {
   }
 
   public static logExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
-    Logging.logActionExceptionMessageAndSendResponse(ServerAction.HTTP_ERROR, error, req, res, next);
+    Logging.logActionExceptionMessageAndSendResponse(
+      error['params'] && error['params']['action'] ? error['params']['action'] : ServerAction.HTTP_ERROR, error, req, res, next);
   }
 
   public static logAxiosRequest(tenantID: string, request: AxiosRequestConfig): void {
@@ -230,14 +319,17 @@ export default class Logging {
     let sizeOfDataKB = 0;
     if (response.config.headers['Content-Length']) {
       sizeOfDataKB = Utils.roundTo(response.config.headers['Content-Length'] / 1024, 2);
+    }
+    if (Utils.isDevelopmentEnv()) {
+      console.log(`Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`);
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Data volume should be kept below ${Constants.PERF_MAX_DATA_VOLUME_KB}`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`));
         console.warn('====================================');
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution time should be kept below ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
         console.warn('====================================');
       }
     }
@@ -250,6 +342,7 @@ export default class Logging {
         status: response.status,
         statusText: response.statusText,
         request: Utils.cloneObject(response.config),
+        headers: Utils.cloneObject(response.headers),
         response: Utils.cloneObject(response.data)
       }
     });
@@ -586,7 +679,7 @@ export default class Logging {
     // Host
     log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
     // Process
-    log.process = cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master';
+    log.process = log.process ? log.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master');
     // Anonymize message
     Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check
@@ -724,45 +817,6 @@ export default class Logging {
     }
   }
 
-  private static getUserTokenFromHttpRequest(req: Request): UserToken {
-    // Retrieve Tenant ID from JWT token if available
-    try {
-      // Decode the token
-      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        return jwtDecode(req.headers.authorization.slice(7)) as UserToken;
-      }
-    } catch (error) {
-      // Do nothing
-    }
-  }
-
-  private static async retrieveTenantFromHttpRequest(req: Request, userToken: UserToken): Promise<string> {
-    // Try from Token
-    if (userToken) {
-      return userToken.tenantID;
-    }
-    // Try from body
-    if (req.body?.tenant && req.body.tenant !== '') {
-      const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
-      if (tenant) {
-        return tenant.id;
-      }
-    }
-    // Try from host header
-    if (req.headers?.host) {
-      const hostParts = req.headers.host.split('.');
-      if (hostParts.length > 1) {
-        // Try with the first param
-        const tenant = await TenantStorage.getTenantBySubdomain(hostParts[0]);
-        if (tenant) {
-          return tenant.id;
-        }
-      }
-    }
-    return Constants.DEFAULT_TENANT;
-  }
-
   private static traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
     action: ServerAction, args: any, direction: '<<'|'>>'): void {
     // Keep duration
@@ -791,7 +845,7 @@ export default class Logging {
       console.debug(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`);
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution time should be kept below ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
         console.warn('====================================');
       }
     }

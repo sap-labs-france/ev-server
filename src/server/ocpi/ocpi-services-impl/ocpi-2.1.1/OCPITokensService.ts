@@ -7,6 +7,7 @@ import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../OCPIUtils';
 import { StatusCodes } from 'http-status-codes';
+import Tag from '../../../../types/Tag';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 
@@ -14,7 +15,7 @@ const MODULE_NAME = 'OCPITokensService';
 
 export default class OCPITokensService {
 
-  public static async updateToken(tenantId: string, ocpiEndpoint: OCPIEndpoint, token: OCPIToken): Promise<void> {
+  public static async updateToken(tenantId: string, ocpiEndpoint: OCPIEndpoint, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
     if (!OCPITokensService.validateToken(token)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -25,101 +26,95 @@ export default class OCPITokensService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
-    const email = OCPIUtils.buildUserEmailFromOCPIToken(token, ocpiEndpoint.countryCode, ocpiEndpoint.partyId);
-    let user = await UserStorage.getUserByEmail(tenantId, email);
-    if (user) {
-      if (user.issuer) {
+    if (emspUser) {
+      // Existing User: Check local organization
+      if (emspUser.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateToken',
           errorCode: StatusCodes.CONFLICT,
-          message: `The Token ID '${token.uid}' is already assigned to internal User`,
+          message: 'Token already assigned to an internal user',
+          actionOnUser: emspUser,
           detailedMessages: { token },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
-      const tag = user.tags.find((value) => value.id === token.uid);
-      if (tag) {
-        tag.issuer = false;
-        tag.lastChangedOn = token.last_updated;
-        tag.description = token.visual_number;
-        tag.active = token.valid === true ? true : false;
-        tag.ocpiToken = token;
-        tag.userID = user.id;
-        await UserStorage.saveTag(tenantId, tag);
-      } else {
-        await this.checkExistingTag(tenantId, token);
-        await UserStorage.saveTag(tenantId, {
-          id: token.uid,
-          issuer: false,
-          userID: user.id,
-          active: token.valid === true ? true : false,
-          description: token.visual_number,
-          lastChangedOn: token.last_updated,
-          ocpiToken: token
+      // Check the tag
+      if (tag && tag.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkExistingTag',
+          errorCode: StatusCodes.CONFLICT,
+          message: 'Token already exists in the current organization',
+          detailedMessages: token,
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
+      const tagToSave = {
+        id: token.uid,
+        issuer: false,
+        userID: emspUser.id,
+        active: token.valid === true ? true : false,
+        description: token.visual_number,
+        lastChangedOn: token.last_updated,
+        ocpiToken: token
+      };
+      // Save Tag
+      if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
+        await UserStorage.saveTag(tenantId, tagToSave);
+      }
     } else {
-      await this.checkExistingTag(tenantId, token);
-      user = {
+      // Unknown User
+      // Check the Tag
+      if (tag && tag.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkExistingTag',
+          errorCode: StatusCodes.CONFLICT,
+          message: 'Token already exists in the current organization',
+          detailedMessages: token,
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      }
+      // Create User
+      emspUser = {
         issuer: false,
         createdOn: token.last_updated,
         lastChangedOn: token.last_updated,
         name: token.issuer,
         firstName: OCPIUtils.buildOperatorName(ocpiEndpoint.countryCode, ocpiEndpoint.partyId),
-        email: email,
+        email: OCPIUtils.buildEmspEmailFromOCPIToken(token, ocpiEndpoint.countryCode, ocpiEndpoint.partyId),
         locale: Utils.getLocaleFromLanguage(token.language),
-        tags: [
-          {
-            id: token.uid,
-            issuer: false,
-            active: token.valid === true ? false : true,
-            description: token.visual_number,
-            lastChangedOn: token.last_updated,
-            ocpiToken: token
-          }
-        ]
       } as User;
-      user.id = await UserStorage.saveUser(tenantId, user);
-      await UserStorage.saveUserRole(tenantId, user.id, UserRole.BASIC);
-      await UserStorage.saveUserStatus(tenantId, user.id, UserStatus.ACTIVE);
-      user.tags[0].userID = user.id;
-      await UserStorage.saveTag(tenantId, user.tags[0]);
+      // Save User
+      emspUser.id = await UserStorage.saveUser(tenantId, emspUser);
+      await UserStorage.saveUserRole(tenantId, emspUser.id, UserRole.BASIC);
+      await UserStorage.saveUserStatus(tenantId, emspUser.id, UserStatus.ACTIVE);
+      const tagToSave = {
+        id: token.uid,
+        issuer: false,
+        userID: emspUser.id,
+        active: token.valid === true ? true : false,
+        description: token.visual_number,
+        lastChangedOn: token.last_updated,
+        ocpiToken: token
+      };
+      // Save Tag
+      if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
+        await UserStorage.saveTag(tenantId, tagToSave);
+      }
     }
   }
 
   public static validateToken(token: OCPIToken): boolean {
-    if (!token.uid
-      || !token.auth_id
-      || !token.type
-      || !token.issuer
-      || !token.whitelist
-      || !token.last_updated
-    ) {
+    if (!token.uid ||
+        !token.auth_id ||
+        !token.type ||
+        !token.issuer ||
+        !token.whitelist ||
+        !token.last_updated) {
       return false;
     }
     return true;
-  }
-
-  private static async checkExistingTag(tenantId: string, token: OCPIToken): Promise<void> {
-    const existingTag = await UserStorage.getTag(tenantId, token.uid);
-    if (existingTag) {
-      if (existingTag.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'updateToken',
-          errorCode: StatusCodes.CONFLICT,
-          message: `The Token ID '${token.uid}' does not belongs to OCPI`,
-          detailedMessages: token,
-          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-        });
-      } else {
-        const user = await UserStorage.getUser(tenantId, existingTag.userID);
-        if (!user || user.deleted) {
-          await UserStorage.deleteTag(tenantId, existingTag.userID, existingTag);
-        }
-      }
-    }
   }
 }
