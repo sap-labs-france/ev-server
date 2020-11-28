@@ -14,16 +14,20 @@
       "stopOnEntry": false
     },
     {
-      "type": "node",
+      "name": "Debug ev-server",
+      "type": "pwa-node",
       "request": "launch",
-      "name": "Debug Program via npm",
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run-script",
         "start:dev:debug"
       ],
-      "port": 9229,
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
       "stopOnEntry": true
     }
   ]
