@@ -242,7 +242,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "loan.alouache@sap.com"
+                    "example": "firstname.name@sap.com"
                   },
                   "password": {
                     "type": "string",
@@ -294,7 +294,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "loan.alouache@sap.com"
+                    "example": "firstname.name@sap.com"
                   },
                   "name": {
                     "type": "string",
@@ -386,7 +386,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "loan.alouache@sap.com"
+                    "example": "firstname.name@sap.com"
                   },
                   "captcha": {
                     "type": "string",
@@ -586,7 +586,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "loan.alouache@sap.com"
+                    "example": "firstname.name@sap.com"
                   },
                   "tenant": {
                     "type": "string",
