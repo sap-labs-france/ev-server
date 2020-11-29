@@ -100,13 +100,13 @@ export default class MongoDBStorageNotification {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
-        message: `Starting to monitor changes on database '${this.dbConfig.implementation}'...`
+        message: `The monitoring on database '${this.dbConfig.implementation}' is enabled`
       });
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
-        message: `The monitoring on database '${this.dbConfig.implementation}' is active`
+        message: `Starting to monitor changes on database '${this.dbConfig.implementation}'...`
       });
     } else {
       Logging.logInfo({
