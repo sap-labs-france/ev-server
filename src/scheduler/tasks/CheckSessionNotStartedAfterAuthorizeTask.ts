@@ -26,7 +26,7 @@ export default class CheckSessionNotStartedAfterAuthorizeTask extends SchedulerT
             await NotificationHandler.sendSessionNotStarted(tenant.id, notification.tagID + '-' + notification.authDate.toString(), notification.chargingStation, {
               user: notification.user,
               chargeBoxID: notification.chargingStation.id,
-              evseDashboardChargingStationURL: await Utils.buildEvseChargingStationURL(tenant.id, notification.chargingStation, '#all'),
+              evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, notification.chargingStation, '#all'),
               evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
             });
           }

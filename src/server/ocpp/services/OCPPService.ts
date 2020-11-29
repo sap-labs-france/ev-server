@@ -188,7 +188,7 @@ export default class OCPPService {
         {
           chargeBoxID: chargingStation.id,
           evseDashboardURL: Utils.buildEvseURL(currentTenant.subdomain),
-          evseDashboardChargingStationURL: await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
+          evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(currentTenant.subdomain, chargingStation, '#all')
         }
       ).catch(
         () => { }
@@ -1151,6 +1151,7 @@ export default class OCPPService {
         message: `Connector ID '${statusNotification.connectorId}' > Error occurred : '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}'`
       });
       // Send Notification (Async)
+      const tenant = await TenantStorage.getTenant(tenantID);
       NotificationHandler.sendChargingStationStatusError(
         tenantID,
         Utils.generateUUID(),
@@ -1159,8 +1160,8 @@ export default class OCPPService {
           'chargeBoxID': chargingStation.id,
           'connectorId': Utils.getConnectorLetterFromConnectorID(statusNotification.connectorId),
           'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${(statusNotification.info ? statusNotification.info : 'N/A')}`,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
-          'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(tenantID, chargingStation, '#inerror')
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+          'evseDashboardChargingStationURL': Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#inerror')
         }
       ).catch(() => { });
     }
@@ -1368,6 +1369,7 @@ export default class OCPPService {
     if (transaction.user) {
       // Get the i18n lib
       const i18nManager = new I18nManager(transaction.user.locale);
+      const tenant = await TenantStorage.getTenant(tenantID);
       // Notify (Async)
       NotificationHandler.sendEndOfCharge(
         tenantID,
@@ -1381,8 +1383,8 @@ export default class OCPPService {
           'totalConsumption': i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
           'stateOfCharge': transaction.currentStateOfCharge,
           'totalDuration': this.transactionDurationToString(transaction),
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch(() => { });
     }
@@ -1392,6 +1394,7 @@ export default class OCPPService {
     if (transaction.user) {
       // Get the i18n lib
       const i18nManager = new I18nManager(transaction.user.locale);
+      const tenant = await TenantStorage.getTenant(tenantID);
       // Notification Before End Of Charge (Async)
       NotificationHandler.sendOptimalChargeReached(
         tenantID,
@@ -1405,8 +1408,8 @@ export default class OCPPService {
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'totalConsumption': i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
           'stateOfCharge': transaction.currentStateOfCharge,
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch(() => { });
     }
@@ -1643,6 +1646,7 @@ export default class OCPPService {
   private async notifyStartTransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     if (user) {
       // Notify (Async)
+      const tenant = await TenantStorage.getTenant(tenantID);
       NotificationHandler.sendSessionStarted(
         tenantID,
         transaction.id.toString(),
@@ -1653,9 +1657,8 @@ export default class OCPPService {
           'transactionId': transaction.id,
           'chargeBoxID': chargingStation.id,
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
-          'evseDashboardChargingStationURL':
-            await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress')
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress')
         }
       ).catch(() => { });
     }
@@ -1687,6 +1690,7 @@ export default class OCPPService {
     if (user) {
       // Get the i18n lib
       const i18nManager = new I18nManager(user.locale);
+      const tenant = await TenantStorage.getTenant(tenantID);
       // Send Notification (Async)
       NotificationHandler.sendEndOfSession(
         tenantID,
@@ -1703,8 +1707,8 @@ export default class OCPPService {
           'totalDuration': this.buildTransactionDuration(transaction),
           'totalInactivity': this.transactionInactivityToString(transaction, user),
           'stateOfCharge': transaction.stop.stateOfCharge,
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch(() => { });
       if (transaction.stop.signedData !== '') {
@@ -1736,7 +1740,7 @@ export default class OCPPService {
             'relativeCost': (transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000)),
             'startSignedData': transaction.signedData,
             'endSignedData': transaction.stop.signedData,
-            'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
+            'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
           }
         ).catch(() => { });
       }

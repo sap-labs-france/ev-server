@@ -477,16 +477,10 @@ export default class TransactionService {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
+      delete transaction.tagID;
       if (transaction.stop) {
         delete transaction.stop.user;
         delete transaction.stop.userID;
-      }
-    }
-    // Check Tags
-    if (!Authorizations.canReadTag(req.user)) {
-      // Remove Tag
-      delete transaction.tagID;
-      if (transaction.stop) {
         delete transaction.stop.tagID;
       }
     }
@@ -564,16 +558,10 @@ export default class TransactionService {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
+      delete transaction.tagID;
       if (transaction.stop) {
         delete transaction.stop.user;
         delete transaction.stop.userID;
-      }
-    }
-    // Check Tags
-    if (!Authorizations.canReadTag(req.user)) {
-      // Remove Tag
-      delete transaction.tagID;
-      if (transaction.stop) {
         delete transaction.stop.tagID;
       }
     }
@@ -588,7 +576,7 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
@@ -611,7 +599,8 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: false }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'car.licensePlate', 'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion'
+      'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'car.licensePlate', 'car.carCatalog.vehicleMake',
+      'car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
@@ -623,7 +612,7 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpiWithNoCdr',
-      'car.licensePlate', 'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion'
+      'car.licensePlate', 'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion','tagID', 'stop.tagID'
     ]);
     res.json(transactions);
     next();
@@ -640,7 +629,7 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
@@ -662,12 +651,7 @@ export default class TransactionService {
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
-    }
-    // Check Tags
-    let tagProject: string[] = [];
-    if (Authorizations.canListTags(req.user)) {
-      tagProject = [ 'tagID' ];
+      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID' ];
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
@@ -691,7 +675,7 @@ export default class TransactionService {
       sort: filteredRequest.Sort,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    [ 'id', ...userProject, ...tagProject ]);
+    [ 'id', ...userProject ]);
     // Return
     res.json(reports);
     next();
@@ -708,7 +692,7 @@ export default class TransactionService {
     return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr', 'tagID', 'stop.tagID',
     ]);
   }
 
@@ -723,7 +707,7 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
     ]);
   }
 
@@ -887,7 +871,7 @@ export default class TransactionService {
     result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
     // Log
     // Log
-    Utils.logActionsResponse(loggedUser.tenantID,
+    Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,
       MODULE_NAME, 'synchronizeCarCatalogs', result,
       '{{inSuccess}} transaction(s) were successfully deleted',
@@ -914,16 +898,7 @@ export default class TransactionService {
         projectFields = [
           ...projectFields,
           'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
-        ];
-      }
-    }
-    // Check Tags
-    if (Authorizations.canListTags(req.user)) {
-      if (projectFields) {
-        projectFields = [
-          ...projectFields,
-          'tagID', 'stop.tagID'
+          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email'
         ];
       }
     }

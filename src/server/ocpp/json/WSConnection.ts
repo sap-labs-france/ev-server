@@ -6,10 +6,10 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import { Command } from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
-import OCPPUtils from '../utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
@@ -122,7 +122,7 @@ export default abstract class WSConnection {
   public async initialize(): Promise<void> {
     try {
       // Check Tenant?
-      await Utils.checkTenant(this.tenantID);
+      await DatabaseUtils.checkTenant(this.tenantID);
       this.tenantIsValid = true;
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
