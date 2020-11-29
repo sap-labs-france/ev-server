@@ -158,9 +158,9 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.TAG, action: Action.READ, attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+        resource: Entity.TAG, action: Action.READ, attributes: ['*']
       },
+      { resource: Entity.TAGS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],

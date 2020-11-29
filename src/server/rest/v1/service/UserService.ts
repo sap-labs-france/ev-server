@@ -1015,7 +1015,7 @@ export default class UserService {
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const tagID = UserSecurity.filterTagRequestByID(req.query);
     // Check auth
-    if (!Authorizations.canReadTag(req.user, tagID)) {
+    if (!Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -1044,9 +1044,9 @@ export default class UserService {
   }
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
+    let userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     // Check auth
-    if (!Authorizations.canReadTag(req.user, userID)) {
+    if (!Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -1064,6 +1064,9 @@ export default class UserService {
       });
     }
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
+    if (Authorizations.isBasic(req.user)) {
+      userID = req.user.id;
+    }
     // Get the tag
     let tagsMDB = await UserStorage.getTags(req.user.tenantID, {
       userIDs: [userID],
@@ -1119,11 +1122,17 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterTagsRequest(req.query);
+    let userID: string;
+    if (Authorizations.isBasic(req.user)) {
+      userID = req.user.id;
+    } else {
+      userID = filteredRequest.UserID;
+    }
     // Get the tags
     const tags = await UserStorage.getTags(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        userIDs: [userID],
         issuer: filteredRequest.Issuer,
         active: filteredRequest.Active,
         withUser: true,

@@ -296,9 +296,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.LIST);
   }
 
-  public static canReadTag(loggedUser: UserToken, userId: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.READ,
-      { user: userId, owner: loggedUser.id });
+  public static canReadTag(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.READ);
   }
 
   public static canDeleteTag(loggedUser: UserToken): boolean {

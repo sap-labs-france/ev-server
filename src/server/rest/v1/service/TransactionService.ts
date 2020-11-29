@@ -457,7 +457,8 @@ export default class TransactionService {
       'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice', 'stop.tagID'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice', 'stop.tagID','car.licensePlate',
+      'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion','car.carCatalog.image'
     ]);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
       MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
@@ -610,7 +611,7 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: false }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice'
+      'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'car.licensePlate', 'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion'
     ]);
     res.json(transactions);
     next();
@@ -621,7 +622,8 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpiWithNoCdr'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpiWithNoCdr',
+      'car.licensePlate', 'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion'
     ]);
     res.json(transactions);
     next();
