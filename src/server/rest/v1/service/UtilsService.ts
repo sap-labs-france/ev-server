@@ -716,7 +716,7 @@ export default class UtilsService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Vin is mandatory',
+        message: 'Vin Car is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
         user: req.user.id
       });
