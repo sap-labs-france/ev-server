@@ -1,11 +1,15 @@
+import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
+
+const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
 
@@ -370,6 +374,40 @@ export default class DatabaseUtils {
         '_id': 0
       };
       aggregation.push(project);
+    }
+  }
+
+  public static async checkTenant(tenantID: string): Promise<void> {
+    if (!tenantID) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkTenant',
+        message: 'The Tenant ID is mandatory'
+      });
+    }
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Valid Object ID?
+      if (!ObjectID.isValid(tenantID)) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'checkTenant',
+          message: `Invalid Tenant ID '${tenantID}'`
+        });
+      }
+      // Get the Tenant
+      const tenant = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOne({
+        '_id': Utils.convertToObjectID(tenantID)
+      });
+      if (!tenant) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'checkTenant',
+          message: `Invalid Tenant ID '${tenantID}'`
+        });
+      }
     }
   }
 

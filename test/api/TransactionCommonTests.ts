@@ -6,7 +6,6 @@ import ChargingStationContext from './context/ChargingStationContext';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
 import { TransactionInErrorType } from '../../src/types/InError';
-import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';

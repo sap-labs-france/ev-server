@@ -5,6 +5,7 @@ import ChargingStationContext from './context/ChargingStationContext';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import { ServerAction } from '../../src/types/Server';
 import SiteContext from './context/SiteContext';
 import Tag from '../types/Tag';
 import TenantContext from './context/TenantContext';
@@ -104,7 +105,7 @@ describe('User tests', function() {
           // Send
           const response = await testData.userService._baseApi.send({
             method: 'GET',
-            url: `/client/auth/CheckEndUserLicenseAgreement?Email=${testData.userContext.email}&Tenant=${testData.tenantContext.getTenant().subdomain}`,
+            url: '/v1/auth/' + ServerAction.REST_END_USER_LICENSE_AGREEMENT_CHECK + `?Email=${testData.userContext.email}&Tenant=${testData.tenantContext.getTenant().subdomain}`,
             headers: {
               'Content-Type': 'application/json'
             }

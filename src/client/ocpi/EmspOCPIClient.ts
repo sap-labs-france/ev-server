@@ -98,7 +98,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Save
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PUSH_TOKENS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PUSH_TOKENS,
       MODULE_NAME, 'sendTokens', result,
       `{{inSuccess}} Token(s) were successfully pushed in ${executionDurationSecs}s`,
       `{{inError}} Token(s) failed to be pushed in ${executionDurationSecs}s`,
@@ -178,7 +178,7 @@ export default class EmspOCPIClient extends OCPIClient {
       }
     } while (nextResult);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_LOCATIONS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_LOCATIONS,
       MODULE_NAME, 'pullLocations', result,
       `{{inSuccess}} Location(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} Location(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -238,7 +238,7 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (nextResult);
     result.total = result.failure + result.success;
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_SESSIONS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_SESSIONS,
       MODULE_NAME, 'pullSessions', result,
       `{{inSuccess}} Session(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} Session(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -298,7 +298,7 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (nextResult);
     result.total = result.failure + result.success;
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_CDRS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_CDRS,
       MODULE_NAME, 'pullCdrs', result,
       `{{inSuccess}} CDR(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} CDR(s) failed to be pulled in ${executionDurationSecs}s`,

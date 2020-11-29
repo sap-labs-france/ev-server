@@ -10,6 +10,7 @@ import { OCPPPhase } from '../../types/ocpp/OCPPServer';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
+import { StaticLimitAmps } from '../../types/ChargingStation';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -66,17 +67,22 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         // Check Connectors
         for (const connector of chargingStation.connectors) {
           // Amperage limit
-          const connectorAmperageLimit = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
+          const connectorAmperageLimitMax = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
+          const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+          const numberOfConnectors = chargingStation.connectors.length;
+          const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors;
           if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
-            connector.amperageLimit = connectorAmperageLimit;
+            connector.amperageLimit = connectorAmperageLimitMax;
             chargingStationUpdated = true;
-          } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimit) {
-            connector.amperageLimit = connectorAmperageLimit;
+          } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimitMax) {
+            connector.amperageLimit = connectorAmperageLimitMax;
+            chargingStationUpdated = true;
+          } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit < connectorAmperageLimitMin) {
+            connector.amperageLimit = connectorAmperageLimitMin;
             chargingStationUpdated = true;
           }
           // Phase Assignment
           if (!Utils.objectHasProperty(connector, 'phaseAssignmentToGrid')) {
-            const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
             // Phase Assignment to Grid has to be handled only for Site Area with 3 phases
             if (chargingStation?.siteArea?.numberOfPhases === 3) {
               // Single Phase
@@ -95,7 +101,8 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         // Save
         if (chargingStationTemplateUpdated.technicalUpdated ||
             chargingStationTemplateUpdated.capabilitiesUpdated ||
-            chargingStationTemplateUpdated.ocppUpdated ||
+            chargingStationTemplateUpdated.ocppStandardUpdated ||
+            chargingStationTemplateUpdated.ocppVendorUpdated ||
             chargingStationUpdated) {
           const sectionsUpdated = [];
           if (chargingStationTemplateUpdated.technicalUpdated) {
@@ -104,7 +111,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
           if (chargingStationTemplateUpdated.capabilitiesUpdated) {
             sectionsUpdated.push('Capabilities');
           }
-          if (chargingStationTemplateUpdated.ocppUpdated) {
+          if (chargingStationTemplateUpdated.ocppStandardUpdated || chargingStationTemplateUpdated.ocppVendorUpdated) {
             sectionsUpdated.push('OCPP');
           }
           Logging.logInfo({
@@ -118,8 +125,8 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
           // Save
           await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
           updated++;
-          // Retrieve OCPP params and update them if needed
-          if (chargingStationTemplateUpdated.ocppUpdated) {
+          // Retrieve OCPP parameters and update them if needed
+          if (chargingStationTemplateUpdated.ocppStandardUpdated || chargingStationTemplateUpdated.ocppVendorUpdated) {
             Logging.logDebug({
               tenantID: tenant.id,
               action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -146,7 +153,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
               Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationTemplateOcppParameters(tenant.id, chargingStation),
               `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in updating OCPP Parameters`);
             // Log
-            Utils.logActionsResponse(
+            Logging.logActionsResponse(
               tenant.id,
               ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
               MODULE_NAME, 'applyTemplateToChargingStations', updatedOcppParameters,

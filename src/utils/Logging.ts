@@ -2,6 +2,7 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 
+import { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -11,14 +12,13 @@ import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { ServerAction } from '../types/Server';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
-import jwtDecode from 'jwt-decode';
 import os from 'os';
 import sizeof from 'object-sizeof';
 
@@ -123,15 +123,10 @@ export default class Logging {
     Logging.logError(log);
   }
 
-  public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async logExpressRequest(tenantID: string, decodedToken, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Decode the Token
-      const decodedToken = Logging.getDecodedTokenFromHttpRequest(req);
-      // Get the Tenant
-      const tenantID = await Logging.retrieveTenantFromHttpRequest(req, decodedToken);
       // Check perfs
       req['timestamp'] = new Date();
-      req['tenantID'] = tenantID;
       // Log
       Logging.logSecurityDebug({
         tenantID,
@@ -154,6 +149,95 @@ export default class Logging {
       });
     } finally {
       next();
+    }
+  }
+
+  public static logActionsResponse(
+    tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string,
+    messageNoSuccessNoError: string): void {
+    // Replace
+    messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
+    messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', actionsResponse.inError.toString());
+    // Success and Error
+    if (actionsResponse.inSuccess > 0 && actionsResponse.inError > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccessAndError
+      });
+    } else if (actionsResponse.inSuccess > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccess
+      });
+    } else if (actionsResponse.inError > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageError
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageNoSuccessNoError
+      });
+    }
+  }
+
+  public static logOcpiResult(
+    tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string,
+    messageNoSuccessNoError: string): void {
+    // Replace
+    messageSuccess = messageSuccess.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageError = messageError.replace('{{inError}}', ocpiResult.failure.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', ocpiResult.success.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', ocpiResult.failure.toString());
+    if (Utils.isEmptyArray(ocpiResult.logs)) {
+      ocpiResult.logs = null;
+    }
+    // Success and Error
+    if (ocpiResult.success > 0 && ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccessAndError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.success > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccess,
+        detailedMessages: ocpiResult.logs
+      });
+    } else if (ocpiResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageError,
+        detailedMessages: ocpiResult.logs
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageNoSuccessNoError,
+        detailedMessages: ocpiResult.logs
+      });
     }
   }
 
@@ -731,59 +815,6 @@ export default class Logging {
       case LogLevel.ERROR:
         return 'error';
     }
-  }
-
-  private static getDecodedTokenFromHttpRequest(req: Request): any {
-    // Retrieve Tenant ID from JWT token if available
-    try {
-      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        // Decode the token (REST)
-        try {
-          return jwtDecode(req.headers.authorization.slice(7));
-        } catch (error) {
-          // Try Base 64 decoding (OCPI)
-          return JSON.parse(Buffer.from(req.headers.authorization.slice(7), 'base64').toString());
-        }
-      }
-    } catch (error) {
-      // Do nothing
-    }
-  }
-
-  private static async retrieveTenantFromHttpRequest(req: Request, decodedToken: any): Promise<string> {
-    // Try from Token
-    if (decodedToken) {
-      // REST
-      if (Utils.objectHasProperty(decodedToken, 'tenantID')) {
-        return decodedToken.tenantID;
-      }
-      // OCPI
-      if (Utils.objectHasProperty(decodedToken, 'tid')) {
-        const tenant = await TenantStorage.getTenantBySubdomain(decodedToken.tid);
-        if (tenant) {
-          return tenant.id;
-        }
-      }
-    }
-    // Try from body
-    if (req.body?.tenant && req.body.tenant !== '') {
-      const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
-      if (tenant) {
-        return tenant.id;
-      }
-    }
-    // Try from host header
-    if (req.headers?.host) {
-      const hostParts = req.headers.host.split('.');
-      if (hostParts.length > 1) {
-        // Try with the first param
-        const tenant = await TenantStorage.getTenantBySubdomain(hostParts[0]);
-        if (tenant) {
-          return tenant.id;
-        }
-      }
-    }
-    return Constants.DEFAULT_TENANT;
   }
 
   private static traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,

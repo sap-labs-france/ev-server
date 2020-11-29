@@ -214,7 +214,7 @@ export default class AuthService {
       });
     }
     // Check Mandatory field
-    Utils.checkIfUserValid(filteredRequest as User, null, req);
+    UtilsService.checkIfUserValid(filteredRequest as User, null, req);
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     if (user) {
