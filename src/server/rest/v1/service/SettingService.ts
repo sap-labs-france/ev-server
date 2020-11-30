@@ -94,10 +94,10 @@ export default class SettingService {
       { identifier: filteredRequest.Identifier },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
     // Process the sensitive data if any
-    settings.result.forEach((setting) => {
+    for (const setting of settings.result) {
       // Hash sensitive data before being sent to the front end
       Cypher.hashSensitiveDataInJSON(setting);
-    });
+    }
     // Return
     res.json(settings);
     next();

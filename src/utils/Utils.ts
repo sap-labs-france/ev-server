@@ -34,6 +34,20 @@ import validator from 'validator';
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
+  public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
+    const connectors: Connector[] = [];
+    if (!chargingStation || !chargePoint || Utils.isEmptyArray(chargePoint.connectorIDs)) {
+      return connectors;
+    }
+    for (const connectorID of chargePoint.connectorIDs) {
+      const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+      if (connector) {
+        connectors.push(connector);
+      }
+    }
+    return connectors;
+  }
+
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
     if (axiosError.response) {
@@ -430,11 +444,11 @@ export default class Utils {
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 6);
+    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 6);
   }
 
   public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 2);
+    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 2);
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -956,6 +970,11 @@ export default class Utils {
   public static roundTo(value: number, scale: number): number {
     const roundPower = Math.pow(10, scale);
     return Math.round(value * roundPower) / roundPower;
+  }
+
+  public static truncTo(value: number, scale: number): number {
+    const roundPower = Math.pow(10, scale);
+    return Math.trunc(value * roundPower) / roundPower;
   }
 
   public static firstLetterInUpperCase(value: string): string {

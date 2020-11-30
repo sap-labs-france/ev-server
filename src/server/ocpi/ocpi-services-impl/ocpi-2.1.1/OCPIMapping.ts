@@ -69,11 +69,11 @@ export default class OCPIMapping {
 
   static convertEvseToChargingStation(evseId: string, evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
     const chargingStation = {
-      id: evseId,
+      id: evse.evse_id,
       maximumPower: 0,
       issuer: false,
       connectors: [],
-      chargeBoxSerialNumber: evse.evse_id,
+      chargeBoxSerialNumber: evseId,
       ocpiData: {
         evse: evse
       }
@@ -415,7 +415,7 @@ export default class OCPIMapping {
           start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
           dimensions: [{
             type: CdrDimensionType.PARKING_TIME,
-            volume: Utils.roundTo(inactivity / 3600, 3)
+            volume: Utils.truncTo(inactivity / 3600, 3)
           }]
         });
       }
@@ -486,11 +486,21 @@ export default class OCPIMapping {
     // Build evses array
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
-    siteArea.chargingStations.forEach((chargingStation) => {
+    for (const chargingStation of siteArea.chargingStations) {
       if (chargingStation.issuer === true && chargingStation.public) {
-        evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
+        if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
+          for (const chargePoint of chargingStation.chargePoints) {
+            if (chargePoint.cannotChargeInParallel) {
+              evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, chargePoint, options));
+            } else {
+              evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, chargePoint, options));
+            }
+          }
+        } else {
+          evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
+        }
       }
-    });
+    }
     // Return evses
     return evses;
   }
@@ -527,9 +537,14 @@ export default class OCPIMapping {
    * @param {*} chargingStation
    * @return Array of OCPI EVSEs
    */
-  private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
+  private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     // Loop through connectors and send one evse per connector
-    const connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    let connectors: Connector[];
+    if (chargePoint) {
+      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+    } else {
+      connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    }
     const evses = connectors.map((connector) => {
       const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
       const evse: OCPIEvse = {
@@ -561,18 +576,24 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI EVSE
    */
-  private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
+  private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation);
+    let connectors: Connector[];
+    if (chargePoint) {
+      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+    } else {
+      connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    }
     // Get all connectors
-    const connectors = chargingStation.connectors.map(
+    const ocpiConnectors = connectors.map(
       (connector: Connector) => OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, evseID));
     // Build evse
     const evse: OCPIEvse = {
       uid: OCPIUtils.buildEvseUID(chargingStation),
       evse_id: evseID,
-      status: OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
+      status: OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(connectors)),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-      connectors: connectors,
+      connectors: ocpiConnectors,
       last_updated: chargingStation.lastSeen,
       coordinates: {
         latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
@@ -728,7 +749,7 @@ export default class OCPIMapping {
       if (duration > 0) {
         chargingPeriod.dimensions.push({
           type: CdrDimensionType.PARKING_TIME,
-          volume: Utils.roundTo(duration, 3)
+          volume: Utils.truncTo(duration, 3)
         });
       }
     }

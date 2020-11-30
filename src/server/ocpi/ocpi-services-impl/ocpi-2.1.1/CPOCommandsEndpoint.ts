@@ -104,12 +104,12 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }, Constants.DB_PARAMS_MAX_LIMIT);
     if (chargingStations && chargingStations.result) {
       for (const cs of chargingStations.result) {
-        cs.connectors.forEach((conn) => {
+        for (const conn of cs.connectors) {
           if (startSession.evse_uid === OCPIUtils.buildEvseUID(cs, conn)) {
             chargingStation = cs;
             connector = conn;
           }
-        });
+        }
       }
     }
     if (!chargingStation) {

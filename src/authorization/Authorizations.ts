@@ -122,7 +122,7 @@ export default class Authorizations {
     // Get User's site
     const sites = (await UserStorage.getUserSites(tenantID, { userID: user.id },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
-    sites.forEach((siteUser) => {
+    for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
         siteIDs.push(siteUser.site.id);
         companyIDs.add(siteUser.site.companyID);
@@ -133,7 +133,7 @@ export default class Authorizations {
       if (siteUser.siteOwner) {
         siteOwnerIDs.push(siteUser.site.id);
       }
-    });
+    }
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
     let tenantName;

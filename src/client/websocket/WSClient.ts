@@ -176,11 +176,11 @@ export default class WSClient {
   }
 
   private reinstantiateCbs() {
-    ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
+    for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
       if ('' + this.callbacks[method] !== '' + (() => { })) {
         this.ws[method] = this.callbacks[method];
       }
-    });
+    }
   }
 
   private onError(error) {
@@ -250,7 +250,7 @@ export default class WSClient {
  * Add the `onopen`, `onerror`, `onclose`, `onmessage`, `onreconnect`
  * and `onmaximum` attributes.
  */
-['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
+for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
   Object.defineProperty(WSClient.prototype, method, {
     configurable: true,
     enumerable: true,
@@ -263,8 +263,8 @@ export default class WSClient {
       this.ws[method] = callback;
     }
   });
-});
-['onreconnect', 'onmaximum'].forEach((method) => {
+}
+for (const method of ['onreconnect', 'onmaximum']) {
   Object.defineProperty(WSClient.prototype, method, {
     configurable: true,
     enumerable: true,
@@ -275,23 +275,16 @@ export default class WSClient {
       this.callbacks[method] = callback;
     }
   });
-});
+}
 
 /**
  * Add some ws properties
  */
-[
-  'binaryType',
-  'bufferedAmount',
-  'extensions',
-  'protocol',
-  'readyState'
-].forEach((property) => {
+for (const property of ['binaryType', 'bufferedAmount', 'extensions', 'protocol', 'readyState']) {
   Object.defineProperty(WSClient.prototype, property, {
     enumerable: true,
     get() {
       return this.ws[property];
     }
   });
-});
-
+}

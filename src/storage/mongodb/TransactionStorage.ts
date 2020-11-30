@@ -573,7 +573,7 @@ export default class TransactionStorage {
           connector: {
             $arrayElemAt: [
               '$chargeBox.connectors', {
-                $indexOfArray: ['$chargeBox.connectors.connectorId', 1]
+                $indexOfArray: ['$chargeBox.connectors.connectorId', '$connectorId']
               }
             ]
           }
@@ -840,10 +840,10 @@ export default class TransactionStorage {
     if (!Utils.isEmptyArray(params.errorType)) {
       const facets: any = { $facet: {} };
       const array = [];
-      params.errorType.forEach((type) => {
+      for (const type of params.errorType) {
         array.push(`$${type}`);
         facets.$facet[type] = this.getTransactionsInErrorFacet(type);
-      });
+      }
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
       aggregation.push({ $project: { 'allItems': { $setUnion: array } } });
