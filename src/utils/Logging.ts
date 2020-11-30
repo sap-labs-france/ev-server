@@ -55,7 +55,7 @@ export default class Logging {
         delete Logging.traceCalls[key];
         found = true;
       }
-      const sizeOfDataKB = Utils.roundTo(sizeof(data) / 1024, 2);
+      const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
       const numberOfRecords = Array.isArray(data) ? data.length : 0;
       console.debug(`${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''}${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`);
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
@@ -257,7 +257,7 @@ export default class Logging {
         // Compute Length
         let sizeOfDataKB = 0;
         if (res.getHeader('content-length')) {
-          sizeOfDataKB = Utils.roundTo(res.getHeader('content-length') as number / 1024, 2);
+          sizeOfDataKB = Utils.truncTo(res.getHeader('content-length') as number / 1024, 2);
         }
         if (Utils.isDevelopmentEnv()) {
           console.debug(`Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
@@ -318,7 +318,7 @@ export default class Logging {
     // Compute Length
     let sizeOfDataKB = 0;
     if (response.config.headers['Content-Length']) {
-      sizeOfDataKB = Utils.roundTo(response.config.headers['Content-Length'] / 1024, 2);
+      sizeOfDataKB = Utils.truncTo(response.config.headers['Content-Length'] / 1024, 2);
     }
     if (Utils.isDevelopmentEnv()) {
       console.log(`Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`);

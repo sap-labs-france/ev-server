@@ -644,7 +644,7 @@ export default class StatisticService {
           `${Utils.buildUserFullName(transaction.user, false)}` + Constants.CSV_SEPARATOR;
         csv += (year && year !== '0') ? `${year}` + Constants.CSV_SEPARATOR : '';
         csv += (transaction._id.month > 0) ? `${transaction._id.month}` + Constants.CSV_SEPARATOR : '';
-        number = Utils.roundTo(transaction.total, 2);
+        number = Utils.truncTo(transaction.total, 2);
         // Use raw numbers - it makes no sense to format numbers here,
         // anyway only locale 'en-US' is supported here as could be seen by:
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
