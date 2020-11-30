@@ -573,7 +573,7 @@ export default class TransactionStorage {
           connector: {
             $arrayElemAt: [
               '$chargeBox.connectors', {
-                $indexOfArray: ['$chargeBox.connectors.connectorId', 1]
+                $indexOfArray: ['$chargeBox.connectors.connectorId', '$connectorId']
               }
             ]
           }
