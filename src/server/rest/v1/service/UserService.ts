@@ -1079,20 +1079,20 @@ export default class UserService {
       tagsMDB = await UserStorage.getTags(req.user.tenantID, {
         userIDs: [userID],
         active: true
-      }, Constants.DB_PARAMS_SINGLE_RECORD,[
+      }, Constants.DB_PARAMS_SINGLE_RECORD, [
         'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default'
       ]);
     }
     const tag = tagsMDB.count > 0 ? tagsMDB.result[0] : null;
     let carsMDB = await CarStorage.getCars(req.user.tenantID,
       { userIDs: [userID], defaultCar: true },
-      Constants.DB_PARAMS_SINGLE_RECORD,[
+      Constants.DB_PARAMS_SINGLE_RECORD, [
         'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
         'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
       ]);
     carsMDB = carsMDB.count > 0 ? carsMDB : await CarStorage.getCars(req.user.tenantID,
       { userIDs: [userID] },
-      Constants.DB_PARAMS_SINGLE_RECORD,[
+      Constants.DB_PARAMS_SINGLE_RECORD, [
         'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
         'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
       ]);
@@ -1132,7 +1132,7 @@ export default class UserService {
     const tags = await UserStorage.getTags(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userIDs: [userID],
+        userIDs: userID ? [userID] : null,
         issuer: filteredRequest.Issuer,
         active: filteredRequest.Active,
         withUser: true,
