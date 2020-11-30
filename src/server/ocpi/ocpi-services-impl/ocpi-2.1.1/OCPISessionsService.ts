@@ -80,11 +80,11 @@ export default class OCPISessionsService {
       let connectorId = 1;
       if (evse.connectors && evse.connectors.length === 1) {
         const evseConnectorId = evse.connectors[0].id;
-        chargingStation.connectors.forEach((connector) => {
+        for (const connector of chargingStation.connectors) {
           if (evseConnectorId === connector.id) {
             connectorId = connector.connectorId;
           }
-        });
+        }
       }
       transaction = {
         issuer: false,

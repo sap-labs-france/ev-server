@@ -34,6 +34,20 @@ import validator from 'validator';
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
+  public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
+    const connectors: Connector[] = [];
+    if (!chargingStation || !chargePoint || Utils.isEmptyArray(chargePoint.connectorIDs)) {
+      return connectors;
+    }
+    for (const connectorID of chargePoint.connectorIDs) {
+      const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+      if (connector) {
+        connectors.push(connector);
+      }
+    }
+    return connectors;
+  }
+
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
     if (axiosError.response) {
