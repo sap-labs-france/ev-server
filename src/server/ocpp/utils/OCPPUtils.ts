@@ -218,7 +218,7 @@ export default class OCPPUtils {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = Utils.roundTo(transaction.currentCumulatedPrice + consumption.amount, 6);
+              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 6);
             }
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
           }
@@ -236,15 +236,15 @@ export default class OCPPUtils {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = Utils.roundTo(transaction.currentCumulatedPrice + consumption.amount, 6);
+              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 6);
             }
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
             // Update Transaction
             if (!transaction.stop) {
               transaction.stop = {} as TransactionStop;
             }
-            transaction.stop.price = Utils.roundTo(transaction.currentCumulatedPrice, 6);
-            transaction.stop.roundedPrice = Utils.roundTo(transaction.currentCumulatedPrice, 2);
+            transaction.stop.price = Utils.truncTo(transaction.currentCumulatedPrice, 6);
+            transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
             transaction.stop.priceUnit = pricedConsumption.currencyCode;
             transaction.stop.pricingSource = pricedConsumption.pricingSource;
           }
@@ -469,7 +469,7 @@ export default class OCPPUtils {
     }
     // Check Simple Pricing
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
-      transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
+      transactionSimplePricePerkWh = Utils.truncTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,

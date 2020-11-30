@@ -415,7 +415,7 @@ export default class OCPIMapping {
           start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
           dimensions: [{
             type: CdrDimensionType.PARKING_TIME,
-            volume: Utils.roundTo(inactivity / 3600, 3)
+            volume: Utils.truncTo(inactivity / 3600, 3)
           }]
         });
       }
@@ -749,7 +749,7 @@ export default class OCPIMapping {
       if (duration > 0) {
         chargingPeriod.dimensions.push({
           type: CdrDimensionType.PARKING_TIME,
-          volume: Utils.roundTo(duration, 3)
+          volume: Utils.truncTo(duration, 3)
         });
       }
     }
