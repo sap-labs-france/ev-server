@@ -353,13 +353,11 @@ export default class AuthorizationsDefinition {
   public getScopes(groups: ReadonlyArray<string>): ReadonlyArray<string> {
     const scopes = [];
     try {
-      this.accessControl.allowedResources({ role: groups }).forEach(
-        (resource: string): void => {
-          this.accessControl.allowedActions({ role: groups, resource: resource }).forEach(
-            (action: string): number => scopes.push(`${resource}:${action}`)
-          );
+      for (const resource of this.accessControl.allowedResources({ role: groups }) as string[]) {
+        for (const action of this.accessControl.allowedActions({ role: groups, resource: resource }) as string[]) {
+          scopes.push(`${resource}:${action}`);
         }
-      );
+      }
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

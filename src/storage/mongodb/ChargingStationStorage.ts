@@ -303,8 +303,11 @@ export default class ChargingStationStorage {
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
     }
+    // Always add Conneector ID
+    dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
     // Position coordinates
     if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+      // Override (can have only one sort)
       dbParams.sort = { distanceMeters: 1 };
     }
     aggregation.push({
@@ -431,10 +434,10 @@ export default class ChargingStationStorage {
       }
       // Build facet only for one error type
       const array = [];
-      params.errorType.forEach((type) => {
+      for (const type of params.errorType) {
         array.push(`$${type}`);
         facets.$facet[type] = ChargingStationStorage.getChargerInErrorFacet(type);
-      });
+      }
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
       aggregation.push({ $project: { chargersInError: { $setUnion: array } } });
