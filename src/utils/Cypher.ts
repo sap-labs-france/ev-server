@@ -67,7 +67,7 @@ export default class Cypher {
           message: 'The property \'sensitiveData\' is not an array'
         });
       }
-      obj.sensitiveData.forEach((property: string) => {
+      for (const property of obj.sensitiveData as string[]) {
         // Check that the property does exist otherwise skip to the next property
         if (_.has(obj, property)) {
           const value = _.get(obj, property);
@@ -76,7 +76,7 @@ export default class Cypher {
             _.set(obj, property, Cypher.encrypt(value));
           }
         }
-      });
+      }
     } else {
       obj.sensitiveData = [];
     }
@@ -101,7 +101,7 @@ export default class Cypher {
           message: 'The property \'sensitiveData\' is not an array'
         });
       }
-      obj.sensitiveData.forEach((property: string) => {
+      for (const property of obj.sensitiveData as string[]) {
         // Check that the property does exist otherwise skip to the next property
         if (_.has(obj, property)) {
           const value = _.get(obj, property);
@@ -110,7 +110,7 @@ export default class Cypher {
             _.set(obj, property, Cypher.decrypt(value));
           }
         }
-      });
+      }
     }
   }
 
@@ -133,7 +133,7 @@ export default class Cypher {
           message: 'The property \'sensitiveData\' is not an array'
         });
       }
-      obj.sensitiveData.forEach((property: string) => {
+      for (const property of obj.sensitiveData as string[]) {
         // Check that the property does exist otherwise skip to the next property
         if (_.has(obj, property)) {
           const value = _.get(obj, property);
@@ -142,7 +142,7 @@ export default class Cypher {
             _.set(obj, property, Cypher.hash(value));
           }
         }
-      });
+      }
     }
   }
 }

@@ -131,6 +131,12 @@ export default class DatabaseUtils {
     if (!Utils.isEmptyArray(additionalParams.pipeline)) {
       lookupParams.aggregation.push(...additionalParams.pipeline);
     }
+    // Sort (for unwinded array props)
+    if (additionalParams.sort) {
+      lookupParams.aggregation.push({
+        $sort: additionalParams.sort
+      });
+    }
     // Group back to arrays
     lookupParams.aggregation.push(
       JSON.parse(`{
@@ -163,7 +169,7 @@ export default class DatabaseUtils {
     }`));
     // Replace root
     lookupParams.aggregation.push({ $replaceRoot: { newRoot: '$root' } });
-    // Sort?
+    // Sort again (after grouping, sort is lost)
     if (additionalParams.sort) {
       lookupParams.aggregation.push({
         $sort: additionalParams.sort

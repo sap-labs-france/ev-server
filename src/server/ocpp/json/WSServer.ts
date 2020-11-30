@@ -61,11 +61,11 @@ export default class WSServer extends WebSocket.Server {
   }
 
   public broadcastToClients(message: any): void {
-    this.clients.forEach((client) => {
+    for (const client of this.clients) {
       if (client.readyState === WebSocket.OPEN) {
         client.send(message);
       }
-    });
+    }
   }
 
   public start(): void {

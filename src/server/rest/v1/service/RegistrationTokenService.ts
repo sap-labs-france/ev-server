@@ -231,12 +231,11 @@ export default class RegistrationTokenService {
       ]
     );
     // Build OCPP URLs
-    registrationTokens.result.forEach((registrationToken) => {
+    for (const registrationToken of registrationTokens.result) {
       registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
       registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
       registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
-      return registrationToken;
-    });
+    }
     // Ok
     res.json(registrationTokens);
     next();
