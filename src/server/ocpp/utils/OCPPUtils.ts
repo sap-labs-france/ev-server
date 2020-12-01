@@ -220,7 +220,7 @@ export default class OCPPUtils {
             } else {
               consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 6);
             }
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+            transaction.currentCumulatedPrice = parseFloat(consumption.cumulatedAmount.toFixed(3));
           }
           break;
         // Stop Transaction
@@ -238,7 +238,7 @@ export default class OCPPUtils {
             } else {
               consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 6);
             }
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+            transaction.currentCumulatedPrice = parseFloat(consumption.cumulatedAmount.toFixed(3));
             // Update Transaction
             if (!transaction.stop) {
               transaction.stop = {} as TransactionStop;
