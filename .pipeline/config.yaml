@@ -25,6 +25,7 @@ stages:
     karmaExecuteTests: false
 
   Acceptance:
+    newmanExecute: false
     #cloudFoundryDeploy: true
     #cloudFoundry:
     #  org: 'SAP IT Cloud_sapitcfd'
