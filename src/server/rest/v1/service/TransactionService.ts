@@ -598,7 +598,7 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: false }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'tagID', 'stop.tagID',
+      'currentCumulatedPrice', 'currentInactivityStatus', 'priceUnit', 'roundedPrice', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
