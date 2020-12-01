@@ -360,7 +360,7 @@ export default class ChargingStationService {
       });
     }
     // Profiles of the charging station?
-    let profilesProject: string[] = [ 'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel' ];
+    let profilesProject: string[] = ['profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'];
     if (filteredRequest.ChargeBoxID) {
       // Enhanced the projection
       profilesProject = ['profile'];
@@ -373,7 +373,8 @@ export default class ChargingStationService {
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: true,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null), },
+        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+      },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
@@ -1008,6 +1009,16 @@ export default class ChargingStationService {
       // Check if user is authorized
       const user = await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID,
         ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, Action.REMOTE_START_TRANSACTION);
+      if (!user.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `User not issued by the organization execute command '${Command.REMOTE_START_TRANSACTION}'`,
+          module: MODULE_NAME, method: 'handleAction',
+          user: req.user,
+          action: action
+        });
+      }
       // Ok: Execute it
       result = await this.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
@@ -1191,7 +1202,7 @@ export default class ChargingStationService {
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email' ];
+      userProject = ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email'];
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,

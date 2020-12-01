@@ -1071,14 +1071,16 @@ export default class UserService {
     let tagsMDB = await UserStorage.getTags(req.user.tenantID, {
       userIDs: [userID],
       defaultTag: true,
-      active: true
+      active: true,
+      issuer: true
     }, Constants.DB_PARAMS_SINGLE_RECORD, [
       'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default'
     ]);
     if (tagsMDB.count < 1) {
       tagsMDB = await UserStorage.getTags(req.user.tenantID, {
         userIDs: [userID],
-        active: true
+        active: true,
+        issuer: true
       }, Constants.DB_PARAMS_SINGLE_RECORD, [
         'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default'
       ]);
