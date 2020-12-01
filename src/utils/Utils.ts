@@ -444,11 +444,11 @@ export default class Utils {
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 6);
+    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 6);
   }
 
   public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 2);
+    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 2);
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -970,6 +970,11 @@ export default class Utils {
   public static roundTo(value: number, scale: number): number {
     const roundPower = Math.pow(10, scale);
     return Math.round(value * roundPower) / roundPower;
+  }
+
+  public static truncTo(value: number, scale: number): number {
+    const roundPower = Math.pow(10, scale);
+    return Math.trunc(value * roundPower) / roundPower;
   }
 
   public static firstLetterInUpperCase(value: string): string {
