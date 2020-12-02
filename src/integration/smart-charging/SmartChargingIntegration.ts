@@ -1,7 +1,6 @@
 import { ActionsResponse } from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
 import { ChargingProfile } from '../../types/ChargingProfile';
-import ChargingStation from '../../types/ChargingStation';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
