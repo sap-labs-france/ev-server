@@ -138,7 +138,6 @@ export default class BillingStorage {
     // Read DB
     const invoicesMDB = await global.database.getCollection<BillingInvoice>(tenantID, 'invoices')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();

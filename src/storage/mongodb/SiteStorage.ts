@@ -185,7 +185,6 @@ export default class SiteStorage {
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{ user: User; siteID: string; siteAdmin: boolean; siteOwner: boolean }>(tenantID, 'siteusers')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -451,7 +450,6 @@ export default class SiteStorage {
     // Read DB
     const sitesMDB = await global.database.getCollection<Site>(tenantID, 'sites')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
