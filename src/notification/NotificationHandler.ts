@@ -823,7 +823,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendComputeAndApplyChargingProfilesFailed(tenantID: string, sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
+  static async sendComputeAndApplyChargingProfilesFailed(tenantID: string, chargingStation: ChargingStation, sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -835,19 +835,27 @@ export default class NotificationHandler {
           // Active?
           if (notificationSource.enabled) {
             try {
-              // Save
-              await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, null, ServerAction.CHECK_AND_APPLY_SMART_CHARGING_FAILED);
-              // Send
-              for (const adminUser of adminUsers) {
+              // Check notification
+              const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+                tenantID, notificationSource.channel, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED,
+                sourceData.chargeBoxID, null, { intervalMins: 60 * 24 });
+              // Notified?
+              if (!hasBeenNotified) {
+                // Save
+                await NotificationHandler.saveNotification(
+                  tenantID, notificationSource.channel, null, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED, { chargingStation: chargingStation });
+                // Send
+                for (const adminUser of adminUsers) {
                 // Enabled?
-                if (adminUser.notificationsActive && adminUser.notifications.sendComputeAndApplyChargingProfilesFailed) {
-                  await notificationSource.notificationTask.sendComputeAndApplyChargingProfilesFailed(
-                    sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                  if (adminUser.notificationsActive && adminUser.notifications.sendComputeAndApplyChargingProfilesFailed) {
+                    await notificationSource.notificationTask.sendComputeAndApplyChargingProfilesFailed(
+                      sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                  }
                 }
               }
+
             } catch (error) {
-              Logging.logActionExceptionMessage(tenantID, ServerAction.CHECK_AND_APPLY_SMART_CHARGING_FAILED, error);
+              Logging.logActionExceptionMessage(tenantID, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED, error);
             }
           }
         }

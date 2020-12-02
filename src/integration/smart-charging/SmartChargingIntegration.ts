@@ -1,6 +1,7 @@
 import { ActionsResponse } from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
 import { ChargingProfile } from '../../types/ChargingProfile';
+import ChargingStation from '../../types/ChargingStation';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -16,6 +17,7 @@ const MODULE_NAME = 'SmartChargingIntegration';
 export default abstract class SmartChargingIntegration<T extends SmartChargingSetting> {
   protected readonly tenantID: string;
   protected readonly setting: T;
+  private excludedChargingStations: ChargingStation[] = [];
 
   protected constructor(tenantID: string, setting: T) {
     this.tenantID = tenantID;
@@ -57,7 +59,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
           source: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
-          message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed, because of  '${chargingProfile.chargingStationID}'. It has been excluded from smart charging automatically`,
+          message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed, because of  '${chargingProfile.chargingStationID}'. It has been excluded from this smart charging run automatically`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
@@ -72,6 +74,11 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     );
     if (actionsResponse.inError > 0 && retry === false) {
       await this.computeAndApplyChargingProfiles(siteArea, retry = true);
+      // Including the excluded Charging Stations for the next smart charging run again
+      for (const chargingStation of this.excludedChargingStations) {
+        chargingStation.excludeFromSmartCharging = false;
+        await ChargingStationStorage.saveChargingStation(this.tenantID, chargingStation);
+      }
     }
     return actionsResponse;
   }
@@ -135,8 +142,10 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     chargingStation.excludeFromSmartCharging = true;
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
+    // Remember Charging Stations which were removed from Smart Charging
+    this.excludedChargingStations.push(chargingStation);
     // Notify Admins
-    await NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenantID,
+    await NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenantID, chargingStation,
       { chargeBoxID: chargingProfile.chargingStationID,
         siteAreaName: siteAreaName,
         evseDashboardURL: Utils.buildEvseURL()

@@ -535,7 +535,7 @@ describe('Smart Charging Service', function() {
     });
 
 
-    it('Check if charging station will be excluded from smart charging, when pushing fails', async () => {
+    it('Check if charging station will be included again, when pushing the charging profiles fails', async () => {
       testData.siteAreaContext.getSiteArea().maximumPower = 200000;
       testData.siteAreaContext.getSiteArea().smartCharging = true;
       await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
@@ -545,7 +545,7 @@ describe('Smart Charging Service', function() {
       const chargingStationResponse = await testData.userService.chargingStationApi.readById(testData.chargingStationContext.getChargingStation().id);
       expect(chargingStationResponse.status).to.be.eq(200);
       const chargingStation = chargingStationResponse.data;
-      expect(chargingStation.excludeFromSmartCharging).to.be.eq(true);
+      expect(chargingStation.excludeFromSmartCharging).to.be.eq(false);
     });
   });
 });
