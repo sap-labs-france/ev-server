@@ -17,7 +17,7 @@ const MODULE_NAME = 'SmartChargingIntegration';
 export default abstract class SmartChargingIntegration<T extends SmartChargingSetting> {
   protected readonly tenantID: string;
   protected readonly setting: T;
-  private excludedChargingStations: ChargingStation[] = [];
+  private excludedChargingStations: string[] = [];
 
   protected constructor(tenantID: string, setting: T) {
     this.tenantID = tenantID;
@@ -30,7 +30,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       inError: 0
     };
     // Call the charging plans
-    const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea);
+    const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea, this.excludedChargingStations);
     if (!chargingProfiles) {
       Logging.logInfo({
         tenantID: this.tenantID,
@@ -74,11 +74,6 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     );
     if (actionsResponse.inError > 0 && retry === false) {
       await this.computeAndApplyChargingProfiles(siteArea, retry = true);
-      // Including the excluded Charging Stations for the next smart charging run again
-      for (const chargingStation of this.excludedChargingStations) {
-        chargingStation.excludeFromSmartCharging = false;
-        await ChargingStationStorage.saveChargingStation(this.tenantID, chargingStation);
-      }
     }
     return actionsResponse;
   }
@@ -140,10 +135,8 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     }
     // Remove Charging Station from Smart Charging
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
-    chargingStation.excludeFromSmartCharging = true;
-    await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Remember Charging Stations which were removed from Smart Charging
-    this.excludedChargingStations.push(chargingStation);
+    this.excludedChargingStations.push(chargingStation.id);
     // Notify Admins
     await NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenantID, chargingStation,
       { chargeBoxID: chargingProfile.chargingStationID,
@@ -153,7 +146,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     return false;
   }
 
-  abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
+  abstract buildChargingProfiles(siteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]>;
 
   abstract checkConnection(): Promise<void>;
 }
