@@ -120,7 +120,6 @@ export default class CarStorage {
     // Read DB
     const carCatalogs = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -396,7 +395,6 @@ export default class CarStorage {
     // Read DB
     const carCatalogImages = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -456,7 +454,6 @@ export default class CarStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     const carMakersMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -715,7 +712,6 @@ export default class CarStorage {
     // Read DB
     const cars = await global.database.getCollection<Car>(tenantID, 'cars')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -898,7 +894,6 @@ export default class CarStorage {
     // Read DB
     const carUsers = await global.database.getCollection<UserCar>(tenantID, 'carusers')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();

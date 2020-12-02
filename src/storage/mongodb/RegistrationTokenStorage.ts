@@ -125,7 +125,9 @@ export default class RegistrationTokenStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const registrationTokens = await global.database.getCollection<any>(tenantID, 'registrationtokens')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokens);

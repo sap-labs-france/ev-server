@@ -73,7 +73,9 @@ export default class ConnectionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Get connections
     const connectionsMDB = await global.database.getCollection<Connection>(tenantID, 'connections')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     Logging.traceEnd(tenantID, MODULE_NAME, 'getConnectionByUserId', uniqueTimerID, connectionsMDB);
     return {
