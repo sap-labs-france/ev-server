@@ -45,7 +45,7 @@ export default class JsonRestWSConnection extends WSConnection {
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
       message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
-      detailedMessages: `${JSON.stringify(errorEvent)}`
+      detailedMessages: { errorEvent: errorEvent }
     });
   }
 
@@ -56,7 +56,8 @@ export default class JsonRestWSConnection extends WSConnection {
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,
-      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent.code}'`
+      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent.code}'`,
+      detailedMessages: { closeEvent: closeEvent }
     });
     // Remove the connection
     this.wsServer.removeRestConnection(this);
