@@ -45,13 +45,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   public getChargingStationClient(tenantID: string, chargingStationID: string): ChargingStationClient {
     // Build ID
     const id = `${tenantID}~${chargingStationID}}`;
-    // Charging Station exists?
-    if (this.jsonChargingStationClients.has(id)) {
-      // Return from the cache
-      return this.jsonChargingStationClients.get(id).getChargingStationClient();
-    }
-    // Not found!
-    return null;
+    // Return from the cache
+    return this.jsonChargingStationClients.get(id).getChargingStationClient();
   }
 
   public get port(): number {
