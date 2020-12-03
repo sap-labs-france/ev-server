@@ -21,7 +21,7 @@
       "",
       "Das Anwenden der Ladeprofile für Ladestation <strong>'<%- chargeBoxID %>'</strong>, ist drei mal fehlgeschlagen.",
       "",
-      "Die Ladestation wird automatisch vom Smart Charging ausgeschlossen."
+      "Die Ladestation wurde in diesem Durchlauf automatisch vom Smart Charging ausgeschlossen."
     ],
     "action": {
       "title": "e-Mobility",

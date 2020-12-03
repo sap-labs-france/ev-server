@@ -275,7 +275,6 @@ export default class SiteAreaStorage {
     // Read DB
     const siteAreasMDB = await global.database.getCollection<SiteArea>(tenantID, 'siteareas')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();

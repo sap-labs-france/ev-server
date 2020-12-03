@@ -669,7 +669,6 @@ export default class UserStorage {
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -808,13 +807,15 @@ export default class UserStorage {
     // Read DB
     const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsMDB);
     // Ok
+    console.log('====================================');
+    console.log(tagsMDB.length);
+    console.log('====================================');
     return {
       count: (tagsCountMDB.length > 0 ?
         (tagsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tagsCountMDB[0].count) : 0),
@@ -907,7 +908,6 @@ export default class UserStorage {
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: false
       })
       .toArray();
@@ -1029,7 +1029,6 @@ export default class UserStorage {
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{ userID: string; siteID: string; siteAdmin: boolean; siteOwner: boolean; site: Site }>(tenantID, 'siteusers')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       }).toArray();
     // Debug

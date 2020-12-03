@@ -207,7 +207,6 @@ export default class CompanyStorage {
     // Read DB
     const companiesMDB = await global.database.getCollection<any>(tenantID, 'companies')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
