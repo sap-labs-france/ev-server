@@ -2,13 +2,13 @@ import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
 import { MessageType } from '../../../types/WebSocket';
 import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
+import global from '../../../types/GlobalType';
 import http from 'http';
 
 const MODULE_NAME = 'JsonRestWSConnection';
@@ -77,7 +77,7 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient: ChargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.getTenantID(), chargingStation);
+    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), chargingStation.id);
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),
