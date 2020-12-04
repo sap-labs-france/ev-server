@@ -126,9 +126,6 @@ export default class ChargingStationService {
           connector.voltage = filteredConnector.voltage;
           connector.currentType = filteredConnector.currentType;
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
-        }
-        // Phase Assignment
-        if (siteArea?.numberOfPhases === 3) {
           connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
         }
       }
@@ -179,6 +176,9 @@ export default class ChargingStationService {
     chargingStation.lastChangedBy = { 'id': req.user.id };
     chargingStation.lastChangedOn = new Date();
     // Update
+    console.log('chargingStation ====================================');
+    console.log(JSON.stringify(chargingStation, null, ' '));
+    console.log('====================================');
     await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
     Logging.logSecurityInfo({
@@ -723,7 +723,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ID, {},
       [
         'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID', 'siteArea.numberOfPhases',
         'siteArea.site.id', 'siteArea.site.name', 'voltage', 'coordinates', 'forceInactive', 'firmwareUpdateStatus',
         'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
         'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
