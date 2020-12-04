@@ -51,7 +51,7 @@ export default class OCPPService {
   }
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
-    let heartbeatIntervalSecs;
+    let heartbeatIntervalSecs: number;
     switch (headers.ocppProtocol) {
       case OCPPProtocol.SOAP:
         heartbeatIntervalSecs = this.chargingStationConfig.heartbeatIntervalOCPPSSecs;
@@ -208,14 +208,14 @@ export default class OCPPService {
         let HeartBeatIntervalSettingFailure = false;
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartBeatInterval',
-          value: heartbeatIntervalSecs
+          value: heartbeatIntervalSecs.toString()
         }, false);
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
           HeartBeatIntervalSettingFailure = true;
         }
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartbeatInterval',
-          value: heartbeatIntervalSecs
+          value: heartbeatIntervalSecs.toString()
         }, false);
         let HeartbeatIntervalSettingFailure = false;
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
