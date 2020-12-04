@@ -218,7 +218,7 @@ export default class OCPPUtils {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = Utils.roundTo(transaction.currentCumulatedPrice + consumption.amount, 6);
+              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 3);
             }
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
           }
@@ -236,15 +236,15 @@ export default class OCPPUtils {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = Utils.roundTo(transaction.currentCumulatedPrice + consumption.amount, 6);
+              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 3);
             }
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
             // Update Transaction
             if (!transaction.stop) {
               transaction.stop = {} as TransactionStop;
             }
-            transaction.stop.price = Utils.roundTo(transaction.currentCumulatedPrice, 6);
-            transaction.stop.roundedPrice = Utils.roundTo(transaction.currentCumulatedPrice, 2);
+            transaction.stop.price = transaction.currentCumulatedPrice;
+            transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
             transaction.stop.priceUnit = pricedConsumption.currencyCode;
             transaction.stop.pricingSource = pricedConsumption.pricingSource;
           }
@@ -362,7 +362,7 @@ export default class OCPPUtils {
         } else {
           consumption.instantWatts = Utils.convertAmpToWatt(chargingStation, null, connectorID, consumption.instantAmps);
         }
-      // Based on provided Consumption
+        // Based on provided Consumption
       } else {
         // Compute average Instant Power based on consumption over a time period (usually 60s)
         const diffSecs = moment(consumption.endedAt).diff(consumption.startedAt, 'milliseconds') / 1000;
@@ -469,7 +469,7 @@ export default class OCPPUtils {
     }
     // Check Simple Pricing
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
-      transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
+      transactionSimplePricePerkWh = Utils.truncTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,
@@ -771,7 +771,7 @@ export default class OCPPUtils {
       // Handle SoC (%)
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         consumption.stateOfCharge = Utils.convertToFloat(meterValue.value);
-      // Handle Power (W/kW)
+        // Handle Power (W/kW)
       } else if (OCPPUtils.isPowerActiveImportMeterValue(meterValue)) {
         // Compute power
         const powerInMeterValue = Utils.convertToFloat(meterValue.value);
@@ -803,7 +803,7 @@ export default class OCPPUtils {
             }
             break;
         }
-      // Handle Voltage (V)
+        // Handle Voltage (V)
       } else if (OCPPUtils.isVoltageMeterValue(meterValue)) {
         const voltage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -837,7 +837,7 @@ export default class OCPPUtils {
             }
             break;
         }
-      // Handle Current (A)
+        // Handle Current (A)
       } else if (OCPPUtils.isCurrentImportMeterValue(meterValue)) {
         const amperage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -863,7 +863,7 @@ export default class OCPPUtils {
             }
             break;
         }
-      // Handle Consumption (Wh/kWh)
+        // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
