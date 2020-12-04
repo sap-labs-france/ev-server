@@ -113,6 +113,7 @@ export default class TenantService {
     }
     // Get it
     const tenant = await TenantStorage.getTenant(tenantID,
+      { withLogo: true },
       [ 'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo']
     );
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,

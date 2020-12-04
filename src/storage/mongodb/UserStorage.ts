@@ -106,10 +106,12 @@ export default class UserStorage {
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
-  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<User> {
+  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withImage?: boolean; } = {}, projectFields?: string[]): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID,
       {
         userIDs: [id],
+        withImage: params.withImage,
       }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
@@ -813,9 +815,6 @@ export default class UserStorage {
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsMDB);
     // Ok
-    console.log('====================================');
-    console.log(tagsMDB.length);
-    console.log('====================================');
     return {
       count: (tagsCountMDB.length > 0 ?
         (tagsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tagsCountMDB[0].count) : 0),

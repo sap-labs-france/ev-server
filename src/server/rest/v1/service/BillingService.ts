@@ -101,7 +101,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync users
-        synchronizeAction = await billingImpl.synchronizeUsers(req.user.tenantID);
+        synchronizeAction = await billingImpl.synchronizeUsers();
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);
@@ -207,7 +207,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync user
-        await billingImpl.forceSynchronizeUser(req.user.tenantID, user);
+        await billingImpl.forceSynchronizeUser(user);
       } finally {
         await LockingManager.release(billingLock);
       }
@@ -226,7 +226,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync invoices
-        await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+        await billingImpl.synchronizeInvoices(user);
       } finally {
         await LockingManager.release(billingLock);
       }
@@ -360,7 +360,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync invoices
-        synchronizeAction = await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+        synchronizeAction = await billingImpl.synchronizeInvoices(user);
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);
@@ -417,7 +417,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync invoices
-        synchronizeAction = await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+        synchronizeAction = await billingImpl.synchronizeInvoices(user);
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);
