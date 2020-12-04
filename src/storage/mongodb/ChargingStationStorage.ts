@@ -303,7 +303,7 @@ export default class ChargingStationStorage {
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
     }
-    // Always add Conneector ID
+    // Always add Connector ID
     dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
     // Position coordinates
     if (Utils.containsGPSCoordinates(params.locCoordinates)) {
