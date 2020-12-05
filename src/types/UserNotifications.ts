@@ -1,4 +1,5 @@
 import { BillingInvoice } from './Billing';
+import EMailNotificationTask from '../notification/email/EMailNotificationTask';
 import NotificationTask from '../notification/NotificationTask';
 import User from './User';
 
@@ -73,6 +74,16 @@ export enum NotificationSeverity {
   INFO = '#00376C',
   WARNING = '#FB8C00',
   ERROR = '#ee0000'
+}
+
+export interface EmailNotificationMessage {
+  to: string;
+  cc?: string;
+  bccNeeded?: boolean;
+  bcc?: string;
+  subject: string;
+  text: string;
+  html: string;
 }
 
 interface BaseNotification {

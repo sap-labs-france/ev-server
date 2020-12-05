@@ -95,7 +95,7 @@
     "cors": "^2.8.5",
     "country-language": "^0.1.7",
     "ejs": "^3.1.5",
-    "emailjs": "^3.3.0",
+    "emailjs": "^3.4.0",
     "express": "^4.17.1",
     "express-sanitizer": "^1.0.5",
     "firebase-admin": "^9.4.1",

@@ -1,12 +1,13 @@
-import { BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { Message, SMTPClient } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import EmailConfiguration from '../../types/configuration/EmailConfiguration';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
-import { SMTPClient } from 'emailjs';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
@@ -18,13 +19,13 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'EMailNotificationTask';
 
 export default class EMailNotificationTask implements NotificationTask {
-  private server: any;
-  private serverBackup: any;
-  private emailConfig = Configuration.getEmailConfig();
+  private client: SMTPClient;
+  private clientBackup: SMTPClient;
+  private emailConfig: EmailConfiguration = Configuration.getEmailConfig();
 
   constructor() {
-    // Connect the SMTP server
-    this.server = new SMTPClient({
+    // Connect to the SMTP server
+    this.client = new SMTPClient({
       user: this.emailConfig.smtp.user,
       password: this.emailConfig.smtp.password,
       host: this.emailConfig.smtp.host,
@@ -32,9 +33,9 @@ export default class EMailNotificationTask implements NotificationTask {
       tls: this.emailConfig.smtp.requireTLS,
       ssl: this.emailConfig.smtp.secure
     });
-    // Connect the SMTP Backup server
-    if (this.emailConfig.smtpBackup) {
-      this.serverBackup = new SMTPClient({
+    // Connect to the SMTP Backup server
+    if (!this.emailConfig.disableBackup && this.emailConfig.smtpBackup) {
+      this.clientBackup = new SMTPClient({
         user: this.emailConfig.smtpBackup.user,
         password: this.emailConfig.smtpBackup.password,
         host: this.emailConfig.smtpBackup.host,
@@ -141,84 +142,79 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('end-user-error-notification', data, user, tenant, severity);
   }
 
-  private async sendEmail(email, data, tenant: Tenant, user: User, severity: NotificationSeverity, retry = false): Promise<void> {
+  private async sendEmail(email: EmailNotificationMessage, data, tenant: Tenant, user: User, severity: NotificationSeverity, retry = false): Promise<void> {
     // Create the message
-    const messageToSend = {
-      from: (!retry ? this.emailConfig.smtp.from : this.emailConfig.smtpBackup.from),
+    const messageToSend = new Message({
+      from: !retry ? this.emailConfig.smtp.from : this.emailConfig.smtpBackup.from,
       to: email.to,
       cc: email.cc,
-      bcc: (email.bccNeeded ? email.bcc : ''),
+      bcc: email.bccNeeded && email.bcc ? email.bcc : '',
       subject: email.subject,
-      // pragma text: email.text
       attachment: [
         { data: email.html, alternative: true }
       ]
-    };
-    // Send the message and get a callback with an error or details of the message that was sent
-    return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, async (err, messageSent) => {
-      if (err) {
-        // If authentication error in the primary email server then notify admins using the backup server
-        if (!retry && this.serverBackup) {
-          // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
-          NotificationHandler.sendSmtpAuthError(
-            tenant.id,
-            {
-              'evseDashboardURL': data.evseDashboardURL
-            }
-          ).catch(() => {});
-        }
-        // Log
-        try {
-          Logging.logError({
-            tenantID: tenant.id,
-            source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
-            action: ServerAction.EMAIL_NOTIFICATION,
-            module: MODULE_NAME, method: 'sendEmail',
-            message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
-            actionOnUser: user,
-            detailedMessages: [
-              {
-                email: {
-                  from: messageToSend.from,
-                  to: messageToSend.to,
-                  subject: messageToSend.subject
-                },
-              }, {
-                error: err.stack
-              }, {
-                content: email.html
-              }
-            ]
-          });
-          // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
-        } catch (error) {}
-        // Retry?
-        if (!retry && this.serverBackup) {
-          return this.sendEmail(email, data, tenant, user, severity, true);
-        }
-      } else {
-        // Email sent successfully
-        Logging.logDebug({
-          tenantID: tenant.id,
-          source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
+    });
+    // Send the message
+    try {
+      const messageSent: Message = await this[!retry ? 'client' : 'clientBackup'].sendAsync(messageToSend);
+      // Email sent successfully
+      Logging.logDebug({
+        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
+        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'sendEmail',
+        actionOnUser: user,
+        message: `Email Sent: '${messageSent.header.subject}'`,
+        detailedMessages: [
+          {
+            email: {
+              from: messageSent.header.from,
+              to: messageSent.header.to,
+              subject: messageSent.header.subject
+            },
+          }, {
+            content: email.html
+          }
+        ]
+      });
+    } catch (error) {
+      // Log
+      try {
+        Logging.logError({
+          tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
+          source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
           action: ServerAction.EMAIL_NOTIFICATION,
-          module: MODULE_NAME, method: 'prepareAndSendEmail',
+          module: MODULE_NAME, method: 'sendEmail',
+          message: `Error Sending Email (${messageToSend.header.from.toString()}): '${messageToSend.header.subject}'`,
           actionOnUser: user,
-          message: `Email Sent: '${messageToSend.subject}'`,
           detailedMessages: [
             {
               email: {
-                from: messageToSend.from,
-                to: messageToSend.to,
-                subject: messageToSend.subject
+                from: messageToSend.header.from,
+                to: messageToSend.header.to,
+                subject: messageToSend.header.subject
               },
+            }, {
+              error: error.stack
             }, {
               content: email.html
             }
           ]
         });
+      // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
+      } catch (err) {}
+      if (!this.emailConfig.disableBackup && !retry && this.clientBackup) {
+        // If authentication error in the primary email server then notify admins using the backup server
+        // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
+        await NotificationHandler.sendSmtpAuthError(
+          tenant.id,
+          {
+            evseDashboardURL: data.evseDashboardURL
+          }
+        );
+        await this.sendEmail(email, data, tenant, user, severity, true);
       }
-    });
+    }
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, retry = false): Promise<void> {
@@ -328,7 +324,7 @@ export default class EMailNotificationTask implements NotificationTask {
       }
       // Render the final HTML -----------------------------------------------
       const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.template`, 'utf8'), emailTemplate);
-      let htmlTemp;
+      let htmlTemp: string;
       if (templateName === 'end-of-signed-session') {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-signed-transaction.template`, 'utf8'), emailTemplate);
       } else {
@@ -345,7 +341,7 @@ export default class EMailNotificationTask implements NotificationTask {
     } catch (error) {
       Logging.logError({
         tenantID: tenant.id,
-        source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
+        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'prepareAndSendEmail',
         message: 'Error in preparing email for user',
