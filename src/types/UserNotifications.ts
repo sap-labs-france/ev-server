@@ -1,5 +1,4 @@
 import { BillingInvoice } from './Billing';
-import EMailNotificationTask from '../notification/email/EMailNotificationTask';
 import NotificationTask from '../notification/NotificationTask';
 import User from './User';
 
