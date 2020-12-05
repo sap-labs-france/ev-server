@@ -450,16 +450,24 @@ export default class TransactionService {
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-      'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
+    let projectFields = [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+      'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice', 'stop.tagID','car.licensePlate',
-      'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion', 'car.carCatalog.image'
-    ]);
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice',
+      'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID',
+    ];
+    // Check Cars
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      projectFields = [
+        ...projectFields,
+        'car.licensePlate', 'car.carCatalog.vehicleMake', 'car.carCatalog.vehicleModel',
+        'car.carCatalog.vehicleModelVersion', 'car.carCatalog.image',
+      ];
+    }
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId, projectFields);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
       MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
     // Check Transaction
@@ -483,6 +491,12 @@ export default class TransactionService {
         delete transaction.stop.userID;
         delete transaction.stop.tagID;
       }
+    }
+    // Check Car
+    if (!Authorizations.canReadCar(req.user)) {
+      // Remove Car
+      delete transaction.car;
+      delete transaction.carID;
     }
     // Check Dates
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime &&
@@ -576,7 +590,7 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr',
     ]);
     res.json(transactions);
     next();
@@ -599,8 +613,7 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: false }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'car.licensePlate', 'car.carCatalog.vehicleMake',
-      'car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion', 'tagID', 'stop.tagID', 'priceUnit'
+      'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'priceUnit',
     ]);
     res.json(transactions);
     next();
@@ -612,7 +625,6 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpiWithNoCdr',
-      'car.licensePlate', 'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion','tagID', 'stop.tagID'
     ]);
     res.json(transactions);
     next();
@@ -627,9 +639,9 @@ export default class TransactionService {
     // Call
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'siteID',
+      'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID',
     ]);
     res.json(transactions);
     next();
@@ -692,7 +704,7 @@ export default class TransactionService {
     return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpiWithNoCdr',
     ]);
   }
 
@@ -705,9 +717,9 @@ export default class TransactionService {
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, { completedTransactions: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'siteID',
+      'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID',
     ]);
   }
 
@@ -897,10 +909,18 @@ export default class TransactionService {
       if (projectFields) {
         projectFields = [
           ...projectFields,
-          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email'
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
+          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID',
         ];
       }
+    }
+    // Check Cars
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) &&
+        Authorizations.canListCars(req.user)) {
+      projectFields = [
+        ...projectFields,
+        'car.licensePlate', 'car.carCatalog.vehicleMake', 'car.carCatalog.vehicleModel', 'car.carCatalog.vehicleModelVersion',
+      ];
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
