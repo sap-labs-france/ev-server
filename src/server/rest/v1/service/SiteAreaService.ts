@@ -273,7 +273,8 @@ export default class SiteAreaService {
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
       {
         withSite: filteredRequest.WithSite,
-        withChargingStations: filteredRequest.WithChargingStations
+        withChargingStations: filteredRequest.WithChargingStations,
+        withImage: true,
       },
       [
         'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
