@@ -244,6 +244,8 @@ export interface ChargingStationCapabilities {
   supportUnlockConnector: boolean;
   supportReservation: boolean;
   supportRFIDCard: boolean;
+  supportFirmwareUpgrade?: boolean;
+  supportConnectorIsSlave?: boolean;
 }
 
 export interface ChargingStationOcppParameters {

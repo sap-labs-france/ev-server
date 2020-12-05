@@ -303,7 +303,7 @@ export default class ChargingStationStorage {
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
     }
-    // Always add Conneector ID
+    // Always add Connector ID
     dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
     // Position coordinates
     if (Utils.containsGPSCoordinates(params.locCoordinates)) {
@@ -426,7 +426,8 @@ export default class ChargingStationStorage {
     const facets: any = { $facet: {} };
     if (!Utils.isEmptyArray(params.errorType)) {
       // Check allowed
-      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
+      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION)
+          && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
@@ -555,8 +556,8 @@ export default class ChargingStationStorage {
     await DatabaseUtils.checkTenant(tenantID);
     const updatedFields: any = {};
     updatedFields['connectors.' + (connector.connectorId - 1).toString()] = connectorMDB;
-    // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
@@ -571,7 +572,7 @@ export default class ChargingStationStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Set data
-    // Modify and return the modified document
+    // Modify document
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: params });
@@ -585,8 +586,8 @@ export default class ChargingStationStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Set data
-    // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: { firmwareUpdateStatus } },
       { upsert: true });
@@ -605,9 +606,9 @@ export default class ChargingStationStorage {
     // Delete Charging Profiles
     await this.deleteChargingProfiles(tenantID, id);
     // Delete Charging Station
-    await global.database.getCollection<any>(tenantID, 'chargingstations')
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });
-    // Keep the rest (bootnotif, authorize...)
+    // Keep the rest (boot notification, authorize...)
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
   }
@@ -776,7 +777,7 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const chargingProfilesCountMDB = await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+    const chargingProfilesCountMDB = await global.database.getCollection<DataResult<ChargingProfile>>(tenantID, 'chargingprofiles')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -948,7 +949,7 @@ export default class ChargingStationStorage {
 
   private static filterConnectorMDB(connector: Connector): ConnectorMDB {
     if (connector) {
-      const newConnector: ConnectorMDB = {
+      const filteredConnector: ConnectorMDB = {
         connectorId: Utils.convertToInt(connector.connectorId),
         currentInstantWatts: Utils.convertToFloat(connector.currentInstantWatts),
         currentStateOfCharge: connector.currentStateOfCharge,
@@ -979,7 +980,7 @@ export default class ChargingStationStorage {
             csPhaseL3: connector.phaseAssignmentToGrid.csPhaseL3,
           } : null,
       };
-      return newConnector;
+      return filteredConnector;
     }
     return null;
   }

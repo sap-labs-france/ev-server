@@ -27,7 +27,7 @@ export default { /* Services */
           callback({
             'authorizeResponse': {
               'idTagInfo': {
-                'status': result.status
+                'status': result.idTagInfo.status
               }
             }
           });
@@ -67,7 +67,7 @@ export default { /* Services */
             'bootNotificationResponse': {
               'currentTime': result.currentTime,
               'status': result.status,
-              'interval': result.heartbeatInterval
+              'interval': result.interval
             }
           });
         }).catch((error) => {
@@ -78,7 +78,7 @@ export default { /* Services */
             'bootNotificationResponse': {
               'status': 'Rejected',
               'currentTime': new Date().toISOString(),
-              'interval': 60
+              'interval': Constants.BOOT_NOTIFICATION_WAIT_TIME
             }
           });
         });
@@ -229,7 +229,7 @@ export default { /* Services */
             'startTransactionResponse': {
               'transactionId': result.transactionId,
               'idTagInfo': {
-                'status': result.status
+                'status': result.idTagInfo.status
               }
             }
           });
@@ -287,7 +287,7 @@ export default { /* Services */
           callback({
             'stopTransactionResponse': {
               'idTagInfo': {
-                'status': result.status
+                'status': result.idTagInfo.status
               }
             }
           });

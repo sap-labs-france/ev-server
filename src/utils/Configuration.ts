@@ -179,7 +179,7 @@ export default class Configuration {
     return oDataservice;
   }
 
-  // RestService Configuration - Internet view
+  // Rest Service Configuration - Internet view
   public static getCentralSystemRestServer(): CentralSystemServerConfiguration {
     return Configuration.getConfig().CentralSystemServer;
   }
@@ -211,7 +211,7 @@ export default class Configuration {
     Configuration.deprecateConfigurationKey('admins', 'Email');
     Configuration.deprecateConfigurationKey('bcc', 'Email');
     if (Configuration.isUndefined(Configuration.getConfig().Email.disableBackup)) {
-      Configuration.getConfig().Email.disableBackup = false;
+      Configuration.getConfig().Email.disableBackup = true;
     }
     // Read conf
     return Configuration.getConfig().Email;

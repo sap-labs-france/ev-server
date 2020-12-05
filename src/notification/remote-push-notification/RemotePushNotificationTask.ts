@@ -19,7 +19,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   constructor() {
     // Init
-    if (this.firebaseConfig && this.firebaseConfig.type && this.firebaseConfig.type.length > 0) {
+    if (this.firebaseConfig?.type?.length > 0) {
       try {
         admin.initializeApp({
           credential: admin.credential.cert({
@@ -344,7 +344,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       title, body, user, { 'invoiceNumber': data.invoice.number.toString() }, severity);
   }
 
-  private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: object, severity?: NotificationSeverity): Promise<void> {
+  private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
     // Checks
     if (!this.initialized) {
       return Promise.resolve();
@@ -393,7 +393,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     });
   }
 
-  private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, data: object, severity: NotificationSeverity): admin.messaging.MessagingPayload {
+  private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, data: Record<string, unknown>, severity: NotificationSeverity): admin.messaging.MessagingPayload {
     // Build message
     const message: admin.messaging.MessagingPayload = {
       notification: {
