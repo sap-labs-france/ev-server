@@ -1,4 +1,4 @@
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -91,7 +91,9 @@ export default class OCPPStorage {
     });
     // Read DB
     const authorizesMDB = await global.database.getCollection<any>(tenantID, 'authorizes')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getAuthorizes', uniqueTimerID, authorizesMDB);
@@ -181,7 +183,9 @@ export default class OCPPStorage {
     });
     // Read DB
     const statusNotificationsMDB = await global.database.getCollection<any>(tenantID, 'statusnotifications')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getStatusNotifications', uniqueTimerID, statusNotificationsMDB);
@@ -234,7 +238,9 @@ export default class OCPPStorage {
     aggregation.push({ $limit: 1 });
     // Read DB
     const statusNotificationsMDB = await global.database.getCollection<any>(tenantID, 'statusnotifications')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getLastStatusNotifications', uniqueTimerID, statusNotificationsMDB);
@@ -364,7 +370,9 @@ export default class OCPPStorage {
     });
     // Read DB
     const bootNotificationsMDB = await global.database.getCollection<any>(tenantID, 'bootnotifications')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getBootNotifications', uniqueTimerID, bootNotificationsMDB);
@@ -494,7 +502,9 @@ export default class OCPPStorage {
     });
     // Read DB
     const meterValuesMDB = await global.database.getCollection<any>(tenantID, 'metervalues')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getMeterValues', uniqueTimerID, meterValuesMDB);

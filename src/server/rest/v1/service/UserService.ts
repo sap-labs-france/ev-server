@@ -599,6 +599,7 @@ export default class UserService {
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, userID,
+      { withImage: true },
       [
         'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'deleted', 'plateID',
         'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'

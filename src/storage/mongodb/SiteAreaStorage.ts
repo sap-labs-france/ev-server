@@ -70,13 +70,14 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSite?: boolean; withChargingStations?: boolean } = {}, projectFields?: string[]): Promise<SiteArea> {
+    params: { withSite?: boolean; withChargingStations?: boolean,withAvailableChargingStations?: boolean; withImage?: boolean } = {},
+    projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenantID, {
       siteAreaIDs: [id],
       withSite: params.withSite,
       withChargingStations: params.withChargingStations,
-      withAvailableChargingStations: true,
-      withImage: true,
+      withAvailableChargingStations: params.withAvailableChargingStations,
+      withImage: params.withImage,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return siteAreasMDB.count === 1 ? siteAreasMDB.result[0] : null;
   }
@@ -275,7 +276,6 @@ export default class SiteAreaStorage {
     // Read DB
     const siteAreasMDB = await global.database.getCollection<SiteArea>(tenantID, 'siteareas')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();

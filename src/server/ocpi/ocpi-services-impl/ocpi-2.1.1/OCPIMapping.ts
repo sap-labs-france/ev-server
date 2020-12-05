@@ -664,23 +664,20 @@ export default class OCPIMapping {
   private static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, evseID: string): OCPIConnector {
     let type: OCPIConnectorType, format: OCPIConnectorFormat;
     switch (connector.type) {
-      case 'C':
+      case ConnectorType.CHADEMO:
         type = OCPIConnectorType.CHADEMO;
         format = OCPIConnectorFormat.CABLE;
         break;
-      case 'T2':
+      case ConnectorType.TYPE_2:
         type = OCPIConnectorType.IEC_62196_T2;
         format = OCPIConnectorFormat.SOCKET;
         break;
-      case 'CCS':
+      case ConnectorType.COMBO_CCS:
         type = OCPIConnectorType.IEC_62196_T2_COMBO;
         format = OCPIConnectorFormat.CABLE;
         break;
     }
-    let chargePoint: ChargePoint;
-    if (connector.chargePointID) {
-      chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-    }
+    const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
     const voltage = OCPIMapping.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
     const amperage = OCPIMapping.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
     const ocpiNumberOfConnectedPhases = OCPIMapping.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
@@ -703,7 +700,7 @@ export default class OCPIMapping {
       // SLF
       case '5be7fb271014d90008992f06':
         // Check Site Area
-        switch (chargingStation.siteAreaID) {
+        switch (chargingStation?.siteAreaID) {
           // Mougins - South
           case '5abebb1b4bae1457eb565e98':
             return 'FR*SLF_AC_Sud2';
@@ -711,7 +708,7 @@ export default class OCPIMapping {
           case '5b72cef274ae30000855e458':
             return 'FR*SLF_DC_Sud';
         }
-        break;
+        return '';
       // Proviridis
       case '5e2701b248aaa90007904cca':
         return '1';

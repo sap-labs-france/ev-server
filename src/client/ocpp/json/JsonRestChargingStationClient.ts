@@ -14,7 +14,7 @@ const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
   private serverURL: string;
   private chargingStation: ChargingStation;
-  private requests: { [messageUID: string]: { resolve?: (result: object) => void; reject?: (error: object) => void; command: ServerAction } };
+  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown>) => void; reject?: (error: Record<string, unknown>) => void; command: ServerAction } };
   private wsConnection: WSClient;
   private tenantID: string;
 

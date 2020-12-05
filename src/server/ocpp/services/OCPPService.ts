@@ -1,4 +1,4 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
@@ -51,7 +51,7 @@ export default class OCPPService {
   }
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
-    let heartbeatIntervalSecs;
+    let heartbeatIntervalSecs: number;
     switch (headers.ocppProtocol) {
       case OCPPProtocol.SOAP:
         heartbeatIntervalSecs = this.chargingStationConfig.heartbeatIntervalOCPPSSecs;
@@ -128,7 +128,7 @@ export default class OCPPService {
           if (siteArea) {
             chargingStation.siteAreaID = token.siteAreaID;
             // Set the same coordinates
-            if (siteArea.address && siteArea.address.coordinates && siteArea.address.coordinates.length === 2) {
+            if (siteArea?.address?.coordinates?.length === 2) {
               chargingStation.coordinates = siteArea.address.coordinates;
             }
           }
@@ -208,14 +208,14 @@ export default class OCPPService {
         let HeartBeatIntervalSettingFailure = false;
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartBeatInterval',
-          value: heartbeatIntervalSecs
+          value: heartbeatIntervalSecs.toString()
         }, false);
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
           HeartBeatIntervalSettingFailure = true;
         }
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartbeatInterval',
-          value: heartbeatIntervalSecs
+          value: heartbeatIntervalSecs.toString()
         }, false);
         let HeartbeatIntervalSettingFailure = false;
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
@@ -247,7 +247,7 @@ export default class OCPPService {
       return {
         currentTime: bootNotification.timestamp.toISOString(),
         status: RegistrationStatus.ACCEPTED,
-        heartbeatInterval: heartbeatIntervalSecs
+        interval: heartbeatIntervalSecs
       };
     } catch (error) {
       if (error.params) {
@@ -258,7 +258,7 @@ export default class OCPPService {
       return {
         status: RegistrationStatus.REJECTED,
         currentTime: bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
-        heartbeatInterval: heartbeatIntervalSecs
+        interval: Constants.BOOT_NOTIFICATION_WAIT_TIME
       };
     }
   }
@@ -347,7 +347,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleMeterValues(headers: OCPPHeader, meterValues: OCPPMeterValuesExtended): Promise<OCPPMeterValuesResponse> {
+  public async handleMeterValues(headers: OCPPHeader, meterValues: OCPPMeterValuesRequestExtended): Promise<OCPPMeterValuesResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -455,7 +455,7 @@ export default class OCPPService {
     return {};
   }
 
-  public async handleAuthorize(headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended): Promise<OCPPIdTagInfo> {
+  public async handleAuthorize(headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended): Promise<OCPPAuthorizeResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -522,7 +522,9 @@ export default class OCPPService {
       });
       // Return
       return {
-        'status': OCPPAuthorizationStatus.ACCEPTED
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.ACCEPTED
+        }
       };
     } catch (error) {
       if (error.params) {
@@ -531,7 +533,9 @@ export default class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
       return {
-        'status': OCPPAuthorizationStatus.INVALID
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.INVALID
+        }
       };
     }
   }
@@ -733,8 +737,10 @@ export default class OCPPService {
       }
       // Return
       return {
-        'transactionId': transaction.id,
-        'status': OCPPAuthorizationStatus.ACCEPTED
+        transactionId: transaction.id,
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.ACCEPTED
+        }
       };
     } catch (error) {
       if (error.params) {
@@ -743,8 +749,10 @@ export default class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.START_TRANSACTION, error);
       return {
-        'transactionId': 0,
-        'status': OCPPAuthorizationStatus.INVALID
+        transactionId: 0,
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.INVALID
+        }
       };
     }
   }
@@ -770,7 +778,7 @@ export default class OCPPService {
       });
       // Return
       return {
-        'status': OCPPDataTransferStatus.ACCEPTED
+        status: OCPPDataTransferStatus.ACCEPTED
       };
     } catch (error) {
       if (error.params) {
@@ -779,12 +787,12 @@ export default class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error);
       return {
-        'status': OCPPDataTransferStatus.REJECTED
+        status: OCPPDataTransferStatus.REJECTED
       };
     }
   }
 
-  public async handleStopTransaction(headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended, isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPIdTagInfo> {
+  public async handleStopTransaction(headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended, isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -802,7 +810,9 @@ export default class OCPPService {
         });
         // Ignore it! (DELTA bug)
         return {
-          'status': OCPPAuthorizationStatus.ACCEPTED
+          idTagInfo: {
+            status: OCPPAuthorizationStatus.ACCEPTED
+          }
         };
       }
       // Set header
@@ -918,7 +928,9 @@ export default class OCPPService {
       });
       // Success
       return {
-        'status': OCPPAuthorizationStatus.ACCEPTED
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.ACCEPTED
+        }
       };
     } catch (error) {
       if (error.params) {
@@ -927,7 +939,7 @@ export default class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.STOP_TRANSACTION, error);
       // Error
-      return { 'status': OCPPAuthorizationStatus.INVALID };
+      return { idTagInfo: { status: OCPPAuthorizationStatus.INVALID } };
     }
   }
 
@@ -1500,7 +1512,7 @@ export default class OCPPService {
     }
   }
 
-  private normalizeMeterValues(chargingStation: ChargingStation, meterValues: OCPPMeterValuesExtended): OCPPNormalizedMeterValues {
+  private normalizeMeterValues(chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): OCPPNormalizedMeterValues {
     // Create the model
     const normalizedMeterValues: OCPPNormalizedMeterValues = {} as OCPPNormalizedMeterValues;
     normalizedMeterValues.values = [];
@@ -1615,7 +1627,7 @@ export default class OCPPService {
             'timestamp': Utils.convertToDate(activeTransaction.lastConsumption ? activeTransaction.lastConsumption.timestamp : activeTransaction.timestamp).toISOString(),
           }, false, true);
           // Check
-          if (result.status === OCPPAuthorizationStatus.INVALID) {
+          if (result.idTagInfo.status === OCPPAuthorizationStatus.INVALID) {
             // No consumption: delete
             Logging.logError({
               tenantID: tenantID,

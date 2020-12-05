@@ -372,7 +372,7 @@ export enum ServerAction {
   MONGO_DB = 'MongoDB',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
-  CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'ComputeAndApplyChargingProfilesFailed',
+  COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED = 'ComputeAndApplyChargingProfilesFailed',
   SMART_CHARGING = 'SmartCharging',
 
   INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',

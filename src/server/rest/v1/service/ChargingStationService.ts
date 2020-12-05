@@ -128,10 +128,7 @@ export default class ChargingStationService {
           connector.currentType = filteredConnector.currentType;
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
         }
-        // Phase Assignment
-        if (siteArea?.numberOfPhases === 3) {
-          connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
-        }
+        connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
       }
     }
     // Update Site Area
@@ -180,6 +177,9 @@ export default class ChargingStationService {
     chargingStation.lastChangedBy = { 'id': req.user.id };
     chargingStation.lastChangedOn = new Date();
     // Update
+    console.log('chargingStation ====================================');
+    console.log(JSON.stringify(chargingStation, null, ' '));
+    console.log('====================================');
     await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
     Logging.logSecurityInfo({

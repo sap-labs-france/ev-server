@@ -92,7 +92,7 @@ export default class JsonWSConnection extends WSConnection {
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
       message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
-      detailedMessages: `${JSON.stringify(errorEvent)}`
+      detailedMessages: { errorEvent: errorEvent }
     });
   }
 
@@ -103,7 +103,8 @@ export default class JsonWSConnection extends WSConnection {
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
-      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent.code}'`
+      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent}'`,
+      detailedMessages: { closeEvent: closeEvent }
     });
     // Remove the connection
     this.wsServer.removeJsonConnection(this);

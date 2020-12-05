@@ -618,7 +618,6 @@ export default class TransactionStorage {
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -751,7 +750,6 @@ export default class TransactionStorage {
     // Read DB
     const reportsMDB = await global.database.getCollection<RefundReport>(tenantID, 'transactions')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -884,7 +882,6 @@ export default class TransactionStorage {
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -1136,7 +1133,9 @@ export default class TransactionStorage {
     // Read DB
     const notifySessionNotStartedMDB: NotifySessionNotStarted[] =
       await global.database.getCollection<NotifySessionNotStarted>(tenantID, 'authorizes')
-        .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+        .aggregate(aggregation, {
+          allowDiskUse: true
+        })
         .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getNotStartedTransactions', uniqueTimerID, notifySessionNotStartedMDB);

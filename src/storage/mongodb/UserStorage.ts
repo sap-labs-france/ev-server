@@ -106,10 +106,12 @@ export default class UserStorage {
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
-  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<User> {
+  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withImage?: boolean; } = {}, projectFields?: string[]): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID,
       {
         userIDs: [id],
+        withImage: params.withImage,
       }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
@@ -670,7 +672,6 @@ export default class UserStorage {
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -812,7 +813,6 @@ export default class UserStorage {
     // Read DB
     const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -911,7 +911,6 @@ export default class UserStorage {
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: false
       })
       .toArray();
@@ -1033,7 +1032,6 @@ export default class UserStorage {
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{ userID: string; siteID: string; siteAdmin: boolean; siteOwner: boolean; site: Site }>(tenantID, 'siteusers')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       }).toArray();
     // Debug
