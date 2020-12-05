@@ -126,8 +126,8 @@ export default class ChargingStationService {
           connector.voltage = filteredConnector.voltage;
           connector.currentType = filteredConnector.currentType;
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
-          connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
         }
+        connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
       }
     }
     // Update Site Area
