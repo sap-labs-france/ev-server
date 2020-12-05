@@ -9,6 +9,7 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
+import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../../utils/Constants';
@@ -1045,7 +1046,7 @@ export default class UserService {
   }
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    let userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
+    const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     // Check auth
     if (!Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
@@ -1065,41 +1066,54 @@ export default class UserService {
       });
     }
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
-    if (Authorizations.isBasic(req.user)) {
-      userID = req.user.id;
+    // Check auth
+    if (!Authorizations.canReadUser(req.user, userID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
+      });
     }
-    // Get the tag
+    // Handle Tag
+    // Get the default Tag
     let tagsMDB = await UserStorage.getTags(req.user.tenantID, {
       userIDs: [userID],
       defaultTag: true,
       active: true,
       issuer: true
     }, Constants.DB_PARAMS_SINGLE_RECORD, [
-      'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default'
+      'id', 'description'
     ]);
     if (tagsMDB.count < 1) {
+      // Get the first active Tag
       tagsMDB = await UserStorage.getTags(req.user.tenantID, {
         userIDs: [userID],
         active: true,
         issuer: true
       }, Constants.DB_PARAMS_SINGLE_RECORD, [
-        'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default'
+        'id', 'description'
       ]);
     }
     const tag = tagsMDB.count > 0 ? tagsMDB.result[0] : null;
-    let carsMDB = await CarStorage.getCars(req.user.tenantID,
-      { userIDs: [userID], defaultCar: true },
-      Constants.DB_PARAMS_SINGLE_RECORD, [
-        'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
-        'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+    // Handle Car
+    let car: Car;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      // Get the default Car
+      let carsMDB = await CarStorage.getCars(req.user.tenantID, {
+        userIDs: [userID],
+        defaultCar: true
+      }, Constants.DB_PARAMS_SINGLE_RECORD, [
+        'id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
       ]);
-    carsMDB = carsMDB.count > 0 ? carsMDB : await CarStorage.getCars(req.user.tenantID,
-      { userIDs: [userID] },
-      Constants.DB_PARAMS_SINGLE_RECORD, [
-        'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
-        'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+      // Get the first available car
+      carsMDB = carsMDB.count > 0 ? carsMDB : await CarStorage.getCars(req.user.tenantID, {
+        userIDs: [userID]
+      }, Constants.DB_PARAMS_SINGLE_RECORD, [
+        'id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
       ]);
-    const car = carsMDB.count > 0 ? carsMDB.result[0] : null;
+      car = carsMDB.count > 0 ? carsMDB.result[0] : null;
+    }
     // Return
     res.json({ tag, car });
     next();
@@ -1135,7 +1149,7 @@ export default class UserService {
     const tags = await UserStorage.getTags(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userIDs: userID ? [userID] : null,
+        userIDs: userID ? userID.split('|') : null,
         issuer: filteredRequest.Issuer,
         active: filteredRequest.Active,
         withUser: true,
@@ -1143,7 +1157,8 @@ export default class UserService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
-        'createdOn', 'lastChangedOn', ...userProject
+        'createdOn', 'lastChangedOn',
+        ...userProject
       ],
     );
     // Return
