@@ -761,7 +761,7 @@ export default class CpoOCPIClient extends OCPIClient {
                 this.tenant.id,
                 {
                   location: location.name,
-                  evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
+                  evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
                 }
               );
             }
