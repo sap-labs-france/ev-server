@@ -458,7 +458,7 @@ export default class TransactionService {
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice', 'stop.tagID','car.licensePlate',
-      'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion','car.carCatalog.image'
+      'car.carCatalog.vehicleMake','car.carCatalog.vehicleModel','car.carCatalog.vehicleModelVersion', 'car.carCatalog.image'
     ]);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
       MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);

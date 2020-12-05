@@ -5,7 +5,6 @@ import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'SetDefaultTagToUserTask';
 

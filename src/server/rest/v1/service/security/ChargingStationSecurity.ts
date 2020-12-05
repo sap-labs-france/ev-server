@@ -172,6 +172,9 @@ export default class ChargingStationSecurity {
     const filteredRequest: HttpChargingStationCommandRequest = {} as HttpChargingStationCommandRequest;
     // Check
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
+    if (Utils.objectHasProperty(request, 'carID')) {
+      filteredRequest.carID = sanitize(request.carID);
+    }
     // Do not check action?
     if (request.args) {
       filteredRequest.args = {};
@@ -205,9 +208,6 @@ export default class ChargingStationSecurity {
       }
       if (Utils.objectHasProperty(request.args, 'tagID')) {
         filteredRequest.args.tagID = sanitize(request.args.tagID);
-      }
-      if (Utils.objectHasProperty(request.args, 'carID')) {
-        filteredRequest.args.carID = sanitize(request.args.carID);
       }
       if (Utils.objectHasProperty(request.args, 'location')) {
         filteredRequest.args.location = sanitize(request.args.location);
