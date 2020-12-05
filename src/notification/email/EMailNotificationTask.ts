@@ -15,6 +15,7 @@ import Utils from '../../utils/Utils';
 import ejs from 'ejs';
 import fs from 'fs';
 import global from '../../types/GlobalType';
+import rfc2047 from 'rfc2047';
 
 const MODULE_NAME = 'EMailNotificationTask';
 
@@ -164,13 +165,13 @@ export default class EMailNotificationTask implements NotificationTask {
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         actionOnUser: user,
-        message: `Email Sent: '${messageSent.header.subject}'`,
+        message: `Email Sent: '${rfc2047.decode(messageSent.header.subject)}'`,
         detailedMessages: [
           {
             email: {
-              from: messageSent.header.from,
-              to: messageSent.header.to,
-              subject: messageSent.header.subject
+              from: rfc2047.decode(messageSent.header.from.toString()),
+              to: rfc2047.decode(messageSent.header.to.toString()),
+              subject: rfc2047.decode(messageSent.header.subject)
             },
           }, {
             content: email.html
@@ -185,14 +186,14 @@ export default class EMailNotificationTask implements NotificationTask {
           source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'sendEmail',
-          message: `Error Sending Email (${messageToSend.header.from.toString()}): '${messageToSend.header.subject}'`,
+          message: `Error Sending Email (${rfc2047.decode(messageToSend.header.from.toString())}): '${rfc2047.decode(messageToSend.header.subject)}'`,
           actionOnUser: user,
           detailedMessages: [
             {
               email: {
-                from: messageToSend.header.from,
-                to: messageToSend.header.to,
-                subject: messageToSend.header.subject
+                from: rfc2047.decode(messageToSend.header.from.toString()),
+                to: rfc2047.decode(messageToSend.header.to.toString()),
+                subject: rfc2047.decode(messageToSend.header.subject)
               },
             }, {
               error: error.stack
