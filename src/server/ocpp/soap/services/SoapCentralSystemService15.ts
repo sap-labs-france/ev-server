@@ -27,7 +27,7 @@ export default { /* Services */
           callback({
             'authorizeResponse': {
               'idTagInfo': {
-                'status': result.status
+                'status': result.idTagInfo.status
               }
             }
           });
@@ -60,7 +60,7 @@ export default { /* Services */
             'startTransactionResponse': {
               'transactionId': result.transactionId,
               'idTagInfo': {
-                'status': result.status
+                'status': result.idTagInfo.status
               }
             }
           });
@@ -93,7 +93,7 @@ export default { /* Services */
           callback({
             'stopTransactionResponse': {
               'idTagInfo': {
-                'status': result.status
+                'status': result.idTagInfo.status
               }
             }
           });
@@ -185,7 +185,7 @@ export default { /* Services */
             'bootNotificationResponse': {
               'currentTime': result.currentTime,
               'status': result.status,
-              'heartbeatInterval': result.heartbeatInterval
+              'heartbeatInterval': result.interval
             }
           });
         }).catch((error) => {
@@ -196,7 +196,7 @@ export default { /* Services */
             'bootNotificationResponse': {
               'status': 'Rejected',
               'currentTime': new Date().toISOString(),
-              'heartbeatInterval': 60
+              'heartbeatInterval': Constants.BOOT_NOTIFICATION_WAIT_TIME
             }
           });
         });
