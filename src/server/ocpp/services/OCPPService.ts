@@ -30,6 +30,7 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import TagStorage from '../../../storage/mongodb/TagStorage';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -481,7 +482,7 @@ export default class OCPPService {
           });
         }
         // Get tag
-        const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
+        const tag = await TagStorage.getTag(headers.tenantID, authorize.idTag);
         if (!tag) {
           throw new BackendError({
             user: user,

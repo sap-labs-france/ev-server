@@ -24,6 +24,7 @@ import RefundFactory from '../../../../integration/refund/RefundFactory';
 import { RefundStatus } from '../../../../types/Refund';
 import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { TransactionInErrorType } from '../../../../types/InError';
@@ -244,7 +245,7 @@ export default class TransactionService {
       });
     }
     // Get the user
-    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.TagID);
+    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.TagID);
     UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
@@ -314,7 +315,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get the tag
-    const tag = await UserStorage.getTag(req.user.tenantID, filteredRequest.TagID);
+    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.TagID);
     UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     if (!user.issuer) {
