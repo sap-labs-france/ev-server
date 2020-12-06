@@ -14,6 +14,7 @@ import OCPITokensService from './OCPITokensService';
 import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 
@@ -92,7 +93,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       });
     }
     // Retrieve token
-    const tag = await UserStorage.getTag(tenant.id, tokenId, { withUser: true });
+    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
     if (tag) {
       if (tag.issuer) {
         throw new AppError({
@@ -156,7 +157,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       });
     }
     // Retrieve token
-    const tag = await UserStorage.getTag(tenant.id, tokenId, { withUser: true });
+    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
     if (!tag || !tag.ocpiToken || tag.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -229,7 +230,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       });
     }
     tag.userID = tag.user.id;
-    await UserStorage.saveTag(tenant.id, tag);
+    await TagStorage.saveTag(tenant.id, tag);
     return OCPIUtils.success();
   }
 }

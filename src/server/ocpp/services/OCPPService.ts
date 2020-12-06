@@ -7,6 +7,7 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
@@ -29,6 +30,7 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import TagStorage from '../../../storage/mongodb/TagStorage';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -480,7 +482,7 @@ export default class OCPPService {
           });
         }
         // Get tag
-        const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
+        const tag = await TagStorage.getTag(headers.tenantID, authorize.idTag);
         if (!tag) {
           throw new BackendError({
             user: user,
@@ -642,6 +644,7 @@ export default class OCPPService {
         issuer: true,
         chargeBoxID: startTransaction.chargeBoxID,
         tagID: startTransaction.idTag,
+        carID: user.lastSelectedCarID,
         timezone: startTransaction.timezone,
         userID: startTransaction.userID,
         siteAreaID: startTransaction.siteAreaID,
@@ -664,6 +667,11 @@ export default class OCPPService {
         stateOfCharge: 0,
         user
       };
+      // Set Car Catalog ID
+      if (user.lastSelectedCarID) {
+        const car = await CarStorage.getCar(headers.tenantID, user.lastSelectedCarID, {}, ['id', 'carCatalogID']);
+        transaction.carCatalogID = car?.carCatalogID;
+      }
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await OCPPUtils.createConsumptionFromMeterValue(
         headers.tenantID, chargingStation, transaction,
