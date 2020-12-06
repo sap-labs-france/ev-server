@@ -212,7 +212,6 @@ export default class UtilsService {
       if (connectionClosed) {
         break;
       }
-      console.log(skip);
       // Get the Logs
       req.query.Skip = skip.toString();
       data = await handleGetData(req);

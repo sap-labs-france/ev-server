@@ -177,9 +177,6 @@ export default class ChargingStationService {
     chargingStation.lastChangedBy = { 'id': req.user.id };
     chargingStation.lastChangedOn = new Date();
     // Update
-    console.log('chargingStation ====================================');
-    console.log(JSON.stringify(chargingStation, null, ' '));
-    console.log('====================================');
     await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
     Logging.logSecurityInfo({

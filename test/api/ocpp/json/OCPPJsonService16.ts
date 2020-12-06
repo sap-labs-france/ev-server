@@ -39,17 +39,17 @@ export default class OCPPJsonService16 extends OCPPService {
         resolve({ connection: wsConnection, requests: sentRequests });
       };
       // Handle Error Message
-      wsConnection.onerror = (error) => {
+      wsConnection.onerror = (error: Error) => {
         // An error occurred when sending/receiving data
         reject(error);
       };
-      wsConnection.onclose = (error) => {
+      wsConnection.onclose = (code: number) => {
         for (const property in sentRequests) {
-          sentRequests[property].reject(error);
+          sentRequests[property].reject(code);
         }
-        reject(error);
+        reject(code);
       };
-      wsConnection.onmaximum = (error) => {
+      wsConnection.onmaximum = (error: Error) => {
         reject(error);
       };
       // Handle Server Message
@@ -145,10 +145,6 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   private async send(chargeBoxIdentity: string, message: any): Promise<any> {
-    // Debug
-    // console.log('OCPP Request ====================================');
-    // console.log({ chargeBoxIdentity, message });
-    // console.log('====================================');
     // WS Opened?
     if (!this.wsSessions?.get(chargeBoxIdentity)?.connection?.isConnectionOpen()) {
       // Open WS

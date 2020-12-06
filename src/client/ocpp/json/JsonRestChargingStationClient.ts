@@ -86,7 +86,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this.sendMessage(this.buildRequest(Command.UPDATE_FIRMWARE, params));
   }
 
-  private async openConnection(): Promise<any> {
+  private async openConnection(): Promise<unknown> {
     // Log
     Logging.logInfo({
       tenantID: this.tenantID,
@@ -144,7 +144,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         }
       };
       // Handle Error Message
-      this.wsConnection.onerror = (error) => {
+      this.wsConnection.onerror = (error: Error) => {
         if (Utils.isProductionEnv()) {
           // Log
           Logging.logException(
@@ -231,7 +231,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       // Open WS Connection
       await this.openConnection();
       // Check if wsConnection is ready
-      if (this.wsConnection.isConnectionOpen()) {
+      if (this.wsConnection?.isConnectionOpen()) {
         // Send
         this.wsConnection.send(JSON.stringify(request));
         // Set the resolve function
