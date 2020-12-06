@@ -138,7 +138,7 @@ describe('Car Tests', function() {
             }), false
           );
           expect(response.status).to.equal(500);
-          expect(response.data.message).to.equal('Car Vin is mandatory');
+          expect(response.data.message).to.equal('Vin Car is mandatory');
         });
 
         it('Should not be able to create a new car without a license plate', async () => {
