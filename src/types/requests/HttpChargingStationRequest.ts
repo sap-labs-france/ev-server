@@ -74,6 +74,7 @@ export interface HttpChargingStationSetMaxIntensitySocketRequest extends HttpCha
 
 export interface HttpChargingStationCommandRequest {
   chargeBoxID: string;
+  carID?: string;
   args?: any;
 }
 
