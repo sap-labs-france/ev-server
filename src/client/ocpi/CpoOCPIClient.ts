@@ -25,6 +25,7 @@ import { ServerAction } from '../../types/Server';
 import Site from '../../types/Site';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
+import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
@@ -106,7 +107,7 @@ export default class CpoOCPIClient extends OCPIClient {
       for (const token of response.data.data as OCPIToken[]) {
         tagIDs.push(token.uid);
       }
-      const tags = (await UserStorage.getTags(this.tenant.id, { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+      const tags = (await TagStorage.getTags(this.tenant.id, { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT)).result;
       for (const token of response.data.data as OCPIToken[]) {
         try {
           // Get eMSP user
@@ -147,7 +148,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     } while (nextResult);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_TOKENS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_TOKENS,
       MODULE_NAME, 'pullTokens', result,
       `{{inSuccess}} token(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} token(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -592,7 +593,7 @@ export default class CpoOCPIClient extends OCPIClient {
       result.total++;
     }
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_SESSIONS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_SESSIONS,
       MODULE_NAME, 'checkSessions', result,
       `{{inSuccess}} Session(s) were successfully checked in ${executionDurationSecs}s`,
       `{{inError}} Session(s) failed to be checked in ${executionDurationSecs}s`,
@@ -642,7 +643,7 @@ export default class CpoOCPIClient extends OCPIClient {
       result.total++;
     }
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_LOCATIONS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_LOCATIONS,
       MODULE_NAME, 'checkLocations', result,
       `{{inSuccess}} Location(s) were successfully checked in ${executionDurationSecs}s`,
       `{{inError}} Location(s) failed to be checked in ${executionDurationSecs}s`,
@@ -685,7 +686,7 @@ export default class CpoOCPIClient extends OCPIClient {
       result.total++;
     }
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_CDRS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_CDRS,
       MODULE_NAME, 'checkCdrs', result,
       `{{inSuccess}} CDR(s) were successfully checked in ${executionDurationSecs}s`,
       `{{inError}} CDR(s) failed to be checked in ${executionDurationSecs}s`,
@@ -761,7 +762,7 @@ export default class CpoOCPIClient extends OCPIClient {
                 this.tenant.id,
                 {
                   location: location.name,
-                  evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
+                  evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
                 }
               );
             }
@@ -792,7 +793,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Save
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PATCH_STATUS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PATCH_STATUS,
       MODULE_NAME, 'sendEVSEStatuses', result,
       `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s`,
       `{{inError}} EVSE Status(es) failed to be patched in ${executionDurationSecs}s`,

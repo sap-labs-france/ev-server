@@ -273,7 +273,8 @@ export default class SiteAreaService {
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
       {
         withSite: filteredRequest.WithSite,
-        withChargingStations: filteredRequest.WithChargingStations
+        withChargingStations: filteredRequest.WithChargingStations,
+        withImage: true,
       },
       [
         'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
@@ -425,7 +426,7 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
     // Check
-    Utils.checkIfSiteAreaValid(filteredRequest, req);
+    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canCreateSiteArea(req.user, filteredRequest.siteID)) {
       throw new AppAuthError({
@@ -503,7 +504,7 @@ export default class SiteAreaService {
       });
     }
     // Check Mandatory fields
-    Utils.checkIfSiteAreaValid(filteredRequest, req);
+    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,

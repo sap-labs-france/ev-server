@@ -64,7 +64,7 @@ export default class ODataTransactions extends AbstractODataEntities {
         delete transaction.stop['tagID'];
       }
       if (Utils.objectHasProperty(transaction.stop, 'price')) {
-        transaction.stop.price = Utils.roundTo(transaction.stop.price, 15);
+        transaction.stop.price = Utils.truncTo(transaction.stop.price, 15);
       }
     }
     return transaction;

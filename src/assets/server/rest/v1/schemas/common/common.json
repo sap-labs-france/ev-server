@@ -1,0 +1,81 @@
+{
+    "$id": "common.json",
+    "definitions": {
+        "id": {
+            "type": "string",
+            "pattern": "^$|^[0-9a-fA-F]{24}$",
+            "sanitize": "mongo"
+        },
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "sanitize": "mongo"
+        },
+        "email": {
+            "type": "string",
+            "format": "email",
+            "sanitize": "mongo"
+        },
+        "subdomain": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+$",
+            "minLength": 1,
+            "maxLength": 20,
+            "sanitize": "mongo"
+        },
+        "search": {
+            "type": "string",
+            "sanitize": "mongo"
+        },
+        "limit": {
+            "type": "integer",
+            "sanitize": "mongo"
+        },
+        "sortFields": {
+            "type": "string",
+            "sanitize": "mongo"
+        },
+        "logo": {
+            "type": "string",
+            "sanitize": "mongo"
+        },
+        "address": {
+            "type": "object",
+            "properties": {
+                "address1": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "address2": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "postalCode": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "city": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "department": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "region": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "country": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                },
+                "coordinates": {
+                    "type": "array",
+                    "sanitize": "mongo"
+                }
+            }
+        }
+    }
+}

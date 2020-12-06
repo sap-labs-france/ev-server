@@ -26,7 +26,7 @@ export default class I18nManager {
     }
   }
 
-  public static async initialize() {
+  public static initialize(): void {
     // Get translation files
     i18n.translations['en'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
     i18n.translations['fr'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/fr.json`, 'utf8'));
@@ -38,7 +38,7 @@ export default class I18nManager {
     moment.locale(Constants.DEFAULT_LANGUAGE);
   }
 
-  public translate(key: string, params?: object): string {
+  public translate(key: string, params?: Record<string, unknown>): string {
     i18n.locale = this.language;
     return i18n.t(key, params);
   }
@@ -52,7 +52,7 @@ export default class I18nManager {
     if (currency) {
       return new Intl.NumberFormat(this.language, { style: 'currency', currency }).format(value);
     }
-    return this.formatNumber(Utils.roundTo(value, 2));
+    return this.formatNumber(Utils.truncTo(value, 2));
   }
 
   public formatPercentage(value: number): string {
@@ -62,7 +62,7 @@ export default class I18nManager {
     return '0';
   }
 
-  public formatDateTime(value: Date, format = 'LLL') {
+  public formatDateTime(value: Date, format = 'LLL'): string {
     moment.locale(this.language);
     return moment(new Date(value)).format(format);
   }

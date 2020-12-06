@@ -25,7 +25,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteTransaction');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete
     const result = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .deleteMany({ '_id': { $in: transactionsIDs } });
@@ -43,7 +43,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveTransaction');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // ID not provided?
     if (!transactionToSave.id) {
       transactionToSave.id = await TransactionStorage._findAvailableID(tenantID);
@@ -56,6 +56,8 @@ export default class TransactionStorage {
       siteAreaID: Utils.convertToObjectID(transactionToSave.siteAreaID),
       connectorId: Utils.convertToInt(transactionToSave.connectorId),
       tagID: transactionToSave.tagID,
+      carID: transactionToSave.carID ? Utils.convertToObjectID(transactionToSave.carID) : null,
+      carCatalogID: transactionToSave.carCatalogID ? Utils.convertToInt(transactionToSave.carCatalogID) : null,
       userID: Utils.convertToObjectID(transactionToSave.userID),
       chargeBoxID: transactionToSave.chargeBoxID,
       meterStart: Utils.convertToInt(transactionToSave.meterStart),
@@ -232,7 +234,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionYears');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const firstTransactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .find({})
       .sort({ timestamp: 1 })
@@ -272,7 +274,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactions');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -573,7 +575,7 @@ export default class TransactionStorage {
           connector: {
             $arrayElemAt: [
               '$chargeBox.connectors', {
-                $indexOfArray: ['$chargeBox.connectors.connectorId', 1]
+                $indexOfArray: ['$chargeBox.connectors.connectorId', '$connectorId']
               }
             ]
           }
@@ -587,6 +589,17 @@ export default class TransactionStorage {
       tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
+    // Car
+    DatabaseUtils.pushCarLookupInAggregation({
+      tenantID, aggregation: aggregation, asField: 'car', localField: 'carID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Car Catalog
+    DatabaseUtils.pushCarCatalogLookupInAggregation({
+      tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+      foreignField: '_id', oneToOneCardinality: true
+    });
+    // User
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
@@ -607,7 +620,6 @@ export default class TransactionStorage {
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -626,7 +638,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactions');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -740,7 +752,6 @@ export default class TransactionStorage {
     // Read DB
     const reportsMDB = await global.database.getCollection<RefundReport>(tenantID, 'transactions')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -761,7 +772,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionsInError');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Build filters
     const match: any = { stop: { $exists: true } };
     // Filter?
@@ -840,10 +851,10 @@ export default class TransactionStorage {
     if (!Utils.isEmptyArray(params.errorType)) {
       const facets: any = { $facet: {} };
       const array = [];
-      params.errorType.forEach((type) => {
+      for (const type of params.errorType) {
         array.push(`$${type}`);
         facets.$facet[type] = this.getTransactionsInErrorFacet(type);
-      });
+      }
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
       aggregation.push({ $project: { 'allItems': { $setUnion: array } } });
@@ -873,7 +884,6 @@ export default class TransactionStorage {
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -902,7 +912,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getActiveTransaction');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const aggregation = [];
     // Filters
     aggregation.push({
@@ -942,7 +952,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastTransaction');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const aggregation = [];
     // Filters
     aggregation.push({
@@ -1000,7 +1010,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, '_findAvailableID');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     let existingTransaction: Transaction;
     do {
       // Generate new transaction ID
@@ -1026,7 +1036,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getNotStartedTransactions');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Compute the date some minutes ago
     const authorizeStartDate = moment().subtract(params.checkPastAuthorizeMins, 'minutes').toDate();
     const authorizeEndDate = moment().subtract(params.sessionShouldBeStartedAfterMins, 'minutes').toDate();
@@ -1125,7 +1135,9 @@ export default class TransactionStorage {
     // Read DB
     const notifySessionNotStartedMDB: NotifySessionNotStarted[] =
       await global.database.getCollection<NotifySessionNotStarted>(tenantID, 'authorizes')
-        .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+        .aggregate(aggregation, {
+          allowDiskUse: true
+        })
         .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getNotStartedTransactions', uniqueTimerID, notifySessionNotStartedMDB);

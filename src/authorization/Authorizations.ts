@@ -16,6 +16,7 @@ import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
+import TagStorage from '../storage/mongodb/TagStorage';
 import TenantComponents from '../types/TenantComponents';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
@@ -122,7 +123,7 @@ export default class Authorizations {
     // Get User's site
     const sites = (await UserStorage.getUserSites(tenantID, { userID: user.id },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
-    sites.forEach((siteUser) => {
+    for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
         siteIDs.push(siteUser.site.id);
         companyIDs.add(siteUser.site.companyID);
@@ -133,7 +134,7 @@ export default class Authorizations {
       if (siteUser.siteOwner) {
         siteOwnerIDs.push(siteUser.site.id);
       }
-    });
+    }
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
     let tenantName;
@@ -722,7 +723,7 @@ export default class Authorizations {
       }
     }
     // Get Tag
-    let tag = await UserStorage.getTag(tenantID, tagID, { withUser: true });
+    let tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
     if (!tag) {
       // Create the tag as inactive
       tag = {
@@ -734,7 +735,7 @@ export default class Authorizations {
         default: false
       } as Tag;
       // Save
-      await UserStorage.saveTag(tenantID, tag);
+      await TagStorage.saveTag(tenantID, tag);
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
         tenantID,
@@ -743,8 +744,8 @@ export default class Authorizations {
         {
           chargeBoxID: chargingStation.id,
           badgeID: tagID,
-          evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
-          evseDashboardTagURL: await Utils.buildEvseTagURL(tenantID, tag)
+          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+          evseDashboardTagURL: Utils.buildEvseTagURL(tenant.subdomain, tag)
         }
       ).catch(() => { });
       // Log

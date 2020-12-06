@@ -13,7 +13,6 @@ import Site from '../../../../types/Site';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import TenantComponents from '../../../../types/TenantComponents';
-import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -375,7 +374,7 @@ export default class SiteService {
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID,
-      { withCompany: filteredRequest.WithCompany },
+      { withCompany: filteredRequest.WithCompany, withImage: true },
       [ 'id', 'name', 'issuer', 'image', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'public' ]);
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSite', req.user);
@@ -478,7 +477,7 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
     // Check
-    Utils.checkIfSiteValid(filteredRequest, req);
+    UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
@@ -537,7 +536,7 @@ export default class SiteService {
     UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
       MODULE_NAME, 'handleUpdateSite', req.user);
     // Check
-    Utils.checkIfSiteValid(filteredRequest, req);
+    UtilsService.checkIfSiteValid(filteredRequest, req);
     // OCPI Company
     if (!company.issuer) {
       throw new AppError({

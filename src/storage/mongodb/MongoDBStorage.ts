@@ -1,4 +1,4 @@
-import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
+import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -28,7 +28,7 @@ export default class MongoDBStorage {
     this.migrationConfig = Configuration.getMigrationConfig();
   }
 
-  public getCollection<type>(tenantID: string, collectionName: string): Collection<type> {
+  public getCollection<T>(tenantID: string, collectionName: string): Collection<T> {
     if (!this.db) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -38,10 +38,10 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    return this.db.collection<type>(DatabaseUtils.getCollectionName(tenantID, collectionName));
+    return this.db.collection<T>(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
-  public watch(pipeline, options): ChangeStream {
+  public watch(pipeline: Record<string, unknown>[], options: ChangeStreamOptions & { session?: ClientSession; }): ChangeStream {
     return this.db.watch(pipeline, options);
   }
 

@@ -22,6 +22,7 @@ import OCPIUtils from '../../OCPIUtils';
 import { OCPPRemoteStartStopStatus } from '../../../../types/ocpp/OCPPClient';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -83,7 +84,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const localToken = await UserStorage.getTag(tenant.id, startSession.token.uid, { withUser: true });
+    const localToken = await TagStorage.getTag(tenant.id, startSession.token.uid, { withUser: true });
     if (!localToken || !localToken.active || !localToken.ocpiToken || !localToken.ocpiToken.valid) {
       Logging.logDebug({
         tenantID: tenant.id,
@@ -104,12 +105,12 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }, Constants.DB_PARAMS_MAX_LIMIT);
     if (chargingStations && chargingStations.result) {
       for (const cs of chargingStations.result) {
-        cs.connectors.forEach((conn) => {
+        for (const conn of cs.connectors) {
           if (startSession.evse_uid === OCPIUtils.buildEvseUID(cs, conn)) {
             chargingStation = cs;
             connector = conn;
           }
-        });
+        }
       }
     }
     if (!chargingStation) {

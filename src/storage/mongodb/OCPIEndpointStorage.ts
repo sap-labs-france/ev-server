@@ -29,7 +29,7 @@ export default class OCPIEndpointStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveOcpiEndpoint');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Check if name is provided
     if (!ocpiEndpointToSave.name) {
       // Name must be provided!
@@ -85,7 +85,7 @@ export default class OCPIEndpointStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoints');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -160,7 +160,9 @@ export default class OCPIEndpointStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsMDB);
@@ -175,7 +177,7 @@ export default class OCPIEndpointStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOcpiEndpoint');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete OcpiEndpoint
     await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
@@ -187,7 +189,7 @@ export default class OCPIEndpointStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOcpiEndpoints');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete OcpiEndpoint
     await global.database.getCollection<any>(tenantID, 'ocpiendpoints').deleteMany({});
     // Debug

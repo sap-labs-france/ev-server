@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../types/Authorization';
 
 import CentralRestServer from '../../server/rest/CentralRestServer';
+import { ChangeStreamOptions } from 'mongodb';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
@@ -10,14 +11,14 @@ import { TransactionNotificationData } from '../../types/SingleChangeNotificatio
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
-const _pipeline = [];
-const _options = {
-  'fullDocument': 'default'
-};
-
 const MODULE_NAME = 'MongoDBStorageNotification';
 
 export default class MongoDBStorageNotification {
+  private defaultWatchPipeline: Record<string, unknown>[] = [];
+  private defaultWatchOptions: ChangeStreamOptions = {
+    fullDocument: 'default'
+  };
+
   private dbConfig: StorageConfiguration;
   private centralRestServer: CentralRestServer;
 
@@ -76,7 +77,7 @@ export default class MongoDBStorageNotification {
         });
         return;
       }
-      const dbChangeStream = global.database.watch(_pipeline, _options);
+      const dbChangeStream = global.database.watch(this.defaultWatchPipeline, this.defaultWatchOptions);
       dbChangeStream.on('change', (change: { [key: string]: any }) => {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         let tenantID, collection, documentID;
@@ -99,13 +100,13 @@ export default class MongoDBStorageNotification {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
-        message: `Starting to monitor changes on database '${this.dbConfig.implementation}'...`
+        message: `The monitoring on database '${this.dbConfig.implementation}' is enabled`
       });
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
-        message: `The monitoring on database '${this.dbConfig.implementation}' is active`
+        message: `Starting to monitor changes on database '${this.dbConfig.implementation}'...`
       });
     } else {
       Logging.logInfo({

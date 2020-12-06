@@ -219,7 +219,6 @@ export default class OCPPCommonTests {
     this.energyActiveImportEndMeterValue = this.energyActiveImportStartMeterValue + this.transactionTotalConsumptionWh;
     this.transactionTotalInactivitySecs = this.energyActiveImportMeterValues.reduce(
       (sum, meterValue) => (meterValue === 0 ? sum + this.meterValueIntervalSecs : sum), 0);
-    this.totalPrice = this.pricekWh * (this.transactionTotalConsumptionWh / 1000);
     // Tags
     this.validTag = faker.random.alphaNumeric(20).toString();
     this.invalidTag = faker.random.alphaNumeric(21).toString();
@@ -468,8 +467,13 @@ export default class OCPPCommonTests {
     // ------------------------------------------------------------------
     // Send Meter Values (except the last one which is used in Stop Transaction)
     // ------------------------------------------------------------------
+    let currentCumulatedPrice = 0;
     for (let index = 0; index <= this.energyActiveImportMeterValues.length - 2; index++) {
       // Set new meter value
+      currentCumulatedPrice = Utils.truncTo(((this.energyActiveImportMeterValues[index] / 1000) * this.pricekWh), 3) + Utils.truncTo(currentCumulatedPrice, 3);
+      if (index === this.energyActiveImportMeterValues.length - 2) {
+        this.totalPrice = currentCumulatedPrice;
+      }
       currentEnergyActiveImportMeterValue += this.energyActiveImportMeterValues[index];
       // Add time
       this.transactionCurrentTime = moment(this.transactionCurrentTime).add(this.meterValueIntervalSecs, 's').toDate();
@@ -505,8 +509,8 @@ export default class OCPPCommonTests {
           currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
           currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
           currentTotalInactivitySecs: this.totalInactivities[index],
-          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.pricekWh,
-          currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
+          currentCumulatedPrice: Utils.truncTo(currentCumulatedPrice, 3),
+          currentInactivityStatus: Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
             this.newTransaction.connectorId, this.totalInactivities[index]),
         });
       } else {
@@ -517,8 +521,8 @@ export default class OCPPCommonTests {
           currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
           currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
           currentTotalInactivitySecs: this.totalInactivities[index],
-          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.pricekWh,
-          currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
+          currentCumulatedPrice: Utils.truncTo(currentCumulatedPrice, 3),
+          currentInactivityStatus: Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
             this.newTransaction.connectorId, this.totalInactivities[index]),
         });
       }
@@ -602,7 +606,7 @@ export default class OCPPCommonTests {
         'price': this.totalPrice,
         'priceUnit': 'EUR',
         'pricingSource': PricingSettingsType.SIMPLE,
-        'roundedPrice': Utils.roundTo(this.totalPrice, 2),
+        'roundedPrice': Utils.truncTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
@@ -627,7 +631,7 @@ export default class OCPPCommonTests {
       'stop': {
         'price': this.totalPrice,
         'pricingSource': 'simple',
-        'roundedPrice': Utils.roundTo(this.totalPrice, 2),
+        'roundedPrice': Utils.truncTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
         'totalInactivitySecs': this.transactionTotalInactivitySecs,

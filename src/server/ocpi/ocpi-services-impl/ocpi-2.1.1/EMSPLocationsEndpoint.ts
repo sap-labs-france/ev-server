@@ -152,9 +152,9 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       }
       chargingStation.ocpiData.evse.status = evse.status;
       const status = OCPIMapping.convertOCPIStatus2Status(evse.status);
-      chargingStation.connectors.forEach((connector) => {
+      for (const connector of chargingStation.connectors) {
         connector.status = status;
-      });
+      }
     }
     if (evse.last_updated) {
       chargingStation.lastChangedOn = evse.last_updated;

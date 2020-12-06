@@ -341,6 +341,7 @@ export enum ServerAction {
   USER_IMAGE = 'UserImage',
   TAGS = 'Tags',
   TAG = 'Tag',
+  USER_DEFAUlT_TAG_CAR = 'UserDefaultTagCar',
   TAG_CREATE = 'TagCreate',
   TAG_UPDATE = 'TagUpdate',
   TAG_DELETE = 'TagDelete',
@@ -371,7 +372,7 @@ export enum ServerAction {
   MONGO_DB = 'MongoDB',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
-  CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'ComputeAndApplyChargingProfilesFailed',
+  COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED = 'ComputeAndApplyChargingProfilesFailed',
   SMART_CHARGING = 'SmartCharging',
 
   INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',
@@ -384,7 +385,11 @@ export enum ServerAction {
   REST_SIGNIN = 'signin',
   REST_SIGNON = 'signon',
   REST_SIGNOUT = 'signout',
-  REST_PASSWORD_RESET = 'passwordreset',
+  REST_PASSWORD_RESET = 'password/reset',
+  REST_END_USER_LICENSE_AGREEMENT = 'eula',
+  REST_END_USER_LICENSE_AGREEMENT_CHECK = 'eula/check',
+  REST_MAIL_CHECK = 'mail/check',
+  REST_MAIL_RESEND = 'mail/resend',
   REST_PING = 'ping',
   REST_TENANTS = 'tenants'
 }

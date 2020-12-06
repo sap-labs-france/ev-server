@@ -43,7 +43,8 @@ export default class CarService {
     const carCatalogs = await CarStorage.getCarCatalogs(
       {
         search: filteredRequest.Search,
-        carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null
+        carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
+        withImage: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
@@ -76,6 +77,7 @@ export default class CarService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalog', req.user);
     // Get the car
     const carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID,
+      { withImage: true },
       [
         'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
         'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
@@ -200,7 +202,7 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarCreateRequest(req.body);
     // Check
-    Utils.checkIfCarValid(filteredRequest, req);
+    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canCreateCar(req.user)) {
       throw new AppAuthError({
@@ -305,7 +307,7 @@ export default class CarService {
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.id, 'CarSecurity', 'filterCarUpdateRequest', req.user);
     // Check
-    Utils.checkIfCarValid(filteredRequest, req);
+    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateCar(req.user)) {
       throw new AppAuthError({

@@ -17,11 +17,11 @@ const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withCompany?: boolean } = {}, projectFields?: string[]): Promise<Site> {
+    params: { withCompany?: boolean, withImage?: boolean; } = {}, projectFields?: string[]): Promise<Site> {
     const sitesMDB = await SiteStorage.getSites(tenantID, {
       siteIDs: [id],
       withCompany: params.withCompany,
-      withImage: true,
+      withImage: params.withImage,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }
@@ -30,7 +30,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteImage');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const siteImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'siteimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
@@ -46,7 +46,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'removeUsersFromSite');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Site provided?
     if (siteID) {
       // At least one User
@@ -66,7 +66,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'addUsersToSite');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Site provided?
     if (siteID) {
       // At least one User
@@ -96,7 +96,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSitesUsers');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -185,7 +185,6 @@ export default class SiteStorage {
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{ user: User; siteID: string; siteAdmin: boolean; siteOwner: boolean }>(tenantID, 'siteusers')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -200,7 +199,7 @@ export default class SiteStorage {
 
   public static async updateSiteOwner(tenantID: string, siteID: string, userID: string, siteOwner: boolean): Promise<void> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'updateSiteOwner');
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     await global.database.getCollection<any>(tenantID, 'siteusers').updateMany(
       {
         siteID: Utils.convertToObjectID(siteID),
@@ -222,7 +221,7 @@ export default class SiteStorage {
 
   public static async updateSiteUserAdmin(tenantID: string, siteID: string, userID: string, siteAdmin: boolean): Promise<void> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'updateSiteUserAdmin');
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
 
     await global.database.getCollection<any>(tenantID, 'siteusers').updateOne(
       {
@@ -239,7 +238,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveSite');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const siteFilter: any = {};
     // Build Request
     if (siteToSave.id) {
@@ -289,7 +288,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveSiteImage');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection(tenantID, 'siteimages').findOneAndUpdate(
       { _id: Utils.convertToObjectID(siteID) },
@@ -311,7 +310,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSites');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -451,7 +450,6 @@ export default class SiteStorage {
     // Read DB
     const sitesMDB = await global.database.getCollection<Site>(tenantID, 'sites')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -498,7 +496,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSites');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
     // Convert
@@ -520,7 +518,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteCompanySites');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Get Sites of Company
     const siteIDs: string[] = (await global.database.getCollection<{ _id: ObjectID }>(tenantID, 'sites')
       .find({ companyID: Utils.convertToObjectID(companyID) })
@@ -539,7 +537,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'siteHasUser');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Exec
     const result = await global.database.getCollection<any>(tenantID, 'siteusers').findOne(
       { siteID: Utils.convertToObjectID(siteID), userID: Utils.convertToObjectID(userID) });

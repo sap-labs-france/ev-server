@@ -12,7 +12,7 @@ export default class StatisticsStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStationStats');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Build filter
     const match: any = {};
     // Date provided?
@@ -127,7 +127,7 @@ export default class StatisticsStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserStats');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Build filter
     const match: any = {};
     // Date provided?

@@ -16,7 +16,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'addAssetsToSiteArea');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Site Area provided?
     if (siteAreaID) {
       // At least one Asset
@@ -37,7 +37,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'removeAssetsFromSiteArea');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Site Area provided?
     if (siteAreaID) {
       // At least one Asset
@@ -58,7 +58,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaImage');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const siteAreaImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'siteareaimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
@@ -70,13 +70,14 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSite?: boolean; withChargingStations?: boolean } = {}, projectFields?: string[]): Promise<SiteArea> {
+    params: { withSite?: boolean; withChargingStations?: boolean,withAvailableChargingStations?: boolean; withImage?: boolean } = {},
+    projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenantID, {
       siteAreaIDs: [id],
       withSite: params.withSite,
       withChargingStations: params.withChargingStations,
-      withAvailableChargingStations: true,
-      withImage: true,
+      withAvailableChargingStations: params.withAvailableChargingStations,
+      withImage: params.withImage,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return siteAreasMDB.count === 1 ? siteAreasMDB.result[0] : null;
   }
@@ -85,7 +86,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveSiteArea');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const siteAreaMDB: any = {
       _id: !siteAreaToSave.id ? new ObjectID() : Utils.convertToObjectID(siteAreaToSave.id),
@@ -137,7 +138,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreas');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -275,7 +276,6 @@ export default class SiteAreaStorage {
     // Read DB
     const siteAreasMDB = await global.database.getCollection<SiteArea>(tenantID, 'siteareas')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -315,7 +315,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'addChargingStationsToSiteArea');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Site provided?
     if (siteAreaID) {
       // At least one ChargingStation
@@ -336,7 +336,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'removeChargingStationsFromSiteArea');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Site provided?
     if (siteAreaID) {
       // At least one ChargingStation
@@ -361,7 +361,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSiteAreas');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Remove Charging Station's Site Area
     await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
       { siteAreaID: { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } },
@@ -388,7 +388,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSiteAreasFromSites');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Find site areas to delete
     const siteareas: string[] = (await global.database.getCollection<any>(tenantID, 'siteareas')
       .find({ siteID: { $in: siteIDs.map((id) => Utils.convertToObjectID(id)) } })
@@ -403,7 +403,7 @@ export default class SiteAreaStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveSiteAreaImage');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(tenantID, 'siteareaimages').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(siteAreaID) },

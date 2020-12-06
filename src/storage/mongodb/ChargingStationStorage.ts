@@ -150,7 +150,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -303,8 +303,11 @@ export default class ChargingStationStorage {
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
     }
+    // Always add Connector ID
+    dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
     // Position coordinates
     if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+      // Override (can have only one sort)
       dbParams.sort = { distanceMeters: 1 };
     }
     aggregation.push({
@@ -348,7 +351,9 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStations', uniqueTimerID, chargingStationsMDB);
@@ -365,7 +370,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -421,7 +426,8 @@ export default class ChargingStationStorage {
     const facets: any = { $facet: {} };
     if (!Utils.isEmptyArray(params.errorType)) {
       // Check allowed
-      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
+      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION)
+          && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
@@ -431,10 +437,10 @@ export default class ChargingStationStorage {
       }
       // Build facet only for one error type
       const array = [];
-      params.errorType.forEach((type) => {
+      for (const type of params.errorType) {
         array.push(`$${type}`);
         facets.$facet[type] = ChargingStationStorage.getChargerInErrorFacet(type);
-      });
+      }
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
       aggregation.push({ $project: { chargersInError: { $setUnion: array } } });
@@ -466,7 +472,9 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStations', uniqueTimerID, chargingStationsMDB);
@@ -480,7 +488,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStation');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Build Request
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
@@ -545,11 +553,11 @@ export default class ChargingStationStorage {
     // Ensure good typing
     const connectorMDB = ChargingStationStorage.filterConnectorMDB(connector);
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const updatedFields: any = {};
     updatedFields['connectors.' + (connector.connectorId - 1).toString()] = connectorMDB;
-    // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
@@ -562,9 +570,9 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationLastSeen');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set data
-    // Modify and return the modified document
+    // Modify document
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: params });
@@ -576,10 +584,10 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationFirmwareStatus');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set data
-    // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: { firmwareUpdateStatus } },
       { upsert: true });
@@ -591,16 +599,16 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteChargingStation');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete Configuration
     await global.database.getCollection<any>(tenantID, 'configurations')
       .findOneAndDelete({ '_id': id });
     // Delete Charging Profiles
     await this.deleteChargingProfiles(tenantID, id);
     // Delete Charging Station
-    await global.database.getCollection<any>(tenantID, 'chargingstations')
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });
-    // Keep the rest (bootnotif, authorize...)
+    // Keep the rest (boot notification, authorize...)
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
   }
@@ -626,7 +634,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveOcppParameters');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(tenantID, 'configurations').findOneAndUpdate({
       '_id': parameters.id
@@ -647,7 +655,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcppParameters');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenantID, 'configurations')
       .findOne({ '_id': id });
@@ -696,7 +704,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingProfiles');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -769,7 +777,7 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const chargingProfilesCountMDB = await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+    const chargingProfilesCountMDB = await global.database.getCollection<DataResult<ChargingProfile>>(tenantID, 'chargingprofiles')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -813,7 +821,9 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenantID, 'chargingprofiles')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingProfiles', uniqueTimerID, chargingProfilesMDB);
@@ -827,7 +837,7 @@ export default class ChargingStationStorage {
   public static async saveChargingProfile(tenantID: string, chargingProfileToSave: ChargingProfile): Promise<string> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingProfile');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const chargingProfileFilter: any = {};
     // Build Request
     if (chargingProfileToSave.id) {
@@ -856,7 +866,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteChargingProfile');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete Charging Profile
     await global.database.getCollection<any>(tenantID, 'chargingprofiles')
       .findOneAndDelete({ '_id': id });
@@ -868,7 +878,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteChargingProfile');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete Charging Profiles
     await global.database.getCollection<any>(tenantID, 'chargingprofiles')
       .findOneAndDelete({ 'chargingStationID': chargingStationID });
@@ -939,7 +949,7 @@ export default class ChargingStationStorage {
 
   private static filterConnectorMDB(connector: Connector): ConnectorMDB {
     if (connector) {
-      const newConnector: ConnectorMDB = {
+      const filteredConnector: ConnectorMDB = {
         connectorId: Utils.convertToInt(connector.connectorId),
         currentInstantWatts: Utils.convertToFloat(connector.currentInstantWatts),
         currentStateOfCharge: connector.currentStateOfCharge,
@@ -970,7 +980,7 @@ export default class ChargingStationStorage {
             csPhaseL3: connector.phaseAssignmentToGrid.csPhaseL3,
           } : null,
       };
-      return newConnector;
+      return filteredConnector;
     }
     return null;
   }

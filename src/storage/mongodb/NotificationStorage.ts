@@ -20,7 +20,7 @@ export default class NotificationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getNotifications');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -113,7 +113,9 @@ export default class NotificationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const notificationsMDB = await global.database.getCollection<any>(tenantID, 'notifications')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
@@ -128,7 +130,7 @@ export default class NotificationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveNotification');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const ocpiEndpointMDB: any = {
       _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
       userID: Utils.convertToObjectID(notificationToSave.userID),

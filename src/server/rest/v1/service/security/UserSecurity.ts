@@ -1,7 +1,6 @@
-import { HttpSitesAssignUserRequest, HttpTagsRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
+import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import Authorizations from '../../../../../authorization/Authorizations';
-import Tag from '../../../../../types/Tag';
 import UserNotifications from '../../../../../types/UserNotifications';
 import { UserRole } from '../../../../../types/User';
 import UserToken from '../../../../../types/UserToken';
@@ -16,6 +15,10 @@ export default class UserSecurity {
       userID: sanitize(request.userID),
       siteIDs: request.siteIDs ? request.siteIDs.map(sanitize) : []
     };
+  }
+
+  public static filterDefaultTagCarRequestByUserID(request: any): string {
+    return sanitize(request.UserID);
   }
 
   public static filterUserByIDRequest(request: any): string {
@@ -92,40 +95,6 @@ export default class UserSecurity {
     return UserSecurity.filterUserRequest(request, loggedUser);
   }
 
-  public static filterTagsRequest(request: any): HttpTagsRequest {
-    const filteredRequest = {
-      Search: sanitize(request.Search),
-      UserID: sanitize(request.UserID),
-      Issuer: Utils.objectHasProperty(request, 'Issuer') ? UtilsSecurity.filterBoolean(request.Issuer) : null
-    } as HttpTagsRequest;
-    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
-    UtilsSecurity.filterSort(request, filteredRequest);
-    return filteredRequest;
-  }
-
-  public static filterTagUpdateRequest(request: any, loggedUser: UserToken): Partial<Tag> {
-    return UserSecurity.filterTagRequest(request, loggedUser);
-  }
-
-  public static filterTagCreateRequest(request: any, loggedUser: UserToken): Partial<Tag> {
-    return UserSecurity.filterTagRequest(request, loggedUser);
-  }
-
-  public static filterTagRequest(tag: Tag, loggedUser: UserToken): Tag {
-    let filteredTag: Tag;
-    if (tag) {
-      filteredTag = {
-        id: sanitize(tag.id),
-        description: sanitize(tag.description),
-        active: UtilsSecurity.filterBoolean(tag.active),
-        issuer: UtilsSecurity.filterBoolean(tag.issuer),
-        default: UtilsSecurity.filterBoolean(tag.default),
-        userID: sanitize(tag.userID)
-      } as Tag;
-    }
-    return filteredTag;
-  }
-
   static filterNotificationsRequest(role: UserRole, notifications: UserNotifications): UserNotifications {
     // All Users
     let filteredNotifications: UserNotifications = {
@@ -167,10 +136,6 @@ export default class UserSecurity {
       };
     }
     return filteredNotifications;
-  }
-
-  public static filterTagRequestByID(request: any): string {
-    return sanitize(request.ID);
   }
 
   private static filterUserRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {

@@ -2,6 +2,7 @@ import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
+import OCPPUtils from '../../utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
 import global from '../../../../types/GlobalType';
@@ -13,7 +14,7 @@ export default { /* Services */
     CentralSystemServiceSoap12: { /* Methods */
       Authorize: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
           Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.AUTHORIZE, [ headers, args ]);
           // Handle
@@ -26,7 +27,7 @@ export default { /* Services */
           callback({
             'authorizeResponse': {
               'idTagInfo': {
-                'status': result.status
+                'status': result.idTagInfo.status
               }
             }
           });
@@ -46,7 +47,7 @@ export default { /* Services */
 
       BootNotification: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Add current IP to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
           // Add OCPP Version
@@ -66,7 +67,7 @@ export default { /* Services */
             'bootNotificationResponse': {
               'currentTime': result.currentTime,
               'status': result.status,
-              'interval': result.heartbeatInterval
+              'interval': result.interval
             }
           });
         }).catch((error) => {
@@ -77,7 +78,7 @@ export default { /* Services */
             'bootNotificationResponse': {
               'status': 'Rejected',
               'currentTime': new Date().toISOString(),
-              'interval': 60
+              'interval': Constants.BOOT_NOTIFICATION_WAIT_TIME
             }
           });
         });
@@ -85,7 +86,7 @@ export default { /* Services */
 
       DataTransfer: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
           Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.CHARGING_STATION_DATA_TRANSFER, [ headers, args ]);
           // Handle
@@ -113,7 +114,7 @@ export default { /* Services */
 
       DiagnosticsStatusNotification: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
           Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, [ headers, args ]);
           // Handle
@@ -137,7 +138,7 @@ export default { /* Services */
 
       FirmwareStatusNotification: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
           Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.FIRMWARE_STATUS_NOTIFICATION, [ headers, args ]);
           // Handle
@@ -161,7 +162,7 @@ export default { /* Services */
 
       Heartbeat: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
@@ -191,7 +192,7 @@ export default { /* Services */
 
       MeterValues: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
           Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.METER_VALUES, [ headers, args ]);
           // Handle
@@ -215,7 +216,7 @@ export default { /* Services */
 
       StartTransaction: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
           Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.START_TRANSACTION, [ headers, args ]);
           // Handle
@@ -228,7 +229,7 @@ export default { /* Services */
             'startTransactionResponse': {
               'transactionId': result.transactionId,
               'idTagInfo': {
-                'status': result.status
+                'status': result.idTagInfo.status
               }
             }
           });
@@ -249,7 +250,7 @@ export default { /* Services */
 
       StatusNotification: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
           Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STATUS_NOTIFICATION, [ headers, args ]);
           // Handle
@@ -274,7 +275,7 @@ export default { /* Services */
 
       StopTransaction: function(args, callback, headers, req) {
         // Check SOAP params
-        Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+        OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
           Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STOP_TRANSACTION, [ headers, args ]);
           // Handle
@@ -286,7 +287,7 @@ export default { /* Services */
           callback({
             'stopTransactionResponse': {
               'idTagInfo': {
-                'status': result.status
+                'status': result.idTagInfo.status
               }
             }
           });

@@ -8,6 +8,8 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import { LockEntity } from '../../../../types/Locking';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
@@ -15,7 +17,6 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
-import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidation';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -27,9 +28,9 @@ const MODULE_NAME = 'TenantService';
 export default class TenantService {
 
   public static async handleDeleteTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const id = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
+    // Validate
+    const tenantID = TenantValidator.getInstance().validateTenantDeleteRequestSuperAdmin(req.query);
+    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -37,12 +38,12 @@ export default class TenantService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleDeleteTenant',
-        value: id
+        value: tenantID
       });
     }
     // Get
-    const tenant = await TenantStorage.getTenant(id);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${id}' does not exist`,
+    const tenant = await TenantStorage.getTenant(tenantID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -73,8 +74,8 @@ export default class TenantService {
   }
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
+    // Validate
+    const tenantID = TenantValidator.getInstance().validateGetLogoReqSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenantLogo', req.user);
     // Get Logo
     const tenantLogo = await TenantStorage.getTenantLogo(tenantID);
@@ -97,8 +98,8 @@ export default class TenantService {
   }
 
   public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
+    // Validate
+    const tenantID = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
@@ -112,6 +113,7 @@ export default class TenantService {
     }
     // Get it
     const tenant = await TenantStorage.getTenant(tenantID,
+      { withLogo: true },
       [ 'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo']
     );
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
@@ -122,6 +124,8 @@ export default class TenantService {
   }
 
   public static async handleGetTenants(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Validate
+    const filteredRequest = TenantValidator.getInstance().validateTenantsGetReqSuperAdmin(req.query);
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
@@ -132,7 +136,6 @@ export default class TenantService {
       });
     }
     // Filter
-    const filteredRequest = TenantSecurity.filterTenantsRequest(req.query);
     const projectFields = [
       'id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
     ];
@@ -145,7 +148,7 @@ export default class TenantService {
         search: filteredRequest.Search,
         withLogo: filteredRequest.WithLogo,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) },
       projectFields);
     // Return
     res.json(tenants);
@@ -196,7 +199,16 @@ export default class TenantService {
     // Update with components
     await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Create DB collections
-    await TenantStorage.createTenantDB(filteredRequest.id);
+    // Database creation Lock
+    const createDatabaseLock = LockingManager.createExclusiveLock(filteredRequest.id, LockEntity.DATABASE, 'create-database');
+    if (await LockingManager.acquire(createDatabaseLock)) {
+      try {
+        await TenantStorage.createTenantDB(filteredRequest.id);
+      } finally {
+        // Release the database creation Lock
+        await LockingManager.release(createDatabaseLock);
+      }
+    }
     // Create Admin user in tenant
     const tenantUser: User = UserStorage.createNewUser() as User;
     tenantUser.name = filteredRequest.name;

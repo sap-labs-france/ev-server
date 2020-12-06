@@ -8,6 +8,7 @@ import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import { TaskConfig } from '../../types/TaskConfig';
@@ -54,7 +55,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                 instantWatts: asset.currentInstantWatts,
               };
               // Add limits
-              await Utils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, consumption);
+              await OCPPUtils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, consumption);
               // Save Consumption
               await ConsumptionStorage.saveConsumption(tenant.id, consumption);
             }

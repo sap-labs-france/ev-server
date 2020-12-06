@@ -13,7 +13,7 @@ export default class ConnectionStorage {
 
   static async saveConnection(tenantID: string, connectionToSave: Connection): Promise<string> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveConnection');
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Create
     const connectionMDB: any = {
       _id: !connectionToSave.id ? new ObjectID() : Utils.convertToObjectID(connectionToSave.id),
@@ -35,7 +35,7 @@ export default class ConnectionStorage {
 
   static async getConnectionByConnectorIdAndUserId(tenantID: string, connectorId: string, userId: string, projectFields?: string[]): Promise<Connection> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getConnectionByConnectorIdAndUserId');
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const aggregation = [];
     aggregation.push({
       $match: { connectorId: connectorId, userId: Utils.convertToObjectID(userId) }
@@ -60,7 +60,7 @@ export default class ConnectionStorage {
 
   static async getConnectionsByUserId(tenantID: string, userID: string, projectFields?: string[]): Promise<DataResult<Connection>> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getConnectionsByUserId');
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const aggregation = [];
     aggregation.push({
       $match: { userId: Utils.convertToObjectID(userID) }
@@ -73,7 +73,9 @@ export default class ConnectionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Get connections
     const connectionsMDB = await global.database.getCollection<Connection>(tenantID, 'connections')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     Logging.traceEnd(tenantID, MODULE_NAME, 'getConnectionByUserId', uniqueTimerID, connectionsMDB);
     return {
@@ -84,7 +86,7 @@ export default class ConnectionStorage {
 
   static async getConnection(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<Connection> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getConnection');
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const aggregation = [];
     // Filters
     aggregation.push({
@@ -112,7 +114,7 @@ export default class ConnectionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteConnection');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete
     await global.database.getCollection<Connection>(tenantID, 'connections')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
@@ -124,7 +126,7 @@ export default class ConnectionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteConnectionByUser');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete
     await global.database.getCollection<any>(tenantID, 'connections')
       .deleteMany({ 'userId': Utils.convertToObjectID(userID) });

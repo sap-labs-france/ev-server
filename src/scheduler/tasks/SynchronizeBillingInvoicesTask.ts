@@ -17,14 +17,14 @@ export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
         if (billingImpl) {
-          const synchronizeAction = await billingImpl.synchronizeInvoices(tenant.id);
+          const synchronizeAction = await billingImpl.synchronizeInvoices();
           if (synchronizeAction.inError === 0) {
             await NotificationHandler.sendBillingInvoicesSynchronizationFailed(
               tenant.id,
               {
                 nbrInvoicesInError: synchronizeAction.inError,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-                evseDashboardBillingURL: await Utils.buildEvseBillingSettingsURL(tenant.id)
+                evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
               }
             );
           }
