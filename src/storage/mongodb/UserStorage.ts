@@ -297,8 +297,8 @@ export default class UserStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveTag', uniqueTimerID, tagMDB);
   }
 
-  public static async clearTagUserDefault(tenantID: string, userID: string): Promise<void> {
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'clearTagUserDefault');
+  public static async clearDefaultUserTag(tenantID: string, userID: string): Promise<void> {
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'clearDefaultUserTag');
     await DatabaseUtils.checkTenant(tenantID);
     await global.database.getCollection<any>(tenantID, 'tags').updateMany(
       {
@@ -308,7 +308,7 @@ export default class UserStorage {
       {
         $set: { default: false }
       });
-    Logging.traceEnd(tenantID, MODULE_NAME, 'clearTagUserDefault', uniqueTimerID, { userID });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'clearDefaultUserTag', uniqueTimerID, { userID });
   }
 
   public static async deleteTag(tenantID: string, tagID: string): Promise<void> {
@@ -691,6 +691,27 @@ export default class UserStorage {
       tagIDs: [id],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return tagMDB.count === 1 ? tagMDB.result[0] : null;
+  }
+
+  public static async getFirstActiveUserTag(tenantID: string, userID: string,
+    params: { issuer?: boolean; } = {}, projectFields?: string[]): Promise<Tag> {
+    const tagMDB = await UserStorage.getTags(tenantID, {
+      userIDs: [userID],
+      issuer: params.issuer,
+      active: true,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return tagMDB.count === 1 ? tagMDB.result[0] : null;
+  }
+
+  public static async getDefaultUserTag(tenantID: string, userID: string,
+    params: { issuer?: boolean; active?: boolean; } = {}, projectFields?: string[]): Promise<Tag> {
+    const tagMDB = await UserStorage.getTags(tenantID, {
+      userIDs: [userID],
+      issuer: params.issuer,
+      active: params.active,
+      defaultTag: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
   }

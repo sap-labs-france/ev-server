@@ -569,6 +569,23 @@ export default class CarStorage {
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
 
+  public static async getDefaultUserCar(tenantID: string, userID: string,
+    params: { } = {}, projectFields?: string[]): Promise<Car> {
+    const carMDB = await CarStorage.getCars(tenantID, {
+      userIDs: [userID],
+      defaultCar: true,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return carMDB.count === 1 ? carMDB.result[0] : null;
+  }
+
+  public static async getFirstAvailableUserCar(tenantID: string, userID: string,
+    params: { } = {}, projectFields?: string[]): Promise<Car> {
+    const carMDB = await CarStorage.getCars(tenantID, {
+      userIDs: [userID],
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return carMDB.count === 1 ? carMDB.result[0] : null;
+  }
+
   public static async getCarByVinLicensePlate(tenantID: string,
     licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
     params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
