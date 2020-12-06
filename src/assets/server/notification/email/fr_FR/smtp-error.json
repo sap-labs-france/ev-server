@@ -1,10 +1,10 @@
 {
-  "subject": "Erreur d'Authentification sur le Serveur d'Email Principal",
+  "subject": "Erreur sur le Serveur d'Email",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Erreur Authentification Serveur Email",
+      "title": "Erreur Serveur Email",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "L'authentification sur le serveur d'email principal a échoué.",
+      "Le serveur d'email principal a échoué avec l'erreur <%- SMTPError %>.",
       "",
       "Merci de vérifier votre configuration.",
       ""

@@ -12,7 +12,7 @@
       "title": "Roaming Send Statuses",
       "body": "The transfer to the roaming platform of the charging station's statuses has failed on location '{{location}}' in organization '{{tenantName}}', check the logs"
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Email Server Error",
       "body": "The authentication against the primary email server has failed in organization '{{tenantName}}', check the configuration"
     },

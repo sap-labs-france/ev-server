@@ -12,7 +12,7 @@
       "title": "Sende Roaming Status",
       "body": "Der Status der Ladestation konnte nicht zur Roaming-Plattform übermittelt werden. Ort: '{{location}}' Organisation: '{{tenantName}}', überprüfen Sie die Logs"
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Email Server Error",
       "body": "Die Authentizifierung gegen den ursprünglichen E-Mail Server ist fehlgeschlagen. Organisation: '{{tenantName}}', überprüfen Sie die Einstellungen"
     },

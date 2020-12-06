@@ -12,7 +12,7 @@
       "title": "Estatus de envío de itinerancia",
       "body": "La transferencia a la plataforma de itinerancia de los estatus de la estación de carga ha fallado en la ubicación '{{location}}' en la organización '{{tenantName}}', verifique los registros "
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Error del servidor de correo electrónico",
       "body": "La autenticación del servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
     },

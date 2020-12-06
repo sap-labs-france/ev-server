@@ -12,7 +12,7 @@
       "title": "Itinérance Envoie des Statuts",
       "body": "La mise à jour des statuts vers le site d'itinérance des bornes a échoué sur le site '{{location}}' dans l'organisation '{{tenantName}}', vérifier les logs"
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Erreur Serveur Email",
       "body": "L'authentification du serveur d'email principal a échoué dans l'organisation '{{tenantName}}', vérifier la configuration"
     },

@@ -1,5 +1,5 @@
-import { BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
-import { Message, SMTPClient } from 'emailjs';
+import { BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { Message, SMTPClient, SMTPError, SMTPErrorStates } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -95,8 +95,8 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('verification-email', data, user, tenant, severity);
   }
 
-  public async sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    return this.prepareAndSendEmail('smtp-auth-error', data, user, tenant, severity, true);
+  public async sendSmtpError(data: SmtpErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('smtp-error', data, user, tenant, severity, true);
   }
 
   public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -204,15 +204,18 @@ export default class EMailNotificationTask implements NotificationTask {
         });
       // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
       } catch (err) {}
-      if (!this.emailConfig.disableBackup && !retry && this.clientBackup) {
-        // If authentication error in the primary email server then notify admins using the backup server
-        // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
-        await NotificationHandler.sendSmtpAuthError(
+      if (error instanceof SMTPError) {
+      // Notify on SMTP error
+      // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
+        await NotificationHandler.sendSmtpError(
           tenant.id,
           {
+            SMTPError: error,
             evseDashboardURL: data.evseDashboardURL
           }
         );
+      }
+      if (!this.emailConfig.disableBackup && !retry && this.clientBackup) {
         await this.sendEmail(email, data, tenant, user, severity, true);
       }
     }

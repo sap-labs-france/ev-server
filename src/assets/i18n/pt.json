@@ -12,7 +12,7 @@
       "title": "Enviando informações",
       "body": "O envio de informações para a plataforma de carregamento '{{location}}' falhou, por favor veririfcar a informação no '{{tenantName}}'"
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Error no servidor de Email",
       "body": "A autenticação no servidor de email falhou por favor verificar a configuração do  '{{tenantName}}'"
     },
