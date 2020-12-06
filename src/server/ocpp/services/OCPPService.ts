@@ -7,6 +7,7 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
@@ -665,6 +666,11 @@ export default class OCPPService {
         stateOfCharge: 0,
         user
       };
+      // Set Car Catalog ID
+      if (user.lastSelectedCarID) {
+        const car = await CarStorage.getCar(headers.tenantID, user.lastSelectedCarID, {}, ['id', 'carCatalogID']);
+        transaction.carCatalogID = car?.carCatalogID;
+      }
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await OCPPUtils.createConsumptionFromMeterValue(
         headers.tenantID, chargingStation, transaction,

@@ -462,8 +462,8 @@ export default class TransactionService {
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       projectFields = [
         ...projectFields,
-        'car.licensePlate', 'car.carCatalog.vehicleMake', 'car.carCatalog.vehicleModel',
-        'car.carCatalog.vehicleModelVersion', 'car.carCatalog.image',
+        'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel',
+        'carCatalog.vehicleModelVersion', 'carCatalog.image',
       ];
     }
     // Get Transaction
@@ -919,7 +919,7 @@ export default class TransactionService {
         Authorizations.canListCars(req.user)) {
       projectFields = [
         ...projectFields,
-        'car.licensePlate', 'car.carCatalog.vehicleMake', 'car.carCatalog.vehicleModel', 'car.carCatalog.vehicleModelVersion',
+        'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
       ];
     }
     // Filter

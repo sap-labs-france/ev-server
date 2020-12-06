@@ -598,7 +598,8 @@ export default class CarStorage {
   }
 
   public static async getCars(tenantID: string,
-    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string; withUsers?: boolean; defaultCar?: boolean; carMakers?: string[] } = {},
+    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
+      withUsers?: boolean; defaultCar?: boolean; carMakers?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCars');
