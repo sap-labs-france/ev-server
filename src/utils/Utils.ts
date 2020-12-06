@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, OicpIdentifier, OicpSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, SiteAreaLimitSource } from '../types/ChargingStation';
@@ -29,6 +29,8 @@ import OICPEndpoint from '../types/oicp/OICPEndpoint';
 import { ObjectID } from 'mongodb';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
+import SettingService from '../server/rest/v1/service/SettingService';
+import SettingStorage from '../storage/mongodb/SettingStorage';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
@@ -686,6 +688,17 @@ export default class Utils {
       return wattValue / voltage;
     }
     return 0;
+  }
+
+  public static convertWattHourToKiloWattHour(wattHours: number, decimalPlaces?: number): number {
+    if (decimalPlaces) {
+      return Utils.roundTo((wattHours / 1000), decimalPlaces);
+    }
+    return Utils.convertToFloat((wattHours / 1000));
+  }
+
+  public static convertWhValuesTokWhValues(WhValues: number[], decimalPlaces?: number): number[] {
+    return WhValues.map((wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, decimalPlaces));
   }
 
   public static getChargePointFromID(chargingStation: ChargingStation, chargePointID: number): ChargePoint {
@@ -2025,13 +2038,24 @@ export default class Utils {
         }
         break;
 
-      // Refund
+      // OCPI
       case TenantComponents.OCPI:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
           return {
             'type': RoamingSettingsType.GIREVE,
             'ocpi': {}
+          } as SettingDBContent;
+        }
+        break;
+
+      // OICP
+      case TenantComponents.OICP:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Hubject
+          return {
+            'type': RoamingSettingsType.HUBJECT,
+            'oicp': {}
           } as SettingDBContent;
         }
         break;

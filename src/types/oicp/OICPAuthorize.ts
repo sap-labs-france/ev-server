@@ -57,7 +57,7 @@ export interface OICPAuthorizeStopCpoReceive { // NOTE: This message describes t
 // eRoamingAuthorizeRemoteStart_V2.1
 // NOTE: This operation is used by EMPs in order to remotely start a charging process
 //
-export interface OICPAuthorizeAuthorizeRemoteStartCpoReceive {
+export interface OICPAuthorizeRemoteStartCpoReceive {
   SessionID: OICPSessionID, // The Hubject SessionID that identifies the process
   CPOPartnerSessionID?: string, // Optional field containing the session id assigned by the CPO to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250
   EMPPartnerSessionID?: string, // Optional field containing the session id assigned by an EMP to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250
@@ -72,7 +72,7 @@ export interface OICPAuthorizeAuthorizeRemoteStartCpoReceive {
 //
 // eRoamingAuthorizeRemoteStop_V2.1
 //
-export interface OICPAuthorizeAuthorizeRemoteStopCpoReceive {
+export interface OICPAuthorizeRemoteStopCpoReceive {
   SessionID: OICPSessionID, // The Hubject SessionID that identifies the process
   CPOPartnerSessionID?: string, // Optional field containing the session id assigned by the CPO to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250
   EMPPartnerSessionID?: string, // Optional field containing the session id assigned by an EMP to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250

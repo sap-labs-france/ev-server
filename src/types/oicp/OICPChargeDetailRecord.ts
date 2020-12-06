@@ -22,10 +22,14 @@ export interface OICPChargeDetailRecord {
   SessionEnd: Date, // The date and time at which the session ended, e.g. swipe of RFID or cable disconnected.
   MeterValueStart?: number, // Decimal (,3). The starting meter value in kWh.
   MeterValueEnd?: number, // Decimal (,3). The ending meter value in kWh.
-  MeterValueInBetween?: number[], // List (MeterValue (Decimal (,3))). List of meter values that may have been taken in between (kWh).
+  MeterValueInBetween?: OICPMeterValueInBetween, // List (MeterValue (Decimal (,3))). List of meter values that may have been taken in between (kWh).
   ConsumedEnergy: number, // Decimal (,3). The difference between MeterValueEnd and MeterValueStart in kWh.
   SignedMeteringValues?: OICPSignedMeteringValues[], // Metering Signature basically contains all metering signature values (these values should be in Transparency software format) for different status of charging session for eg start, end or progress. In total you can provide maximum 10 metering signature values
   CalibrationLawVerificationInfo?: OICPCalibrationLawVerification, // This field provides additional information which could help directly or indirectly to verify the signed metering value by using respective Transparency Software
   HubOperatorID?: OICPOperatorID, // Hub operator
   HubProviderID?: OICPProviderID // Hub provider
+}
+
+export interface OICPMeterValueInBetween {
+  meterValues?: number[], // List (MeterValue (Decimal (,3))). List of meter values that may have been taken in between (kWh).
 }

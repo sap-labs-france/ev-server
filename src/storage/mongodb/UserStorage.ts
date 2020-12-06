@@ -99,6 +99,32 @@ export default class UserStorage {
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
+  public static async getOICPVirtualUser(tenantID: string): Promise<User> {
+    // FIX ME: get virtual User reliably
+    const email = 'virtual@oicp.com';
+    const userMDB = await UserStorage.getUsers(tenantID, {
+      email: email,
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return userMDB.count === 1 ? userMDB.result[0] : null;
+  }
+
+  public static async createOICPVirtualUser(tenantID: string): Promise<void> {
+    // FIX ME: create virtual User
+    // Create the virtual OICP user
+    const newVirtualOICPUser = UserStorage.createNewUser() as User;
+    newVirtualOICPUser.email = 'virtual@oicp.com';
+    newVirtualOICPUser.name = 'OICP';
+    newVirtualOICPUser.firstName = 'Virtual';
+    newVirtualOICPUser.issuer = false;
+    newVirtualOICPUser.status = UserStatus.ACTIVE;
+    newVirtualOICPUser.notificationsActive = false;
+
+    // Save User
+    newVirtualOICPUser.id = await UserStorage.saveUser(tenantID, newVirtualOICPUser);
+    // Save User Status
+    await UserStorage.saveUserStatus(tenantID, newVirtualOICPUser.id, UserStatus.ACTIVE);
+  }
+
   public static async getUserByPasswordResetHash(tenantID: string, passwordResetHash: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID, {
       passwordResetHash: passwordResetHash

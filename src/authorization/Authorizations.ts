@@ -174,17 +174,17 @@ export default class Authorizations {
   }
 
   public static async isAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
-    tagID: string, action: ServerAction, authAction: Action): Promise<User> {
-    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, action, authAction);
+    tagID: string, action: ServerAction, authAction: Action, component?: TenantComponents): Promise<User> {
+    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, action, authAction, component);
   }
 
   public static async isAuthorizedToStartTransaction(tenantID: string, chargingStation: ChargingStation,
-    tagID: string, action: ServerAction, authAction?: Action): Promise<User> {
-    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, action, authAction);
+    tagID: string, action: ServerAction, authAction?: Action, component?: TenantComponents): Promise<User> {
+    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, action, authAction, component);
   }
 
   public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation,
-    transaction: Transaction, tagID: string, action: ServerAction, authAction?: Action): Promise<{ user: User; alternateUser: User }> {
+    transaction: Transaction, tagID: string, action: ServerAction, authAction?: Action, component?: TenantComponents): Promise<{ user: User; alternateUser: User }> {
     let user: User, alternateUser: User;
     // Check if same user
     if (tagID !== transaction.tagID) {
@@ -194,7 +194,7 @@ export default class Authorizations {
     } else {
       // Check user
       user = await Authorizations.isTagIDAuthorizedOnChargingStation(
-        tenantID, chargingStation, transaction, transaction.tagID, action, authAction);
+        tenantID, chargingStation, transaction, transaction.tagID, action, authAction, component);
     }
     return { user, alternateUser };
   }
@@ -687,7 +687,7 @@ export default class Authorizations {
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
-    transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
+    transaction: Transaction, tagID: string, action: ServerAction, authAction: Action, component?: TenantComponents): Promise<User> {
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
@@ -717,7 +717,16 @@ export default class Authorizations {
       // Access Control Enabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
-        return UserStorage.getUserByTagId(tenantID, tagID);
+        let user;
+        try {
+          user = await UserStorage.getUserByTagId(tenantID, tagID);
+        } finally {
+          if (!user && component === TenantComponents.OICP) {
+            // In case of OICP, use virtual user if there is no user in the db
+            user = await UserStorage.getOICPVirtualUser(tenantID);
+          }
+        }
+        return user;
       }
       // Site -----------------------------------------------------
       chargingStation.siteArea.site = chargingStation.siteArea.site ?
@@ -733,6 +742,31 @@ export default class Authorizations {
         });
       }
     }
+    if (component === TenantComponents.OICP) {
+      // In case of OICP, do not create new Tag and use virtual user if there is no user in the db
+      let user;
+      try {
+        user = await UserStorage.getUserByTagId(tenantID, tagID);
+      } finally {
+        if (!user) {
+          user = await UserStorage.getOICPVirtualUser(tenantID);
+        }
+      }
+      // User status
+      if (user.status !== UserStatus.ACTIVE) {
+        // Reject but save ok
+        throw new BackendError({
+          source: chargingStation.id,
+          action: action,
+          message: `User with Tag ID '${tagID}' has the status '${Utils.getStatusDescription(user.status)}'`,
+          module: MODULE_NAME,
+          method: 'isTagIDAuthorizedOnChargingStation',
+          user: user
+        });
+      }
+      return user;
+    }
+
     // Get Tag
     let tag = await UserStorage.getTag(tenantID, tagID, { withUser: true });
     if (!tag) {

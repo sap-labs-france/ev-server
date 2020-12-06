@@ -1,5 +1,3 @@
-/* eslint-disable linebreak-style */
-
 export interface OICPEvseMatch {
   EVSE: OICPEvseDataRecord, // Charging point information
   Distance?: number // Decimal (4,1) Air distance to the requested position in km (non-routed)

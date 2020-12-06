@@ -1,7 +1,6 @@
 import AxiosFactory from '../../utils/AxiosFactory';
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { AxiosInstance, AxiosRequestConfig } from 'axios';
 import BackendError from '../../exception/BackendError';
-import { HTTPError } from '../../types/HTTPError';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
 import { OICPRole } from '../../types/oicp/OICPRole';
 import { OicpSetting } from '../../types/Setting';
@@ -68,13 +67,35 @@ export default abstract class OICPClient {
   }
 
   getOperatorID(action: ServerAction): OICPOperatorID {
-    const countryCode = this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES);
-    const partyID = this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES);
+    const countryCode = this.getLocalCountryCode(action);
+    const partyID = this.getLocalPartyID(action);
     const operatorID = `${countryCode}*${partyID}`;
     return operatorID;
   }
 
-  getPrivateKey(action: ServerAction): string {
+  protected getEndpointUrl(service: string, action: ServerAction): string {
+    if (this.oicpEndpoint.availableEndpoints) {
+      const baseURL = this.oicpEndpoint.baseUrl;
+      const path = this.oicpEndpoint.availableEndpoints[service].replace('{operatorID}', this.getOperatorID(action));
+      const fullURL = baseURL.concat(path);
+      return fullURL;
+    }
+    throw new BackendError({
+      action, message: `No endpoint URL defined for service ${service}`,
+      module: MODULE_NAME, method: 'getLocalPartyID',
+    });
+  }
+
+  private getAxiosConfig(action: ServerAction): AxiosRequestConfig {
+    const axiosConfig: AxiosRequestConfig = {} as AxiosRequestConfig;
+    axiosConfig.httpsAgent = this.getHttpsAgent(action);
+    axiosConfig.headers = {
+      'Content-Type': 'application/json'
+    };
+    return axiosConfig;
+  }
+
+  private getPrivateKey(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -90,7 +111,7 @@ export default abstract class OICPClient {
     return this.settings[this.role].privateKey;
   }
 
-  getClientCertificate(action: ServerAction): string {
+  private getClientCertificate(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -106,7 +127,7 @@ export default abstract class OICPClient {
     return this.settings[this.role].clientCertificate;
   }
 
-  getHttpsAgent(action: ServerAction): https.Agent {
+  private getHttpsAgent(action: ServerAction): https.Agent {
     const publicCert = this.getClientCertificate(action);
     const privateKey = this.getPrivateKey(action);
 
@@ -117,28 +138,6 @@ export default abstract class OICPClient {
       passphrase: ''
     });
     return httpsAgent;
-  }
-
-  getAxiosConfig(action: ServerAction): AxiosRequestConfig {
-    const axiosConfig: AxiosRequestConfig = {} as AxiosRequestConfig;
-    axiosConfig.httpsAgent = this.getHttpsAgent(action);
-    axiosConfig.headers = {
-      'Content-Type': 'application/json'
-    };
-    return axiosConfig;
-  }
-
-  protected getEndpointUrl(service: string, action: ServerAction): string {
-    if (this.oicpEndpoint.availableEndpoints) {
-      const baseURL = this.oicpEndpoint.baseUrl;
-      const path = this.oicpEndpoint.availableEndpoints[service].replace('{operatorID}', this.getOperatorID(action));
-      const fullURL = baseURL.concat(path);
-      return fullURL;
-    }
-    throw new BackendError({
-      action, message: `No endpoint URL defined for service ${service}`,
-      module: MODULE_NAME, method: 'getLocalPartyID',
-    });
   }
 
   async abstract triggerJobs(): Promise<{

@@ -344,7 +344,8 @@ export default class OICPMapping {
         return OICPPlug.CCSCombo1PlugCableAttached;
       case ConnectorType.DOMESTIC:
       return OICPPlug.TypeFSchuko;
-      case ConnectorType.UNKNOWN: // No corresponding type found
+      case ConnectorType.UNKNOWN:
+        return OICPPlug.Type2Outlet; // No corresponding type found
     }
   }
 
@@ -394,13 +395,13 @@ export default class OICPMapping {
         module: MODULE_NAME, method: 'convertCountry2CountryCode',
       });
     }
-    const countryLanguage = CountryLanguage.getCountryLanguages(countryID, (err, languages) => languages[0].iso639_1);
+    const countryLanguage = CountryLanguage.getCountryLanguages(countryID, (err, languages) => languages[0].iso639_1) as string;
     const countryCode = Countries.getAlpha3Code(country, countryLanguage);
     // Check result
     if (!countryCode) {
       throw new BackendError({
         action: ServerAction.OICP_PUSH_EVSES,
-        message: `Invalid parameters. Country name '${country}' might not be in english or misspelled`,
+        message: `Invalid parameters. Country name '${country}' might not be in the right language '${countryLanguage}' or misspelled`,
         module: MODULE_NAME, method: 'convertCountry2CountryCode',
       });
     }
@@ -419,8 +420,8 @@ export default class OICPMapping {
       case OICPGeoCoordinatesResponseFormat.DecimalDegree:
         return {
           DecimalDegree: {
-            Longitude: coordinates[0].toFixed(6), // Fixed to 6 decimal places according to OICP requirements
-            Latitude: coordinates[1].toFixed(6)
+            Longitude: String(Utils.roundTo(coordinates[0], 6)), // Fixed to 6 decimal places according to OICP requirements
+            Latitude: String(Utils.roundTo(coordinates[1],6))
           }
         };
       case OICPGeoCoordinatesResponseFormat.DegreeMinuteSeconds:

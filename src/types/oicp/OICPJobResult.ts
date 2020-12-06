@@ -4,5 +4,4 @@ export interface OICPJobResult {
   total: number;
   logs: string[];
   objectIDsInFailure?: string[];
-  objectIDsInSuccess?: string[];
 }

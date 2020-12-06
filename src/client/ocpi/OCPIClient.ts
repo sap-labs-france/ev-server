@@ -50,7 +50,7 @@ export default abstract class OCPIClient {
       const endpoints = await this.getVersions();
       // Check response
       if (!endpoints.data || !(endpoints.data.status_code === 1000) || !endpoints.data.data) {
-        pingResult.statusCode = 412;
+        pingResult.statusCode = StatusCodes.PRECONDITION_FAILED;
         pingResult.statusText = `Invalid response from GET ${this.ocpiEndpoint.baseUrl}`;
       } else {
         pingResult.statusCode = endpoints.status;

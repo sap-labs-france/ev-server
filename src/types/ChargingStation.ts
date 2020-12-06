@@ -5,6 +5,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import { OICPIdentification } from './oicp/OICPIdentification';
 import SiteArea from './SiteArea';
 import User from './User';
 
@@ -128,6 +129,7 @@ export interface RemoteAuthorization {
   connectorId: number;
   tagId: string;
   timestamp: Date;
+  oicpIdentification?: OICPIdentification;
 }
 
 export interface ConnectorCurrentLimit {

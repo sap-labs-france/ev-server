@@ -265,6 +265,7 @@ export default class TransactionStorage {
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
       ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
       ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean;
+      oicpSessionID?: string;
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
     dbParams: DbParams, projectFields?: string[]):
@@ -314,6 +315,10 @@ export default class TransactionStorage {
     // OCPI ID
     if (params.ocpiSessionID) {
       filters['ocpiData.session.id'] = params.ocpiSessionID;
+    }
+    // OICP ID
+    if (params.oicpSessionID) {
+      filters['oicpData.session.id'] = params.oicpSessionID;
     }
     // Transaction
     if (!Utils.isEmptyArray(params.transactionIDs)) {
@@ -904,6 +909,11 @@ export default class TransactionStorage {
   public static async getOCPITransaction(tenantID: string, sessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
+  }
+
+  public static async getOICPTransaction(tenantID: string, sessionID: string): Promise<Transaction> {
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { oicpSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return transactionsMDB.result[0];
   }
 
   public static async getActiveTransaction(tenantID: string, chargeBoxID: string, connectorId: number): Promise<Transaction> {

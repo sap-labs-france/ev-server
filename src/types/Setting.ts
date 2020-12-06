@@ -72,7 +72,7 @@ export interface ConvergentChargingPricingSetting extends PricingSetting {
 
 export enum RoamingSettingsType {
   GIREVE = 'gireve',
-  Hubject = 'hubject'
+  HUBJECT = 'hubject'
 }
 
 export interface RoamingSettings extends Setting {

@@ -2,8 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { SettingDB, SettingDBContent } from '../../../../types/Setting';
-import User, { UserRole } from '../../../../types/User';
-
+import User, { UserRole, UserStatus } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
@@ -300,6 +299,9 @@ export default class TenantService {
   }
 
   private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
+    // Check if OICP component is activated or deactivated and create/activate/deactivate virtual user accordingly
+    await this.checkOICPComponent(tenant);
+
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
@@ -336,6 +338,26 @@ export default class TenantService {
           // Save Setting
           await SettingStorage.saveSettings(tenant.id, currentSetting);
         }
+      }
+    }
+  }
+
+  private static async checkOICPComponent(tenant: Partial<Tenant>): Promise<void> {
+    if (tenant.components && tenant.components?.oicp) {
+      const checkOICPComponent = tenant.components.oicp;
+      // Virtual user needed for unknown roaming user
+      const virtualOICPUser = await UserStorage.getOICPVirtualUser(tenant.id);
+      // Activate or deactivate virtual user depending on the oicp component status
+      if (checkOICPComponent.active) {
+        if (!virtualOICPUser) {
+          await UserStorage.createOICPVirtualUser(tenant.id);
+        } else if (virtualOICPUser.status !== UserStatus.ACTIVE) {
+          // Save User Status
+          await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.ACTIVE);
+        }
+      } else if (virtualOICPUser && virtualOICPUser?.status === UserStatus.ACTIVE) {
+        // Save User Status
+        await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.INACTIVE);
       }
     }
   }

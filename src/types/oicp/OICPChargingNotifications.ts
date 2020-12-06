@@ -3,6 +3,7 @@ import { OICPEvseID, OICPOperatorID } from './OICPEvse';
 import { OICPIdentification, OICPSessionID } from './OICPIdentification';
 
 import { OICPProductID } from './OICPPricing';
+import { OICPMeterValueInBetween } from './OICPChargeDetailRecord';
 
 //
 // eRoamingChargingNotifications Start
@@ -58,7 +59,7 @@ export interface OICPChargingNotificationEndCpoSend {
   ConsumedEnergy?: number, // Decimal (,3). The difference between MeterValueEnd and MeterValueStart in kWh.
   MeterValueStart?: number, // Decimal (,3). The starting meter value in kWh.
   MeterValueEnd?: number, // Decimal (,3). The ending meter value in kWh.
-  MeterValueInBetween?: number[], // List (MeterValue (Decimal (,3))). List of meter values that may have been taken in between (kWh).
+  MeterValueInBetween?: OICPMeterValueInBetween, // List (MeterValue (Decimal (,3))). List of meter values that may have been taken in between (kWh).
   OperatorID?: OICPOperatorID, // The OperatorID is used to identify the CPO.
   PartnerProductID?: OICPProductID, // A pricing product name (for identifying a tariff) that must be unique
   PenaltyTimeStart?: Date // The date and time at which the penalty time start after the grace period.
