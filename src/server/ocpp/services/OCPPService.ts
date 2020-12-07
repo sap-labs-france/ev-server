@@ -644,7 +644,6 @@ export default class OCPPService {
         issuer: true,
         chargeBoxID: startTransaction.chargeBoxID,
         tagID: startTransaction.idTag,
-        carID: user.lastSelectedCarID,
         timezone: startTransaction.timezone,
         userID: startTransaction.userID,
         siteAreaID: startTransaction.siteAreaID,
@@ -667,10 +666,23 @@ export default class OCPPService {
         stateOfCharge: 0,
         user
       };
-      // Set Car Catalog ID
-      if (user.lastSelectedCarID) {
-        const car = await CarStorage.getCar(headers.tenantID, user.lastSelectedCarID, {}, ['id', 'carCatalogID']);
-        transaction.carCatalogID = car?.carCatalogID;
+      // Car handling
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR)) {
+        // Check default car
+        if (user.lastSelectedCarID) {
+          transaction.carID = user.lastSelectedCarID;
+        } else {
+          // Get default car if any
+          const defaultCar = await CarStorage.getDefaultUserCar(tenant.id, user.id, {}, ['id']);
+          if (defaultCar) {
+            transaction.carID = defaultCar.id;
+          }
+        }
+        // Set Car Catalog ID
+        if (transaction.carID) {
+          const car = await CarStorage.getCar(headers.tenantID, transaction.carID, {}, ['id', 'carCatalogID']);
+          transaction.carCatalogID = car?.carCatalogID;
+        }
       }
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await OCPPUtils.createConsumptionFromMeterValue(
@@ -741,6 +753,10 @@ export default class OCPPService {
           action: ServerAction.START_TRANSACTION,
           message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been started`
         });
+      }
+      // Clear last user's car selection
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user.lastSelectedCarID) {
+        await UserStorage.saveUserLastSelectedCarID(tenant.id, user.id, null);
       }
       // Return
       return {

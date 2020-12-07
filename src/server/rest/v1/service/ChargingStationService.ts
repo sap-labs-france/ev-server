@@ -177,9 +177,6 @@ export default class ChargingStationService {
     chargingStation.lastChangedBy = { 'id': req.user.id };
     chargingStation.lastChangedOn = new Date();
     // Update
-    console.log('chargingStation ====================================');
-    console.log(JSON.stringify(chargingStation, null, ' '));
-    console.log('====================================');
     await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
     Logging.logSecurityInfo({
@@ -1023,9 +1020,12 @@ export default class ChargingStationService {
       result = await this.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
       // Save Car ID
-      if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-        if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-          await UserStorage.saveUserLastSelectedCarID(req.user.tenantID, user.id, filteredRequest.carID);
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+        if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+          if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
+            // Save Car selection
+            await UserStorage.saveUserLastSelectedCarID(req.user.tenantID, user.id, filteredRequest.carID);
+          }
         }
       }
     } else if (command === Command.GET_COMPOSITE_SCHEDULE) {
