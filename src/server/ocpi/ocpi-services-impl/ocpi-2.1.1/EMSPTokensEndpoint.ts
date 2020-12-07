@@ -13,9 +13,9 @@ import OCPIMapping from './OCPIMapping';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import { UserStatus } from '../../../../types/User';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'tokens';
@@ -130,7 +130,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
       });
     }
-    const tag = await UserStorage.getTag(tenant.id, tokenId, { withUser: true });
+    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
     if (!tag?.user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

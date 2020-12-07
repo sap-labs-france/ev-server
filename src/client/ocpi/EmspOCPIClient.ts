@@ -29,6 +29,7 @@ import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
+import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -484,7 +485,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.START_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.START_SESSION;
-    const tag = await UserStorage.getTag(this.tenant.id, tagId, { withUser: true });
+    const tag = await TagStorage.getTag(this.tenant.id, tagId, { withUser: true });
     if (!tag || !tag.issuer || !tag.active) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,

@@ -8,6 +8,7 @@ import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../OCPIUtils';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 
@@ -61,7 +62,7 @@ export default class OCPITokensService {
       };
       // Save Tag
       if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
-        await UserStorage.saveTag(tenantId, tagToSave);
+        await TagStorage.saveTag(tenantId, tagToSave);
       }
     } else {
       // Unknown User
@@ -101,7 +102,7 @@ export default class OCPITokensService {
       };
       // Save Tag
       if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
-        await UserStorage.saveTag(tenantId, tagToSave);
+        await TagStorage.saveTag(tenantId, tagToSave);
       }
     }
   }
