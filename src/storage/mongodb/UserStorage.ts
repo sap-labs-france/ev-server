@@ -240,7 +240,6 @@ export default class UserStorage {
         sendBillingNewInvoice: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingNewInvoice) : false,
       },
       deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false,
-      lastSelectedCarID: userToSave.lastSelectedCarID
     };
     if (userToSave.address) {
       userMDB.address = {
@@ -297,6 +296,19 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: { status } });
+    // Debug
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserStatus', uniqueTimerID);
+  }
+
+  public static async saveUserLastSelectedCarID(tenantID: string, userID: string, lastSelectedCarID: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserStatus');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Modify and return the modified document
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: { lastSelectedCarID } });
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserStatus', uniqueTimerID);
   }
