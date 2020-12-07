@@ -1,5 +1,5 @@
 import { BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
-import { Message, SMTPClient, SMTPError, SMTPErrorStates } from 'emailjs';
+import { Message, SMTPClient, SMTPError } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -21,8 +21,9 @@ const MODULE_NAME = 'EMailNotificationTask';
 
 export default class EMailNotificationTask implements NotificationTask {
   private client: SMTPClient;
-  private clientBackup: SMTPClient;
+  private backupInUse: boolean;
   private emailConfig: EmailConfiguration = Configuration.getEmailConfig();
+  private emailConfigHasBackup: boolean;
 
   constructor() {
     // Connect to the SMTP server
@@ -34,17 +35,8 @@ export default class EMailNotificationTask implements NotificationTask {
       tls: this.emailConfig.smtp.requireTLS,
       ssl: this.emailConfig.smtp.secure
     });
-    // Connect to the SMTP Backup server
-    if (!this.emailConfig.disableBackup && this.emailConfig.smtpBackup) {
-      this.clientBackup = new SMTPClient({
-        user: this.emailConfig.smtpBackup.user,
-        password: this.emailConfig.smtpBackup.password,
-        host: this.emailConfig.smtpBackup.host,
-        port: this.emailConfig.smtpBackup.port,
-        tls: this.emailConfig.smtpBackup.requireTLS,
-        ssl: this.emailConfig.smtpBackup.secure
-      });
-    }
+    this.backupInUse = false;
+    this.emailConfigHasBackup = !Utils.isUndefined(this.emailConfig.smtpBackup);
   }
 
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -96,6 +88,7 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendSmtpError(data: SmtpErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    console.log(data);
     return this.prepareAndSendEmail('smtp-error', data, user, tenant, severity, true);
   }
 
@@ -143,10 +136,10 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('end-user-error-notification', data, user, tenant, severity);
   }
 
-  private async sendEmail(email: EmailNotificationMessage, data, tenant: Tenant, user: User, severity: NotificationSeverity, retry = false): Promise<void> {
+  private async sendEmail(email: EmailNotificationMessage, data, tenant: Tenant, user: User, severity: NotificationSeverity, useBackup = false): Promise<void> {
     // Create the message
     const messageToSend = new Message({
-      from: !retry ? this.emailConfig.smtp.from : this.emailConfig.smtpBackup.from,
+      from: useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
       to: email.to,
       cc: email.cc,
       bcc: email.bccNeeded && email.bcc ? email.bcc : '',
@@ -155,9 +148,31 @@ export default class EMailNotificationTask implements NotificationTask {
         { data: email.html, alternative: true }
       ]
     });
-    // Send the message
+    // Switch SMTP server if necessary
+    if (!useBackup && this.backupInUse) {
+      this.client = new SMTPClient({
+        user: this.emailConfig.smtp.user,
+        password: this.emailConfig.smtp.password,
+        host: this.emailConfig.smtp.host,
+        port: this.emailConfig.smtp.port,
+        tls: this.emailConfig.smtp.requireTLS,
+        ssl: this.emailConfig.smtp.secure
+      });
+      this.backupInUse = useBackup;
+    } else if (useBackup && !this.backupInUse) {
+      this.client = new SMTPClient({
+        user: this.emailConfig.smtpBackup.user,
+        password: this.emailConfig.smtpBackup.password,
+        host: this.emailConfig.smtpBackup.host,
+        port: this.emailConfig.smtpBackup.port,
+        tls: this.emailConfig.smtpBackup.requireTLS,
+        ssl: this.emailConfig.smtpBackup.secure
+      });
+      this.backupInUse = useBackup;
+    }
     try {
-      const messageSent: Message = await this[!retry ? 'client' : 'clientBackup'].sendAsync(messageToSend);
+      // Send the message
+      const messageSent: Message = await this.client.sendAsync(messageToSend);
       // Email sent successfully
       Logging.logDebug({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
@@ -203,10 +218,11 @@ export default class EMailNotificationTask implements NotificationTask {
           ]
         });
       // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
-      } catch (err) {}
+      // eslint-disable-next-line no-empty
+      } catch (err) { }
       if (error instanceof SMTPError) {
-      // Notify on SMTP error
-      // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
+        // Notify on SMTP error
+        // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
         await NotificationHandler.sendSmtpError(
           tenant.id,
           {
@@ -214,14 +230,14 @@ export default class EMailNotificationTask implements NotificationTask {
             evseDashboardURL: data.evseDashboardURL
           }
         );
-      }
-      if (!this.emailConfig.disableBackup && !retry && this.clientBackup) {
-        await this.sendEmail(email, data, tenant, user, severity, true);
+        if (!this.emailConfig.disableBackup && this.emailConfigHasBackup && !useBackup) {
+          await this.sendEmail(email, data, tenant, user, severity, true);
+        }
       }
     }
   }
 
-  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, retry = false): Promise<void> {
+  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useBackup = false): Promise<void> {
     try {
       // Check locale
       if (!user.locale || !Constants.SUPPORTED_LOCALES.includes(user.locale)) {
@@ -341,7 +357,7 @@ export default class EMailNotificationTask implements NotificationTask {
         subject: subject,
         text: html,
         html: html
-      }, data, tenant, user, severity, retry);
+      }, data, tenant, user, severity, useBackup);
     } catch (error) {
       Logging.logError({
         tenantID: tenant.id,

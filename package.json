@@ -43,6 +43,7 @@
     "start:prod:flameprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=production clinic flame -- node -r source-map-support/register dist/start.js",
     "start:prod:bubbleprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=production clinic bubbleprof -- node -r source-map-support/register dist/start.js",
     "start:email": "maildev --web 1080 --web-ip 127.0.0.1 --smtp 1025 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd",
+    "start:emailBackup": "maildev --web 2080 --web-ip 127.0.0.1 --smtp 2025 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd",
     "build": "npm run build:prod",
     "build:dev": "webpack --env dev",
     "build:prod": "webpack --env prod",

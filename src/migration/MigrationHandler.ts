@@ -33,6 +33,7 @@ import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransa
 import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPropertiesTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
+import RenameUserPropertiesTask from './tasks/RenameUserPropertiesTask';
 import { ServerAction } from '../types/Server';
 import SetDefaultTagToUserTask from './tasks/SetDefaultTagToUserTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
@@ -101,6 +102,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new SetDefaultTagToUserTask());
         currentMigrationTasks.push(new DeleteChargingStationPropertiesTask());
         currentMigrationTasks.push(new FixedConsumptionRoundedPriceTask());
+        currentMigrationTasks.push(new RenameUserPropertiesTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
