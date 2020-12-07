@@ -1022,10 +1022,10 @@ export default class ChargingStationService {
       // Ok: Execute it
       result = await this.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
-      if (user && result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-        if (filteredRequest.carID !== user.lastSelectedCarID) {
-          user.lastSelectedCarID = filteredRequest.carID;
-          await UserStorage.saveUser(req.user.tenantID, user);
+      // Save Car ID
+      if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+        if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
+          await UserStorage.saveUserLastSelectedCarID(req.user.tenantID, user.id, filteredRequest.carID);
         }
       }
     } else if (command === Command.GET_COMPOSITE_SCHEDULE) {
