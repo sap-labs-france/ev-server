@@ -10,12 +10,12 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
+import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import SmartChargingFactory from '../../src/integration/smart-charging/SmartChargingFactory';
 import SmartChargingIntegration from '../../src/integration/smart-charging/SmartChargingIntegration';
 import TenantContext from './context/TenantContext';
 import Transaction from '../types/Transaction';
-import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -30,13 +30,13 @@ class TestData {
   public tenantContext: TenantContext;
   public centralUserContext: any;
   public centralUserService: CentralServerService;
-  public userContext: User;
+  public userContext;
   public userService: CentralServerService;
   public siteContext: SiteContext;
-  public siteAreaContext: any;
+  public siteAreaContext: SiteAreaContext;
   public chargingStationContext: ChargingStationContext;
   public chargingStationContext1: ChargingStationContext;
-  public createdUsers: User[] = [];
+  public createdUsers = [];
   public isForcedSynchro: boolean;
   public pending = false;
 
@@ -248,7 +248,7 @@ describe('Smart Charging Service', function() {
           // Set Connector Status to 'charging
           await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
           // Call Smart Charging
-          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
           // Validate Charging Profile with Transaction
           TestData.validateChargingProfile(chargingProfiles[0], transaction);
           // Validate Charging Schedule
@@ -260,7 +260,7 @@ describe('Smart Charging Service', function() {
           const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
           transaction1 = transactionResponse.data;
           await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
-          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
           TestData.validateChargingProfile(chargingProfiles[0], transaction);
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
           TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -268,8 +268,8 @@ describe('Smart Charging Service', function() {
         });
 
         it('Test for two cars charging with lower site area limit', async () => {
-          testData.siteAreaContext.siteArea.maximumPower = 32000;
-          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+          testData.siteAreaContext.getSiteArea().maximumPower = 32000;
+          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
           TestData.validateChargingProfile(chargingProfiles[0], transaction);
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
@@ -295,7 +295,7 @@ describe('Smart Charging Service', function() {
           const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
           transaction2 = transactionResponse.data;
           await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Charging);
-          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
           TestData.validateChargingProfile(chargingProfiles[0], transaction);
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
           TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -351,7 +351,7 @@ describe('Smart Charging Service', function() {
               amperageL3MeterValue: 32,
             }
           );
-          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+          const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
           // Charging Profiles should use the full power, because every car is charging on another phase
           TestData.validateChargingProfile(chargingProfiles[0], transaction);
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
@@ -379,7 +379,7 @@ describe('Smart Charging Service', function() {
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
-        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
@@ -389,7 +389,7 @@ describe('Smart Charging Service', function() {
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction1 = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
-        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -397,8 +397,8 @@ describe('Smart Charging Service', function() {
       });
 
       it('Test for two cars charging with lower site area limit', async () => {
-        testData.siteAreaContext.siteArea.maximumPower = 10000;
-        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        testData.siteAreaContext.getSiteArea().maximumPower = 10000;
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -424,7 +424,7 @@ describe('Smart Charging Service', function() {
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
-        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
@@ -447,7 +447,7 @@ describe('Smart Charging Service', function() {
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction1 = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
-        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
@@ -481,21 +481,21 @@ describe('Smart Charging Service', function() {
       });
 
       it('Test for two cars charging with lower site area limit', async () => {
-        testData.siteAreaContext.siteArea.maximumPower = 100000;
-        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.siteArea);
+        testData.siteAreaContext.getSiteArea().maximumPower = 100000;
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 107
+            'limit': 84
           },
           {
             'startPeriod': 900,
-            'limit': 107
+            'limit': 84
           },
           {
             'startPeriod': 1800,
-            'limit': 107
+            'limit': 84
           },
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -514,6 +514,39 @@ describe('Smart Charging Service', function() {
           }
         ]);
       });
+    });
+  });
+  describe('Test for ChargingStation refusing the charging profile', () => {
+    before(async () => {
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.chargingStationContext1 = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}` + '-' + 'singlePhased');
+    });
+
+    after(async () => {
+      chargingStationConnector1Available.timestamp = new Date().toISOString();
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Available);
+      await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Available);
+
+      // Reset modifications on siteArea
+      testData.siteAreaContext.getSiteArea().smartCharging = false;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+    });
+
+
+    it('Check if charging station will be excluded from smart charging, when pushing fails', async () => {
+      testData.siteAreaContext.getSiteArea().maximumPower = 200000;
+      testData.siteAreaContext.getSiteArea().smartCharging = true;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+      await testData.chargingStationContext1.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+      chargingStationConnector1Charging.timestamp = new Date().toISOString();
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
+      await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Charging);
+      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea(),
+        [testData.chargingStationContext.getChargingStation().id]);
+      expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
     });
   });
 });

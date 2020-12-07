@@ -4,7 +4,6 @@ import global from '../../../../types/GlobalType';
 
 export default class ConnectionValidator extends SchemaValidator {
   private static instance: ConnectionValidator|null = null;
-  public validate: any;
   private connectionCreation: any;
 
   private constructor() {

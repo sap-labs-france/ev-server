@@ -16,6 +16,7 @@ import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
+import TagStorage from '../storage/mongodb/TagStorage';
 import TenantComponents from '../types/TenantComponents';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
@@ -114,7 +115,7 @@ export default class Authorizations {
     return requestedSites.filter((site) => sites.has(site));
   }
 
-  public static async buildUserToken(tenantID: string, user: User): Promise<UserToken> {
+  public static async buildUserToken(tenantID: string, user: User, tags: Tag[]): Promise<UserToken> {
     const companyIDs = new Set<string>();
     const siteIDs = [];
     const siteAdminIDs = [];
@@ -122,7 +123,7 @@ export default class Authorizations {
     // Get User's site
     const sites = (await UserStorage.getUserSites(tenantID, { userID: user.id },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
-    sites.forEach((siteUser) => {
+    for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
         siteIDs.push(siteUser.site.id);
         companyIDs.add(siteUser.site.companyID);
@@ -133,7 +134,7 @@ export default class Authorizations {
       if (siteUser.siteOwner) {
         siteOwnerIDs.push(siteUser.site.id);
       }
-    });
+    }
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
     let tenantName;
@@ -155,7 +156,7 @@ export default class Authorizations {
       'name': user.name,
       'mobile': user.mobile,
       'email': user.email,
-      'tagIDs': user.tags ? user.tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
+      'tagIDs': tags ? tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
       'language': Utils.getLanguageFromLocale(user.locale),
@@ -722,7 +723,7 @@ export default class Authorizations {
       }
     }
     // Get Tag
-    let tag = await UserStorage.getTag(tenantID, tagID, { withUser: true });
+    let tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
     if (!tag) {
       // Create the tag as inactive
       tag = {
@@ -734,7 +735,7 @@ export default class Authorizations {
         default: false
       } as Tag;
       // Save
-      await UserStorage.saveTag(tenantID, tag);
+      await TagStorage.saveTag(tenantID, tag);
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
         tenantID,
@@ -743,8 +744,8 @@ export default class Authorizations {
         {
           chargeBoxID: chargingStation.id,
           badgeID: tagID,
-          evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
-          evseDashboardTagURL: await Utils.buildEvseTagURL(tenantID, tag)
+          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+          evseDashboardTagURL: Utils.buildEvseTagURL(tenant.subdomain, tag)
         }
       ).catch(() => { });
       // Log
@@ -780,8 +781,6 @@ export default class Authorizations {
     }
     // Check User
     const user = await UserStorage.getUser(tenantID, tag.user.id);
-    // Repush the tag in user
-    user.tags = [tag];
     // User status
     if (user.status !== UserStatus.ACTIVE) {
       // Reject but save ok
@@ -797,7 +796,7 @@ export default class Authorizations {
     // Check Auth if local user
     if (user.issuer && authAction) {
       // Build the JWT Token
-      const userToken = await Authorizations.buildUserToken(tenantID, user);
+      const userToken = await Authorizations.buildUserToken(tenantID, user, [tag]);
       // Authorized?
       const context = {
         user: transaction ? transaction.userID : null,

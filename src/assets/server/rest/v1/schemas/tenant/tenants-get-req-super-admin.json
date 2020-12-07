@@ -1,0 +1,11 @@
+{
+    "title": "Get all the Tenants",
+    "type": "object",
+    "properties": {
+      "Search": { "$ref": "common.json#/definitions/search" },
+      "WithLogo": { "type": "boolean", "sanitize": "mongo" },
+      "WithComponents": { "type": "boolean", "sanitize": "mongo" },
+      "Limit": { "$ref": "common.json#/definitions/limit" },
+      "SortFields": { "$ref": "common.json#/definitions/sortFields" }
+    }
+}

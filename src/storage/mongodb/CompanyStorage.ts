@@ -14,13 +14,13 @@ const MODULE_NAME = 'CompanyStorage';
 
 export default class CompanyStorage {
 
-  public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Company> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompany');
-    // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompany', uniqueTimerID, companiesMDB);
+  public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withLogo?: boolean; } = {},
+    projectFields?: string[]): Promise<Company> {
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, {
+      companyIDs: [id],
+      withLogo: params.withLogo,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return companiesMDB.count === 1 ? companiesMDB.result[0] : null;
   }
 
@@ -28,7 +28,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompanyLogo');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const companyLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenantID, 'companylogos')
       .findOne({ _id: Utils.convertToObjectID(id) });
@@ -44,7 +44,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveCompany');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const companyMDB: any = {
       _id: !companyToSave.id ? new ObjectID() : Utils.convertToObjectID(companyToSave.id),
@@ -88,7 +88,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompanies');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -187,14 +187,18 @@ export default class CompanyStorage {
     }
     // Company Logo
     if (params.withLogo) {
-      DatabaseUtils.pushCollectionLookupInAggregation('companylogos',
-        {
-          tenantID, aggregation, localField: '_id', foreignField: '_id',
-          asField: 'companylogos', oneToOneCardinality: true
+      aggregation.push({
+        $addFields: {
+          logo: {
+            $concat: [
+              `${Utils.buildRestServerURL()}/client/util/CompanyLogo?ID=`,
+              { $toString: '$_id' },
+              `&TenantID=${tenantID}&LastChangedOn=`,
+              { $toString: '$lastChangedOn' }
+            ]
+          }
         }
-      );
-      // Rename
-      DatabaseUtils.pushRenameField(aggregation, 'companylogos.logo', 'logo');
+      });
     }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
@@ -205,7 +209,6 @@ export default class CompanyStorage {
     // Read DB
     const companiesMDB = await global.database.getCollection<any>(tenantID, 'companies')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -223,7 +226,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteCompany');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete sites associated with Company
     await SiteStorage.deleteCompanySites(tenantID, id);
     // Delete the Company
@@ -240,7 +243,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveCompanyLogo');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(tenantID, 'companylogos').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(companyID) },

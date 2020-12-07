@@ -22,6 +22,7 @@ import OCPIUtils from '../../OCPIUtils';
 import { OCPPRemoteStartStopStatus } from '../../../../types/ocpp/OCPPClient';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -83,11 +84,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const user = await UserStorage.getUserByTagId(tenant.id, startSession.token.uid);
-    if (!user || user.deleted || user.issuer) {
-      return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
-    }
-    const localToken = user.tags.find((tag) => tag.id === startSession.token.uid);
+    const localToken = await TagStorage.getTag(tenant.id, startSession.token.uid, { withUser: true });
     if (!localToken || !localToken.active || !localToken.ocpiToken || !localToken.ocpiToken.valid) {
       Logging.logDebug({
         tenantID: tenant.id,
@@ -95,6 +92,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         message: `Start Transaction with Token ID '${startSession.token.uid}' is invalid`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
+      return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
+    }
+    if (!localToken.user || localToken.user.deleted || localToken.user.issuer) {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     let chargingStation: ChargingStation;
@@ -105,12 +105,12 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }, Constants.DB_PARAMS_MAX_LIMIT);
     if (chargingStations && chargingStations.result) {
       for (const cs of chargingStations.result) {
-        cs.connectors.forEach((conn) => {
+        for (const conn of cs.connectors) {
           if (startSession.evse_uid === OCPIUtils.buildEvseUID(cs, conn)) {
             chargingStation = cs;
             connector = conn;
           }
-        });
+        }
       }
     }
     if (!chargingStation) {

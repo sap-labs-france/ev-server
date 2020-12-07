@@ -1,5 +1,5 @@
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import { LockEntity } from '../../../types/Locking';
+import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
@@ -22,8 +22,8 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         // Get the lock
-        const ocpiLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.TRANSACTION, 'ocpi-push-cdrs');
-        if (await LockingManager.acquire(ocpiLock)) {
+        const ocpiLock = await LockingHelper.createOCPIPushCpoCdrsLock(tenant.id);
+        if (ocpiLock) {
           try {
             // Get all Transaction with no CDR
             const transactionsMDB: {_id: number}[] = await global.database.getCollection<{_id: number}>(tenant.id, 'transactions')
@@ -46,49 +46,65 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                 message: `${transactionsMDB.length} Transaction's CDRs are going to be pushed to OCPI`,
               });
               for (const transactionMDB of transactionsMDB) {
-                try {
-                  // Get Transaction
-                  const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
-                  if (!transaction) {
-                    Logging.logError({
+                // Get the lock
+                const ocpiTransactionLock = await LockingHelper.createOCPIPushCpoCdrLock(tenant.id, transactionMDB._id);
+                if (ocpiTransactionLock) {
+                  try {
+                    // Get Transaction
+                    const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
+                    if (!transaction) {
+                      Logging.logError({
+                        tenantID: tenant.id,
+                        action: ServerAction.OCPI_PUSH_CDRS,
+                        module: MODULE_NAME, method: 'processTenant',
+                        message: `Transaction ID '${transactionMDB._id}' not found`,
+                      });
+                      continue;
+                    }
+                    if (transaction.ocpiData && transaction.ocpiData.cdr) {
+                      Logging.logInfo({
+                        tenantID: tenant.id,
+                        action: ServerAction.OCPI_PUSH_CDRS,
+                        module: MODULE_NAME, method: 'processTenant',
+                        message: `Transaction ID '${transactionMDB._id}' already has his CDR pushed`,
+                      });
+                      continue;
+                    }
+                    // Get Charging Station
+                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
+                    if (!chargingStation) {
+                      Logging.logError({
+                        tenantID: tenant.id,
+                        action: ServerAction.OCPI_PUSH_CDRS,
+                        module: MODULE_NAME, method: 'processTenant',
+                        message: `Charging Station ID '${transaction.chargeBoxID}' not found`,
+                      });
+                      continue;
+                    }
+                    // Post CDR
+                    await OCPPUtils.processOCPITransaction(tenant.id, transaction, chargingStation, TransactionAction.END);
+                    // Save
+                    await TransactionStorage.saveTransaction(tenant.id, transaction);
+                    // Ok
+                    Logging.logInfo({
+                      tenantID: tenant.id,
+                      action: ServerAction.OCPI_PUSH_CDRS,
+                      actionOnUser: (transaction.user ? transaction.user : null),
+                      module: MODULE_NAME, method: 'processTenant',
+                      message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+                      detailedMessages: { cdr: transaction.ocpiData.cdr }
+                    });
+                  } catch (error) {
+                    Logging.logInfo({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_PUSH_CDRS,
                       module: MODULE_NAME, method: 'processTenant',
-                      message: `Transaction ID '${transactionMDB._id}' not found`,
+                      message: `Failed to pushed the CDR of the Transaction ID '${transactionMDB._id}' to OCPI`,
                     });
-                    continue;
+                  } finally {
+                    // Release the lock
+                    await LockingManager.release(ocpiTransactionLock);
                   }
-                  // Get Charging Station
-                  const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
-                  if (!chargingStation) {
-                    Logging.logError({
-                      tenantID: tenant.id,
-                      action: ServerAction.OCPI_PUSH_CDRS,
-                      module: MODULE_NAME, method: 'processTenant',
-                      message: `Charging Station ID '${transaction.chargeBoxID}' not found`,
-                    });
-                    continue;
-                  }
-                  // Post CDR
-                  await OCPPUtils.processOCPITransaction(tenant.id, transaction, chargingStation, TransactionAction.END);
-                  // Save
-                  await TransactionStorage.saveTransaction(tenant.id, transaction);
-                  // Ok
-                  Logging.logInfo({
-                    tenantID: tenant.id,
-                    action: ServerAction.OCPI_PUSH_CDRS,
-                    actionOnUser: (transaction.user ? transaction.user : null),
-                    module: MODULE_NAME, method: 'processTenant',
-                    message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-                    detailedMessages: { cdr: transaction.ocpiData.cdr }
-                  });
-                } catch (error) {
-                  Logging.logInfo({
-                    tenantID: tenant.id,
-                    action: ServerAction.OCPI_PUSH_CDRS,
-                    module: MODULE_NAME, method: 'processTenant',
-                    message: `Failed to pushed the CDR of the Transaction ID '${transactionMDB._id}' to OCPI`,
-                  });
                 }
               }
             }

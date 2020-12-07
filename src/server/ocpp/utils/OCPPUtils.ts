@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
@@ -16,6 +16,7 @@ import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../types/DataResult';
+import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import Logging from '../../../utils/Logging';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -26,111 +27,127 @@ import { PricingSettingsType } from '../../../types/Setting';
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import TagStorage from '../../../storage/mongodb/TagStorage';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
+import _ from 'lodash';
 import moment from 'moment';
+import url from 'url';
 
 const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
   public static async processOCPITransaction(tenantID: string, transaction: Transaction,
     chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
-    if (!transaction.user || transaction.user.issuer) {
-      return;
-    }
-    const user: User = transaction.user;
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    let action: ServerAction;
-    switch (transactionAction) {
-      case TransactionAction.START:
-        action = ServerAction.START_TRANSACTION;
-        break;
-      case TransactionAction.UPDATE:
-        action = ServerAction.UPDATE_TRANSACTION;
-        break;
-      case TransactionAction.STOP:
-      case TransactionAction.END:
-        action = ServerAction.STOP_TRANSACTION;
-        break;
-    }
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-      throw new BackendError({
-        user: user,
-        action: action,
-        module: MODULE_NAME,
-        method: 'processOCPITransaction',
-        message: `Unable to ${transactionAction} a Transaction for User '${user.id}' not issued locally`
-      });
-    }
-    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-    if (!ocpiClient) {
-      throw new BackendError({
-        user: user,
-        action: action,
-        module: MODULE_NAME,
-        method: 'processOCPITransaction',
-        message: `OCPI component requires at least one CPO endpoint to ${transactionAction} a Session`
-      });
-    }
-    let authorizationId;
-    let authorizations: DataResult<OCPPAuthorizeRequestExtended>;
-    switch (transactionAction) {
-      case TransactionAction.START:
-        // eslint-disable-next-line no-case-declarations
-        const tag = user.tags.find(((value) => value.id === transaction.tagID));
-        if (!tag.ocpiToken) {
-          throw new BackendError({
-            user: user,
-            action: action,
-            module: MODULE_NAME,
-            method: 'processOCPITransaction',
-            message: `User '${Utils.buildUserFullName(user)}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Transaction thought OCPI protocol due to missing OCPI Token`
-          });
-        }
-        // Retrieve Authorization ID
-        authorizations = await OCPPStorage.getAuthorizes(tenant.id, {
-          dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
-          chargeBoxID: transaction.chargeBoxID,
-          tagID: transaction.tagID
-        }, Constants.DB_PARAMS_MAX_LIMIT);
-        // Found ID?
-        if (authorizations && authorizations.result && authorizations.result.length > 0) {
-          // Get the first non used Authorization OCPI ID
-          for (const authorization of authorizations.result) {
-            if (authorization.authorizationId) {
-              const ocpiTransaction = await TransactionStorage.getOCPITransaction(tenant.id, authorization.authorizationId);
-              // OCPI ID not used yet
-              if (!ocpiTransaction) {
-                authorizationId = authorization.authorizationId;
-                break;
+    try {
+      if (!transaction.user || transaction.user.issuer) {
+        return;
+      }
+      const user: User = transaction.user;
+      const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+      let action: ServerAction;
+      switch (transactionAction) {
+        case TransactionAction.START:
+          action = ServerAction.START_TRANSACTION;
+          break;
+        case TransactionAction.UPDATE:
+          action = ServerAction.UPDATE_TRANSACTION;
+          break;
+        case TransactionAction.STOP:
+        case TransactionAction.END:
+          action = ServerAction.STOP_TRANSACTION;
+          break;
+      }
+      if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+        throw new BackendError({
+          user: user,
+          action: action,
+          module: MODULE_NAME,
+          method: 'processOCPITransaction',
+          message: `Unable to ${transactionAction} a Transaction for User '${user.id}' not issued locally`
+        });
+      }
+      const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+      if (!ocpiClient) {
+        throw new BackendError({
+          user: user,
+          action: action,
+          module: MODULE_NAME,
+          method: 'processOCPITransaction',
+          message: `OCPI component requires at least one CPO endpoint to ${transactionAction} a Session`
+        });
+      }
+      let authorizationId;
+      let authorizations: DataResult<OCPPAuthorizeRequestExtended>;
+      switch (transactionAction) {
+        case TransactionAction.START:
+          // eslint-disable-next-line no-case-declarations
+          const tag = await TagStorage.getTag(tenantID, transaction.tagID);
+          if (!tag.ocpiToken) {
+            throw new BackendError({
+              user: user,
+              action: action,
+              module: MODULE_NAME,
+              method: 'processOCPITransaction',
+              message: `User '${Utils.buildUserFullName(user)}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Transaction thought OCPI protocol due to missing OCPI Token`
+            });
+          }
+          // Retrieve Authorization ID
+          authorizations = await OCPPStorage.getAuthorizes(tenant.id, {
+            dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
+            chargeBoxID: transaction.chargeBoxID,
+            tagID: transaction.tagID
+          }, Constants.DB_PARAMS_MAX_LIMIT);
+          // Found ID?
+          if (authorizations && authorizations.result && authorizations.result.length > 0) {
+            // Get the first non used Authorization OCPI ID
+            for (const authorization of authorizations.result) {
+              if (authorization.authorizationId) {
+                const ocpiTransaction = await TransactionStorage.getOCPITransaction(tenant.id, authorization.authorizationId);
+                // OCPI ID not used yet
+                if (!ocpiTransaction) {
+                  authorizationId = authorization.authorizationId;
+                  break;
+                }
               }
             }
           }
-        }
-        if (!authorizationId) {
-          throw new BackendError({
-            user: user,
-            action: action,
-            module: MODULE_NAME, method: 'processOCPITransaction',
-            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} Transaction thought OCPI protocol due to missing Authorization`
-          });
-        }
-        await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
-        break;
-      case TransactionAction.UPDATE:
-        await ocpiClient.updateSession(transaction);
-        break;
-      case TransactionAction.STOP:
-        await ocpiClient.stopSession(transaction);
-        break;
-      case TransactionAction.END:
-        await ocpiClient.postCdr(transaction);
-        break;
+          if (!authorizationId) {
+            throw new BackendError({
+              user: user,
+              action: action,
+              module: MODULE_NAME, method: 'processOCPITransaction',
+              message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} Transaction thought OCPI protocol due to missing Authorization`
+            });
+          }
+          await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
+          break;
+        case TransactionAction.UPDATE:
+          await ocpiClient.updateSession(transaction);
+          break;
+        case TransactionAction.STOP:
+          await ocpiClient.stopSession(transaction);
+          break;
+        case TransactionAction.END:
+          await ocpiClient.postCdr(transaction);
+          break;
+      }
+    } catch (error) {
+      Logging.logError({
+        tenantID: tenantID,
+        user: transaction.userID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PUSH_SESSIONS,
+        module: MODULE_NAME, method: 'processOCPITransaction',
+        message: `Cannot ${transactionAction} Transaction ID '${transaction.id}' thought OCPI protocol`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
     }
   }
 
@@ -202,7 +219,7 @@ export default class OCPPUtils {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = Utils.convertToFloat((transaction.currentCumulatedPrice + consumption.amount).toFixed(6));
+              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 3);
             }
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
           }
@@ -220,15 +237,15 @@ export default class OCPPUtils {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = Utils.convertToFloat((transaction.currentCumulatedPrice + consumption.amount).toFixed(6));
+              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 3);
             }
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
             // Update Transaction
             if (!transaction.stop) {
               transaction.stop = {} as TransactionStop;
             }
-            transaction.stop.price = Utils.convertToFloat(transaction.currentCumulatedPrice.toFixed(6));
-            transaction.stop.roundedPrice = Utils.convertToFloat((transaction.currentCumulatedPrice).toFixed(2));
+            transaction.stop.price = transaction.currentCumulatedPrice;
+            transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
             transaction.stop.priceUnit = pricedConsumption.currencyCode;
             transaction.stop.pricingSource = pricedConsumption.pricingSource;
           }
@@ -346,7 +363,7 @@ export default class OCPPUtils {
         } else {
           consumption.instantWatts = Utils.convertAmpToWatt(chargingStation, null, connectorID, consumption.instantAmps);
         }
-      // Based on provided Consumption
+        // Based on provided Consumption
       } else {
         // Compute average Instant Power based on consumption over a time period (usually 60s)
         const diffSecs = moment(consumption.endedAt).diff(consumption.startedAt, 'milliseconds') / 1000;
@@ -453,7 +470,7 @@ export default class OCPPUtils {
     }
     // Check Simple Pricing
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
-      transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
+      transactionSimplePricePerkWh = Utils.truncTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,
@@ -755,7 +772,7 @@ export default class OCPPUtils {
       // Handle SoC (%)
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         consumption.stateOfCharge = Utils.convertToFloat(meterValue.value);
-      // Handle Power (W/kW)
+        // Handle Power (W/kW)
       } else if (OCPPUtils.isPowerActiveImportMeterValue(meterValue)) {
         // Compute power
         const powerInMeterValue = Utils.convertToFloat(meterValue.value);
@@ -787,7 +804,7 @@ export default class OCPPUtils {
             }
             break;
         }
-      // Handle Voltage (V)
+        // Handle Voltage (V)
       } else if (OCPPUtils.isVoltageMeterValue(meterValue)) {
         const voltage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -821,7 +838,7 @@ export default class OCPPUtils {
             }
             break;
         }
-      // Handle Current (A)
+        // Handle Current (A)
       } else if (OCPPUtils.isCurrentImportMeterValue(meterValue)) {
         const amperage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -847,7 +864,7 @@ export default class OCPPUtils {
             }
             break;
         }
-      // Handle Consumption (Wh/kWh)
+        // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
@@ -855,7 +872,7 @@ export default class OCPPUtils {
         // Handle current Connector limitation
         await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
         // Handle current Site Area limitation
-        await Utils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
+        await OCPPUtils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Consumption
         if (Utils.convertToFloat(meterValue.value) > lastConsumption.value) {
           // Compute consumption
@@ -891,6 +908,36 @@ export default class OCPPUtils {
       }
       // Return
       return consumption;
+    }
+  }
+
+  public static async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption): Promise<void> {
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && siteArea) {
+      // Get limit of the site area
+      consumption.limitSiteAreaWatts = 0;
+      // Maximum power of the Site Area provided?
+      if (siteArea && siteArea.maximumPower) {
+        consumption.limitSiteAreaWatts = siteArea.maximumPower;
+        consumption.limitSiteAreaAmps = siteArea.maximumPower / siteArea.voltage;
+        consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
+      } else {
+        // Compute it for Charging Stations
+        const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+        for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
+          for (const connector of chargingStationOfSiteArea.connectors) {
+            consumption.limitSiteAreaWatts += connector.power;
+          }
+        }
+        consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / siteArea.voltage);
+        consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
+        // Save Site Area max consumption
+        if (siteArea) {
+          siteArea.maximumPower = consumption.limitSiteAreaWatts;
+          await SiteAreaStorage.saveSiteArea(tenantID, siteArea);
+        }
+      }
+      consumption.smartChargingActive = siteArea.smartCharging;
     }
   }
 
@@ -944,10 +991,18 @@ export default class OCPPUtils {
   }
 
   public static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
+    const templateUpdate: TemplateUpdate = {
+      chargingStationUpdate: false,
+      technicalUpdate: false,
+      capabilitiesUpdate: false,
+      ocppStandardUpdate: false,
+      ocppVendorUpdate: false,
+    };
     const templateUpdateResult: TemplateUpdateResult = {
       technicalUpdated: false,
       capabilitiesUpdated: false,
-      ocppUpdated: false,
+      ocppStandardUpdated: false,
+      ocppVendorUpdated: false,
     };
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
@@ -955,12 +1010,10 @@ export default class OCPPUtils {
     if (chargingStationTemplate) {
       // Already updated?
       if (chargingStation.templateHash !== chargingStationTemplate.hash) {
-        chargingStation.templateHash = chargingStationTemplate.hash;
+        templateUpdate.chargingStationUpdate = true;
         // Check Technical Hash
         if (chargingStation.templateHashTechnical !== chargingStationTemplate.hashTechnical) {
-          templateUpdateResult.technicalUpdated = true;
-          // Set the hash
-          chargingStation.templateHashTechnical = chargingStationTemplate.hashTechnical;
+          templateUpdate.technicalUpdate = true;
           if (Utils.objectHasProperty(chargingStationTemplate.technical, 'maximumPower')) {
             chargingStation.maximumPower = chargingStationTemplate.technical.maximumPower;
           }
@@ -980,11 +1033,13 @@ export default class OCPPUtils {
                 tenantID, chargingStation, connector.connectorId, chargingStationTemplate);
             }
           }
+          // Set the hash
+          chargingStation.templateHashTechnical = chargingStationTemplate.hashTechnical;
+          templateUpdateResult.technicalUpdated = true;
         }
         // Already updated?
         if (chargingStation.templateHashCapabilities !== chargingStationTemplate.hashCapabilities) {
-          chargingStation.templateHashCapabilities = chargingStationTemplate.hashCapabilities;
-          templateUpdateResult.capabilitiesUpdated = true;
+          templateUpdate.capabilitiesUpdate = true;
           // Handle capabilities
           chargingStation.capabilities = {} as ChargingStationCapabilities;
           if (Utils.objectHasProperty(chargingStationTemplate, 'capabilities')) {
@@ -1013,6 +1068,8 @@ export default class OCPPUtils {
                   chargingStation.excludeFromSmartCharging = !capabilities.capabilities.supportChargingProfiles;
                 }
                 chargingStation.capabilities = capabilities.capabilities;
+                chargingStation.templateHashCapabilities = chargingStationTemplate.hashCapabilities;
+                templateUpdateResult.capabilitiesUpdated = true;
                 break;
               }
             }
@@ -1020,8 +1077,7 @@ export default class OCPPUtils {
         }
         // Already updated?
         if (chargingStation.templateHashOcppStandard !== chargingStationTemplate.hashOcppStandard) {
-          chargingStation.templateHashOcppStandard = chargingStationTemplate.hashOcppStandard;
-          templateUpdateResult.ocppUpdated = true;
+          templateUpdate.ocppStandardUpdate = true;
           // Handle OCPP Standard Parameters
           chargingStation.ocppStandardParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppStandardParameters')) {
@@ -1057,11 +1113,24 @@ export default class OCPPUtils {
                     });
                     continue;
                   }
+                  if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
+                    Logging.logWarning({
+                      tenantID: tenantID,
+                      source: chargingStation.id,
+                      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+                      module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+                      message: `Template contains heartbeat interval value setting for OCPP Parameter key '${parameter}' in OCPP Standard parameters, skipping. Remove it from template`,
+                      detailedMessages: { chargingStationTemplate }
+                    });
+                    continue;
+                  }
                   chargingStation.ocppStandardParameters.push({
                     key: parameter,
                     value: ocppStandardParameters.parameters[parameter]
                   });
                 }
+                chargingStation.templateHashOcppStandard = chargingStationTemplate.hashOcppStandard;
+                templateUpdateResult.ocppStandardUpdated = true;
                 break;
               }
             }
@@ -1069,8 +1138,7 @@ export default class OCPPUtils {
         }
         // Already updated?
         if (chargingStation.templateHashOcppVendor !== chargingStationTemplate.hashOcppVendor) {
-          chargingStation.templateHashOcppVendor = chargingStationTemplate.hashOcppVendor;
-          templateUpdateResult.ocppUpdated = true;
+          templateUpdate.ocppVendorUpdate = true;
           // Handle OCPP Vendor Parameters
           chargingStation.ocppVendorParameters = [];
           if (Utils.objectHasProperty(chargingStationTemplate, 'ocppVendorParameters')) {
@@ -1106,26 +1174,49 @@ export default class OCPPUtils {
                     });
                     continue;
                   }
+                  if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
+                    Logging.logWarning({
+                      tenantID: tenantID,
+                      source: chargingStation.id,
+                      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+                      module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+                      message: `Template contains heartbeat interval value setting for OCPP Parameter key '${parameter}' in OCPP Vendor parameters, skipping. Remove it from template`,
+                      detailedMessages: { chargingStationTemplate }
+                    });
+                    continue;
+                  }
                   chargingStation.ocppVendorParameters.push({
                     key: parameter,
                     value: ocppVendorParameters.parameters[parameter]
                   });
                 }
+                chargingStation.templateHashOcppVendor = chargingStationTemplate.hashOcppVendor;
+                templateUpdateResult.ocppVendorUpdated = true;
                 break;
               }
             }
           }
         }
         // Log
-        const sectionsUpdated = [];
+        const sectionsUpdated: string[] = [];
+        const sectionsNotMatched: string[] = [];
         if (templateUpdateResult.technicalUpdated) {
           sectionsUpdated.push('Technical');
         }
-        if (templateUpdateResult.ocppUpdated) {
-          sectionsUpdated.push('OCPP');
-        }
         if (templateUpdateResult.capabilitiesUpdated) {
           sectionsUpdated.push('Capabilities');
+        }
+        if (templateUpdateResult.ocppStandardUpdated || templateUpdateResult.ocppVendorUpdated) {
+          sectionsUpdated.push('OCPP');
+        }
+        if (templateUpdate.capabilitiesUpdate && !templateUpdateResult.capabilitiesUpdated) {
+          sectionsNotMatched.push('Capabilities');
+        }
+        if (templateUpdate.ocppStandardUpdate && !templateUpdateResult.ocppStandardUpdated) {
+          sectionsNotMatched.push('OCPPStandard');
+        }
+        if (templateUpdate.ocppVendorUpdate && !templateUpdateResult.ocppVendorUpdated) {
+          sectionsNotMatched.push('OCPPVendor');
         }
         Logging.logInfo({
           tenantID: tenantID,
@@ -1133,8 +1224,19 @@ export default class OCPPUtils {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
           message: `Template applied and updated the following sections: ${sectionsUpdated.join(', ')}`,
-          detailedMessages: { templateUpdateResult, chargingStationTemplate }
+          detailedMessages: { templateUpdateResult, chargingStationTemplate, chargingStation }
         });
+        if (!Utils.isEmptyArray(sectionsNotMatched)) {
+          Logging.logWarning({
+            tenantID: tenantID,
+            source: chargingStation.id,
+            action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+            module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+            message: `Template applied and not matched the following sections: ${sectionsNotMatched.join(', ')}`,
+            detailedMessages: { templateUpdateResult, chargingStationTemplate, chargingStation }
+          });
+        }
+        chargingStation.templateHash = chargingStationTemplate.hash;
         return templateUpdateResult;
       }
       // Log
@@ -1144,9 +1246,15 @@ export default class OCPPUtils {
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
         message: 'Template has already been applied',
-        detailedMessages: { chargingStationTemplate }
+        detailedMessages: { chargingStationTemplate, chargingStation }
       });
       return templateUpdateResult;
+    }
+    let noMatchingTemplateLogMsg: string;
+    if (chargingStation.templateHash) {
+      noMatchingTemplateLogMsg = 'No template matching the charging station has been found but one matched previously. Keeping the previous template configuration';
+    } else {
+      noMatchingTemplateLogMsg = 'No template matching the charging station has been found';
     }
     // Log
     Logging.logWarning({
@@ -1154,7 +1262,7 @@ export default class OCPPUtils {
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-      message: 'No Template has been found!',
+      message: noMatchingTemplateLogMsg,
       detailedMessages: { chargingStation }
     });
     return templateUpdateResult;
@@ -1177,7 +1285,7 @@ export default class OCPPUtils {
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
-            message: `No Connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
+            message: `No connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
           });
           return false;
         }
@@ -1231,7 +1339,8 @@ export default class OCPPUtils {
                 }
               }
             }
-            return true;
+            // Template on connector id = connectorID applied, break the loop to continue the static method execution. Never return here.
+            break;
           }
         }
       }
@@ -1341,6 +1450,32 @@ export default class OCPPUtils {
       message: 'Charging Profile has been deleted successfully',
       detailedMessages: { chargingProfile }
     });
+  }
+
+  public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
+    // Normalize
+    OCPPUtils.normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
+    OCPPUtils.normalizeOneSOAPParam(headers, 'Action');
+    OCPPUtils.normalizeOneSOAPParam(headers, 'To');
+    OCPPUtils.normalizeOneSOAPParam(headers, 'From.Address');
+    OCPPUtils.normalizeOneSOAPParam(headers, 'ReplyTo.Address');
+    // Parse the request (lower case for fucking charging station DBT URL registration)
+    const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
+    const tenantID = urlParts.query.tenantid as string;
+    const token = urlParts.query.token;
+    // Check
+    await DatabaseUtils.checkTenant(tenantID);
+    // Set the Tenant ID
+    headers.tenantID = tenantID;
+    headers.token = token;
+    if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
+      throw new BackendError({
+        source: headers.chargeBoxIdentity,
+        module: MODULE_NAME,
+        method: 'normalizeAndCheckSOAPParams',
+        message: 'The Charging Station ID is invalid'
+      });
+    }
   }
 
   public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken): Promise<string> {
@@ -1510,7 +1645,12 @@ export default class OCPPUtils {
       // Add the existing custom params
       const customParams = ocppParametersFromDB.result.filter((customParam) => customParam.custom);
       if (!Utils.isEmptyArray(customParams)) {
-        chargingStationOcppParameters.configuration = chargingStationOcppParameters.configuration.concat(customParams);
+        for (const customParam of customParams) {
+          const foundCustomParam = chargingStationOcppParameters.configuration.find((configuration) => configuration.key === customParam.key);
+          if (!foundCustomParam) {
+            chargingStationOcppParameters.configuration.push(customParam);
+          }
+        }
       }
       // Save config
       await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
@@ -1773,5 +1913,12 @@ export default class OCPPUtils {
       }
     }
     return false;
+  }
+
+  private static normalizeOneSOAPParam(headers: any, name: string) {
+    const val = _.get(headers, name);
+    if (val && val.$value) {
+      _.set(headers, name, val.$value);
+    }
   }
 }

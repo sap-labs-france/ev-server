@@ -6,7 +6,6 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { Log } from '../../types/Log';
-import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
@@ -17,7 +16,7 @@ const MODULE_NAME = 'LoggingStorage';
 export default class LoggingStorage {
   public static async deleteLogs(tenantID: string, deleteUpToDate: Date): Promise<{ ok?: number; n?: number; }> {
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Build filter
     const filters: FilterParams = {};
     // Do Not Delete Security Logs
@@ -39,7 +38,7 @@ export default class LoggingStorage {
 
   public static async deleteSecurityLogs(tenantID: string, deleteUpToDate: Date): Promise<{ ok?: number; n?: number; }> {
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Build filter
     const filters: FilterParams = {};
     // Delete Only Security Logs
@@ -61,7 +60,7 @@ export default class LoggingStorage {
 
   public static async saveLog(tenantID: string, logToSave: Log): Promise<void> {
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const logMDB: any = {
       userID: logToSave.user ? Utils.convertUserToObjectID(logToSave.user) : null,
@@ -85,15 +84,9 @@ export default class LoggingStorage {
   }
 
   public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields: string[]): Promise<Log> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLog');
-    // Query single Site
-    const logsMDB = await LoggingStorage.getLogs(tenantID,
-      { logIDs: [id] },
-      Constants.DB_PARAMS_SINGLE_RECORD,
-      projectFields);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getLog', uniqueTimerID, { id });
+    const logsMDB = await LoggingStorage.getLogs(tenantID, {
+      logIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 
@@ -101,10 +94,8 @@ export default class LoggingStorage {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
     hosts?: string[]; userIDs?: string[]; search?: string; logIDs?: string[];
   } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLogs');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -185,7 +176,6 @@ export default class LoggingStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      Logging.traceEnd(tenantID, MODULE_NAME, 'getLogs', uniqueTimerID, loggingsCountMDB);
       return {
         count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
         result: []
@@ -245,8 +235,6 @@ export default class LoggingStorage {
     const loggingsMDB = await global.database.getCollection<Log>(tenantID, 'logs')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getLogs', uniqueTimerID, loggingsMDB);
     // Ok
     return {
       count: (loggingsCountMDB.length > 0 ?

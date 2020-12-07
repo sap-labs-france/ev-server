@@ -1,11 +1,13 @@
+import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
+
 import BackendError from '../../../exception/BackendError';
+import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
 import { MessageType } from '../../../types/WebSocket';
 import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
-import WebSocket from 'ws';
 import global from '../../../types/GlobalType';
 import http from 'http';
 
@@ -35,13 +37,15 @@ export default class JsonRestWSConnection extends WSConnection {
     }
   }
 
-  public onError(event: Event): void {
+  public onError(errorEvent: ErrorEvent): void {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
-      message: event + ''
+      message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
+      detailedMessages: { errorEvent: errorEvent }
     });
   }
 
@@ -52,7 +56,8 @@ export default class JsonRestWSConnection extends WSConnection {
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,
-      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent.code}'`
+      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent}'`,
+      detailedMessages: { closeEvent: closeEvent }
     });
     // Remove the connection
     this.wsServer.removeRestConnection(this);
@@ -73,7 +78,7 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), chargingStation.id);
+    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), chargingStation.id);
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),

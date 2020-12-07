@@ -1,10 +1,10 @@
 {
-  "subject": "Billing - New invoice",
+  "subject": "Abrechnung - Neue Rechnung",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Billing - New invoice",
+      "title": "Abrechnung - Neue Rechnung",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Dear <%- (user.firstName?user.firstName:user.name) %>,",
+      "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "A new invoice is available : <%- invoice.number %>."
+      "Eine neue Rechnung ist verfügbar : <%- invoice.number %>."
     ],
     "actions": [{
-      "title": "Consult",
+      "title": "Anzeigen",
       "url": "<%- evseDashboardInvoiceURL %>"
     }, {
       "title": "Download",
       "url": "<%- invoiceDownloadUrl %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {

@@ -16,7 +16,7 @@ export default class RegistrationTokenStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveRegistrationToken');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const registrationTokenMDB = {
       _id: registrationToken.id ? Utils.convertToObjectID(registrationToken.id) : new ObjectID(),
@@ -39,12 +39,12 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationTokens(tenantID: string,
-    params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams):
+    params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
     Promise<DataResult<RegistrationToken>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getRegistrationTokens');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -119,9 +119,15 @@ export default class RegistrationTokenStorage {
     aggregation.push({
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const registrationTokens = await global.database.getCollection<any>(tenantID, 'registrationtokens')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokens);
@@ -134,13 +140,9 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationToken(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<RegistrationToken> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getRegistrationToken');
-    // Reuse
-    const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(
-      tenantID, { tokenIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationToken', uniqueTimerID, registrationTokensMDB);
+    const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(tenantID, {
+      tokenIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return registrationTokensMDB.count === 1 ? registrationTokensMDB.result[0] : null;
   }
 

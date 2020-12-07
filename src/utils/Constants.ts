@@ -5,12 +5,16 @@ import { OcppParameter } from '../types/ChargingStation';
 import Tenant from '../types/Tenant';
 
 export default class Constants {
+  public static readonly BOOT_NOTIFICATION_WAIT_TIME = 60;
+
   public static readonly CSV_SEPARATOR = '\t'; // Cannot store regex in enum
 
   public static readonly PERF_MAX_DATA_VOLUME_KB = 64;
   public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 250;
 
-  public static readonly AXIOS_TIMEOUT = 60000;
+  public static readonly AXIOS_DEFAULT_TIMEOUT = 60000;
+
+  public static readonly DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT = 80;
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
   public static readonly DB_RECORD_COUNT_CEIL = 500;
@@ -19,9 +23,11 @@ export default class Constants {
 
   public static readonly DB_PARAMS_MAX_LIMIT: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, sort: null });
   public static readonly DB_PARAMS_SINGLE_RECORD: DbParams = Object.freeze({ limit: 1, skip: 0, sort: null });
+  public static readonly DB_PARAMS_DEFAULT_RECORD: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_DEFAULT, skip: 0, sort: null });
   public static readonly DB_PARAMS_COUNT_ONLY: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true, sort: null });
 
   public static readonly EXPORT_PAGE_SIZE = 1000;
+  public static readonly EXPORT_RECORD_MAX_COUNT = 100000;
 
   public static readonly DEFAULT_TENANT = 'default';
   public static readonly DEFAULT_TENANT_OBJECT= Object.freeze({
@@ -68,7 +74,7 @@ export default class Constants {
 
   public static readonly ANONYMIZED_VALUE = '####';
 
-  public static readonly WS_DEFAULT_KEEPALIVE = 30; // Seconds
+  public static readonly WS_DEFAULT_KEEPALIVE = 180; // Seconds
   public static readonly WS_RECONNECT_DISABLED = 0;
   public static readonly WS_RECONNECT_UNLIMITED = -1;
   public static readonly WS_DEFAULT_RECONNECT_MAX_RETRIES = -1;
@@ -131,6 +137,7 @@ export default class Constants {
     { 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null },
     { 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null },
     { 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null },
+    { 'key': 'HeartBeatInterval', 'readonly': false, 'value': null },
     { 'key': 'HeartbeatInterval', 'readonly': false, 'value': null },
     { 'key': 'LightIntensity', 'readonly': false, 'value': null },
     { 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null },
