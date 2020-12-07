@@ -16,6 +16,7 @@ import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
+import TagStorage from '../storage/mongodb/TagStorage';
 import TenantComponents from '../types/TenantComponents';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
@@ -722,7 +723,7 @@ export default class Authorizations {
       }
     }
     // Get Tag
-    let tag = await UserStorage.getTag(tenantID, tagID, { withUser: true });
+    let tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
     if (!tag) {
       // Create the tag as inactive
       tag = {
@@ -734,7 +735,7 @@ export default class Authorizations {
         default: false
       } as Tag;
       // Save
-      await UserStorage.saveTag(tenantID, tag);
+      await TagStorage.saveTag(tenantID, tag);
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
         tenantID,

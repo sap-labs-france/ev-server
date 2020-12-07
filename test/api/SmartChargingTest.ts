@@ -487,15 +487,15 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 107
+            'limit': 84
           },
           {
             'startPeriod': 900,
-            'limit': 107
+            'limit': 84
           },
           {
             'startPeriod': 1800,
-            'limit': 107
+            'limit': 84
           },
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);

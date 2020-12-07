@@ -1,4 +1,4 @@
-import { ChargingProfile, ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
+import { ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
 
 import { OcppParameter } from '../ChargingStation';
 
@@ -70,7 +70,7 @@ export enum OCPPConfigurationStatus {
 export interface OCPPRemoteStartTransactionCommandParam extends OCPPCommandParam {
   connectorId: number;
   idTag: string;
-  chargingProfile?: ChargingProfile;
+  chargingProfile?: Profile;
 }
 
 export interface OCPPRemoteStartTransactionCommandResult {

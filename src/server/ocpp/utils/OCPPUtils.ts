@@ -27,6 +27,7 @@ import { PricingSettingsType } from '../../../types/Setting';
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import TagStorage from '../../../storage/mongodb/TagStorage';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -87,7 +88,7 @@ export default class OCPPUtils {
       switch (transactionAction) {
         case TransactionAction.START:
           // eslint-disable-next-line no-case-declarations
-          const tag = await UserStorage.getTag(tenantID, transaction.tagID);
+          const tag = await TagStorage.getTag(tenantID, transaction.tagID);
           if (!tag.ocpiToken) {
             throw new BackendError({
               user: user,

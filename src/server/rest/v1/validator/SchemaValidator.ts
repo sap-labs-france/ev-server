@@ -29,7 +29,7 @@ export default class SchemaValidator {
     this.ajv.addSchema(this._tenantComponentSchema);
   }
 
-  public validate(schema: boolean|object, content: any): void {
+  public validate(schema: boolean|Record<string, unknown>, content: any): void {
     const fnValidate = this.ajv.compile(schema);
     if (!fnValidate(content)) {
       if (!fnValidate.errors) {

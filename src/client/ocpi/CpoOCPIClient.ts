@@ -25,6 +25,7 @@ import { ServerAction } from '../../types/Server';
 import Site from '../../types/Site';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
+import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
@@ -106,7 +107,7 @@ export default class CpoOCPIClient extends OCPIClient {
       for (const token of response.data.data as OCPIToken[]) {
         tagIDs.push(token.uid);
       }
-      const tags = (await UserStorage.getTags(this.tenant.id, { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+      const tags = (await TagStorage.getTags(this.tenant.id, { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT)).result;
       for (const token of response.data.data as OCPIToken[]) {
         try {
           // Get eMSP user
@@ -761,7 +762,7 @@ export default class CpoOCPIClient extends OCPIClient {
                 this.tenant.id,
                 {
                   location: location.name,
-                  evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
+                  evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
                 }
               );
             }

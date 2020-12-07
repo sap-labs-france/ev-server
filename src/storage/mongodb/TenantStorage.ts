@@ -23,14 +23,15 @@ export default class TenantStorage {
     }
   }
 
-  public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<Tenant> {
+  public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withLogo?: boolean; } = {}, projectFields?: string[]): Promise<Tenant> {
     // Check in cache
     const tenant = TenantStorage.tenants.get(id);
     if (!tenant) {
       // Call DB
       const tenantsMDB = await TenantStorage.getTenants({
         tenantIDs: [id],
-        withLogo: true,
+        withLogo: params.withLogo,
       }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
       // Add in cache
       if (tenantsMDB.count > 0) {
