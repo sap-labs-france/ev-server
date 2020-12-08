@@ -461,11 +461,19 @@ export default class TransactionService {
     ];
     // Check Cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      projectFields = [
-        ...projectFields,
-        'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel',
-        'carCatalog.vehicleModelVersion', 'carCatalog.image',
-      ];
+      if (Authorizations.canListCars(req.user)) {
+        projectFields = [
+          ...projectFields,
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel',
+          'carCatalog.vehicleModelVersion', 'carCatalog.image',
+        ];
+      }
+      if (Authorizations.canUpdateCar(req.user)) {
+        projectFields = [
+          ...projectFields,
+          'car.licensePlate',
+        ];
+      }
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId, projectFields);
@@ -492,12 +500,6 @@ export default class TransactionService {
         delete transaction.stop.userID;
         delete transaction.stop.tagID;
       }
-    }
-    // Check Car
-    if (!Authorizations.canReadCar(req.user)) {
-      // Remove Car
-      delete transaction.car;
-      delete transaction.carID;
     }
     // Check Dates
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime &&
@@ -916,12 +918,19 @@ export default class TransactionService {
       }
     }
     // Check Cars
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) &&
-        Authorizations.canListCars(req.user)) {
-      projectFields = [
-        ...projectFields,
-        'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-      ];
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      if (Authorizations.canListCars(req.user)) {
+        projectFields = [
+          ...projectFields,
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+        ];
+      }
+      if (Authorizations.canUpdateCar(req.user)) {
+        projectFields = [
+          ...projectFields,
+          'car.licensePlate',
+        ];
+      }
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
