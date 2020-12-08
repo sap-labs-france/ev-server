@@ -443,7 +443,7 @@ export default class CarService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (Authorizations.canReadUser(req.user, req.user.id)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
         'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
       ];
