@@ -275,7 +275,7 @@
             "description": "The End-user License Agreement is mandatory"
           },
           "550": {
-            "description": "User tried to log in with an unknown tenant or is deleted logically"
+            "description": "User tried to log in with an invalid user or password"
           }
         }
       }
