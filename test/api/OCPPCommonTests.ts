@@ -4,6 +4,7 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import { Command } from '../../src/types/ChargingStation';
 import Constants from '../../src/utils/Constants';
 import Factory from '../factories/Factory';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
@@ -427,6 +428,52 @@ export default class OCPPCommonTests {
     // Check
     expect(this.newTransaction).to.not.be.null;
     expect(this.newTransaction.id).to.not.equal(transactionId);
+  }
+
+  public async testRemoteStartTransactionWithNoBadge() {
+    const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
+      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'args': {
+        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
+      }
+    });
+    expect(response.status).to.equal(570);
+  }
+
+  public async testRemoteStartTransactionWithExternalUser() {
+    const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
+      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'args': {
+        'tagID': this.transactionStartUser.tags[0].id,
+        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
+      }
+    });
+    expect(response.status).to.equal(500);
+    expect(response.data.message).to.equal(`User not issued by the organization execute command '${Command.REMOTE_START_TRANSACTION}'`);
+  }
+
+  public async testRemoteStartTransactionWithUnassignedChargingStation() {
+    const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
+      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'args': {
+        'tagID': this.transactionStartUser.tags[0].id,
+        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
+      }
+    });
+    expect(response.status).to.equal(500);
+    expect(response.data.message).to.equal(`Charging Station '${this.chargingStationContext.getChargingStation().id}' is not assigned to a Site Area!`);
+  }
+
+  public async testRemoteStartTransactionWithBasicUser() {
+    const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
+      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'args': {
+        'tagID': this.transactionStopUser.tags[0].id,
+        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
+      }
+    });
+    expect(response.status).to.equal(500);
+    expect(response.data.message).to.equal(`Charging Station '${this.chargingStationContext.getChargingStation().id}' is not assigned to a Site Area!`);
   }
 
   public async testSendMeterValues(withSoC = false, withSignedData = false) {
