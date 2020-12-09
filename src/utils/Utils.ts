@@ -974,8 +974,8 @@ export default class Utils {
   }
 
   public static truncTo(value: number, scale: number): number {
-    const roundPower = Math.pow(10, scale);
-    return Math.trunc(value * roundPower) / roundPower;
+    const truncPower = Math.pow(10, scale);
+    return Math.trunc(value * truncPower) / truncPower;
   }
 
   public static firstLetterInUpperCase(value: string): string {

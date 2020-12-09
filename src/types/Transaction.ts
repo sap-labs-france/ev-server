@@ -1,3 +1,4 @@
+import { Car, CarCatalog } from './Car';
 import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
 
@@ -30,6 +31,9 @@ export enum TransactionAction {
 export default interface Transaction extends AbstractCurrentConsumption {
   id?: number;
   carID?: string;
+  car?: Car;
+  carCatalogID?: number;
+  carCatalog?: CarCatalog;
   phasesUsed?: CSPhasesUsed;
   siteID?: string;
   siteAreaID?: string;

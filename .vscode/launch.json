@@ -34,7 +34,7 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run-script",
-        "start:dev:debug"
+        "start:dev:debug:nodemon"
       ],
       "sourceMaps": true,
       "resolveSourceMapLocations": [

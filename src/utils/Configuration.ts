@@ -179,7 +179,7 @@ export default class Configuration {
     return oDataservice;
   }
 
-  // RestService Configuration - Internet view
+  // Rest Service Configuration - Internet view
   public static getCentralSystemRestServer(): CentralSystemServerConfiguration {
     return Configuration.getConfig().CentralSystemServer;
   }

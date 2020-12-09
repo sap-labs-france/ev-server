@@ -25,6 +25,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
@@ -137,7 +138,7 @@ export default class OCPIMapping {
     // Result
     const tokens: OCPIToken[] = [];
     // Get all tokens
-    const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
+    const tags = await TagStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
     // Convert Sites to Locations
     for (const tag of tags.result) {
       const user = await UserStorage.getUser(tenant.id, tag.userID);
@@ -235,7 +236,7 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
-    const tag = await UserStorage.getTag(tenant.id, tokenId, { withUser: true });
+    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
     if (tag && tag.user) {
       if (!tag.user.issuer && tag.user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
         return tag.ocpiToken;
@@ -664,23 +665,20 @@ export default class OCPIMapping {
   private static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, evseID: string): OCPIConnector {
     let type: OCPIConnectorType, format: OCPIConnectorFormat;
     switch (connector.type) {
-      case 'C':
+      case ConnectorType.CHADEMO:
         type = OCPIConnectorType.CHADEMO;
         format = OCPIConnectorFormat.CABLE;
         break;
-      case 'T2':
+      case ConnectorType.TYPE_2:
         type = OCPIConnectorType.IEC_62196_T2;
         format = OCPIConnectorFormat.SOCKET;
         break;
-      case 'CCS':
+      case ConnectorType.COMBO_CCS:
         type = OCPIConnectorType.IEC_62196_T2_COMBO;
         format = OCPIConnectorFormat.CABLE;
         break;
     }
-    let chargePoint: ChargePoint;
-    if (connector.chargePointID) {
-      chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-    }
+    const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
     const voltage = OCPIMapping.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
     const amperage = OCPIMapping.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
     const ocpiNumberOfConnectedPhases = OCPIMapping.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
@@ -703,7 +701,7 @@ export default class OCPIMapping {
       // SLF
       case '5be7fb271014d90008992f06':
         // Check Site Area
-        switch (chargingStation.siteAreaID) {
+        switch (chargingStation?.siteAreaID) {
           // Mougins - South
           case '5abebb1b4bae1457eb565e98':
             return 'FR*SLF_AC_Sud2';
@@ -711,7 +709,7 @@ export default class OCPIMapping {
           case '5b72cef274ae30000855e458':
             return 'FR*SLF_DC_Sud';
         }
-        break;
+        return '';
       // Proviridis
       case '5e2701b248aaa90007904cca':
         return '1';

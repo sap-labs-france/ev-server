@@ -137,7 +137,7 @@
     "urlencode": "^1.1.0",
     "uuid": "^8.3.1",
     "validator": "^13.1.17",
-    "ws": "^7.4.0"
+    "ws": "^7.4.1"
   },
   "devDependencies": {
     "@types/basic-auth": "^1.1.3",
