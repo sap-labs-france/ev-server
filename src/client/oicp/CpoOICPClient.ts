@@ -21,9 +21,9 @@ import { OICPChargeDetailRecord } from '../../types/oicp/OICPChargeDetailRecord'
 import OICPClient from './OICPClient';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
 import OICPEndpointStorage from '../../storage/mongodb/OICPEndpointStorage';
-import { OICPJobResult } from '../../types/oicp/OICPJobResult';
 import OICPMapping from '../../server/oicp/oicp-services-impl/oicp-2.3.0/OICPMapping';
 import { OICPPushEvseStatusCpoSend } from '../../types/oicp/OICPEvseStatus';
+import { OICPResult } from '../../types/oicp/OICPResult';
 import { OICPRole } from '../../types/oicp/OICPRole';
 import OICPUtils from '../../server/oicp/OICPUtils';
 import { OicpSetting } from '../../types/Setting';
@@ -204,7 +204,7 @@ export default class CpoOICPClient extends OICPClient {
   /**
    * Send all EVSEs
    */
-  async sendEVSEs(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPJobResult> {
+  async sendEVSEs(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
       actionType = OICPActionType.fullLoad;
     }
@@ -215,7 +215,7 @@ export default class CpoOICPClient extends OICPClient {
       total: 0,
       logs: [],
       objectIDsInFailure: []
-    } as OICPJobResult;
+    } as OICPResult;
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
@@ -311,22 +311,20 @@ export default class CpoOICPClient extends OICPClient {
     // Save
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
-    // Tbd: Logging.logOicpResult()
-    // Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSES,
-    //   MODULE_NAME, 'sendEVSEs', result,
-    //   `{{inSuccess}} EVSE(s) were successfully patched in ${executionDurationSecs}s`,
-    //   `{{inError}} EVSE(s) failed to be patched in ${executionDurationSecs}s`,
-    //   `{{inSuccess}} EVSE(s) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
-    //   'No EVSE Status have been patched'
-    // );
-    // Return result
+    Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSES,
+      MODULE_NAME, 'sendEVSEs', result,
+      `{{inSuccess}} EVSE(s) were successfully patched in ${executionDurationSecs}s`,
+      `{{inError}} EVSE(s) failed to be patched in ${executionDurationSecs}s`,
+      `{{inSuccess}} EVSE(s) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
+      'No EVSE Status have been patched'
+    );
     return result;
   }
 
   /**
    * Send all EVSE Statuses
    */
-  async sendEVSEStatuses(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPJobResult> {
+  async sendEVSEStatuses(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
       actionType = OICPActionType.fullLoad;
     }
@@ -337,7 +335,7 @@ export default class CpoOICPClient extends OICPClient {
       total: 0,
       logs: [],
       objectIDsInFailure: []
-    } as OICPJobResult;
+    } as OICPResult;
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
@@ -432,15 +430,13 @@ export default class CpoOICPClient extends OICPClient {
     // Save
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
-    // Tbd: Logging.logOicpResult()
-    // Logging.logOicpResult(this.tenant.id, ServerAction.OCPI_PATCH_STATUS,
-    //   MODULE_NAME, 'sendEVSEStatuses', result,
-    //   `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s`,
-    //   `{{inError}} EVSE Status(es) failed to be patched in ${executionDurationSecs}s`,
-    //   `{{inSuccess}} EVSE Status(es) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
-    //   'No EVSE Status have been patched'
-    // );
-    // Return result
+    Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSE_STATUSES,
+      MODULE_NAME, 'sendEVSEStatuses', result,
+      `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s`,
+      `{{inError}} EVSE Status(es) failed to be patched in ${executionDurationSecs}s`,
+      `{{inSuccess}} EVSE Status(es) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
+      'No EVSE Status have been patched'
+    );
     return result;
   }
 
@@ -1192,8 +1188,8 @@ export default class CpoOICPClient extends OICPClient {
   }
 
   async triggerJobs(): Promise<{
-    evses?: OICPJobResult,
-    evseStatuses?: OICPJobResult;
+    evses?: OICPResult,
+    evseStatuses?: OICPResult;
   }> {
     return {
       evses: await this.sendEVSEs(),

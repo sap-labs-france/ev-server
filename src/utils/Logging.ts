@@ -13,6 +13,7 @@ import { HTTPError } from '../types/HTTPError';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
+import { OICPResult } from '../types/oicp/OICPResult';
 import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
@@ -237,6 +238,54 @@ export default class Logging {
         action, module, method,
         message: messageNoSuccessNoError,
         detailedMessages: ocpiResult.logs
+      });
+    }
+  }
+
+  public static logOicpResult(
+    tenantID: string, action: ServerAction, module: string, method: string, oicpResult: OICPResult,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string,
+    messageNoSuccessNoError: string): void {
+    // Replace
+    messageSuccess = messageSuccess.replace('{{inSuccess}}', oicpResult.success.toString());
+    messageError = messageError.replace('{{inError}}', oicpResult.failure.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', oicpResult.success.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', oicpResult.failure.toString());
+    if (Utils.isEmptyArray(oicpResult.logs)) {
+      oicpResult.logs = null;
+    }
+    // Success and Error
+    if (oicpResult.success > 0 && oicpResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccessAndError,
+        detailedMessages: oicpResult.logs
+      });
+    } else if (oicpResult.success > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccess,
+        detailedMessages: oicpResult.logs
+      });
+    } else if (oicpResult.failure > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageError,
+        detailedMessages: oicpResult.logs
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageNoSuccessNoError,
+        detailedMessages: oicpResult.logs
       });
     }
   }

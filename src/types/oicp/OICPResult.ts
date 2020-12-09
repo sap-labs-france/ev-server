@@ -1,4 +1,4 @@
-export interface OICPJobResult {
+export interface OICPResult {
   success: number;
   failure: number;
   total: number;

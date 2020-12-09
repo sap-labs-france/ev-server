@@ -4,8 +4,8 @@ import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Logging from '../../utils/Logging';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
-import { OICPJobResult } from '../../types/oicp/OICPJobResult';
 import { OICPOperatorID } from '../../types/oicp/OICPEvse';
+import { OICPResult } from '../../types/oicp/OICPResult';
 import { OICPRole } from '../../types/oicp/OICPRole';
 import { OicpSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
@@ -142,8 +142,8 @@ export default abstract class OICPClient {
   }
 
   abstract triggerJobs(): Promise<{
-    evses?: OICPJobResult,
-    evseStatuses?: OICPJobResult;
+    evses?: OICPResult,
+    evseStatuses?: OICPResult;
   }>;
 
   abstract ping();
