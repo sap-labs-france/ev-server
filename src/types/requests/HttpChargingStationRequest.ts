@@ -25,6 +25,7 @@ export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
 export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   Search?: string;
+  ForQrCode?: boolean;
   WithNoSiteArea?: boolean;
   ConnectorStatus?: string;
   ConnectorType?: string;
@@ -60,6 +61,11 @@ export interface HttpChargingStationParamsUpdateRequest {
 
 export interface HttpChargingStationRequest {
   ChargeBoxID: string;
+}
+
+export interface HttpChargingStationConnectorRequest {
+  ChargeBoxID: string;
+  ConnectorID: number;
 }
 
 export interface HttpChargingStationOcppParametersRequest {

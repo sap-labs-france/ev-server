@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../../types/ChargingProfile';
-import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../../types/requests/HttpChargingStationRequest';
 
 import { Command } from '../../../../../types/ChargingStation';
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
@@ -21,6 +21,13 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationOcppParametersRequest(request: any): HttpChargingStationRequest {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
+  }
+
+  public static filterChargingStationConnectorRequest(request: any): HttpChargingStationConnectorRequest {
+    return {
+      ChargeBoxID: sanitize(request.ChargeBoxID),
+      ConnectorID: Utils.convertToInt(sanitize(request.ConnectorID)),
+    };
   }
 
   public static filterChargingProfilesRequest(request: any): HttpChargingProfilesRequest {
@@ -68,6 +75,7 @@ export default class ChargingStationSecurity {
     }
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
+    filteredRequest.ForQrCode = UtilsSecurity.filterBoolean(request.ForQrCode);
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);

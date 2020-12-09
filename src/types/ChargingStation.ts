@@ -57,6 +57,20 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   };
 }
 
+export interface ChargingStationQRCode {
+  tenantSubDomain?: string;
+  tenantName?: string;
+  tenantDescription?: string;
+  endpoint?: ChargingStationEndpoint;
+  chargingStationID?: string;
+  connectorID?: number;
+}
+
+export enum ChargingStationEndpoint {
+  SCP = 'scp',
+  AWS = 'aws'
+}
+
 export interface TemplateUpdate {
   chargingStationUpdate: boolean;
   technicalUpdate: boolean;

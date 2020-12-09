@@ -122,6 +122,8 @@
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "password-generator": "^2.3.2",
+    "pdfkit": "^0.11.0",
+    "qrcode": "^1.4.4",
     "role-acl": "^3.3.7",
     "simple-odata-server": "^1.1.1",
     "socket.io": "^2.3.0",
@@ -136,10 +138,6 @@
     "uuid": "^8.3.1",
     "validator": "^13.1.17",
     "ws": "^7.4.0"
-  },
-  "optionalDependencies": {
-    "bufferutil": "^4.0.2",
-    "utf-8-validate": "^5.0.3"
   },
   "devDependencies": {
     "@types/basic-auth": "^1.1.3",

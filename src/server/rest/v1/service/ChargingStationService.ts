@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import ChargingStation, { ChargingStationOcppParameters, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus } from '../../../../types/ocpp/OCPPClient';
@@ -26,6 +26,7 @@ import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import PDFDocument from 'pdfkit';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -38,6 +39,7 @@ import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import fs from 'fs';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -359,19 +361,21 @@ export default class ChargingStationService {
       });
     }
     // Profiles of the charging station?
-    let profilesProject: string[] = [ 'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel' ];
+    let profilesProject: string[] = ['profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'];
     if (filteredRequest.ChargeBoxID) {
       // Enhanced the projection
       profilesProject = ['profile'];
     }
     // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { search: filteredRequest.Search,
+      {
+        search: filteredRequest.Search,
         chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: true,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null), },
+        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+      },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
@@ -438,6 +442,45 @@ export default class ChargingStationService {
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleGenerateQrCodeForConnector(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationConnectorRequest(req.query);
+    // Check auth
+    if (!Authorizations.canReadChargingStation(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'handleGenerateQrCodeForConnector',
+        value: filteredRequest.ChargeBoxID
+      });
+    }
+    // Check ChargeBoxID
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
+    // Check ConnectorID
+    UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
+    // Get the Charging Station`
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    // Found ChargingStation ?
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' does not exist`,
+      MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
+    // Found Connector ?
+    UtilsService.assertObjectExists(action, chargingStation.connectors.find((connector) => connector.connectorId === filteredRequest.ConnectorID),
+      `Connector '${filteredRequest.ConnectorID}' does not exist`,
+      MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
+    const chargingStationQRCode: ChargingStationQRCode = {
+      chargingStationID: filteredRequest.ChargeBoxID,
+      connectorID: filteredRequest.ConnectorID,
+      endpoint: Utils.getChargingStationEndpoint(),
+      tenantName: req.user.tenantName,
+      tenantSubDomain: (await TenantStorage.getTenant(req.user.tenantID, ['subdomain'])).subdomain
+    };
+    const encoding: BufferEncoding = 'base64';
+    const generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString(encoding));
+    res.json({ image: generatedQR });
     next();
   }
 
@@ -796,6 +839,99 @@ export default class ChargingStationService {
     await UtilsService.exportToCSV(req, res, 'exported-charging-stations.csv',
       ChargingStationService.getChargingStations.bind(this), ChargingStationService.convertToCSV.bind(this));
   }
+
+  public static async handleDownloadQrCodePdf(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!req.query.SiteID && !req.query.SiteAreaID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'SiteID or SiteAreaID must be provided',
+        module: MODULE_NAME, method: 'handleDownloadQrCodePdf',
+        user: req.user
+      });
+    }
+    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
+    // Get the total number of Logs
+    req.query.OnlyRecordCount = 'true';
+    req.query.ForQrCode = 'true';
+    let data = await ChargingStationService.getChargingStations(req);
+    let count = data.count;
+    delete req.query.OnlyRecordCount;
+    let skip = 0;
+    const fileName = 'output.pdf';
+    const createdStream = fs.createWriteStream(fileName);
+
+    // Limit the number of records
+    if (count > Constants.EXPORT_RECORD_MAX_COUNT) {
+      count = Constants.EXPORT_RECORD_MAX_COUNT;
+    }
+    // Handle closed socket
+    let connectionClosed = false;
+    req.connection.on('close', () => {
+      connectionClosed = true;
+    });
+    const pdfDoc = new PDFDocument;
+    do {
+      // Check if the socket is closed and stop the process
+      if (connectionClosed) {
+        break;
+      }
+      console.log(skip);
+      // Get the Logs
+      req.query.Skip = skip.toString();
+      data = await ChargingStationService.getChargingStations(req);
+      let chargingStationQRCode: ChargingStationQRCode = {}, generatedQR: string;
+      const i18nManager = new I18nManager(req.user.locale);
+      pdfDoc.pipe(createdStream);
+      let firstPage = true;
+      const encoding: BufferEncoding = 'base64';
+      if (!Utils.isEmptyArray(data.result)) {
+        for (const chargingStation of data.result) {
+          if (!Utils.isEmptyArray(chargingStation.connectors)) {
+            for (const connector of chargingStation.connectors) {
+              chargingStationQRCode = {
+                chargingStationID: chargingStation.id,
+                connectorID: connector.connectorId,
+                endpoint: Utils.getChargingStationEndpoint(),
+                tenantName: req.user.tenantName,
+                tenantSubDomain: (await TenantStorage.getTenant(req.user.tenantID, ['subdomain'])).subdomain
+              };
+              generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString(encoding));
+              if (!firstPage) {
+                pdfDoc.addPage();
+              }
+              pdfDoc.image(generatedQR, 50, 50, {
+                width: 500, height: 500
+              });
+              pdfDoc.text(i18nManager.translate('siteArea') + ': ' + chargingStation.siteArea.name + ' - ' + chargingStation.id + ' ' + i18nManager.translate('chargers.connector') + ' ' + Utils.getConnectorLetterFromConnectorID(connector.connectorId), 20, pdfDoc.page.height - 50, {
+                lineBreak: false
+              });
+              firstPage = false;
+            }
+          }
+        }
+      }
+      // Next page
+      skip += Constants.EXPORT_PAGE_SIZE;
+    } while (skip < count);
+    pdfDoc.end();
+    // End of stream
+    createdStream.on('finish', function() {
+      res.download(fileName, (err2) => {
+        if (err2) {
+          console.log(err2);
+          throw err2;
+        }
+        fs.unlink(fileName, (err3) => {
+          if (err3) {
+            console.log(err3);
+            throw err3;
+          }
+        });
+      });
+    });
+  }
+
 
   public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
@@ -1183,7 +1319,7 @@ export default class ChargingStationService {
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email' ];
+      userProject = ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email'];
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
@@ -1206,7 +1342,7 @@ export default class ChargingStationService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [
+      filteredRequest.ForQrCode ? ['id', 'connectors.connectorId', 'siteArea.name'] : [
         // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
         'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
         'ocppVersion', 'ocppProtocol', 'lastSeen', 'lastHeartBeat', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
@@ -1308,7 +1444,7 @@ export default class ChargingStationService {
           });
           // Check
           if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
             // Reboot?
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
               Logging.logWarning({
