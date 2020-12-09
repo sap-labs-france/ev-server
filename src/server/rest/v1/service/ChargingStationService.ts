@@ -474,7 +474,7 @@ export default class ChargingStationService {
       connectorID: filteredRequest.ConnectorID,
       endpoint: Utils.getChargingStationEndpoint(),
       tenantName: req.user.tenantName,
-      tenantSubDomain: (await TenantStorage.getTenant(req.user.tenantID, ['subdomain'])).subdomain
+      tenantSubDomain: (await TenantStorage.getTenant(req.user.tenantID,{ withLogo: false } ,['subdomain'])).subdomain
     };
     const encoding: BufferEncoding = 'base64';
     const generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString(encoding));
@@ -892,7 +892,7 @@ export default class ChargingStationService {
                 connectorID: connector.connectorId,
                 endpoint: Utils.getChargingStationEndpoint(),
                 tenantName: req.user.tenantName,
-                tenantSubDomain: (await TenantStorage.getTenant(req.user.tenantID, ['subdomain'])).subdomain
+                tenantSubDomain: (await TenantStorage.getTenant(req.user.tenantID, { withLogo: false }, ['subdomain'])).subdomain
               };
               generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString(encoding));
               if (!firstPage) {
