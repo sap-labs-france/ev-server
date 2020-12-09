@@ -34,6 +34,7 @@ import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPr
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
 import { ServerAction } from '../types/Server';
+import SetDefaultTagToUserTask from './tasks/SetDefaultTagToUserTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UnmarkTransactionExtraInactivitiesTask from './tasks/UnmarkTransactionExtraInactivitiesTask';
 import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
@@ -97,6 +98,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddCreatedPropertiesToTagTask());
         currentMigrationTasks.push(new AddDescriptionToTagsTask());
         currentMigrationTasks.push(new AddDefaultPropertyToTagsTask());
+        currentMigrationTasks.push(new SetDefaultTagToUserTask());
         currentMigrationTasks.push(new DeleteChargingStationPropertiesTask());
         currentMigrationTasks.push(new FixedConsumptionRoundedPriceTask());
         // Get the already done migrations from the DB

@@ -35,6 +35,7 @@ export default interface User extends CreatedUpdatedProps {
   mobileOs: string;
   mobileToken: string;
   mobileLastChangedOn: Date;
+  lastSelectedCarID?: string;
 }
 
 export interface UserSite {

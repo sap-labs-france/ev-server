@@ -20,18 +20,17 @@ stages:
     executeWhitesourceScan: true
     sapCheckPPMSCompliance: true
     buildVersion: '{{.Major}}.{{.Minor}}'
-    
+
   Additional Unit Tests:
     karmaExecuteTests: false
 
   Acceptance:
-    newmanExecute: false
-    #cloudFoundryDeploy: true
-    #cloudFoundry:
-    #  org: 'SAP IT Cloud_sapitcfd'
-    #  space: e-Mobility-dev
-    #  credentialsId: scp-i030367-access
-    
+    cloudFoundryDeploy: true
+    cloudFoundry:
+      org: 'SAP IT Cloud_sapitcfd'
+      space: e-Mobility-dev
+      credentialsId: scp-i030367-access
+
   Security:
     executeCheckmarxScan: true
     checkmarxExecuteScan: false
@@ -49,7 +48,7 @@ steps:
 
   executeWhitesourceScan:
     scanType: npm
-   
+
   executeCheckmarxScan:
   #checkmarxExecuteScan:
     checkmarxProject: 'ev-server'
@@ -59,7 +58,7 @@ steps:
     preset: 100131 #SAP_Default_Typescript
     checkmarxCredentialsId: 'checkmarx-access'
     filterPattern: '!**/node_modules/**, !**/coverage/**, !**/coverage-tmp/**, !**/.xmake/**, !**/tests/**, !**/jest.config.js, !**/*_test.go, !**/vendor/**/*.go, **/*.html, **/*.xml, **/*.go, **/*.py, **/*.js, **/*.scala, **/*.ts, **/*.tsx'
-      
+
   sapCheckPPMSCompliance:
     ppmsID: '73554900100200014452'
     ppmsCredentialsId: 'ppms-i030367-access'

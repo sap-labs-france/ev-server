@@ -263,12 +263,12 @@ export default class Logging {
           console.debug(`Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
           if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
             console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`));
+            console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB`));
             console.warn('====================================');
           }
           if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
             console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
+            console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`));
             console.warn('====================================');
           }
         }
@@ -329,7 +329,7 @@ export default class Logging {
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
+        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`));
         console.warn('====================================');
       }
     }

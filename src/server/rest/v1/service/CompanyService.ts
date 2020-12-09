@@ -87,6 +87,7 @@ export default class CompanyService {
     }
     // Get it
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID,
+      { withLogo: true },
       [ 'id', 'name', 'issuer', 'logo', 'address' ]);
     UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetCompany', req.user);

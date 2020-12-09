@@ -7,6 +7,7 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
@@ -29,6 +30,7 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import TagStorage from '../../../storage/mongodb/TagStorage';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -51,7 +53,7 @@ export default class OCPPService {
   }
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
-    let heartbeatIntervalSecs;
+    let heartbeatIntervalSecs: number;
     switch (headers.ocppProtocol) {
       case OCPPProtocol.SOAP:
         heartbeatIntervalSecs = this.chargingStationConfig.heartbeatIntervalOCPPSSecs;
@@ -208,14 +210,14 @@ export default class OCPPService {
         let HeartBeatIntervalSettingFailure = false;
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartBeatInterval',
-          value: heartbeatIntervalSecs
+          value: heartbeatIntervalSecs.toString()
         }, false);
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
           HeartBeatIntervalSettingFailure = true;
         }
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartbeatInterval',
-          value: heartbeatIntervalSecs
+          value: heartbeatIntervalSecs.toString()
         }, false);
         let HeartbeatIntervalSettingFailure = false;
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
@@ -480,7 +482,7 @@ export default class OCPPService {
           });
         }
         // Get tag
-        const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
+        const tag = await TagStorage.getTag(headers.tenantID, authorize.idTag);
         if (!tag) {
           throw new BackendError({
             user: user,
@@ -664,6 +666,24 @@ export default class OCPPService {
         stateOfCharge: 0,
         user
       };
+      // Car handling
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR)) {
+        // Check default car
+        if (user.lastSelectedCarID) {
+          transaction.carID = user.lastSelectedCarID;
+        } else {
+          // Get default car if any
+          const defaultCar = await CarStorage.getDefaultUserCar(tenant.id, user.id, {}, ['id']);
+          if (defaultCar) {
+            transaction.carID = defaultCar.id;
+          }
+        }
+        // Set Car Catalog ID
+        if (transaction.carID) {
+          const car = await CarStorage.getCar(headers.tenantID, transaction.carID, {}, ['id', 'carCatalogID']);
+          transaction.carCatalogID = car?.carCatalogID;
+        }
+      }
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await OCPPUtils.createConsumptionFromMeterValue(
         headers.tenantID, chargingStation, transaction,
@@ -733,6 +753,10 @@ export default class OCPPService {
           action: ServerAction.START_TRANSACTION,
           message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been started`
         });
+      }
+      // Clear last user's car selection
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user.lastSelectedCarID) {
+        await UserStorage.saveUserLastSelectedCarID(tenant.id, user.id, null);
       }
       // Return
       return {

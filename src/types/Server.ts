@@ -341,6 +341,7 @@ export enum ServerAction {
   USER_IMAGE = 'UserImage',
   TAGS = 'Tags',
   TAG = 'Tag',
+  USER_DEFAUlT_TAG_CAR = 'UserDefaultTagCar',
   TAG_CREATE = 'TagCreate',
   TAG_UPDATE = 'TagUpdate',
   TAG_DELETE = 'TagDelete',
@@ -371,7 +372,7 @@ export enum ServerAction {
   MONGO_DB = 'MongoDB',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
-  CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'ComputeAndApplyChargingProfilesFailed',
+  COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED = 'ComputeAndApplyChargingProfilesFailed',
   SMART_CHARGING = 'SmartCharging',
 
   INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',

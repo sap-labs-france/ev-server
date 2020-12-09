@@ -195,7 +195,6 @@ export default class AssetStorage {
     // Read DB
     const assetsMDB = await global.database.getCollection<any>(tenantID, 'assets')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -280,7 +279,6 @@ export default class AssetStorage {
     // Read DB
     const assetsMDB = await global.database.getCollection<any>(tenantID, 'assets')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();

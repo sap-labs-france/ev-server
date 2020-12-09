@@ -303,7 +303,7 @@ export default class ChargingStationStorage {
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
     }
-    // Always add Conneector ID
+    // Always add Connector ID
     dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
     // Position coordinates
     if (Utils.containsGPSCoordinates(params.locCoordinates)) {
@@ -351,7 +351,9 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStations', uniqueTimerID, chargingStationsMDB);
@@ -470,7 +472,9 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStations', uniqueTimerID, chargingStationsMDB);
@@ -552,8 +556,8 @@ export default class ChargingStationStorage {
     await DatabaseUtils.checkTenant(tenantID);
     const updatedFields: any = {};
     updatedFields['connectors.' + (connector.connectorId - 1).toString()] = connectorMDB;
-    // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
@@ -568,7 +572,7 @@ export default class ChargingStationStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Set data
-    // Modify and return the modified document
+    // Modify document
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: params });
@@ -582,8 +586,8 @@ export default class ChargingStationStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Set data
-    // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: { firmwareUpdateStatus } },
       { upsert: true });
@@ -602,9 +606,9 @@ export default class ChargingStationStorage {
     // Delete Charging Profiles
     await this.deleteChargingProfiles(tenantID, id);
     // Delete Charging Station
-    await global.database.getCollection<any>(tenantID, 'chargingstations')
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });
-    // Keep the rest (bootnotif, authorize...)
+    // Keep the rest (boot notification, authorize...)
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
   }
@@ -817,7 +821,9 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenantID, 'chargingprofiles')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingProfiles', uniqueTimerID, chargingProfilesMDB);

@@ -14,15 +14,18 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'CarStorage';
 
 export default class CarStorage {
-  public static async getCarCatalog(id: number = Constants.UNKNOWN_NUMBER_ID, projectFields?: string[]): Promise<CarCatalog> {
+  public static async getCarCatalog(id: number = Constants.UNKNOWN_NUMBER_ID,
+    params: { withImage?: boolean; } = {},
+    projectFields?: string[]): Promise<CarCatalog> {
     const carCatalogsMDB = await CarStorage.getCarCatalogs({
-      carCatalogIDs: [id]
+      carCatalogIDs: [id],
+      withImage: params.withImage,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carCatalogsMDB.count === 1 ? carCatalogsMDB.result[0] : null;
   }
 
   public static async getCarCatalogs(
-    params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[] } = {},
+    params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[], withImage?: boolean; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogs');
@@ -99,18 +102,20 @@ export default class CarStorage {
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Car Image
-    aggregation.push({
-      $addFields: {
-        image: {
-          $concat: [
-            `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
-            { $toString: '$_id' },
-            '&LastChangedOn=',
-            { $toString: '$lastChangedOn' }
-          ]
+    if (params.withImage) {
+      aggregation.push({
+        $addFields: {
+          image: {
+            $concat: [
+              `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+              { $toString: '$_id' },
+              '&LastChangedOn=',
+              { $toString: '$lastChangedOn' }
+            ]
+          }
         }
-      }
-    });
+      });
+    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(Constants.DEFAULT_TENANT, aggregation);
     // Handle the ID
@@ -120,7 +125,6 @@ export default class CarStorage {
     // Read DB
     const carCatalogs = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -396,7 +400,6 @@ export default class CarStorage {
     // Read DB
     const carCatalogImages = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -456,7 +459,6 @@ export default class CarStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     const carMakersMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -558,12 +560,30 @@ export default class CarStorage {
   }
 
   public static async getCar(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-    params?: { withUsers?: boolean, userIDs?: string[]; }, projectFields?: string[]): Promise<Car> {
+    params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenantID, {
       carIDs: [id],
-      ...params
+      withUsers: params.withUsers,
+      userIDs: params.userIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
+  }
+
+  public static async getDefaultUserCar(tenantID: string, userID: string,
+    params: { } = {}, projectFields?: string[]): Promise<Car> {
+    const carMDB = await CarStorage.getCars(tenantID, {
+      userIDs: [userID],
+      defaultCar: true,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return carMDB.count === 1 ? carMDB.result[0] : null;
+  }
+
+  public static async getFirstAvailableUserCar(tenantID: string, userID: string,
+    params: { } = {}, projectFields?: string[]): Promise<Car> {
+    const carMDB = await CarStorage.getCars(tenantID, {
+      userIDs: [userID],
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return carMDB.count === 1 ? carMDB.result[0] : null;
   }
 
   public static async getCarByVinLicensePlate(tenantID: string,
@@ -578,7 +598,8 @@ export default class CarStorage {
   }
 
   public static async getCars(tenantID: string,
-    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string; withUsers?: boolean; defaultCar?: boolean; carMakers?: string[] } = {},
+    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
+      withUsers?: boolean; defaultCar?: boolean; carMakers?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCars');
@@ -715,7 +736,6 @@ export default class CarStorage {
     // Read DB
     const cars = await global.database.getCollection<Car>(tenantID, 'cars')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -898,7 +918,6 @@ export default class CarStorage {
     // Read DB
     const carUsers = await global.database.getCollection<UserCar>(tenantID, 'carusers')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();

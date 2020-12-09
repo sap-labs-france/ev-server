@@ -17,11 +17,11 @@ const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withCompany?: boolean } = {}, projectFields?: string[]): Promise<Site> {
+    params: { withCompany?: boolean, withImage?: boolean; } = {}, projectFields?: string[]): Promise<Site> {
     const sitesMDB = await SiteStorage.getSites(tenantID, {
       siteIDs: [id],
       withCompany: params.withCompany,
-      withImage: true,
+      withImage: params.withImage,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }
@@ -185,7 +185,6 @@ export default class SiteStorage {
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{ user: User; siteID: string; siteAdmin: boolean; siteOwner: boolean }>(tenantID, 'siteusers')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -451,7 +450,6 @@ export default class SiteStorage {
     // Read DB
     const sitesMDB = await global.database.getCollection<Site>(tenantID, 'sites')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
