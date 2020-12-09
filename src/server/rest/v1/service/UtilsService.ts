@@ -16,6 +16,7 @@ import { DataResult } from '../../../../types/DataResult';
 import { HttpEndUserReportErrorRequest } from '../../../../types/requests/HttpNotificationRequest';
 import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -138,6 +139,48 @@ export default class UtilsService {
         message: 'The OCPI Endpoint token is mandatory',
         module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+  }
+
+  public static checkIfOICPEndpointValid(oicpEndpoint: Partial<OICPEndpoint>, req: Request): void {
+    if (req.method !== 'POST' && !oicpEndpoint.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The OICP Endpoint ID is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOICPEndpointValid'
+      });
+    }
+    if (!oicpEndpoint.name) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The OICP Endpoint name is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOICPEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (!oicpEndpoint.role) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The OICP Endpoint role is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOICPEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (!oicpEndpoint.baseUrl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The OICP Endpoint base URL is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOICPEndpointValid',
         user: req.user.id
       });
     }

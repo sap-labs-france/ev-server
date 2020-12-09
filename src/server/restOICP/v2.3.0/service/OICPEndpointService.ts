@@ -35,7 +35,7 @@ export default class OICPEndpointService {
     // Filter
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointCreateRequest(req.body);
     // Check Mandatory fields
-    Utils.checkIfOICPEndpointValid(filteredRequest, req);
+    UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     const oicpEndpoint: OICPEndpoint = {
       ...filteredRequest,
       createdBy: { id: req.user.id },
@@ -158,7 +158,7 @@ export default class OICPEndpointService {
     // Filter
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointPingRequest(req.body);
     // Check Mandatory fields
-    Utils.checkIfOICPEndpointValid(filteredRequest, req);
+    UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get oicpEndpoint
     const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.user.tenantID, filteredRequest.id);

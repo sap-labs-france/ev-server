@@ -1,14 +1,15 @@
-import AxiosFactory from '../../utils/AxiosFactory';
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
+
+import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
+import Logging from '../../utils/Logging';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
+import { OICPJobResult } from '../../types/oicp/OICPJobResult';
+import { OICPOperatorID } from '../../types/oicp/OICPEvse';
 import { OICPRole } from '../../types/oicp/OICPRole';
 import { OicpSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import { OICPJobResult } from '../../types/oicp/OICPJobResult';
-import { OICPOperatorID } from '../../types/oicp/OICPEvse';
-import Logging from '../../utils/Logging';
 import https from 'https';
 
 const MODULE_NAME = 'OICPClient';
@@ -140,10 +141,10 @@ export default abstract class OICPClient {
     return httpsAgent;
   }
 
-  async abstract triggerJobs(): Promise<{
+  abstract triggerJobs(): Promise<{
     evses?: OICPJobResult,
     evseStatuses?: OICPJobResult;
   }>;
 
-  async abstract ping();
+  abstract ping();
 }

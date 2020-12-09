@@ -17,6 +17,17 @@
                         }
                     }
                 },
+                "oicp": {
+                  "type": "object",
+                  "properties": {
+                      "active": {
+                        "type": "boolean",
+                        "sanitize": "mongo" },
+                      "type": {
+                        "type": "string",
+                        "sanitize": "mongo" }
+                  }
+                },
                 "refund": {
                     "type": "object",
                     "properties": {

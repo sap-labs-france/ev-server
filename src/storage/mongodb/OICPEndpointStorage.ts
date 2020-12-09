@@ -27,7 +27,7 @@ export default class OICPEndpointStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveOicpEndpoint');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Check if name is provided
     if (!oicpEndpointToSave.name) {
       // Name must be provided!
@@ -78,7 +78,7 @@ export default class OICPEndpointStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOicpEndpoints');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -162,7 +162,7 @@ export default class OICPEndpointStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOicpEndpoint');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete OicpEndpoint
     await global.database.getCollection<any>(tenantID, 'oicpendpoints')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
@@ -174,7 +174,7 @@ export default class OICPEndpointStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOicpEndpoints');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete OicpEndpoint
     await global.database.getCollection<any>(tenantID, 'oicpendpoints').deleteMany({});
     // Debug

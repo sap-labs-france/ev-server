@@ -34,6 +34,6 @@ export default abstract class AbstractEndpoint {
   }
 
   // Abstract - Process endpoint
-  abstract async process(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment>;
+  abstract process(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment>;
 }
 

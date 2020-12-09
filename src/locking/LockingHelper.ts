@@ -71,6 +71,14 @@ export default class LockingHelper {
     return lock;
   }
 
+  public static async createOICPPushCpoCdrLock(tenantID: string, transactionID: number): Promise<Lock|null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `push-cdr-${transactionID}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
   public static async createOCPIPullEmspTokensLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
     return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'pull-emsp-tokens');
   }

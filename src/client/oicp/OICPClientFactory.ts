@@ -7,6 +7,7 @@ import OICPEndpoint from '../../types/oicp/OICPEndpoint';
 import OICPEndpointStorage from '../../storage/mongodb/OICPEndpointStorage';
 import { OICPRegistrationStatus } from '../../types/oicp/OICPRegistrationStatus';
 import { OICPRole } from '../../types/oicp/OICPRole';
+import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -23,6 +24,7 @@ export default class OICPClientFactory {
       if (!oicpSettings && oicpSettings.oicp) {
         Logging.logError({
           tenantID: tenant.id,
+          action: ServerAction.OICP_SETTINGS,
           module: MODULE_NAME, method: 'getOicpClient',
           message: 'OICP Settings are not configured'
         });
@@ -43,6 +45,7 @@ export default class OICPClientFactory {
     }
     Logging.logError({
       tenantID: tenant.id,
+      action: ServerAction.OICP_SETTINGS,
       module: MODULE_NAME, method: 'getCpoOicpClient',
       message: `CPO OICP Client is not compatible with endpoint role '${oicpEndpoint.role}'`
     });

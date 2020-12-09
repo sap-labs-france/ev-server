@@ -150,6 +150,7 @@ export enum ServerAction {
   OCPI_ENDPOINT_UNREGISTER = 'OcpiEndpointUnregister',
   OCPI_ENDPOINT_DELETE = 'OcpiEndpointDelete',
 
+  OICP_SETTINGS = 'OicpSettings',
   OICP_ENPOINT_CREATE = 'OicpEndpointCreate',
   OICP_ENPOINT_PING = 'OicpEndpointPing',
   OICP_ENPOINT_TRIGGER_JOBS = 'OicpEndpointTriggerJobs',
