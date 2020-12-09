@@ -23,6 +23,7 @@ import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
+import OICPUtils from '../../oicp/OICPUtils';
 import { PricedConsumption } from '../../../types/Pricing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import { PricingSettingsType } from '../../../types/Setting';
@@ -190,9 +191,24 @@ export default class OCPPUtils {
       });
     }
 
+    let authorization;
     switch (transactionAction) {
       case TransactionAction.START:
-        await oicpClient.startSession(chargingStation, transaction);
+        // Retrieve session Id and identification from (remote) authorization
+        authorization = OICPUtils.getOICPIdentificationFromRemoteAuthorization(tenantID, chargingStation, transaction.connectorId, ServerAction.START_TRANSACTION);
+        if (!authorization) {
+          authorization = await OICPUtils.getOICPIdentificationFromAuthorization(tenantID, transaction);
+        }
+        if (!authorization) {
+          throw new BackendError({
+            source: transaction.chargeBoxID,
+            action: ServerAction.OICP_PUSH_SESSIONS,
+            message: 'No Authorization. OICP Session not started',
+            module: MODULE_NAME, method: 'startSession',
+          });
+        }
+
+        await oicpClient.startSession(chargingStation, transaction, authorization.sessionId, authorization.identification);
         break;
       case TransactionAction.UPDATE:
         await oicpClient.updateSession(transaction);

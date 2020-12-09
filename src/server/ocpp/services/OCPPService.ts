@@ -25,8 +25,11 @@ import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
+import { OICPAuthorizationStatus } from '../../../types/oicp/OICPAuthentication';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
+import { OICPSession } from '../../../types/oicp/OICPSession';
+import OICPUtils from '../../oicp/OICPUtils';
 import RegistrationToken from '../../../types/RegistrationToken';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import { ServerAction } from '../../../types/Server';
@@ -441,10 +444,57 @@ export default class OCPPService {
       // Check
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
         authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
-      // OCPI User
+      // Roaming User?
       if (user && !user.issuer) {
         const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
-        if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+        if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+          // OCPI user
+          // Get tag
+          const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
+          if (!tag) {
+            throw new BackendError({
+              user: user,
+              action: ServerAction.AUTHORIZE,
+              module: MODULE_NAME, method: 'handleAuthorize',
+              message: `Tag ID '${authorize.idTag}' does not exists`
+            });
+          }
+          if (!tag.ocpiToken) {
+            throw new BackendError({
+              user: user,
+              action: ServerAction.AUTHORIZE,
+              module: MODULE_NAME, method: 'handleAuthorize',
+              message: `Tag ID '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
+            });
+          }
+          const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+          if (!ocpiClient) {
+            throw new BackendError({
+              user: user,
+              action: ServerAction.AUTHORIZE,
+              module: MODULE_NAME, method: 'handleAuthorize',
+              message: 'OCPI component requires at least one CPO endpoint to authorize users'
+            });
+          }
+          authorize.authorizationId = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
+        } else if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+          // OICP user
+          const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
+          if (!oicpClient) {
+            throw new BackendError({
+              user: user,
+              action: ServerAction.AUTHORIZE,
+              module: MODULE_NAME,
+              method: 'handleAuthorize',
+              message: 'OICP component requires at least one CPO endpoint to start a Session'
+            });
+          }
+          // Call Hubject
+          const oicpSession = {} as OICPSession;
+          oicpSession.identification = OICPUtils.convertTagID2OICPIdentification(authorize.idTag);
+          const response = await oicpClient.authorizeStart(oicpSession, user);
+          authorize.authorizationId = response.SessionID;
+        } else {
           throw new BackendError({
             user: user,
             action: ServerAction.AUTHORIZE,
@@ -452,34 +502,6 @@ export default class OCPPService {
             message: `Unable to authorize user '${user.id}' not issued locally`
           });
         }
-        // Get tag
-        const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
-        if (!tag) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Tag ID '${authorize.idTag}' does not exists`
-          });
-        }
-        if (!tag.ocpiToken) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Tag ID '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
-          });
-        }
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-        if (!ocpiClient) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: 'OCPI component requires at least one CPO endpoint to authorize users'
-          });
-        }
-        authorize.authorizationId = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
       }
       // Set
       authorize.user = user;
@@ -586,7 +608,7 @@ export default class OCPPService {
       startTransaction.chargeBoxID = chargingStation.id;
       startTransaction.tagID = startTransaction.idTag;
       startTransaction.timezone = Utils.getTimezone(chargingStation.coordinates);
-      // Check Authorization with Tag ID
+      // Check Authorization with Tag ID and get user or virtual OICP user
       const user = await Authorizations.isAuthorizedToStartTransaction(
         headers.tenantID, chargingStation, startTransaction.tagID, ServerAction.START_TRANSACTION, Action.START_TRANSACTION);
       if (user) {
@@ -651,12 +673,18 @@ export default class OCPPService {
       await OCPPUtils.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
       // Billing
       await OCPPUtils.billTransaction(headers.tenantID, transaction, TransactionAction.START);
-      // Is it possible that a TagID is registered at Gireve and Hubject? Then only one Session for either Gireve or Hubject should be started.
-      // Assumption: Either Gireve or Hubject is enabled for eRoaming
-      // OCPI
-      await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
-      // OICP
-      await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
+      // Roaming ?
+      if (transaction.user || !transaction.user.issuer) {
+        // Assumption: Either Gireve or Hubject is enabled for eRoaming
+        // OCPI or OICP
+        if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+        // OCPI
+          await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
+        } else if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+        // OICP
+          await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
+        }
+      }
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Clean up Charging Station's connector transaction info
@@ -798,7 +826,8 @@ export default class OCPPService {
       let user: User, alternateUser: User;
       // Transaction is stopped by central system?
       if (!stoppedByCentralSystem) {
-        // Check and get users
+        // Check if there is a OICP Authorization
+        // Check and get users or virtual OICP user
         const users = await Authorizations.isAuthorizedToStopTransaction(
           headers.tenantID, chargingStation, transaction, tagId, ServerAction.STOP_TRANSACTION, Action.STOP_TRANSACTION);
         user = users.user;
@@ -1010,10 +1039,19 @@ export default class OCPPService {
     await this.checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, foundConnector);
     // Notify admins
     await this.notifyStatusNotification(tenantID, chargingStation, statusNotification);
-    // Send new status to Hubject
-    await this.updateOICPStatus(tenantID, chargingStation, foundConnector);
-    // Send new status to IOP
-    await this.updateOCPIConnectorStatus(tenantID, chargingStation, foundConnector);
+    // Send connector status to eRoaming platforms if charging station is public and component is activated
+    if (chargingStation.issuer && chargingStation.public) {
+      const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+        // Send new status to Hubject
+        await this.updateOICPConnectorStatus(tenant, chargingStation, foundConnector);
+      }
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+        // Send new status to IOP
+        await this.updateOCPIConnectorStatus(tenant, chargingStation, foundConnector);
+      }
+    }
+
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
@@ -1096,45 +1134,39 @@ export default class OCPPService {
     }
   }
 
-  private async updateOCPIConnectorStatus(tenantID: string, chargingStation: ChargingStation, connector: Connector) {
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (chargingStation.issuer && chargingStation.public && Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-      try {
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-        if (ocpiClient) {
-          await ocpiClient.patchChargingStationStatus(chargingStation, connector);
-        }
-      } catch (error) {
-        Logging.logError({
-          tenantID: tenantID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'updateOCPIConnectorStatus',
-          action: ServerAction.OCPI_PATCH_STATUS,
-          message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
+  private async updateOCPIConnectorStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector) {
+    try {
+      const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+      if (ocpiClient) {
+        await ocpiClient.patchChargingStationStatus(chargingStation, connector);
       }
+    } catch (error) {
+      Logging.logError({
+        tenantID: tenant.id,
+        source: chargingStation.id,
+        module: MODULE_NAME, method: 'updateOCPIConnectorStatus',
+        action: ServerAction.OCPI_PATCH_STATUS,
+        message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
     }
   }
 
-  private async updateOICPStatus(tenantID: string, chargingStation: ChargingStation, connector: Connector) {
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (chargingStation.issuer && chargingStation.public && Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-      try {
-        const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
-        if (oicpClient) {
-          await oicpClient.updateEVSEStatus(chargingStation, connector);
-        }
-      } catch (error) {
-        Logging.logError({
-          tenantID: tenantID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'updateOICPStatus',
-          action: ServerAction.OICP_UPDATE_EVSE_STATUS,
-          message: `An error occurred while updating the charging station status of ${chargingStation.id}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
+  private async updateOICPConnectorStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector) {
+    try {
+      const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
+      if (oicpClient) {
+        await oicpClient.updateEVSEStatus(chargingStation, connector);
       }
+    } catch (error) {
+      Logging.logError({
+        tenantID: tenant.id,
+        source: chargingStation.id,
+        module: MODULE_NAME, method: 'updateOICPStatus',
+        action: ServerAction.OICP_UPDATE_EVSE_STATUS,
+        message: `An error occurred while updating the charging station status of ${chargingStation.id}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
     }
   }
 

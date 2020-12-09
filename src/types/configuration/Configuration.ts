@@ -20,10 +20,12 @@ import NotificationConfiguration from './NotificationConfiguration';
 import OCPIEndpointConfiguration from './OCPIEndpointConfiguration';
 import OCPIServiceConfiguration from './OCPIServiceConfiguration';
 import ODataServiceConfiguration from './ODataServiceConfiguration';
+import OICPServiceConfiguration from './OICPServiceConfiguration';
 import SchedulerConfiguration from './SchedulerConfiguration';
 import StorageConfiguration from './StorageConfiguration';
 import WSClientConfiguration from './WSClientConfiguration';
 import WSDLEndpointConfiguration from './WSDLEndpointConfiguration';
+import OICPEndpointConfiguration from './OICPEndpointConfiguration';
 
 export interface Configuration {
   Crypto: CryptoConfiguration;
@@ -35,8 +37,10 @@ export interface Configuration {
   WSDLEndpoint: WSDLEndpointConfiguration;
   JsonEndpoint: JsonEndpointConfiguration;
   OCPIEndpoint: OCPIEndpointConfiguration;
+  OICPEndpoint: OICPEndpointConfiguration;
   WSClient: WSClientConfiguration;
   OCPIService: OCPIServiceConfiguration;
+  OICPService: OICPServiceConfiguration;
   ODataService: ODataServiceConfiguration;
   Firebase: FirebaseConfiguration;
   Email: EmailConfiguration;

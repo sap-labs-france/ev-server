@@ -53,6 +53,12 @@ export enum OICPRFID { // Defined RFID Types
   mifareFamily = 'mifareFamily'
 }
 
+export enum OICPDefaultTagId {
+  QRCodeIdentification = 'NoTagID-OICPQRCode',
+  PlugAndChargeIdentification = 'NoTagID-OICPPlug&Cha',
+  RemoteIdentification = 'NoTagID-OICPRemote'
+}
+
 export type OICPEvcoID = string; // Contract identifier. Hubject will automatically convert all characters from lower case to upper case. A string that MUST be valid with respect to the following regular expression: ISO | DIN ^(([A-Za-z]{2}\-?[A-Za-z0-9]{3}\-?C[A-Za-z0-9]{8}\-?[\d|A-Za-z])|([A-Za-z]{2}[\*|\-]?[A-Za-z0-9]{3}[\*|\-]?[A-Za-z0-9]{6}[\*|\-]?[\d|X]))$ Examples ISO: “DE-8EO-CAet5e4XY-3”, “DE8EOCAet5e43X1” Examples DIN: “DE*8EO*Aet5e4*3”, “DE-8EO-Aet5e4-3”, “DE8EOAet5e43”
 export type OICPUID = string; // ^([0-9A-F]{8,8}|[0-9A-F]{14,14}|[0-9A-F]{20,20})$ The expression validates the string as a unique RFID with a length of 8, 14 or 20 characters. Examples: “AFFH1768”, “7568290FFF765F”
 export type OICPSessionID = string; // A string that MUST be valid with respect to the following regular expression: ^[A-Za-z0-9]{8}(-[A-Za-z0-9]{4}){3}-[A-Za-z0-9]{12}$ The expression validates the string as a GUID. Example: “b2688855-7f00-0002-6d8e-48d883f6abb6”

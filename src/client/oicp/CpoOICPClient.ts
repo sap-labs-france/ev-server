@@ -3,6 +3,7 @@ import { OICPActionType, OICPPushEvseDataCpoSend } from '../../types/oicp/OICPEv
 import { OICPAuthorizeStartCpoReceive, OICPAuthorizeStartCpoSend, OICPAuthorizeStopCpoReceive, OICPAuthorizeStopCpoSend } from '../../types/oicp/OICPAuthorize';
 import { OICPChargingNotification, OICPCode, OICPErrorClass } from '../../types/oicp/OICPStatusCode';
 import { OICPChargingNotificationEndCpoSend, OICPChargingNotificationErrorCpoSend, OICPChargingNotificationProgressCpoSend, OICPChargingNotificationStartCpoSend } from '../../types/oicp/OICPChargingNotifications';
+import { OICPDefaultTagId, OICPIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
 import { OICPEVSEPricing, OICPPricingProductData } from '../../types/oicp/OICPPricing';
 import { OICPEvseDataRecord, OICPEvseStatusRecord, OICPOperatorEvseData, OICPOperatorEvseStatus } from '../../types/oicp/OICPEvse';
 import { OICPPushEVSEPricingCpoSend, OICPPushPricingProductDataCpoSend } from '../../types/oicp/OICPDynamicPricing';
@@ -48,20 +49,7 @@ export default class CpoOICPClient extends OICPClient {
     }
   }
 
-  async startSession(chargingStation: ChargingStation, transaction: Transaction): Promise<void> {
-    // Build payload
-    // Check if there is a authorization
-    const authorization = OICPUtils.checkOICPAuthorization(this.tenant.id, chargingStation, transaction.connectorId);
-    if (!authorization) {
-      throw new BackendError({
-        source: transaction.chargeBoxID,
-        action: ServerAction.OICP_PUSH_SESSIONS,
-        message: 'No Authorization. OICP Session not started',
-        module: MODULE_NAME, method: 'startSession',
-      });
-    }
-    const identification = authorization.oicpIdentification;
-
+  async startSession(chargingStation: ChargingStation, transaction: Transaction, sessionId: OICPSessionID, identification: OICPIdentification): Promise<void> {
     let siteArea;
     if (!chargingStation.siteArea) {
       siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
@@ -77,7 +65,7 @@ export default class CpoOICPClient extends OICPClient {
     const oicpEvse = OICPMapping.getEvseByConnectorId(this.tenant, siteArea, chargingStation, transaction.connectorId, options);
 
     const oicpSession: OICPSession = {} as OICPSession;
-    oicpSession.id = authorization.id;
+    oicpSession.id = sessionId;
     oicpSession.start_datetime = transaction.timestamp;
     oicpSession.kwh = 0;
     oicpSession.identification = identification;
@@ -201,15 +189,16 @@ export default class CpoOICPClient extends OICPClient {
     });
     // Call Hubject
     await this.sendChargingNotificationEnd(transaction);
-    const response = await this.authorizeStop(transaction);
-
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OICP_PUSH_SESSIONS,
-      message: `Push OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response retrieved from Hubject`,
-      module: MODULE_NAME, method: 'stopSession',
-      detailedMessages: { response: response }
-    });
+    if (transaction.tagID !== OICPDefaultTagId.RemoteIdentification) {
+      const response = await this.authorizeStop(transaction);
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: `Push OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response retrieved from Hubject`,
+        module: MODULE_NAME, method: 'stopSession',
+        detailedMessages: { response: response }
+      });
+    }
   }
 
   /**
@@ -615,7 +604,7 @@ export default class CpoOICPClient extends OICPClient {
       payload.CPOPartnerSessionID = String(transactionId); // Optional
     }
     payload.EMPPartnerSessionID; // Optional
-    payload.EvseID = oicpSession.evse.EvseID; // Optional
+    payload.EvseID = oicpSession.evse?.EvseID; // Optional
     payload.Identification = oicpSession.identification;
     payload.PartnerProductID; // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_AUTHORIZE_START);
