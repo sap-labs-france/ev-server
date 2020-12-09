@@ -14,16 +14,16 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'SettingStorage';
 
 export default class SettingStorage {
-  public static async getSetting(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<SettingDB> {
+  public static async getSetting(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<SettingDB> {
     const settingMDB = await SettingStorage.getSettings(tenantID, {
       settingID: id
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return settingMDB.count === 1 ? settingMDB.result[0] : null;
   }
 
-  public static async getSettingByIdentifier(tenantID: string, identifier: string = Constants.UNKNOWN_STRING_ID): Promise<SettingDB> {
+  public static async getSettingByIdentifier(tenantID: string, identifier: string = Constants.UNKNOWN_STRING_ID, projectFields?: string[]): Promise<SettingDB> {
     const settingsMDB = await SettingStorage.getSettings(
-      tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
+      tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return settingsMDB.count === 1 ? settingsMDB.result[0] : null;
   }
 
@@ -31,7 +31,7 @@ export default class SettingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveSetting');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Check if ID is provided
     if (!settingToSave.id && !settingToSave.identifier) {
       // ID must be provided!
@@ -317,7 +317,7 @@ export default class SettingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSettings');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -369,7 +369,9 @@ export default class SettingStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const settingsMDB = await global.database.getCollection<SettingDB>(tenantID, 'settings')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
@@ -384,7 +386,7 @@ export default class SettingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSetting');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete Component
     await global.database.getCollection<any>(tenantID, 'settings')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });

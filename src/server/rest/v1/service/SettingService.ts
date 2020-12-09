@@ -26,10 +26,8 @@ export default class SettingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.DELETE,
-        entity: Entity.SETTING,
-        module: MODULE_NAME,
-        method: 'handleDeleteSetting',
+        action: Action.DELETE, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleDeleteSetting',
         value: settingID
       });
     }
@@ -61,10 +59,8 @@ export default class SettingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.SETTING,
-        module: MODULE_NAME,
-        method: 'handleGetSetting',
+        action: Action.READ, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleGetSetting',
         value: settingID
       });
     }
@@ -76,10 +72,7 @@ export default class SettingService {
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
     // Return
-    res.json(
-      // Filter
-      SettingSecurity.filterSettingResponse(setting, req.user)
-    );
+    res.json(setting);
     next();
   }
 
@@ -89,10 +82,8 @@ export default class SettingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.SETTINGS,
-        module: MODULE_NAME,
-        method: 'handleGetSettings'
+        action: Action.LIST, entity: Entity.SETTINGS,
+        module: MODULE_NAME, method: 'handleGetSettings'
       });
     }
     // Filter
@@ -101,14 +92,11 @@ export default class SettingService {
     const settings = await SettingStorage.getSettings(req.user.tenantID,
       { identifier: filteredRequest.Identifier },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
-    settings.result = settings.result.map((setting) => setting);
-    // Filter
-    settings.result = SettingSecurity.filterSettingsResponse(settings.result, req.user);
     // Process the sensitive data if any
-    settings.result.forEach((setting) => {
+    for (const setting of settings.result) {
       // Hash sensitive data before being sent to the front end
       Cypher.hashSensitiveDataInJSON(setting);
-    });
+    }
     // Return
     res.json(settings);
     next();
@@ -120,10 +108,8 @@ export default class SettingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.CREATE,
-        entity: Entity.SETTING,
-        module: MODULE_NAME,
-        method: 'handleCreateSetting'
+        action: Action.CREATE, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleCreateSetting'
       });
     }
     // Filter
@@ -157,10 +143,8 @@ export default class SettingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.SETTING,
-        module: MODULE_NAME,
-        method: 'handleUpdateSetting',
+        action: Action.UPDATE, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleUpdateSetting',
         value: settingUpdate.id
       });
     }

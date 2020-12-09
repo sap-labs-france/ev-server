@@ -7,6 +7,8 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import { LockEntity } from '../../../../types/Locking';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
@@ -14,7 +16,6 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
-import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidation';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -26,9 +27,9 @@ const MODULE_NAME = 'TenantService';
 export default class TenantService {
 
   public static async handleDeleteTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const id = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
+    // Validate
+    const tenantID = TenantValidator.getInstance().validateTenantDeleteRequestSuperAdmin(req.query);
+    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -36,12 +37,12 @@ export default class TenantService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleDeleteTenant',
-        value: id
+        value: tenantID
       });
     }
     // Get
-    const tenant = await TenantStorage.getTenant(id);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${id}' does not exist`,
+    const tenant = await TenantStorage.getTenant(tenantID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -72,33 +73,32 @@ export default class TenantService {
   }
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
+    // Validate
+    const tenantID = TenantValidator.getInstance().validateGetLogoReqSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenantLogo', req.user);
-    // Check auth
-    if (!Authorizations.canReadTenant(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.READ, entity: Entity.TENANT,
-        module: MODULE_NAME, method: 'handleGetTenantLogo',
-        value: tenantID
-      });
-    }
-    // Get Tenant
-    const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
-      MODULE_NAME, 'handleGetTenantLogo', req.user);
     // Get Logo
     const tenantLogo = await TenantStorage.getTenantLogo(tenantID);
     // Return
-    res.json(tenantLogo);
+    if (tenantLogo?.logo) {
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      // Remove encoding header
+      if (tenantLogo.logo.startsWith('data:image/')) {
+        header = tenantLogo.logo.substring(5, tenantLogo.logo.indexOf(';'));
+        encoding = tenantLogo.logo.substring(tenantLogo.logo.indexOf(';') + 1, tenantLogo.logo.indexOf(',')) as BufferEncoding;
+        tenantLogo.logo = tenantLogo.logo.substring(tenantLogo.logo.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(tenantLogo.logo ? Buffer.from(tenantLogo.logo, encoding) : null);
+    } else {
+      res.send(null);
+    }
     next();
   }
 
   public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
+    // Validate
+    const tenantID = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
@@ -111,18 +111,20 @@ export default class TenantService {
       });
     }
     // Get it
-    const tenant = await TenantStorage.getTenant(tenantID);
+    const tenant = await TenantStorage.getTenant(tenantID,
+      { withLogo: true },
+      [ 'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo']
+    );
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
       MODULE_NAME, 'handleGetTenant', req.user);
     // Return
-    res.json(
-      // Filter
-      TenantSecurity.filterTenantResponse(tenant, req.user)
-    );
+    res.json(tenant);
     next();
   }
 
   public static async handleGetTenants(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Validate
+    const filteredRequest = TenantValidator.getInstance().validateTenantsGetReqSuperAdmin(req.query);
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
@@ -133,8 +135,9 @@ export default class TenantService {
       });
     }
     // Filter
-    const filteredRequest = TenantSecurity.filterTenantsRequest(req.query);
-    const projectFields = [ 'id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'];
+    const projectFields = [
+      'id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+    ];
     if (filteredRequest.WithComponents) {
       projectFields.push('components');
     }
@@ -144,10 +147,8 @@ export default class TenantService {
         search: filteredRequest.Search,
         withLogo: filteredRequest.WithLogo,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) },
       projectFields);
-    // Filter
-    TenantSecurity.filterTenantsResponse(tenants, req.user);
     // Return
     res.json(tenants);
     next();
@@ -197,7 +198,16 @@ export default class TenantService {
     // Update with components
     await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Create DB collections
-    await TenantStorage.createTenantDB(filteredRequest.id);
+    // Database creation Lock
+    const createDatabaseLock = LockingManager.createExclusiveLock(filteredRequest.id, LockEntity.DATABASE, 'create-database');
+    if (await LockingManager.acquire(createDatabaseLock)) {
+      try {
+        await TenantStorage.createTenantDB(filteredRequest.id);
+      } finally {
+        // Release the database creation Lock
+        await LockingManager.release(createDatabaseLock);
+      }
+    }
     // Create Admin user in tenant
     const tenantUser: User = UserStorage.createNewUser() as User;
     tenantUser.name = filteredRequest.name;
@@ -217,7 +227,7 @@ export default class TenantService {
     await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, { passwordResetHash: resetHash });
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
-      '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+      '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
@@ -246,7 +256,7 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    const tenantUpdate = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
@@ -254,18 +264,18 @@ export default class TenantService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleUpdateTenant',
-        value: tenantUpdate.id
+        value: filteredRequest.id
       });
     }
     // Get
-    const tenant = await TenantStorage.getTenant(tenantUpdate.id);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`,
+    const tenant = await TenantStorage.getTenant(filteredRequest.id);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTenant', req.user);
     // Check if smart charging is deactivated in all site areas when deactivated in super tenant
-    if (tenantUpdate.components && tenantUpdate.components.smartCharging &&
-      tenant.components && tenant.components.smartCharging &&
-      !tenantUpdate.components.smartCharging.active && tenant.components.smartCharging.active) {
-      const siteAreas = await SiteAreaStorage.getSiteAreas(tenantUpdate.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
+    if (filteredRequest.components && filteredRequest.components.smartCharging &&
+        tenant.components && tenant.components.smartCharging &&
+        !filteredRequest.components.smartCharging.active && tenant.components.smartCharging.active) {
+      const siteAreas = await SiteAreaStorage.getSiteAreas(filteredRequest.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
       if (siteAreas.count !== 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -278,20 +288,28 @@ export default class TenantService {
         });
       }
     }
+    tenant.name = filteredRequest.name;
+    tenant.address = filteredRequest.address;
+    tenant.components = filteredRequest.components;
+    tenant.email = filteredRequest.email;
+    tenant.subdomain = filteredRequest.subdomain;
+    if (Utils.objectHasProperty(filteredRequest, 'logo')) {
+      tenant.logo = filteredRequest.logo;
+    }
     // Update timestamp
-    tenantUpdate.lastChangedBy = { 'id': req.user.id };
-    tenantUpdate.lastChangedOn = new Date();
+    tenant.lastChangedBy = { 'id': req.user.id };
+    tenant.lastChangedOn = new Date();
     // Update Tenant
-    await TenantStorage.saveTenant(tenantUpdate);
+    await TenantStorage.saveTenant(tenant, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     // Update with components
-    await TenantService.updateSettingsWithComponents(tenantUpdate, req);
+    await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleUpdateTenant',
-      message: `Tenant '${tenantUpdate.name}' has been updated successfully`,
+      message: `Tenant '${filteredRequest.name}' has been updated successfully`,
       action: action,
-      detailedMessages: { tenant: tenantUpdate }
+      detailedMessages: { tenant }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

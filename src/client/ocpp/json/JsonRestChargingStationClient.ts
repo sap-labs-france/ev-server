@@ -14,7 +14,7 @@ const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
   private serverURL: string;
   private chargingStation: ChargingStation;
-  private requests: { [messageUID: string]: { resolve?: (result: object) => void; reject?: (error: object) => void; command: ServerAction } };
+  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown>) => void; reject?: (error: Record<string, unknown>) => void; command: ServerAction } };
   private wsConnection: WSClient;
   private tenantID: string;
 
@@ -149,7 +149,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           // Log
           Logging.logException(
             error,
-            ServerAction.WS_REST_CONNECTION_CLOSED,
+            ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
             this.chargingStation.id,
             MODULE_NAME, 'onError',
             this.tenantID
@@ -231,7 +231,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       // Open WS Connection
       await this.openConnection();
       // Check if wsConnection is ready
-      if (this.wsConnection.isConnectionOpen()) {
+      if (this.wsConnection?.isConnectionOpen()) {
         // Send
         this.wsConnection.send(JSON.stringify(request));
         // Set the resolve function

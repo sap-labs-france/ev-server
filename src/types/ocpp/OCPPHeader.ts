@@ -3,9 +3,9 @@ import { OCPPProtocol, OCPPVersion } from './OCPPServer';
 export interface OCPPHeader {
   ocppVersion?: OCPPVersion;
   ocppProtocol?: OCPPProtocol;
-  chargeBoxIdentity?: string;
+  chargeBoxIdentity: string;
   currentIPAddress?: string|string[];
-  tenantID?: string;
+  tenantID: string;
   token?: string;
   chargingStationURL?: string;
   From?: {

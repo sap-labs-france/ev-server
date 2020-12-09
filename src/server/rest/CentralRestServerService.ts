@@ -20,6 +20,7 @@ import SiteAreaService from './v1/service/SiteAreaService';
 import SiteService from './v1/service/SiteService';
 import StatisticService from './v1/service/StatisticService';
 import { StatusCodes } from 'http-status-codes';
+import TagService from './v1/service/TagService';
 import TenantService from './v1/service/TenantService';
 import TransactionService from './v1/service/TransactionService';
 import UserService from './v1/service/UserService';
@@ -104,7 +105,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
-          [ServerAction.TAG_CREATE]: UserService.handleCreateTag.bind(this),
+          [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
           [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
         });
         break;
@@ -135,7 +136,6 @@ class RequestMapper {
           [ServerAction.BOOT_NOTIFICATION]: ChargingStationService.handleGetBootNotifications.bind(this),
           [ServerAction.COMPANIES]: CompanyService.handleGetCompanies.bind(this),
           [ServerAction.COMPANY]: CompanyService.handleGetCompany.bind(this),
-          [ServerAction.COMPANY_LOGO]: CompanyService.handleGetCompanyLogo.bind(this),
           [ServerAction.ASSETS]: AssetService.handleGetAssets.bind(this),
           [ServerAction.ASSET]: AssetService.handleGetAsset.bind(this),
           [ServerAction.ASSET_IMAGE]: AssetService.handleGetAssetImage.bind(this),
@@ -145,15 +145,14 @@ class RequestMapper {
           [ServerAction.ASSET_CONSUMPTION]: AssetService.handleGetAssetConsumption.bind(this),
           [ServerAction.SITES]: SiteService.handleGetSites.bind(this),
           [ServerAction.SITE]: SiteService.handleGetSite.bind(this),
-          [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
           [ServerAction.SITE_USERS]: SiteService.handleGetUsers.bind(this),
           [ServerAction.TENANTS]: TenantService.handleGetTenants.bind(this),
           [ServerAction.TENANT]: TenantService.handleGetTenant.bind(this),
-          [ServerAction.TENANT_LOGO]: TenantService.handleGetTenantLogo.bind(this),
           [ServerAction.SITE_AREAS]: SiteAreaService.handleGetSiteAreas.bind(this),
           [ServerAction.SITE_AREA]: SiteAreaService.handleGetSiteArea.bind(this),
-          [ServerAction.SITE_AREA_IMAGE]: SiteAreaService.handleGetSiteAreaImage.bind(this),
           [ServerAction.SITE_AREA_CONSUMPTION]: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
+          // TODO: To remove the 'SITE_IMAGE' when new version of Mobile App will be released (> V1.3.22)
+          [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
           [ServerAction.USERS]: UserService.handleGetUsers.bind(this),
           [ServerAction.USER_SITES]: UserService.handleGetSites.bind(this),
           [ServerAction.USERS_IN_ERROR]: UserService.handleGetUsersInError.bind(this),
@@ -161,8 +160,9 @@ class RequestMapper {
           [ServerAction.USER]: UserService.handleGetUser.bind(this),
           [ServerAction.USERS_EXPORT]: UserService.handleExportUsers.bind(this),
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
-          [ServerAction.TAGS]: UserService.handleGetTags.bind(this),
-          [ServerAction.TAG]: UserService.handleGetTag.bind(this),
+          [ServerAction.TAGS]: TagService.handleGetTags.bind(this),
+          [ServerAction.TAG]: TagService.handleGetTag.bind(this),
+          [ServerAction.USER_DEFAUlT_TAG_CAR]: UserService.handleGetUserDefaultTagCar.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND_EXPORT]: TransactionService.handleExportTransactionsToRefund.bind(this),
@@ -229,7 +229,7 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_UNREGISTER]: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
-          [ServerAction.TAG_UPDATE]: UserService.handleUpdateTag.bind(this),
+          [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
         });
         break;
 
@@ -253,7 +253,7 @@ class RequestMapper {
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
           [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
-          [ServerAction.TAG_DELETE]: UserService.handleDeleteTag.bind(this),
+          [ServerAction.TAG_DELETE]: TagService.handleDeleteTag.bind(this),
         });
         break;
     }
@@ -305,6 +305,18 @@ export default class CentralRestServerService {
               break;
             case ServerAction.CAR_CATALOG_IMAGE:
               await CarService.handleGetCarCatalogImage(action, req, res, next);
+              break;
+            case ServerAction.COMPANY_LOGO:
+              await CompanyService.handleGetCompanyLogo(action, req, res, next);
+              break;
+            case ServerAction.SITE_IMAGE:
+              await SiteService.handleGetSiteImage(action, req, res, next);
+              break;
+            case ServerAction.SITE_AREA_IMAGE:
+              await SiteAreaService.handleGetSiteAreaImage(action, req, res, next);
+              break;
+            case ServerAction.TENANT_LOGO:
+              await TenantService.handleGetTenantLogo(action, req, res, next);
               break;
             // Firmware Download
             case ServerAction.FIRMWARE_DOWNLOAD:

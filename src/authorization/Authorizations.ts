@@ -17,6 +17,7 @@ import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
+import TagStorage from '../storage/mongodb/TagStorage';
 import TenantComponents from '../types/TenantComponents';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
@@ -123,7 +124,7 @@ export default class Authorizations {
     // Get User's site
     const sites = (await UserStorage.getUserSites(tenantID, { userID: user.id },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
-    sites.forEach((siteUser) => {
+    for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
         siteIDs.push(siteUser.site.id);
         companyIDs.add(siteUser.site.companyID);
@@ -134,7 +135,7 @@ export default class Authorizations {
       if (siteUser.siteOwner) {
         siteOwnerIDs.push(siteUser.site.id);
       }
-    });
+    }
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
     let tenantName;
@@ -313,23 +314,23 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.UPDATE);
   }
 
-  public static canReadUser(loggedUser: UserToken, userId: string): boolean {
+  public static canReadUser(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.READ,
-      { user: userId, owner: loggedUser.id });
+      { user: userID, owner: loggedUser.id });
   }
 
   public static canCreateUser(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.CREATE);
   }
 
-  public static canUpdateUser(loggedUser: UserToken, userId: string): boolean {
+  public static canUpdateUser(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.UPDATE,
-      { user: userId, owner: loggedUser.id });
+      { user: userID, owner: loggedUser.id });
   }
 
-  public static canDeleteUser(loggedUser: UserToken, userId: string): boolean {
+  public static canDeleteUser(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.DELETE,
-      { user: userId, owner: loggedUser.id });
+      { user: userID, owner: loggedUser.id });
   }
 
   public static canListSites(loggedUser: UserToken): boolean {
@@ -495,9 +496,9 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANIES, Action.LIST);
   }
 
-  public static canReadCompany(loggedUser: UserToken, companyId: string): boolean {
+  public static canReadCompany(loggedUser: UserToken, companyID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.READ,
-      { company: companyId, companies: loggedUser.companies });
+      { company: companyID, companies: loggedUser.companies });
   }
 
   public static canCreateCompany(loggedUser: UserToken): boolean {
@@ -596,14 +597,14 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTION, Action.CREATE);
   }
 
-  public static canDeleteConnection(loggedUser: UserToken, userId: string): boolean {
+  public static canDeleteConnection(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTION, Action.DELETE,
-      { user: userId, owner: loggedUser.id });
+      { user: userID, owner: loggedUser.id });
   }
 
-  public static canReadConnection(loggedUser: UserToken, userId: string): boolean {
+  public static canReadConnection(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTION, Action.READ,
-      { user: userId, owner: loggedUser.id });
+      { user: userID, owner: loggedUser.id });
   }
 
   public static canListConnections(loggedUser: UserToken): boolean {
@@ -646,9 +647,9 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.CREATE);
   }
 
-  public static canDownloadInvoiceBilling(loggedUser: UserToken, userId: string): boolean {
+  public static canDownloadInvoiceBilling(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.DOWNLOAD,
-      { user: userId, owner: loggedUser.id });
+      { user: userID, owner: loggedUser.id });
   }
 
   public static canCheckAssetConnection(loggedUser: UserToken): boolean {
@@ -745,7 +746,7 @@ export default class Authorizations {
     }
 
     // Get Tag
-    let tag = await UserStorage.getTag(tenantID, tagID, { withUser: true });
+    let tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
     if (!tag) {
       // Unknown User -> OICP component activated -> return virtual user (do not create inactive Tag)
       if (authAction === Action.AUTHORIZE && Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
@@ -763,7 +764,7 @@ export default class Authorizations {
         default: false
       } as Tag;
       // Save
-      await UserStorage.saveTag(tenantID, tag);
+      await TagStorage.saveTag(tenantID, tag);
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
         tenantID,
@@ -772,8 +773,8 @@ export default class Authorizations {
         {
           chargeBoxID: chargingStation.id,
           badgeID: tagID,
-          evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
-          evseDashboardTagURL: await Utils.buildEvseTagURL(tenantID, tag)
+          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+          evseDashboardTagURL: Utils.buildEvseTagURL(tenant.subdomain, tag)
         }
       ).catch(() => { });
       // Log

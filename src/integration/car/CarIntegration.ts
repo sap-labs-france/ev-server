@@ -83,7 +83,7 @@ export default abstract class CarIntegration {
       }
     }
     // Log
-    Utils.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS,
+    Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS,
       MODULE_NAME, 'synchronizeCarCatalogs', actionsDone,
       '{{inSuccess}} car(s) were successfully synchronized',
       '{{inError}} car(s) failed to be synchronized',
@@ -93,9 +93,9 @@ export default abstract class CarIntegration {
     return actionsDone;
   }
 
-  public abstract async getCarCatalogs(): Promise<CarCatalog[]>;
+  public abstract getCarCatalogs(): Promise<CarCatalog[]>;
 
-  public abstract async getCarCatalogThumb(carCatalog: CarCatalog): Promise<string>;
+  public abstract getCarCatalogThumb(carCatalog: CarCatalog): Promise<string>;
 
-  public abstract async getCarCatalogImages(carCatalog: CarCatalog): Promise<string[]>;
+  public abstract getCarCatalogImages(carCatalog: CarCatalog): Promise<string[]>;
 }

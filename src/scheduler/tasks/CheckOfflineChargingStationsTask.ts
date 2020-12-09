@@ -1,5 +1,6 @@
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { CheckOfflineChargingStationsTaskConfig } from '../../types/TaskConfig';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
@@ -23,7 +24,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
       try {
         // Compute the date some minutes ago
         const offlineSince = moment().subtract(
-          Utils.getChargingStationHeartbeatMaxIntervalSecs(), 'seconds').toDate();
+          Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').toDate();
         const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
           issuer: true,
           offlineSince
@@ -49,9 +50,9 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
                 module: MODULE_NAME, method: 'processTenant',
                 message: 'Offline charging station responded successfully to an OCPP command and will be ignored',
               });
-              // Update Heartbeat
-              await ChargingStationStorage.saveChargingStationHeartBeat(tenant.id, chargingStation.id,
-                { lastHeartBeat: new Date() }
+              // Update lastSeen
+              await ChargingStationStorage.saveChargingStationLastSeen(tenant.id, chargingStation.id,
+                { lastSeen: new Date() }
               );
               // Remove charging station from notification
               chargingStations.result.splice(i, 1);

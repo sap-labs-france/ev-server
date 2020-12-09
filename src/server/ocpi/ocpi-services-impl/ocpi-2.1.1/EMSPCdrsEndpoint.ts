@@ -54,7 +54,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     if (!id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'getSessionRequest',
+        module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -64,7 +64,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     if (!transaction || !transaction.ocpiData || !transaction.ocpiData.cdr) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'postCdrRequest',
+        module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The CDR ID '${id}' does not exist or does not belong to the requester`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR

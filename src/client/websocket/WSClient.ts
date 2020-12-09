@@ -53,7 +53,7 @@ export default class WSClient {
     this.ws.on('error', this.onError.bind(this));
     // Handle Socket close
     this.ws.on('close', this.onClose.bind(this));
-    // A new WS have just been created, reinstantiate the saved callbacks on it
+    // A new WS have just been created, re-instantiate the saved callbacks on it
     this.reinstantiateCbs();
   }
 
@@ -69,7 +69,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when data is written out
    * @public
    */
-  public send(data, options?, callback?: (err?: Error) => void): void {
+  public send(data, options?: { mask?: boolean; binary?: boolean; compress?: boolean; fin?: boolean }, callback?: (err?: Error) => void): void {
     this.ws.send(data, options, callback);
   }
 
@@ -116,7 +116,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when the pong is sent
    * @public
    */
-  public pong(data?, mask?, callback?): void {
+  public pong(data?, mask?, callback?: (err: Error) => void): void {
     this.ws.pong(data, mask, callback);
   }
 
@@ -176,11 +176,11 @@ export default class WSClient {
   }
 
   private reinstantiateCbs() {
-    ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
+    for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
       if ('' + this.callbacks[method] !== '' + (() => { })) {
         this.ws[method] = this.callbacks[method];
       }
-    });
+    }
   }
 
   private onError(error) {
@@ -250,7 +250,7 @@ export default class WSClient {
  * Add the `onopen`, `onerror`, `onclose`, `onmessage`, `onreconnect`
  * and `onmaximum` attributes.
  */
-['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
+for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
   Object.defineProperty(WSClient.prototype, method, {
     configurable: true,
     enumerable: true,
@@ -263,8 +263,8 @@ export default class WSClient {
       this.ws[method] = callback;
     }
   });
-});
-['onreconnect', 'onmaximum'].forEach((method) => {
+}
+for (const method of ['onreconnect', 'onmaximum']) {
   Object.defineProperty(WSClient.prototype, method, {
     configurable: true,
     enumerable: true,
@@ -275,23 +275,16 @@ export default class WSClient {
       this.callbacks[method] = callback;
     }
   });
-});
+}
 
 /**
  * Add some ws properties
  */
-[
-  'binaryType',
-  'bufferedAmount',
-  'extensions',
-  'protocol',
-  'readyState'
-].forEach((property) => {
+for (const property of ['binaryType', 'bufferedAmount', 'extensions', 'protocol', 'readyState']) {
   Object.defineProperty(WSClient.prototype, property, {
     enumerable: true,
     get() {
       return this.ws[property];
     }
   });
-});
-
+}

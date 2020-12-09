@@ -71,15 +71,15 @@ export default class CentralRestServer {
 
   startSocketIO(): void {
     // Log
-    const logMsg = 'Starting REST SocketIO Server';
+    const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME, method: 'startSocketIO',
       action: ServerAction.STARTUP,
-      message: logMsg + '...'
+      message: logMsg
     });
     // eslint-disable-next-line no-console
-    console.log(`${logMsg} ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master...'}`);
+    console.log(logMsg);
     // Init Socket IO
     CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer);
     CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {
@@ -156,7 +156,7 @@ export default class CentralRestServer {
     // Check and send notification change for single record
     setInterval(() => {
       // Send
-      while (CentralRestServer.singleChangeNotifications.length > 0) {
+      while (!Utils.isEmptyArray(CentralRestServer.singleChangeNotifications)) {
         const notification = CentralRestServer.singleChangeNotifications.shift();
         CentralRestServer.socketIOServer.to(notification.tenantID).emit(notification.entity, notification);
       }
@@ -165,7 +165,7 @@ export default class CentralRestServer {
     // Check and send notification change for list
     setInterval(() => {
       // Send
-      while (CentralRestServer.changeNotifications.length > 0) {
+      while (!Utils.isEmptyArray(CentralRestServer.changeNotifications)) {
         const notification = CentralRestServer.changeNotifications.shift();
         CentralRestServer.socketIOServer.to(notification.tenantID).emit(notification.entity, notification);
       }
@@ -456,7 +456,7 @@ export default class CentralRestServer {
         }
       }
       if (!dups) {
-      // Add it
+        // Add it
         CentralRestServer.singleChangeNotifications.push(notification);
       }
     }

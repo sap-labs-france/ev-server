@@ -112,14 +112,6 @@ describe('Firmware Update Status Tests', function() {
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLING);
       });
 
-      it('Should make the connectors unavailable while Installing', async () => {
-        const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(200);
-        for (let i = 0; i < chargingStationResponse.data.connectors.length; i++) {
-          expect(chargingStationResponse.data.connectors[i].status).to.equal(ChargePointStatus.UNAVAILABLE);
-        }
-      });
-
       it('Should correctly assign Installed Status', async () => {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.INSTALLED);
         expect(firmwareResponse).to.eql({});
@@ -133,7 +125,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.status).to.equal(200);
         const chargingStation = response.data;
         for (let i = 0; i < chargingStation.connectors.length; i++) {
-          expect(chargingStation.connectors[i].status).to.equal('Available');
+          expect(chargingStation.connectors[i].status).to.equal(ChargePointStatus.AVAILABLE);
         }
       });
 

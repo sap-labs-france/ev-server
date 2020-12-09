@@ -1,7 +1,6 @@
 import Address from './Address';
 import { BillingUserData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import Tag from './Tag';
 import UserNotifications from './UserNotifications';
 
 export default interface User extends CreatedUpdatedProps {
@@ -36,6 +35,7 @@ export default interface User extends CreatedUpdatedProps {
   mobileOs: string;
   mobileToken: string;
   mobileLastChangedOn: Date;
+  lastSelectedCarID?: string;
 }
 
 export interface UserSite {

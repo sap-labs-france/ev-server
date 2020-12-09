@@ -1,6 +1,6 @@
-import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse } from '../../../../src/types/ocpp/OCPPServer';
+import { MessageType, WSClientOptions } from '../../../../src/types/WebSocket';
+import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
 
-import { MessageType } from '../../../../src/types/WebSocket';
 import OCPPService from '../OCPPService';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
@@ -8,26 +8,26 @@ import config from '../../../config';
 import { performance } from 'perf_hooks';
 
 export default class OCPPJsonService16 extends OCPPService {
-  private wsSessions: any;
+  private wsSessions: Map<string, { connection: WSClient, requests: any }>;
   private requestHandler: any;
 
-  public constructor(serverUrl, requestHandler) {
+  public constructor(serverUrl: string, requestHandler) {
     super(serverUrl);
     // eslint-disable-next-line no-undef
     this.wsSessions = new Map();
     this.requestHandler = requestHandler;
   }
 
-  public getVersion() {
-    return '1.6';
+  public getVersion(): OCPPVersion {
+    return OCPPVersion.VERSION_16;
   }
 
-  public async openConnection(chargeBoxIdentity) {
+  public async openConnection(chargeBoxIdentity: string): Promise<{ connection: WSClient, requests: any }> {
     // eslint-disable-next-line no-undef
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = {};
-      const wsClientOptions = {
+      const wsClientOptions: WSClientOptions = {
         protocols: 'ocpp1.6',
         autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
         autoReconnectMaxRetries: config.get('wsClient').autoReconnectMaxRetries
@@ -78,16 +78,15 @@ export default class OCPPJsonService16 extends OCPPService {
     });
   }
 
-  public async handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload) {
+  public async handleRequest(chargeBoxIdentity: string, messageId: string, commandName: string, commandPayload): Promise<void> {
     let result = {};
-
     if (this.requestHandler && typeof this.requestHandler['handle' + commandName] === 'function') {
       result = await this.requestHandler['handle' + commandName](commandPayload);
     }
     await this.send(chargeBoxIdentity, this.buildResponse(messageId, result));
   }
 
-  public closeConnection() {
+  public closeConnection(): void {
     // Close
     if (this.wsSessions) {
       this.wsSessions.forEach((session) => session.connection.close());
@@ -115,7 +114,7 @@ export default class OCPPJsonService16 extends OCPPService {
     return response.data;
   }
 
-  public async executeMeterValues(chargingStationID: string, meterValue: OCPPMeterValuesRequest|OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
+  public async executeMeterValues(chargingStationID: string, meterValue: OCPPMeterValuesRequest | OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
     const response = await this.send(chargingStationID, this.buildRequest('MeterValues', meterValue));
     return response.data;
   }
@@ -146,8 +145,12 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   private async send(chargeBoxIdentity: string, message: any): Promise<any> {
+    // Debug
+    // console.log('OCPP Request ====================================');
+    // console.log({ chargeBoxIdentity, message });
+    // console.log('====================================');
     // WS Opened?
-    if (!this.wsSessions.get(chargeBoxIdentity)) {
+    if (!this.wsSessions?.get(chargeBoxIdentity)?.connection?.isConnectionOpen()) {
       // Open WS
       const ws = await this.openConnection(chargeBoxIdentity);
       this.wsSessions.set(chargeBoxIdentity, ws);

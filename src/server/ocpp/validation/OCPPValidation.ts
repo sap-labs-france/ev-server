@@ -1,4 +1,4 @@
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesRequestExtended, OCPPStartTransactionRequestExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
@@ -14,7 +14,6 @@ const MODULE_NAME = 'OCPPValidation';
 export default class OCPPValidation extends SchemaValidator {
   private static instance: OCPPValidation|null = null;
 
-  public validate: any;
   private _bootNotificationRequest: any;
   private _authorizeRequest: any;
   private _statusNotificationRequest: any;
@@ -66,7 +65,7 @@ export default class OCPPValidation extends SchemaValidator {
     firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): void {
   }
 
-  validateStartTransaction(chargingStation: ChargingStation, startTransaction): void {
+  validateStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): void {
     this.validate(this._startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
@@ -90,7 +89,7 @@ export default class OCPPValidation extends SchemaValidator {
     }
   }
 
-  validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesExtended): void {
+  validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): void {
     // Always integer
     meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     // Check Connector ID

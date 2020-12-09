@@ -33,7 +33,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppVersion: OCPPVersion;
   ocppProtocol: OCPPProtocol;
   cfApplicationIDAndInstanceIndex: string;
-  lastHeartBeat: Date;
+  lastSeen: Date;
   deleted: boolean;
   inactive: boolean;
   forceInactive: boolean;
@@ -58,10 +58,19 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   };
 }
 
+export interface TemplateUpdate {
+  chargingStationUpdate: boolean;
+  technicalUpdate: boolean;
+  capabilitiesUpdate: boolean;
+  ocppStandardUpdate: boolean;
+  ocppVendorUpdate: boolean;
+}
+
 export interface TemplateUpdateResult {
   technicalUpdated: boolean;
   capabilitiesUpdated: boolean;
-  ocppUpdated: boolean;
+  ocppStandardUpdated: boolean;
+  ocppVendorUpdated: boolean;
 }
 
 export interface OcppCommand {
@@ -209,12 +218,12 @@ export interface ChargingStationTemplate {
   ocppStandardParameters: {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: any;
+    parameters: Record<string, string>;
   }[];
   ocppVendorParameters: {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: any;
+    parameters: Record<string, string>;
   }[];
 }
 
@@ -237,6 +246,8 @@ export interface ChargingStationCapabilities {
   supportUnlockConnector: boolean;
   supportReservation: boolean;
   supportRFIDCard: boolean;
+  supportFirmwareUpgrade?: boolean;
+  supportConnectorIsSlave?: boolean;
 }
 
 export interface ChargingStationOcppParameters {

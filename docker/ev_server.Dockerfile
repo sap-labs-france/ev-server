@@ -4,7 +4,7 @@ ARG build
 
 WORKDIR /usr/builder
 
-COPY package.json ./
+COPY package.json package-lock.json ./
 
 RUN npm set progress=false && npm config set depth 0 && npm cache clean --force
 RUN apk add --no-cache --virtual .gyp \

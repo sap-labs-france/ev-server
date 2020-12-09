@@ -29,6 +29,7 @@ import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
+import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -57,7 +58,6 @@ export default class EmspOCPIClient extends OCPIClient {
       total: 0,
       logs: [],
       objectIDsInFailure: [],
-      objectIDsInSuccess: []
     };
     // Perfs trace
     const startTime = new Date().getTime();
@@ -70,7 +70,6 @@ export default class EmspOCPIClient extends OCPIClient {
       try {
         await this.pushToken(token);
         result.success++;
-        result.objectIDsInSuccess.push(token.uid);
       } catch (error) {
         result.failure++;
         result.objectIDsInFailure.push(token.uid);
@@ -88,7 +87,6 @@ export default class EmspOCPIClient extends OCPIClient {
         'failureNbr': result.failure,
         'totalNbr': result.total,
         'tokenIDsInFailure': _.uniq(result.objectIDsInFailure),
-        'tokenIDsInSuccess': _.uniq(result.objectIDsInSuccess)
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
@@ -96,13 +94,12 @@ export default class EmspOCPIClient extends OCPIClient {
         'failureNbr': 0,
         'totalNbr': 0,
         'tokenIDsInFailure': [],
-        'tokenIDsInSuccess': []
       };
     }
     // Save
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PUSH_TOKENS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PUSH_TOKENS,
       MODULE_NAME, 'sendTokens', result,
       `{{inSuccess}} Token(s) were successfully pushed in ${executionDurationSecs}s`,
       `{{inError}} Token(s) failed to be pushed in ${executionDurationSecs}s`,
@@ -182,7 +179,7 @@ export default class EmspOCPIClient extends OCPIClient {
       }
     } while (nextResult);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_LOCATIONS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_LOCATIONS,
       MODULE_NAME, 'pullLocations', result,
       `{{inSuccess}} Location(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} Location(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -242,7 +239,7 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (nextResult);
     result.total = result.failure + result.success;
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_SESSIONS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_SESSIONS,
       MODULE_NAME, 'pullSessions', result,
       `{{inSuccess}} Session(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} Session(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -302,7 +299,7 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (nextResult);
     result.total = result.failure + result.success;
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Utils.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_CDRS,
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_CDRS,
       MODULE_NAME, 'pullCdrs', result,
       `{{inSuccess}} CDR(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} CDR(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -488,7 +485,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.START_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.START_SESSION;
-    const tag = await UserStorage.getTag(this.tenant.id, tagId, { withUser: true });
+    const tag = await TagStorage.getTag(this.tenant.id, tagId, { withUser: true });
     if (!tag || !tag.issuer || !tag.active) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
