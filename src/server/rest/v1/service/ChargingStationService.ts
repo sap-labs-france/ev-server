@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import ChargingStation, { ChargingStationOcppParameters, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingStationOcppParameters, Command, OCPPParams, RemoteAuthorization, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus } from '../../../../types/ocpp/OCPPClient';
@@ -16,6 +16,7 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import ChargingStationVendorFactory from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../../utils/Constants';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
+import CpoOICPClient from '../../../../client/oicp/CpoOICPClient';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../../utils/I18nManager';
@@ -26,15 +27,22 @@ import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import OICPClientFactory from '../../../../client/oicp/OICPClientFactory';
+import { OICPEvseDataRecord } from '../../../../types/oicp/OICPEvse';
+import { OICPRole } from '../../../../types/oicp/OICPRole';
+import { OICPSession } from '../../../../types/oicp/OICPSession';
+import OICPUtils from '../../../oicp/OICPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
+import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -972,7 +980,7 @@ export default class ChargingStationService {
       }
       // Get Transaction
       const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
-      UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
+      UtilsService.assertObjectExists(action, transaction, `Transaction ID '${String(filteredRequest.args.transactionId)}' does not exist`,
         MODULE_NAME, 'handleAction', req.user);
       // Add connector ID
       filteredRequest.args.connectorId = transaction.connectorId;
@@ -1017,8 +1025,16 @@ export default class ChargingStationService {
         });
       }
       // Check if user is authorized
-      await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID,
+      const user = await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID,
         ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, Action.REMOTE_START_TRANSACTION);
+      if (!user.issuer) { // For testing purposes: authorize OICP User (Remote Start from Frondend)
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        // Check if oicp user is authorized
+        // Authorize Hubject user
+        if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+          await this.authorizeOICPUser(tenant, user, chargingStation, filteredRequest.args.connectorId, req.user.tagIDs[0], action);
+        }
+      }
       // Ok: Execute it
       result = await this.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
@@ -1081,6 +1097,51 @@ export default class ChargingStationService {
     // Return
     res.json(result);
     next();
+  }
+
+  // For Testing
+  public static async authorizeOICPUser(tenant: Tenant, user: User, chargingStation: ChargingStation, connectorId: number, tagID: string, action: ServerAction): Promise<boolean> {
+    const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
+    if (!oicpClient) {
+      throw new BackendError({
+        user: user,
+        action: action,
+        module: MODULE_NAME,
+        method: 'isTagIDAuthorizedOnChargingStation',
+        message: 'OICP component requires at least one CPO endpoint to start a Session'
+      });
+    }
+    // Call Hubject
+    const oicpSession = {} as OICPSession;
+    oicpSession.identification = OICPUtils.convertTagID2OICPIdentification(tagID);
+    const evse = {} as OICPEvseDataRecord;
+    const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+    evse.EvseID = OICPUtils.buildEvseID(oicpClient.getLocalCountryCode(ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION), oicpClient.getLocalPartyID(ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION), chargingStation, connector);
+    oicpSession.evse = evse;
+    const response = await oicpClient.authorizeStart(oicpSession, user);
+    const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find(
+      (authorization) => authorization.connectorId === connectorId);
+    if (existingAuthorization) {
+      existingAuthorization.timestamp = new Date();
+      // No authorization ID available
+      // Use sessionID instead
+      existingAuthorization.id = response.SessionID;
+      existingAuthorization.tagId = tagID;
+      existingAuthorization.oicpIdentification = oicpSession.identification;
+    } else {
+      chargingStation.remoteAuthorizations.push(
+        {
+          id: response.SessionID,
+          connectorId: connectorId,
+          timestamp: new Date(),
+          tagId: tagID,
+          oicpIdentification: oicpSession.identification
+        }
+      );
+    }
+    // Save Auth
+    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+    return true;
   }
 
   public static async handleCheckSmartChargingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
