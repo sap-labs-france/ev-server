@@ -7,6 +7,7 @@ import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationV
 import EbeeChargingStationVendorIntegration from './ebee/EbeeChargingStationVendorIntegration';
 import LegrandChargingStationVendorIntegration from './legrand/LegrandChargingStationVendorIntegration';
 import SchneiderChargingStationVendorIntegration from './schneider/SchneiderChargingStationVendorIntegration';
+import SAPChargingStationVendorIntegration from './sap/SAPChargingStationVendorIntegration';
 
 export default class ChargingStationVendorFactory {
 
@@ -33,6 +34,9 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.ATESS:
         chargingStationVendorImpl = new AtessChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.SAP:
+        chargingStationVendorImpl = new SAPChargingStationVendorIntegration(chargingStation);
         break;
     }
     return chargingStationVendorImpl;
