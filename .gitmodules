@@ -22,3 +22,6 @@
 	path = src/assets/configs-ci
 	url = git@github.wdf.sap.corp:E-Mobility/ev-ci.git
 	branch = master
+[submodule "src/assets/configs-scp"]
+	path = src/assets/configs-scp
+	url = git@github.wdf.sap.corp:E-Mobility/ev-scp.git
