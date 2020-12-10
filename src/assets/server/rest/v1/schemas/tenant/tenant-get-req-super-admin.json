@@ -1,10 +1,12 @@
 {
-    "title": "Get one Tenants",
-    "type": "object",
-    "properties": {
-        "ID": { "$ref": "common.json#/definitions/id" }
-    },
-    "required": [
-        "ID"
-    ]
+  "title": "Get one Tenants",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common.json#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
 }

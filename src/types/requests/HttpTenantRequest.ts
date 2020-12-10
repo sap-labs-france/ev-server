@@ -9,3 +9,8 @@ export interface HttpTenantsRequest extends HttpDatabaseRequest {
   WithLogo?: boolean;
   WithComponents?: boolean;
 }
+
+export interface HttpTenantLogoRequest {
+  ID?: string;
+  Subdomain?: string;
+}
