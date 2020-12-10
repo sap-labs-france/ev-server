@@ -14,7 +14,7 @@
     },
     "smtpError": {
       "title": "Error del servidor de correo electrónico",
-      "body": "La autenticación del servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
+      "body": "Del servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
     },
     "optimalChargeReached": {
       "title": "Carga óptima alcanzada",

@@ -1,10 +1,10 @@
 {
-  "subject": "Primärer E-Mail-Server - Authentifizierung fehlgeschlagen",
+  "subject": "Primärer E-Mail-Server fehlgeschlagen",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "E-Mail Server Authentifizierung fehlgeschlagen",
+      "title": "Primärer E-Mail Server fehlgeschlagen",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Sehr geehrter Administrator,",
       "",
-      "Die Authentifizierung beim primären E-Mail-Server ist fehlgeschlagen",
+      "The primary email server has failed with error <%- SMTPError %>.",
       "",
       "Bitte überprüfen Sie Ihre Konfiguration.",
       ""

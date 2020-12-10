@@ -14,7 +14,7 @@
     },
     "smtpError": {
       "title": "Erreur Serveur Email",
-      "body": "L'authentification du serveur d'email principal a échoué dans l'organisation '{{tenantName}}', vérifier la configuration"
+      "body": "Le serveur d'email principal a échoué dans l'organisation '{{tenantName}}', vérifier la configuration"
     },
     "optimalChargeReached": {
       "title": "Charge Optimale Atteinte",

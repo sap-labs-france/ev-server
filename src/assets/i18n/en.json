@@ -14,7 +14,7 @@
     },
     "smtpError": {
       "title": "Email Server Error",
-      "body": "The authentication against the primary email server has failed in organization '{{tenantName}}', check the configuration"
+      "body": "The primary email server has failed in organization '{{tenantName}}', check the configuration"
     },
     "optimalChargeReached": {
       "title": "Optimal Charge Reached",

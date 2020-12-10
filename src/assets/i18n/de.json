@@ -14,7 +14,7 @@
     },
     "smtpError": {
       "title": "Email Server Error",
-      "body": "Die Authentizifierung gegen den ursprünglichen E-Mail Server ist fehlgeschlagen. Organisation: '{{tenantName}}', überprüfen Sie die Einstellungen"
+      "body": "Das E-Mail Server ist fehlgeschlagen. Organisation: '{{tenantName}}', überprüfen Sie die Einstellungen"
     },
     "optimalChargeReached": {
       "title": "Optimale Ladung erreicht",

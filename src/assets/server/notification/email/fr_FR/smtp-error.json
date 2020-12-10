@@ -1,10 +1,10 @@
 {
-  "subject": "Erreur sur le Serveur d'Email",
+  "subject": "Erreur sur le Serveur d'Email principal",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Erreur Serveur Email",
+      "title": "Erreur sur le Serveur d'Email principal",
       "image": {
         "left": {
           "height": 60,

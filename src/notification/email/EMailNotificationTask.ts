@@ -159,7 +159,7 @@ export default class EMailNotificationTask implements NotificationTask {
         ssl: this.emailConfig.smtp.secure
       });
       this.backupInUse = useBackup;
-    } else if (useBackup && !this.backupInUse) {
+    } else if (!this.emailConfig.disableBackup && this.emailConfigHasBackup && useBackup && !this.backupInUse) {
       this.client = new SMTPClient({
         user: this.emailConfig.smtpBackup.user,
         password: this.emailConfig.smtpBackup.password,

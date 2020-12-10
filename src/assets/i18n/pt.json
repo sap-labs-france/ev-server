@@ -14,7 +14,7 @@
     },
     "smtpError": {
       "title": "Error no servidor de Email",
-      "body": "A autenticação no servidor de email falhou por favor verificar a configuração do  '{{tenantName}}'"
+      "body": "A servidor de email falhou por favor verificar a configuração do '{{tenantName}}'"
     },
     "optimalChargeReached": {
       "title": "Carga Ideal alcançada",
