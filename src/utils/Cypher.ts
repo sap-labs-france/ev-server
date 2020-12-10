@@ -2,6 +2,8 @@ import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
+import { CryptoKey } from '../types/CryptoKey';
+import CryptoKeyStorage from '../storage/mongodb/CryptoKeyStorage';
 import _ from 'lodash';
 import crypto from 'crypto';
 
@@ -24,6 +26,11 @@ export default class Cypher {
       }
     }
     return this.configuration;
+  }
+
+  public static async saveConfigurationKey(): Promise<void> {
+    const cryptoKey: string = Configuration.getCryptoConfig().key;
+    await CryptoKeyStorage.saveCryptoKey(Constants.DEFAULT_TENANT, cryptoKey);
   }
 
   public static encrypt(data: string): string {

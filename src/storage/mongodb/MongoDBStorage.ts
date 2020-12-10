@@ -3,6 +3,7 @@ import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridF
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import DatabaseUtils from './DatabaseUtils';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
@@ -268,6 +269,15 @@ export default class MongoDBStorage {
     // Locks
     await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'locks', [
     ]);
+
+    // Crypto Global key
+    await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'keys', [
+      { fields: { key: 1 }, options: { unique: true } }
+    ]);
+
+    // Check Crypto Global Key
+    await Cypher.saveConfigurationKey();
+
     // Get all the collections
     const collections = await this.db.listCollections().toArray();
     for (const collection of collections) {
