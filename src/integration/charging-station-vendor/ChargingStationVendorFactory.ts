@@ -35,7 +35,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.ATESS:
         chargingStationVendorImpl = new AtessChargingStationVendorIntegration(chargingStation);
         break;
-      case ChargerVendor.SAPLABSFRANCE:
+      case ChargerVendor.SAP_LABS_FRANCE:
         chargingStationVendorImpl = new SAPLabsFranceChargingStationVendorIntegration(chargingStation);
         break;
     }
