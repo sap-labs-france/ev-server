@@ -212,6 +212,12 @@ export default class CentralRestServer {
   public notifyTenant(tenantID: string, action: Action, data: NotificationData): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
+      'tenantID': data.id,
+      'entity': Entity.TENANT,
+      'action': action,
+      'data': data
+    });
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.TENANT,
       'action': action,
