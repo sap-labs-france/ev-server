@@ -11,8 +11,8 @@ db.getCollection('default.users').insert({
     region: null,
     country: null,
     coordinates: [
-      null,
-      null
+      0,
+      0
     ]
   },
   costCenter: null,
