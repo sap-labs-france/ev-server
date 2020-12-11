@@ -17,6 +17,7 @@ import SmartChargingFactory from '../../src/integration/smart-charging/SmartChar
 import SmartChargingIntegration from '../../src/integration/smart-charging/SmartChargingIntegration';
 import { StaticLimitAmps } from '../../src/types/ChargingStation';
 import TenantContext from './context/TenantContext';
+import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -239,6 +240,11 @@ const limit0 = [
   }
 ];
 
+// Buffer Factors
+const aCBufferFactor = 1 + Constants.AC_LIMIT_BUFFER_PERCENT / 100;
+const dCBufferFactor = 1 + Constants.DC_LIMIT_BUFFER_PERCENT / 100;
+
+
 // Helpers to store ongoing transactions across different tests
 let transaction = {} as Transaction;
 let transaction1 = {} as Transaction;
@@ -416,45 +422,45 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 42
+            'limit': Utils.truncTo(13 * 3 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 900,
-            'limit': 42
+            'limit': Utils.truncTo(13 * 3 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 1800,
-            'limit': 42
+            'limit': Utils.truncTo(13 * 3 * aCBufferFactor, 0)
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 79
+            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 900,
-            'limit': 79
+            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 1800,
-            'limit': 79
+            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[2], transaction2);
         expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 22
+            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 900,
-            'limit': 22
+            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 1800,
-            'limit': 22
+            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
           }
         ]);
       });
@@ -471,15 +477,15 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 79
+            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 900,
-            'limit': 79
+            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 1800,
-            'limit': 79
+            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[2], transaction2);
@@ -538,30 +544,30 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 17
+            'limit': Utils.truncTo(16 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 900,
-            'limit': 17
+            'limit': Utils.truncTo(16 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 1800,
-            'limit': 17
+            'limit': Utils.truncTo(16 * aCBufferFactor, 0)
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 22
+            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 900,
-            'limit': 22
+            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 1800,
-            'limit': 22
+            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
           }
         ]);
       });
@@ -575,15 +581,15 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 22
+            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 900,
-            'limit': 22
+            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
           },
           {
             'startPeriod': 1800,
-            'limit': 22
+            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
           }
         ]);
       });
@@ -707,30 +713,30 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 237
+            'limit': Utils.truncTo(72 * 3 * dCBufferFactor, 0)
           },
           {
             'startPeriod': 900,
-            'limit': 237
+            'limit': Utils.truncTo(72 * 3 * dCBufferFactor, 0)
           },
           {
             'startPeriod': 1800,
-            'limit': 237
+            'limit': Utils.truncTo(72 * 3 * dCBufferFactor, 0)
           },
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 141
+            'limit': Utils.truncTo(43 * 3 * dCBufferFactor, 0)
           },
           {
             'startPeriod': 900,
-            'limit': 141
+            'limit': Utils.truncTo(43 * 3 * dCBufferFactor, 0)
           },
           {
             'startPeriod': 1800,
-            'limit': 141
+            'limit': Utils.truncTo(43 * 3 * dCBufferFactor, 0)
           }
         ]);
       });
