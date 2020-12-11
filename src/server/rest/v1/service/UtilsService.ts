@@ -505,16 +505,6 @@ export default class UtilsService {
   }
 
   public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
-    // Check authorization
-    if (!Authorizations.isAdmin(req.user)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Only Admins can change/create the Tags',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user.id
-      });
-    }
     // Check badge ID
     if (!tag.id) {
       throw new AppError({

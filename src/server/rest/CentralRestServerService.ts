@@ -300,6 +300,9 @@ export default class CentralRestServerService {
             case ServerAction.CAR_CATALOG_IMAGE:
               await CarService.handleGetCarCatalogImage(action, req, res, next);
               break;
+            case ServerAction.ASSET_IMAGE:
+              await AssetService.handleGetAssetImage(action, req, res, next);
+              break;
             case ServerAction.COMPANY_LOGO:
               await CompanyService.handleGetCompanyLogo(action, req, res, next);
               break;
