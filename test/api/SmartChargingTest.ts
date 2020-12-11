@@ -406,7 +406,7 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
 
-      it('Test for sticky limit - 3 single phased cars charging with lower site area limit and one car on a single phased station', async () => {
+      it('Test for sticky limit - 1 three phased and 2 single phased cars charging with lower site area limit and one car on a single phased station', async () => {
         await testData.chargingStationContext.stopTransaction(transaction.id, testData.userContext.tags[0].id, 180, new Date());
         const transactionStartResponse = await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
@@ -465,7 +465,7 @@ describe('Smart Charging Service', function() {
         ]);
       });
 
-      it('Test for sticky limit - 3 single phased cars charging with lower site area limit and one car on a single phased station with no consumption on two cars', async () => {
+      it('Test for sticky limit - 1 three phased and 2 single phased cars charging with lower site area limit and one car on a single phased station with no consumption on two cars', async () => {
         // Send meter values for both connectors of the 3 phased stations
         await TestData.sendMeterValue(230, 0, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: true, csPhase3: true });
         await TestData.sendMeterValue(230, 0, transaction2, testData.chargingStationContext1, { csPhase1: true, csPhase2: false, csPhase3: false });
