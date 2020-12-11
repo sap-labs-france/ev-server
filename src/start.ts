@@ -211,14 +211,6 @@ export default class Bootstrap {
   private static async startServersListening(): Promise<void> {
     try {
       // -------------------------------------------------------------------------
-      // Listen to DB changes
-      // -------------------------------------------------------------------------
-      // Create database notifications
-      if (!Bootstrap.storageNotification) {
-        Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
-      }
-      await Bootstrap.storageNotification.start();
-      // -------------------------------------------------------------------------
       // REST Server (Front-End)
       // -------------------------------------------------------------------------
       if (Bootstrap.centralSystemRestConfig) {
@@ -234,6 +226,15 @@ export default class Bootstrap {
           await this.centralRestServer.startSocketIO();
         }
       }
+
+      // -------------------------------------------------------------------------
+      // Listen to DB changes
+      // -------------------------------------------------------------------------
+      // Create database notifications
+      if (!Bootstrap.storageNotification) {
+        Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
+      }
+      await Bootstrap.storageNotification.start();
 
       // -------------------------------------------------------------------------
       // Central Server (Charging Stations)
