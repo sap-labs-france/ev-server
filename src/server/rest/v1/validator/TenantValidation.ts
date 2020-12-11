@@ -1,7 +1,8 @@
+import { HttpTenantLogoRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
+
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import { HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
 import SchemaValidator from './SchemaValidator';
 import Tenant from '../../../../types/Tenant';
 import UtilsService from '../service/UtilsService';
@@ -50,28 +51,28 @@ export default class TenantValidator extends SchemaValidator {
     return tenant;
   }
 
-  public validateTenantDeleteRequestSuperAdmin(request: any): string {
+  public validateTenantDeleteRequestSuperAdmin(data: any): string {
     // Validate schema
-    this.validate(this._tenantDeleteReqSuperAdmin, request);
-    return request.ID;
+    this.validate(this._tenantDeleteReqSuperAdmin, data);
+    return data.ID;
   }
 
-  public validateGetLogoReqSuperAdmin(request: any): string {
+  public validateGetLogoReqSuperAdmin(data: any): HttpTenantLogoRequest {
     // Validate schema
-    this.validate(this._tenantGetLogoReqSuperAdmin, request);
-    return request.ID;
+    this.validate(this._tenantGetLogoReqSuperAdmin, data);
+    return data;
   }
 
-  public validateTenantGetReqSuperAdmin(request: any): string {
+  public validateTenantGetReqSuperAdmin(data: any): string {
     // Validate schema
-    this.validate(this._tenantGetReqSuperAdmin, request);
-    return request.ID;
+    this.validate(this._tenantGetReqSuperAdmin, data);
+    return data.ID;
   }
 
-  public validateTenantsGetReqSuperAdmin(request: any): HttpTenantsRequest {
+  public validateTenantsGetReqSuperAdmin(data: any): HttpTenantsRequest {
     // Validate schema
-    this.validate(this._tenantsGetReqSuperAdmin, request);
-    return request;
+    this.validate(this._tenantsGetReqSuperAdmin, data);
+    return data;
   }
 
   private validateComponentDependencies(tenant: Tenant) {

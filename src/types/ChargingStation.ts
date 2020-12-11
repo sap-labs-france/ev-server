@@ -183,6 +183,7 @@ export enum Voltage {
 
 export interface ChargingStationTemplate {
   id?: string;
+  qa?: boolean;
   hash?: string;
   hashTechnical?: string;
   hashCapabilities?: string;
