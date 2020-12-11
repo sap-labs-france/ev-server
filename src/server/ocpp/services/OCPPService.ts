@@ -419,7 +419,7 @@ export default class OCPPService {
           await this.checkNotificationEndOfCharge(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
-          // First Meter Value -> Trigger Smart Charging to adjust the single phase Car
+          // First Meter Value -> Trigger Smart Charging to adjust the limit
           if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
             // Yes: Trigger Smart Charging
             await this.triggerSmartCharging(headers.tenantID, chargingStation);
