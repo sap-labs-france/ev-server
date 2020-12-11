@@ -411,13 +411,13 @@ describe('Smart Charging Service', function() {
         const transactionStartResponse = await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction = transactionResponse.data;
-        // Send meter values for both connectors of the 3 phased stations
+        // Send meter values for all stations
         await TestData.sendMeterValue(230, 13, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: true, csPhase3: true });
         await TestData.sendMeterValue(230, 24, transaction1, testData.chargingStationContext, { csPhase1: false, csPhase2: false, csPhase3: true });
         await TestData.sendMeterValue(230, 20, transaction2, testData.chargingStationContext1, { csPhase1: true, csPhase2: false, csPhase3: false });
 
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-        // Charging Profiles should use the full power, because every car is charging on another phase
+        // Charging Profiles should have limits according the sent meter values + buffer
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
@@ -466,11 +466,11 @@ describe('Smart Charging Service', function() {
       });
 
       it('Test for sticky limit - 1 three phased and 2 single phased cars charging with lower site area limit and one car on a single phased station with no consumption on two cars', async () => {
-        // Send meter values for both connectors of the 3 phased stations
+        // Send meter values for all stations
         await TestData.sendMeterValue(230, 0, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: true, csPhase3: true });
         await TestData.sendMeterValue(230, 0, transaction2, testData.chargingStationContext1, { csPhase1: true, csPhase2: false, csPhase3: false });
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-        // Charging Profiles should use the full power, because every car is charging on another phase
+        // Charging Profiles should have limits according the sent meter values (+ buffer)
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limitMinThreePhased);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
