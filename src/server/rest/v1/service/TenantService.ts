@@ -2,6 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { SettingDB, SettingDBContent } from '../../../../types/Setting';
+import Tenant, { TenantLogo } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -16,7 +17,6 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidation';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -75,11 +75,19 @@ export default class TenantService {
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const tenantID = TenantValidator.getInstance().validateGetLogoReqSuperAdmin(req.query);
-    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenantLogo', req.user);
+    const filteredRequest = TenantValidator.getInstance().validateGetLogoReqSuperAdmin(req.query);
     // Get Logo
-    const tenantLogo = await TenantStorage.getTenantLogo(tenantID);
-    // Return
+    let tenantLogo: TenantLogo;
+    // Get the logo using ID
+    if (filteredRequest.ID) {
+      tenantLogo = await TenantStorage.getTenantLogo(filteredRequest.ID);
+    // Get the logo using Subdomain
+    } else if (filteredRequest.Subdomain) {
+      const tenant = await TenantStorage.getTenantBySubdomain(filteredRequest.Subdomain, ['id']);
+      if (tenant) {
+        tenantLogo = await TenantStorage.getTenantLogo(tenant.id);
+      }
+    }
     if (tenantLogo?.logo) {
       let header = 'image';
       let encoding: BufferEncoding = 'base64';

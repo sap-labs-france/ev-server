@@ -222,15 +222,19 @@ export default class Bootstrap {
         await Bootstrap.centralRestServer.start();
         // FIXME: Issue with cluster, see https://github.com/LucasBrazi06/ev-server/issues/1097
         if (this.centralSystemRestConfig.socketIO) {
-          // Create database Socket IO notifications
-          if (!Bootstrap.storageNotification) {
-            Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
-          }
           // Start database Socket IO notifications
-          await Bootstrap.storageNotification.start();
           await this.centralRestServer.startSocketIO();
         }
       }
+
+      // -------------------------------------------------------------------------
+      // Listen to DB changes
+      // -------------------------------------------------------------------------
+      // Create database notifications
+      if (!Bootstrap.storageNotification) {
+        Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
+      }
+      await Bootstrap.storageNotification.start();
 
       // -------------------------------------------------------------------------
       // Central Server (Charging Stations)
