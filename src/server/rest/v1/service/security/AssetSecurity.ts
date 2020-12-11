@@ -1,4 +1,4 @@
-import { HttpAssetConsumptionRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../../types/requests/HttpAssetRequest';
+import { HttpAssetConsumptionRequest, HttpAssetImageRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../../types/requests/HttpAssetRequest';
 
 import Asset from '../../../../../types/Asset';
 import UtilsSecurity from './UtilsSecurity';
@@ -8,6 +8,13 @@ export default class AssetSecurity {
 
   public static filterAssetRequestByID(request: any): string {
     return sanitize(request.ID);
+  }
+
+  public static filterAssetImageRequest(request: any): HttpAssetImageRequest {
+    return {
+      ID: sanitize(request.ID),
+      TenantID: sanitize(request.TenantID),
+    };
   }
 
   public static filterAssetRequest(request: any): HttpAssetRequest {
