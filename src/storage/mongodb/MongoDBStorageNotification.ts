@@ -66,17 +66,6 @@ export default class MongoDBStorageNotification {
 
   async start(): Promise<void> {
     if (this.dbConfig.monitorDBChange) {
-      // Check
-      if (!this.centralRestServer) {
-        // Log
-        Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
-          action: ServerAction.STARTUP,
-          module: MODULE_NAME, method: 'start',
-          message: `Error starting to monitor changes on database '${this.dbConfig.implementation}': REST server attribute not initialized`
-        });
-        return;
-      }
       const dbChangeStream = global.database.watch(this.defaultWatchPipeline, this.defaultWatchOptions);
       dbChangeStream.on('change', (change: { [key: string]: any }) => {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
@@ -121,34 +110,34 @@ export default class MongoDBStorageNotification {
   private handleCollectionChange(tenantID: string, collection: string, documentID: string, action: Action, changeEvent) {
     switch (collection) {
       case 'tags':
-        this.centralRestServer.notifyTag(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyTag(tenantID, action, { id: documentID });
         break;
       case 'users':
       case 'userimages':
-        this.centralRestServer.notifyUser(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyUser(tenantID, action, { id: documentID });
         break;
       case 'chargingstations':
-        this.centralRestServer.notifyChargingStation(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyChargingStation(tenantID, action, { id: documentID });
         break;
       case 'companies':
       case 'companylogos':
-        this.centralRestServer.notifyCompany(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyCompany(tenantID, action, { id: documentID });
         break;
       case 'assets':
       case 'assetimages':
-        this.centralRestServer.notifyAsset(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyAsset(tenantID, action, { id: documentID });
         break;
       case 'siteareas':
       case 'siteareaimages':
-        this.centralRestServer.notifySiteArea(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifySiteArea(tenantID, action, { id: documentID });
         break;
       case 'sites':
       case 'siteimages':
-        this.centralRestServer.notifySite(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifySite(tenantID, action, { id: documentID });
         break;
       case 'tenants':
-        this.centralRestServer.notifyTenant(tenantID, action, { id: documentID });
         TenantStorage.clearCache(documentID);
+        this.centralRestServer?.notifyTenant(tenantID, action, { id: documentID });
         break;
       case 'transactions':
         this.handleTransactionChange(tenantID, documentID, action, changeEvent);
@@ -160,26 +149,26 @@ export default class MongoDBStorageNotification {
         this.handleConfigurationChange(tenantID, documentID, action, changeEvent);
         break;
       case 'logs':
-        this.centralRestServer.notifyLogging(tenantID, action);
+        this.centralRestServer?.notifyLogging(tenantID, action);
         break;
       case 'registrationtokens':
-        this.centralRestServer.notifyRegistrationToken(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyRegistrationToken(tenantID, action, { id: documentID });
         break;
       case 'invoices':
-        this.centralRestServer.notifyInvoice(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyInvoice(tenantID, action, { id: documentID });
         break;
       case 'carcatalogimages':
       case 'carcatalogs':
-        this.centralRestServer.notifyCarCatalog(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyCarCatalog(tenantID, action, { id: documentID });
         break;
       case 'cars':
-        this.centralRestServer.notifyCar(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyCar(tenantID, action, { id: documentID });
         break;
       case 'chargingprofiles':
-        this.centralRestServer.notifyChargingProfile(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyChargingProfile(tenantID, action, { id: documentID });
         break;
       case 'ocpiendpoints':
-        this.centralRestServer.notifyOcpiEndpoint(tenantID, action, { id: documentID });
+        this.centralRestServer?.notifyOcpiEndpoint(tenantID, action, { id: documentID });
         break;
     }
   }
@@ -207,7 +196,7 @@ export default class MongoDBStorageNotification {
           break;
       }
       // Notify
-      this.centralRestServer.notifyTransaction(tenantID, action, notification);
+      this.centralRestServer?.notifyTransaction(tenantID, action, notification);
     } else {
       MongoDBStorageNotification.handleDBInvalidChange(tenantID, 'transactions', changeEvent);
     }
@@ -223,7 +212,7 @@ export default class MongoDBStorageNotification {
         notification.chargeBoxID = changeEvent.fullDocument.chargeBoxID as string;
         notification.connectorId = Utils.convertToInt(changeEvent.fullDocument.connectorId);
         // Notify, Force Transaction Update
-        this.centralRestServer.notifyTransaction(tenantID, Action.UPDATE, notification);
+        this.centralRestServer?.notifyTransaction(tenantID, Action.UPDATE, notification);
       }
     } else {
       MongoDBStorageNotification.handleDBInvalidChange(tenantID, 'meterValues', changeEvent);
@@ -232,7 +221,7 @@ export default class MongoDBStorageNotification {
 
   private handleConfigurationChange(tenantID: string, configurationID: string, action: Action, changeEvent) {
     if (configurationID) {
-      this.centralRestServer.notifyChargingStation(tenantID, action, {
+      this.centralRestServer?.notifyChargingStation(tenantID, action, {
         'type': Constants.CHARGING_STATION_CONFIGURATION,
         'id': configurationID
       });
