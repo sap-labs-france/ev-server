@@ -303,29 +303,26 @@ export default class AssetService {
   }
 
   public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
-      Action.READ, Entity.ASSET, MODULE_NAME, 'handleGetAssetImage');
     // Filter
-    const assetID = AssetSecurity.filterAssetRequestByID(req.query);
-    // Charge Box is mandatory
-    UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleGetAssetImage', req.user);
-    // Check auth
-    if (!Authorizations.canReadAsset(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.READ, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleGetAssetImage',
-        value: assetID
-      });
-    }
+    const filteredRequest = AssetSecurity.filterAssetImageRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get it
-    const assetImage = await AssetStorage.getAssetImage(req.user.tenantID, assetID);
-    // Check
-    UtilsService.assertObjectExists(action, assetImage, `Asset with ID '${assetID}' does not exist`,
-      MODULE_NAME, 'handleGetAssetImage', req.user);
-    res.json({ id: assetImage.id, image: assetImage.image });
+    const assetImage = await AssetStorage.getAssetImage(filteredRequest.TenantID, filteredRequest.ID);
+    // Return
+    if (assetImage?.image) {
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      // Remove encoding header
+      if (assetImage.image.startsWith('data:image/')) {
+        header = assetImage.image.substring(5, assetImage.image.indexOf(';'));
+        encoding = assetImage.image.substring(assetImage.image.indexOf(';') + 1, assetImage.image.indexOf(',')) as BufferEncoding;
+        assetImage.image = assetImage.image.substring(assetImage.image.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(assetImage.image ? Buffer.from(assetImage.image, encoding) : null);
+    } else {
+      res.send(null);
+    }
     next();
   }
 

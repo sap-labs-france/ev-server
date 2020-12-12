@@ -19,3 +19,7 @@ export interface HttpAssetConsumptionRequest {
   StartDate: Date;
   EndDate: Date;
 }
+
+export interface HttpAssetImageRequest extends HttpByIDRequest {
+  TenantID: string;
+}
