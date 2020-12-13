@@ -246,7 +246,7 @@
                   },
                   "tenant": {
                     "type": "string",
-                    "example": ""
+                    "example": "slf"
                   }
                 }
               }
