@@ -37,12 +37,12 @@
   },
   "tags": [
     {
-      "name": "Tenants",
-      "description": "Tenant management"
+      "name": "Tenant",
+      "description": "Tenant API"
     },
     {
-      "name": "Auth",
-      "description": "Auth management"
+      "name": "Authentication",
+      "description": "Authentication API"
     }
   ],
   "paths": {
@@ -59,7 +59,7 @@
           }
         },
         "tags": [
-          "Super Admin"
+          "Tenant"
         ],
         "responses": {
           "200": {
@@ -131,7 +131,7 @@
           }
         ],
         "tags": [
-          "Tenants"
+          "Tenant"
         ],
         "responses": {
           "200": {
@@ -176,7 +176,7 @@
           }
         ],
         "tags": [
-          "Tenants"
+          "Tenant"
         ],
         "responses": {
           "200": {
@@ -216,7 +216,7 @@
           }
         ],
         "tags": [
-          "Tenants"
+          "Tenant"
         ],
         "responses": {
           "200": {
@@ -236,7 +236,7 @@
         "description": "Sign in",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -262,7 +262,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -285,7 +285,7 @@
         "description": "Register",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -332,7 +332,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -360,7 +360,7 @@
       "get": {
         "description": "Sign out",
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -377,7 +377,7 @@
         "description": "Reset password",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -399,7 +399,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -438,7 +438,7 @@
           }
         ],
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -489,7 +489,7 @@
           }
         ],
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -553,7 +553,7 @@
           }
         ],
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -576,7 +576,7 @@
         "description": "Resend a verification email",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "required": ["email", "tenant", "captcha"],
@@ -599,7 +599,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
