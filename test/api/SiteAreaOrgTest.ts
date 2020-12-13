@@ -207,7 +207,7 @@ describe('Site Area tests', function() {
           testData.userService.siteAreaApi,
           Factory.siteArea.build({ siteID: testData.siteContext.getSite().id }), false
         );
-        expect(response.status).to.equal(560);
+        expect(response.status).to.equal(401);
       });
 
       it('Should not be able to update the site area', async () => {
@@ -218,7 +218,7 @@ describe('Site Area tests', function() {
           testData.userService.siteAreaApi,
           testData.newSiteArea, false
         );
-        expect(response.status).to.equal(560);
+        expect(response.status).to.equal(401);
       });
 
       it('Should not be able to delete the created site area', async () => {
@@ -228,7 +228,7 @@ describe('Site Area tests', function() {
           testData.newSiteArea,
           false
         );
-        expect(response.status).to.equal(560);
+        expect(response.status).to.equal(401);
       });
 
       it('Should not be able to create a site area without a site', async () => {
