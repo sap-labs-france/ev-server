@@ -2,24 +2,16 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "description": "SCP - Prod - SAP Labs France",
-      "url": "https://slf.evse.cfapps.eu10.hana.ondemand.com/v1/api"
+      "description": "SCP - Production system",
+      "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
     },
     {
-      "description": "SCP - Prod - Tenant Management",
-      "url": "https://evse.cfapps.eu10.hana.ondemand.com/v1/api"
+      "description": "SCP - Quality system",
+      "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
     },
     {
-      "description": "AWS - Prod - Tenant Management",
-      "url": "https://e-mobility-group.com/v1/api"
-    },
-    {
-      "description": "Localhost - Dev - Tenant Management",
-      "url": "http://localhost:8080/v1/api"
-    },
-    {
-      "description": "Localhost - Dev - Auth Management",
-      "url": "http://localhost:8080/v1/auth"
+      "description": "Localhost - Development",
+      "url": "http://localhost:8080/v1"
     }
   ],
   "info": {
@@ -46,7 +38,7 @@
     }
   ],
   "paths": {
-    "/tenants": {
+    "/api/tenants": {
       "post": {
         "description": "Create a Tenant",
         "requestBody": {
@@ -156,7 +148,7 @@
         }
       }
     },
-    "/tenants/{tenantID}": {
+    "/api/tenants/{tenantID}": {
       "get": {
         "description": "Retrieve a Tenant",
         "security": [
@@ -231,7 +223,7 @@
         }
       }
     },
-    "/signin": {
+    "/auth/signin": {
       "post": {
         "description": "Sign in",
         "requestBody": {
@@ -242,11 +234,11 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "firstname.name@sap.com"
+                    "example": "demo.demo@sap.com"
                   },
                   "password": {
                     "type": "string",
-                    "example": "Azerty123!"
+                    "example": "DeM*Us$r1"
                   },
                   "acceptEula": {
                     "type": "boolean",
@@ -280,7 +272,7 @@
         }
       }
     },
-    "/signon": {
+    "/auth/signon": {
       "post": {
         "description": "Register",
         "requestBody": {
@@ -356,7 +348,7 @@
         }
       }
     },
-    "/signout": {
+    "/auth/signout": {
       "get": {
         "description": "Sign out",
         "tags": [
@@ -372,7 +364,7 @@
         }
       }
     },
-    "/password/reset": {
+    "/auth/password/reset": {
       "post": {
         "description": "Reset password",
         "requestBody": {
@@ -414,7 +406,7 @@
         }
       }
     },
-    "/eula": {
+    "/auth/eula": {
       "get": {
         "description": "Get tenant EULA",
         "parameters": [
@@ -467,7 +459,7 @@
         }
       }
     },
-    "/eula/check": {
+    "/auth/eula/check": {
       "get": {
         "description": "Check if a user accepted latest EULA",
         "parameters": [
@@ -523,7 +515,7 @@
         }
       }
     },
-    "/mail/check": {
+    "/auth/mail/check": {
       "get": {
         "description": "Verify email",
         "parameters": [
@@ -571,7 +563,7 @@
         }
       }
     },
-    "/mail/resend": {
+    "/auth/mail/resend": {
       "post": {
         "description": "Resend a verification email",
         "requestBody": {
