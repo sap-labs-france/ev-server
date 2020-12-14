@@ -96,8 +96,11 @@ describe('Setting tests', function() {
       const oldSetting = read.data.result[0];
       // Activate convergent charging
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"convergentCharging"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
+      // Updating Tenant will trigger a logout
       let activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(activation.status).to.equal(200);
+      // Login again
+      testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
       // Update convergent charging setting
       testData.data = JSON.parse(`{
           "id":"${read.data.result[0].id}",
