@@ -20,14 +20,10 @@ import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 import http from 'http';
+import jwtAuth from 'socketio-jwt-auth';
 import sanitize from 'express-sanitizer';
-import socketioJwt from 'socketio-jwt';
 
 const MODULE_NAME = 'CentralRestServer';
-
-interface SocketJwt extends Socket {
-  decoded_token: UserToken;
-}
 
 export default class CentralRestServer {
   private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
@@ -88,47 +84,39 @@ export default class CentralRestServer {
         methods: ['GET', 'POST']
       }
     });
-    CentralRestServer.socketIOServer.sockets.use(() => {
-      socketioJwt.authorize({
-        secret: Configuration.getCentralSystemRestServiceConfig().userTokenKey,
-        handshake: true,
-        decodedPropertyName: 'decoded_token',
-        // No client-side callback, terminate connection server-side
-        callback: false
-      });
-    });
-    CentralRestServer.socketIOServer.sockets.on('authenticated', (socket: SocketJwt) => {
-      Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'startSocketIO',
-        action: ServerAction.SOCKET_IO,
-        message: `SocketIO client authenticated from ${socket.handshake.headers[origin]}`,
-        detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
-      });
-    });
+    CentralRestServer.socketIOServer.use(jwtAuth.authenticate({ secret: Configuration.getCentralSystemRestServiceConfig().userTokenKey }, (payload, done) => {
+      if (payload) {
+        return done(null, payload);
+      }
+      return done(null, false, 'SocketIO client is trying to connect without a token');
+    }));
     // Handle Socket IO connection
-    CentralRestServer.socketIOServer.on('connect', (socket: SocketJwt) => {
+    CentralRestServer.socketIOServer.on('connect', (socket: Socket) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'startSocketIO',
         action: ServerAction.SOCKET_IO,
-        message: 'SocketIO client is trying to connect from ' + socket.handshake.headers[origin],
+        message: 'SocketIO client is trying to connect from ' + socket.handshake.headers['origin'],
         detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
       });
-      const userToken: UserToken = socket.decoded_token;
-      if (!userToken || !userToken.tenantID) {
-        CentralRestServer.centralSystemRestConfig.debug && console.error('SocketIO client is trying to connect without token from ' + socket.handshake.headers[origin]);
+      const userToken: UserToken = socket.request['user'];
+      if (!userToken || !userToken['logged_in']) {
+        CentralRestServer.centralSystemRestConfig.debug && console.error('SocketIO client is trying to connect without token from ' + socket.handshake.headers['origin']);
         Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'startSocketIO',
           action: ServerAction.SOCKET_IO,
-          message: 'SocketIO client is trying to connect without token from ' + socket.handshake.headers[origin],
+          message: 'SocketIO client is trying to connect without token from ' + socket.handshake.headers['origin'],
           detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
         });
         socket.disconnect(true);
       } else {
       // Join Tenant Room
         try {
+          // Connection success event to client
+          socket.emit('success', {
+            user: socket.request['user']
+          });
           void socket.join(userToken.tenantID);
           CentralRestServer.centralSystemRestConfig.debug && console.log(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`);
           Logging.logDebug({
