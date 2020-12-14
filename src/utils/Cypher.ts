@@ -1,9 +1,10 @@
+import { CryptoKeySetting, KeySettings, KeySettingsType } from '../types/Setting';
+
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
-import { CryptoKey } from '../types/CryptoKey';
-import CryptoKeyStorage from '../storage/mongodb/CryptoKeyStorage';
+import SettingStorage from '../storage/mongodb/SettingStorage';
 import _ from 'lodash';
 import crypto from 'crypto';
 
@@ -28,9 +29,47 @@ export default class Cypher {
     return this.configuration;
   }
 
-  public static async saveConfigurationKey(): Promise<void> {
-    const cryptoKey: string = Configuration.getCryptoConfig().key;
-    await CryptoKeyStorage.saveCryptoKey(Constants.DEFAULT_TENANT, cryptoKey);
+  public static async detectConfigurationKey(tenantID: string): Promise<void> {
+
+    const configCryptoKey: string = Configuration.getCryptoConfig().key;
+    const keySettings = await SettingStorage.getCryptoKeySettings(tenantID);
+
+    // Check if oldKey exists
+    if (keySettings) {
+      const dbStoredCryptoKey = keySettings.cryptoKey.oldKey;
+      // Detect new config Cypher key
+      if (dbStoredCryptoKey !== configCryptoKey) {
+        await SettingStorage.deleteSetting(tenantID, keySettings.id);
+
+        // Save newKey
+        const cryptoKeySetting = {
+          oldKey: dbStoredCryptoKey,
+          newKey: configCryptoKey
+        } as CryptoKeySetting;
+        const keySettingToSave = {
+          identifier: keySettings.identifier,
+          type: keySettings.type,
+          cryptoKey: cryptoKeySetting
+        } as KeySettings;
+
+        await SettingStorage.saveCryptoKeySettings(tenantID, keySettingToSave);
+      }
+    } else {
+      // Save Config Crypto Key in Tenant Settings
+      const cryptoKeySetting = {
+        oldKey: configCryptoKey
+      } as CryptoKeySetting;
+
+      const keySettingToSave = {
+        identifier: 'cryptoKey',
+        type: KeySettingsType.CRYPTO_KEY,
+        cryptoKey: cryptoKeySetting
+      } as KeySettings;
+
+      await SettingStorage.saveCryptoKeySettings(tenantID, keySettingToSave);
+    }
+
+
   }
 
   public static encrypt(data: string): string {

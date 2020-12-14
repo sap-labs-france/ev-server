@@ -131,6 +131,10 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'settings', [
       { fields: { identifier: 1 }, options: { unique: true } }
     ]);
+
+    // Detect changed Config Crypto Key per tenant
+    await Cypher.detectConfigurationKey(tenantID);
+
     await this.handleIndexesInCollection(tenantID, 'connections', [
       { fields: { connectorId: 1, userId: 1 }, options: { unique: true } }
     ]);
@@ -269,14 +273,6 @@ export default class MongoDBStorage {
     // Locks
     await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'locks', [
     ]);
-
-    // Crypto Global key
-    await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'keys', [
-      { fields: { key: 1 }, options: { unique: true } }
-    ]);
-
-    // Check Crypto Global Key
-    await Cypher.saveConfigurationKey();
 
     // Get all the collections
     const collections = await this.db.listCollections().toArray();

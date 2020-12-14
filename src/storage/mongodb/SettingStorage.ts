@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, KeySettings, KeySettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -234,7 +234,7 @@ export default class SettingStorage {
     const settings = await SettingStorage.getBillingSettings(tenantID);
     if (settings.type === BillingSettingsType.STRIPE) {
       if (!billingSettingsToSave.stripe.secretKey ||
-          (!billingSettingsToSave.stripe.immediateBillingAllowed && billingSettingsToSave.stripe.periodicBillingAllowed && !billingSettingsToSave.stripe.advanceBillingAllowed)) {
+        (!billingSettingsToSave.stripe.immediateBillingAllowed && billingSettingsToSave.stripe.periodicBillingAllowed && !billingSettingsToSave.stripe.advanceBillingAllowed)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
@@ -301,8 +301,43 @@ export default class SettingStorage {
     }
   }
 
+  public static async saveCryptoKeySettings(tenantID: string, cryptoKeySettingToSave: KeySettings): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      identifier: 'cryptoKey',
+      lastChangedOn: new Date(),
+      content: {
+        cryptoKey: cryptoKeySettingToSave.cryptoKey
+      },
+    } as SettingDB;
+
+    // Save
+    await this.saveSettings(tenantID, settingsToSave);
+  }
+
+  public static async getCryptoKeySettings(tenantID: string): Promise<KeySettings> {
+
+    // Get the Crypto Key settings
+    const settings = await SettingStorage.getSettings(tenantID,
+      { identifier: TenantComponents.CRYPTO_KEY },
+      Constants.DB_PARAMS_MAX_LIMIT);
+
+    if (settings.count > 0) {
+      const cryptoKeySetting = {
+        oldKey: settings.result[0].content.cryptoKey.oldKey
+      } as CryptoKeySetting;
+      const keySetting = {
+        id: settings.result[0].id,
+        identifier: settings.result[0].identifier,
+        type: KeySettingsType.CRYPTO_KEY,
+        cryptoKey: cryptoKeySetting
+      } as KeySettings;
+      return keySetting;
+    }
+  }
+
   public static async getSettings(tenantID: string,
-    params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
+    params: { identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSettings');

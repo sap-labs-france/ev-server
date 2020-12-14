@@ -21,7 +21,7 @@ export interface SettingLink {
 }
 
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType | KeySettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -31,6 +31,7 @@ export interface SettingDBContent {
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
   asset?: AssetSetting;
+  cryptoKey?: CryptoKeySetting;
 }
 
 export enum PricingSettingsType {
@@ -172,7 +173,7 @@ export enum BillingSettingsType {
   STRIPE = 'stripe'
 }
 
-export interface BillingSettings extends Setting{
+export interface BillingSettings extends Setting {
   identifier: TenantComponents.BILLING;
   type: BillingSettingsType;
   stripe?: StripeBillingSetting;
@@ -234,4 +235,23 @@ export interface AssetUserPasswordConnectionType {
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
+}
+
+export enum KeySettingsType {
+  CRYPTO_KEY = 'cryptoKey'
+}
+
+export interface KeySettings extends Setting {
+  identifier: TenantComponents.CRYPTO_KEY;
+  type: KeySettingsType;
+  cryptoKey: CryptoKeySetting;
+}
+
+export interface KeySetting {
+
+}
+
+export interface CryptoKeySetting extends KeySetting {
+  oldKey: string;
+  newKey: string;
 }
