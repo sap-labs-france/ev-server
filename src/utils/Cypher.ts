@@ -5,6 +5,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import SettingStorage from '../storage/mongodb/SettingStorage';
+import TenantComponents from '../types/TenantComponents';
 import _ from 'lodash';
 import crypto from 'crypto';
 
@@ -33,37 +34,39 @@ export default class Cypher {
 
     const configCryptoKey: string = Configuration.getCryptoConfig().key;
     const keySettings = await SettingStorage.getCryptoKeySettings(tenantID);
+    let cryptoKeySetting: CryptoKeySetting;
 
     // Check if Crypto Key settings exists
     if (keySettings) {
       // Detect new config Cypher key
-      if ((keySettings.cryptoKey.newKey !== configCryptoKey) ||
-        (keySettings.cryptoKey.oldKey !== configCryptoKey)) {
-        await SettingStorage.deleteSetting(tenantID, keySettings.id);
-        // Save newKey
-        const cryptoKeySetting = {
-          oldKey: keySettings.cryptoKey.newKey ? keySettings.cryptoKey.newKey : keySettings.cryptoKey.oldKey,
-          newKey: configCryptoKey
+      if (keySettings.cryptoKey.newKey && keySettings.cryptoKey.newKey !== configCryptoKey) {
+        cryptoKeySetting = {
+          oldKey: keySettings.cryptoKey.newKey
         } as CryptoKeySetting;
-        const keySettingToSave = {
-          identifier: keySettings.identifier,
-          type: keySettings.type,
-          cryptoKey: cryptoKeySetting
-        } as KeySettings;
-        await SettingStorage.saveCryptoKeySettings(tenantID, keySettingToSave);
+      } else if (!keySettings.cryptoKey.newKey && keySettings.cryptoKey.oldKey !== configCryptoKey) {
+        // If no newKey exist, detect oldKey change
+        cryptoKeySetting = {
+          oldKey: keySettings.cryptoKey.oldKey
+        } as CryptoKeySetting;
+      }
+      // If key change detected, prepare KeySettings change
+      if (cryptoKeySetting) {
+        await SettingStorage.deleteSetting(tenantID, keySettings.id);
+        cryptoKeySetting.newKey = configCryptoKey;
       }
     } else {
-      // Save Config Crypto Key in Tenant Settings
-      const cryptoKeySetting = {
+      // Create New Config Crypto Key in Tenant Settings
+      cryptoKeySetting = {
         oldKey: configCryptoKey
       } as CryptoKeySetting;
+    }
 
+    if (cryptoKeySetting) {
       const keySettingToSave = {
-        identifier: 'cryptoKey',
+        identifier: TenantComponents.CRYPTO_KEY,
         type: KeySettingsType.CRYPTO_KEY,
         cryptoKey: cryptoKeySetting
       } as KeySettings;
-
       await SettingStorage.saveCryptoKeySettings(tenantID, keySettingToSave);
     }
   }
