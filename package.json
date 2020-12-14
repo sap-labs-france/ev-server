@@ -124,7 +124,7 @@
     "password-generator": "^2.3.2",
     "role-acl": "^3.3.7",
     "simple-odata-server": "^1.1.1",
-    "socket.io": "^3.0.3",
+    "socket.io": "^3.0.4",
     "socketio-jwt": "^4.6.2",
     "source-map-support": "^0.5.19",
     "stripe": "^7.63.1",
