@@ -34,16 +34,14 @@ export default class Cypher {
     const configCryptoKey: string = Configuration.getCryptoConfig().key;
     const keySettings = await SettingStorage.getCryptoKeySettings(tenantID);
 
-    // Check if oldKey exists
+    // Check if Crypto Key settings exists
     if (keySettings) {
-      const dbStoredCryptoKey = keySettings.cryptoKey.oldKey;
       // Detect new config Cypher key
-      if (dbStoredCryptoKey !== configCryptoKey) {
+      if ((keySettings.cryptoKey.newKey) && (keySettings.cryptoKey.newKey !== configCryptoKey)) {
         await SettingStorage.deleteSetting(tenantID, keySettings.id);
-
         // Save newKey
         const cryptoKeySetting = {
-          oldKey: dbStoredCryptoKey,
+          oldKey: keySettings.cryptoKey.newKey,
           newKey: configCryptoKey
         } as CryptoKeySetting;
         const keySettingToSave = {
@@ -51,7 +49,19 @@ export default class Cypher {
           type: keySettings.type,
           cryptoKey: cryptoKeySetting
         } as KeySettings;
-
+        await SettingStorage.saveCryptoKeySettings(tenantID, keySettingToSave);
+      } else if ((keySettings.cryptoKey.oldKey) && (keySettings.cryptoKey.oldKey !== configCryptoKey)) {
+        await SettingStorage.deleteSetting(tenantID, keySettings.id);
+        // Save newKey
+        const cryptoKeySetting = {
+          oldKey: keySettings.cryptoKey.oldKey,
+          newKey: configCryptoKey
+        } as CryptoKeySetting;
+        const keySettingToSave = {
+          identifier: keySettings.identifier,
+          type: keySettings.type,
+          cryptoKey: cryptoKeySetting
+        } as KeySettings;
         await SettingStorage.saveCryptoKeySettings(tenantID, keySettingToSave);
       }
     } else {

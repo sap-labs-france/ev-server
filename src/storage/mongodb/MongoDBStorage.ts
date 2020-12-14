@@ -132,9 +132,6 @@ export default class MongoDBStorage {
       { fields: { identifier: 1 }, options: { unique: true } }
     ]);
 
-    // Detect changed Config Crypto Key per tenant
-    await Cypher.detectConfigurationKey(tenantID);
-
     await this.handleIndexesInCollection(tenantID, 'connections', [
       { fields: { connectorId: 1, userId: 1 }, options: { unique: true } }
     ]);
@@ -299,6 +296,9 @@ export default class MongoDBStorage {
           await LockingManager.release(createDatabaseLock);
         }
       }
+
+      // Detect changed Config Crypto Key per tenant
+      await Cypher.detectConfigurationKey(tenantId);
     }
   }
 

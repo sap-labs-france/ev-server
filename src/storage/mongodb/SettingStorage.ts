@@ -324,7 +324,8 @@ export default class SettingStorage {
 
     if (settings.count > 0) {
       const cryptoKeySetting = {
-        oldKey: settings.result[0].content.cryptoKey.oldKey
+        oldKey: settings.result[0].content.cryptoKey.oldKey,
+        newKey: settings.result[0].content.cryptoKey.newKey
       } as CryptoKeySetting;
       const keySetting = {
         id: settings.result[0].id,
