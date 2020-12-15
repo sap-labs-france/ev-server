@@ -195,8 +195,6 @@ export default class TransactionService {
         try {
           // Post CDR
           await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
-          // Save
-          await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok
           Logging.logInfo({
             tenantID: req.user.tenantID,
@@ -223,9 +221,26 @@ export default class TransactionService {
           action: action
         });
       }
-      // Fix Me insert lock
-      // Post CDR
-      await OCPPUtils.processOICPTransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+      // Get the lock
+      const oicpLock = await LockingHelper.createOICPPushCpoCdrLock(req.user.tenantID, transaction.id);
+      if (oicpLock) {
+        try {
+          // Post CDR
+          await OCPPUtils.processOICPTransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+          // Ok
+          Logging.logInfo({
+            tenantID: req.user.tenantID,
+            action: action,
+            user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+            module: MODULE_NAME, method: 'handlePushTransactionCdr',
+            message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+            detailedMessages: { cdr: transaction.ocpiData.cdr }
+          });
+        } finally {
+          // Release the lock
+          await LockingManager.release(oicpLock);
+        }
+      }
     } else {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

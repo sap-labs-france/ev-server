@@ -390,7 +390,7 @@ export default class OICPMapping {
     // Check input parameter
     if (!country) {
       throw new BackendError({
-        action: ServerAction.OICP_PUSH_EVSES,
+        action: ServerAction.OICP_PUSH_EVSE_DATA,
         message: 'Invalid parameters. Country name is empty',
         module: MODULE_NAME, method: 'convertCountry2CountryCode',
       });
@@ -400,7 +400,7 @@ export default class OICPMapping {
     // Check result
     if (!countryCode) {
       throw new BackendError({
-        action: ServerAction.OICP_PUSH_EVSES,
+        action: ServerAction.OICP_PUSH_EVSE_DATA,
         message: `Invalid parameters. Country name '${country}' might not be in the right language '${countryLanguage}' or misspelled`,
         module: MODULE_NAME, method: 'convertCountry2CountryCode',
       });

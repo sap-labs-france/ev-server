@@ -24,7 +24,10 @@
         "start:dev:debug"
       ],
       "port": 9229,
-      "stopOnEntry": true
+      "stopOnEntry": true,
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     },
     {
       "name": "Debug ev-server Nodemon",
