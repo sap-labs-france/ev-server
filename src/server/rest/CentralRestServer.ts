@@ -66,7 +66,7 @@ export default class CentralRestServer {
     CentralRestServer.restHttpServer = ExpressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }
 
-  async startSocketIO(): Promise<void> {
+  startSocketIO(): void {
     // Log
     const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
     Logging.logInfo({
