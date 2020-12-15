@@ -3,6 +3,7 @@ import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { SettingDB, SettingDBContent } from '../../../../types/Setting';
 import User, { UserRole, UserStatus } from '../../../../types/User';
+
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
@@ -15,6 +16,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidation';
@@ -317,7 +319,7 @@ export default class TenantService {
   }
 
   private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
-    // Check if OICP component is activated or deactivated and create/activate/deactivate virtual user accordingly
+    // Check if OICP component is activated or deactivated and create/activate/deactivate virtual user (and Badges) accordingly
     await this.checkOICPComponent(tenant);
 
     // Create settings
@@ -370,12 +372,30 @@ export default class TenantService {
         if (!virtualOICPUser) {
           await UserStorage.createOICPVirtualUser(tenant.id);
         } else if (virtualOICPUser.status !== UserStatus.ACTIVE) {
-          // Save User Status
+          // Activate user and save user status
           await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.ACTIVE);
+
+          // Activate Default Badge(s)
+          const tags = (await TagStorage.getTags(tenant.id, { userIDs: [virtualOICPUser.id] }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          tags.forEach(async (tag) => {
+            tag.active = true;
+            // Save
+            await TagStorage.saveTag(tenant.id, tag);
+          });
         }
       } else if (virtualOICPUser && virtualOICPUser?.status === UserStatus.ACTIVE) {
-        // Save User Status
+        // Deactivate user and save user status
         await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.INACTIVE);
+
+        // Deactivate Default Badge(s)
+        const tags = (await TagStorage.getTags(tenant.id, { userIDs: [virtualOICPUser.id] }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        tags.forEach(async (tag) => {
+          tag.active = false;
+          // Save
+          await TagStorage.saveTag(tenant.id, tag);
+        });
       }
     }
   }

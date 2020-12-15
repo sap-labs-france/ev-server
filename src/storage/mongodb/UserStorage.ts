@@ -123,6 +123,9 @@ export default class UserStorage {
     newVirtualOICPUser.id = await UserStorage.saveUser(tenantID, newVirtualOICPUser);
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newVirtualOICPUser.id, UserStatus.ACTIVE);
+
+    // Create default badges for virtual OICP user
+    await TagStorage.createOICPVirtualUserTags(tenantID);
   }
 
   public static async getUserByPasswordResetHash(tenantID: string, passwordResetHash: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
