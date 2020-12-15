@@ -57,6 +57,13 @@
     "debug": false,
     "externalProtocol": "http"
   },
+  "OICPService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 9080,
+    "debug": false,
+    "externalProtocol": "http"
+  },
   "CentralSystemServer": {
     "protocol": "http",
     "host": "localhost",
@@ -156,7 +163,24 @@
   },
   "Scheduler": {
     "active": false,
-    "tasks": []
+    "tasks": [
+      {
+      "name": "OICPPushEVSEDataTask",
+      "active": false,
+      "periodicity": "*/10 * * * *",
+      "config": {
+        "processAllEVSEs": true
+      }
+    },
+    {
+      "name": "OICPPushEvseStatusTask",
+      "active": false,
+      "periodicity": "*/5 * * * *",
+      "config": {
+        "processAllEVSEs": true
+      }
+    }
+  ]
   },
   "Logging": {
     "logLevel": "D",

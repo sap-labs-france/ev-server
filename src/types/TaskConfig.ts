@@ -36,3 +36,11 @@ export interface OCPIGetLocationsTaskConfig extends TaskConfig {
 export interface OCPIPushLocationsTaskConfig extends TaskConfig {
   processAllEVSEs?: boolean;
 }
+
+export interface OICPPushEvseDataTaskConfig extends TaskConfig {
+  processAllEVSEs?: boolean;
+}
+
+export interface OICPPushEvseStatusTaskConfig extends TaskConfig {
+  processAllEVSEs?: boolean;
+}

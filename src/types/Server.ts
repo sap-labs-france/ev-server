@@ -155,7 +155,7 @@ export enum ServerAction {
   OICP_ENPOINT_PING = 'OicpEndpointPing',
   OICP_ENPOINT_TRIGGER_JOBS = 'OicpEndpointTriggerJobs',
   OICP_ENDPOINT = 'OicpEndpoint',
-  OICP_PUSH_EVSES = 'OicpPushEvses',
+  OICP_PUSH_EVSE_DATA = 'OicpPushEvseData',
   OICP_PUSH_EVSE_STATUSES = 'OicpPushEvseStatuses',
   OICP_UPDATE_EVSE_STATUS = 'OicpUpdateEvseStatus',
   OICP_AUTHORIZE_START = 'OicpAuthorizeStart',

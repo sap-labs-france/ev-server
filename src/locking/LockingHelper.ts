@@ -110,4 +110,12 @@ export default class LockingHelper {
   public static async createOCPIPatchCpoLocationsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
     return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'patch-cpo-locations');
   }
+
+  public static async createOICPPatchCpoEVSEsLock(tenantID: string, oicpEndpoint: OICPEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOICPEndpointActionLock(tenantID, oicpEndpoint, 'patch-cpo-evse-data');
+  }
+
+  public static async createOICPPatchCpoEvseStatusesLock(tenantID: string, oicpEndpoint: OICPEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOICPEndpointActionLock(tenantID, oicpEndpoint, 'patch-cpo-evse-statuses');
+  }
 }

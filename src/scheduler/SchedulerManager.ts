@@ -18,6 +18,8 @@ import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
 import OCPIPushLocationsTask from './tasks/ocpi/OCPIPushLocationsTask';
+import OICPPushEvseDataTask from './tasks/oicp/OICPPushEvseDataTask';
+import OICPPushEvseStatusTask from './tasks/oicp/OICPPushEVSEStatusTask';
 import SchedulerTask from './SchedulerTask';
 import { ServerAction } from '../types/Server';
 import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
@@ -70,6 +72,12 @@ export default class SchedulerManager {
           case 'CheckPreparingSessionNotStartedTask':
             // The task runs every five minutes
             schedulerTask = new CheckPreparingSessionNotStartedTask();
+            break;
+          case 'OICPPushEVSEDataTask':
+            schedulerTask = new OICPPushEvseDataTask();
+            break;
+          case 'OICPPushEvseStatusTask':
+            schedulerTask = new OICPPushEvseStatusTask();
             break;
           case 'OCPIPushLocationsTask':
             schedulerTask = new OCPIPushLocationsTask();

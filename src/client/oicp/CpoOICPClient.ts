@@ -208,6 +208,9 @@ export default class CpoOICPClient extends OICPClient {
     if (!actionType) {
       actionType = OICPActionType.fullLoad;
     }
+    if (!processAllEVSEs) {
+      actionType = OICPActionType.insert;
+    }
     // Result
     const result = {
       success: 0,
@@ -221,8 +224,8 @@ export default class CpoOICPClient extends OICPClient {
     // Define get option
     const options = {
       addChargeBoxID: true,
-      countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSES),
-      partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSES)
+      countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
+      partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
@@ -311,7 +314,7 @@ export default class CpoOICPClient extends OICPClient {
     // Save
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
-    Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSES,
+    Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSE_DATA,
       MODULE_NAME, 'sendEVSEs', result,
       `{{inSuccess}} EVSE(s) were successfully patched in ${executionDurationSecs}s`,
       `{{inError}} EVSE(s) failed to be patched in ${executionDurationSecs}s`,
@@ -327,6 +330,9 @@ export default class CpoOICPClient extends OICPClient {
   async sendEVSEStatuses(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
       actionType = OICPActionType.fullLoad;
+    }
+    if (!processAllEVSEs) {
+      actionType = OICPActionType.insert;
     }
     // Result
     const result = {
@@ -487,7 +493,7 @@ export default class CpoOICPClient extends OICPClient {
     // Check for input parameter
     if (!evses) {
       throw new BackendError({
-        action: ServerAction.OICP_PUSH_EVSES,
+        action: ServerAction.OICP_PUSH_EVSE_DATA,
         message: 'Invalid parameters',
         module: MODULE_NAME, method: 'pushEvseData',
       });
@@ -495,11 +501,11 @@ export default class CpoOICPClient extends OICPClient {
     // Get EVSE endpoint url
     // for QA - environment: https://service-qa.hubject.com/api/oicp/evsepush/v23/operators/{operatorID}/data-records
     // for PROD - environment: https://service.hubject.com/api/oicp/evsepush/v23/operators/{operatorID}/data-records
-    const fullUrl = this.getEndpointUrl('evses', ServerAction.OICP_PUSH_EVSES);
+    const fullUrl = this.getEndpointUrl('evses', ServerAction.OICP_PUSH_EVSE_DATA);
 
     // Build payload
     const operatorEvseData: OICPOperatorEvseData = {} as OICPOperatorEvseData;
-    operatorEvseData.OperatorID = this.getOperatorID(ServerAction.OICP_PUSH_EVSES);
+    operatorEvseData.OperatorID = this.getOperatorID(ServerAction.OICP_PUSH_EVSE_DATA);
     operatorEvseData.OperatorName = this.tenant.name;
     operatorEvseData.EvseDataRecord = evses;
 
@@ -510,7 +516,7 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
-      action: ServerAction.OICP_PUSH_EVSES,
+      action: ServerAction.OICP_PUSH_EVSE_DATA,
       message: `Push EVSEs from tenant: ${this.tenant.id}`,
       module: MODULE_NAME, method: 'pushEvseData',
       detailedMessages: { payload }
@@ -1160,7 +1166,7 @@ export default class CpoOICPClient extends OICPClient {
       // Check response
       if (!response.Result || !(response.StatusCode.Code === OICPCode.Code000)) {
         pingResult.statusCode = StatusCodes.PRECONDITION_FAILED;
-        pingResult.statusText = `Invalid response from POST ${this.getEndpointUrl('evses',ServerAction.OICP_PUSH_EVSES)}`;
+        pingResult.statusText = `Invalid response from POST ${this.getEndpointUrl('evses',ServerAction.OICP_PUSH_EVSE_DATA)}`;
       } else {
         pingResult.statusCode = response.StatusCode.Code;
         pingResult.statusText = response.StatusCode.Description;
@@ -1179,8 +1185,8 @@ export default class CpoOICPClient extends OICPClient {
   async pingEvseEndpoint() {
     Logging.logInfo({
       tenantID: this.tenant.id,
-      action: ServerAction.OICP_PUSH_EVSES,
-      message: `Ping Hubject at ${this.getEndpointUrl('evses',ServerAction.OICP_PUSH_EVSES)}`,
+      action: ServerAction.OICP_PUSH_EVSE_DATA,
+      message: `Ping Hubject at ${this.getEndpointUrl('evses',ServerAction.OICP_PUSH_EVSE_DATA)}`,
       module: MODULE_NAME, method: 'pingEvseEndpoint'
     });
     const response = await this.pushEvseData([], OICPActionType.fullLoad);
