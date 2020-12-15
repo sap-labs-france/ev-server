@@ -710,7 +710,7 @@ export default class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
     let response = await this.transactionStartUserService.transactionApi.delete(this.newTransaction.id);
     if (noAuthorization) {
-      expect(response.status).to.equal(560);
+      expect(response.status).to.equal(401);
       // Transaction must be deleted by Admin user
       response = await this.centralUserService.transactionApi.delete(this.newTransaction.id);
     }

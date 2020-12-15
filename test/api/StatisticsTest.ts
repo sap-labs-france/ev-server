@@ -90,73 +90,73 @@ describe('Statistics tests', function() {
 
       it('Is not authorized to access consumption data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationConsumption({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserConsumption({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access usage data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationUsage({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserUsage({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access inactivity data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationInactivity({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserInactivity({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access sessions data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationTransactions({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserTransactions({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access pricing data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationPricing({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserPricing({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to export data to file', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'C', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Usage', DataCategory: 'U', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Inactivity', DataCategory: 'U', DataScope: 'total' });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Transactions', DataCategory: 'C', DataScope: 'total' });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Pricing', DataCategory: 'U', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.status).to.be.eql(401);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
