@@ -145,6 +145,12 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   private async send(chargeBoxIdentity: string, message: any): Promise<any> {
+    // Debug
+    if (config.trace_logs) {
+      console.log('OCPP Request ====================================');
+      console.log({ chargeBoxIdentity, message });
+      console.log('====================================');
+    }
     // WS Opened?
     if (!this.wsSessions?.get(chargeBoxIdentity)?.connection?.isConnectionOpen()) {
       // Open WS
@@ -154,7 +160,7 @@ export default class OCPPJsonService16 extends OCPPService {
     // Send
     const t0 = performance.now();
     this.wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message), {}, (error?: Error) => {
-      // pragma console.log(`Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
+      config.trace_logs && console.log(`Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
     });
     if (message[0] === MessageType.CALL_MESSAGE) {
       // Return a promise
