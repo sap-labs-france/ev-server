@@ -33,7 +33,6 @@ import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import _ from 'lodash';
@@ -779,7 +778,6 @@ export default class OCPPUtils {
         const powerInMeterValueWatts = (meterValue.attribute && meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT ?
           powerInMeterValue * 1000 : powerInMeterValue);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-        // AC Charging Station
         switch (currentType) {
           case CurrentType.DC:
             consumption.instantWattsDC = powerInMeterValueWatts;
@@ -804,11 +802,10 @@ export default class OCPPUtils {
             }
             break;
         }
-        // Handle Voltage (V)
+      // Handle Voltage (V)
       } else if (OCPPUtils.isVoltageMeterValue(meterValue)) {
         const voltage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-        // AC Charging Station
         switch (currentType) {
           case CurrentType.DC:
             consumption.instantVoltsDC = voltage;
@@ -838,11 +835,10 @@ export default class OCPPUtils {
             }
             break;
         }
-        // Handle Current (A)
+      // Handle Current (A)
       } else if (OCPPUtils.isCurrentImportMeterValue(meterValue)) {
         const amperage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-        // AC Charging Station
         switch (currentType) {
           case CurrentType.DC:
             consumption.instantAmpsDC = amperage;
@@ -864,7 +860,7 @@ export default class OCPPUtils {
             }
             break;
         }
-        // Handle Consumption (Wh/kWh)
+      // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);

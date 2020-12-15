@@ -1577,7 +1577,7 @@ export default class OCPPService {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
             // Add Attributes
-            const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
+            const normalizedLocalMeterValue: OCPPNormalizedMeterValue = Utils.cloneObject(normalizedMeterValue);
             normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
             // Data is to be interpreted as integer/decimal numeric data
             if (normalizedLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
@@ -1591,7 +1591,7 @@ export default class OCPPService {
           }
         } else {
           // Add Attributes
-          const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
+          const normalizedLocalMeterValue: OCPPNormalizedMeterValue = Utils.cloneObject(normalizedMeterValue);
           normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
           // Add
           normalizedMeterValues.values.push(normalizedLocalMeterValue);
