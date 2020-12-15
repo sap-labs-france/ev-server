@@ -175,12 +175,12 @@ describe('User tests', function() {
           const tagId = testData.newTag.id;
           const meterStart = 180;
           const startDate = moment();
-          let response = await testData.chargingStationContext.startTransaction(
+          const response = await testData.chargingStationContext.startTransaction(
             connectorId, tagId, meterStart, startDate.toDate());
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(response).to.be.transactionValid;
-          response = await testData.userService.userApi.deleteTag(tagId);
-          expect(response.idTagInfo.status).to.equal(575);
+          const resDelete = await testData.userService.userApi.deleteTag(tagId);
+          expect(resDelete.status).to.equal(575);
           const tag = (await testData.userService.userApi.readTag(tagId)).data;
           expect(tag).to.not.be.null;
         });
