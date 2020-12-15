@@ -14,6 +14,7 @@ const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
   private static configuration: CryptoConfiguration;
+  private static cryptoKey: CryptoKeySetting;
 
   public static getConfiguration(): CryptoConfiguration {
     if (!this.configuration) {
@@ -53,6 +54,11 @@ export default class Cypher {
       if (cryptoKeySetting) {
         await SettingStorage.deleteSetting(tenantID, keySettings.id);
         cryptoKeySetting.newKey = configCryptoKey;
+
+        // Key migration of senitive data
+        this.cryptoKey = cryptoKeySetting;
+        await this.migrateSensitiveData(tenantID);
+
       }
     } else {
       // Create New Config Crypto Key in Tenant Settings
@@ -71,19 +77,36 @@ export default class Cypher {
     }
   }
 
-  public static encrypt(data: string): string {
+  public static async migrateSensitiveDataByIdentifier(tenantID: string, identifier: string): Promise<void> {
+    const settings = await SettingStorage.getSettingByIdentifier(tenantID, identifier);
+    if (settings) {
+      this.decryptSensitiveDataInJSON(settings, this.cryptoKey.oldKey);
+      this.encryptSensitiveDataInJSON(settings, this.cryptoKey.newKey);
+      await SettingStorage.saveSettings(tenantID, settings);
+    }
+  }
+
+  public static async migrateSensitiveData(tenantID: string): Promise<void> {
+    for (const identifier in TenantComponents) {
+      await this.migrateSensitiveDataByIdentifier(tenantID, identifier);
+    }
+  }
+
+  public static encrypt(data: string, key?: string): string {
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(Cypher.getConfiguration().algorithm, Buffer.from(Cypher.getConfiguration().key), iv);
+    const cryptoKey = key ? key : Cypher.getConfiguration().key;
+    const cipher = crypto.createCipheriv(Cypher.getConfiguration().algorithm, Buffer.from(cryptoKey), iv);
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
   }
 
-  public static decrypt(data: string): string {
+  public static decrypt(data: string, key?: string): string {
     const dataParts = data.split(':');
     const iv = Buffer.from(dataParts.shift(), 'hex');
     const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
-    const decipher = crypto.createDecipheriv(Cypher.getConfiguration().algorithm, Buffer.from(Cypher.getConfiguration().key), iv);
+    const cryptoKey = key ? key : Cypher.getConfiguration().key;
+    const decipher = crypto.createDecipheriv(Cypher.getConfiguration().algorithm, Buffer.from(cryptoKey), iv);
     let decrypted = decipher.update(encryptedData);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();
@@ -93,7 +116,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static encryptSensitiveDataInJSON(obj: Record<string, any>): void {
+  public static encryptSensitiveDataInJSON(obj: Record<string, any>, key?: string): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -118,7 +141,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, Cypher.encrypt(value));
+            _.set(obj, property, Cypher.encrypt(value, key));
           }
         }
       }
@@ -127,7 +150,7 @@ export default class Cypher {
     }
   }
 
-  public static decryptSensitiveDataInJSON(obj: Record<string, any>): void {
+  public static decryptSensitiveDataInJSON(obj: Record<string, any>, key?: string): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -152,7 +175,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, Cypher.decrypt(value));
+            _.set(obj, property, Cypher.decrypt(value, key));
           }
         }
       }
