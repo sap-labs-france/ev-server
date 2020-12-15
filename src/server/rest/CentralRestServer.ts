@@ -111,12 +111,12 @@ export default class CentralRestServer {
         });
         socket.disconnect(true);
       } else {
-      // Join Tenant Room
+        // Connection authenticated event to client
+        socket.emit('authenticated', {
+          message: 'SocketIO client is authenticated',
+        });
+        // Join Tenant Room
         try {
-          // Connection authenticated event to client
-          socket.emit('authenticated', {
-            message: 'SocketIO client is authenticated',
-          });
           void socket.join(userToken.tenantID);
           CentralRestServer.centralSystemRestConfig.debug && console.log(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`);
           Logging.logDebug({
