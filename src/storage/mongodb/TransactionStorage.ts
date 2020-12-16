@@ -1,4 +1,5 @@
 import RefundReport, { RefundStatus } from '../../types/Refund';
+import Transaction, { OcpiData } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import global, { FilterParams } from './../../types/GlobalType';
 
@@ -10,7 +11,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/Notification';
 import { ServerAction } from '../../types/Server';
-import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
