@@ -167,7 +167,7 @@ class RequestMapper {
           [ServerAction.TRANSACTION_YEARS]: TransactionService.handleGetTransactionYears.bind(this),
           [ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS]: TransactionService.handleRebuildTransactionConsumptions.bind(this),
           [ServerAction.UNASSIGNED_TRANSACTIONS_COUNT]: TransactionService.handleGetUnassignedTransactionsCount.bind(this),
-          [ServerAction.GET_OCPI_DATA]: TransactionService.handleGetOcpiDataFromTransaction.bind(this),
+          [ServerAction.TRANSACTION_OCPI_CDR_EXPORT]: TransactionService.handleExportTransactionOcpiCdr.bind(this),
           [ServerAction.CHARGING_STATION_CONSUMPTION_STATISTICS]: StatisticService.handleGetChargingStationConsumptionStatistics.bind(this),
           [ServerAction.CHARGING_STATION_USAGE_STATISTICS]: StatisticService.handleGetChargingStationUsageStatistics.bind(this),
           [ServerAction.CHARGING_STATION_INACTIVITY_STATISTICS]: StatisticService.handleGetChargingStationInactivityStatistics.bind(this),

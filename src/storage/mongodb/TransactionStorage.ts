@@ -1031,25 +1031,6 @@ export default class TransactionStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, '_findAvailableID', uniqueTimerID);
   }
 
-  public static async getOcpiDataFromTransaction(tenantID: string, transactionID: number = Constants.UNKNOWN_NUMBER_ID): Promise<OcpiData> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransaction');
-    // Check
-    await DatabaseUtils.checkTenant(tenantID);
-    // Get OcpiData
-    const ocpiDataMDB = await global.database.getCollection<any>(tenantID, 'transactions')
-      .aggregate([
-        { $match: { _id: transactionID } },
-        { $project: { _id: 0, ocpiData: 1 } }
-      ]).toArray();
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransaction', uniqueTimerID, { transactionID });
-    if (ocpiDataMDB && ocpiDataMDB.length > 0 && ocpiDataMDB[0].ocpiData) {
-      return ocpiDataMDB[0].ocpiData;
-    }
-    return {};
-  }
-
   public static async getNotStartedTransactions(tenantID: string,
     params: { checkPastAuthorizeMins: number; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
     // Debug
