@@ -552,7 +552,14 @@ export default class TransactionStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add if OCPI CDR exists
+    // Add OCPI data
+    if (projectFields && projectFields.includes('ocpi')) {
+      aggregation.push({
+        $addFields: {
+          'ocpi': { $gt: ['$ocpiData', null] }
+        }
+      });
+    }
     if (projectFields && projectFields.includes('ocpiWithCdr')) {
       aggregation.push({
         $addFields: {
