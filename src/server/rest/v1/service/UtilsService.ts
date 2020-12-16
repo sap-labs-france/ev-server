@@ -16,6 +16,7 @@ import { DataResult } from '../../../../types/DataResult';
 import { HttpEndUserReportErrorRequest } from '../../../../types/requests/HttpNotificationRequest';
 import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import PDFDocument from 'pdfkit';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -23,6 +24,7 @@ import Tag from '../../../../types/Tag';
 import TenantComponents from '../../../../types/TenantComponents';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import blobStream from 'blob-stream';
 import countries from 'i18n-iso-countries';
 import moment from 'moment';
 
@@ -187,7 +189,7 @@ export default class UtilsService {
 
   public static async exportToCSV(req: Request, res: Response, attachementName: string,
     handleGetData: (req: Request) => Promise<DataResult<any>>,
-    handleConvertToCSV: (loggedUser: UserToken, data: any[], writeHeader: boolean) => string): Promise<void> {
+    handleConvertToCSV: (req: Request, data: any[], writeHeader: boolean) => string): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Set the attachment name
@@ -212,16 +214,60 @@ export default class UtilsService {
       if (connectionClosed) {
         break;
       }
-      // Get the Logs
+      // Get the data
       req.query.Skip = skip.toString();
       data = await handleGetData(req);
+      // Get CSV data
+      const csvData = handleConvertToCSV(req, data.result, (skip === 0));
       // Send Transactions
-      res.write(handleConvertToCSV(req.user, data.result, (skip === 0)));
+      res.write(csvData);
       // Next page
       skip += Constants.EXPORT_PAGE_SIZE;
     } while (skip < count);
     // End of stream
     res.end();
+  }
+
+  public static async exportToPDF(req: Request, res: Response, attachementName: string,
+    handleGetData: (req: Request) => Promise<DataResult<any>>,
+    handleConvertToPDF: (req: Request, pdfDocument: PDFDocument, data: any[]) => Promise<string>): Promise<void> {
+    // Override
+    req.query.Limit = Constants.EXPORT_PDF_PAGE_SIZE.toString();
+    // Set the attachment name
+    res.attachment(attachementName);
+    // Get the total number of Logs
+    req.query.OnlyRecordCount = 'true';
+    let data = await handleGetData(req);
+    let count = data.count;
+    delete req.query.OnlyRecordCount;
+    let skip = 0;
+    // Limit the number of records
+    if (count > Constants.EXPORT_PDF_PAGE_SIZE) {
+      count = Constants.EXPORT_PDF_PAGE_SIZE;
+    }
+    // Handle closed socket
+    let connectionClosed = false;
+    req.connection.on('close', () => {
+      connectionClosed = true;
+    });
+    // Create the PDF
+    const pdfDocument = new PDFDocument();
+    pdfDocument.pipe(res);
+    do {
+      // Check if the socket is closed and stop the process
+      if (connectionClosed) {
+        break;
+      }
+      // Get the data
+      req.query.Skip = skip.toString();
+      data = await handleGetData(req);
+      // Transform data
+      await handleConvertToPDF(req, pdfDocument, data.result);
+      // Next page
+      skip += Constants.EXPORT_PAGE_SIZE;
+    } while (skip < count);
+    // Finish
+    pdfDocument.end();
   }
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,

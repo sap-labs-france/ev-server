@@ -86,5 +86,9 @@
   },
   "tags": {
     "virtualBadge": "Virtual Badge"
-  }
+  },
+  "chargers": {
+    "connector": "Connector"
+  },
+  "siteArea": "Site Area"
 }

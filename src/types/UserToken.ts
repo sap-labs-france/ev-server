@@ -1,3 +1,4 @@
+import User from './User';
 
 export default interface UserToken {
   id?: string;
@@ -20,4 +21,5 @@ export default interface UserToken {
   sitesAdmin?: string[];
   sitesOwner?: string[];
   activeComponents?: string[];
+  user?: User;
 }
