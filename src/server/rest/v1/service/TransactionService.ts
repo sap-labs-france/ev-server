@@ -699,7 +699,8 @@ export default class TransactionService {
   public static async handleExportTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-sessions.csv',
-      TransactionService.getCompletedTransactionsToExport.bind(this), TransactionService.convertToCSV.bind(this));
+      TransactionService.getCompletedTransactionsToExport.bind(this),
+      TransactionService.convertToCSV.bind(this));
   }
 
   public static async getCompletedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
@@ -714,7 +715,8 @@ export default class TransactionService {
   public static async handleExportTransactionsToRefund(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-refund-sessions.csv',
-      TransactionService.getRefundedTransactionsToExport.bind(this), TransactionService.convertToCSV.bind(this));
+      TransactionService.getRefundedTransactionsToExport.bind(this),
+      TransactionService.convertToCSV.bind(this));
   }
 
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
@@ -826,7 +828,7 @@ export default class TransactionService {
     next();
   }
 
-  public static convertToCSV(loggedUser: UserToken, transactions: Transaction[], writeHeader = true): string {
+  public static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
     let csv = '';
     // Header
     if (writeHeader) {

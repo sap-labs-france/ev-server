@@ -28,7 +28,8 @@ export default class LoggingService {
 
   public static async handleExportLogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     await UtilsService.exportToCSV(req, res, 'exported-logs.csv',
-      LoggingService.getLogs.bind(this), LoggingService.convertToCSV.bind(this));
+      LoggingService.getLogs.bind(this),
+      LoggingService.convertToCSV.bind(this));
   }
 
   public static async handleGetLog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -53,7 +54,7 @@ export default class LoggingService {
     next();
   }
 
-  private static convertToCSV(loggedUser: UserToken, loggings: Log[], writeHeader = true): string {
+  private static convertToCSV(req: Request, loggings: Log[], writeHeader = true): string {
     let csv = '';
     // Header
     if (writeHeader) {

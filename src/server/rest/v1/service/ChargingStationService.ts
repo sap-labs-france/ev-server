@@ -33,6 +33,7 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
+import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
@@ -835,99 +836,27 @@ export default class ChargingStationService {
   public static async handleExportChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-charging-stations.csv',
-      ChargingStationService.getChargingStations.bind(this), ChargingStationService.convertToCSV.bind(this));
+      ChargingStationService.getChargingStations.bind(this),
+      ChargingStationService.convertToCSV.bind(this));
   }
 
-  public static async handleDownloadQrCodePdf(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!req.query.SiteID && !req.query.SiteAreaID) {
+  public static async handleDownloadQrCodesPdf(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterDownloadQrCodesPdfRequest(req.query);
+    // Check
+    if (!filteredRequest.SiteID && !filteredRequest.SiteAreaID && !filteredRequest.ChargeBoxID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'SiteID or SiteAreaID must be provided',
-        module: MODULE_NAME, method: 'handleDownloadQrCodePdf',
+        message: 'Site ID or Site Area ID or Charging Station ID must be provided',
+        module: MODULE_NAME, method: 'handleDownloadQrCodesPdf',
         user: req.user
       });
     }
-    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
-    // Get the total number of Logs
-    req.query.OnlyRecordCount = 'true';
-    let chargingStations = await ChargingStationService.getChargingStations(req,
-      ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email']);
-    let count = chargingStations.count;
-    delete req.query.OnlyRecordCount;
-    let skip = 0;
-    const fileName = 'output.pdf';
-    const createdStream = fs.createWriteStream(fileName);
-    // Limit the number of records
-    if (count > Constants.EXPORT_RECORD_MAX_COUNT) {
-      count = Constants.EXPORT_RECORD_MAX_COUNT;
-    }
-    // Handle closed socket
-    let connectionClosed = false;
-    req.connection.on('close', () => {
-      connectionClosed = true;
-    });
-    const pdfDoc = new PDFDocument();
-    do {
-      // Check if the socket is closed and stop the process
-      if (connectionClosed) {
-        break;
-      }
-      console.log(skip);
-      // Get the Logs
-      req.query.Skip = skip.toString();
-      chargingStations = await ChargingStationService.getChargingStations(req,
-        ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email']);
-      let chargingStationQRCode: ChargingStationQRCode = {}, generatedQR: string;
-      const i18nManager = new I18nManager(req.user.locale);
-      pdfDoc.pipe(createdStream);
-      let firstPage = true;
-      const encoding: BufferEncoding = 'base64';
-      if (!Utils.isEmptyArray(chargingStations.result)) {
-        for (const chargingStation of chargingStations.result) {
-          if (!Utils.isEmptyArray(chargingStation.connectors)) {
-            for (const connector of chargingStation.connectors) {
-              chargingStationQRCode = {
-                chargingStationID: chargingStation.id,
-                connectorID: connector.connectorId,
-                endpoint: Utils.getChargingStationEndpoint(),
-                tenantName: req.user.tenantName,
-                tenantSubDomain: (await TenantStorage.getTenant(req.user.tenantID, { withLogo: false }, ['subdomain'])).subdomain
-              };
-              generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString(encoding));
-              if (!firstPage) {
-                pdfDoc.addPage();
-              }
-              pdfDoc.image(generatedQR, 50, 50, {
-                width: 500, height: 500
-              });
-              pdfDoc.text(i18nManager.translate('siteArea') + ': ' + chargingStation.siteArea.name + ' - ' + chargingStation.id + ' ' + i18nManager.translate('chargers.connector') + ' ' + Utils.getConnectorLetterFromConnectorID(connector.connectorId), 20, pdfDoc.page.height - 50, {
-                lineBreak: false
-              });
-              firstPage = false;
-            }
-          }
-        }
-      }
-      // Next page
-      skip += Constants.EXPORT_PAGE_SIZE;
-    } while (skip < count);
-    pdfDoc.end();
-    // End of stream
-    createdStream.on('finish', function() {
-      res.download(fileName, (err2) => {
-        if (err2) {
-          console.log(err2);
-          throw err2;
-        }
-        fs.unlink(fileName, (err3) => {
-          if (err3) {
-            console.log(err3);
-            throw err3;
-          }
-        });
-      });
-    });
+    // Export
+    await UtilsService.exportToPDF(req, res, 'exported-charging-stations-qr-code.pdf',
+      ChargingStationService.getChargingStationsForQrCode.bind(this),
+      ChargingStationService.convertQrCodeToPDF.bind(this));
   }
 
 
@@ -1350,6 +1279,11 @@ export default class ChargingStationService {
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints',
         ...userProject
       ];
+    } else {
+      projectFields = [
+        ...projectFields,
+        ...userProject
+      ];
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
@@ -1357,11 +1291,12 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
-        connectorStatuses: (filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null),
-        connectorTypes: (filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null),
+        chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        connectorStatuses: filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null,
+        connectorTypes: filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null,
         issuer: filteredRequest.Issuer,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
+        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         includeDeleted: filteredRequest.IncludeDeleted,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
@@ -1394,9 +1329,9 @@ export default class ChargingStationService {
     return csv;
   }
 
-  private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[], writeHeader = true): string {
+  private static convertToCSV(req: Request, chargingStations: ChargingStation[], writeHeader = true): string {
     let csv = '';
-    const i18nManager = new I18nManager(loggedUser.locale);
+    const i18nManager = new I18nManager(req.user.locale);
     // Header
     if (writeHeader) {
       csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Seen${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
@@ -1406,7 +1341,7 @@ export default class ChargingStationService {
       csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
       csv += `${i18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${i18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.connectors ? chargingStation.connectors.length : '0'}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.siteArea.name}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation?.siteArea?.name ? chargingStation.siteArea.name : ''}` + Constants.CSV_SEPARATOR;
       if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
         csv += `${chargingStation.coordinates[1]}` + Constants.CSV_SEPARATOR;
         csv += `${chargingStation.coordinates[0]}` + Constants.CSV_SEPARATOR;
@@ -1426,6 +1361,77 @@ export default class ChargingStationService {
       csv += `${chargingStation.powerLimitUnit}\r\n`;
     }
     return csv;
+  }
+
+
+  private static async getChargingStationsForQrCode(req: Request): Promise<DataResult<ChargingStation>> {
+    return ChargingStationService.getChargingStations(req,
+      ['id', 'connectors.connectorId', 'siteArea.name']);
+  }
+
+  private static async convertQrCodeToPDF(req: Request, pdfDocument: PDFDocument, chargingStations: ChargingStation[]): Promise<void> {
+    const i18nManager = new I18nManager(req.user.locale);
+    // Check for Connector ID
+    let connectorID = null;
+    if (req.query.ConnectorID) {
+      connectorID = Utils.convertToInt(req.query.ConnectorID);
+    }
+    // Content
+    for (const chargingStation of chargingStations) {
+      if (!Utils.isEmptyArray(chargingStation.connectors)) {
+        for (const connector of chargingStation.connectors) {
+          // Filter on connector ID?
+          if (connectorID > 0 && connector.connectorId !== connectorID) {
+            continue;
+          }
+          // Create data
+          const chargingStationQRCode: ChargingStationQRCode = {
+            chargingStationID: chargingStation.id,
+            connectorID: connector.connectorId,
+            endpoint: Utils.getChargingStationEndpoint(),
+            tenantName: req.tenant.name,
+            tenantSubDomain: req.tenant.subdomain
+          };
+          // Generated QR-Code
+          const qrCodeImage = await Utils.generateQrCode(
+            Buffer.from(JSON.stringify(chargingStationQRCode)).toString('base64'));
+          // Build title
+          const qrCodeTitle = `${chargingStation.id} / ${i18nManager.translate('chargers.connector')} ${Utils.getConnectorLetterFromConnectorID(connector.connectorId)}`;
+          // Add the QR Codes
+          ChargingStationService.build3SizesPDFQrCode(pdfDocument, qrCodeImage, qrCodeTitle);
+          // Add page (expect the last one)
+          if (!connectorID && (chargingStations[chargingStations.length - 1] !== chargingStation ||
+              chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
+            pdfDocument.addPage();
+          }
+        }
+      }
+    }
+  }
+
+  private static build3SizesPDFQrCode(pdfDocument: PDFDocument, qrCodeImage: string, qrCodeTitle: string): void {
+    const bigSquareSide = 300;
+    const mediumSquareSide = 150;
+    const smallSquareSide = 75;
+    const marginHeight = 50;
+    // Add big QR-Code
+    pdfDocument.image(qrCodeImage, (pdfDocument.page.width / 2) - (bigSquareSide / 2), marginHeight, {
+      width: bigSquareSide, height: bigSquareSide,
+    });
+    pdfDocument.fontSize(18);
+    pdfDocument.text(qrCodeTitle, 65, bigSquareSide + marginHeight, { align: 'center' });
+    // Add medium QR-Code
+    pdfDocument.image(qrCodeImage, (pdfDocument.page.width / 2) - (mediumSquareSide / 2), (bigSquareSide + (marginHeight * 2)), {
+      width: mediumSquareSide, height: mediumSquareSide,
+    });
+    pdfDocument.fontSize(12);
+    pdfDocument.text(qrCodeTitle, 65, bigSquareSide + mediumSquareSide + (marginHeight * 2) + 10, { align: 'center' });
+    // Add small QR-Code
+    pdfDocument.image(qrCodeImage, (pdfDocument.page.width / 2) - (smallSquareSide / 2), (bigSquareSide + mediumSquareSide + (marginHeight * 3)), {
+      width: smallSquareSide, height: smallSquareSide,
+    });
+    pdfDocument.fontSize(8);
+    pdfDocument.text(qrCodeTitle, 65, bigSquareSide + mediumSquareSide + smallSquareSide + (marginHeight * 3) + 10, { align: 'center' });
   }
 
   private static async handleChargingStationCommand(tenantID: string, user: UserToken, chargingStation: ChargingStation,

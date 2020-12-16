@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../../types/ChargingProfile';
-import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../../types/requests/HttpChargingStationRequest';
 
 import { Command } from '../../../../../types/ChargingStation';
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
@@ -60,6 +60,15 @@ export default class ChargingStationSecurity {
     return { ID: sanitize(request.ID) };
   }
 
+  public static filterDownloadQrCodesPdfRequest(request: any): HttpDownloadQrCodeRequest {
+    return {
+      ChargeBoxID: request.ChargeBoxID ? sanitize(request.ChargeBoxID) : null,
+      ConnectorID: request.ConnectorID ? Utils.convertToInt(sanitize(request.ConnectorID)) : null,
+      SiteAreaID: request.SiteAreaID ? sanitize(request.SiteAreaID) : null,
+      SiteID: request.SiteID ? sanitize(request.SiteID) : null,
+    };
+  }
+
   public static filterChargingStationRequestByID(request: any): string {
     return sanitize(request.ID);
   }
@@ -69,7 +78,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {
-    const filteredRequest: HttpChargingStationsRequest = {} as HttpChargingStationsRequest;
+    const filteredRequest = {} as HttpChargingStationsRequest;
     if (request.Issuer) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
@@ -80,6 +89,7 @@ export default class ChargingStationSecurity {
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.ConnectorStatus = sanitize(request.ConnectorStatus);
     filteredRequest.ConnectorType = sanitize(request.ConnectorType);
+    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
     if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
