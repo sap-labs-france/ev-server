@@ -87,6 +87,7 @@
     "axios-retry": "^3.1.9",
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
+    "blob-stream": "^0.1.3",
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "body-parser-xml": "^2.0.0",
@@ -122,6 +123,8 @@
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "password-generator": "^2.3.2",
+    "pdfkit": "^0.11.0",
+    "qrcode": "^1.4.4",
     "role-acl": "^3.3.7",
     "simple-odata-server": "^1.1.1",
     "socket.io": "^3.0.4",
@@ -136,10 +139,6 @@
     "uuid": "^8.3.1",
     "validator": "^13.1.17",
     "ws": "^7.4.1"
-  },
-  "optionalDependencies": {
-    "bufferutil": "^4.0.2",
-    "utf-8-validate": "^5.0.3"
   },
   "devDependencies": {
     "@types/basic-auth": "^1.1.3",
