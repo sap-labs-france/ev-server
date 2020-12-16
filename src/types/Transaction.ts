@@ -74,7 +74,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   uniqueId?: string;
   values?: Consumption[];
   billingData?: BillingTransactionData;
-  ocpiWithNoCdr?: boolean;
+  ocpiWithCdr?: boolean;
   ocpiData?: OcpiData;
 }
 

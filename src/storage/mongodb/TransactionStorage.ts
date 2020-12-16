@@ -553,11 +553,11 @@ export default class TransactionStorage {
       $limit: dbParams.limit
     });
     // Add if OCPI CDR exists
-    if (projectFields && projectFields.includes('ocpiWithNoCdr')) {
+    if (projectFields && projectFields.includes('ocpiWithCdr')) {
       aggregation.push({
         $addFields: {
-          ocpiWithNoCdr: {
-            $cond: { if: { $and: [{ $gt: ['$ocpiData', null] }, { $not: { $gt: ['$ocpiData.cdr', null] } }] }, then: true, else: false }
+          'ocpiWithCdr': {
+            $cond: { if: { $and: [{ $gt: ['$ocpiData', null] }, { $gt: ['$ocpiData.cdr', null] }] }, then: true, else: false }
           }
         }
       });
