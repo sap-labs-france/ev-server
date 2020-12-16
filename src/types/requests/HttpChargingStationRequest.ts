@@ -25,7 +25,6 @@ export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
 export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   Search?: string;
-  ForQrCode?: boolean;
   WithNoSiteArea?: boolean;
   ConnectorStatus?: string;
   ConnectorType?: string;

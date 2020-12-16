@@ -474,10 +474,10 @@ export default class ChargingStationService {
       connectorID: filteredRequest.ConnectorID,
       endpoint: Utils.getChargingStationEndpoint(),
       tenantName: req.user.tenantName,
-      tenantSubDomain: (await TenantStorage.getTenant(req.user.tenantID,{ withLogo: false } ,['subdomain'])).subdomain
+      tenantSubDomain: req.tenant.subdomain
     };
-    const encoding: BufferEncoding = 'base64';
-    const generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString(encoding));
+    // Generate
+    const generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString('base64'));
     res.json({ image: generatedQR });
     next();
   }
@@ -851,14 +851,13 @@ export default class ChargingStationService {
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Get the total number of Logs
     req.query.OnlyRecordCount = 'true';
-    req.query.ForQrCode = 'true';
-    let data = await ChargingStationService.getChargingStations(req);
-    let count = data.count;
+    let chargingStations = await ChargingStationService.getChargingStations(req,
+      ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email']);
+    let count = chargingStations.count;
     delete req.query.OnlyRecordCount;
     let skip = 0;
     const fileName = 'output.pdf';
     const createdStream = fs.createWriteStream(fileName);
-
     // Limit the number of records
     if (count > Constants.EXPORT_RECORD_MAX_COUNT) {
       count = Constants.EXPORT_RECORD_MAX_COUNT;
@@ -868,7 +867,7 @@ export default class ChargingStationService {
     req.connection.on('close', () => {
       connectionClosed = true;
     });
-    const pdfDoc = new PDFDocument;
+    const pdfDoc = new PDFDocument();
     do {
       // Check if the socket is closed and stop the process
       if (connectionClosed) {
@@ -877,14 +876,15 @@ export default class ChargingStationService {
       console.log(skip);
       // Get the Logs
       req.query.Skip = skip.toString();
-      data = await ChargingStationService.getChargingStations(req);
+      chargingStations = await ChargingStationService.getChargingStations(req,
+        ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email']);
       let chargingStationQRCode: ChargingStationQRCode = {}, generatedQR: string;
       const i18nManager = new I18nManager(req.user.locale);
       pdfDoc.pipe(createdStream);
       let firstPage = true;
       const encoding: BufferEncoding = 'base64';
-      if (!Utils.isEmptyArray(data.result)) {
-        for (const chargingStation of data.result) {
+      if (!Utils.isEmptyArray(chargingStations.result)) {
+        for (const chargingStation of chargingStations.result) {
           if (!Utils.isEmptyArray(chargingStation.connectors)) {
             for (const connector of chargingStation.connectors) {
               chargingStationQRCode = {
@@ -1321,7 +1321,7 @@ export default class ChargingStationService {
     return results;
   }
 
-  private static async getChargingStations(req: Request): Promise<DataResult<ChargingStation>> {
+  private static async getChargingStations(req: Request, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -1337,6 +1337,19 @@ export default class ChargingStationService {
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
       userProject = ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email'];
+    }
+    // Project fields
+    if (!projectFields) {
+      projectFields = [
+        // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
+        'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
+        'ocppVersion', 'ocppProtocol', 'lastSeen', 'lastHeartBeat', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'maximumPower',
+        'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
+        'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
+        'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints',
+        ...userProject
+      ];
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
@@ -1359,16 +1372,7 @@ export default class ChargingStationService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      filteredRequest.ForQrCode ? ['id', 'connectors.connectorId', 'siteArea.name'] : [
-        // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
-        'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
-        'ocppVersion', 'ocppProtocol', 'lastSeen', 'lastHeartBeat', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'maximumPower',
-        'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
-        'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
-        'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints',
-        ...userProject
-      ]
+      projectFields
     );
     return chargingStations;
   }

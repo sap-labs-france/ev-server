@@ -75,7 +75,6 @@ export default class ChargingStationSecurity {
     }
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
-    filteredRequest.ForQrCode = UtilsSecurity.filterBoolean(request.ForQrCode);
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
