@@ -197,6 +197,7 @@ export enum Voltage {
 
 export interface ChargingStationTemplate {
   id?: string;
+  qa?: boolean;
   hash?: string;
   hashTechnical?: string;
   hashCapabilities?: string;
@@ -292,4 +293,5 @@ export enum ChargerVendor {
   LEGRAND = 'Legrand',
   ATESS = 'ATESS',
   MENNEKES = 'MENNEKES',
+  SAP_LABS_FRANCE = 'SAP Labs France Caen',
 }

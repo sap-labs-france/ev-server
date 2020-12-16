@@ -84,13 +84,13 @@ export default class Utils {
         csPhase3: false
       };
       // Check current consumption
-      if (transaction.currentInstantAmpsL1 > 0) {
+      if (transaction.currentInstantAmpsL1 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
         cSPhasesUsed.csPhase1 = true;
       }
-      if (transaction.currentInstantAmpsL2 > 0) {
+      if (transaction.currentInstantAmpsL2 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
         cSPhasesUsed.csPhase2 = true;
       }
-      if (transaction.currentInstantAmpsL3 > 0) {
+      if (transaction.currentInstantAmpsL3 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
         cSPhasesUsed.csPhase3 = true;
       }
       return cSPhasesUsed;
@@ -104,10 +104,10 @@ export default class Utils {
   }
 
   public static checkIfPhasesProvidedInTransactionInProgress(transaction: Transaction): boolean {
-    return transaction.currentInstantAmps > 0 &&
-      (transaction.currentInstantAmpsL1 > 0 ||
-        transaction.currentInstantAmpsL2 > 0 ||
-        transaction.currentInstantAmpsL3 > 0);
+    return transaction.currentInstantAmps > Constants.AMPERAGE_DETECTION_THRESHOLD &&
+      (transaction.currentInstantAmpsL1 > Constants.AMPERAGE_DETECTION_THRESHOLD ||
+        transaction.currentInstantAmpsL2 > Constants.AMPERAGE_DETECTION_THRESHOLD ||
+        transaction.currentInstantAmpsL3 > Constants.AMPERAGE_DETECTION_THRESHOLD);
   }
 
   public static getNumberOfUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
