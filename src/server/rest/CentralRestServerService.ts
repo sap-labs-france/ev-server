@@ -125,6 +125,8 @@ class RequestMapper {
           [ServerAction.CHECK_SMART_CHARGING_CONNECTION]: ChargingStationService.handleCheckSmartChargingConnection.bind(this),
           [ServerAction.CHARGING_PROFILES]: ChargingStationService.handleGetChargingProfiles.bind(this),
           [ServerAction.TRIGGER_SMART_CHARGING]: ChargingStationService.handleTriggerSmartCharging.bind(this),
+          [ServerAction.GENERATE_QR_CODE_FOR_CONNECTOR]: ChargingStationService.handleGenerateQrCodeForConnector.bind(this),
+          [ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF]: ChargingStationService.handleDownloadQrCodesPdf.bind(this),
           [ServerAction.REGISTRATION_TOKENS]: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           [ServerAction.STATUS_NOTIFICATIONS]: ChargingStationService.handleGetStatusNotifications.bind(this),
           [ServerAction.BOOT_NOTIFICATION]: ChargingStationService.handleGetBootNotifications.bind(this),
@@ -167,6 +169,7 @@ class RequestMapper {
           [ServerAction.TRANSACTION_YEARS]: TransactionService.handleGetTransactionYears.bind(this),
           [ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS]: TransactionService.handleRebuildTransactionConsumptions.bind(this),
           [ServerAction.UNASSIGNED_TRANSACTIONS_COUNT]: TransactionService.handleGetUnassignedTransactionsCount.bind(this),
+          [ServerAction.TRANSACTION_OCPI_CDR_EXPORT]: TransactionService.handleExportTransactionOcpiCdr.bind(this),
           [ServerAction.CHARGING_STATION_CONSUMPTION_STATISTICS]: StatisticService.handleGetChargingStationConsumptionStatistics.bind(this),
           [ServerAction.CHARGING_STATION_USAGE_STATISTICS]: StatisticService.handleGetChargingStationUsageStatistics.bind(this),
           [ServerAction.CHARGING_STATION_INACTIVITY_STATISTICS]: StatisticService.handleGetChargingStationInactivityStatistics.bind(this),
@@ -299,6 +302,9 @@ export default class CentralRestServerService {
               break;
             case ServerAction.CAR_CATALOG_IMAGE:
               await CarService.handleGetCarCatalogImage(action, req, res, next);
+              break;
+            case ServerAction.ASSET_IMAGE:
+              await AssetService.handleGetAssetImage(action, req, res, next);
               break;
             case ServerAction.COMPANY_LOGO:
               await CompanyService.handleGetCompanyLogo(action, req, res, next);

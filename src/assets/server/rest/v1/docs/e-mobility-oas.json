@@ -2,24 +2,16 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "description": "SCP - Prod - SAP Labs France",
-      "url": "https://slf.evse.cfapps.eu10.hana.ondemand.com/v1/api"
+      "description": "SCP - Production system",
+      "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
     },
     {
-      "description": "SCP - Prod - Tenant Management",
-      "url": "https://evse.cfapps.eu10.hana.ondemand.com/v1/api"
+      "description": "SCP - Quality system",
+      "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
     },
     {
-      "description": "AWS - Prod - Tenant Management",
-      "url": "https://e-mobility-group.com/v1/api"
-    },
-    {
-      "description": "Localhost - Dev - Tenant Management",
-      "url": "http://localhost:8080/v1/api"
-    },
-    {
-      "description": "Localhost - Dev - Auth Management",
-      "url": "http://localhost:8080/v1/auth"
+      "description": "Localhost - Development",
+      "url": "http://localhost:8080/v1"
     }
   ],
   "info": {
@@ -37,16 +29,16 @@
   },
   "tags": [
     {
-      "name": "Tenants",
-      "description": "Tenant management"
+      "name": "Tenant",
+      "description": "Tenant API"
     },
     {
-      "name": "Auth",
-      "description": "Auth management"
+      "name": "Authentication",
+      "description": "Authentication API"
     }
   ],
   "paths": {
-    "/tenants": {
+    "/api/tenants": {
       "post": {
         "description": "Create a Tenant",
         "requestBody": {
@@ -59,7 +51,7 @@
           }
         },
         "tags": [
-          "Super Admin"
+          "Tenant"
         ],
         "responses": {
           "200": {
@@ -131,7 +123,7 @@
           }
         ],
         "tags": [
-          "Tenants"
+          "Tenant"
         ],
         "responses": {
           "200": {
@@ -156,7 +148,7 @@
         }
       }
     },
-    "/tenants/{tenantID}": {
+    "/api/tenants/{tenantID}": {
       "get": {
         "description": "Retrieve a Tenant",
         "security": [
@@ -176,7 +168,7 @@
           }
         ],
         "tags": [
-          "Tenants"
+          "Tenant"
         ],
         "responses": {
           "200": {
@@ -216,7 +208,7 @@
           }
         ],
         "tags": [
-          "Tenants"
+          "Tenant"
         ],
         "responses": {
           "200": {
@@ -231,22 +223,22 @@
         }
       }
     },
-    "/signin": {
+    "/auth/signin": {
       "post": {
         "description": "Sign in",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "firstname.name@sap.com"
+                    "example": "demo.demo@sap.com"
                   },
                   "password": {
                     "type": "string",
-                    "example": "Azerty123!"
+                    "example": "DeM*Us$r1"
                   },
                   "acceptEula": {
                     "type": "boolean",
@@ -254,7 +246,7 @@
                   },
                   "tenant": {
                     "type": "string",
-                    "example": ""
+                    "example": "slf"
                   }
                 }
               }
@@ -262,7 +254,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -280,12 +272,12 @@
         }
       }
     },
-    "/signon": {
+    "/auth/signon": {
       "post": {
         "description": "Register",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -332,7 +324,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -356,11 +348,11 @@
         }
       }
     },
-    "/signout": {
+    "/auth/signout": {
       "get": {
         "description": "Sign out",
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -372,12 +364,12 @@
         }
       }
     },
-    "/password/reset": {
+    "/auth/password/reset": {
       "post": {
         "description": "Reset password",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -399,7 +391,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -414,7 +406,7 @@
         }
       }
     },
-    "/eula": {
+    "/auth/eula": {
       "get": {
         "description": "Get tenant EULA",
         "parameters": [
@@ -438,7 +430,7 @@
           }
         ],
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -467,7 +459,7 @@
         }
       }
     },
-    "/eula/check": {
+    "/auth/eula/check": {
       "get": {
         "description": "Check if a user accepted latest EULA",
         "parameters": [
@@ -489,7 +481,7 @@
           }
         ],
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -523,7 +515,7 @@
         }
       }
     },
-    "/mail/check": {
+    "/auth/mail/check": {
       "get": {
         "description": "Verify email",
         "parameters": [
@@ -553,7 +545,7 @@
           }
         ],
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {
@@ -571,12 +563,12 @@
         }
       }
     },
-    "/mail/resend": {
+    "/auth/mail/resend": {
       "post": {
         "description": "Resend a verification email",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "required": ["email", "tenant", "captcha"],
@@ -599,7 +591,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "responses": {
           "200": {

@@ -57,6 +57,19 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   };
 }
 
+export interface ChargingStationQRCode {
+  tenantSubDomain?: string;
+  tenantName?: string;
+  endpoint?: ChargingStationEndpoint;
+  chargingStationID?: string;
+  connectorID?: number;
+}
+
+export enum ChargingStationEndpoint {
+  SCP = 'scp',
+  AWS = 'aws'
+}
+
 export interface TemplateUpdate {
   chargingStationUpdate: boolean;
   technicalUpdate: boolean;
@@ -183,6 +196,7 @@ export enum Voltage {
 
 export interface ChargingStationTemplate {
   id?: string;
+  qa?: boolean;
   hash?: string;
   hashTechnical?: string;
   hashCapabilities?: string;
@@ -278,4 +292,5 @@ export enum ChargerVendor {
   LEGRAND = 'Legrand',
   ATESS = 'ATESS',
   MENNEKES = 'MENNEKES',
+  SAP_LABS_FRANCE = 'SAP Labs France Caen',
 }

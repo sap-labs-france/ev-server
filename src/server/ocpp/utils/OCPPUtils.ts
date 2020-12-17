@@ -33,7 +33,6 @@ import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import _ from 'lodash';
@@ -779,7 +778,6 @@ export default class OCPPUtils {
         const powerInMeterValueWatts = (meterValue.attribute && meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT ?
           powerInMeterValue * 1000 : powerInMeterValue);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-        // AC Charging Station
         switch (currentType) {
           case CurrentType.DC:
             consumption.instantWattsDC = powerInMeterValueWatts;
@@ -804,11 +802,10 @@ export default class OCPPUtils {
             }
             break;
         }
-        // Handle Voltage (V)
+      // Handle Voltage (V)
       } else if (OCPPUtils.isVoltageMeterValue(meterValue)) {
         const voltage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-        // AC Charging Station
         switch (currentType) {
           case CurrentType.DC:
             consumption.instantVoltsDC = voltage;
@@ -838,11 +835,10 @@ export default class OCPPUtils {
             }
             break;
         }
-        // Handle Current (A)
+      // Handle Current (A)
       } else if (OCPPUtils.isCurrentImportMeterValue(meterValue)) {
         const amperage = Utils.convertToFloat(meterValue.value);
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-        // AC Charging Station
         switch (currentType) {
           case CurrentType.DC:
             consumption.instantAmpsDC = amperage;
@@ -864,7 +860,7 @@ export default class OCPPUtils {
             }
             break;
         }
-        // Handle Consumption (Wh/kWh)
+      // Handle Consumption (Wh/kWh)
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
@@ -1709,20 +1705,8 @@ export default class OCPPUtils {
       const currentOcppParam: OcppParameter = currentOcppParameters.find(
         (ocppParam) => ocppParam.key === ocppParameter.key);
       try {
-        if (!currentOcppParam) {
-          // Not Found in Charging Station!
-          Logging.logError({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-            module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
-            message: `OCPP Parameter '${ocppParameter.key}' not found in Charging Station's configuration`
-          });
-          updatedOcppParams.inError++;
-          continue;
-        }
         // Check Value
-        if (ocppParameter.value === currentOcppParam.value) {
+        if (currentOcppParam && currentOcppParam.value === ocppParameter.value) {
           // Ok: Already the good value
           Logging.logInfo({
             tenantID: tenantID,
@@ -1739,17 +1723,15 @@ export default class OCPPUtils {
           value: ocppParameter.value
         }, false);
         if (result.status === OCPPConfigurationStatus.ACCEPTED) {
-          // Ok
           updatedOcppParams.inSuccess++;
           Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
-            message: `OCPP Parameter '${currentOcppParam.key}' has been successfully set from '${currentOcppParam.value}' to '${ocppParameter.value}'`
+            message: `${!currentOcppParam && 'Non existent '}OCPP Parameter '${ocppParameter.key}' has been successfully set from '${currentOcppParam?.value}' to '${ocppParameter.value}'`
           });
         } else if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-          // Ok
           updatedOcppParams.inSuccess++;
           rebootRequired = true;
           Logging.logInfo({
@@ -1757,7 +1739,7 @@ export default class OCPPUtils {
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
-            message: `OCPP Parameter '${currentOcppParam.key}' that requires reboot has been successfully set from '${currentOcppParam.value}' to '${ocppParameter.value}'`
+            message: `${!currentOcppParam && 'Non existent '}OCPP Parameter '${ocppParameter.key}' that requires reboot has been successfully set from '${currentOcppParam?.value}' to '${ocppParameter.value}'`
           });
         } else {
           updatedOcppParams.inError++;
@@ -1766,7 +1748,7 @@ export default class OCPPUtils {
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
-            message: `Error '${result.status}' in changing OCPP Parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}': `
+            message: `Error '${result.status}' in changing ${!currentOcppParam && 'non existent '}OCPP Parameter '${ocppParameter.key}' from '${currentOcppParam?.value}' to '${ocppParameter.value}': `
           });
         }
       } catch (error) {
@@ -1776,7 +1758,7 @@ export default class OCPPUtils {
           source: chargingStation.id,
           action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
           module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
-          message: `Error in changing OCPP Parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}'`,
+          message: `Error in changing ${!currentOcppParam && 'non existent '}OCPP Parameter '${ocppParameter.key}' from '${currentOcppParam?.value}' to '${ocppParameter.value}'`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
