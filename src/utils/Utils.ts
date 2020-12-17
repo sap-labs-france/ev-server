@@ -1,7 +1,7 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 
@@ -13,6 +13,7 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { ObjectID } from 'mongodb';
+import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
 import Tag from '../types/Tag';
@@ -83,13 +84,13 @@ export default class Utils {
         csPhase3: false
       };
       // Check current consumption
-      if (transaction.currentInstantAmpsL1 > 0) {
+      if (transaction.currentInstantAmpsL1 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
         cSPhasesUsed.csPhase1 = true;
       }
-      if (transaction.currentInstantAmpsL2 > 0) {
+      if (transaction.currentInstantAmpsL2 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
         cSPhasesUsed.csPhase2 = true;
       }
-      if (transaction.currentInstantAmpsL3 > 0) {
+      if (transaction.currentInstantAmpsL3 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
         cSPhasesUsed.csPhase3 = true;
       }
       return cSPhasesUsed;
@@ -103,10 +104,10 @@ export default class Utils {
   }
 
   public static checkIfPhasesProvidedInTransactionInProgress(transaction: Transaction): boolean {
-    return transaction.currentInstantAmps > 0 &&
-      (transaction.currentInstantAmpsL1 > 0 ||
-        transaction.currentInstantAmpsL2 > 0 ||
-        transaction.currentInstantAmpsL3 > 0);
+    return transaction.currentInstantAmps > Constants.AMPERAGE_DETECTION_THRESHOLD &&
+      (transaction.currentInstantAmpsL1 > Constants.AMPERAGE_DETECTION_THRESHOLD ||
+        transaction.currentInstantAmpsL2 > Constants.AMPERAGE_DETECTION_THRESHOLD ||
+        transaction.currentInstantAmpsL3 > Constants.AMPERAGE_DETECTION_THRESHOLD);
   }
 
   public static getNumberOfUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
@@ -1165,6 +1166,14 @@ export default class Utils {
       }
     }
     return false;
+  }
+
+  public static getChargingStationEndpoint() : ChargingStationEndpoint {
+    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.AWS : ChargingStationEndpoint.SCP;
+  }
+
+  public static async generateQrCode(data: string) :Promise<string> {
+    return await QRCode.toDataURL(data);
   }
 
   public static createDefaultSettingContent(activeComponent: any, currentSettingContent: SettingDBContent): SettingDBContent {

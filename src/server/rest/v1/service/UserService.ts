@@ -724,7 +724,8 @@ export default class UserService {
     // Export with tags
     req.query['WithTag'] = 'true';
     await UtilsService.exportToCSV(req, res, 'exported-users.csv',
-      UserService.getUsers.bind(this), UserService.convertToCSV.bind(this));
+      UserService.getUsers.bind(this),
+      UserService.convertToCSV.bind(this));
   }
 
   public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -1075,7 +1076,7 @@ export default class UserService {
     }
   }
 
-  private static convertToCSV(loggedUser: UserToken, users: User[], writeHeader = true): string {
+  private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
     let csv = '';
     // Header
     if (writeHeader) {
@@ -1092,7 +1093,7 @@ export default class UserService {
       csv += `${moment(user.eulaAcceptedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.createdOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
       csv += `${moment(user.lastChangedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      csv += `${user.lastChangedBy ? user.lastChangedBy as string : ''}\r\n`;
+      csv += `${user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : ''}\r\n`;
     }
     return csv;
   }
