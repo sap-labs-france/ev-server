@@ -57,8 +57,6 @@ export default class Cypher {
 
         // Key migration of senitive data
         this.cryptoKey = cryptoKeySetting;
-        await this.migrateSensitiveData(tenantID);
-
       }
     } else {
       // Create New Config Crypto Key in Tenant Settings
@@ -79,7 +77,8 @@ export default class Cypher {
 
   public static async migrateSensitiveDataByIdentifier(tenantID: string, identifier: string): Promise<void> {
     const settings = await SettingStorage.getSettingByIdentifier(tenantID, identifier);
-    if (settings) {
+
+    if (settings && this.cryptoKey) {
       this.decryptSensitiveDataInJSON(settings, this.cryptoKey.oldKey);
       this.encryptSensitiveDataInJSON(settings, this.cryptoKey.newKey);
       await SettingStorage.saveSettings(tenantID, settings);
