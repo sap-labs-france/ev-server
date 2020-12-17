@@ -19,7 +19,7 @@ import helmet from 'helmet';
 import hpp from 'hpp';
 import http from 'http';
 import https from 'https';
-import jwtDecode from 'jwt-decode';
+import jwt from 'jsonwebtoken';
 import locale from 'locale';
 import morgan from 'morgan';
 
@@ -155,7 +155,7 @@ export default class ExpressTools {
     }
   }
 
-  public static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static healthCheckService(req: Request, res: Response, next: NextFunction): void {
     res.sendStatus(StatusCodes.OK);
   }
 
@@ -167,13 +167,13 @@ export default class ExpressTools {
     return (httpServer.address() as AddressInfo).address;
   }
 
-  private static getDecodedTokenFromHttpRequest(req: Request): any {
+  private static getDecodedTokenFromHttpRequest(req: Request): string | { [key: string]: any; } {
     // Retrieve Tenant ID from JWT token if available
     try {
       if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         // Decode the token (REST)
         try {
-          return jwtDecode(req.headers.authorization.slice(7));
+          return jwt.decode(req.headers.authorization.slice(7));
         } catch (error) {
           // Try Base 64 decoding (OCPI)
           return JSON.parse(Buffer.from(req.headers.authorization.slice(7), 'base64').toString());

@@ -108,7 +108,6 @@
     "i18n-js": "^3.8.0",
     "intl": "^1.2.5",
     "jsonwebtoken": "^8.5.1",
-    "jwt-decode": "^3.1.2",
     "locale": "^0.1.0",
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
