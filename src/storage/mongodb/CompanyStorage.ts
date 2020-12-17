@@ -14,10 +14,12 @@ const MODULE_NAME = 'CompanyStorage';
 
 export default class CompanyStorage {
 
-  public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<Company> {
+  public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withLogo?: boolean; } = {},
+    projectFields?: string[]): Promise<Company> {
     const companiesMDB = await CompanyStorage.getCompanies(tenantID, {
       companyIDs: [id],
-      withLogo: true,
+      withLogo: params.withLogo,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return companiesMDB.count === 1 ? companiesMDB.result[0] : null;
   }

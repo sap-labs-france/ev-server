@@ -32,6 +32,9 @@ export default class SessionHashService {
       if (!tenant || !user) {
         return true;
       }
+      // Set
+      req.user.user = user;
+      req.tenant = tenant;
       // Check User's Hash
       if (userHashID !== this.buildUserHashID(user)) {
         throw new AppError({

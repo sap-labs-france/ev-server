@@ -7,6 +7,7 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
@@ -29,6 +30,7 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import TagStorage from '../../../storage/mongodb/TagStorage';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -205,23 +207,26 @@ export default class OCPPService {
       setTimeout(async () => {
         let result: OCPPChangeConfigurationCommandResult;
         // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
-        let HeartBeatIntervalSettingFailure = false;
+        // Set OCPP 'HeartBeatInterval'
+        let heartBeatIntervalSettingFailure = false;
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartBeatInterval',
           value: heartbeatIntervalSecs.toString()
         }, false);
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-          HeartBeatIntervalSettingFailure = true;
+          heartBeatIntervalSettingFailure = true;
         }
+        // Set OCPP 'HeartbeatInterval'
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartbeatInterval',
           value: heartbeatIntervalSecs.toString()
         }, false);
-        let HeartbeatIntervalSettingFailure = false;
+        let heartbeatIntervalSettingFailure = false;
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-          HeartbeatIntervalSettingFailure = true;
+          heartbeatIntervalSettingFailure = true;
         }
-        if (HeartBeatIntervalSettingFailure && HeartbeatIntervalSettingFailure) {
+        // Check
+        if (heartBeatIntervalSettingFailure && heartbeatIntervalSettingFailure) {
           Logging.logError({
             tenantID: headers.tenantID,
             action: ServerAction.BOOT_NOTIFICATION,
@@ -417,9 +422,8 @@ export default class OCPPService {
           await this.checkNotificationEndOfCharge(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
-          // First Meter Value -> Trigger Smart Charging to adjust the single phase Car
-          if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed &&
-            !Utils.isTransactionInProgressOnThreePhases(chargingStation, transaction)) {
+          // First Meter Value -> Trigger Smart Charging to adjust the limit
+          if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
             // Yes: Trigger Smart Charging
             await this.triggerSmartCharging(headers.tenantID, chargingStation);
           }
@@ -479,8 +483,8 @@ export default class OCPPService {
             message: `Unable to authorize user '${user.id}' not issued locally`
           });
         }
-        // Get tag
-        const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
+        // GetTag
+        const tag = await TagStorage.getTag(headers.tenantID, authorize.idTag);
         if (!tag) {
           throw new BackendError({
             user: user,
@@ -495,6 +499,15 @@ export default class OCPPService {
             action: ServerAction.AUTHORIZE,
             module: MODULE_NAME, method: 'handleAuthorize',
             message: `Tag ID '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
+          });
+        }
+        // Check Charging Station
+        if (!chargingStation.public) {
+          throw new BackendError({
+            user: user,
+            action: ServerAction.AUTHORIZE,
+            module: MODULE_NAME, method: 'handleAuthorize',
+            message: `Tag ID '${authorize.idTag}' cannot be authorized on a private charging station`
           });
         }
         const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
@@ -540,7 +553,8 @@ export default class OCPPService {
     }
   }
 
-  public async handleDiagnosticsStatusNotification(headers: OCPPHeader, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+  public async handleDiagnosticsStatusNotification(headers: OCPPHeader,
+    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -664,6 +678,24 @@ export default class OCPPService {
         stateOfCharge: 0,
         user
       };
+      // Car handling
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR)) {
+        // Check default car
+        if (user.lastSelectedCarID) {
+          transaction.carID = user.lastSelectedCarID;
+        } else {
+          // Get default car if any
+          const defaultCar = await CarStorage.getDefaultUserCar(tenant.id, user.id, {}, ['id']);
+          if (defaultCar) {
+            transaction.carID = defaultCar.id;
+          }
+        }
+        // Set Car Catalog ID
+        if (transaction.carID) {
+          const car = await CarStorage.getCar(headers.tenantID, transaction.carID, {}, ['id', 'carCatalogID']);
+          transaction.carCatalogID = car?.carCatalogID;
+        }
+      }
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await OCPPUtils.createConsumptionFromMeterValue(
         headers.tenantID, chargingStation, transaction,
@@ -733,6 +765,10 @@ export default class OCPPService {
           action: ServerAction.START_TRANSACTION,
           message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been started`
         });
+      }
+      // Clear last user's car selection
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user.lastSelectedCarID) {
+        await UserStorage.saveUserLastSelectedCarID(tenant.id, user.id, null);
       }
       // Return
       return {
@@ -1541,7 +1577,7 @@ export default class OCPPService {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
             // Add Attributes
-            const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
+            const normalizedLocalMeterValue: OCPPNormalizedMeterValue = Utils.cloneObject(normalizedMeterValue);
             normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
             // Data is to be interpreted as integer/decimal numeric data
             if (normalizedLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
@@ -1555,7 +1591,7 @@ export default class OCPPService {
           }
         } else {
           // Add Attributes
-          const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
+          const normalizedLocalMeterValue: OCPPNormalizedMeterValue = Utils.cloneObject(normalizedMeterValue);
           normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
           // Add
           normalizedMeterValues.values.push(normalizedLocalMeterValue);

@@ -19,6 +19,7 @@ import SiteAreaService from './v1/service/SiteAreaService';
 import SiteService from './v1/service/SiteService';
 import StatisticService from './v1/service/StatisticService';
 import { StatusCodes } from 'http-status-codes';
+import TagService from './v1/service/TagService';
 import TenantService from './v1/service/TenantService';
 import TransactionService from './v1/service/TransactionService';
 import UserService from './v1/service/UserService';
@@ -98,7 +99,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
-          [ServerAction.TAG_CREATE]: UserService.handleCreateTag.bind(this),
+          [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
           [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
         });
         break;
@@ -124,6 +125,8 @@ class RequestMapper {
           [ServerAction.CHECK_SMART_CHARGING_CONNECTION]: ChargingStationService.handleCheckSmartChargingConnection.bind(this),
           [ServerAction.CHARGING_PROFILES]: ChargingStationService.handleGetChargingProfiles.bind(this),
           [ServerAction.TRIGGER_SMART_CHARGING]: ChargingStationService.handleTriggerSmartCharging.bind(this),
+          [ServerAction.GENERATE_QR_CODE_FOR_CONNECTOR]: ChargingStationService.handleGenerateQrCodeForConnector.bind(this),
+          [ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF]: ChargingStationService.handleDownloadQrCodesPdf.bind(this),
           [ServerAction.REGISTRATION_TOKENS]: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           [ServerAction.STATUS_NOTIFICATIONS]: ChargingStationService.handleGetStatusNotifications.bind(this),
           [ServerAction.BOOT_NOTIFICATION]: ChargingStationService.handleGetBootNotifications.bind(this),
@@ -153,8 +156,9 @@ class RequestMapper {
           [ServerAction.USER]: UserService.handleGetUser.bind(this),
           [ServerAction.USERS_EXPORT]: UserService.handleExportUsers.bind(this),
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
-          [ServerAction.TAGS]: UserService.handleGetTags.bind(this),
-          [ServerAction.TAG]: UserService.handleGetTag.bind(this),
+          [ServerAction.TAGS]: TagService.handleGetTags.bind(this),
+          [ServerAction.TAG]: TagService.handleGetTag.bind(this),
+          [ServerAction.USER_DEFAUlT_TAG_CAR]: UserService.handleGetUserDefaultTagCar.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND_EXPORT]: TransactionService.handleExportTransactionsToRefund.bind(this),
@@ -165,6 +169,7 @@ class RequestMapper {
           [ServerAction.TRANSACTION_YEARS]: TransactionService.handleGetTransactionYears.bind(this),
           [ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS]: TransactionService.handleRebuildTransactionConsumptions.bind(this),
           [ServerAction.UNASSIGNED_TRANSACTIONS_COUNT]: TransactionService.handleGetUnassignedTransactionsCount.bind(this),
+          [ServerAction.TRANSACTION_OCPI_CDR_EXPORT]: TransactionService.handleExportTransactionOcpiCdr.bind(this),
           [ServerAction.CHARGING_STATION_CONSUMPTION_STATISTICS]: StatisticService.handleGetChargingStationConsumptionStatistics.bind(this),
           [ServerAction.CHARGING_STATION_USAGE_STATISTICS]: StatisticService.handleGetChargingStationUsageStatistics.bind(this),
           [ServerAction.CHARGING_STATION_INACTIVITY_STATISTICS]: StatisticService.handleGetChargingStationInactivityStatistics.bind(this),
@@ -221,7 +226,7 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_UNREGISTER]: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
-          [ServerAction.TAG_UPDATE]: UserService.handleUpdateTag.bind(this),
+          [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
         });
         break;
 
@@ -245,7 +250,7 @@ class RequestMapper {
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
           [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
-          [ServerAction.TAG_DELETE]: UserService.handleDeleteTag.bind(this),
+          [ServerAction.TAG_DELETE]: TagService.handleDeleteTag.bind(this),
         });
         break;
     }
@@ -297,6 +302,9 @@ export default class CentralRestServerService {
               break;
             case ServerAction.CAR_CATALOG_IMAGE:
               await CarService.handleGetCarCatalogImage(action, req, res, next);
+              break;
+            case ServerAction.ASSET_IMAGE:
+              await AssetService.handleGetAssetImage(action, req, res, next);
               break;
             case ServerAction.COMPANY_LOGO:
               await CompanyService.handleGetCompanyLogo(action, req, res, next);

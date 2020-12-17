@@ -66,8 +66,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
       { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE], attributes: ['*'] },
-      { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
-        Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*'] },
+      {
+        resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
+          Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*']
+      },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -84,13 +86,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CONNECTION, action: [Action.CREATE, Action.READ, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.CREATE, attributes: ['*'] },
+      { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USERS_CARS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USERS_CARS, action: Action.ASSIGN, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.UPDATE, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.DELETE, attributes: ['*'] },
       { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
     ]
   },
@@ -105,10 +104,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.CREATE, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.UPDATE, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.DELETE, attributes: ['*'] },
+      { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
@@ -155,6 +151,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
+      {
+        resource: Entity.TAG, action: Action.READ, attributes: ['*']
+      },
+      { resource: Entity.TAGS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],

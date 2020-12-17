@@ -1,3 +1,4 @@
+import Tenant, { TenantLogo } from '../../types/Tenant';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -7,7 +8,6 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
-import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'TenantStorage';
@@ -23,14 +23,15 @@ export default class TenantStorage {
     }
   }
 
-  public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<Tenant> {
+  public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withLogo?: boolean; } = {}, projectFields?: string[]): Promise<Tenant> {
     // Check in cache
     const tenant = TenantStorage.tenants.get(id);
     if (!tenant) {
       // Call DB
       const tenantsMDB = await TenantStorage.getTenants({
         tenantIDs: [id],
-        withLogo: true,
+        withLogo: params.withLogo,
       }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
       // Add in cache
       if (tenantsMDB.count > 0) {
@@ -41,17 +42,17 @@ export default class TenantStorage {
     return tenant;
   }
 
-  public static async getTenantByName(name: string): Promise<Tenant> {
+  public static async getTenantByName(name: string, projectFields?: string[]): Promise<Tenant> {
     const tenantsMDB = await TenantStorage.getTenants({
       tenantName: name
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tenantsMDB.count === 1 ? tenantsMDB.result[0] : null;
   }
 
-  public static async getTenantBySubdomain(subdomain: string): Promise<Tenant> {
+  public static async getTenantBySubdomain(subdomain: string, projectFields?: string[]): Promise<Tenant> {
     const tenantsMDB = await TenantStorage.getTenants({
       tenantSubdomain: subdomain
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tenantsMDB.count === 1 ? tenantsMDB.result[0] : null;
   }
 
@@ -263,7 +264,7 @@ export default class TenantStorage {
     Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenantDB', uniqueTimerID, { id });
   }
 
-  public static async getTenantLogo(tenantID: string): Promise<{ id: string; logo: string }> {
+  public static async getTenantLogo(tenantID: string): Promise<TenantLogo> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTenantLogo');
     // Check Tenant

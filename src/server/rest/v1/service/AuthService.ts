@@ -18,6 +18,7 @@ import { ServerAction } from '../../../../types/Server';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -259,7 +260,7 @@ export default class AuthService {
       description: i18nManager.translate('tags.virtualBadge'),
       default: true
     };
-    await UserStorage.saveTag(req.user.tenantID, tag);
+    await TagStorage.saveTag(req.user.tenantID, tag);
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,
       {
@@ -862,7 +863,7 @@ export default class AuthService {
       action: action, message: 'User logged in successfully'
     });
     // Set Eula Info on Login Only
-    if (action === 'Login') {
+    if (action === ServerAction.REST_SIGNIN) {
       // Save EULA
       const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, Utils.getLanguageFromLocale(user.locale));
       await UserStorage.saveUserEULA(tenantID, user.id,
@@ -877,7 +878,7 @@ export default class AuthService {
     await UserStorage.saveUserPassword(tenantID, user.id,
       { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
     // Get the tags (limited) to avoid an overweighted token
-    const tags = await UserStorage.getTags(tenantID, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
+    const tags = await TagStorage.getTags(tenantID, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
     // Yes: build token
     const payload: UserToken = await Authorizations.buildUserToken(tenantID, user, tags.result);
     // Build token

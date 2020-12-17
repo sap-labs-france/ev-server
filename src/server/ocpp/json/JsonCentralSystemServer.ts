@@ -46,7 +46,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Build ID
     const id = `${tenantID}~${chargingStationID}}`;
     // Return from the cache
-    return this.jsonChargingStationClients.get(id).getChargingStationClient();
+    return this.jsonChargingStationClients.get(id)?.getChargingStationClient();
   }
 
   public get port(): number {
