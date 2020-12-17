@@ -6,8 +6,8 @@ import ChargingStationVendorIntegration from './ChargingStationVendorIntegration
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
 import EbeeChargingStationVendorIntegration from './ebee/EbeeChargingStationVendorIntegration';
 import LegrandChargingStationVendorIntegration from './legrand/LegrandChargingStationVendorIntegration';
-import SchneiderChargingStationVendorIntegration from './schneider/SchneiderChargingStationVendorIntegration';
 import SAPLabsFranceChargingStationVendorIntegration from './sap/SAPLabsFranceChargingStationVendorIntegration';
+import SchneiderChargingStationVendorIntegration from './schneider/SchneiderChargingStationVendorIntegration';
 
 export default class ChargingStationVendorFactory {
 

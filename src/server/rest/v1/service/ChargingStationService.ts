@@ -813,7 +813,7 @@ export default class ChargingStationService {
       }
     }
     const ocppParams: OCPPParams[] = [];
-    // Set the attachement name
+    // Set the attachment name
     res.attachment('exported-ocpp-params.csv');
     let writeHeader = true;
     for (const chargingStation of chargingStations.result) {
