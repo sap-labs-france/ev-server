@@ -120,7 +120,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'applyTemplateToChargingStations',
             message: `Charging Station '${chargingStation.id}' updated with the following Template's section(s): ${sectionsUpdated.join(', ')}`,
-            detailedMessages: { chargingStationTemplateUpdated }
+            detailedMessages: { chargingStationUpdated, chargingStationTemplateUpdated }
           });
           // Save
           await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
