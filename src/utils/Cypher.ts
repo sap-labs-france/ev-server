@@ -4,6 +4,7 @@ import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
+import { SettingDB } from '../types/Setting';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import TenantComponents from '../types/TenantComponents';
 import _ from 'lodash';
@@ -75,19 +76,17 @@ export default class Cypher {
     }
   }
 
-  public static async migrateSensitiveDataByIdentifier(tenantID: string, identifier: string): Promise<void> {
-    const settings = await SettingStorage.getSettingByIdentifier(tenantID, identifier);
-
-    if (settings && this.cryptoKey) {
-      this.decryptSensitiveDataInJSON(settings, this.cryptoKey.oldKey);
-      this.encryptSensitiveDataInJSON(settings, this.cryptoKey.newKey);
-      await SettingStorage.saveSettings(tenantID, settings);
+  public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<void> {
+    if (this.cryptoKey) {
+      this.decryptSensitiveDataInJSON(setting, this.cryptoKey.oldKey);
+      this.encryptSensitiveDataInJSON(setting, this.cryptoKey.newKey);
+      await SettingStorage.saveSettings(tenantID, setting);
     }
   }
 
-  public static async migrateSensitiveData(tenantID: string): Promise<void> {
-    for (const identifier in TenantComponents) {
-      await this.migrateSensitiveDataByIdentifier(tenantID, identifier);
+  public static async migrateAllSensitiveData(tenantID: string, settings: SettingDB[]): Promise<void> {
+    for (const setting of settings) {
+      await this.migrateSensitiveData(tenantID, setting);
     }
   }
 
