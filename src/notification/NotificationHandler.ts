@@ -265,7 +265,7 @@ export default class NotificationHandler {
             if (!hasBeenNotified) {
               // Enabled?
               if (user.notificationsActive && user.notifications.sendEndOfSession) {
-                // Save notif
+                // Save notification
                 await NotificationHandler.saveNotification(
                   tenantID, notificationSource.channel, notificationID, ServerAction.END_OF_SESSION, {
                     user,

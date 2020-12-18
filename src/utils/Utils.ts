@@ -1220,7 +1220,7 @@ export default class Utils {
         }
         break;
 
-      // Refund
+      // OCPI
       case TenantComponents.OCPI:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
