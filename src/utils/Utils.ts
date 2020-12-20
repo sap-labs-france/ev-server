@@ -986,7 +986,7 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneObject(object: any): any {
+  public static cloneObject<T>(object: T): T {
     return JSON.parse(JSON.stringify(object));
   }
 
