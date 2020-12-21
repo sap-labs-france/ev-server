@@ -10,7 +10,7 @@ const config = convict({
     env: 'TEST_ENV'
   },
   trace_logs: {
-    doc: 'true to trace communication with servers',
+    doc: 'Set to true to trace communication with servers',
     format: Boolean,
     default: 'false',
     env: 'TRACE_LOGS'

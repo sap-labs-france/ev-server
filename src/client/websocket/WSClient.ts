@@ -9,16 +9,16 @@ import axiosRetry from 'axios-retry';
 const MODULE_NAME = 'WSClient';
 
 export default class WSClient {
-  public onopen: Function;
-  public onerror: Function;
-  public onclose: Function;
-  public onmessage: Function;
-  public onmaximum: Function;
-  public onreconnect: Function;
+  public onopen: (...args: any[]) => void;
+  public onerror: (...args: any[]) => void;
+  public onclose: (...args: any[]) => void;
+  public onmessage: (...args: any[]) => void;
+  public onmaximum: (err: Error) => void;
+  public onreconnect: (err: Error) => void;
   public readyState: number;
   private url: string;
   private options: WSClientOptions;
-  private callbacks: { [key: string]: Function };
+  private callbacks: { [key: string]: (...args: any[]) => void };
   private dbLogging: boolean;
   private autoReconnectRetryCount: number;
   private autoReconnectMaxRetries: number;
@@ -30,12 +30,12 @@ export default class WSClient {
     this.url = url;
     this.options = options || {} as WSClientOptions;
     this.callbacks = {
-      onopen: () => { },
-      onerror: () => { },
-      onclose: () => { },
-      onmessage: () => { },
-      onreconnect: () => { },
-      onmaximum: () => { }
+      'onopen': () => { },
+      'onerror': () => { },
+      'onclose': () => { },
+      'onmessage': () => { },
+      'onreconnect': () => { },
+      'onmaximum': () => { }
     };
     this.dbLogging = dbLogging;
     this.autoReconnectRetryCount = 0;
@@ -177,14 +177,14 @@ export default class WSClient {
 
   private reinstantiateCbs() {
     for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
-      if ('' + this.callbacks[method] !== '' + (() => { })) {
+      if (this.callbacks[method].toString() !== (() => { }).toString()) {
         this.ws[method] = this.callbacks[method];
       }
     }
   }
 
-  private onError(error) {
-    switch (error) {
+  private onError(error: Error) {
+    switch (error.toString()) {
       case 'ECONNREFUSED':
         if (this.dbLogging) {
           // Error message
@@ -219,8 +219,8 @@ export default class WSClient {
     }
   }
 
-  private onClose(error) {
-    switch (error) {
+  private onClose(code: number, reason: string) {
+    switch (code) {
       case 1000: // Normal close
       case 1005:
         this.autoReconnectRetryCount = 0;
@@ -233,14 +233,14 @@ export default class WSClient {
               tenantID: this.logTenantID,
               module: MODULE_NAME, method: 'onClose',
               action: ServerAction.WS_CLIENT_ERROR,
-              message: `Connection closing error to '${this.url}': ${error}`
+              message: `Connection closing error to '${this.url}': ${code}`
             });
           }
         } else {
           // eslint-disable-next-line no-console
-          console.log(`Connection closing error to '${this.url}':`, error);
+          console.log(`Connection closing error to '${this.url}':`, code);
         }
-        this.reconnect(error);
+        this.reconnect(new Error(`Connection has been closed, Reason '${reason ? reason : 'No reason given'}', Code '${code}'`));
         break;
     }
   }
@@ -254,10 +254,10 @@ for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
   Object.defineProperty(WSClient.prototype, method, {
     configurable: true,
     enumerable: true,
-    get(): Function {
+    get(): (...args: any[]) => void {
       return this.ws[method];
     },
-    set(callback: Function): void {
+    set(callback: (...args: any[]) => void): void {
       // Save the callback in an object attribute
       this.callbacks[method] = callback;
       this.ws[method] = callback;
@@ -268,10 +268,10 @@ for (const method of ['onreconnect', 'onmaximum']) {
   Object.defineProperty(WSClient.prototype, method, {
     configurable: true,
     enumerable: true,
-    get(): Function {
+    get(): (...args: any[]) => void {
       return this.callbacks[method];
     },
-    set(callback: Function): void {
+    set(callback: (...args: any[]) => void): void {
       this.callbacks[method] = callback;
     }
   });
