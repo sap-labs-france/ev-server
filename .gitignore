@@ -81,3 +81,5 @@ build/config.gypi
 
 .DS_Store
 Thumbs.db
+src/assets/server/oicp/ssl/cert.pem
+src/assets/server/oicp/ssl/key.pem

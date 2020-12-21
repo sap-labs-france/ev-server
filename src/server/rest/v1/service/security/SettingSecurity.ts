@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, OicpBusinessDetails, OicpSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
 import Utils from '../../../../../utils/Utils';
@@ -97,6 +97,40 @@ export default class SettingSecurity {
           }
           if (request.content.ocpi.currency) {
             settings.content.ocpi.currency = request.content.ocpi.currency;
+          }
+          break;
+        case RoamingSettingsType.HUBJECT:
+          settings.content.oicp = {} as OicpSetting;
+          if (request.content.oicp.businessDetails) {
+            settings.content.oicp.businessDetails = {
+              name: sanitize(request.content.oicp.businessDetails.name),
+              website: sanitize(request.content.oicp.businessDetails.website)
+            } as OicpBusinessDetails;
+            if (request.content.oicp.businessDetails.logo) {
+              settings.content.oicp.businessDetails.logo = {
+                url: sanitize(request.content.oicp.businessDetails.logo.url),
+                thumbnail: sanitize(request.content.oicp.businessDetails.logo.thumbnail),
+                category: sanitize(request.content.oicp.businessDetails.logo.category),
+                type: sanitize(request.content.oicp.businessDetails.logo.type),
+                width: sanitize(request.content.oicp.businessDetails.logo.width),
+                height: sanitize(request.content.oicp.businessDetails.logo.height),
+              };
+            }
+          }
+          if (request.content.oicp.cpo) {
+            settings.content.oicp.cpo = {
+              countryCode: sanitize(request.content.oicp.cpo.countryCode),
+              partyID: sanitize(request.content.oicp.cpo.partyID)
+            };
+          }
+          if (request.content.oicp.emsp) {
+            settings.content.oicp.emsp = {
+              countryCode: sanitize(request.content.oicp.emsp.countryCode),
+              partyID: sanitize(request.content.oicp.emsp.partyID)
+            };
+          }
+          if (request.content.oicp.currency) {
+            settings.content.oicp.currency = request.content.oicp.currency;
           }
           break;
         case RefundSettingsType.CONCUR:

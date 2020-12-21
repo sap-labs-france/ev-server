@@ -11,7 +11,8 @@ export default interface OICPEndpoint extends CreatedUpdatedProps {
   backgroundPatchJob: boolean;
   status?: string;
   businessDetails?: OicpBusinessDetails;
-  availableEndpoints?: OICPEndpoint[];
+  availableEndpoints?: any;
+  version: string;
   lastPatchJobOn?: Date;
   lastPatchJobResult?: {
     successNbr: number;
@@ -20,5 +21,6 @@ export default interface OICPEndpoint extends CreatedUpdatedProps {
     chargeBoxIDsInFailure?: string[];
     chargeBoxIDsInSuccess?: string[];
   };
+
 }
 

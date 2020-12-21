@@ -13,13 +13,9 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'OICPEndpointStorage';
 
 export default class OICPEndpointStorage {
-  static async getOicpEndpoint(tenantID: string, id: string): Promise<OICPEndpoint> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOicpEndpoint');
-    const endpointsMDB = await OICPEndpointStorage.getOicpEndpoints(tenantID, { id: id }, Constants.DB_PARAMS_SINGLE_RECORD);
-
-    // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoint', uniqueTimerID, { id });
+  static async getOicpEndpoint(tenantID: string, id: string, projectFields?: string[]): Promise<OICPEndpoint> {
+    const endpointsMDB = await OICPEndpointStorage.getOicpEndpoints(
+      tenantID, { oicpEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
@@ -58,7 +54,8 @@ export default class OICPEndpointStorage {
       businessDetails: oicpEndpointToSave.businessDetails,
       availableEndpoints: oicpEndpointToSave.availableEndpoints,
       lastPatchJobOn: oicpEndpointToSave.lastPatchJobOn,
-      lastPatchJobResult: oicpEndpointToSave.lastPatchJobResult
+      lastPatchJobResult: oicpEndpointToSave.lastPatchJobResult,
+      version: oicpEndpointToSave.version
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(oicpEndpointMDB, oicpEndpointToSave);
@@ -74,7 +71,9 @@ export default class OICPEndpointStorage {
   }
 
   // Delegate
-  static async getOicpEndpoints(tenantID: string, params: { search?: string; role?: string; id?: string; }, dbParams: DbParams): Promise<DataResult<OICPEndpoint>> {
+  static async getOicpEndpoints(tenantID: string,
+    params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOicpEndpoints');
     // Check Tenant
@@ -89,14 +88,19 @@ export default class OICPEndpointStorage {
     const aggregation: any[] = [];
     // Set the filters
     const filters: FilterParams = {};
-    // Source?
-    if (params.id) {
-      filters._id = Utils.convertToObjectID(params.id);
-    } else if (params.search) {
-      // Build filter
+    // Search
+    if (params.search) {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    if (params.oicpEndpointIDs) {
+      filters._id = {
+        $in: params.oicpEndpointIDs.map((oicpEndpointID) => Utils.convertToObjectID(oicpEndpointID))
+      };
+    }
+    if (params.localToken) {
+      filters.localToken = params.localToken;
     }
     if (params.role) {
       filters.role = params.role;
@@ -117,6 +121,7 @@ export default class OICPEndpointStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsCountMDB);
       return {
         count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),
         result: []
@@ -124,7 +129,6 @@ export default class OICPEndpointStorage {
     }
     // Remove the limit
     aggregation.pop();
-
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
@@ -144,13 +148,16 @@ export default class OICPEndpointStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const oicpEndpointsMDB = await global.database.getCollection<any>(tenantID, 'oicpendpoints')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
-
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, { params });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsMDB);
     // Ok
     return {
       count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),

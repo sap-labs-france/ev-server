@@ -197,6 +197,8 @@ class RequestMapper {
           [ServerAction.BILLING_DOWNLOAD_INVOICE]: BillingService.handleDownloadInvoice.bind(this),
           [ServerAction.OCPI_ENDPOINTS]: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           [ServerAction.OCPI_ENDPOINT]: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINTS]: OICPEndpointService.handleGetOicpEndpoints.bind(this),
+          [ServerAction.OICP_ENDPOINT]: OICPEndpointService.handleGetOicpEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTIONS]: ConnectionService.handleGetConnections.bind(this),
           [ServerAction.INTEGRATION_CONNECTION]: ConnectionService.handleGetConnection.bind(this),
           [ServerAction.PING]: (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
@@ -227,6 +229,9 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_UPDATE]: OCPIEndpointService.handleUpdateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_REGISTER]: OCPIEndpointService.handleRegisterOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_UNREGISTER]: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_UPDATE]: OICPEndpointService.handleUpdateOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_REGISTER]: OICPEndpointService.handleRegisterOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_UNREGISTER]: OICPEndpointService.handleUnregisterOicpEndpoint.bind(this),
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
@@ -252,6 +257,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_DELETE]: ConnectionService.handleDeleteConnection.bind(this),
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_DELETE]: OICPEndpointService.handleDeleteOicpEndpoint.bind(this),
           [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
           [ServerAction.TAG_DELETE]: TagService.handleDeleteTag.bind(this),
         });

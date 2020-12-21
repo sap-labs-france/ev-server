@@ -444,8 +444,24 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN);
   }
 
+  public static canListOicpEndpoints(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINTS, Action.LIST);
+  }
+
+  public static canReadOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.READ);
+  }
+
+  public static canDeleteOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.DELETE);
+  }
+
   public static canCreateOicpEndpoint(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.CREATE);
+  }
+
+  public static canUpdateOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.UPDATE);
   }
 
   public static canPingOicpEndpoint(loggedUser: UserToken): boolean {
@@ -454,6 +470,10 @@ export default class Authorizations {
 
   public static canTriggerJobOicpEndpoint(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.TRIGGER_JOB);
+  }
+
+  public static canRegisterOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.REGISTER);
   }
 
   public static canListChargingProfiles(loggedUser: UserToken): boolean {

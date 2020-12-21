@@ -155,6 +155,8 @@ export enum ServerAction {
   OICP_ENPOINT_PING = 'OicpEndpointPing',
   OICP_ENPOINT_TRIGGER_JOBS = 'OicpEndpointTriggerJobs',
   OICP_ENDPOINT = 'OicpEndpoint',
+  OICP_ENDPOINTS = 'OicpEndpoints',
+  OICP_ENDPOINT_START = 'OicpEndpointStart',
   OICP_PUSH_EVSE_DATA = 'OicpPushEvseData',
   OICP_PUSH_EVSE_STATUSES = 'OicpPushEvseStatuses',
   OICP_UPDATE_EVSE_STATUS = 'OicpUpdateEvseStatus',
@@ -173,7 +175,10 @@ export enum ServerAction {
   OICP_ENPOINT_SEND_EVSES = 'OicpEndpointSendEVSEs',
   OICP_PUSH_SESSIONS = 'OicpPushSessions',
   OICP_CREATE_AXIOS_INSTANCE = 'OicpCreateAxiosInstance',
-
+  OICP_ENDPOINT_UPDATE = 'OicpEndpointUpdate',
+  OICP_ENDPOINT_REGISTER = 'OicpEndpointRegister',
+  OICP_ENDPOINT_UNREGISTER = 'OicpEndpointUnregister',
+  OICP_ENDPOINT_DELETE = 'OicpEndpointDelete',
 
   AUTHORIZE = 'Authorize',
 
