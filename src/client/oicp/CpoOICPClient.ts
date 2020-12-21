@@ -1189,7 +1189,7 @@ export default class CpoOICPClient extends OICPClient {
       message: `Ping Hubject at ${this.getEndpointUrl('evses',ServerAction.OICP_PUSH_EVSE_DATA)}`,
       module: MODULE_NAME, method: 'pingEvseEndpoint'
     });
-    const response = await this.pushEvseData([], OICPActionType.fullLoad);
+    const response = await this.pushEvseData([], OICPActionType.insert);
     return response;
   }
 

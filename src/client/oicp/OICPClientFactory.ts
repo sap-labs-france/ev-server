@@ -51,19 +51,6 @@ export default class OICPClientFactory {
     });
   }
 
-  // Tbd: implement EmspOICPClient
-  // static async getEmspOicpClient(tenant: Tenant, oicpEndpoint: OICPEndpoint): Promise<EmspOICPClient> {
-  //   if (oicpEndpoint.role === OICPRole.EMSP) {
-  //     const client = await OICPClientFactory.getOicpClient(tenant, oicpEndpoint);
-  //     return client as EmspOICPClient;
-  //   }
-  //   Logging.logError({
-  //     tenantID: tenant.id,
-  //     module: MODULE_NAME, method: 'getEmspOicpClient',
-  //     message: `EMSP OICP Client is not compatible with endpoint role '${oicpEndpoint.role}'`
-  //   });
-  // }
-
   static async getAvailableOicpClient(tenant: Tenant, oicpRole: string): Promise<OICPClient> {
     const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: oicpRole }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const oicpEndpoint of oicpEndpoints.result) {
@@ -73,18 +60,5 @@ export default class OICPClientFactory {
       }
     }
   }
-
-  // Tbd: implement OICPChargingStationClient, getEmspOicpClient
-  // static async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<OICPChargingStationClient> {
-  //   const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
-  //   for (const oicpEndpoint of oicpEndpoints.result) {
-  //     if (oicpEndpoint.status === OICPRegistrationStatus.REGISTERED) {
-  //       const client = await OICPClientFactory.getEmspOicpClient(tenant, oicpEndpoint);
-  //       if (client) {
-  //         return new OICPChargingStationClient(client, chargingStation);
-  //       }
-  //     }
-  //   }
-  // }
 
 }

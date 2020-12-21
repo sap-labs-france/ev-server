@@ -700,6 +700,7 @@ export default class ChargingStationService {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
     }
+    // Delete public Charging Station on Hubject backend directly or with the scheduled job?
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
