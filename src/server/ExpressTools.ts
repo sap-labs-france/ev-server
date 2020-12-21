@@ -97,6 +97,8 @@ export default class ExpressTools {
       // Set the keys
       options.key = fs.readFileSync(serverConfig['ssl-key']);
       options.cert = fs.readFileSync(serverConfig['ssl-cert']);
+      // Options.requestCert = true; // Tbd: Test on QA System: Reject incoming requests without valid certificate (OICP: accept only requests from Hubject)
+      // options.rejectUnauthorized = true; // Tbd: Test on QA System
       // Intermediate cert?
       if (serverConfig['ssl-ca']) {
         // Array?

@@ -1,4 +1,4 @@
-import { Application, NextFunction, Request, Response } from 'express';
+import { Application, NextFunction, Response } from 'express';
 
 import ExpressTools from '../ExpressTools';
 import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfiguration';
@@ -35,7 +35,7 @@ export default class OICPServer {
   }
 
   // Start the server
-  start(): void {
+  async start(): Promise<void> {
     ExpressTools.startServer(this.oicpRestConfig, ExpressTools.createHttpServer(this.oicpRestConfig, this.expressApplication), 'OICP', MODULE_NAME);
   }
 }

@@ -4,4 +4,6 @@ export default interface OICPServiceConfiguration {
   host: string;
   port: number;
   debug: boolean;
+  key: string;
+  cert: string;
 }

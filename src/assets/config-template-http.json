@@ -61,6 +61,8 @@
     "protocol": "http",
     "host": "localhost",
     "port": 9080,
+    "ssl-key": "src/assets/server/oicp/ssl/key.pem",
+    "ssl-cert": "src/assets/server/oicp/ssl/cert.pem",
     "debug": false,
     "externalProtocol": "http"
   },

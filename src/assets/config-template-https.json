@@ -68,9 +68,9 @@
   "OICPService": {
     "protocol": "https",
     "host": "localhost",
-    "port": 9080,
-    "ssl-key": "",
-    "ssl-cert": "",
+    "port": 8443,
+    "ssl-key": "src/assets/server/oicp/ssl/key.pem",
+    "ssl-cert": "src/assets/server/oicp/ssl/cert.pem",
     "ssl-ca": [],
     "debug": false,
     "externalProtocol": "https"
