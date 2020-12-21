@@ -121,10 +121,14 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
   }
 
   private getCredentialURLParams(): URLSearchParams {
+    // Get Crypto Key for encryption
+    const cryptoSetting = Cypher.getCrypto();
+    const key = cryptoSetting.migrationDone ? cryptoSetting.key : cryptoSetting.formerKey;
+
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.connection.user);
-    params.append('password', Cypher.decrypt(this.connection.connection.password));
+    params.append('password', Cypher.decrypt(this.connection.connection.password, key));
     return params;
   }
 

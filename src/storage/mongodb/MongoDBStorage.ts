@@ -3,7 +3,6 @@ import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridF
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import DatabaseUtils from './DatabaseUtils';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
@@ -296,9 +295,6 @@ export default class MongoDBStorage {
           await LockingManager.release(createDatabaseLock);
         }
       }
-
-      // Detect changed Config Crypto Key per tenant
-      await Cypher.detectConfigurationKey(tenantId);
     }
   }
 

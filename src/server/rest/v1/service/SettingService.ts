@@ -115,8 +115,12 @@ export default class SettingService {
     }
     // Filter
     const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
+
+    // Get Crypto Key for encryption
+    const cryptoSetting = Cypher.getCrypto();
+    const key = cryptoSetting.migrationDone ? cryptoSetting.key : cryptoSetting.formerKey;
     // Process the sensitive data if any
-    Cypher.encryptSensitiveDataInJSON(filteredRequest);
+    Cypher.encryptSensitiveDataInJSON(filteredRequest, key);
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
@@ -166,6 +170,10 @@ export default class SettingService {
           user: req.user
         });
       }
+      // Get Crypto Key for encryption
+      const cryptoSetting = Cypher.getCrypto();
+      const key = cryptoSetting.migrationDone ? cryptoSetting.key : cryptoSetting.formerKey;
+
       // Process sensitive properties
       for (const property of settingUpdate.sensitiveData) {
         // Get the sensitive property from the request
@@ -177,14 +185,14 @@ export default class SettingService {
             const hashedValueInDB = Cypher.hash(valueInDb);
             if (valueInRequest !== hashedValueInDB) {
               // Yes: Encrypt
-              _.set(settingUpdate, property, Cypher.encrypt(valueInRequest));
+              _.set(settingUpdate, property, Cypher.encrypt(valueInRequest, key));
             } else {
               // No: Put back the encrypted value
               _.set(settingUpdate, property, valueInDb);
             }
           } else {
             // Value in db is empty then encrypt
-            _.set(settingUpdate, property, Cypher.encrypt(valueInRequest));
+            _.set(settingUpdate, property, Cypher.encrypt(valueInRequest, key));
           }
         }
       }

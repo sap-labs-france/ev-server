@@ -1,10 +1,9 @@
-import { CryptoKeySetting, KeySettings, KeySettingsType } from '../types/Setting';
+import { CryptoSetting, CryptoSettingsType, KeySettings, SettingDB } from '../types/Setting';
 
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
-import { SettingDB } from '../types/Setting';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import TenantComponents from '../types/TenantComponents';
 import _ from 'lodash';
@@ -15,7 +14,7 @@ const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
   private static configuration: CryptoConfiguration;
-  private static cryptoKey: CryptoKeySetting;
+  private static cryptoSetting: CryptoSetting;
 
   public static getConfiguration(): CryptoConfiguration {
     if (!this.configuration) {
@@ -32,54 +31,52 @@ export default class Cypher {
     return this.configuration;
   }
 
-  public static async detectConfigurationKey(tenantID: string): Promise<void> {
+  public static getCrypto(): CryptoSetting {
+    return this.cryptoSetting;
+  }
+
+  public static async detectConfigurationKey(tenantID: string): Promise<boolean> {
 
     const configCryptoKey: string = Configuration.getCryptoConfig().key;
-    const keySettings = await SettingStorage.getCryptoKeySettings(tenantID);
-    let cryptoKeySetting: CryptoKeySetting;
+    const keySettings = await SettingStorage.getCryptoSettings(tenantID);
+    let cryptoSettingToSave: CryptoSetting;
 
-    // Check if Crypto Key settings exists
+    // Check if Crypto Settings exist
     if (keySettings) {
       // Detect new config Cypher key
-      if (keySettings.cryptoKey.newKey && keySettings.cryptoKey.newKey !== configCryptoKey) {
-        cryptoKeySetting = {
-          oldKey: keySettings.cryptoKey.newKey
-        } as CryptoKeySetting;
-      } else if (!keySettings.cryptoKey.newKey && keySettings.cryptoKey.oldKey !== configCryptoKey) {
-        // If no newKey exist, detect oldKey change
-        cryptoKeySetting = {
-          oldKey: keySettings.cryptoKey.oldKey
-        } as CryptoKeySetting;
-      }
-      // If key change detected, prepare KeySettings change
-      if (cryptoKeySetting) {
+      if (keySettings.crypto?.key !== configCryptoKey) {
         await SettingStorage.deleteSetting(tenantID, keySettings.id);
-        cryptoKeySetting.newKey = configCryptoKey;
-
-        // Key migration of senitive data
-        this.cryptoKey = cryptoKeySetting;
+        cryptoSettingToSave = {
+          formerKey: keySettings.crypto.key,
+          key: configCryptoKey,
+          migrationDone: false
+        } as CryptoSetting;
       }
     } else {
       // Create New Config Crypto Key in Tenant Settings
-      cryptoKeySetting = {
-        oldKey: configCryptoKey
-      } as CryptoKeySetting;
+      cryptoSettingToSave = {
+        key: configCryptoKey
+      } as CryptoSetting;
     }
 
-    if (cryptoKeySetting) {
+    // Key migration of senitive data
+    this.cryptoSetting = cryptoSettingToSave ? cryptoSettingToSave : keySettings.crypto;
+
+    if (cryptoSettingToSave) {
       const keySettingToSave = {
-        identifier: TenantComponents.CRYPTO_KEY,
-        type: KeySettingsType.CRYPTO_KEY,
-        cryptoKey: cryptoKeySetting
+        identifier: TenantComponents.CRYPTO,
+        type: CryptoSettingsType.CRYPTO,
+        crypto: cryptoSettingToSave
       } as KeySettings;
-      await SettingStorage.saveCryptoKeySettings(tenantID, keySettingToSave);
+      await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
+      return true;
     }
   }
 
   public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<void> {
-    if (this.cryptoKey) {
-      this.decryptSensitiveDataInJSON(setting, this.cryptoKey.oldKey);
-      this.encryptSensitiveDataInJSON(setting, this.cryptoKey.newKey);
+    if (this.cryptoSetting) {
+      this.decryptSensitiveDataInJSON(setting, this.cryptoSetting.formerKey);
+      this.encryptSensitiveDataInJSON(setting, this.cryptoSetting.key);
       await SettingStorage.saveSettings(tenantID, setting);
     }
   }
@@ -90,21 +87,19 @@ export default class Cypher {
     }
   }
 
-  public static encrypt(data: string, key?: string): string {
+  public static encrypt(data: string, key: string): string {
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cryptoKey = key ? key : Cypher.getConfiguration().key;
-    const cipher = crypto.createCipheriv(Cypher.getConfiguration().algorithm, Buffer.from(cryptoKey), iv);
+    const cipher = crypto.createCipheriv(Cypher.getConfiguration().algorithm, Buffer.from(key), iv);
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
   }
 
-  public static decrypt(data: string, key?: string): string {
+  public static decrypt(data: string, key: string): string {
     const dataParts = data.split(':');
     const iv = Buffer.from(dataParts.shift(), 'hex');
     const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
-    const cryptoKey = key ? key : Cypher.getConfiguration().key;
-    const decipher = crypto.createDecipheriv(Cypher.getConfiguration().algorithm, Buffer.from(cryptoKey), iv);
+    const decipher = crypto.createDecipheriv(Cypher.getConfiguration().algorithm, Buffer.from(key), iv);
     let decrypted = decipher.update(encryptedData);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();
@@ -114,7 +109,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static encryptSensitiveDataInJSON(obj: Record<string, any>, key?: string): void {
+  public static encryptSensitiveDataInJSON(obj: Record<string, any>, key: string): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -148,7 +143,7 @@ export default class Cypher {
     }
   }
 
-  public static decryptSensitiveDataInJSON(obj: Record<string, any>, key?: string): void {
+  public static decryptSensitiveDataInJSON(obj: Record<string, any>, key: string): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

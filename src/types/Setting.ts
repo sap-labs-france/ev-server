@@ -21,7 +21,7 @@ export interface SettingLink {
 }
 
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType | KeySettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType | CryptoSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -31,7 +31,7 @@ export interface SettingDBContent {
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
   asset?: AssetSetting;
-  cryptoKey?: CryptoKeySetting;
+  crypto?: CryptoSetting;
 }
 
 export enum PricingSettingsType {
@@ -237,21 +237,22 @@ export interface AssetUserPasswordConnectionType {
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
 }
 
-export enum KeySettingsType {
-  CRYPTO_KEY = 'cryptoKey'
+export enum CryptoSettingsType {
+  CRYPTO = 'crypto'
 }
 
 export interface KeySettings extends Setting {
-  identifier: TenantComponents.CRYPTO_KEY;
-  type: KeySettingsType;
-  cryptoKey: CryptoKeySetting;
+  identifier: TenantComponents.CRYPTO;
+  type: CryptoSettingsType;
+  crypto: CryptoSetting;
 }
 
 export interface KeySetting {
 
 }
 
-export interface CryptoKeySetting extends KeySetting {
-  oldKey: string;
-  newKey: string;
+export interface CryptoSetting extends KeySetting {
+  key: string;
+  formerKey?: string;
+  migrationDone?: boolean;
 }

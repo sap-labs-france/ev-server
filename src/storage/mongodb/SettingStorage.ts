@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, KeySettings, KeySettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoSetting, CryptoSettingsType, KeySettings, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -301,13 +301,13 @@ export default class SettingStorage {
     }
   }
 
-  public static async saveCryptoKeySettings(tenantID: string, cryptoKeySettingToSave: KeySettings): Promise<void> {
+  public static async saveCryptoSettings(tenantID: string, cryptoSettingToSave: KeySettings): Promise<void> {
     // Build internal structure
     const settingsToSave = {
-      identifier: 'cryptoKey',
+      identifier: 'crypto',
       lastChangedOn: new Date(),
       content: {
-        cryptoKey: cryptoKeySettingToSave.cryptoKey
+        crypto: cryptoSettingToSave.crypto
       },
     } as SettingDB;
 
@@ -315,23 +315,23 @@ export default class SettingStorage {
     await this.saveSettings(tenantID, settingsToSave);
   }
 
-  public static async getCryptoKeySettings(tenantID: string): Promise<KeySettings> {
+  public static async getCryptoSettings(tenantID: string): Promise<KeySettings> {
 
     // Get the Crypto Key settings
     const settings = await SettingStorage.getSettings(tenantID,
-      { identifier: TenantComponents.CRYPTO_KEY },
+      { identifier: TenantComponents.CRYPTO },
       Constants.DB_PARAMS_MAX_LIMIT);
 
     if (settings.count > 0) {
-      const cryptoKeySetting = {
-        oldKey: settings.result[0].content.cryptoKey.oldKey,
-        newKey: settings.result[0].content.cryptoKey.newKey
-      } as CryptoKeySetting;
+      const cryptoSetting = {
+        formerKey: settings.result[0].content.crypto.formerKey,
+        key: settings.result[0].content.crypto.key
+      } as CryptoSetting;
       const keySetting = {
         id: settings.result[0].id,
         identifier: settings.result[0].identifier,
-        type: KeySettingsType.CRYPTO_KEY,
-        cryptoKey: cryptoKeySetting
+        type: CryptoSettingsType.CRYPTO,
+        crypto: cryptoSetting
       } as KeySettings;
       return keySetting;
     }
