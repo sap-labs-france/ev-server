@@ -1169,7 +1169,7 @@ export default class Utils {
   }
 
   public static getChargingStationEndpoint() : ChargingStationEndpoint {
-    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.AWS : ChargingStationEndpoint.SCP;
+    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.SCP : ChargingStationEndpoint.AWS;
   }
 
   public static async generateQrCode(data: string) :Promise<string> {
