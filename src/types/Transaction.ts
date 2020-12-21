@@ -74,13 +74,16 @@ export default interface Transaction extends AbstractCurrentConsumption {
   uniqueId?: string;
   values?: Consumption[];
   billingData?: BillingTransactionData;
-  ocpiWithNoCdr?: boolean;
-  ocpiData?: {
-    session?: OCPISession;
-    cdr?: OCPICdr;
-    sessionCheckedOn?: Date;
-    cdrCheckedOn?: Date;
-  };
+  ocpi?: boolean;
+  ocpiWithCdr?: boolean;
+  ocpiData?: OcpiData;
+}
+
+export interface OcpiData {
+  session?: OCPISession;
+  cdr?: OCPICdr;
+  sessionCheckedOn?: Date;
+  cdrCheckedOn?: Date;
 }
 
 export interface CSPhasesUsed {

@@ -20,7 +20,7 @@ const MODULE_NAME = 'CheckChargingStationTemplateTask';
 export default class CheckChargingStationTemplateTask extends SchedulerTask {
   public async run(name: string, config: TaskConfig): Promise<void> {
     // Update Template
-    await this.updateChargingStationTemplates();
+    this.updateChargingStationTemplates();
     // Call default implementation
     await super.run(name, config);
   }
@@ -120,7 +120,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'applyTemplateToChargingStations',
             message: `Charging Station '${chargingStation.id}' updated with the following Template's section(s): ${sectionsUpdated.join(', ')}`,
-            detailedMessages: { chargingStationTemplateUpdated }
+            detailedMessages: { chargingStationUpdated, chargingStationTemplateUpdated }
           });
           // Save
           await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
@@ -185,7 +185,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     }
   }
 
-  private async updateChargingStationTemplates() {
+  private updateChargingStationTemplates() {
     // Update current Chargers
     ChargingStationStorage.updateChargingStationTemplatesFromFile().catch(
       (error) => {
