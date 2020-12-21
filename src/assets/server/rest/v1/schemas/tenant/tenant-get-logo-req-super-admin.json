@@ -1,10 +1,13 @@
 {
-    "title": "Get one Tenant Logo",
-    "type": "object",
-    "properties": {
-        "ID": { "$ref": "common.json#/definitions/id" }
+  "title": "Get one Tenant Logo",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common.json#/definitions/id"
     },
-    "required": [
-        "ID"
-    ]
+    "Subdomain": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  }
 }

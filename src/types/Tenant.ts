@@ -54,3 +54,8 @@ export default interface Tenant extends CreatedUpdatedProps {
     };
   };
 }
+
+export interface TenantLogo {
+  id: string;
+  logo: string;
+}

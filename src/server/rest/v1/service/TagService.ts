@@ -153,9 +153,11 @@ export default class TagService {
       const firstActiveTag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, tag.userID, {
         issuer: true,
       });
+      if (firstActiveTag) {
       // Set default
-      firstActiveTag.default = true;
-      await TagStorage.saveTag(req.user.tenantID, firstActiveTag);
+        firstActiveTag.default = true;
+        await TagStorage.saveTag(req.user.tenantID, firstActiveTag);
+      }
     }
     // OCPI
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {

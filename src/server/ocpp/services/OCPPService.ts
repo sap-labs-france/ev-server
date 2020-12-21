@@ -212,23 +212,26 @@ export default class OCPPService {
       setTimeout(async () => {
         let result: OCPPChangeConfigurationCommandResult;
         // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
-        let HeartBeatIntervalSettingFailure = false;
+        // Set OCPP 'HeartBeatInterval'
+        let heartBeatIntervalSettingFailure = false;
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartBeatInterval',
           value: heartbeatIntervalSecs.toString()
         }, false);
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-          HeartBeatIntervalSettingFailure = true;
+          heartBeatIntervalSettingFailure = true;
         }
+        // Set OCPP 'HeartbeatInterval'
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
           key: 'HeartbeatInterval',
           value: heartbeatIntervalSecs.toString()
         }, false);
-        let HeartbeatIntervalSettingFailure = false;
+        let heartbeatIntervalSettingFailure = false;
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-          HeartbeatIntervalSettingFailure = true;
+          heartbeatIntervalSettingFailure = true;
         }
-        if (HeartBeatIntervalSettingFailure && HeartbeatIntervalSettingFailure) {
+        // Check
+        if (heartBeatIntervalSettingFailure && heartbeatIntervalSettingFailure) {
           Logging.logError({
             tenantID: headers.tenantID,
             action: ServerAction.BOOT_NOTIFICATION,
@@ -430,9 +433,8 @@ export default class OCPPService {
           await this.checkNotificationEndOfCharge(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
-          // First Meter Value -> Trigger Smart Charging to adjust the single phase Car
-          if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed &&
-            !Utils.isTransactionInProgressOnThreePhases(chargingStation, transaction)) {
+          // First Meter Value -> Trigger Smart Charging to adjust the limit
+          if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
             // Yes: Trigger Smart Charging
             await this.triggerSmartCharging(headers.tenantID, chargingStation);
           }
@@ -486,7 +488,7 @@ export default class OCPPService {
         const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
         if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
           // OCPI user
-          // Get tag
+          // GetTag
           const tag = await TagStorage.getTag(headers.tenantID, authorize.idTag);
           if (!tag) {
             throw new BackendError({
@@ -502,6 +504,15 @@ export default class OCPPService {
               action: ServerAction.AUTHORIZE,
               module: MODULE_NAME, method: 'handleAuthorize',
               message: `Tag ID '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
+            });
+          }
+          // Check Charging Station
+          if (!chargingStation.public) {
+            throw new BackendError({
+              user: user,
+              action: ServerAction.AUTHORIZE,
+              module: MODULE_NAME, method: 'handleAuthorize',
+              message: `Tag ID '${authorize.idTag}' cannot be authorized on a private charging station`
             });
           }
           const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
@@ -572,7 +583,8 @@ export default class OCPPService {
     }
   }
 
-  public async handleDiagnosticsStatusNotification(headers: OCPPHeader, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+  public async handleDiagnosticsStatusNotification(headers: OCPPHeader,
+    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -1660,7 +1672,7 @@ export default class OCPPService {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
             // Add Attributes
-            const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
+            const normalizedLocalMeterValue: OCPPNormalizedMeterValue = Utils.cloneObject(normalizedMeterValue);
             normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
             // Data is to be interpreted as integer/decimal numeric data
             if (normalizedLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
@@ -1674,7 +1686,7 @@ export default class OCPPService {
           }
         } else {
           // Add Attributes
-          const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
+          const normalizedLocalMeterValue: OCPPNormalizedMeterValue = Utils.cloneObject(normalizedMeterValue);
           normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
           // Add
           normalizedMeterValues.values.push(normalizedLocalMeterValue);
