@@ -1,5 +1,7 @@
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
+import { LockEntity } from '../../types/Locking';
+import LockingManager from '../../locking/LockingManager';
 import SchedulerTask from '../SchedulerTask';
 import { SettingDB } from '../../types/Setting';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
@@ -15,22 +17,34 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
 
     // Migrate only if cryptoKey changed
     if (isCryptoKeyChanged) {
-      // Get all settings per tenant
-      const settings = await SettingStorage.getSettings(tenant.id, {},
-        Constants.DB_PARAMS_MAX_LIMIT);
 
-      // Filter settings with sensitiveData
-      const reducedSettings = settings.result.filter((
-        value: SettingDB) => {
-        if (value?.sensitiveData && !Utils.isEmptyArray(value?.sensitiveData)) {
-          return true;
+      // Database Lock
+      const createDatabaseLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.DATABASE, 'migrate-database');
+      if (await LockingManager.acquire(createDatabaseLock)) {
+        try {
+
+          // Get all settings per tenant
+          const settings = await SettingStorage.getSettings(tenant.id, {},
+            Constants.DB_PARAMS_MAX_LIMIT);
+
+          // Filter settings with sensitiveData
+          const reducedSettings = settings.result.filter((
+            value: SettingDB) => {
+            if (value?.sensitiveData && !Utils.isEmptyArray(value?.sensitiveData)) {
+              return true;
+            }
+          });
+
+          // Save sensitiveData from settings in Migration collection per Tenant
+
+          if (reducedSettings && !Utils.isEmptyArray(reducedSettings)) {
+            await Cypher.migrateAllSensitiveData(tenant.id, reducedSettings);
+          }
+
+        } finally {
+          // Release the database creation Lock
+          await LockingManager.release(createDatabaseLock);
         }
-      });
-
-      // Save sensitiveData from settings in Migration collection per Tenant
-
-      if (reducedSettings && !Utils.isEmptyArray(reducedSettings)) {
-        await Cypher.migrateAllSensitiveData(tenant.id, reducedSettings);
       }
     }
   }
