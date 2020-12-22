@@ -267,7 +267,19 @@
             "description": "The End-user License Agreement is mandatory"
           },
           "550": {
-            "description": "User tried to log in with an invalid user or password"
+            "description": "User tried to log into an unknown tenant, does not exists, or credentials are invalid"
+          },
+          "590": {
+            "description": "User account is locked"
+          },
+          "592": {
+            "description": "Account is pending. User must activate his account in his email"
+          },
+          "593": {
+            "description": "Account is blocked"
+          },
+          "594": {
+            "description": "Account is inactive"
           }
         }
       }
@@ -329,9 +341,6 @@
         "responses": {
           "200": {
             "description": "Registered successfully"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
