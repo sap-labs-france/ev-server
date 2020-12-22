@@ -24,7 +24,6 @@ import Tag from '../../../../types/Tag';
 import TenantComponents from '../../../../types/TenantComponents';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
-import blobStream from 'blob-stream';
 import countries from 'i18n-iso-countries';
 import moment from 'moment';
 
@@ -230,7 +229,7 @@ export default class UtilsService {
 
   public static async exportToPDF(req: Request, res: Response, attachementName: string,
     handleGetData: (req: Request) => Promise<DataResult<any>>,
-    handleConvertToPDF: (req: Request, pdfDocument: PDFDocument, data: any[]) => Promise<string>): Promise<void> {
+    handleConvertToPDF: (req: Request, pdfDocument: PDFKit.PDFDocument, data: any[]) => Promise<string>): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PDF_PAGE_SIZE.toString();
     // Set the attachment name
