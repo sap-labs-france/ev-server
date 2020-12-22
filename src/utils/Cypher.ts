@@ -32,6 +32,14 @@ export default class Cypher {
   }
 
   public static getCrypto(): CryptoSetting {
+    if (!this.cryptoSetting) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'getCrypto',
+        message: 'Crypto Setting is missing'
+      });
+    }
     return this.cryptoSetting;
   }
 
@@ -40,12 +48,12 @@ export default class Cypher {
     const configCryptoKey: string = Configuration.getCryptoConfig().key;
     const keySettings = await SettingStorage.getCryptoSettings(tenantID);
     let cryptoSettingToSave: CryptoSetting;
+    // TODO check for migrationDone
 
     // Check if Crypto Settings exist
     if (keySettings) {
       // Detect new config Cypher key
       if (keySettings.crypto?.key !== configCryptoKey) {
-        await SettingStorage.deleteSetting(tenantID, keySettings.id);
         cryptoSettingToSave = {
           formerKey: keySettings.crypto.key,
           key: configCryptoKey,
@@ -76,6 +84,7 @@ export default class Cypher {
   public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<void> {
     if (this.cryptoSetting) {
       this.decryptSensitiveDataInJSON(setting, this.cryptoSetting.formerKey);
+      // TODO add check for clearValue
       this.encryptSensitiveDataInJSON(setting, this.cryptoSetting.key);
       await SettingStorage.saveSettings(tenantID, setting);
     }

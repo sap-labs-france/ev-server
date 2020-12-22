@@ -19,7 +19,7 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
     if (isCryptoKeyChanged) {
 
       // Database Lock
-      const createDatabaseLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.DATABASE, 'migrate-database');
+      const createDatabaseLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.DATABASE, 'migrate-sensitive-data');
       if (await LockingManager.acquire(createDatabaseLock)) {
         try {
 
