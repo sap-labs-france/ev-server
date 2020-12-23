@@ -207,6 +207,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   demo: {
     grants: [
+      {
+        resource: Entity.USER, action: [Action.READ], attributes: ['*'],
+        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+      },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
