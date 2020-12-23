@@ -407,7 +407,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
       }
     };
     // Extra data
-    message.data = { tenantID: tenant.id, notificationType, ...data };
+    message.data = {
+      tenantID: tenant.id,
+      tenantSubdomain: tenant.subdomain,
+      notificationType,
+      ...data };
     return message;
   }
 }
