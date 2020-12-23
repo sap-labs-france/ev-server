@@ -138,9 +138,11 @@ export default class Authorizations {
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
     let tenantName;
+    let tenantSubdomain;
     if (tenantID !== Constants.DEFAULT_TENANT) {
       const tenant = await TenantStorage.getTenant(tenantID);
       tenantName = tenant.name;
+      tenantSubdomain = tenant.subdomain;
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
       activeComponents = Utils.getTenantActiveComponents(tenant);
     }
@@ -163,6 +165,7 @@ export default class Authorizations {
       'currency': currency,
       'tenantID': tenantID,
       'tenantName': tenantName,
+      'tenantSubdomain': tenantSubdomain,
       'userHashID': SessionHashService.buildUserHashID(user),
       'tenantHashID': tenantHashID,
       'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length, siteOwnerIDs.length),
