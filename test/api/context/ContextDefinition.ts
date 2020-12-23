@@ -162,7 +162,8 @@ export default class ContextDefinition {
           sapSmartCharging: {
             optimizerUrl: '',
             user: '',
-            password: ''
+            password: '',
+            stickyLimitation: true,
           }
         }
       },
@@ -342,7 +343,10 @@ export default class ContextDefinition {
         { type: SmartChargingSettingsType.SAP_SMART_CHARGING, sapSmartCharging:
           { optimizerUrl: '',
             user: '',
-            password: '' }
+            password: '',
+            stickyLimitation: true,
+            limitBufferDC: 20,
+            limitBufferAC: 10, }
         }
       },
     }

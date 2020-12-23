@@ -224,6 +224,9 @@ export default class SettingStorage {
           optimizerUrl: config.sapSmartCharging.optimizerUrl,
           user: config.sapSmartCharging.user,
           password: config.sapSmartCharging.password,
+          stickyLimitation: config.sapSmartCharging.stickyLimitation ? config.sapSmartCharging.stickyLimitation : false,
+          limitBufferDC: config.sapSmartCharging.limitBufferDC ? config.sapSmartCharging.limitBufferDC : 0,
+          limitBufferAC: config.sapSmartCharging.limitBufferAC ? config.sapSmartCharging.limitBufferAC : 0,
         };
       }
     }
