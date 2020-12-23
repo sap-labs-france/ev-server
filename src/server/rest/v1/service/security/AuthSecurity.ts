@@ -33,7 +33,9 @@ export default class AuthSecurity {
     return {
       name: sanitize(request.name),
       firstName: sanitize(request.firstName),
-      password: sanitize(request.passwords.password),
+      password: sanitize(
+        typeof request.passwords === 'string' ? JSON.parse(request.passwords).password : request.passwords.password
+      ),
       acceptEula: sanitize(request.acceptEula),
       captcha: sanitize(request.captcha),
       status: UserStatus.PENDING,

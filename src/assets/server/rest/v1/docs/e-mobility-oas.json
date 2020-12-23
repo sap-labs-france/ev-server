@@ -2,16 +2,16 @@
   "openapi": "3.0.3",
   "servers": [
     {
+      "description": "Localhost - Development",
+      "url": "http://localhost:8080/v1"
+    },
+    {
       "description": "SCP - Production system",
       "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
     },
     {
       "description": "SCP - Quality system",
       "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
-    },
-    {
-      "description": "Localhost - Development",
-      "url": "http://localhost:8080/v1"
     }
   ],
   "info": {
@@ -231,6 +231,9 @@
             "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "email", "password", "acceptEula", "tenant"
+                ],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -292,6 +295,9 @@
             "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "email", "name", "firstName", "passwords", "acceptEula", "tenant", "captcha"
+                ],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -299,11 +305,11 @@
                   },
                   "name": {
                     "type": "string",
-                    "example": "Alouache"
+                    "example": "Demo"
                   },
                   "firstName": {
                     "type": "string",
-                    "example": "Loan"
+                    "example": "User"
                   },
                   "passwords": {
                     "type": "object",
@@ -329,6 +335,10 @@
                   "captcha": {
                     "type": "string",
                     "example": "03AGdBq27rf-WyiNvo8yOO11OjDwgST4ZiQ-dtKxxDvVzxtU7XG6Oqff-M-KXe8RwCsHrlgU-4BCi_Y9CLLSC-DHMZkK-YS2fIJ4TpVxwn2mCQ7PwgIi8HUJHudaq5Jb7W88zebKr_xWBa9zyLp4k8exaWwQ9v2Pnj-FSKTHHDpT66PZiHOfRVjg9Za6eQIHhbXkNK5m6ZKWgT92XYigaJuTEPigGK7N5kbXHydXZFX6Ku5lntg9FRl7n737SRSAsO0joBb5XtgJV1vfZGyvnSjHECf3lmNdhZCQbdhGjEqn2vtHuodFk1i3kFzgEgMOS59A42m_zr4AME1Avd-hyAW80dybsbSKWbThyQx6iBRcOydgM9b10TI9kIpL8feLHBCvnmVutnhlp_Zz9MDTop5_Fdi3xvZHW-tLcLYHljECgnTHbApkcHfCSzgSJBlkB7_qifzRGitTfCUFGztgOCho6pKXeHAzc4XQ"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "example": "en-US"
                   }
                 }
               }
@@ -425,16 +435,17 @@
             "description": "Tenant's subdomain",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "slf"
             }
           },
           {
             "in": "query",
             "name": "language",
             "description": "Browser language",
-            "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "en"
             }
           }
         ],
@@ -517,9 +528,6 @@
           },
           "550": {
             "description": "Unknown tenant"
-          },
-          "591": {
-            "description": "Account already activated"
           }
         }
       }
@@ -563,8 +571,11 @@
           "500": {
             "$ref": "#/components/responses/500BackendError"
           },
+          "540": {
+            "description": "Invalid verification token"
+          },
           "550": {
-            "description": "Unknown tenant or logically deleted user"
+            "description": "Unknown tenant or user does not exist"
           },
           "591": {
             "description": "Account already activated"
@@ -610,7 +621,7 @@
             "$ref": "#/components/responses/500BackendError"
           },
           "550": {
-            "description": "Unknown tenant"
+            "description": "Unknown tenant or user does not exist"
           },
           "591": {
             "description": "Account already activated"
