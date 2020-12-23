@@ -464,17 +464,6 @@ export default class OCPPCommonTests {
     expect(response.data.message).to.equal(`Charging Station '${this.chargingStationContext.getChargingStation().id}' is not assigned to a Site Area!`);
   }
 
-  public async testRemoteStartTransactionWithBasicUser() {
-    const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
-      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
-      'args': {
-        'tagID': this.transactionStopUser.tags[0].id,
-        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
-      }
-    });
-    expect(response.status).to.equal(500);
-    expect(response.data.message).to.equal(`Charging Station '${this.chargingStationContext.getChargingStation().id}' is not assigned to a Site Area!`);
-  }
 
   public async testSendMeterValues(withSoC = false, withSignedData = false) {
     // Check on Transaction
