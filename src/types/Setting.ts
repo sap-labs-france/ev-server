@@ -141,8 +141,8 @@ export interface SapSmartChargingSetting extends SmartChargingSetting {
   user: string;
   password: string;
   stickyLimitation: boolean;
-  limitBufferDC?: number;
-  limitBufferAC?: number;
+  limitBufferDC: number;
+  limitBufferAC: number;
 }
 
 export enum RefundSettingsType {

@@ -164,6 +164,8 @@ export default class ContextDefinition {
             user: '',
             password: '',
             stickyLimitation: true,
+            limitBufferDC: 20,
+            limitBufferAC: 10,
           }
         }
       },
