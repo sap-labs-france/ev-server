@@ -378,7 +378,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Notification Sent: '${notificationType}' - '${title}'`,
         actionOnUser: user.id,
-        detailedMessages: [title, body, data, response]
+        detailedMessages: [message, response]
       });
     }).catch((error: Error) => {
       Logging.logError({
@@ -393,7 +393,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     });
   }
 
-  private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, data: Record<string, unknown>, severity: NotificationSeverity): admin.messaging.MessagingPayload {
+  private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string,
+    data: Record<string, unknown>, severity: NotificationSeverity): admin.messaging.MessagingPayload {
     // Build message
     const message: admin.messaging.MessagingPayload = {
       notification: {
