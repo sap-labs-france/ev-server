@@ -66,6 +66,9 @@ export default class TransactionService {
   }
 
   public static async handleRefundTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
+      Action.REFUND_TRANSACTION, Entity.TRANSACTION, MODULE_NAME, 'handleRefundTransactions');
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body);
     if (!filteredRequest.transactionIds) {
@@ -130,6 +133,19 @@ export default class TransactionService {
         user: req.user, action: action
       });
     }
+    // Check user connection
+    try {
+      await refundConnector.checkConnection(req.user.id);
+    } catch (error) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.REFUND_CONNECTION_ERROR,
+        message: 'No Refund valid connection found',
+        module: MODULE_NAME, method: 'handleRefundTransactions',
+        user: req.user, action: action
+      });
+    }
+    // Refund
     const refundedTransactions = await refundConnector.refund(req.user.tenantID, user.id, transactionsToRefund);
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,

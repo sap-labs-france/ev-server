@@ -5,7 +5,6 @@ import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
-import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CarIntegration';
 
