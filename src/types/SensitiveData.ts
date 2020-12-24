@@ -4,15 +4,21 @@ export interface SensitiveDataMigrationState {
   name: string;
   version: string;
   durationSecs: number;
-  sensitiveData: SenitiveData[]
+  settingSensitiveData: SettingSensitiveData[];
 }
 
-export interface SenitiveData {
+export interface SettingSensitiveData {
+  id?: string;
+  identifier: string;
+  sensitiveData: SensitiveData[]
+}
+
+export interface SensitiveData {
   identifier: string;
   path: string;
-  initialValue: EncryptedValue
+  initialValue: EncryptedValue;
   clearValue: string;
-  migratedValue: EncryptedValue
+  migratedValue: EncryptedValue;
 }
 
 export interface EncryptedValue {

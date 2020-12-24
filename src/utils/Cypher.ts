@@ -1,4 +1,5 @@
 import { CryptoSetting, CryptoSettingsType, KeySettings, SettingDB } from '../types/Setting';
+import { SensitiveData, SettingSensitiveData } from '../types/SensitiveData';
 
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
@@ -33,6 +34,9 @@ export default class Cypher {
 
   public static getCrypto(): CryptoSetting {
     if (!this.cryptoSetting) {
+      this.cryptoSetting = {
+        key: this.configuration.key
+      };
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
@@ -54,6 +58,7 @@ export default class Cypher {
     if (keySettings) {
       // Detect new config Cypher key
       if (keySettings.crypto?.key !== configCryptoKey) {
+        await SettingStorage.deleteSetting(tenantID, keySettings.id);
         cryptoSettingToSave = {
           formerKey: keySettings.crypto.key,
           key: configCryptoKey,
@@ -79,21 +84,77 @@ export default class Cypher {
       await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
       return true;
     }
+    return false;
   }
 
-  public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<void> {
-    if (this.cryptoSetting) {
-      this.decryptSensitiveDataInJSON(setting, this.cryptoSetting.formerKey);
-      // TODO add check for clearValue
-      this.encryptSensitiveDataInJSON(setting, this.cryptoSetting.key);
-      await SettingStorage.saveSettings(tenantID, setting);
+  public static getSensitiveDatainSetting(setting: SettingDB): string[] {
+
+    const allSensitiveData: string[] = [];
+    for (const property of setting.sensitiveData) {
+      // Check that the property does exist otherwise skip to the next property
+      if (_.has(setting, property)) {
+        const value:string = _.get(setting, property);
+
+        // If the value is undefined, null or empty then do nothing and skip to the next property
+        if (value && value.length > 0) {
+          allSensitiveData[`${property}`] = value;
+        }
+      }
+    }
+    return allSensitiveData;
+
+  }
+
+  public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<SensitiveData[]> {
+    try {
+      if (this.cryptoSetting) {
+        // TODO add check for clearValue
+
+        const valuebeforeDecrypt = this.getSensitiveDatainSetting(setting);
+        this.decryptSensitiveDataInJSON(setting, this.cryptoSetting.formerKey);
+        const valueAfterDecrypt = this.getSensitiveDatainSetting(setting);
+        this.encryptSensitiveDataInJSON(setting, this.cryptoSetting.key);
+        const valueAfterEncrypt = this.getSensitiveDatainSetting(setting);
+
+        const allSensitiveData: SensitiveData[] = [];
+        for (const property of setting.sensitiveData) {
+          const sensitiveData = {
+            identifier: setting.identifier,
+            path: property,
+            initialValue: {
+              encryptedValue: valuebeforeDecrypt[property],
+              key: this.cryptoSetting.formerKey
+            },
+            clearValue: valueAfterDecrypt[property],
+            migratedValue: {
+              encryptedValue: valueAfterEncrypt[property],
+              key: this.cryptoSetting.key
+            }
+          } as SensitiveData;
+          allSensitiveData.push(sensitiveData);
+        }
+
+        await SettingStorage.saveSettings(tenantID, setting);
+        return allSensitiveData;
+      }
+    } catch (err) {
+      console.error(err);
     }
   }
 
-  public static async migrateAllSensitiveData(tenantID: string, settings: SettingDB[]): Promise<void> {
+  public static async migrateAllSensitiveData(tenantID: string, settings: SettingDB[]): Promise<SettingSensitiveData[]> {
+
+    const settingsSensitiveData: SettingSensitiveData[] = [];
     for (const setting of settings) {
-      await this.migrateSensitiveData(tenantID, setting);
+      const sensitiveData: SensitiveData[] = await this.migrateSensitiveData(tenantID, setting);
+      const settingSensitiveData: SettingSensitiveData = {
+        id: setting.id,
+        identifier: setting.identifier,
+        sensitiveData: sensitiveData
+      };
+      settingsSensitiveData.push(settingSensitiveData);
     }
+    return settingsSensitiveData;
   }
 
   public static encrypt(data: string, key: string): string {

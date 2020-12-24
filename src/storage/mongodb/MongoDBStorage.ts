@@ -155,6 +155,15 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'chargingstations', [
       { fields: { coordinates: '2dsphere' } },
     ]);
+
+    // Sensitive Data Migration
+    await this.handleIndexesInCollection(tenantID, 'sensitiveDataMigrations', [
+      { fields: { timestamp: 1 } },
+      { fields: { name: 1 } },
+      { fields: { version: 1 } },
+      { fields: { durationSecs: 1 } }
+    ]);
+
     Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,

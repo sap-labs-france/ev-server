@@ -3,6 +3,8 @@ import Cypher from '../../utils/Cypher';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import SchedulerTask from '../SchedulerTask';
+import { SensitiveDataMigrationState } from '../../types/SensitiveData';
+import SensitiveDataMigrationStorage from '../../storage/mongodb/SensitiveDataMigrationStorage';
 import { SettingDB } from '../../types/Setting';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import { TaskConfig } from '../../types/TaskConfig';
@@ -35,10 +37,15 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
             }
           });
 
-          // Save sensitiveData from settings in Migration collection per Tenant
-
           if (reducedSettings && !Utils.isEmptyArray(reducedSettings)) {
-            await Cypher.migrateAllSensitiveData(tenant.id, reducedSettings);
+            const settingSensitiveData = await Cypher.migrateAllSensitiveData(tenant.id, reducedSettings);
+            const migrationState = {
+              timestamp: new Date(),
+              name: tenant.id,
+              version: '1',
+              settingSensitiveData: settingSensitiveData
+            } as SensitiveDataMigrationState;
+            await SensitiveDataMigrationStorage.saveSensitiveDataMigrationState(tenant.id, migrationState);
           }
 
         } finally {
