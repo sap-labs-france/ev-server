@@ -271,7 +271,7 @@ export default class ChargingStationService {
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
       { chargingStationIDs: [chargingStation.id], connectorID: 0 },
       Constants.DB_PARAMS_MAX_LIMIT);
-    const updatedChargingProfiles: ChargingProfile[] = Utils.cloneObject(chargingProfiles.result) as ChargingProfile[];
+    const updatedChargingProfiles: ChargingProfile[] = Utils.cloneObject(chargingProfiles.result);
     for (let index = 0; index < updatedChargingProfiles.length; index++) {
       const updatedChargingProfile = updatedChargingProfiles[index];
       let planHasBeenAdjusted = false;
