@@ -114,7 +114,7 @@ export default class TagService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.DELETE, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'canDeleteTag',
+        module: MODULE_NAME, method: 'handleDeleteTags',
         value: tagsIds.toString()
       });
     }
@@ -134,7 +134,7 @@ export default class TagService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.DELETE, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'canDeleteTag',
+        module: MODULE_NAME, method: 'handleDeleteTag',
         value: tagId
       });
     }
