@@ -344,7 +344,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
       title, body, user, { 'invoiceNumber': data.invoice.number.toString() }, severity);
   }
 
-  private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
+  private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
+    title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
     // Checks
     if (!this.initialized) {
       return Promise.resolve();
@@ -378,7 +379,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Notification Sent: '${notificationType}' - '${title}'`,
         actionOnUser: user.id,
-        detailedMessages: [title, body, data, response]
+        detailedMessages: [message, response]
       });
     }).catch((error: Error) => {
       Logging.logError({
@@ -393,7 +394,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     });
   }
 
-  private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, data: Record<string, unknown>, severity: NotificationSeverity): admin.messaging.MessagingPayload {
+  private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string,
+    data: Record<string, unknown>, severity: NotificationSeverity): admin.messaging.MessagingPayload {
     // Build message
     const message: admin.messaging.MessagingPayload = {
       notification: {
@@ -403,11 +405,15 @@ export default class RemotePushNotificationTask implements NotificationTask {
         sound: 'default',
         badge: '0',
         color: severity ? severity : NotificationSeverity.INFO,
-        channelId: 'e-Mobility'
+        android_channel_id: 'e-Mobility'
+      },
+      data: {
+        tenantID: tenant.id,
+        tenantSubdomain: tenant.subdomain,
+        notificationType,
+        ...data
       }
     };
-    // Extra data
-    message.data = { tenantID: tenant.id, notificationType, ...data };
     return message;
   }
 }
