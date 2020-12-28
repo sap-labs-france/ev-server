@@ -304,6 +304,7 @@ export default class SettingStorage {
   public static async saveCryptoSettings(tenantID: string, cryptoSettingToSave: KeySettings): Promise<void> {
     // Build internal structure
     const settingsToSave = {
+      id: cryptoSettingToSave.id,
       identifier: 'crypto',
       lastChangedOn: new Date(),
       content: {
@@ -325,7 +326,8 @@ export default class SettingStorage {
     if (settings.count > 0) {
       const cryptoSetting = {
         formerKey: settings.result[0].content.crypto.formerKey,
-        key: settings.result[0].content.crypto.key
+        key: settings.result[0].content.crypto.key,
+        migrationDone: settings.result[0].content.crypto.migrationDone
       } as CryptoSetting;
       const keySetting = {
         id: settings.result[0].id,

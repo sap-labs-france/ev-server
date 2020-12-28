@@ -157,7 +157,7 @@ export default class MongoDBStorage {
     ]);
 
     // Sensitive Data Migration
-    await this.handleIndexesInCollection(tenantID, 'sensitiveDataMigrations', [
+    await this.handleIndexesInCollection(tenantID, 'sensitivedatamigrations', [
       { fields: { timestamp: 1 } },
       { fields: { name: 1 } },
       { fields: { version: 1 } },

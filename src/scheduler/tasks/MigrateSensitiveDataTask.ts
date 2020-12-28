@@ -42,12 +42,13 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
             const migrationState = {
               timestamp: new Date(),
               name: tenant.id,
-              version: '1',
+              version: 'final',
               settingSensitiveData: settingSensitiveData
             } as SensitiveDataMigrationState;
             await SensitiveDataMigrationStorage.saveSensitiveDataMigrationState(tenant.id, migrationState);
           }
 
+          await Cypher.setMigrationDone(tenant.id);
         } finally {
           // Release the database creation Lock
           await LockingManager.release(createDatabaseLock);

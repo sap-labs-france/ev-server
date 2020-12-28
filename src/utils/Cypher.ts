@@ -5,6 +5,8 @@ import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
+import Logging from './Logging';
+import SensitiveDataMigrationStorage from '../storage/mongodb/SensitiveDataMigrationStorage';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import TenantComponents from '../types/TenantComponents';
 import _ from 'lodash';
@@ -16,6 +18,7 @@ const MODULE_NAME = 'Cypher';
 export default class Cypher {
   private static configuration: CryptoConfiguration;
   private static cryptoSetting: CryptoSetting;
+  private static keySetting: KeySettings;
 
   public static getConfiguration(): CryptoConfiguration {
     if (!this.configuration) {
@@ -56,9 +59,19 @@ export default class Cypher {
 
     // Check if Crypto Settings exist
     if (keySettings) {
+      this.keySetting = keySettings;
       // Detect new config Cypher key
       if (keySettings.crypto?.key !== configCryptoKey) {
-        await SettingStorage.deleteSetting(tenantID, keySettings.id);
+        if (keySettings.crypto?.migrationDone === false) {
+          throw new BackendError({
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME,
+            method: 'detectConfigurationKey',
+            message: 'Cannot change crypto key if migration not done'
+          });
+          // Call a method for completing migration?
+          // Also log error?
+        }
         cryptoSettingToSave = {
           formerKey: keySettings.crypto.key,
           key: configCryptoKey,
@@ -77,6 +90,7 @@ export default class Cypher {
 
     if (cryptoSettingToSave) {
       const keySettingToSave = {
+        id: keySettings.id,
         identifier: TenantComponents.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: cryptoSettingToSave
@@ -85,6 +99,17 @@ export default class Cypher {
       return true;
     }
     return false;
+  }
+
+  public static async setMigrationDone(tenantID:string): Promise<void> {
+    this.cryptoSetting.migrationDone = true;
+    const keySettingToSave = {
+      id: this.keySetting.id,
+      identifier: TenantComponents.CRYPTO,
+      type: CryptoSettingsType.CRYPTO,
+      crypto: this.cryptoSetting
+    } as KeySettings;
+    await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
   }
 
   public static getSensitiveDatainSetting(setting: SettingDB): string[] {
@@ -134,7 +159,17 @@ export default class Cypher {
           allSensitiveData.push(sensitiveData);
         }
 
+        const settingSensitiveData: SettingSensitiveData = {
+          id: setting.id,
+          identifier: setting.identifier,
+          sensitiveData: allSensitiveData
+        };
+        // Save setting with crypto key migration
         await SettingStorage.saveSettings(tenantID, setting);
+
+        // Save migration of setting
+        await SensitiveDataMigrationStorage.saveSensitiveData(tenantID, settingSensitiveData);
+
         return allSensitiveData;
       }
     } catch (err) {
