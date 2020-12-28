@@ -51,7 +51,7 @@ export default class Cypher {
   }
 
   public static async detectConfigurationKey(tenantID: string): Promise<boolean> {
-
+    let isKeyChanged = false;
     const configCryptoKey: string = Configuration.getCryptoConfig().key;
     const keySettings = await SettingStorage.getCryptoSettings(tenantID);
     let cryptoSettingToSave: CryptoSetting;
@@ -77,6 +77,7 @@ export default class Cypher {
           key: configCryptoKey,
           migrationDone: false
         } as CryptoSetting;
+        isKeyChanged = true;
       }
     } else {
       // Create New Config Crypto Key in Tenant Settings
@@ -90,15 +91,14 @@ export default class Cypher {
 
     if (cryptoSettingToSave) {
       const keySettingToSave = {
-        id: keySettings.id,
+        id: keySettings?.id,
         identifier: TenantComponents.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: cryptoSettingToSave
       } as KeySettings;
       await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
-      return true;
     }
-    return false;
+    return isKeyChanged;
   }
 
   public static async setMigrationDone(tenantID:string): Promise<void> {
