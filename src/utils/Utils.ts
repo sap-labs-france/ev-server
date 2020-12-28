@@ -987,7 +987,7 @@ export default class Utils {
   }
 
   public static cloneObject<T>(object: T): T {
-    return JSON.parse(JSON.stringify(object));
+    return JSON.parse(JSON.stringify(object)) as T;
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -1220,7 +1220,7 @@ export default class Utils {
         }
         break;
 
-      // Refund
+      // OCPI
       case TenantComponents.OCPI:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
