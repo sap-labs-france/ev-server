@@ -1,5 +1,5 @@
 import { MessageType, OcppErrorType } from '../../../types/WebSocket';
-import WebSocket, { CloseEvent, ErrorEvent, MessageEvent, OPEN } from 'ws';
+import WebSocket, { CLOSED, CLOSING, CONNECTING, CloseEvent, ErrorEvent, MessageEvent, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -372,6 +372,25 @@ export default abstract class WSConnection {
 
   public isWSConnectionOpen(): boolean {
     return this.wsConnection.readyState === OPEN;
+  }
+
+  public getConnectionStatus(): number {
+    return this.wsConnection.readyState;
+  }
+
+  public getConnectionStatusString(): string {
+    switch (this.getConnectionStatus()) {
+      case OPEN:
+        return 'Open';
+      case CONNECTING:
+        return 'Connecting';
+      case CLOSING:
+        return 'Closing';
+      case CLOSED:
+        return 'Closed';
+      default:
+        return `Unknown code '${this.wsConnection.readyState}'`;
+    }
   }
 
   public abstract handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
