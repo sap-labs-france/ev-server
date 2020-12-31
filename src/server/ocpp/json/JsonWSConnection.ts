@@ -155,7 +155,7 @@ export default class JsonWSConnection extends WSConnection {
       source: this.getChargingStationID(),
       module: MODULE_NAME, method: 'getChargingStationClient',
       action: ServerAction.WS_CONNECTION,
-      message: `Cannot retrieve JSon Client from WS Connection with status '${this.getConnectionStatusString()}'`,
+      message: `Cannot retrieve WS client from WS connection with status '${this.getConnectionStatusString()}'`,
     });
     return null;
   }

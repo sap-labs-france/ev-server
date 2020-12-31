@@ -53,7 +53,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         source: chargingStationID,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
-        message: 'No Web Socket Connection found',
+        message: 'No Web Socket connection found',
         detailedMessages: { chargingStations: Array.from(this.jsonChargingStationClients.keys()) }
       });
       return null;
