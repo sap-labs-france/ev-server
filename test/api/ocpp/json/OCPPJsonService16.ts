@@ -1,6 +1,6 @@
 import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
+import { OCPPIncomingRequest, OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
 
-import { OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
 import OCPPService from '../OCPPService';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
@@ -15,7 +15,7 @@ export default class OCPPJsonService16 extends OCPPService {
   public constructor(serverUrl: string, requestHandler) {
     super(serverUrl);
     // eslint-disable-next-line no-undef
-    this.wsSessions = new Map();
+    this.wsSessions = new Map<string, { connection: WSClient, requests: any }>();
     this.requestHandler = requestHandler;
   }
 
@@ -58,7 +58,7 @@ export default class OCPPJsonService16 extends OCPPService {
         const t1 = performance.now();
         try {
           // Parse the message
-          const messageJson = JSON.parse(message.data);
+          const messageJson = JSON.parse(message.data) as OCPPIncomingRequest;
           // Check if this corresponds to a request
           if (messageJson[0] === OCPPMessageType.CALL_RESULT_MESSAGE && sentRequests[messageJson[1]]) {
             const response: any = {};
@@ -69,7 +69,7 @@ export default class OCPPJsonService16 extends OCPPService {
             // Respond to the request
             sentRequests[messageJson[1]].resolve(response);
           } else if (messageJson[0] === OCPPMessageType.CALL_MESSAGE) {
-            const [messageType, messageId, commandName, commandPayload] = messageJson;
+            const [messageType, messageId, commandName, commandPayload]: OCPPIncomingRequest = messageJson;
             await this.handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload);
           }
         } catch (error) {
