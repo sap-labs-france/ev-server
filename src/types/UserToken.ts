@@ -1,3 +1,4 @@
+import User from './User';
 
 export default interface UserToken {
   id?: string;
@@ -11,6 +12,7 @@ export default interface UserToken {
   currency?: string;
   tagIDs?: string[];
   tenantID: string;
+  tenantSubdomain?: string;
   tenantName?: string;
   userHashID?: string;
   tenantHashID?: string;
@@ -20,4 +22,5 @@ export default interface UserToken {
   sitesAdmin?: string[];
   sitesOwner?: string[];
   activeComponents?: string[];
+  user?: User;
 }
