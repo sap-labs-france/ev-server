@@ -1,4 +1,4 @@
-import { MessageType, OcppErrorType } from '../../../types/WebSocket';
+import { OCPPErrorType, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import WebSocket, { CLOSED, CLOSING, CONNECTING, CloseEvent, ErrorEvent, MessageEvent, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
@@ -159,12 +159,12 @@ export default abstract class WSConnection {
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
-        case MessageType.CALL_MESSAGE:
+        case OCPPMessageType.CALL_MESSAGE:
           // Process the call
           await this.handleRequest(messageId, commandName, commandPayload);
           break;
         // Outcome Message
-        case MessageType.CALL_RESULT_MESSAGE:
+        case OCPPMessageType.CALL_RESULT_MESSAGE:
           // Respond
           // eslint-disable-next-line no-case-declarations
           let responseCallback: Function;
@@ -193,7 +193,7 @@ export default abstract class WSConnection {
           responseCallback(commandName);
           break;
         // Error Message
-        case MessageType.CALL_ERROR_MESSAGE:
+        case OCPPMessageType.CALL_ERROR_MESSAGE:
           // Log
           Logging.logError({
             tenantID: this.getTenantID(),
@@ -277,15 +277,15 @@ export default abstract class WSConnection {
       source: this.getChargingStationID(),
       module: MODULE_NAME,
       method: 'sendError',
-      code: OcppErrorType.INTERNAL_ERROR,
+      code: OCPPErrorType.INTERNAL_ERROR,
       message: err.message,
       details: { err }
     }));
     // Send error
-    return this.sendMessage(messageId, error, MessageType.CALL_ERROR_MESSAGE);
+    return this.sendMessage(messageId, error, OCPPMessageType.CALL_ERROR_MESSAGE);
   }
 
-  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.CALL_RESULT_MESSAGE, commandName?: Command|ServerAction): Promise<unknown> {
+  public async sendMessage(messageId: string, commandParams: any, messageType: OCPPMessageType = OCPPMessageType.CALL_RESULT_MESSAGE, commandName?: Command|ServerAction): Promise<unknown> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     // Send a message through WSConnection
@@ -309,20 +309,20 @@ export default abstract class WSConnection {
       // Type of message
       switch (messageType) {
         // Request
-        case MessageType.CALL_MESSAGE:
+        case OCPPMessageType.CALL_MESSAGE:
           // Build request
           this.requests[messageId] = [responseCallback, rejectCallback];
           messageToSend = JSON.stringify([messageType, messageId, commandName, commandParams]);
           break;
         // Response
-        case MessageType.CALL_RESULT_MESSAGE:
+        case OCPPMessageType.CALL_RESULT_MESSAGE:
           // Build response
           messageToSend = JSON.stringify([messageType, messageId, commandParams]);
           break;
         // Error Message
-        case MessageType.CALL_ERROR_MESSAGE:
+        case OCPPMessageType.CALL_ERROR_MESSAGE:
           // Build Error Message
-          messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OcppErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
+          messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OCPPErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
           break;
       }
       // Check if wsConnection is ready
@@ -334,12 +334,12 @@ export default abstract class WSConnection {
         return rejectCallback(`WebSocket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant?.name})`);
       }
       // Response?
-      if (messageType !== MessageType.CALL_MESSAGE) {
+      if (messageType !== OCPPMessageType.CALL_MESSAGE) {
         // Yes: send Ok
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name})`), Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name})`), Constants.OCPP_ERROR_TIMEOUT);
       }
     });
   }
@@ -371,11 +371,7 @@ export default abstract class WSConnection {
   }
 
   public isWSConnectionOpen(): boolean {
-    return this.wsConnection.readyState === OPEN;
-  }
-
-  public getConnectionStatus(): number {
-    return this.wsConnection.readyState;
+    return this.wsConnection?.readyState === OPEN;
   }
 
   public getConnectionStatusString(): string {
@@ -389,8 +385,12 @@ export default abstract class WSConnection {
       case CLOSED:
         return 'Closed';
       default:
-        return `Unknown code '${this.wsConnection.readyState}'`;
+        return `Unknown code '${this.getConnectionStatus()}'`;
     }
+  }
+
+  private getConnectionStatus(): number {
+    return this.wsConnection?.readyState;
   }
 
   public abstract handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;

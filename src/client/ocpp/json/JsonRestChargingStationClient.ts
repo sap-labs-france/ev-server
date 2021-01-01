@@ -1,13 +1,14 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { MessageType, WSClientOptions } from '../../../types/WebSocket';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
+import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
+import { WSClientOptions } from '../../../types/WebSocket';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
@@ -17,10 +18,12 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown>) => void; reject?: (error: Record<string, unknown>) => void; command: ServerAction } };
   private wsConnection: WSClient;
   private tenantID: string;
+  private dbLogging: boolean;
 
-  constructor(tenantID: string, chargingStation: ChargingStation) {
+  constructor(tenantID: string, chargingStation: ChargingStation, dbLogging = true) {
     super();
     this.tenantID = tenantID;
+    this.dbLogging = dbLogging;
     // Get URL
     let chargingStationURL: string = chargingStation.chargingStationURL;
     // Check URL: remove starting and trailing '/'
@@ -88,13 +91,17 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private async openConnection(): Promise<unknown> {
     // Log
-    Logging.logInfo({
-      tenantID: this.tenantID,
-      source: this.chargingStation.id,
-      action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
-      module: MODULE_NAME, method: 'onOpen',
-      message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
-    });
+    if (this.dbLogging) {
+      Logging.logInfo({
+        tenantID: this.tenantID,
+        source: this.chargingStation.id,
+        action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+        module: MODULE_NAME, method: 'onOpen',
+        message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
+      });
+    } else {
+      console.log(`REST client try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`);
+    }
     // Create Promise
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return await new Promise((resolve, reject) => {
@@ -116,37 +123,43 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
         logTenantID: this.tenantID
       };
-      this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
+      this.wsConnection = new WSClient(this.serverURL, wsClientOptions, this.dbLogging);
       // Opened
       this.wsConnection.onopen = () => {
         // Log
-        Logging.logInfo({
-          tenantID: this.tenantID,
-          source: this.chargingStation.id,
-          action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
-          module: MODULE_NAME, method: 'onOpen',
-          message: `Connection opened to '${this.serverURL}'`
-        });
+        if (this.dbLogging) {
+          Logging.logInfo({
+            tenantID: this.tenantID,
+            source: this.chargingStation.id,
+            action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+            module: MODULE_NAME, method: 'onOpen',
+            message: `Connection opened to '${this.serverURL}'`
+          });
+        } else {
+          console.log(`REST client connection opened to '${this.serverURL}'`);
+        }
         // Connection is opened and ready to use
         resolve();
       };
       // Closed
-      this.wsConnection.onclose = () => {
-        if (Utils.isProductionEnv()) {
-          // Log
+      this.wsConnection.onclose = (code: number) => {
+        // Log
+        if (this.dbLogging) {
           Logging.logInfo({
             tenantID: this.tenantID,
             source: this.chargingStation.id,
             action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
             module: MODULE_NAME, method: 'onClose',
-            message: `Connection closed from '${this.serverURL}'`
+            message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
           });
+        } else {
+          console.log(`REST client connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
         }
       };
       // Handle Error Message
       this.wsConnection.onerror = (error: Error) => {
-        if (Utils.isProductionEnv()) {
-          // Log
+        // Log
+        if (this.dbLogging) {
           Logging.logException(
             error,
             ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
@@ -154,6 +167,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             MODULE_NAME, 'onError',
             this.tenantID
           );
+        } else {
+          console.exception(`REST client connection error to '${this.serverURL}:`, error);
         }
         // Terminate WS in error
         this.terminateConnection();
@@ -166,16 +181,20 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           // Check if this corresponds to a request
           if (this.requests[messageJson[1]]) {
             // Check message type
-            if (messageJson[0] === MessageType.CALL_ERROR_MESSAGE) {
+            if (messageJson[0] === OCPPMessageType.CALL_ERROR_MESSAGE) {
               // Error message
-              Logging.logError({
-                tenantID: this.tenantID,
-                source: this.chargingStation.id,
-                action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
-                module: MODULE_NAME, method: 'onMessage',
-                message: `${messageJson[3]}`,
-                detailedMessages: { messageJson }
-              });
+              if (this.dbLogging) {
+                Logging.logError({
+                  tenantID: this.tenantID,
+                  source: this.chargingStation.id,
+                  action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
+                  module: MODULE_NAME, method: 'onMessage',
+                  message: `${messageJson[3]}`,
+                  detailedMessages: { messageJson }
+                });
+              } else {
+                console.error(`REST client message response error ${messageJson[3]}:`, messageJson);
+              }
               // Resolve with error message
               this.requests[messageJson[1]].reject({ status: 'Rejected', error: messageJson });
             } else {
@@ -186,23 +205,32 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             this.closeConnection();
           } else {
             // Error message
-            Logging.logError({
-              tenantID: this.tenantID,
-              source: this.chargingStation.id,
-              action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
-              module: MODULE_NAME, method: 'onMessage',
-              message: 'Received unknown message',
-              detailedMessages: { messageJson }
-            });
+            // eslint-disable-next-line no-lonely-if
+            if (this.dbLogging) {
+              Logging.logError({
+                tenantID: this.tenantID,
+                source: this.chargingStation.id,
+                action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
+                module: MODULE_NAME, method: 'onMessage',
+                message: 'Received unknown message',
+                detailedMessages: { messageJson }
+              });
+            } else {
+              console.error('REST client received unknown message:', messageJson);
+            }
           }
         } catch (error) {
           // Log
-          Logging.logException(
-            error,
-            ServerAction.WS_REST_CLIENT_MESSAGE,
-            this.chargingStation.id,
-            MODULE_NAME, 'onMessage',
-            this.tenantID);
+          if (this.dbLogging) {
+            Logging.logException(
+              error,
+              ServerAction.WS_REST_CLIENT_MESSAGE,
+              this.chargingStation.id,
+              MODULE_NAME, 'onMessage',
+              this.tenantID);
+          } else {
+            console.exception('REST client message error:', error);
+          }
         }
       };
     });
@@ -246,6 +274,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private buildRequest(command, params = {}) {
     // Build the request
-    return [MessageType.CALL_MESSAGE, Utils.generateUUID(), command, params];
+    return [OCPPMessageType.CALL_MESSAGE, Utils.generateUUID(), command, params];
   }
 }

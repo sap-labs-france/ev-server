@@ -136,7 +136,7 @@
     "urlencode": "^1.1.0",
     "uuid": "^8.3.2",
     "validator": "^13.1.17",
-    "ws": "^7.4.1"
+    "ws": "^7.4.2"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.2",
@@ -208,7 +208,7 @@
     "querystring": "^0.2.0",
     "rimraf": "^3.0.2",
     "rosie": "^2.0.1",
-    "ts-loader": "^8.0.12",
+    "ts-loader": "^8.0.13",
     "ts-node": "^9.1.1",
     "ts-node-dev": "^1.1.1",
     "typescript": "^4.1.3",
