@@ -151,6 +151,8 @@ export default abstract class WSConnection {
 
   public async onMessage(messageEvent: MessageEvent): Promise<void> {
     let [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = [0, '', '' as ServerAction, '', ''];
+    let responseCallback: (payload?) => void;
+    let rejectCallback: (reason?: string | OCPPError) => void;
     try {
       // Parse the message
       [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.toString()) as OCPPIncomingRequest;
@@ -166,8 +168,6 @@ export default abstract class WSConnection {
         // Outcome Message
         case OCPPMessageType.CALL_RESULT_MESSAGE:
           // Respond
-          // eslint-disable-next-line no-case-declarations
-          let responseCallback: (payload?) => void;
           if (Utils.isIterable(this.requests[messageId])) {
             [responseCallback] = this.requests[messageId];
           } else {
@@ -213,8 +213,6 @@ export default abstract class WSConnection {
               action: commandName
             });
           }
-          // eslint-disable-next-line no-case-declarations
-          let rejectCallback: (reason?: string | OCPPError) => void;
           if (Utils.isIterable(this.requests[messageId])) {
             [, rejectCallback] = this.requests[messageId];
           } else {
