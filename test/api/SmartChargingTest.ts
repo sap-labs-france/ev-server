@@ -706,37 +706,37 @@ describe('Smart Charging Service', function() {
       });
 
       it('Test for sticky limit - two cars charging with lower site area limit', async () => {
-        await TestData.sendMeterValue(400, 125, transaction, testData.chargingStationContext);
+        await TestData.sendMeterValue(400, 100, transaction, testData.chargingStationContext);
         await TestData.sendMeterValue(400, 75, transaction1, testData.chargingStationContext);
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(72 * 3 * dCBufferFactor, 0)
+            'limit': Utils.truncTo(40000 / 230 / 3 * dCBufferFactor, 0) * 3
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(72 * 3 * dCBufferFactor, 0)
+            'limit': Utils.truncTo(40000 / 230 / 3 * dCBufferFactor, 0) * 3
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(72 * 3 * dCBufferFactor, 0)
+            'limit': Utils.truncTo(40000 / 230 / 3 * dCBufferFactor, 0) * 3
           },
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(43 * 3 * dCBufferFactor, 0)
+            'limit': Utils.truncTo(30000 / 230 / 3 * dCBufferFactor, 0) * 3
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(43 * 3 * dCBufferFactor, 0)
+            'limit': Utils.truncTo(30000 / 230 / 3 * dCBufferFactor, 0) * 3
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(43 * 3 * dCBufferFactor, 0)
+            'limit': Utils.truncTo(30000 / 230 / 3 * dCBufferFactor, 0) * 3
           }
         ]);
       });

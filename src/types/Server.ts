@@ -22,6 +22,7 @@ export enum ServerAction {
   CHARGING_STATION_GET_DIAGNOSTICS = 'ChargingStationGetDiagnostics',
   CHARGING_STATION_UPDATE_FIRMWARE = 'ChargingStationUpdateFirmware',
   CHARGING_STATION_CHANGE_AVAILABILITY = 'ChargingStationChangeAvailability',
+  CHARGING_STATION_DOWNLOAD_QR_CODE_PDF = 'ChargingStationDownloadQrCodePdf',
 
   CHARGING_STATIONS_EXPORT = 'ChargingStationsExport',
   CHARGING_STATIONS_OCPP_PARAMS_EXPORT = 'ChargingStationsOCPPParamsExport',
@@ -74,6 +75,7 @@ export enum ServerAction {
   CHARGING_PROFILES = 'ChargingProfiles',
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
+  GENERATE_QR_CODE_FOR_CONNECTOR = 'GenerateQrCodeForConnector',
   OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
   RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
   END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
@@ -246,6 +248,8 @@ export enum ServerAction {
   UNASSIGNED_TRANSACTIONS_COUNT = 'UnassignedTransactionsCount',
   TRANSACTION = 'Transaction',
   TRANSACTION_CONSUMPTION = 'TransactionConsumption',
+
+  TRANSACTION_OCPI_CDR_EXPORT = 'TransactionOcpiCdrExport',
 
   CHARGING_STATION_CONSUMPTION_STATISTICS = 'ChargingStationConsumptionStatistics',
   CHARGING_STATION_USAGE_STATISTICS = 'ChargingStationUsageStatistics',

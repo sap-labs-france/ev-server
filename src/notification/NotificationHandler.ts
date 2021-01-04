@@ -156,8 +156,8 @@ export default class NotificationHandler {
                     user,
                     chargingStation,
                     notificationData: {
-                      'transactionId': sourceData.transactionId,
-                      'connectorId': sourceData.connectorId
+                      transactionId: sourceData.transactionId,
+                      connectorId: sourceData.connectorId
                     }
                   }
                 );
@@ -265,7 +265,7 @@ export default class NotificationHandler {
             if (!hasBeenNotified) {
               // Enabled?
               if (user.notificationsActive && user.notifications.sendEndOfSession) {
-                // Save notif
+                // Save notification
                 await NotificationHandler.saveNotification(
                   tenantID, notificationSource.channel, notificationID, ServerAction.END_OF_SESSION, {
                     user,
@@ -297,7 +297,7 @@ export default class NotificationHandler {
         // Active?
         if (notificationSource.enabled) {
           try {
-            // Save notif
+            // Save notification
             await NotificationHandler.saveNotification(
               tenantID, notificationSource.channel, notificationID, ServerAction.REQUEST_PASSWORD, { user });
             // Send
@@ -853,7 +853,6 @@ export default class NotificationHandler {
                   }
                 }
               }
-
             } catch (error) {
               Logging.logActionExceptionMessage(tenantID, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED, error);
             }

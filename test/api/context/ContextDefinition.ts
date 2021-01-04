@@ -65,28 +65,31 @@ export default class ContextDefinition {
 
   static readonly USER_CONTEXTS: any = {
     DEFAULT_ADMIN: {
-      role: 'A', status: 'A', assignedToSite: true, withTags: true
+      role: 'A', status: 'A', assignedToSite: true, withTags: true, issuer: true
     },
     ADMIN_UNASSIGNED: {
-      role: 'A', status: 'A', assignedToSite: false, withTags: true
+      role: 'A', status: 'A', assignedToSite: false, withTags: true, issuer: true
     },
     BASIC_USER: {
-      role: 'B', status: 'A', assignedToSite: true, withTags: true
+      role: 'B', status: 'A', assignedToSite: true, withTags: true, issuer: true
     },
     BASIC_USER_UNASSIGNED: {
-      role: 'B', status: 'A', assignedToSite: false, withTags: true
+      role: 'B', status: 'A', assignedToSite: false, withTags: true, issuer: true
     },
     BASIC_USER_PENDING: {
-      role: 'B', status: 'P', assignedToSite: true, withTags: true
+      role: 'B', status: 'P', assignedToSite: true, withTags: true, issuer: true
     },
     BASIC_USER_LOCKED: {
-      role: 'B', status: 'L', assignedToSite: true, withTags: true
+      role: 'B', status: 'L', assignedToSite: true, withTags: true, issuer: true
     },
     BASIC_USER_NO_TAGS: {
-      role: 'B', status: 'A', assignedToSite: true, withTags: false
+      role: 'B', status: 'A', assignedToSite: true, withTags: false, issuer: true
     },
     DEMO_USER: {
-      role: 'D', status: 'A', assignedToSite: true, withTags: true
+      role: 'D', status: 'A', assignedToSite: true, withTags: true, issuer: true
+    },
+    EXTERNAL_USER: {
+      role: 'B', status: 'A', assignedToSite: false, withTags: true, issuer: false
     },
   };
 
@@ -338,11 +341,15 @@ export default class ContextDefinition {
     componentSettings: {
       organization: {},
       smartCharging:
-      { content:
-        { type: SmartChargingSettingsType.SAP_SMART_CHARGING, sapSmartCharging:
-          { optimizerUrl: '',
+      {
+        content:
+        {
+          type: SmartChargingSettingsType.SAP_SMART_CHARGING, sapSmartCharging:
+          {
+            optimizerUrl: '',
             user: '',
-            password: '' }
+            password: ''
+          }
         }
       },
     }
@@ -360,6 +367,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.issuer,
       role: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.role,
       status: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
@@ -377,6 +385,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.issuer,
       role: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.role,
       status: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.assignedToSite,
@@ -395,6 +404,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER.assignedToSite,
@@ -413,6 +423,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.DEMO_USER.issuer,
       role: ContextDefinition.USER_CONTEXTS.DEMO_USER.role,
       status: ContextDefinition.USER_CONTEXTS.DEMO_USER.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.DEMO_USER.assignedToSite,
@@ -431,6 +442,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.assignedToSite,
@@ -449,6 +461,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.assignedToSite,
@@ -467,6 +480,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.assignedToSite,
@@ -485,12 +499,32 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.assignedToSite,
       emailPrefix: 'b-notTag',
       tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
         id: 'A123411',
+        issuer: false,
+        active: true
+      }] : null)
+    },
+    { // External User
+      id: '5ce249a1a39ae1c056c456ae',
+      name: 'External',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.issuer,
+      role: ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.role,
+      status: ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.assignedToSite,
+      emailPrefix: 'b-external-',
+      tags: (ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.withTags ? [{
+        id: 'A220311',
         issuer: false,
         active: true
       }] : null)

@@ -6,6 +6,7 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
+import Tenant from '../types/Tenant';
 import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
 import chaiSubset from 'chai-subset';
@@ -16,6 +17,7 @@ chai.use(chaiSubset);
 chai.use(responseHelper);
 
 const testData: TestData = new TestData();
+let initialTenant: Tenant;
 
 describe('Setting tests', function() {
   this.timeout(30000);
@@ -23,19 +25,19 @@ describe('Setting tests', function() {
   before(async function() {
     // Init values
     testData.superCentralService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
-    testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
+    testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, { email: config.get('admin.username'), password: config.get('admin.password') });
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
     const response = await testData.superCentralService.tenantApi.readAll({ 'Search' : ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS }, { limit: TestConstants.UNLIMITED, skip: 0 });
     testData.credentials.tenantId = response ? response.data.result[0].id : '';
+    initialTenant = (await testData.superCentralService.tenantApi.readById(testData.credentials.tenantId)).data;
   });
 
   after(async function() {
     // Housekeeping
     // Reset components before leaving
-    testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name": "${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}","email": "${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
     const res = await testData.superCentralService.updateEntity(
-      testData.centralService.tenantApi, testData.data);
+      testData.centralService.tenantApi, initialTenant);
     expect(res.status).to.equal(200);
   });
 
@@ -96,11 +98,11 @@ describe('Setting tests', function() {
       const oldSetting = read.data.result[0];
       // Activate convergent charging
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"convergentCharging"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
-      // Updating Tenant will trigger a logout
+      // Updating Tenant's components will trigger a logout
       let activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(activation.status).to.equal(200);
       // Login again
-      testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
+      testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, { email: config.get('admin.username'), password: config.get('admin.password') });
       // Update convergent charging setting
       testData.data = JSON.parse(`{
           "id":"${read.data.result[0].id}",

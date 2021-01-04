@@ -5,4 +5,5 @@ export default Factory.define('tag')
   .attr('id', () => faker.random.alphaNumeric(20).toString().toUpperCase())
   .attr('active', true)
   .attr('issuer', () => true)
+  .attr('default', () => false)
   .attr('description', () => 'Tag for unit test');

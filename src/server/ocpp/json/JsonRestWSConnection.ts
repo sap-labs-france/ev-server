@@ -66,9 +66,7 @@ export default class JsonRestWSConnection extends WSConnection {
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
-    // Found?
     if (!chargingStation) {
-      // Error
       throw new BackendError({
         source: this.getChargingStationID(),
         module: MODULE_NAME,
@@ -78,7 +76,7 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), chargingStation.id);
+    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), this.getChargingStationID());
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),
@@ -89,13 +87,11 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Call the client
-    let result;
-    // Build the method
     const actionMethod = commandName[0].toLowerCase() + commandName.substring(1);
     // Call
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method
-      result = await chargingStationClient[actionMethod](commandPayload);
+      const result = await chargingStationClient[actionMethod](commandPayload);
       // Send Response
       await this.sendMessage(messageId, result, MessageType.CALL_RESULT_MESSAGE, commandName);
     } else {
