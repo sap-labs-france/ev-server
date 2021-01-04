@@ -16,7 +16,6 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import ChargingStationVendorFactory from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../../utils/Constants';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
-import CpoOICPClient from '../../../../client/oicp/CpoOICPClient';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../../utils/I18nManager';
@@ -27,11 +26,6 @@ import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
-import OICPClientFactory from '../../../../client/oicp/OICPClientFactory';
-import { OICPEvseDataRecord } from '../../../../types/oicp/OICPEvse';
-import { OICPRole } from '../../../../types/oicp/OICPRole';
-import { OICPSession } from '../../../../types/oicp/OICPSession';
-import OICPUtils from '../../../oicp/OICPUtils';
 import PDFDocument from 'pdfkit';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
@@ -39,7 +33,6 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
@@ -48,7 +41,6 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import fs from 'fs';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -1377,7 +1369,7 @@ export default class ChargingStationService {
       ['id', 'connectors.connectorId', 'siteArea.name']);
   }
 
-  private static async convertQrCodeToPDF(req: Request, pdfDocument: PDFDocument, chargingStations: ChargingStation[]): Promise<void> {
+  private static async convertQrCodeToPDF(req: Request, pdfDocument: PDFKit.PDFDocument, chargingStations: ChargingStation[]): Promise<void> {
     const i18nManager = new I18nManager(req.user.locale);
     // Check for Connector ID
     let connectorID = null;
@@ -1417,7 +1409,7 @@ export default class ChargingStationService {
     }
   }
 
-  private static build3SizesPDFQrCode(pdfDocument: PDFDocument, qrCodeImage: string, qrCodeTitle: string): void {
+  private static build3SizesPDFQrCode(pdfDocument: PDFKit.PDFDocument, qrCodeImage: string, qrCodeTitle: string): void {
     const bigSquareSide = 300;
     const mediumSquareSide = 150;
     const smallSquareSide = 75;

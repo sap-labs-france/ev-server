@@ -172,7 +172,7 @@ export default class ExpressTools {
   private static getDecodedTokenFromHttpRequest(req: Request): string | { [key: string]: any; } {
     // Retrieve Tenant ID from JWT token if available
     try {
-      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      if (req.headers?.authorization.startsWith('Bearer')) {
         // Decode the token (REST)
         try {
           return jwt.decode(req.headers.authorization.slice(7));
@@ -202,7 +202,7 @@ export default class ExpressTools {
       }
     }
     // Try from body
-    if (req.body?.tenant && req.body.tenant !== '') {
+    if (req.body?.tenant !== '') {
       const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
       if (tenant) {
         return tenant.id;

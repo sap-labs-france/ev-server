@@ -26,7 +26,8 @@ export default class CarService {
   public static async handleGetCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
     }
     // Check auth
     if (!Authorizations.canListCarCatalogs(req.user)) {
@@ -61,7 +62,8 @@ export default class CarService {
   public static async handleGetCarCatalog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
     }
     // Check auth
     if (!Authorizations.canReadCarCatalog(req.user)) {
@@ -119,7 +121,8 @@ export default class CarService {
   public static async handleGetCarCatalogImages(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
     }
     // Check auth
     if (!Authorizations.canReadCarCatalog(req.user)) {
@@ -419,7 +422,7 @@ export default class CarService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
-        'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
+        'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
         ...userProject
       ]);
     res.json(cars);
