@@ -32,27 +32,28 @@ export default class AxiosFactory {
       axiosInstance = axios.create(instanceConfiguration.axiosConfig);
       // FIXME
       // Error Message: Converting circular structure to JSON
+      // in some cases
 
       // Add a Request interceptor
-      axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
-        Logging.logAxiosRequest(tenantID, request);
-        return request;
-      }, async (error: AxiosError) => {
-        Logging.logAxiosError(tenantID, error);
-        return Promise.reject(error);
-      });
+      // axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
+      //   Logging.logAxiosRequest(tenantID, request);
+      //   return request;
+      // }, async (error: AxiosError) => {
+      //   Logging.logAxiosError(tenantID, error);
+      //   return Promise.reject(error);
+      // });
 
       // FIXME
       // Error Message: Converting circular structure to JSON
-
+      //
       // Add a Response interceptor
-      axiosInstance.interceptors.response.use((response: AxiosResponse) => {
-        Logging.logAxiosResponse(tenantID, response);
-        return response;
-      }, async (error: AxiosError) => {
-        Logging.logAxiosError(tenantID, error);
-        return Promise.reject(error);
-      });
+      // axiosInstance.interceptors.response.use((response: AxiosResponse) => {
+      //   Logging.logAxiosResponse(tenantID, response);
+      //   return response;
+      // }, async (error: AxiosError) => {
+      //   Logging.logAxiosError(tenantID, error);
+      //   return Promise.reject(error);
+      // });
       // Add
       this.axiosInstances.set(tenantID, axiosInstance);
     }

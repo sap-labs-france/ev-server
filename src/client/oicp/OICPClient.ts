@@ -1,7 +1,7 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
-import AxiosFactory from '../../utils/AxiosFactory';
+import AxiosFactory from '../../utils/AxiosFactoryOICP';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import { HTTPError } from '../../types/HTTPError';
