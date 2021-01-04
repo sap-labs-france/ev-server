@@ -7,6 +7,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
 
@@ -80,7 +81,7 @@ export default class OCPIEndpointStorage {
 
   // Delegate
   static async getOcpiEndpoints(tenantID: string,
-    params: { search?: string; role?: string; ocpiEndpointIDs?: string[]; localToken?: string },
+    params: { search?: string; role?: OCPIRole; ocpiEndpointIDs?: string[]; localToken?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OCPIEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoints');
