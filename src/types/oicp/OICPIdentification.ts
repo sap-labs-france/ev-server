@@ -1,5 +1,3 @@
-/* eslint-disable linebreak-style */
-
 // Important: One of the following five options MUST be provided
 
 export interface OICPIdentification {

@@ -489,7 +489,7 @@ export default class Utils {
 
   public static convertWattHourToKiloWattHour(wattHours: number, decimalPlaces?: number): number {
     if (decimalPlaces) {
-      return Utils.roundTo((wattHours / 1000), decimalPlaces);
+      return Utils.truncTo((wattHours / 1000), decimalPlaces);
     }
     return Utils.convertToFloat((wattHours / 1000));
   }

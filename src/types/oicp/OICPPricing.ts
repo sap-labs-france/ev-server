@@ -1,5 +1,3 @@
-/* eslint-disable linebreak-style */
-
 import { OICPDayValue, OICPEvseID, OICPOperatorID, OICPPeriod } from './OICPEvse';
 
 import { OICPProviderID } from './OICPAuthentication';

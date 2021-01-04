@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/indent */
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType } from '../../../../types/ChargingStation';
 import { OICPAccessibility, OICPAccessibilityLocation, OICPAddressIso19773, OICPAuthenticationMode, OICPCalibrationLawDataAvailability, OICPChargingFacility, OICPChargingMode, OICPChargingPoolID, OICPCountryCode, OICPDynamicInfoAvailable, OICPEvseDataRecord, OICPEvseStatus, OICPEvseStatusRecord, OICPGeoCoordinates, OICPGeoCoordinatesResponseFormat, OICPOperatorEvseStatus, OICPOperatorID, OICPPaymentOption, OICPPlug, OICPPower, OICPValueAddedService } from '../../../../types/oicp/OICPEvse';
 
@@ -133,7 +132,7 @@ export default class OICPMapping {
    * @return Array of OICP EVSE Statuses
    */
   static convertChargingStation2MultipleEvseStatuses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord[] {
-       // Loop through connectors and send one evse per connector
+    // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
     const evseStatuses = connectors.map((connector) => {
       const evseStatus = OICPMapping.convertConnector2EvseStatus(tenant, chargingStation, connector, options);
@@ -150,18 +149,17 @@ export default class OICPMapping {
    * @return Array of OICP EVSE Statuses
    */
   static convertConnector2EvseStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
-   const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
-   const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
-   evseStatus.EvseID = evseID;
-   evseStatus.EvseStatus = OICPMapping.convertStatus2OICPEvseStatus(connector.status);
+    const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
+    evseStatus.EvseID = evseID;
+    evseStatus.EvseStatus = OICPMapping.convertStatus2OICPEvseStatus(connector.status);
 
-   // Check addChargeBoxID flag
-   if (options && options.addChargeBoxID) {
-     evseStatus.chargeBoxId = chargingStation.id;
-   }
-
-   return evseStatus;
-}
+    // Check addChargeBoxID flag
+    if (options && options.addChargeBoxID) {
+      evseStatus.chargeBoxId = chargingStation.id;
+    }
+    return evseStatus;
+  }
 
   /**
    * Get evses from SiteArea
@@ -256,7 +254,7 @@ export default class OICPMapping {
     return evses;
   }
 
-   /**
+  /**
    * Get All OICP Evses from given tenant
    * @param {Tenant} tenant
    */
@@ -294,7 +292,7 @@ export default class OICPMapping {
     return oicpEvsesResult;
   }
 
- /**
+  /**
    * Converter Connector to OICP Charging Facility
    * @param {ChargingStation} chargingStation
    * @param connector
@@ -319,8 +317,8 @@ export default class OICPMapping {
       Voltage:voltage,
       ChargingModes: [
         OICPChargingMode.Mode_4 // No mapping yet
-        ]
-     };
+      ]
+    };
   }
 
   /**
@@ -343,7 +341,7 @@ export default class OICPMapping {
       case ConnectorType.TYPE_1_CCS:
         return OICPPlug.CCSCombo1PlugCableAttached;
       case ConnectorType.DOMESTIC:
-      return OICPPlug.TypeFSchuko;
+        return OICPPlug.TypeFSchuko;
       case ConnectorType.UNKNOWN:
         return OICPPlug.Type2Outlet; // No corresponding type found
     }
@@ -435,7 +433,7 @@ export default class OICPMapping {
     }
   }
 
-   /**
+  /**
    * Build ChargingPoolID from charging station
    * @param {*} chargingStation
    */
@@ -445,7 +443,7 @@ export default class OICPMapping {
     }
   }
 
-   /**
+  /**
    * Convert internal status to OICP EVSE Status
    * @param {*} status
    */

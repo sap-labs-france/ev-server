@@ -281,7 +281,7 @@ export default class ChargingStationService {
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
       { chargingStationIDs: [chargingStation.id], connectorID: 0 },
       Constants.DB_PARAMS_MAX_LIMIT);
-    const updatedChargingProfiles: ChargingProfile[] = Utils.cloneObject(chargingProfiles.result) as ChargingProfile[];
+    const updatedChargingProfiles: ChargingProfile[] = Utils.cloneObject(chargingProfiles.result);
     for (let index = 0; index < updatedChargingProfiles.length; index++) {
       const updatedChargingProfile = updatedChargingProfiles[index];
       let planHasBeenAdjusted = false;
@@ -1077,24 +1077,16 @@ export default class ChargingStationService {
       // Check if user is authorized
       const user = await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID,
         ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, Action.REMOTE_START_TRANSACTION);
-      if (!user.issuer) { // For testing purposes: authorize OICP User (Remote Start from Frondend)
-        const tenant = await TenantStorage.getTenant(req.user.tenantID);
-        // Check if oicp user is authorized
-        // Authorize Hubject user
-        if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-          await this.authorizeOICPUser(tenant, user, chargingStation, filteredRequest.args.connectorId, req.user.tagIDs[0], action);
-        }
+      if (!user.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `User not issued by the organization execute command '${Command.REMOTE_START_TRANSACTION}'`,
+          module: MODULE_NAME, method: 'handleAction',
+          user: req.user,
+          action: action
+        });
       }
-      // If (!user.issuer) {
-      //   throw new AppError({
-      //     source: Constants.CENTRAL_SERVER,
-      //     errorCode: HTTPError.GENERAL_ERROR,
-      //     message: `User not issued by the organization execute command '${Command.REMOTE_START_TRANSACTION}'`,
-      //     module: MODULE_NAME, method: 'handleAction',
-      //     user: req.user,
-      //     action: action
-      //   });
-      // }
       // Ok: Execute it
       result = await this.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
@@ -1166,51 +1158,6 @@ export default class ChargingStationService {
     // Return
     res.json(result);
     next();
-  }
-
-  // For Testing
-  public static async authorizeOICPUser(tenant: Tenant, user: User, chargingStation: ChargingStation, connectorId: number, tagID: string, action: ServerAction): Promise<boolean> {
-    const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
-    if (!oicpClient) {
-      throw new BackendError({
-        user: user,
-        action: action,
-        module: MODULE_NAME,
-        method: 'isTagIDAuthorizedOnChargingStation',
-        message: 'OICP component requires at least one CPO endpoint to start a Session'
-      });
-    }
-    // Call Hubject
-    const oicpSession = {} as OICPSession;
-    oicpSession.identification = OICPUtils.convertTagID2OICPIdentification(tagID);
-    const evse = {} as OICPEvseDataRecord;
-    const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-    evse.EvseID = OICPUtils.buildEvseID(oicpClient.getLocalCountryCode(ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION), oicpClient.getLocalPartyID(ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION), chargingStation, connector);
-    oicpSession.evse = evse;
-    const response = await oicpClient.authorizeStart(oicpSession, user);
-    const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find(
-      (authorization) => authorization.connectorId === connectorId);
-    if (existingAuthorization) {
-      existingAuthorization.timestamp = new Date();
-      // No authorization ID available
-      // Use sessionID instead
-      existingAuthorization.id = response.SessionID;
-      existingAuthorization.tagId = tagID;
-      existingAuthorization.oicpIdentification = oicpSession.identification;
-    } else {
-      chargingStation.remoteAuthorizations.push(
-        {
-          id: response.SessionID,
-          connectorId: connectorId,
-          timestamp: new Date(),
-          tagId: tagID,
-          oicpIdentification: oicpSession.identification
-        }
-      );
-    }
-    // Save Auth
-    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
-    return true;
   }
 
   public static async handleCheckSmartChargingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {

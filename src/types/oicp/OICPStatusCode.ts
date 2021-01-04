@@ -1,12 +1,10 @@
-/* eslint-disable linebreak-style */
-
-export interface OICPStatusCode {
-  Code: OICPCode; // To be selected from valid range
+export interface OICPStatus {
+  Code: OICPStatusCode; // To be selected from valid range
   Description?: string; // Description. Field Length = 200
   AdditionalInfo?: string; // More information can be provided here. Field Length = 100
 }
 
-export enum OICPCode {
+export enum OICPStatusCode {
   Code000 = '000', // Success. General codes
   Code001 = '001', // Hubject system error. Internal system codes
   Code002 = '002', // Hubject database error. Internal system codes

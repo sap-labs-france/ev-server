@@ -3,7 +3,7 @@ import { OICPEvseID, OICPOperatorID } from './OICPEvse';
 import { OICPIdentification, OICPSessionID } from './OICPIdentification';
 
 import { OICPProductID } from './OICPPricing';
-import { OICPStatusCode } from './OICPStatusCode';
+import { OICPStatus } from './OICPStatusCode';
 
 //
 // eRoamingAuthorizeStart_V2.1
@@ -28,7 +28,7 @@ export interface OICPAuthorizeStartCpoReceive { // NOTE: This message describes 
   EMPPartnerSessionID?: string, // Optional field containing the session id assigned by an EMP to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250
   ProviderID?: OICPProviderID, // The ProviderID is defined by Hubject and is used to identify the EMP. In case of a positive authorization this field will be filled.
   AuthorizationStatus: OICPAuthorizationStatus, // Information specifying whether the user is authorized to charge or not.
-  StatusCode: OICPStatusCode, // Structured status details. Can be used to specify the reason for a failed authorization
+  StatusCode: OICPStatus, // Structured status details. Can be used to specify the reason for a failed authorization
   AuthorizationStopIdentifications?: OICPIdentification[] // A list of Identification data that is authorized to stop the charging process.
 }
 
@@ -50,7 +50,7 @@ export interface OICPAuthorizeStopCpoReceive { // NOTE: This message describes t
   EMPPartnerSessionID?: string, // Optional field containing the session id assigned by an EMP to the related operation. Partner systems can use this field to link their own session handling to HBS processes. Field Length = 250
   ProviderID?: OICPProviderID, // The ProviderID is defined by Hubject and is used to identify the EMP. In case of a positive authorization this field will be filled.
   AuthorizationStatus: OICPAuthorizationStatus, // Information specifying whether the user is authorized to charge or not.
-  StatusCode: OICPStatusCode // Structured status details. Can be used to specify the reason for a failed authorization
+  StatusCode: OICPStatus // Structured status details. Can be used to specify the reason for a failed authorization
 }
 
 //

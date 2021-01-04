@@ -1,5 +1,3 @@
-/* eslint-disable linebreak-style */
-
 import { OICPIdentification } from './OICPIdentification';
 
 export interface OICPProviderAuthenticationData {

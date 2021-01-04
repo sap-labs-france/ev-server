@@ -1,6 +1,6 @@
 import ChargingStation, { Connector, RemoteAuthorization } from '../../types/ChargingStation';
-import { OICPCode, OICPStatusCode } from '../../types/oicp/OICPStatusCode';
 import { OICPDefaultTagId, OICPIdentification, OICPRFIDmifarefamilyIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
+import { OICPStatus, OICPStatusCode } from '../../types/oicp/OICPStatusCode';
 
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
@@ -23,8 +23,8 @@ export default class OICPUtils {
    */
   public static success(session: Partial<OICPSession>, data?: any): OICPAcknowledgment {
     const response = {} as OICPAcknowledgment;
-    const statusCode = {} as OICPStatusCode;
-    statusCode.Code = OICPCode.Code000;
+    const statusCode = {} as OICPStatus;
+    statusCode.Code = OICPStatusCode.Code000;
     response.StatusCode = statusCode;
     response.Result = true;
     response.EMPPartnerSessionID = session.empPartnerSessionID;
@@ -38,10 +38,10 @@ export default class OICPUtils {
    */
   public static noSuccess(session: Partial<OICPSession>, data?: any): OICPAcknowledgment {
     const response = {} as OICPAcknowledgment;
-    const statusCode = {} as OICPStatusCode;
-    statusCode.Code = OICPCode.Code022;
-    statusCode.Description = data;
-    response.StatusCode = statusCode;
+    const status = {} as OICPStatus;
+    status.Code = OICPStatusCode.Code022;
+    status.Description = data;
+    response.StatusCode = status;
     response.Result = false;
     response.EMPPartnerSessionID = session.empPartnerSessionID;
     response.SessionID = session.id;
@@ -54,10 +54,10 @@ export default class OICPUtils {
    */
   public static toErrorResponse(error: Error): OICPAcknowledgment {
     const response = {} as OICPAcknowledgment;
-    const statusCode = {} as OICPStatusCode;
-    statusCode.Code = OICPCode.Code022;
-    statusCode.Description = error.message;
-    response.StatusCode = statusCode;
+    const status = {} as OICPStatus;
+    status.Code = OICPStatusCode.Code022;
+    status.Description = error.message;
+    response.StatusCode = status;
     response.Result = false;
 
     return response;

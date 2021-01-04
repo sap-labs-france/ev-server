@@ -54,7 +54,7 @@ export default class OICPPushEvseStatusTask extends SchedulerTask {
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_STATUSES,
-            message: `The OICP Endpoint ${oicpEndpoint.name} is inactive.`
+            message: `The OICP Background Job for Endpoint ${oicpEndpoint.name} is inactive.`
           });
           return;
         }
@@ -81,8 +81,6 @@ export default class OICPPushEvseStatusTask extends SchedulerTask {
         // Release the lock
         await LockingManager.release(oicpLock);
       }
-    } else {
-      console.log('Could not get lock for OICPPushEvseStatusTask');
     }
   }
 }

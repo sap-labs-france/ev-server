@@ -54,7 +54,7 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_DATA,
-            message: `The OICP Endpoint ${oicpEndpoint.name} is inactive.`
+            message: `The OICP Background Job for Endpoint ${oicpEndpoint.name} is inactive.`
           });
           return;
         }
@@ -67,12 +67,12 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
         // Build OICP Client
         const oicpClient = await OICPClientFactory.getCpoOicpClient(tenant, oicpEndpoint);
         // Send EVSEs
-        const sendEVSEDataResut = await oicpClient.sendEVSEs(!Utils.isUndefined(config.processAllEVSEs) ? config.processAllEVSEs : false);
+        const sendEVSEDataResult = await oicpClient.sendEVSEs(!Utils.isUndefined(config.processAllEVSEs) ? config.processAllEVSEs : false);
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOICPEndpoint',
           action: ServerAction.OICP_PUSH_EVSE_DATA,
-          message: `The push EVSEs process for endpoint ${oicpEndpoint.name} is completed (Success: ${sendEVSEDataResut.success}/Failure: ${sendEVSEDataResut.failure})`
+          message: `The push EVSEs process for endpoint ${oicpEndpoint.name} is completed (Success: ${sendEVSEDataResult.success}/Failure: ${sendEVSEDataResult.failure})`
         });
       } catch (error) {
         // Log error
@@ -81,8 +81,6 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
         // Release the lock
         await LockingManager.release(oicpLock);
       }
-    } else {
-      console.log('Could not get lock for OICPPushEvseDataTask');
     }
   }
 }

@@ -249,6 +249,7 @@ export enum ServerAction {
   VERIFICATION_EMAIL = 'VerificationEmail',
   AUTH_EMAIL_ERROR = 'AuthentificationErrorEmailServer',
   PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
+  PATCH_EVSE_ERROR = 'PatchEVSEError',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   OFFLINE_CHARGING_STATIONS = 'OfflineChargingStations',

@@ -5,7 +5,7 @@ import { Configuration } from '../../types/configuration/Configuration';
 export default class OICPServices {
 
   private cpoServices: AbstractOICPService[] = [];
-  // Tbd: EMSP
+  // TODO: EMSP
   // private emspServices: AbstractOICPService[] = [];
 
   // Create OICP Service

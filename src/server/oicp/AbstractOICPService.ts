@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { OICPCode } from '../../types/oicp/OICPStatusCode';
 
 import AbstractEndpoint from './oicp-services-impl/AbstractEndpoint';
 import AppAuthError from '../../exception/AppAuthError';
@@ -9,6 +8,7 @@ import { Configuration } from '../../types/configuration/Configuration';
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
+import { OICPStatusCode } from '../../types/oicp/OICPStatusCode';
 import OICPUtils from './OICPUtils';
 import { ServerAction } from '../../types/Server';
 import { StatusCodes } from 'http-status-codes';
@@ -116,7 +116,7 @@ export default abstract class AbstractOICPService {
           action: ServerAction.OICP_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not exist`,
-          oicpError: OICPCode.Code021
+          oicpError: OICPStatusCode.Code021
         });
       }
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
@@ -126,7 +126,7 @@ export default abstract class AbstractOICPService {
           action: ServerAction.OICP_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not support OICP`,
-          oicpError: OICPCode.Code021
+          oicpError: OICPStatusCode.Code021
         });
       }
 
@@ -171,7 +171,7 @@ export default abstract class AbstractOICPService {
           action: ServerAction.OICP_ENDPOINT,
           errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
           message: `Endpoint ${endpointName} not implemented`,
-          oicpError: OICPCode.Code021
+          oicpError: OICPStatusCode.Code021
         });
       }
     } catch (error) {

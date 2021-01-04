@@ -388,7 +388,7 @@ export default class OCPPService {
             throw new BackendError({
               source: chargingStation.id,
               module: MODULE_NAME, method: 'handleMeterValues',
-              message: `Transaction with ID '${String(meterValues.transactionId)}' doesn't exist`,
+              message: `Transaction with ID '${meterValues.transactionId.toString()}' doesn't exist`,
               action: ServerAction.METER_VALUES,
             });
           }
@@ -445,7 +445,7 @@ export default class OCPPService {
             action: ServerAction.METER_VALUES,
             user: transaction.userID,
             module: MODULE_NAME, method: 'handleMeterValues',
-            message: `Connector ID '${String(meterValues.connectorId)}' > Transaction ID '${String(meterValues.transactionId)}' > MeterValue have been saved`,
+            message: `Connector ID '${meterValues.connectorId.toString()}' > Transaction ID '${meterValues.transactionId.toString()}' > MeterValue have been saved`,
             detailedMessages: { normalizedMeterValues }
           });
         } else {
@@ -455,7 +455,7 @@ export default class OCPPService {
             source: chargingStation.id,
             action: ServerAction.METER_VALUES,
             module: MODULE_NAME, method: 'handleMeterValues',
-            message: `Connector ID '${String(meterValues.connectorId)}' > Meter Values are ignored as it is not linked to a transaction`,
+            message: `Connector ID '${meterValues.connectorId.toString()}' > Meter Values are ignored as it is not linked to a transaction`,
             detailedMessages: { normalizedMeterValues }
           });
         }
@@ -538,9 +538,7 @@ export default class OCPPService {
             });
           }
           // Call Hubject
-          const oicpSession = {} as OICPSession;
-          oicpSession.identification = OICPUtils.convertTagID2OICPIdentification(authorize.idTag);
-          const response = await oicpClient.authorizeStart(oicpSession, user);
+          const response = await oicpClient.authorizeStart(authorize.idTag, user);
           authorize.authorizationId = response.SessionID;
         } else {
           throw new BackendError({
