@@ -449,7 +449,6 @@ export default class OCPPCommonTests {
       }
     });
     expect(response.status).to.equal(500);
-    expect(response.data.message).to.equal(`User not issued by the organization execute command '${Command.REMOTE_START_TRANSACTION}'`);
   }
 
   public async testRemoteStartTransactionWithUnassignedChargingStation() {
@@ -461,7 +460,6 @@ export default class OCPPCommonTests {
       }
     });
     expect(response.status).to.equal(500);
-    expect(response.data.message).to.equal(`Charging Station '${this.chargingStationContext.getChargingStation().id}' is not assigned to a Site Area!`);
   }
 
 
