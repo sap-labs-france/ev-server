@@ -35,6 +35,8 @@ export type UserNotificationKeys =
  'sendChargingStationStatusError' |
  'sendChargingStationRegistered' |
  'sendOcpiPatchStatusError' |
+ 'sendOicpPatchStatusError' |
+ 'sendOicpPatchEvseError' |
  'sendSmtpAuthError' |
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
@@ -56,6 +58,8 @@ export enum UserNotificationType {
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
   OCPI_PATCH_STATUS_ERROR = 'OcpiPatchStatusError',
+  OICP_PATCH_STATUS_ERROR = 'OicpPatchStatusError',
+  OICP_PATCH_EVSE_ERROR = 'OicpPatchEvseError',
   SMTP_AUTH_ERROR = 'SmtpAuthError',
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
@@ -189,6 +193,14 @@ export interface TransactionStartedNotification extends BaseNotification {
 }
 
 export interface SmtpAuthErrorNotification extends BaseNotification {
+  evseDashboardURL: string;
+}
+
+export interface OICPPatchChargingStationsErrorNotification extends BaseNotification {
+  evseDashboardURL: string;
+}
+
+export interface OICPPatchChargingStationsStatusesErrorNotification extends BaseNotification {
   evseDashboardURL: string;
 }
 
