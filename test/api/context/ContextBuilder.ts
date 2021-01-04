@@ -226,7 +226,7 @@ export default class ContextBuilder {
       const userDef = ContextDefinition.TENANT_USER_LIST[index];
       const createUser = UserFactory.build();
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
-      createUser.issuer = true;
+      createUser.issuer = Utils.objectHasProperty(userDef, 'issuer') ? userDef.issuer : true;
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.id = userDef.id;
