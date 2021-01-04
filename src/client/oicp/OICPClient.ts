@@ -1,7 +1,7 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
-import AxiosFactory from '../../utils/AxiosFactoryOICP';
+import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import { HTTPError } from '../../types/HTTPError';
@@ -41,7 +41,7 @@ export default abstract class OICPClient {
     this.oicpEndpoint = oicpEndpoint;
     this.role = role.toLowerCase();
     this.oicpConfig = Configuration.getOICPServiceConfig();
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) });
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) }, true);
   }
 
   getLocalCountryCode(action: ServerAction): string {
