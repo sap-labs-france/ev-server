@@ -768,8 +768,7 @@ See: http://ev-services.net/ocpp/
     <wsdl:service name="CentralSystemService">
         <wsdl:documentation>The Central System Service for the Open Charge Point Protocol</wsdl:documentation>
         <wsdl:port name="CentralSystemServiceSoap12" binding="tns:CentralSystemServiceSoap">
-            <!-- <soap12:address location="http://localhost/Ocpp/CentralSystemService/"/> -->
-            <soap12:address location="http://127.0.0.1:9220/Ocpp/CentralSystemService"/>
+            <soap12:address location="http://localhost/Ocpp/CentralSystemService/"/>
         </wsdl:port>
     </wsdl:service>
 

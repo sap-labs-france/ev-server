@@ -22,12 +22,20 @@ export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
   SiteID?: string;
 }
 
+export interface HttpDownloadQrCodeRequest {
+  ChargeBoxID?: string;
+  ConnectorID?: number;
+  SiteID?: string;
+  SiteAreaID?: string;
+}
+
 export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   Search?: string;
   WithNoSiteArea?: boolean;
   ConnectorStatus?: string;
   ConnectorType?: string;
+  ChargeBoxID?: string;
   SiteID?: string;
   WithSite?: boolean;
   SiteAreaID?: string;
@@ -60,6 +68,11 @@ export interface HttpChargingStationParamsUpdateRequest {
 
 export interface HttpChargingStationRequest {
   ChargeBoxID: string;
+}
+
+export interface HttpChargingStationConnectorRequest {
+  ChargeBoxID: string;
+  ConnectorID: number;
 }
 
 export interface HttpChargingStationOcppParametersRequest {
