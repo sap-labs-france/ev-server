@@ -1,6 +1,6 @@
 import { HttpOICPEndpointsRequest } from '../../../../../types/requests/HttpOICPEndpointRequest';
 import OICPEndpoint from '../../../../../types/oicp/OICPEndpoint';
-import UtilsSecurity from '../../../../rest/v1/service/security/UtilsSecurity';
+import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class OICPEndpointSecurity {
@@ -63,7 +63,6 @@ export default class OICPEndpointSecurity {
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
   static _filterOicpEndpointRequest(request: any): Partial<OICPEndpoint> {
     const filteredRequest: Partial<OICPEndpoint> = {};
     filteredRequest.name = sanitize(request.name);

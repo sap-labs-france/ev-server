@@ -11,7 +11,7 @@ import Logging from '../../utils/Logging';
 import LoggingService from './v1/service/LoggingService';
 import NotificationService from './v1/service/NotificationService';
 import OCPIEndpointService from './v1/service/OCPIEndpointService';
-import OICPEndpointService from '../restOICP/v2.3.0/service/OICPEndpointService';
+import OICPEndpointService from './v1/service/OICPEndpointService';
 import RegistrationTokenService from './v1/service/RegistrationTokenService';
 import { ServerAction } from '../../types/Server';
 import SessionHashService from './v1/service/SessionHashService';
