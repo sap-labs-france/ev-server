@@ -210,7 +210,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             this.tenantID
           );
           Utils.isDevelopmentEnv() && console.exception('REST client message error:', error);
-
         }
       };
     });
