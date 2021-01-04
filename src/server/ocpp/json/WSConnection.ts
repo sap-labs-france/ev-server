@@ -337,7 +337,7 @@ export default abstract class WSConnection {
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name})`), Constants.OCPP_ERROR_TIMEOUT);
+        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name})`), Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
   }

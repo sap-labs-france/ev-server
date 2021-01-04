@@ -29,7 +29,7 @@ export default class ChargingStationClientFactory {
           // Not Found
           if (!chargingClient) {
             // Use the remote client
-            chargingClient = new JsonRestChargingStationClient(tenantID, chargingStation, Utils.isProductionEnv());
+            chargingClient = new JsonRestChargingStationClient(tenantID, chargingStation);
           }
           break;
         // SOAP

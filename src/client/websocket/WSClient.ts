@@ -149,7 +149,7 @@ export default class WSClient {
           });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`WSClient reconnection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.log(`WSClient reconnection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`);
         }
         this.onreconnect(error);
         this.open();
@@ -165,7 +165,7 @@ export default class WSClient {
         });
       } else {
         // eslint-disable-next-line no-console
-        console.log(`WSClient reconnection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`);
+        (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.log(`WSClient reconnection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`);
       }
       this.onmaximum(error);
     }
@@ -197,7 +197,7 @@ export default class WSClient {
           });
         } else {
           // eslint-disable-next-line no-console
-          console.error(`WSClient connection refused to '${this.url}':`, error);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(`WSClient connection refused to '${this.url}':`, error);
         }
         // pragma this.reconnect(error);
         break;
@@ -213,7 +213,7 @@ export default class WSClient {
           });
         } else {
           // eslint-disable-next-line no-console
-          console.error(`WSClient connection error to '${this.url}':`, error);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(`WSClient connection error to '${this.url}':`, error);
         }
         break;
     }
@@ -233,7 +233,7 @@ export default class WSClient {
           });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`WSClient connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.log(`WSClient connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
         }
         this.autoReconnectRetryCount = 0;
         break;
@@ -248,7 +248,7 @@ export default class WSClient {
           });
         } else {
           // eslint-disable-next-line no-console
-          console.error(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
         }
         this.reconnect(new Error(`Connection has been closed abnormally, Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`));
         break;

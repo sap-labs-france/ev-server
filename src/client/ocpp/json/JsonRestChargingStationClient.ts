@@ -18,12 +18,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown>) => void; reject?: (error: Record<string, unknown>) => void; command: ServerAction } };
   private wsConnection: WSClient;
   private tenantID: string;
-  private dbLogging: boolean;
 
-  constructor(tenantID: string, chargingStation: ChargingStation, dbLogging = true) {
+  constructor(tenantID: string, chargingStation: ChargingStation) {
     super();
     this.tenantID = tenantID;
-    this.dbLogging = dbLogging;
     // Get URL
     let chargingStationURL: string = chargingStation.chargingStationURL;
     // Check URL: remove starting and trailing '/'
@@ -91,17 +89,15 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private async openConnection(): Promise<unknown> {
     // Log
-    if (this.dbLogging) {
-      Logging.logInfo({
-        tenantID: this.tenantID,
-        source: this.chargingStation.id,
-        action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
-        module: MODULE_NAME, method: 'onOpen',
-        message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
-      });
-    } else {
-      console.log(`REST client try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`);
-    }
+    Logging.logInfo({
+      tenantID: this.tenantID,
+      source: this.chargingStation.id,
+      action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+      module: MODULE_NAME, method: 'onOpen',
+      message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
+    });
+    Utils.isDevelopmentEnv() && console.log(`REST client try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`);
+
     // Create Promise
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return await new Promise((resolve, reject) => {
@@ -123,53 +119,44 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
         logTenantID: this.tenantID
       };
-      this.wsConnection = new WSClient(this.serverURL, wsClientOptions, this.dbLogging);
+      this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
       // Opened
       this.wsConnection.onopen = () => {
         // Log
-        if (this.dbLogging) {
-          Logging.logInfo({
-            tenantID: this.tenantID,
-            source: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
-            module: MODULE_NAME, method: 'onOpen',
-            message: `Connection opened to '${this.serverURL}'`
-          });
-        } else {
-          console.log(`REST client connection opened to '${this.serverURL}'`);
-        }
+        Logging.logInfo({
+          tenantID: this.tenantID,
+          source: this.chargingStation.id,
+          action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+          module: MODULE_NAME, method: 'onOpen',
+          message: `Connection opened to '${this.serverURL}'`
+        });
+        Utils.isDevelopmentEnv() && console.log(`REST client connection opened to '${this.serverURL}'`);
         // Connection is opened and ready to use
         resolve();
       };
       // Closed
       this.wsConnection.onclose = (code: number) => {
         // Log
-        if (this.dbLogging) {
-          Logging.logInfo({
-            tenantID: this.tenantID,
-            source: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
-            module: MODULE_NAME, method: 'onClose',
-            message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
-          });
-        } else {
-          console.log(`REST client connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
-        }
+        Logging.logInfo({
+          tenantID: this.tenantID,
+          source: this.chargingStation.id,
+          action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
+          module: MODULE_NAME, method: 'onClose',
+          message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+        });
+        Utils.isDevelopmentEnv() && console.log(`REST client connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
       };
       // Handle Error Message
       this.wsConnection.onerror = (error: Error) => {
         // Log
-        if (this.dbLogging) {
-          Logging.logException(
-            error,
-            ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
-            this.chargingStation.id,
-            MODULE_NAME, 'onError',
-            this.tenantID
-          );
-        } else {
-          console.exception(`REST client connection error to '${this.serverURL}:`, error);
-        }
+        Logging.logException(
+          error,
+          ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
+          this.chargingStation.id,
+          MODULE_NAME, 'onError',
+          this.tenantID
+        );
+        Utils.isDevelopmentEnv() && console.exception(`REST client connection error to '${this.serverURL}:`, error);
         // Terminate WS in error
         this.terminateConnection();
       };
@@ -183,18 +170,15 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             // Check message type
             if (messageJson[0] === OCPPMessageType.CALL_ERROR_MESSAGE) {
               // Error message
-              if (this.dbLogging) {
-                Logging.logError({
-                  tenantID: this.tenantID,
-                  source: this.chargingStation.id,
-                  action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
-                  module: MODULE_NAME, method: 'onMessage',
-                  message: `${messageJson[3]}`,
-                  detailedMessages: { messageJson }
-                });
-              } else {
-                console.error(`REST client message response error ${messageJson[3]}:`, messageJson);
-              }
+              Logging.logError({
+                tenantID: this.tenantID,
+                source: this.chargingStation.id,
+                action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
+                module: MODULE_NAME, method: 'onMessage',
+                message: `${messageJson[3]}`,
+                detailedMessages: { messageJson }
+              });
+              Utils.isDevelopmentEnv() && console.error(`REST client message response error ${messageJson[3]}:`, messageJson);
               // Resolve with error message
               this.requests[messageJson[1]].reject({ status: 'Rejected', error: messageJson });
             } else {
@@ -206,31 +190,27 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           } else {
             // Error message
             // eslint-disable-next-line no-lonely-if
-            if (this.dbLogging) {
-              Logging.logError({
-                tenantID: this.tenantID,
-                source: this.chargingStation.id,
-                action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
-                module: MODULE_NAME, method: 'onMessage',
-                message: 'Received unknown message',
-                detailedMessages: { messageJson }
-              });
-            } else {
-              console.error('REST client received unknown message:', messageJson);
-            }
+            Logging.logError({
+              tenantID: this.tenantID,
+              source: this.chargingStation.id,
+              action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
+              module: MODULE_NAME, method: 'onMessage',
+              message: 'Received unknown message',
+              detailedMessages: { messageJson }
+            });
+            Utils.isDevelopmentEnv() && console.error('REST client received unknown message:', messageJson);
           }
         } catch (error) {
           // Log
-          if (this.dbLogging) {
-            Logging.logException(
-              error,
-              ServerAction.WS_REST_CLIENT_MESSAGE,
-              this.chargingStation.id,
-              MODULE_NAME, 'onMessage',
-              this.tenantID);
-          } else {
-            console.exception('REST client message error:', error);
-          }
+          Logging.logException(
+            error,
+            ServerAction.WS_REST_CLIENT_MESSAGE,
+            this.chargingStation.id,
+            MODULE_NAME, 'onMessage',
+            this.tenantID
+          );
+          Utils.isDevelopmentEnv() && console.exception('REST client message error:', error);
+
         }
       };
     });
