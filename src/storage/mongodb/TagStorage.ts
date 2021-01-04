@@ -230,29 +230,4 @@ export default class TagStorage {
       result: tagsMDB
     };
   }
-
-  public static async createOICPVirtualUserTags(tenantID: string): Promise<void> {
-    const defaultTagIds = [OICPDefaultTagId.RemoteIdentification, OICPDefaultTagId.QRCodeIdentification, OICPDefaultTagId.PlugAndChargeIdentification];
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    defaultTagIds.forEach(async (defaultTagId) => {
-      let tag = await this.getTag(tenantID, defaultTagId);
-      if (!tag) {
-        const virtualOICPUser = await UserStorage.getOICPVirtualUser(tenantID);
-        tag = {
-          id: defaultTagId,
-          userID: virtualOICPUser.id,
-          user: virtualOICPUser,
-          description: 'Badge for OICP Remote Authorization',
-          issuer: false,
-          active: true,
-          createdOn: new Date(),
-          default: false
-        } as Tag;
-      } else {
-        tag.active = true;
-      }
-      // Save
-      await TagStorage.saveTag(tenantID, tag);
-    });
-  }
 }

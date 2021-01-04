@@ -382,28 +382,10 @@ export default class TenantService {
         } else if (virtualOICPUser.status !== UserStatus.ACTIVE) {
           // Activate user and save user status
           await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.ACTIVE);
-
-          // Activate Default Badge(s)
-          const tags = (await TagStorage.getTags(tenant.id, { userIDs: [virtualOICPUser.id] }, Constants.DB_PARAMS_MAX_LIMIT)).result;
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          tags.forEach(async (tag) => {
-            tag.active = true;
-            // Save
-            await TagStorage.saveTag(tenant.id, tag);
-          });
         }
       } else if (virtualOICPUser && virtualOICPUser?.status === UserStatus.ACTIVE) {
         // Deactivate user and save user status
         await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.INACTIVE);
-
-        // Deactivate Default Badge(s)
-        const tags = (await TagStorage.getTags(tenant.id, { userIDs: [virtualOICPUser.id] }, Constants.DB_PARAMS_MAX_LIMIT)).result;
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        tags.forEach(async (tag) => {
-          tag.active = false;
-          // Save
-          await TagStorage.saveTag(tenant.id, tag);
-        });
       }
     }
   }

@@ -743,7 +743,7 @@ export default class Authorizations {
         try {
           user = await UserStorage.getUserByTagId(tenantID, tagID);
         } finally {
-          if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+          if (!user && Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
             // In case of OICP, use virtual user if there is no user in the db
             user = await UserStorage.getOICPVirtualUser(tenantID);
           }
@@ -769,9 +769,10 @@ export default class Authorizations {
     let tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
     if (!tag) {
       // Unknown User -> OICP component activated -> return virtual user (do not create inactive Tag)
-      if (authAction === Action.AUTHORIZE && Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-        // FIX ME: No tag will be created if OICP component is activated. What if unknown user is no OICP User? No information beforehand.
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+        // FIXME: No tag will be created if OICP component is activated. What if unknown user is no OICP User? No information beforehand.
         // You have to try the OICP authorization first (with a successful OICP authorization the session starts)
+        // Problem: Even if the user is no roaming user, the OICP virtual user will be returned
         return await UserStorage.getOICPVirtualUser(tenantID);
       }
       // Create the tag as inactive

@@ -100,7 +100,6 @@ export default class UserStorage {
   }
 
   public static async getOICPVirtualUser(tenantID: string): Promise<User> {
-    // FIX ME: get virtual User reliably
     const email = 'virtual@oicp.com';
     const userMDB = await UserStorage.getUsers(tenantID, {
       email: email,
@@ -109,7 +108,6 @@ export default class UserStorage {
   }
 
   public static async createOICPVirtualUser(tenantID: string): Promise<void> {
-    // FIX ME: create virtual User
     // Create the virtual OICP user
     const newVirtualOICPUser = UserStorage.createNewUser() as User;
     newVirtualOICPUser.email = 'virtual@oicp.com';
@@ -123,9 +121,6 @@ export default class UserStorage {
     newVirtualOICPUser.id = await UserStorage.saveUser(tenantID, newVirtualOICPUser);
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newVirtualOICPUser.id, UserStatus.ACTIVE);
-
-    // Create default badges for virtual OICP user
-    await TagStorage.createOICPVirtualUserTags(tenantID);
   }
 
   public static async getUserByPasswordResetHash(tenantID: string, passwordResetHash: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
