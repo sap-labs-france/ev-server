@@ -1015,6 +1015,10 @@ export default class Utils {
     return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
+  public static generateKey(): string {
+    return crypto.randomBytes(16).toString('hex');
+  }
+
   public static getRoleNameFromRoleID(roleID: string): string {
     switch (roleID) {
       case UserRole.BASIC:

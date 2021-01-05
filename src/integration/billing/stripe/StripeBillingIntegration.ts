@@ -36,8 +36,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     this.settings.currency = settings.currency;
 
     // Get Crypto Key for encryption
-    const cryptoSetting = Cypher.getCrypto();
-    const key = cryptoSetting.migrationDone ? cryptoSetting.key : cryptoSetting.formerKey;
+    const key = Cypher.getCryptoKeySync();
 
     if (this.settings.secretKey) {
       this.settings.secretKey = Cypher.decrypt(settings.secretKey, key);

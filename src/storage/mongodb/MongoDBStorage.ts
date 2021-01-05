@@ -9,6 +9,7 @@ import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import MigrationConfiguration from '../../types/configuration/MigrationConfiguration';
 import { ServerAction } from '../../types/Server';
+import SettingStorage from './SettingStorage';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
@@ -327,6 +328,9 @@ export default class MongoDBStorage {
     if (!foundCollection) {
       try {
         await this.db.createCollection(tenantCollectionName);
+        if (name === 'settings') {
+          await SettingStorage.initSettings(tenantID);
+        }
       } catch (error) {
         console.error(`>>>>> Error in creating collection '${tenantCollectionName}': ${error.message}`);
       }

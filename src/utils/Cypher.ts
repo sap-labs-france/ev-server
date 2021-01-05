@@ -35,6 +35,10 @@ export default class Cypher {
     return this.configuration;
   }
 
+  public static getCryptoKeySync(): string {
+    return this.cryptoSetting?.migrationDone ? this.cryptoSetting?.key : this.cryptoSetting?.formerKey;
+  }
+
   public static async getCryptoKey(tenantID: string): Promise<string> {
     if (!this.cryptoSetting) {
       await this.detectConfigurationKey(tenantID);

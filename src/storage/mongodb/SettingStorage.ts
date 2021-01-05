@@ -421,4 +421,23 @@ export default class SettingStorage {
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
   }
+
+  public static async initCryptoSettings(tenantID: string): Promise<void> {
+    // Generate Crypto Key Settings
+    const keySettingToSave = {
+      identifier: TenantComponents.CRYPTO,
+      type: CryptoSettingsType.CRYPTO,
+      crypto: {
+        key: Utils.generateKey()
+      }
+    } as KeySettings;
+
+    // Save Crypto Key Settings
+    await this.saveCryptoSettings(tenantID, keySettingToSave);
+  }
+
+  public static async initSettings(tenantID: string): Promise<void> {
+    // Initialize Crypto Setting at tenant creation
+    await this.initCryptoSettings(tenantID);
+  }
 }
