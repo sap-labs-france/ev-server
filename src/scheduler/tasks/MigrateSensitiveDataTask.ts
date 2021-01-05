@@ -15,7 +15,7 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
 
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Detect if Crypto Key changed
-    const isCryptoKeyChanged:boolean = await Cypher.detectConfigurationKey(tenant.id);
+    const isCryptoKeyChanged: boolean = await Cypher.detectConfigurationKey(tenant.id);
 
     // Migrate only if cryptoKey changed
     if (isCryptoKeyChanged) {

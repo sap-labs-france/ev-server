@@ -117,8 +117,7 @@ export default class SettingService {
     const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
 
     // Get Crypto Key for encryption
-    const cryptoSetting = Cypher.getCrypto();
-    const key = cryptoSetting.migrationDone ? cryptoSetting.key : cryptoSetting.formerKey;
+    const key = await Cypher.getCryptoKey(req.user.tenantID);
     // Process the sensitive data if any
     Cypher.encryptSensitiveDataInJSON(filteredRequest, key);
     // Update timestamp
@@ -171,8 +170,7 @@ export default class SettingService {
         });
       }
       // Get Crypto Key for encryption
-      const cryptoSetting = Cypher.getCrypto();
-      const key = cryptoSetting.migrationDone ? cryptoSetting.key : cryptoSetting.formerKey;
+      const key = await Cypher.getCryptoKey(req.user.tenantID);
 
       // Process sensitive properties
       for (const property of settingUpdate.sensitiveData) {

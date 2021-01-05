@@ -35,19 +35,11 @@ export default class Cypher {
     return this.configuration;
   }
 
-  public static getCrypto(): CryptoSetting {
+  public static async getCryptoKey(tenantID: string): Promise<string> {
     if (!this.cryptoSetting) {
-      this.cryptoSetting = {
-        key: this.configuration.key
-      };
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getCrypto',
-        message: 'Crypto Setting is missing'
-      });
+      await this.detectConfigurationKey(tenantID);
     }
-    return this.cryptoSetting;
+    return this.cryptoSetting?.migrationDone ? this.cryptoSetting?.key : this.cryptoSetting?.formerKey;
   }
 
   public static async detectConfigurationKey(tenantID: string): Promise<boolean> {
@@ -60,18 +52,18 @@ export default class Cypher {
     // Check if Crypto Settings exist
     if (keySettings) {
       this.keySetting = keySettings;
+      if (keySettings.crypto?.migrationDone === false) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'detectConfigurationKey',
+          message: 'Cannot change crypto key if migration not done'
+        });
+        // Call a method for completing migration?
+        // Also log error?
+      }
       // Detect new config Cypher key
       if (keySettings.crypto?.key !== configCryptoKey) {
-        if (keySettings.crypto?.migrationDone === false) {
-          throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
-            module: MODULE_NAME,
-            method: 'detectConfigurationKey',
-            message: 'Cannot change crypto key if migration not done'
-          });
-          // Call a method for completing migration?
-          // Also log error?
-        }
         cryptoSettingToSave = {
           formerKey: keySettings.crypto.key,
           key: configCryptoKey,

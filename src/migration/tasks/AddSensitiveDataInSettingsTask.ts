@@ -26,9 +26,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
       }])
       .toArray();
     // Get Crypto Key for encryption
-    const cryptoSetting = Cypher.getCrypto();
-    const key = cryptoSetting.migrationDone ? cryptoSetting.key : cryptoSetting.formerKey;
-
+    const key = await Cypher.getCryptoKey(tenant.id);
     // Process each setting
     for (const setting of settings) {
       // Add sensitiveData property if not present
