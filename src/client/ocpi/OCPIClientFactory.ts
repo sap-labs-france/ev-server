@@ -18,7 +18,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'OCPIClientFactory';
 
 export default class OCPIClientFactory {
-  static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIClient> {
+  static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<CpoOCPIClient|EmspOCPIClient> {
     // Check if OCPI component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       const ocpiSettings = await SettingStorage.getOCPISettings(tenant.id);
@@ -66,7 +66,7 @@ export default class OCPIClientFactory {
     });
   }
 
-  static async getAvailableOcpiClient(tenant: Tenant, ocpiRole: string): Promise<OCPIClient> {
+  static async getAvailableOcpiClient(tenant: Tenant, ocpiRole: OCPIRole): Promise<CpoOCPIClient|EmspOCPIClient> {
     const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: ocpiRole }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const ocpiEndpoint of ocpiEndpoints.result) {
       if (ocpiEndpoint.status === OCPIRegistrationStatus.REGISTERED) {
