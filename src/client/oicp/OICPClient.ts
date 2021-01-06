@@ -41,7 +41,7 @@ export default abstract class OICPClient {
     this.oicpEndpoint = oicpEndpoint;
     this.role = role.toLowerCase();
     this.oicpConfig = Configuration.getOICPServiceConfig();
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) }, true);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) }, true); // FIXME: set noInterceptors = true to avoid 'Converting circular structure to JSON' Error
   }
 
   getLocalCountryCode(action: ServerAction): string {

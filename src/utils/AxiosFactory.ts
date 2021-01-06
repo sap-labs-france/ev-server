@@ -14,7 +14,7 @@ export default class AxiosFactory {
   private constructor() { }
 
   // All could have been done at 'axios' level normally!
-  public static getAxiosInstance(tenantID: string, instanceConfiguration?: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig }, noInterceptors?: boolean): AxiosInstance {
+  public static getAxiosInstance(tenantID: string, instanceConfiguration?: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig }, noInterceptors = false): AxiosInstance {
     if (!instanceConfiguration) {
       instanceConfiguration = {};
     }
