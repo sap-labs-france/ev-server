@@ -498,8 +498,6 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     // Get EVSE endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/evsepush/v23/operators/{operatorID}/data-records
-    // for PROD - environment: https://service.hubject.com/api/oicp/evsepush/v23/operators/{operatorID}/data-records
     const fullUrl = this.getEndpointUrl('evses', ServerAction.OICP_PUSH_EVSE_DATA);
 
     // Build payload
@@ -528,12 +526,23 @@ export default class CpoOICPClient extends OICPClient {
       pushEvseDataResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
       console.log('Error! pushEvseData: ',error.message); // Will be removed
-      throw new BackendError({
-        action: ServerAction.OICP_PUSH_EVSE_DATA,
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action:  ServerAction.OICP_PUSH_EVSE_DATA,
+        message: `'pushEvseData' Request Error: '${String(error.message)}'`,
         module: MODULE_NAME, method: 'pushEvseData',
-        message: `'pushEvseData' Request Error: '${String(error.message)}'`
+        detailedMessages: { error: error.stack }
       });
     });
+    if (pushEvseDataResponse?.Result === false) {
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_EVSE_DATA,
+        message: `'pushEvseData' Error: '${pushEvseDataResponse.StatusCode.AdditionalInfo}'`,
+        module: MODULE_NAME, method: 'pushEvseData',
+        detailedMessages: { error: pushEvseDataResponse }
+      });
+    }
     return pushEvseDataResponse;
   }
 
@@ -551,8 +560,6 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     // Get EVSE Status endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/evsepush/v21/operators/{operatorID}/status-records
-    // for PROD - environment: https://service.hubject.com/api/oicp/evsepush/v21/operators/{operatorID}/status-records
     const fullUrl = this.getEndpointUrl('statuses', ServerAction.OICP_PUSH_EVSE_STATUSES);
 
     // Build payload
@@ -581,12 +588,23 @@ export default class CpoOICPClient extends OICPClient {
       pushEvseStatusResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
       console.log('Error! pushEvseStatus: ', error.response); // Will be removed
-      throw new BackendError({
-        action: ServerAction.OICP_PUSH_EVSE_STATUSES,
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action:  ServerAction.OICP_PUSH_EVSE_STATUSES,
+        message: `'pushEvseStatus' Request Error: '${String(error.message)}'`,
         module: MODULE_NAME, method: 'pushEvseStatus',
-        message: `'pushEvseStatus' Request Error: '${String(error.message)}'`
+        detailedMessages: { error: error.stack }
       });
     });
+    if (pushEvseStatusResponse?.Result === false) {
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_EVSE_STATUSES,
+        message: `'pushEvseStatus' Error: '${pushEvseStatusResponse.StatusCode.AdditionalInfo}'`,
+        module: MODULE_NAME, method: 'pushEvseStatus',
+        detailedMessages: { error: pushEvseStatusResponse }
+      });
+    }
     return pushEvseStatusResponse;
   }
 
@@ -606,8 +624,6 @@ export default class CpoOICPClient extends OICPClient {
     const identification = OICPUtils.convertTagID2OICPIdentification(tagID);
 
     // Get authorize start endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/charging/v21/operators/{operatorID}/authorize/start
-    // for PROD - environment: https://service.hubject.com/api/oicp/charging/v21/operators/{operatorID}/authorize/start
     const fullUrl = this.getEndpointUrl('authorizeStart', ServerAction.OICP_AUTHORIZE_START);
 
     // Build payload
@@ -645,6 +661,13 @@ export default class CpoOICPClient extends OICPClient {
         message: `User '${user.id}' cannot ${TransactionAction.START} Transaction thought OICP protocol due to the Error '${String(error.message)}'`
       });
     });
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OICP_AUTHORIZE_START,
+      message: `'authorizeStart': '${authorizeResponse.StatusCode.AdditionalInfo}'`,
+      module: MODULE_NAME, method: 'authorizeStart',
+      detailedMessages: { error: authorizeResponse }
+    });
     if (authorizeResponse.AuthorizationStatus === OICPAuthorizationStatus.NotAuthorized) {
       throw new BackendError({
         user: user,
@@ -680,8 +703,6 @@ export default class CpoOICPClient extends OICPClient {
     }
 
     // Get authorize stop endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/charging/v21/operators/{operatorID}/authorize/stop
-    // for PROD - environment: https://service.hubject.com/api/oicp/charging/v21/operators/{operatorID}/authorize/stop
     const fullUrl = this.getEndpointUrl('authorizeStop', ServerAction.OICP_AUTHORIZE_STOP);
 
     // Build payload
@@ -717,7 +738,13 @@ export default class CpoOICPClient extends OICPClient {
         message: `'authorizeStop' Request Error: '${String(error.message)}'`
       });
     });
-
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OICP_AUTHORIZE_STOP,
+      message: `'authorizeStop': '${authorizeResponse.StatusCode.AdditionalInfo}'`,
+      module: MODULE_NAME, method: 'authorizeStop',
+      detailedMessages: { error: authorizeResponse }
+    });
     return authorizeResponse;
   }
 
@@ -752,9 +779,7 @@ export default class CpoOICPClient extends OICPClient {
     }
 
     // Get CDR endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/cdrmgmt/v22/operators/{operatorID}/charge-detail-record
-    // for PROD - environment: https://service.hubject.com/api/oicp/cdrmgmt/v22/operators/{operatorID}/charge-detail-record
-    const fullUrl = this.getEndpointUrl('cdrs', ServerAction.OICP_PUSH_CDRS);
+    const fullUrl = this.getEndpointUrl('cdr', ServerAction.OICP_PUSH_CDRS);
 
     const cdr: OICPChargeDetailRecord = {} as OICPChargeDetailRecord;
     cdr.SessionID = transaction.oicpData.session.id;
@@ -812,7 +837,15 @@ export default class CpoOICPClient extends OICPClient {
       module: MODULE_NAME, method: 'pushCdr',
       detailedMessages: { response: pushCdrResponse }
     });
-
+    if (pushCdrResponse?.Result === false) {
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_CDRS,
+        message: `'pushCdr' Error: '${pushCdrResponse.StatusCode.AdditionalInfo}'`,
+        module: MODULE_NAME, method: 'pushCdr',
+        detailedMessages: { error: pushCdrResponse }
+      });
+    }
     return pushCdrResponse;
   }
 
@@ -830,8 +863,6 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     // Get pricing endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/dynamicpricing/v10/operators/{operatorID}/evse-pricing
-    // for PROD - environment: https://service.hubject.com/api/oicp/dynamicpricing/v10/operators/{operatorID}/evse-pricing
     const fullUrl = this.getEndpointUrl('pricing', ServerAction.OICP_PUSH_EVSE_PRICING);
 
     // Build payload
@@ -861,6 +892,15 @@ export default class CpoOICPClient extends OICPClient {
         message: `'pushEvsePricing' Request Error: '${String(error.message)}'`
       });
     });
+    if (pushEvsePricingResponse?.Result === false) {
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_EVSE_PRICING,
+        message: `'pushEvsePricing' Error: '${pushEvsePricingResponse.StatusCode.AdditionalInfo}'`,
+        module: MODULE_NAME, method: 'pushEvsePricing',
+        detailedMessages: { error: pushEvsePricingResponse }
+      });
+    }
     return pushEvsePricingResponse;
   }
 
@@ -878,8 +918,6 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     // Get pricing product endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/dynamicpricing/v10/operators/{operatorID}/pricing-products
-    // for PROD - environment: https://service.hubject.com/api/oicp/dynamicpricing/v10/operators/{operatorID}/pricing-products
     const fullUrl = this.getEndpointUrl('pricingProducts', ServerAction.OICP_PUSH_PRICING_PRODUCT_DATA);
 
     // Build payload
@@ -909,6 +947,15 @@ export default class CpoOICPClient extends OICPClient {
         message: `'pushPricingProductData' Request Error: '${String(error.message)}'`
       });
     });
+    if (pushPricingProductDataResponse?.Result === false) {
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_PRICING_PRODUCT_DATA,
+        message: `'pushPricingProductData' Error: '${pushPricingProductDataResponse.StatusCode.AdditionalInfo}'`,
+        module: MODULE_NAME, method: 'pushPricingProductData',
+        detailedMessages: { error: pushPricingProductDataResponse }
+      });
+    }
     return pushPricingProductDataResponse;
   }
 
@@ -936,8 +983,6 @@ export default class CpoOICPClient extends OICPClient {
     }
 
     // Get notification endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/notificationmgmt/v11/charging-notifications
-    // for PROD - environment: https://service.hubject.com/api/oicp/notificationmgmt/v11/charging-notifications
     const fullUrl = this.getEndpointUrl('notifications', ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START);
 
     // Build payload
@@ -978,6 +1023,15 @@ export default class CpoOICPClient extends OICPClient {
         message: `'sendChargingNotificationStart' Request Error: '${String(error.message)}'`
       });
     });
+    if (notificationStartResponse?.Result === false) {
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
+        message: `'sendChargingNotificationStart' Error: '${notificationStartResponse.StatusCode.AdditionalInfo}'`,
+        module: MODULE_NAME, method: 'sendChargingNotificationStart',
+        detailedMessages: { error: notificationStartResponse }
+      });
+    }
     return notificationStartResponse;
   }
 
@@ -1006,8 +1060,6 @@ export default class CpoOICPClient extends OICPClient {
       }
 
       // Get notification endpoint url
-      // for QA - environment: https://service-qa.hubject.com/api/oicp/notificationmgmt/v11/charging-notifications
-      // for PROD - environment: https://service.hubject.com/api/oicp/notificationmgmt/v11/charging-notifications
       const fullUrl = this.getEndpointUrl('notifications', ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS);
 
       // Build payload
@@ -1052,6 +1104,15 @@ export default class CpoOICPClient extends OICPClient {
         });
       });
       transaction.oicpData.session.last_progress_notification = new Date();
+      if (notificationProgressResponse?.Result === false) {
+        Logging.logError({
+          tenantID: this.tenant.id,
+          action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
+          message: `'sendChargingNotificationProgress' Error: '${notificationProgressResponse.StatusCode.AdditionalInfo}'`,
+          module: MODULE_NAME, method: 'sendChargingNotificationProgress',
+          detailedMessages: { error: notificationProgressResponse }
+        });
+      }
       return notificationProgressResponse;
     }
   }
@@ -1088,8 +1149,6 @@ export default class CpoOICPClient extends OICPClient {
     }
 
     // Get notification endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/notificationmgmt/v11/charging-notifications
-    // for PROD - environment: https://service.hubject.com/api/oicp/notificationmgmt/v11/charging-notifications
     const fullUrl = this.getEndpointUrl('notifications', ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END);
 
     // Build payload
@@ -1136,6 +1195,15 @@ export default class CpoOICPClient extends OICPClient {
         message: `'sendChargingNotificationEnd' Request Error: '${String(error.message)}'`
       });
     });
+    if (notificationEndResponse?.Result === false) {
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
+        message: `'sendChargingNotificationEnd' Error: '${notificationEndResponse.StatusCode.AdditionalInfo}'`,
+        module: MODULE_NAME, method: 'sendChargingNotificationEnd',
+        detailedMessages: { error: notificationEndResponse }
+      });
+    }
     return notificationEndResponse;
   }
 
@@ -1163,8 +1231,6 @@ export default class CpoOICPClient extends OICPClient {
     }
 
     // Get notification endpoint url
-    // for QA - environment: https://service-qa.hubject.com/api/oicp/notificationmgmt/v11/charging-notifications
-    // for PROD - environment: https://service.hubject.com/api/oicp/notificationmgmt/v11/charging-notifications
     const fullUrl = this.getEndpointUrl('notifications', ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR);
 
     // Build payload
@@ -1202,6 +1268,15 @@ export default class CpoOICPClient extends OICPClient {
         message: `'sendChargingNotificationError' Request Error: '${String(errors.message)}'`
       });
     });
+    if (notificationErrorResponse?.Result === false) {
+      Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
+        message: `'sendChargingNotificationError' Error: '${notificationErrorResponse.StatusCode.AdditionalInfo}'`,
+        module: MODULE_NAME, method: 'sendChargingNotificationError',
+        detailedMessages: { error: notificationErrorResponse }
+      });
+    }
     return notificationErrorResponse;
   }
 

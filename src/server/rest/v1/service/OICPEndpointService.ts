@@ -1,5 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
+import { OICPEndpointPaths, OICPVersion } from '../../../../types/oicp/OICPGeneral';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
@@ -12,7 +13,6 @@ import OICPEndpointSecurity from './security/OICPEndpointSecurity';
 import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
 import { OICPRegistrationStatus } from '../../../../types/oicp/OICPRegistrationStatus';
 import { OICPStatusCode } from '../../../../types/oicp/OICPStatusCode';
-import { OICPVersion } from '../../../../types/oicp/OICPGeneral';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -82,14 +82,14 @@ export default class OICPEndpointService {
       status: OICPRegistrationStatus.NEW,
       version: OICPVersion.V230,
       availableEndpoints: {
-        evses: '/api/oicp/evsepush/v23/operators/{operatorID}/data-records',
-        statuses: '/api/oicp/evsepush/v21/operators/{operatorID}/status-records',
-        authorizeStart: '/api/oicp/charging/v21/operators/{operatorID}/authorize/start',
-        authorizeStop: '/api/oicp/charging/v21/operators/{operatorID}/authorize/stop',
-        pricing: '/api/oicp/dynamicpricing/v10/operators/{operatorID}/evse-pricing',
-        cdrs: '/api/oicp/cdrmgmt/v22/operators/{operatorID}/charge-detail-record',
-        pricingProducts: '/api/oicp/dynamicpricing/v10/operators/{operatorID}/pricing-products',
-        notifications: '/api/oicp/notificationmgmt/v11/charging-notifications'
+        evses: OICPEndpointPaths.EVSE_DATA,
+        statuses: OICPEndpointPaths.STATUSES,
+        authorizeStart: OICPEndpointPaths.AUTHORIZE_START,
+        authorizeStop: OICPEndpointPaths.AUTHORIZE_STOP,
+        pricing: OICPEndpointPaths.PRICING,
+        cdr: OICPEndpointPaths.CDR,
+        pricingProducts: OICPEndpointPaths.PRICING_PRODUCTS,
+        notifications: OICPEndpointPaths.NOTIFICATIONS
       }
     } as OICPEndpoint;
     const endpointID = await OICPEndpointStorage.saveOicpEndpoint(req.user.tenantID, oicpEndpoint);
