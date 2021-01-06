@@ -19,7 +19,7 @@ import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
 import OCPIPushLocationsTask from './tasks/ocpi/OCPIPushLocationsTask';
 import OICPPushEvseDataTask from './tasks/oicp/OICPPushEvseDataTask';
-import OICPPushEvseStatusTask from './tasks/oicp/OICPPushEVSEStatusTask';
+import OICPPushEvseStatusTask from './tasks/oicp/OICPPushEvseStatusTask';
 import SchedulerTask from './SchedulerTask';
 import { ServerAction } from '../types/Server';
 import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
