@@ -11,6 +11,7 @@ import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
+import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
@@ -40,7 +41,7 @@ export default abstract class OCPIClient {
     this.role = role.toLowerCase();
   }
 
-  async ping(): Promise<any> {
+  public async ping(): Promise<any> {
     const pingResult: any = {};
     // Try to access base Url (GET .../versions)
     // Access versions API
@@ -63,7 +64,7 @@ export default abstract class OCPIClient {
     return pingResult;
   }
 
-  async unregister(): Promise<any> {
+  public async unregister(): Promise<any> {
     const unregisterResult: any = {};
     try {
       // Get available version.
@@ -102,7 +103,7 @@ export default abstract class OCPIClient {
     return unregisterResult;
   }
 
-  async register(): Promise<any> {
+  public async register(): Promise<any> {
     const registerResult: any = {};
     try {
       // Get available version.
@@ -153,7 +154,7 @@ export default abstract class OCPIClient {
     return registerResult;
   }
 
-  async getVersions(): Promise<any> {
+  public async getVersions(): Promise<any> {
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_VERSIONS,
@@ -171,7 +172,7 @@ export default abstract class OCPIClient {
   /**
    * GET /ocpi/{role}/{version}
    */
-  async getServices(): Promise<any> {
+  public async getServices(): Promise<any> {
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,
@@ -187,7 +188,7 @@ export default abstract class OCPIClient {
     return response;
   }
 
-  async deleteCredentials(): Promise<AxiosResponse<OCPICredential>> {
+  public async deleteCredentials(): Promise<AxiosResponse<OCPICredential>> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
     // Log
@@ -211,7 +212,7 @@ export default abstract class OCPIClient {
   /**
    * POST /ocpi/{role}/{version}/credentials
    */
-  async postCredentials(): Promise<AxiosResponse<OCPICredential>> {
+  public async postCredentials(): Promise<AxiosResponse<OCPICredential>> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
     const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
@@ -234,7 +235,7 @@ export default abstract class OCPIClient {
     return response;
   }
 
-  getLocalCountryCode(action: ServerAction): string {
+  public getLocalCountryCode(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OCPI Settings are missing for role ${this.role}`,
@@ -250,7 +251,7 @@ export default abstract class OCPIClient {
     return this.settings[this.role].countryCode;
   }
 
-  getLocalPartyID(action: ServerAction): string {
+  public getLocalPartyID(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OCPI Settings are missing for role ${this.role}`,

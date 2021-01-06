@@ -35,7 +35,6 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
-import TagStorage from '../../../storage/mongodb/TagStorage';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -483,48 +482,13 @@ export default class OCPPService {
       // Check
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
         authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
-      // Roaming User?
+      // Roaming User
       if (user && !user.issuer) {
         const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
-        if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-          // OCPI user
-          // GetTag
-          const tag = await TagStorage.getTag(headers.tenantID, authorize.idTag);
-          if (!tag) {
-            throw new BackendError({
-              user: user,
-              action: ServerAction.AUTHORIZE,
-              module: MODULE_NAME, method: 'handleAuthorize',
-              message: `Tag ID '${authorize.idTag}' does not exists`
-            });
-          }
-          if (!tag.ocpiToken) {
-            throw new BackendError({
-              user: user,
-              action: ServerAction.AUTHORIZE,
-              module: MODULE_NAME, method: 'handleAuthorize',
-              message: `Tag ID '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
-            });
-          }
-          // Check Charging Station
-          if (!chargingStation.public) {
-            throw new BackendError({
-              user: user,
-              action: ServerAction.AUTHORIZE,
-              module: MODULE_NAME, method: 'handleAuthorize',
-              message: `Tag ID '${authorize.idTag}' cannot be authorized on a private charging station`
-            });
-          }
-          const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-          if (!ocpiClient) {
-            throw new BackendError({
-              user: user,
-              action: ServerAction.AUTHORIZE,
-              module: MODULE_NAME, method: 'handleAuthorize',
-              message: 'OCPI component requires at least one CPO endpoint to authorize users'
-            });
-          }
-          authorize.authorizationId = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
+        // OCPI User
+        if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) && user.authorizationID) {
+          // Keep the Auth ID
+          authorize.authorizationId = user.authorizationID;
         } else if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
           // OICP user
           const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
@@ -540,13 +504,6 @@ export default class OCPPService {
           // Call Hubject
           const response = await oicpClient.authorizeStart(authorize.idTag, user);
           authorize.authorizationId = response.SessionID;
-        } else {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Unable to authorize user '${user.id}' not issued locally`
-          });
         }
       }
       // Set
@@ -1230,7 +1187,8 @@ export default class OCPPService {
     }
   }
 
-  private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+  private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation,
+    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check the status
     if (statusNotification.connectorId > 0 &&
       connector.currentTransactionID > 0 &&

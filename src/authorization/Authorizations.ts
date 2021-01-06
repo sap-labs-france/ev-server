@@ -7,9 +7,11 @@ import BackendError from '../exception/BackendError';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
+import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
-import OICPUtils from '../server/oicp/OICPUtils';
+import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
+import { OCPIRole } from '../types/ocpi/OCPIRole';
 import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
@@ -846,7 +848,7 @@ export default class Authorizations {
         user: user
       });
     }
-    // Check Auth if local user
+    // Check Auth if local User
     if (user.issuer && authAction) {
       // Build the JWT Token
       const userToken = await Authorizations.buildUserToken(tenantID, user, [tag]);
@@ -869,6 +871,50 @@ export default class Authorizations {
           method: 'isTagIDAuthorizedOnChargingStation',
           user: tag.user
         });
+      }
+    }
+    // Check OCPI User
+    if (user && !user.issuer) {
+      // OCPI Active?
+      if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+        throw new BackendError({
+          user: user,
+          action: ServerAction.AUTHORIZE,
+          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+          message: `Unable to authorize User with Tag ID '${tag.id}' not issued locally`
+        });
+      }
+      // Got Token from OCPI
+      if (!tag.ocpiToken) {
+        throw new BackendError({
+          user: user,
+          action: ServerAction.AUTHORIZE,
+          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+          message: `Tag ID '${tag.id}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
+        });
+      }
+      // Check Charging Station
+      if (!chargingStation.public) {
+        throw new BackendError({
+          user: user,
+          action: ServerAction.AUTHORIZE,
+          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+          message: `Tag ID '${tag.id}' cannot be authorized on a private charging station`
+        });
+      }
+      // Request Authorization
+      if (authAction === Action.AUTHORIZE) {
+        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+        if (!ocpiClient) {
+          throw new BackendError({
+            user: user,
+            action: ServerAction.AUTHORIZE,
+            module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+            message: 'OCPI component requires at least one CPO endpoint to authorize users'
+          });
+        }
+        // Keep the Auth ID
+        user.authorizationID = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
       }
     }
     return user;
