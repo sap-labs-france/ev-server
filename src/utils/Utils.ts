@@ -1016,7 +1016,7 @@ export default class Utils {
   }
 
   public static generateKey(): string {
-    return crypto.randomBytes(16).toString('hex');
+    return crypto.randomBytes(32).toString('hex');
   }
 
   public static getRoleNameFromRoleID(roleID: string): string {

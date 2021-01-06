@@ -3,6 +3,7 @@ import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridF
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import DatabaseUtils from './DatabaseUtils';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
@@ -164,6 +165,9 @@ export default class MongoDBStorage {
       { fields: { version: 1 } },
       { fields: { durationSecs: 1 } }
     ]);
+
+    // Migrate Crypto Key from config file
+    await Cypher.migrateCryptoKey(tenantID);
 
     Logging.logDebug({
       tenantID: tenantID,

@@ -10,6 +10,7 @@ export interface SensitiveDataMigrationState {
 export interface SettingSensitiveData {
   id?: string;
   identifier: string;
+  path: string[];
   sensitiveData: SensitiveData[]
 }
 

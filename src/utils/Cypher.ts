@@ -5,7 +5,6 @@ import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
-import Logging from './Logging';
 import SensitiveDataMigrationStorage from '../storage/mongodb/SensitiveDataMigrationStorage';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import TenantComponents from '../types/TenantComponents';
@@ -35,66 +34,42 @@ export default class Cypher {
     return this.configuration;
   }
 
+  public static async migrateCryptoKey(tenantID: string): Promise<void> {
+    // Crypto Key from config file
+    const configCryptoKey: string = Configuration.getCryptoConfig().key;
+
+    // Crypto Key Setting from db
+    const keySettings = await SettingStorage.getCryptoSettings(tenantID);
+
+    // If no Crypto Key Setting exist, initialize them with Crypto Key from config file
+    if (!keySettings) {
+      // Create New Crypto Key in Tenant Settings
+      const keySettingToSave = {
+        identifier: TenantComponents.CRYPTO,
+        type: CryptoSettingsType.CRYPTO,
+        crypto: {
+          key: configCryptoKey,
+          migrationDone: true
+        }
+      } as KeySettings;
+      await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
+    }
+  }
+
   public static getCryptoKeySync(): string {
     return this.cryptoSetting?.migrationDone ? this.cryptoSetting?.key : this.cryptoSetting?.formerKey;
   }
 
   public static async getCryptoKey(tenantID: string): Promise<string> {
     if (!this.cryptoSetting) {
-      await this.detectConfigurationKey(tenantID);
+      this.keySetting = await SettingStorage.getCryptoSettings(tenantID);
+      this.cryptoSetting = this.keySetting.crypto;
     }
     return this.cryptoSetting?.migrationDone ? this.cryptoSetting?.key : this.cryptoSetting?.formerKey;
   }
 
-  public static async detectConfigurationKey(tenantID: string): Promise<boolean> {
-    let isKeyChanged = false;
-    const configCryptoKey: string = Configuration.getCryptoConfig().key;
-    const keySettings = await SettingStorage.getCryptoSettings(tenantID);
-    let cryptoSettingToSave: CryptoSetting;
-    // TODO check for migrationDone
-
-    // Check if Crypto Settings exist
-    if (keySettings) {
-      this.keySetting = keySettings;
-      if (keySettings.crypto?.migrationDone === false) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'detectConfigurationKey',
-          message: 'Cannot change crypto key if migration not done'
-        });
-        // Call a method for completing migration?
-        // Also log error?
-      }
-      // Detect new config Cypher key
-      if (keySettings.crypto?.key !== configCryptoKey) {
-        cryptoSettingToSave = {
-          formerKey: keySettings.crypto.key,
-          key: configCryptoKey,
-          migrationDone: false
-        } as CryptoSetting;
-        isKeyChanged = true;
-      }
-    } else {
-      // Create New Config Crypto Key in Tenant Settings
-      cryptoSettingToSave = {
-        key: configCryptoKey
-      } as CryptoSetting;
-    }
-
-    // Key migration of senitive data
-    this.cryptoSetting = cryptoSettingToSave ? cryptoSettingToSave : keySettings.crypto;
-
-    if (cryptoSettingToSave) {
-      const keySettingToSave = {
-        id: keySettings?.id,
-        identifier: TenantComponents.CRYPTO,
-        type: CryptoSettingsType.CRYPTO,
-        crypto: cryptoSettingToSave
-      } as KeySettings;
-      await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
-    }
-    return isKeyChanged;
+  public static async getMigrationDone(tenantID: string): Promise<boolean> {
+    return (await SettingStorage.getCryptoSettings(tenantID)).crypto.migrationDone;
   }
 
   public static async setMigrationDone(tenantID:string): Promise<void> {
@@ -126,66 +101,68 @@ export default class Cypher {
 
   }
 
-  public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<SensitiveData[]> {
-    try {
-      if (this.cryptoSetting) {
-        // TODO add check for clearValue
+  public static prepareSaveSensitiveDataMigration(setting: SettingDB,
+    valueBeforeDecrypt: string[], valueAfterDecrypt: string[], valueAfterEncrypt: string[]): SettingSensitiveData {
+    const allSensitiveData: SensitiveData[] = [];
+    for (const property of setting.sensitiveData) {
+      const sensitiveData = {
+        identifier: setting.identifier,
+        path: property,
+        initialValue: {
+          encryptedValue: valueBeforeDecrypt[property],
+          key: this.cryptoSetting.formerKey
+        },
+        clearValue: valueAfterDecrypt[property],
+        migratedValue: {
+          encryptedValue: valueAfterEncrypt[property],
+          key: this.cryptoSetting.key
+        }
+      } as SensitiveData;
+      allSensitiveData.push(sensitiveData);
+    }
 
-        const valuebeforeDecrypt = this.getSensitiveDatainSetting(setting);
+    return {
+      id: setting.id,
+      identifier: setting.identifier,
+      path: setting.sensitiveData,
+      sensitiveData: allSensitiveData
+    };
+  }
+
+  public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<void> {
+    try {
+      await this.getCryptoKey(tenantID);
+      if (this.cryptoSetting) {
+        // Get sensitive data encrypted with former key
+        const valueBeforeDecrypt = this.getSensitiveDatainSetting(setting);
+        // Decrypt sensitive data with former key
         this.decryptSensitiveDataInJSON(setting, this.cryptoSetting.formerKey);
+        // Get sensitive data in clear format
         const valueAfterDecrypt = this.getSensitiveDatainSetting(setting);
+        // Encrypt sensitive data with new key
         this.encryptSensitiveDataInJSON(setting, this.cryptoSetting.key);
+        // Get sensitive data encrypted with new key
         const valueAfterEncrypt = this.getSensitiveDatainSetting(setting);
 
-        const allSensitiveData: SensitiveData[] = [];
-        for (const property of setting.sensitiveData) {
-          const sensitiveData = {
-            identifier: setting.identifier,
-            path: property,
-            initialValue: {
-              encryptedValue: valuebeforeDecrypt[property],
-              key: this.cryptoSetting.formerKey
-            },
-            clearValue: valueAfterDecrypt[property],
-            migratedValue: {
-              encryptedValue: valueAfterEncrypt[property],
-              key: this.cryptoSetting.key
-            }
-          } as SensitiveData;
-          allSensitiveData.push(sensitiveData);
-        }
-
-        const settingSensitiveData: SettingSensitiveData = {
-          id: setting.id,
-          identifier: setting.identifier,
-          sensitiveData: allSensitiveData
-        };
-        // Save setting with crypto key migration
+        // Save setting with sensitive data encrypted with new key
         await SettingStorage.saveSettings(tenantID, setting);
 
-        // Save migration of setting
+        // Prepare sensitive data migration
+        const settingSensitiveData = this.prepareSaveSensitiveDataMigration(setting, valueBeforeDecrypt, valueAfterDecrypt, valueAfterEncrypt);
+        // Save sensitive data migration of setting
         await SensitiveDataMigrationStorage.saveSensitiveData(tenantID, settingSensitiveData);
 
-        return allSensitiveData;
       }
     } catch (err) {
       console.error(err);
     }
   }
 
-  public static async migrateAllSensitiveData(tenantID: string, settings: SettingDB[]): Promise<SettingSensitiveData[]> {
-
-    const settingsSensitiveData: SettingSensitiveData[] = [];
+  public static async migrateAllSensitiveData(tenantID: string, settings: SettingDB[]): Promise<void> {
+    // For each setting that contains sensitive data, migrate that data
     for (const setting of settings) {
-      const sensitiveData: SensitiveData[] = await this.migrateSensitiveData(tenantID, setting);
-      const settingSensitiveData: SettingSensitiveData = {
-        id: setting.id,
-        identifier: setting.identifier,
-        sensitiveData: sensitiveData
-      };
-      settingsSensitiveData.push(settingSensitiveData);
+      await this.migrateSensitiveData(tenantID, setting);
     }
-    return settingsSensitiveData;
   }
 
   public static encrypt(data: string, key: string): string {

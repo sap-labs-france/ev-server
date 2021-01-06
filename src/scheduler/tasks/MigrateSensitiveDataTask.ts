@@ -14,11 +14,9 @@ import Utils from '../../utils/Utils';
 export default class MigrateSensitiveDataTask extends SchedulerTask {
 
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
-    // Detect if Crypto Key changed
-    const isCryptoKeyChanged: boolean = await Cypher.detectConfigurationKey(tenant.id);
 
-    // Migrate only if cryptoKey changed
-    if (isCryptoKeyChanged) {
+    // Migrate only if migrationDone flag is false
+    if (!(await Cypher.getMigrationDone(tenant.id))) {
 
       // Database Lock
       const createDatabaseLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.DATABASE, 'migrate-sensitive-data');
@@ -37,17 +35,12 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
             }
           });
 
+          // If tenant has settings with sensitive data, migrate them
           if (reducedSettings && !Utils.isEmptyArray(reducedSettings)) {
-            const settingSensitiveData = await Cypher.migrateAllSensitiveData(tenant.id, reducedSettings);
-            const migrationState = {
-              timestamp: new Date(),
-              name: tenant.id,
-              version: 'final',
-              settingSensitiveData: settingSensitiveData
-            } as SensitiveDataMigrationState;
-            await SensitiveDataMigrationStorage.saveSensitiveDataMigrationState(tenant.id, migrationState);
+            await Cypher.migrateAllSensitiveData(tenant.id, reducedSettings);
           }
 
+          // Set migration done in Crypto Settings
           await Cypher.setMigrationDone(tenant.id);
         } finally {
           // Release the database creation Lock

@@ -255,4 +255,5 @@ export interface CryptoSetting extends KeySetting {
   key: string;
   formerKey?: string;
   migrationDone?: boolean;
+  sensitiveDataMigrationId?: string;
 }
