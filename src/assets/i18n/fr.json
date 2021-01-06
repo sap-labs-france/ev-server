@@ -12,6 +12,14 @@
       "title": "Itinérance Envoie des Statuts",
       "body": "La mise à jour des statuts vers le site d'itinérance des bornes a échoué sur le site '{{location}}' dans l'organisation '{{tenantName}}', vérifier les logs"
     },
+    "oicpPatchChargingStationsStatusesError": {
+      "title": "Roaming Send Statuses",
+      "body": "The transfer to the OICP roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+    },
+    "oicpPatchChargingStationsError": {
+      "title": "Roaming Send EVSE Data",
+      "body": "The transfer to the OICP roaming platform of the charging station's EVSE Data has failed in organization '{{tenantName}}', check the logs"
+    },
     "smtpAuthError": {
       "title": "Erreur Serveur Email",
       "body": "L'authentification du serveur d'email principal a échoué dans l'organisation '{{tenantName}}', vérifier la configuration"

@@ -12,6 +12,14 @@
       "title": "Enviando informações",
       "body": "O envio de informações para a plataforma de carregamento '{{location}}' falhou, por favor veririfcar a informação no '{{tenantName}}'"
     },
+    "oicpPatchChargingStationsStatusesError": {
+      "title": "Roaming Send Statuses",
+      "body": "The transfer to the OICP roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+    },
+    "oicpPatchChargingStationsError": {
+      "title": "Roaming Send EVSE Data",
+      "body": "The transfer to the OICP roaming platform of the charging station's EVSE Data has failed in organization '{{tenantName}}', check the logs"
+    },
     "smtpAuthError": {
       "title": "Error no servidor de Email",
       "body": "A autenticação no servidor de email falhou por favor verificar a configuração do  '{{tenantName}}'"
@@ -69,6 +77,10 @@
     "computeAndApplyChargingProfilesFailed": {
       "title": "Charging Profiles failed",
       "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
+    },
+    "billingNewInvoice": {
+      "title": "New invoice",
+      "body": "A new invoice ({{invoiceNumber}}) is now available"
     },
     "endUserErrorNotification": {
       "title": "Um utilizador reportou um erro",

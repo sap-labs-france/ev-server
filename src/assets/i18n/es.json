@@ -12,6 +12,14 @@
       "title": "Estatus de envío de itinerancia",
       "body": "La transferencia a la plataforma de itinerancia de los estatus de la estación de carga ha fallado en la ubicación '{{location}}' en la organización '{{tenantName}}', verifique los registros "
     },
+    "oicpPatchChargingStationsStatusesError": {
+      "title": "Roaming Send Statuses",
+      "body": "The transfer to the OICP roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+    },
+    "oicpPatchChargingStationsError": {
+      "title": "Roaming Send EVSE Data",
+      "body": "The transfer to the OICP roaming platform of the charging station's EVSE Data has failed in organization '{{tenantName}}', check the logs"
+    },
     "smtpAuthError": {
       "title": "Error del servidor de correo electrónico",
       "body": "La autenticación del servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
