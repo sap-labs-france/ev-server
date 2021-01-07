@@ -5,6 +5,7 @@ import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import DatabaseUtils from './DatabaseUtils';
 import { ObjectID } from 'mongodb';
+import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
 
 const MODULE_NAME = 'SensitiveDataMigrationStorage';
@@ -12,8 +13,12 @@ const MODULE_NAME = 'SensitiveDataMigrationStorage';
 export default class SensitiveDataMigrationStorage {
   private static migrationId: ObjectID;
 
-  public static async setMigrationId(tenantID: string): Promise<void> {
-    this.migrationId = new ObjectID();
+  public static async setMigrationId(migrationId?: string): Promise<void> {
+    if (migrationId) {
+      this.migrationId = Utils.convertToObjectID(migrationId);
+    } else {
+      this.migrationId = new ObjectID();
+    }
   }
 
   public static async saveSensitiveData(tenantID: string, migrationToSave: SettingSensitiveData): Promise<string> {

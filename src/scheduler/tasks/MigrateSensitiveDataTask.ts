@@ -14,9 +14,10 @@ import Utils from '../../utils/Utils';
 export default class MigrateSensitiveDataTask extends SchedulerTask {
 
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+    const { migrationDone, migrationId } = await Cypher.getMigrationDone(tenant.id);
 
     // Migrate only if migrationDone flag is false
-    if (!(await Cypher.getMigrationDone(tenant.id))) {
+    if (!(migrationDone)) {
 
       // Database Lock
       const createDatabaseLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.DATABASE, 'migrate-sensitive-data');
@@ -38,7 +39,7 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
           // If tenant has settings with sensitive data, migrate them
           if (reducedSettings && !Utils.isEmptyArray(reducedSettings)) {
             // Set a migration Id per tenant
-            await SensitiveDataMigrationStorage.setMigrationId(tenant.id);
+            await SensitiveDataMigrationStorage.setMigrationId(migrationId);
             // Migrate
             await Cypher.migrateAllSensitiveData(tenant.id, reducedSettings);
           }

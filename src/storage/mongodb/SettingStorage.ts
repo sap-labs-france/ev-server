@@ -327,7 +327,8 @@ export default class SettingStorage {
       const cryptoSetting = {
         formerKey: settings.result[0].content.crypto.formerKey,
         key: settings.result[0].content.crypto.key,
-        migrationDone: settings.result[0].content.crypto.migrationDone
+        migrationDone: settings.result[0].content.crypto.migrationDone,
+        sensitiveDataMigrationId: settings.result[0].content.crypto.sensitiveDataMigrationId
       } as CryptoSetting;
       const keySetting = {
         id: settings.result[0].id,

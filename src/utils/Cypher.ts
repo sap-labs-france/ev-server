@@ -68,14 +68,18 @@ export default class Cypher {
     return this.cryptoSetting?.migrationDone ? this.cryptoSetting?.key : this.cryptoSetting?.formerKey;
   }
 
-  public static async getMigrationDone(tenantID: string): Promise<boolean> {
+  public static async getMigrationDone(tenantID: string): Promise<{ migrationDone: boolean, migrationId: string }> {
     this.keySetting = await SettingStorage.getCryptoSettings(tenantID);
     this.cryptoSetting = this.keySetting.crypto;
-    return this.cryptoSetting.migrationDone;
+    return {
+      migrationDone: this.cryptoSetting.migrationDone,
+      migrationId: this.cryptoSetting.sensitiveDataMigrationId
+    };
   }
 
   public static async setMigrationDone(tenantID:string): Promise<void> {
     this.cryptoSetting.migrationDone = true;
+    this.cryptoSetting.sensitiveDataMigrationId = null;
     const keySettingToSave = {
       id: this.keySetting.id,
       identifier: TenantComponents.CRYPTO,
@@ -170,10 +174,19 @@ export default class Cypher {
     }
   }
 
+  public static async getMigrateSettingsIdentifiers(tenantID: string): Promise<string[]> {
+    const migration = await SensitiveDataMigrationStorage.getSensitiveDataMigration(tenantID);
+    return migration.settingSensitiveData.map((setting) => setting.identifier);
+  }
+
   public static async migrateAllSensitiveData(tenantID: string, settings: SettingDB[]): Promise<void> {
+
+    const identifiers = await this.getMigrateSettingsIdentifiers(tenantID);
     // For each setting that contains sensitive data, migrate that data
     for (const setting of settings) {
-      await this.migrateSensitiveData(tenantID, setting);
+      if (!identifiers.includes(setting.identifier)) {
+        await this.migrateSensitiveData(tenantID, setting);
+      }
     }
   }
 
