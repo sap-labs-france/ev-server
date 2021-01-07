@@ -64,7 +64,8 @@ export default class JsonWSConnection extends WSConnection {
         chargeBoxIdentity: this.getChargingStationID(),
         ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
         ocppProtocol: OCPPProtocol.JSON,
-        chargingStationURL: Configuration.getJsonEndpointConfig().baseUrl,
+        // FIXME: Detect if the charging station use secure websocket or not
+        chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl,
         tenantID: this.getTenantID(),
         token: this.getToken(),
         From: {

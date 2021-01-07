@@ -14,6 +14,7 @@ const MODULE_NAME = 'SoapChargingStationClient';
 
 // Get the config
 const _wsdlEndpointConfig = Configuration.getWSDLEndpointConfig();
+
 export default class SoapChargingStationClient extends ChargingStationClient {
   public transactionId: number;
   public error: any;
@@ -377,6 +378,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     this.client.addSoapHeader('<a:ReplyTo xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>');
     this.client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${this.chargingStation.chargingStationURL}</a:To>`);
     this.client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${command}</a:Action>`);
-    this.client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${_wsdlEndpointConfig.baseUrl}</a:Address></a:From>`);
+    this.client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${_wsdlEndpointConfig.baseSecureUrl}</a:Address></a:From>`);
   }
 }
