@@ -526,6 +526,15 @@ export default class UtilsService {
         user: req.user.id
       });
     }
+    if (!(typeof asset.fallbackValue === 'number')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Fallback value must be of type number',
+        module: MODULE_NAME, method: 'checkIfAssetValid',
+        user: req.user.id
+      });
+    }
     if (asset.dynamicAsset) {
       if (!asset.connectionID) {
         throw new AppError({
