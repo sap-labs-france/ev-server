@@ -147,36 +147,29 @@ export default class Cypher {
   }
 
   public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<void> {
-    try {
-      if (this.cryptoSetting) {
-        // Get sensitive data encrypted with former key
-        const valueBeforeDecrypt = this.getSensitiveDatainSetting(setting);
-        // Decrypt sensitive data with former key
-        this.decryptSensitiveDataInJSON(setting, this.cryptoSetting.formerKey);
-        // Get sensitive data in clear format
-        const valueAfterDecrypt = this.getSensitiveDatainSetting(setting);
-        // Encrypt sensitive data with new key
-        this.encryptSensitiveDataInJSON(setting, this.cryptoSetting.key);
-        // Get sensitive data encrypted with new key
-        const valueAfterEncrypt = this.getSensitiveDatainSetting(setting);
+    // Get sensitive data encrypted with former key
+    const valueBeforeDecrypt = this.getSensitiveDatainSetting(setting);
+    // Decrypt sensitive data with former key
+    this.decryptSensitiveDataInJSON(setting, this.cryptoSetting.formerKey);
+    // Get sensitive data in clear format
+    const valueAfterDecrypt = this.getSensitiveDatainSetting(setting);
+    // Encrypt sensitive data with new key
+    this.encryptSensitiveDataInJSON(setting, this.cryptoSetting.key);
+    // Get sensitive data encrypted with new key
+    const valueAfterEncrypt = this.getSensitiveDatainSetting(setting);
 
-        // Save setting with sensitive data encrypted with new key
-        await SettingStorage.saveSettings(tenantID, setting);
+    // Save setting with sensitive data encrypted with new key
+    await SettingStorage.saveSettings(tenantID, setting);
 
-        // Prepare sensitive data migration
-        const settingSensitiveData = this.prepareSaveSensitiveDataMigration(setting, valueBeforeDecrypt, valueAfterDecrypt, valueAfterEncrypt);
-        // Save sensitive data migration of setting
-        await SensitiveDataMigrationStorage.saveSensitiveData(tenantID, settingSensitiveData);
-
-      }
-    } catch (err) {
-      console.error(err);
-    }
+    // Prepare sensitive data migration
+    const settingSensitiveData = this.prepareSaveSensitiveDataMigration(setting, valueBeforeDecrypt, valueAfterDecrypt, valueAfterEncrypt);
+    // Save sensitive data migration of setting
+    await SensitiveDataMigrationStorage.saveSensitiveData(tenantID, settingSensitiveData);
   }
 
   public static async getMigrateSettingsIdentifiers(tenantID: string): Promise<string[]> {
     const migration = await SensitiveDataMigrationStorage.getSensitiveDataMigration(tenantID);
-    return migration.settingSensitiveData.map((setting) => setting.identifier);
+    return migration?.settingSensitiveData?.map((setting) => setting.identifier);
   }
 
   public static async migrateAllSensitiveData(tenantID: string, settings: SettingDB[]): Promise<void> {
@@ -184,7 +177,7 @@ export default class Cypher {
     const identifiers = await this.getMigrateSettingsIdentifiers(tenantID);
     // For each setting that contains sensitive data, migrate that data
     for (const setting of settings) {
-      if (!identifiers.includes(setting.identifier)) {
+      if (!identifiers?.includes(setting.identifier)) {
         await this.migrateSensitiveData(tenantID, setting);
       }
     }

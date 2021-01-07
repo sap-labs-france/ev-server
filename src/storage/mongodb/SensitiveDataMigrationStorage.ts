@@ -14,7 +14,7 @@ export default class SensitiveDataMigrationStorage {
   private static migrationId: ObjectID;
 
   public static async setMigrationId(migrationId?: string): Promise<void> {
-    if (migrationId) {
+    if (migrationId && migrationId !== null) {
       this.migrationId = Utils.convertToObjectID(migrationId);
     } else {
       this.migrationId = new ObjectID();

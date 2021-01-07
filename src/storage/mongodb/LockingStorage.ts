@@ -55,4 +55,14 @@ export default class LockingStorage {
     Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteLock', uniqueTimerID, result);
     return result.value !== null;
   }
+
+  public static async deleteLockByKey(key: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, `deleteLocks ${key}`);
+    // Delete
+    const { deletedCount } = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+      .deleteMany({ 'key': key });
+    // Debug
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, `deleteLocks ${key}: ${deletedCount}`, uniqueTimerID);
+  }
 }

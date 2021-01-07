@@ -6,6 +6,7 @@ import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
+import LockingStorage from './storage/mongodb/LockingStorage';
 import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
@@ -125,6 +126,11 @@ export default class Bootstrap {
         // -------------------------------------------------------------------------
         SchedulerManager.init();
       }
+
+      // Delete acquired database locks during sensitiveData migration
+      // Locks remain in storage if server crashes, but migration needs to be resumed
+      await LockingStorage.deleteLockByKey('migrate-sensitive-data');
+
     } catch (error) {
       // Log
       // eslint-disable-next-line no-console
