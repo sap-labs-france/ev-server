@@ -96,7 +96,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       module: MODULE_NAME, method: 'onOpen',
       message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
     });
-    Utils.isDevelopmentEnv() && console.log(`REST client try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`);
 
     // Create Promise
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -130,7 +129,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           module: MODULE_NAME, method: 'onOpen',
           message: `Connection opened to '${this.serverURL}'`
         });
-        Utils.isDevelopmentEnv() && console.log(`REST client connection opened to '${this.serverURL}'`);
         // Connection is opened and ready to use
         resolve();
       };
@@ -144,19 +142,18 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           module: MODULE_NAME, method: 'onClose',
           message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
         });
-        Utils.isDevelopmentEnv() && console.log(`REST client connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
       };
       // Handle Error Message
       this.wsConnection.onerror = (error: Error) => {
         // Log
-        Logging.logException(
-          error,
-          ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
-          this.chargingStation.id,
-          MODULE_NAME, 'onError',
-          this.tenantID
-        );
-        Utils.isDevelopmentEnv() && console.exception(`REST client connection error to '${this.serverURL}:`, error);
+        Logging.logError({
+          tenantID: this.tenantID,
+          source: this.chargingStation.id,
+          action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
+          module: MODULE_NAME, method: 'onError',
+          message: `Connection error to '${this.serverURL}: ${error}`,
+          detailedMessages: { error }
+        });
         // Terminate WS in error
         this.terminateConnection();
       };
@@ -178,7 +175,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 message: `${messageJson[3]}`,
                 detailedMessages: { messageJson }
               });
-              Utils.isDevelopmentEnv() && console.error(`REST client message response error ${messageJson[3]}:`, messageJson);
               // Resolve with error message
               this.requests[messageJson[1]].reject({ status: 'Rejected', error: messageJson });
             } else {
@@ -198,7 +194,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               message: 'Received unknown message',
               detailedMessages: { messageJson }
             });
-            Utils.isDevelopmentEnv() && console.error('REST client received unknown message:', messageJson);
           }
         } catch (error) {
           // Log
@@ -209,7 +204,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             MODULE_NAME, 'onMessage',
             this.tenantID
           );
-          Utils.isDevelopmentEnv() && console.exception('REST client message error:', error);
         }
       };
     });
