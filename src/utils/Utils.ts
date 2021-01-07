@@ -899,7 +899,7 @@ export default class Utils {
         }
         return ocppUrl;
       case OCPPProtocol.SOAP:
-        if (Configuration.getWSDLEndpointConfig().baseUrl) {
+        if (Configuration.getWSDLEndpointConfig()?.baseUrl) {
           ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
           if (token) {
             ocppUrl += `%26Token=${token}`;
@@ -922,7 +922,7 @@ export default class Utils {
         }
         return ocppUrl;
       case OCPPProtocol.SOAP:
-        if (Configuration.getWSDLEndpointConfig().baseSecureUrl) {
+        if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl) {
           ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${version}?TenantID=${tenantID}`;
           if (token) {
             ocppUrl += `%26Token=${token}`;
