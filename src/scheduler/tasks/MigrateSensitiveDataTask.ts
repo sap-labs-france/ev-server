@@ -37,6 +37,9 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
 
           // If tenant has settings with sensitive data, migrate them
           if (reducedSettings && !Utils.isEmptyArray(reducedSettings)) {
+            // Set a migration Id per tenant
+            await SensitiveDataMigrationStorage.setMigrationId(tenant.id);
+            // Migrate
             await Cypher.migrateAllSensitiveData(tenant.id, reducedSettings);
           }
 

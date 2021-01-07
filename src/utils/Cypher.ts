@@ -69,11 +69,24 @@ export default class Cypher {
   }
 
   public static async getMigrationDone(tenantID: string): Promise<boolean> {
-    return (await SettingStorage.getCryptoSettings(tenantID)).crypto.migrationDone;
+    this.keySetting = await SettingStorage.getCryptoSettings(tenantID);
+    this.cryptoSetting = this.keySetting.crypto;
+    return this.cryptoSetting.migrationDone;
   }
 
   public static async setMigrationDone(tenantID:string): Promise<void> {
     this.cryptoSetting.migrationDone = true;
+    const keySettingToSave = {
+      id: this.keySetting.id,
+      identifier: TenantComponents.CRYPTO,
+      type: CryptoSettingsType.CRYPTO,
+      crypto: this.cryptoSetting
+    } as KeySettings;
+    await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
+  }
+
+  public static async saveMigrationId(tenantID:string, migrationId: string): Promise<void> {
+    this.cryptoSetting.sensitiveDataMigrationId = migrationId;
     const keySettingToSave = {
       id: this.keySetting.id,
       identifier: TenantComponents.CRYPTO,
@@ -131,7 +144,6 @@ export default class Cypher {
 
   public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<void> {
     try {
-      await this.getCryptoKey(tenantID);
       if (this.cryptoSetting) {
         // Get sensitive data encrypted with former key
         const valueBeforeDecrypt = this.getSensitiveDatainSetting(setting);

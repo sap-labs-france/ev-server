@@ -2,19 +2,27 @@ import { SensitiveDataMigrationState, SettingSensitiveData } from '../../types/S
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import DatabaseUtils from './DatabaseUtils';
 import { ObjectID } from 'mongodb';
-import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
 
 const MODULE_NAME = 'SensitiveDataMigrationStorage';
 
 export default class SensitiveDataMigrationStorage {
-  public static async saveSensitiveData(tenantID: string, migrationToSave: SettingSensitiveData, migrationID?: string): Promise<string> {
-    // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+  private static migrationId: ObjectID;
 
-    // Check if key is provided
+  public static async setMigrationId(tenantID: string): Promise<void> {
+    this.migrationId = new ObjectID();
+  }
+
+  public static async saveSensitiveData(tenantID: string, migrationToSave: SettingSensitiveData): Promise<string> {
+    // Get migration if exists
+    const migration = await this.getSensitiveDataMigration(tenantID);
+
+    let migrationMDB: any;
+
+    // Check if migration is provided
     if (!migrationToSave) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -23,28 +31,52 @@ export default class SensitiveDataMigrationStorage {
         message: 'Migration not provided'
       });
     }
-    const migrationFilter: any = {};
-    // Build Request
-    if (migrationToSave.id) {
-      migrationFilter._id = Utils.convertToObjectID(migrationToSave.id);
+
+    if (migration) {
+      // Add new setting migration to current migration
+      migration.settingSensitiveData.push(migrationToSave);
+      migrationMDB = {
+        _id: this.migrationId,
+        timestamp: new Date(),
+        name: tenantID,
+        version: 'partial',
+        settingSensitiveData: migration.settingSensitiveData
+      };
     } else {
-      migrationFilter._id = new ObjectID();
+      // Create new
+      migrationMDB = {
+        _id: this.migrationId,
+        timestamp: new Date(),
+        name: tenantID,
+        version: 'partial',
+        settingSensitiveData: [migrationToSave]
+      };
+
+      // If create new migration, save migrationId in Settings
+      await Cypher.saveMigrationId(tenantID, this.migrationId.toHexString());
     }
-    // Set
-    const migrationMDB: any = {
-      _id: migrationFilter._id,
-      timestamp: new Date(),
-      name: tenantID,
-      version: 'partial',
-      settingSensitiveData: migrationToSave
-    };
+
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
 
     // Save document
     await global.database.getCollection<any>(tenantID, 'sensitivedatamigrations').findOneAndUpdate(
-      migrationFilter,
+      { _id: migrationMDB._id },
       { $set: migrationMDB },
       { upsert: true, returnOriginal: false });
 
-    return migrationFilter._id.toHexString();
+    return migrationMDB._id.toHexString();
+  }
+
+  public static async getSensitiveDataMigration(tenantID: string): Promise<SensitiveDataMigrationState> {
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+
+    // Get document
+    const sensitiveDataMigrationState = await global.database.getCollection<SensitiveDataMigrationState>(tenantID, 'sensitivedatamigrations').findOne({
+      _id: this.migrationId
+    });
+
+    return sensitiveDataMigrationState;
   }
 }
