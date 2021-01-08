@@ -20,6 +20,7 @@ import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
 import UserToken from '../types/UserToken';
+import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -334,6 +335,26 @@ export default class Utils {
       case ConnectorCurrentLimitSource.STATIC_LIMITATION:
         return 'Static Limitation';
     }
+  }
+
+  public static getWebSocketCloseEventStatusString(code: number): string {
+    if (code >= 0 && code <= 999) {
+      return '(Unused)';
+    } else if (code >= 1016) {
+      if (code <= 1999) {
+        return '(For WebSocket standard)';
+      } else if (code <= 2999) {
+        return '(For WebSocket extensions)';
+      } else if (code <= 3999) {
+        return '(For libraries and frameworks)';
+      } else if (code <= 4999) {
+        return '(For applications)';
+      }
+    }
+    if (!Utils.isUndefined(WebSocketCloseEventStatusString[code])) {
+      return WebSocketCloseEventStatusString[code];
+    }
+    return '(Unknown)';
   }
 
   public static convertToBoolean(value: any): boolean {

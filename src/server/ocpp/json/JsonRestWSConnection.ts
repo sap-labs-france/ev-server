@@ -5,8 +5,9 @@ import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
-import { MessageType } from '../../../types/WebSocket';
+import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction } from '../../../types/Server';
+import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
 import global from '../../../types/GlobalType';
 import http from 'http';
@@ -56,7 +57,7 @@ export default class JsonRestWSConnection extends WSConnection {
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,
-      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent}'`,
+      message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
       detailedMessages: { closeEvent: closeEvent }
     });
     // Remove the connection
@@ -93,7 +94,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Call the method
       const result = await chargingStationClient[actionMethod](commandPayload);
       // Send Response
-      await this.sendMessage(messageId, result, MessageType.CALL_RESULT_MESSAGE, commandName);
+      await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, commandName);
     } else {
       // Error
       throw new BackendError({
