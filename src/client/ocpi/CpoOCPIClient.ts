@@ -27,7 +27,6 @@ import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import User from '../../types/User';
