@@ -1,13 +1,14 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { MessageType, WSClientOptions } from '../../../types/WebSocket';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
+import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
+import { WSClientOptions } from '../../../types/WebSocket';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
@@ -95,6 +96,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       module: MODULE_NAME, method: 'onOpen',
       message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
     });
+
     // Create Promise
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return await new Promise((resolve, reject) => {
@@ -131,30 +133,27 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         resolve();
       };
       // Closed
-      this.wsConnection.onclose = () => {
-        if (Utils.isProductionEnv()) {
-          // Log
-          Logging.logInfo({
-            tenantID: this.tenantID,
-            source: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
-            module: MODULE_NAME, method: 'onClose',
-            message: `Connection closed from '${this.serverURL}'`
-          });
-        }
+      this.wsConnection.onclose = (code: number) => {
+        // Log
+        Logging.logInfo({
+          tenantID: this.tenantID,
+          source: this.chargingStation.id,
+          action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
+          module: MODULE_NAME, method: 'onClose',
+          message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+        });
       };
       // Handle Error Message
       this.wsConnection.onerror = (error: Error) => {
-        if (Utils.isProductionEnv()) {
-          // Log
-          Logging.logException(
-            error,
-            ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
-            this.chargingStation.id,
-            MODULE_NAME, 'onError',
-            this.tenantID
-          );
-        }
+        // Log
+        Logging.logError({
+          tenantID: this.tenantID,
+          source: this.chargingStation.id,
+          action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
+          module: MODULE_NAME, method: 'onError',
+          message: `Connection error to '${this.serverURL}: ${error}`,
+          detailedMessages: { error }
+        });
         // Terminate WS in error
         this.terminateConnection();
       };
@@ -166,7 +165,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           // Check if this corresponds to a request
           if (this.requests[messageJson[1]]) {
             // Check message type
-            if (messageJson[0] === MessageType.CALL_ERROR_MESSAGE) {
+            if (messageJson[0] === OCPPMessageType.CALL_ERROR_MESSAGE) {
               // Error message
               Logging.logError({
                 tenantID: this.tenantID,
@@ -186,6 +185,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             this.closeConnection();
           } else {
             // Error message
+            // eslint-disable-next-line no-lonely-if
             Logging.logError({
               tenantID: this.tenantID,
               source: this.chargingStation.id,
@@ -202,7 +202,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             ServerAction.WS_REST_CLIENT_MESSAGE,
             this.chargingStation.id,
             MODULE_NAME, 'onMessage',
-            this.tenantID);
+            this.tenantID
+          );
         }
       };
     });
@@ -246,6 +247,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private buildRequest(command, params = {}) {
     // Build the request
-    return [MessageType.CALL_MESSAGE, Utils.generateUUID(), command, params];
+    return [OCPPMessageType.CALL_MESSAGE, Utils.generateUUID(), command, params];
   }
 }

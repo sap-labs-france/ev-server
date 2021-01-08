@@ -200,7 +200,7 @@ export default class MigrationHandler {
         message: logMsg,
         detailedMessages: { error: error.message, stack: error.stack }
       });
-      console.log(logMsg);
+      console.error(logMsg);
     }
   }
 }

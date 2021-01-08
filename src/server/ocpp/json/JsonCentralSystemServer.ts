@@ -10,6 +10,7 @@ import JsonWSConnection from './JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import WSServer from './WSServer';
+import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 import global from '../../../types/GlobalType';
 import http from 'http';
 
@@ -164,7 +165,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         Logging.logException(
           error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
-        ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
+        ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
       }
     });
     // Keep alive WebSocket connection

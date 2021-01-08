@@ -1,4 +1,4 @@
-import { MessageType, OcppErrorType } from '../../../types/WebSocket';
+import { OCPPErrorType, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
@@ -14,6 +14,7 @@ import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { ServerAction } from '../../../types/Server';
+import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
 import http from 'http';
 
@@ -103,7 +104,7 @@ export default class JsonWSConnection extends WSConnection {
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
-      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent}'`,
+      message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
       detailedMessages: { closeEvent: closeEvent }
     });
     // Remove the connection
@@ -132,14 +133,14 @@ export default class JsonWSConnection extends WSConnection {
       // Log
       Logging.logChargingStationServerRespondAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
-      await this.sendMessage(messageId, result, MessageType.CALL_RESULT_MESSAGE, commandName);
+      await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, commandName);
     } else {
       // Throw Exception
       throw new OCPPError({
         source: this.getChargingStationID(),
         module: MODULE_NAME,
         method: 'handleRequest',
-        code: OcppErrorType.NOT_IMPLEMENTED,
+        code: OCPPErrorType.NOT_IMPLEMENTED,
         message: `The OCPP method 'handle${typeof commandName === 'string' ? commandName : JSON.stringify(commandName)}' has not been implemented`
       });
     }
