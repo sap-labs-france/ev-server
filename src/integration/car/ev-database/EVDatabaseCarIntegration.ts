@@ -7,7 +7,6 @@ import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
-import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'EVDatabaseCarIntegration';
 
@@ -200,7 +199,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         euroNCAPSA: data.EuroNCAP_SA,
         relatedVehicleIDSuccesor: data.Related_Vehicle_ID_Succesor,
         eVDBDetailURL: data.EVDB_Detail_URL,
-        imageURLs: data.Images ? (!Utils.isEmptyArray(data.Images) ? data.Images : [data.Images]) : [],
+        imageURLs: data.Images,
         images: [],
         videos: data.Videos,
       };
@@ -212,7 +211,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
   public async getCarCatalogThumb(carCatalog: CarCatalog): Promise<string> {
     let image: string;
     // Create the car thumb using the first image URL
-    if (!Utils.isEmptyArray(carCatalog.imageURLs)) {
+    if (carCatalog.imageURLs && carCatalog.imageURLs.length > 0) {
       try {
         const imageURL = this.convertToThumbImage(carCatalog.imageURLs[0]);
         const response = await this.axiosInstance.get(imageURL, { responseType: 'arraybuffer' });

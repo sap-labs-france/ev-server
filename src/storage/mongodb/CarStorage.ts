@@ -106,17 +106,12 @@ export default class CarStorage {
       aggregation.push({
         $addFields: {
           image: {
-            $cond: {
-              if: { $gt: ['$image', null] }, then: {
-                $concat: [
-                  `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
-                  { $toString: '$_id' },
-                  '&LastChangedOn=',
-                  { $toString: '$lastChangedOn' }
-                ]
-              }, else: null
-            }
-
+            $concat: [
+              `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+              { $toString: '$_id' },
+              '&LastChangedOn=',
+              { $toString: '$lastChangedOn' }
+            ]
           }
         }
       });
@@ -575,7 +570,7 @@ export default class CarStorage {
   }
 
   public static async getDefaultUserCar(tenantID: string, userID: string,
-    params: {} = {}, projectFields?: string[]): Promise<Car> {
+    params: { } = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenantID, {
       userIDs: [userID],
       defaultCar: true,
@@ -584,7 +579,7 @@ export default class CarStorage {
   }
 
   public static async getFirstAvailableUserCar(tenantID: string, userID: string,
-    params: {} = {}, projectFields?: string[]): Promise<Car> {
+    params: { } = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenantID, {
       userIDs: [userID],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
@@ -603,10 +598,8 @@ export default class CarStorage {
   }
 
   public static async getCars(tenantID: string,
-    params: {
-      search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
-      withUsers?: boolean; defaultCar?: boolean; carMakers?: string[]
-    } = {},
+    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
+      withUsers?: boolean; defaultCar?: boolean; carMakers?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCars');
@@ -710,17 +703,12 @@ export default class CarStorage {
     aggregation.push({
       $addFields: {
         'carCatalog.image': {
-          $cond: {
-            if: { $gt: ['$carCatalog.image', null] }, then: {
-              $concat: [
-                `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
-                '$carCatalog.id',
-                '&LastChangedOn=',
-                { $toString: '$carCatalog.lastChangedOn' }
-              ]
-            }, else: null
-          }
-
+          $concat: [
+            `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+            '$carCatalog.id',
+            '&LastChangedOn=',
+            { $toString: '$carCatalog.lastChangedOn' }
+          ]
         }
       }
     });
