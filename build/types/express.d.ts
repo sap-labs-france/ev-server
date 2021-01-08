@@ -1,4 +1,4 @@
-import Tenant from 'types/Tenant';
+import Tenant from '../../src/types/Tenant';
 import UserToken from '../../src/types/UserToken';
 
 declare module 'express' {

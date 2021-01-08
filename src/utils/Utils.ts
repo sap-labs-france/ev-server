@@ -986,8 +986,8 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneObject(object: any): any {
-    return JSON.parse(JSON.stringify(object));
+  public static cloneObject<T>(object: T): T {
+    return JSON.parse(JSON.stringify(object)) as T;
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -1169,7 +1169,7 @@ export default class Utils {
   }
 
   public static getChargingStationEndpoint() : ChargingStationEndpoint {
-    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.AWS : ChargingStationEndpoint.SCP;
+    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.SCP : ChargingStationEndpoint.AWS;
   }
 
   public static async generateQrCode(data: string) :Promise<string> {
@@ -1220,7 +1220,7 @@ export default class Utils {
         }
         break;
 
-      // Refund
+      // OCPI
       case TenantComponents.OCPI:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve

@@ -10,7 +10,7 @@ export default class DummyRefundIntegration extends RefundIntegration<RefundSett
     super(tenantID, setting);
   }
 
-  public async refund(tenantID: string, userId: string, transactions: Transaction[]): Promise<Transaction[]> {
+  public async refund(tenantID: string, userID: string, transactions: Transaction[]): Promise<Transaction[]> {
     return null;
   }
 
@@ -22,7 +22,10 @@ export default class DummyRefundIntegration extends RefundIntegration<RefundSett
     return null;
   }
 
-  public async createConnection(userId: string, data: unknown): Promise<Connection> {
+  public async createConnection(userID: string, data: unknown): Promise<Connection> {
     return null;
+  }
+
+  public async checkConnection(userID: string): Promise<void> {
   }
 }
