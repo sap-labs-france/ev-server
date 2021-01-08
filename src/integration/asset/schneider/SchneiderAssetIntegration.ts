@@ -1,4 +1,4 @@
-import Asset, { SchneiderProperty } from '../../../types/Asset';
+import Asset, { AssetType, SchneiderProperty } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
@@ -71,10 +71,13 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       value: newConsumptionWh,
       timestamp: new Date()
     };
+
+    const energyDirection = asset.assetType === AssetType.PR ? -1 : 1;
+
     // Amperage
-    consumption.currentInstantAmpsL1 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L1);
-    consumption.currentInstantAmpsL2 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L2);
-    consumption.currentInstantAmpsL3 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L3);
+    consumption.currentInstantAmpsL1 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L1) * energyDirection;
+    consumption.currentInstantAmpsL2 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L2) * energyDirection;
+    consumption.currentInstantAmpsL3 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L3) * energyDirection;
     consumption.currentInstantAmps = consumption.currentInstantAmpsL1 + consumption.currentInstantAmpsL2 + consumption.currentInstantAmpsL3;
     // Voltage
     consumption.currentInstantVolts = this.getPropertyValue(data, SchneiderProperty.VOLTAGE);
@@ -82,10 +85,10 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     consumption.currentInstantVoltsL2 = this.getPropertyValue(data, SchneiderProperty.VOLTAGE_L2);
     consumption.currentInstantVoltsL3 = this.getPropertyValue(data, SchneiderProperty.VOLTAGE_L3);
     // Power
-    consumption.currentInstantWatts = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE) * 1000;
-    consumption.currentInstantWattsL1 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L1) * 1000;
-    consumption.currentInstantWattsL2 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L2) * 1000;
-    consumption.currentInstantWattsL3 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L3) * 1000;
+    consumption.currentInstantWatts = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE) * 1000 * energyDirection;
+    consumption.currentInstantWattsL1 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L1) * 1000 * energyDirection;
+    consumption.currentInstantWattsL2 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L2) * 1000 * energyDirection;
+    consumption.currentInstantWattsL3 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L3) * 1000 * energyDirection;
     return consumption;
   }
 
