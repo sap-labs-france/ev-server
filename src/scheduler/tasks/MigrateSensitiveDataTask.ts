@@ -44,12 +44,14 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
             await Cypher.migrateAllSensitiveData(tenant.id, reducedSettings);
           }
 
+        } finally {
+          // Release the database Lock
+          await LockingManager.release(createDatabaseLock);
+
           // Set migration done in Crypto Settings
           await Cypher.setMigrationDone(tenant.id);
-        } finally {
-          // Release the database creation Lock
-          await LockingManager.release(createDatabaseLock);
         }
+
       }
     }
   }

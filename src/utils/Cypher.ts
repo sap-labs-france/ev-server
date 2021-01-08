@@ -200,7 +200,12 @@ export default class Cypher {
         }
       }
     } catch (err) {
-      console.error(err);
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'migrateAllSensitiveData',
+        message: 'Migration of sensitive data failed'
+      });
     }
   }
 
