@@ -247,13 +247,17 @@ export interface KeySettings extends Setting {
   crypto: CryptoSetting;
 }
 
-export interface KeySetting {
-
+export interface KeyCryptoSetting {
+  blockCypher: string;
+  keySize: number;
+  operationMode: string;
 }
 
-export interface CryptoSetting extends KeySetting {
+export interface CryptoSetting {
   key: string;
+  keySetting: KeyCryptoSetting;
   formerKey?: string;
+  formerKeySetting?: KeyCryptoSetting;
   migrationDone?: boolean;
   sensitiveDataMigrationId?: string;
 }

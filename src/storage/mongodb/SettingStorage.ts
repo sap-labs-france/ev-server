@@ -326,7 +326,17 @@ export default class SettingStorage {
     if (settings.count > 0) {
       const cryptoSetting = {
         formerKey: settings.result[0].content.crypto.formerKey,
+        formerKeySetting: {
+          blockCypher: settings.result[0].content.crypto.formerKeySetting?.blockCypher,
+          keySize: settings.result[0].content.crypto.formerKeySetting?.keySize,
+          operationMode: settings.result[0].content.crypto.formerKeySetting?.operationMode,
+        },
         key: settings.result[0].content.crypto.key,
+        keySetting: {
+          blockCypher: settings.result[0].content.crypto.keySetting.blockCypher,
+          keySize: settings.result[0].content.crypto.keySetting.keySize,
+          operationMode: settings.result[0].content.crypto.keySetting.operationMode,
+        },
         migrationDone: settings.result[0].content.crypto.migrationDone,
         sensitiveDataMigrationId: settings.result[0].content.crypto.sensitiveDataMigrationId
       } as CryptoSetting;

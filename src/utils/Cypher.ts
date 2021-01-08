@@ -1,4 +1,4 @@
-import { CryptoSetting, CryptoSettingsType, KeySettings, SettingDB } from '../types/Setting';
+import { CryptoSetting, CryptoSettingsType, KeyCryptoSetting, KeySettings, SettingDB } from '../types/Setting';
 import { SensitiveData, SettingSensitiveData } from '../types/SensitiveData';
 
 import BackendError from '../exception/BackendError';
@@ -18,6 +18,7 @@ export default class Cypher {
   private static configuration: CryptoConfiguration;
   private static cryptoSetting: CryptoSetting;
   private static keySetting: KeySettings;
+  private static algorithm: string;
 
   public static getConfiguration(): CryptoConfiguration {
     if (!this.configuration) {
@@ -37,6 +38,12 @@ export default class Cypher {
   public static async migrateCryptoKey(tenantID: string): Promise<void> {
     // Crypto Key from config file
     const configCryptoKey: string = Configuration.getCryptoConfig().key;
+    // Crypto Key Settings from config file
+    const configCryptoKeySettings: KeyCryptoSetting = {
+      blockCypher: Configuration.getCryptoConfig().blockCypher,
+      keySize: Configuration.getCryptoConfig().keySize,
+      operationMode: Configuration.getCryptoConfig().operationMode
+    };
 
     // Crypto Key Setting from db
     const keySettings = await SettingStorage.getCryptoSettings(tenantID);
@@ -49,11 +56,22 @@ export default class Cypher {
         type: CryptoSettingsType.CRYPTO,
         crypto: {
           key: configCryptoKey,
+          keySetting: configCryptoKeySettings,
           migrationDone: true
         }
       } as KeySettings;
       await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
     }
+  }
+
+  public static getAlgorithm(key: string): string {
+    let algorithm: string;
+    if (key === this.cryptoSetting?.formerKey) {
+      algorithm = `${this.cryptoSetting.formerKeySetting.blockCypher.toLowerCase()}-${this.cryptoSetting.formerKeySetting.keySize}-${this.cryptoSetting.formerKeySetting.operationMode.toLowerCase()}`;
+    } else if (key === this.cryptoSetting?.key) {
+      algorithm = `${this.cryptoSetting.keySetting.blockCypher.toLowerCase()}-${this.cryptoSetting.keySetting.keySize}-${this.cryptoSetting.keySetting.operationMode.toLowerCase()}`;
+    }
+    return algorithm;
   }
 
   public static getCryptoKeySync(): string {
@@ -173,19 +191,22 @@ export default class Cypher {
   }
 
   public static async migrateAllSensitiveData(tenantID: string, settings: SettingDB[]): Promise<void> {
-
-    const identifiers = await this.getMigrateSettingsIdentifiers(tenantID);
-    // For each setting that contains sensitive data, migrate that data
-    for (const setting of settings) {
-      if (!identifiers?.includes(setting.identifier)) {
-        await this.migrateSensitiveData(tenantID, setting);
+    try {
+      const identifiers = await this.getMigrateSettingsIdentifiers(tenantID);
+      // For each setting that contains sensitive data, migrate that data
+      for (const setting of settings) {
+        if (!identifiers?.includes(setting.identifier)) {
+          await this.migrateSensitiveData(tenantID, setting);
+        }
       }
+    } catch (err) {
+      console.error(err);
     }
   }
 
   public static encrypt(data: string, key: string): string {
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(Cypher.getConfiguration().algorithm, Buffer.from(key), iv);
+    const cipher = crypto.createCipheriv(this.getAlgorithm(key), Buffer.from(key), iv);
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
@@ -195,7 +216,7 @@ export default class Cypher {
     const dataParts = data.split(':');
     const iv = Buffer.from(dataParts.shift(), 'hex');
     const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
-    const decipher = crypto.createDecipheriv(Cypher.getConfiguration().algorithm, Buffer.from(key), iv);
+    const decipher = crypto.createDecipheriv(this.getAlgorithm(key), Buffer.from(key), iv);
     let decrypted = decipher.update(encryptedData);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();
