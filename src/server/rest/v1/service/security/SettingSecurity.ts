@@ -152,7 +152,7 @@ export default class SettingSecurity {
             optimizerUrl: sanitize(request.content.sapSmartCharging.optimizerUrl),
             user: sanitize(request.content.sapSmartCharging.user),
             password: sanitize(request.content.sapSmartCharging.password),
-            stickyLimitation: sanitize(request.content.sapSmartCharging.stickyLimitation),
+            stickyLimitation: UtilsSecurity.filterBoolean(request.content.sapSmartCharging.stickyLimitation),
             limitBufferDC: sanitize(request.content.sapSmartCharging.limitBufferDC),
             limitBufferAC: sanitize(request.content.sapSmartCharging.limitBufferAC),
           };
