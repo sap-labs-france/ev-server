@@ -171,7 +171,6 @@ export default class SettingService {
       }
       // Get Crypto Key for encryption
       const key = await Cypher.getCryptoKey(req.user.tenantID);
-
       // Process sensitive properties
       for (const property of settingUpdate.sensitiveData) {
         // Get the sensitive property from the request

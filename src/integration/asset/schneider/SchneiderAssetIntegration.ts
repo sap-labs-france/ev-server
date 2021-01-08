@@ -126,7 +126,6 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
   private async getCredentialURLParams(): Promise<URLSearchParams> {
     // Get Crypto Key for encryption
     const key = await Cypher.getCryptoKey(this.tenantID);
-
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.connection.user);

@@ -34,10 +34,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     super(tenantId, settings);
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
     this.settings.currency = settings.currency;
-
     // Get Crypto Key for encryption
     const key = Cypher.getCryptoKeySync();
-
     if (this.settings.secretKey) {
       this.settings.secretKey = Cypher.decrypt(settings.secretKey, key);
     }

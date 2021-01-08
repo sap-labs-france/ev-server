@@ -132,7 +132,6 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'settings', [
       { fields: { identifier: 1 }, options: { unique: true } }
     ]);
-
     await this.handleIndexesInCollection(tenantID, 'connections', [
       { fields: { connectorId: 1, userId: 1 }, options: { unique: true } }
     ]);
@@ -157,7 +156,6 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'chargingstations', [
       { fields: { coordinates: '2dsphere' } },
     ]);
-
     // Sensitive Data Migration
     await this.handleIndexesInCollection(tenantID, 'sensitivedatamigrations', [
       { fields: { timestamp: 1 } },
@@ -165,10 +163,8 @@ export default class MongoDBStorage {
       { fields: { version: 1 } },
       { fields: { durationSecs: 1 } }
     ]);
-
     // Migrate Crypto Key from config file
     await Cypher.migrateCryptoKey(tenantID);
-
     Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
@@ -283,7 +279,6 @@ export default class MongoDBStorage {
     // Locks
     await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'locks', [
     ]);
-
     // Get all the collections
     const collections = await this.db.listCollections().toArray();
     for (const collection of collections) {

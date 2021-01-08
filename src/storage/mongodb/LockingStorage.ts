@@ -1,4 +1,3 @@
-import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Lock from '../../types/Locking';

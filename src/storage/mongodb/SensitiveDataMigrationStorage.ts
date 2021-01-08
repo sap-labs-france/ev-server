@@ -24,9 +24,7 @@ export default class SensitiveDataMigrationStorage {
   public static async saveSensitiveData(tenantID: string, migrationToSave: SettingSensitiveData): Promise<string> {
     // Get migration if exists
     const migration = await this.getSensitiveDataMigration(tenantID);
-
     let migrationMDB: any;
-
     // Check if migration is provided
     if (!migrationToSave) {
       throw new BackendError({
@@ -36,7 +34,6 @@ export default class SensitiveDataMigrationStorage {
         message: 'Migration not provided'
       });
     }
-
     if (migration) {
       // Add new setting migration to current migration
       migration.settingSensitiveData.push(migrationToSave);
@@ -60,28 +57,23 @@ export default class SensitiveDataMigrationStorage {
       // If create new migration, save migrationId in Settings
       await Cypher.saveMigrationId(tenantID, this.migrationId.toHexString());
     }
-
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
-
     // Save document
     await global.database.getCollection<any>(tenantID, 'sensitivedatamigrations').findOneAndUpdate(
       { _id: migrationMDB._id },
       { $set: migrationMDB },
       { upsert: true, returnOriginal: false });
-
     return migrationMDB._id.toHexString();
   }
 
   public static async getSensitiveDataMigration(tenantID: string): Promise<SensitiveDataMigrationState> {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
-
     // Get document
     const sensitiveDataMigrationState = await global.database.getCollection<SensitiveDataMigrationState>(tenantID, 'sensitivedatamigrations').findOne({
       _id: this.migrationId
     });
-
     return sensitiveDataMigrationState;
   }
 }

@@ -314,18 +314,15 @@ export default class SettingStorage {
         crypto: cryptoSettingToSave.crypto
       },
     } as SettingDB;
-
     // Save
     await this.saveSettings(tenantID, settingsToSave);
   }
 
   public static async getCryptoSettings(tenantID: string): Promise<KeySettings> {
-
     // Get the Crypto Key settings
     const settings = await SettingStorage.getSettings(tenantID,
       { identifier: TenantComponents.CRYPTO },
       Constants.DB_PARAMS_MAX_LIMIT);
-
     if (settings.count > 0) {
       const cryptoSetting = {
         formerKey: settings.result[0].content.crypto.formerKey,
@@ -445,7 +442,6 @@ export default class SettingStorage {
         key: Utils.generateKey()
       }
     } as KeySettings;
-
     // Save Crypto Key Settings
     await this.saveCryptoSettings(tenantID, keySettingToSave);
   }

@@ -44,10 +44,8 @@ export default class Cypher {
       keySize: Configuration.getCryptoConfig().keySize,
       operationMode: Configuration.getCryptoConfig().operationMode
     };
-
     // Crypto Key Setting from db
     const keySettings = await SettingStorage.getCryptoSettings(tenantID);
-
     // If no Crypto Key Setting exist, initialize them with Crypto Key from config file
     if (!keySettings) {
       // Create New Crypto Key in Tenant Settings
@@ -118,14 +116,12 @@ export default class Cypher {
     await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
   }
 
-  public static getSensitiveDatainSetting(setting: SettingDB): string[] {
-
+  public static getSensitiveDataInSetting(setting: SettingDB): string[] {
     const allSensitiveData: string[] = [];
     for (const property of setting.sensitiveData) {
       // Check that the property does exist otherwise skip to the next property
       if (_.has(setting, property)) {
         const value:string = _.get(setting, property);
-
         // If the value is undefined, null or empty then do nothing and skip to the next property
         if (value && value.length > 0) {
           allSensitiveData[`${property}`] = value;
@@ -133,11 +129,10 @@ export default class Cypher {
       }
     }
     return allSensitiveData;
-
   }
 
-  public static prepareSaveSensitiveDataMigration(setting: SettingDB,
-    valueBeforeDecrypt: string[], valueAfterDecrypt: string[], valueAfterEncrypt: string[]): SettingSensitiveData {
+  public static prepareSaveSensitiveDataMigration(setting: SettingDB, valueBeforeDecrypt: string[],
+    valueAfterDecrypt: string[], valueAfterEncrypt: string[]): SettingSensitiveData {
     const allSensitiveData: SensitiveData[] = [];
     for (const property of setting.sensitiveData) {
       const sensitiveData = {
@@ -155,7 +150,6 @@ export default class Cypher {
       } as SensitiveData;
       allSensitiveData.push(sensitiveData);
     }
-
     return {
       id: setting.id,
       identifier: setting.identifier,
@@ -166,19 +160,17 @@ export default class Cypher {
 
   public static async migrateSensitiveData(tenantID: string, setting: SettingDB): Promise<void> {
     // Get sensitive data encrypted with former key
-    const valueBeforeDecrypt = this.getSensitiveDatainSetting(setting);
+    const valueBeforeDecrypt = this.getSensitiveDataInSetting(setting);
     // Decrypt sensitive data with former key
     this.decryptSensitiveDataInJSON(setting, this.cryptoSetting.formerKey);
     // Get sensitive data in clear format
-    const valueAfterDecrypt = this.getSensitiveDatainSetting(setting);
+    const valueAfterDecrypt = this.getSensitiveDataInSetting(setting);
     // Encrypt sensitive data with new key
     this.encryptSensitiveDataInJSON(setting, this.cryptoSetting.key);
     // Get sensitive data encrypted with new key
-    const valueAfterEncrypt = this.getSensitiveDatainSetting(setting);
-
+    const valueAfterEncrypt = this.getSensitiveDataInSetting(setting);
     // Save setting with sensitive data encrypted with new key
     await SettingStorage.saveSettings(tenantID, setting);
-
     // Prepare sensitive data migration
     const settingSensitiveData = this.prepareSaveSensitiveDataMigration(setting, valueBeforeDecrypt, valueAfterDecrypt, valueAfterEncrypt);
     // Save sensitive data migration of setting
