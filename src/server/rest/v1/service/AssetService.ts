@@ -75,7 +75,7 @@ export default class AssetService {
       assetID: filteredRequest.AssetID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
-    }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps' ]);
+    }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt' ]);
     // Assign
     asset.values = consumptions;
     // Return
@@ -387,6 +387,8 @@ export default class AssetService {
       name: filteredRequest.name,
       siteAreaID: filteredRequest.siteAreaID,
       assetType: filteredRequest.assetType,
+      fluctuation: filteredRequest.fluctuation,
+      fallbackValue: filteredRequest.fallbackValue,
       coordinates: filteredRequest.coordinates,
       image: filteredRequest.image,
       dynamicAsset: filteredRequest.dynamicAsset,
@@ -444,6 +446,8 @@ export default class AssetService {
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
     asset.assetType = filteredRequest.assetType;
+    asset.fluctuation = filteredRequest.fluctuation;
+    asset.fallbackValue = filteredRequest.fallbackValue;
     asset.coordinates = filteredRequest.coordinates;
     asset.image = filteredRequest.image;
     asset.dynamicAsset = filteredRequest.dynamicAsset;
