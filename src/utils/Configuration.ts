@@ -113,13 +113,13 @@ export default class Configuration {
 
   public static getCFInstanceIndex(): string {
     if (Configuration.isCloudFoundry()) {
-      return _appEnv.app.instance_index;
+      return _appEnv.app['instance_index'];
     }
   }
 
   public static getCFApplicationID(): string {
     if (Configuration.isCloudFoundry()) {
-      return _appEnv.app.application_id;
+      return _appEnv.app['application_id'];
     }
   }
 
@@ -230,9 +230,9 @@ export default class Configuration {
     if (storage && Configuration.isCloudFoundry()) {
       // CF Environment: Override
       // Check if MongoDB is provisioned inside SCP
-      if (_appEnv.services.mongodb) {
+      if (_appEnv.services['mongodb']) {
         // Only one DB
-        const mongoDBService = _appEnv.services.mongodb[0];
+        const mongoDBService = _appEnv.services['mongodb'][0];
         // Set MongoDB URI
         if (mongoDBService) {
           storage.uri = mongoDBService.credentials.uri;
@@ -365,7 +365,7 @@ export default class Configuration {
   // Read the config file
   private static getConfig(): ConfigurationData {
     if (!this.config) {
-      this.config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8'));
+      this.config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
     }
     return this.config;
   }

@@ -225,6 +225,11 @@ export default class Utils {
     return typeof obj === 'undefined';
   }
 
+  static isNullOrUndefined(obj: any): boolean {
+    // eslint-disable-next-line no-eq-null, eqeqeq
+    return obj == null;
+  }
+
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,
@@ -912,16 +917,42 @@ export default class Utils {
     const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
     switch (ocppProtocol) {
       case OCPPProtocol.JSON:
-        ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
-        if (token) {
-          ocppUrl += `/${token}`;
+        if (Configuration.getJsonEndpointConfig().baseUrl) {
+          ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
+          if (token) {
+            ocppUrl += `/${token}`;
+          }
         }
         return ocppUrl;
       case OCPPProtocol.SOAP:
-      default:
-        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
-        if (token) {
-          ocppUrl += `%26Token=${token}`;
+        if (Configuration.getWSDLEndpointConfig()?.baseUrl) {
+          ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
+          if (token) {
+            ocppUrl += `%26Token=${token}`;
+          }
+        }
+        return ocppUrl;
+    }
+  }
+
+  public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
+    let ocppUrl: string;
+    const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
+    switch (ocppProtocol) {
+      case OCPPProtocol.JSON:
+        if (Configuration.getJsonEndpointConfig().baseSecureUrl) {
+          ocppUrl = `${Configuration.getJsonEndpointConfig().baseSecureUrl}/OCPP16/${tenantID}`;
+          if (token) {
+            ocppUrl += `/${token}`;
+          }
+        }
+        return ocppUrl;
+      case OCPPProtocol.SOAP:
+        if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl) {
+          ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${version}?TenantID=${tenantID}`;
+          if (token) {
+            ocppUrl += `%26Token=${token}`;
+          }
         }
         return ocppUrl;
     }
