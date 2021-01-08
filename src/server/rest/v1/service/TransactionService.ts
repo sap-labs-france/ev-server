@@ -938,10 +938,9 @@ export default class TransactionService {
     // Delete All Transactions
     result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
     // Log
-    // Log
     Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,
-      MODULE_NAME, 'synchronizeCarCatalogs', result,
+      MODULE_NAME, 'deleteTransactions', result,
       '{{inSuccess}} transaction(s) were successfully deleted',
       '{{inError}} transaction(s) failed to be deleted',
       '{{inSuccess}} transaction(s) were successfully deleted and {{inError}} failed to be deleted',
