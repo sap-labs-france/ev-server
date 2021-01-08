@@ -115,7 +115,7 @@ export default class LockingManager {
       key: key.toLowerCase(),
       type: type,
       timestamp: new Date(),
-      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
+      hostname: Utils.getHostname()
     };
   }
 }

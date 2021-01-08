@@ -125,11 +125,11 @@ export default class Bootstrap {
         // Init the Scheduler
         // -------------------------------------------------------------------------
         SchedulerManager.init();
-      }
 
-      // Delete acquired database locks during sensitiveData migration
-      // Locks remain in storage if server crashes, but migration needs to be resumed
-      await LockingStorage.deleteLockByKey('migrate-sensitive-data');
+        // Delete acquired database locks during sensitiveData migration
+        // Locks remain in storage if server crashes, but migration needs to be resumed
+        await LockingStorage.deleteLockByKey('migrate-sensitive-data');
+      }
 
     } catch (error) {
       // Log

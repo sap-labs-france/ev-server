@@ -1,3 +1,4 @@
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Lock from '../../types/Locking';
@@ -59,9 +60,13 @@ export default class LockingStorage {
   public static async deleteLockByKey(key: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, `deleteLocks ${key}`);
+    const hostname = Utils.getHostname();
     // Delete
     const { deletedCount } = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .deleteMany({ 'key': key });
+      .deleteMany({
+        'key': key,
+        'hostname': hostname
+      });
     // Debug
     Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, `deleteLocks ${key}: ${deletedCount}`, uniqueTimerID);
   }
