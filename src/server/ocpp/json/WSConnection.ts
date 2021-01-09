@@ -10,6 +10,7 @@ import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
+import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
@@ -59,16 +60,16 @@ export default abstract class WSConnection {
       // Remove '/'
       this.url = this.url.substring(1, this.url.length);
     }
-    // Parse URL: should be like /OCPP16/TENANTID/TOKEN/CHARGEBOXID
-    // We support previous format for existing charging station without token /OCPP16/TENANTID/CHARGEBOXID
+    // Parse URL: should be like /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
+    // We support previous format for existing charging station without token /OCPPxx/TENANTID/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
     if (splittedURL.length === 4) {
-      // URL /OCPP16/TENANTID/TOKEN/CHARGEBOXID
+      // URL /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
       this.tenantID = splittedURL[1];
       this.token = splittedURL[2];
       this.chargingStationID = splittedURL[3];
     } else if (splittedURL.length === 3) {
-      // URL /OCPP16/TENANTID/CHARGEBOXID
+      // URL /OCPPxx/TENANTID/CHARGEBOXID
       this.tenantID = splittedURL[1];
       this.chargingStationID = splittedURL[2];
     } else {
@@ -84,7 +85,7 @@ export default abstract class WSConnection {
     if (req.url.startsWith('/REST')) {
       logMsg = `REST service connection attempts to Charging Station with URL: '${req.url}'`;
       action = ServerAction.WS_REST_CONNECTION_OPENED;
-    } else if (req.url.startsWith('/OCPP16')) {
+    } else if (req.url.startsWith(`/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`)) {
       logMsg = `Charging Station connection attempts with URL: '${req.url}'`;
       action = ServerAction.WS_JSON_CONNECTION_OPENED;
     }
