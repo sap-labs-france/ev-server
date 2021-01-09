@@ -966,7 +966,7 @@ export default class TransactionService {
         projectFields = [
           ...projectFields,
           'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email'
+          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
         ];
       }
     }
