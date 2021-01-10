@@ -211,7 +211,7 @@ export default class Configuration {
     Configuration.deprecateConfigurationKey('admins', 'Email');
     Configuration.deprecateConfigurationKey('bcc', 'Email');
     if (Configuration.isUndefined(Configuration.getConfig().Email.disableBackup)) {
-      Configuration.getConfig().Email.disableBackup = true;
+      Configuration.getConfig().Email.disableBackup = false;
     }
     // Read conf
     return Configuration.getConfig().Email;

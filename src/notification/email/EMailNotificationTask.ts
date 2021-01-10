@@ -88,7 +88,6 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendSmtpError(data: SmtpErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    console.log(data);
     return this.prepareAndSendEmail('smtp-error', data, user, tenant, severity, true);
   }
 
@@ -139,7 +138,7 @@ export default class EMailNotificationTask implements NotificationTask {
   private async sendEmail(email: EmailNotificationMessage, data, tenant: Tenant, user: User, severity: NotificationSeverity, useBackup = false): Promise<void> {
     // Create the message
     const messageToSend = new Message({
-      from: useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
+      from: !this.emailConfig.disableBackup && this.emailConfigHasBackup && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
       to: email.to,
       cc: email.cc,
       bcc: email.bccNeeded && email.bcc ? email.bcc : '',
@@ -221,17 +220,24 @@ export default class EMailNotificationTask implements NotificationTask {
       // eslint-disable-next-line no-empty
       } catch (err) { }
       if (error instanceof SMTPError) {
+        const err: SMTPError = error;
         // Notify on SMTP error
-        // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
-        await NotificationHandler.sendSmtpError(
-          tenant.id,
-          {
-            SMTPError: error,
-            evseDashboardURL: data.evseDashboardURL
-          }
-        );
-        if (!this.emailConfig.disableBackup && this.emailConfigHasBackup && !useBackup) {
-          await this.sendEmail(email, data, tenant, user, severity, true);
+        switch (err.smtp) {
+          case 510:
+          case 511:
+            break;
+          default:
+            // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
+            await NotificationHandler.sendSmtpError(
+              tenant.id,
+              {
+                SMTPError: err,
+                evseDashboardURL: data.evseDashboardURL
+              }
+            );
+            if (!this.emailConfig.disableBackup && this.emailConfigHasBackup && !useBackup) {
+              await this.sendEmail(email, data, tenant, user, severity, true);
+            }
         }
       }
     }
