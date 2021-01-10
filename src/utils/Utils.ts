@@ -198,7 +198,7 @@ export default class Utils {
     return uuid();
   }
 
-  static generateTagID(name: string, firstName: string): string {
+  public static generateTagID(name: string, firstName: string): string {
     let tagID = '';
     if (name && name.length > 0) {
       tagID = name[0].toUpperCase();
@@ -225,7 +225,7 @@ export default class Utils {
     return typeof obj === 'undefined';
   }
 
-  static isNullOrUndefined(obj: any): boolean {
+  public static isNullOrUndefined(obj: any): boolean {
     // eslint-disable-next-line no-eq-null, eqeqeq
     return obj == null;
   }
