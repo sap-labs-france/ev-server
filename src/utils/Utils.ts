@@ -915,7 +915,7 @@ export default class Utils {
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
     let ocppUrl: string;
     if (Configuration.getJsonEndpointConfig().baseUrl && ocppProtocol === OCPPProtocol.JSON) {
-      ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}${tenantID}`;
+      ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
       if (token) {
         ocppUrl += `/${token}`;
       }
