@@ -118,7 +118,7 @@ export default class CpoOICPClient extends OICPClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OICP_PUSH_SESSIONS,
-      message: 'Push session update to Hubject',
+      message: 'OICP Session update',
       module: MODULE_NAME, method: 'updateSession',
       detailedMessages: { payload: sessionUpdate }
     });
@@ -526,12 +526,16 @@ export default class CpoOICPClient extends OICPClient {
       pushEvseDataResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
       console.log('Error! pushEvseData: ',error.message); // Will be removed
+      pushEvseDataResponse = error.response?.data as OICPAcknowledgment;
       Logging.logError({
         tenantID: this.tenant.id,
         action:  ServerAction.OICP_PUSH_EVSE_DATA,
         message: `'pushEvseData' Request Error: '${String(error.message)}'`,
         module: MODULE_NAME, method: 'pushEvseData',
-        detailedMessages: { error: error.stack }
+        detailedMessages: {
+          response: pushEvseDataResponse,
+          error: error.stack
+        }
       });
     });
     if (pushEvseDataResponse?.Result === false) {
@@ -588,12 +592,16 @@ export default class CpoOICPClient extends OICPClient {
       pushEvseStatusResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
       console.log('Error! pushEvseStatus: ', error.response); // Will be removed
+      pushEvseStatusResponse = error.response?.data as OICPAcknowledgment;
       Logging.logError({
         tenantID: this.tenant.id,
         action:  ServerAction.OICP_PUSH_EVSE_STATUSES,
         message: `'pushEvseStatus' Request Error: '${String(error.message)}'`,
         module: MODULE_NAME, method: 'pushEvseStatus',
-        detailedMessages: { error: error.stack }
+        detailedMessages: {
+          response: pushEvseStatusResponse,
+          error: error.stack
+        }
       });
     });
     if (pushEvseStatusResponse?.Result === false) {
@@ -654,11 +662,16 @@ export default class CpoOICPClient extends OICPClient {
       authorizeResponse = response.data as OICPAuthorizeStartCpoReceive;
     }).catch((error) => {
       console.log('Error! authorizeStart: ', error.response); // Will be removed
+      authorizeResponse = error.response?.data as OICPAuthorizeStartCpoReceive;
       throw new BackendError({
         user: user,
         action: ServerAction.OICP_AUTHORIZE_START,
         module: MODULE_NAME, method: 'authorizeStart',
-        message: `User '${user.id}' cannot ${TransactionAction.START} Transaction thought OICP protocol due to the Error '${String(error.message)}'`
+        message: `User '${user.id}' cannot ${TransactionAction.START} Transaction thought OICP protocol due to the Error '${String(error.message)}'`,
+        detailedMessages: {
+          response: authorizeResponse,
+          error: error.stack
+        }
       });
     });
     Logging.logDebug({
@@ -666,7 +679,7 @@ export default class CpoOICPClient extends OICPClient {
       action: ServerAction.OICP_AUTHORIZE_START,
       message: `'authorizeStart': '${authorizeResponse.StatusCode.AdditionalInfo}'`,
       module: MODULE_NAME, method: 'authorizeStart',
-      detailedMessages: { error: authorizeResponse }
+      detailedMessages: { response: authorizeResponse }
     });
     if (authorizeResponse.AuthorizationStatus === OICPAuthorizationStatus.NotAuthorized) {
       throw new BackendError({
@@ -682,7 +695,7 @@ export default class CpoOICPClient extends OICPClient {
       action: ServerAction.OICP_AUTHORIZE_START,
       message: `User '${user.id}' with Authorization '${tagID}' authorized thought OICP protocol`,
       module: MODULE_NAME, method: 'authorizeStart',
-      detailedMessages: { payload }
+      detailedMessages: { authorizeResponse }
     });
 
     return authorizeResponse;
@@ -731,11 +744,16 @@ export default class CpoOICPClient extends OICPClient {
       console.log('Success! authorizeStop: ', response); // Will be removed
       authorizeResponse = response.data as OICPAuthorizeStopCpoReceive;
     }).catch((error) => {
-      console.log('Error! authorizeStop: ', error); // Will be removed
+      console.log('Error! authorizeStop: ', error.response); // Will be removed
+      authorizeResponse = error.response?.data as OICPAuthorizeStopCpoReceive;
       throw new BackendError({
         action: ServerAction.OICP_AUTHORIZE_STOP,
         module: MODULE_NAME, method: 'authorizeStop',
-        message: `'authorizeStop' Request Error: '${String(error.message)}'`
+        message: `'authorizeStop' Request Error: '${String(error.message)}' '${String(error.response?.data)}'`,
+        detailedMessages: {
+          response: authorizeResponse,
+          error: error.stack
+        }
       });
     });
     Logging.logDebug({
@@ -743,7 +761,7 @@ export default class CpoOICPClient extends OICPClient {
       action: ServerAction.OICP_AUTHORIZE_STOP,
       message: `'authorizeStop': '${authorizeResponse.StatusCode.AdditionalInfo}'`,
       module: MODULE_NAME, method: 'authorizeStop',
-      detailedMessages: { error: authorizeResponse }
+      detailedMessages: { response: authorizeResponse }
     });
     return authorizeResponse;
   }
@@ -820,13 +838,17 @@ export default class CpoOICPClient extends OICPClient {
       console.log('Success! pushCdr: ', response); // Will be removed
       pushCdrResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
-      console.log('Error! pushCdr: ', error.response); // Will be removed
+      console.log('Error! pushCdr: ', error); // Will be removed
+      pushCdrResponse = error.response?.data as OICPAcknowledgment;
       Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_CDRS,
         message: `'pushCdr' Request Error: '${String(error.message)}'`,
         module: MODULE_NAME, method: 'pushCdr',
-        detailedMessages: { error: error.stack }
+        detailedMessages: {
+          response: pushCdrResponse,
+          error: error.stack
+        }
       });
     });
 
@@ -886,10 +908,15 @@ export default class CpoOICPClient extends OICPClient {
       pushEvsePricingResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
       console.log('Error! pushEvsePricing: ', error.response); // Will be removed
+      pushEvsePricingResponse = error.response?.data as OICPAcknowledgment;
       throw new BackendError({
         action: ServerAction.OICP_PUSH_EVSE_PRICING,
         module: MODULE_NAME, method: 'pushEvsePricing',
-        message: `'pushEvsePricing' Request Error: '${String(error.message)}'`
+        message: `'pushEvsePricing' Request Error: '${String(error.message)}'`,
+        detailedMessages: {
+          response: pushEvsePricingResponse,
+          error: error.stack
+        }
       });
     });
     if (pushEvsePricingResponse?.Result === false) {
@@ -941,10 +968,15 @@ export default class CpoOICPClient extends OICPClient {
       pushPricingProductDataResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
       console.log('Error! pushPricingProductData: ', error.response); // Will be removed
+      pushPricingProductDataResponse = error.response?.data as OICPAcknowledgment;
       throw new BackendError({
         action: ServerAction.OICP_PUSH_PRICING_PRODUCT_DATA,
         module: MODULE_NAME, method: 'pushPricingProductData',
-        message: `'pushPricingProductData' Request Error: '${String(error.message)}'`
+        message: `'pushPricingProductData' Request Error: '${String(error.message)}'`,
+        detailedMessages: {
+          response: pushPricingProductDataResponse,
+          error: error.stack
+        }
       });
     });
     if (pushPricingProductDataResponse?.Result === false) {
@@ -1017,10 +1049,16 @@ export default class CpoOICPClient extends OICPClient {
       notificationStartResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
       console.log('Error! sendChargingNotificationStart: ', error.response); // Will be removed
-      throw new BackendError({
+      notificationStartResponse = error.response?.data as OICPAcknowledgment;
+      Logging.logError({
+        tenantID: this.tenant.id,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
+        message: `'sendChargingNotificationStart' Request Error: '${String(error.message)}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationStart',
-        message: `'sendChargingNotificationStart' Request Error: '${String(error.message)}'`
+        detailedMessages: {
+          response: notificationStartResponse,
+          error: error.stack
+        }
       });
     });
     if (notificationStartResponse?.Result === false) {
@@ -1097,10 +1135,16 @@ export default class CpoOICPClient extends OICPClient {
         notificationProgressResponse = response.data as OICPAcknowledgment;
       }).catch((error) => {
         console.log('Error! sendChargingNotificationProgress: ', error.response); // Will be removed
-        throw new BackendError({
+        notificationProgressResponse = error.response?.data as OICPAcknowledgment;
+        Logging.logError({
+          tenantID: this.tenant.id,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
+          message: `'sendChargingNotificationProgress' Request Error: '${String(error.message)}'`,
           module: MODULE_NAME, method: 'sendChargingNotificationProgress',
-          message: `'sendChargingNotificationProgress' Request Error: '${String(error.message)}'`
+          detailedMessages: {
+            response: notificationProgressResponse,
+            error: error.stack
+          }
         });
       });
       transaction.oicpData.session.last_progress_notification = new Date();
@@ -1189,10 +1233,16 @@ export default class CpoOICPClient extends OICPClient {
       notificationEndResponse = response.data as OICPAcknowledgment;
     }).catch((error) => {
       console.log('Error! sendChargingNotificationEnd: ', error.response); // Will be removed
-      throw new BackendError({
+      notificationEndResponse = error.response?.data as OICPAcknowledgment;
+      Logging.logError({
+        tenantID: this.tenant.id,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
+        message: `'sendChargingNotificationEnd' Request Error: '${String(error.message)}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
-        message: `'sendChargingNotificationEnd' Request Error: '${String(error.message)}'`
+        detailedMessages: {
+          response: notificationEndResponse,
+          error: error.stack
+        }
       });
     });
     if (notificationEndResponse?.Result === false) {
@@ -1262,10 +1312,16 @@ export default class CpoOICPClient extends OICPClient {
       notificationErrorResponse = response.data as OICPAcknowledgment;
     }).catch((errors) => {
       console.log('Error! sendChargingNotificationError: ', errors.response); // Will be removed
-      throw new BackendError({
+      notificationErrorResponse = errors.response?.data as OICPAcknowledgment;
+      Logging.logError({
+        tenantID: this.tenant.id,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
+        message: `'sendChargingNotificationError' Request Error: '${String(errors.message)}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationError',
-        message: `'sendChargingNotificationError' Request Error: '${String(errors.message)}'`
+        detailedMessages: {
+          response: notificationErrorResponse,
+          error: errors.stack
+        }
       });
     });
     if (notificationErrorResponse?.Result === false) {
@@ -1354,6 +1410,7 @@ export default class CpoOICPClient extends OICPClient {
   }
 
   private checkProgressUpdateInterval(transaction: Transaction): boolean {
+    // Hubject restriction: "Progress Notification can be sent only at interval of at least 300 seconds." (5 Minutes)
     let lastProgressUpdate = 0;
     if (transaction.oicpData.session.last_progress_notification) {
       const currentTime = new Date().getTime();
@@ -1361,7 +1418,6 @@ export default class CpoOICPClient extends OICPClient {
       lastProgressUpdate = ((currentTime - lastProgressUpdateTime) / 1000); // Difference in seconds
     }
     // Console.log(`last OICP Progress Update:  ${lastProgressUpdate} seconds ago (max interval = ${Constants.OICP_PROGRESS_NOTIFICATION_MAX_INTERVAL}s)`); // Will be removed
-    // Hubject restriction: "Progress Notification can be sent only at interval of at least 300 seconds." (5 Minutes)
     if (lastProgressUpdate >= Constants.OICP_PROGRESS_NOTIFICATION_MAX_INTERVAL || lastProgressUpdate === 0) {
       return true;
     }

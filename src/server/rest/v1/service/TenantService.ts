@@ -13,6 +13,8 @@ import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
+import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
+import { OICPRole } from '../../../../types/oicp/OICPRole';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -386,6 +388,16 @@ export default class TenantService {
       } else if (virtualOICPUser && virtualOICPUser?.status === UserStatus.ACTIVE) {
         // Deactivate user and save user status
         await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.INACTIVE);
+      }
+
+      if (!checkOICPComponent.active) {
+      // Delete Endpoints if component is inactive
+        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        oicpEndpoints.result.forEach(async (oicpEndpoint) => {
+          // Delete
+          await OICPEndpointStorage.deleteOicpEndpoint(tenant.id, oicpEndpoint.id);
+        });
       }
     }
   }

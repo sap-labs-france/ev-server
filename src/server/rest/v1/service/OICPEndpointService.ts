@@ -373,7 +373,7 @@ export default class OICPEndpointService {
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getOicpClient(tenant, oicpEndpoint);
-    // Try to register
+    // Try to unregister
     const result = await oicpClient.unregister();
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
