@@ -1,3 +1,6 @@
+import { AppEnv, getAppEnv } from 'cfenv';
+import { CloudCredentials, CloudCredentialsKey } from '../types/Cloud';
+
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AxiosConfiguration from '../types/configuration/AxiosConfiguration';
 import CentralSystemConfiguration from '../types/configuration/CentralSystemConfiguration';
@@ -25,22 +28,24 @@ import SchedulerConfiguration from '../types/configuration/SchedulerConfiguratio
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
 import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
-import cfenv from 'cfenv';
 import fs from 'fs';
 import global from './../types/GlobalType';
 import os from 'os';
 
-const _appEnv = cfenv.getAppEnv();
-
 export default class Configuration {
   private static config: ConfigurationData;
+  private static appEnv: AppEnv;
 
   private constructor() {}
 
   // Crypto config
   public static getCryptoConfig(): CryptoConfiguration {
     // Read conf
-    return Configuration.getConfig().Crypto;
+    const cryptoConfig = Configuration.getConfig().Crypto;
+    if (Configuration.isCloudFoundry()) {
+      cryptoConfig.key = Configuration.getUserProvidedCredential(CloudCredentialsKey.CRYPTO_KEY);
+    }
+    return cryptoConfig;
   }
 
   // Scheduler config
@@ -52,18 +57,23 @@ export default class Configuration {
   // Firebase config
   public static getFirebaseConfig(): FirebaseConfiguration {
     // Read conf
-    return Configuration.getConfig().Firebase;
+    const firebaseConfig = Configuration.getConfig().Firebase;
+    if (Configuration.isCloudFoundry()) {
+      firebaseConfig.privateKeyID = Configuration.getUserProvidedCredential(CloudCredentialsKey.FIREBASE_PRIVATE_KEY_ID);
+      firebaseConfig.privateKey = Configuration.getUserProvidedCredential(CloudCredentialsKey.FIREBASE_PRIVATE_KEY);
+    }
+    return firebaseConfig;
   }
 
   // Cluster config
   public static getClusterConfig(): ClusterConfiguration {
+    // Read conf and set defaults values
     let clusterConfig: ClusterConfiguration = Configuration.getConfig().Cluster;
     const nbCpus = os.cpus().length;
-    // Read conf and set defaults values
-    if (!clusterConfig) {
+    if (Configuration.isUndefined(clusterConfig)) {
       clusterConfig = {} as ClusterConfiguration;
     }
-    if (!clusterConfig.enabled) {
+    if (Configuration.isUndefined(clusterConfig.enabled)) {
       clusterConfig.enabled = false;
     }
     // Check number of workers
@@ -81,17 +91,17 @@ export default class Configuration {
 
   // Central System config
   public static getCentralSystemsConfig(): CentralSystemConfiguration[] {
+    // Read conf
     const centralSystems = Configuration.getConfig().CentralSystems;
     // Check Cloud Foundry
-    if (centralSystems && Configuration.isCloudFoundry()) {
+    if (!Configuration.isUndefined(centralSystems) && Configuration.isCloudFoundry()) {
       // Change host/port
       for (const centralSystem of centralSystems) {
         // CF Environment: Override
-        centralSystem.port = _appEnv.port;
-        centralSystem.host = _appEnv.bind;
+        centralSystem.port = Configuration.getAppEnv().port;
+        centralSystem.host = Configuration.getAppEnv().bind;
       }
     }
-    // Read conf
     return centralSystems;
   }
 
@@ -108,18 +118,18 @@ export default class Configuration {
   }
 
   public static isCloudFoundry(): boolean {
-    return !_appEnv.isLocal;
+    return !Configuration.getAppEnv().isLocal;
   }
 
   public static getCFInstanceIndex(): string {
     if (Configuration.isCloudFoundry()) {
-      return _appEnv.app['instance_index'];
+      return Configuration.getAppEnv().app['instance_index'];
     }
   }
 
   public static getCFApplicationID(): string {
     if (Configuration.isCloudFoundry()) {
-      return _appEnv.app['application_id'];
+      return Configuration.getAppEnv().app['application_id'];
     }
   }
 
@@ -131,13 +141,16 @@ export default class Configuration {
 
   // Central System REST config
   public static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
+    // Read conf
     const centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
     // Check Cloud Foundry
-    if (centralSystemRestService) {
+    if (!Configuration.isUndefined(centralSystemRestService)) {
       if (Configuration.isCloudFoundry()) {
         // CF Environment: Override
-        centralSystemRestService.port = _appEnv.port;
-        centralSystemRestService.host = _appEnv.bind;
+        centralSystemRestService.port = Configuration.getAppEnv().port;
+        centralSystemRestService.host = Configuration.getAppEnv().bind;
+        centralSystemRestService.userTokenKey = Configuration.getUserProvidedCredential(CloudCredentialsKey.USER_TOKEN_KEY);
+        centralSystemRestService.captchaSecretKey = Configuration.getUserProvidedCredential(CloudCredentialsKey.CAPTCHA_SECRET_KEY);
       }
       if (Configuration.isUndefined(centralSystemRestService.socketIO)) {
         centralSystemRestService.socketIO = true;
@@ -149,33 +162,32 @@ export default class Configuration {
         centralSystemRestService.socketIOListNotificationIntervalSecs = 5;
       }
     }
-    // Read conf
     return centralSystemRestService;
   }
 
   // OCPI Server Configuration
   public static getOCPIServiceConfig(): OCPIServiceConfiguration {
+    // Read conf
     const ocpiService = Configuration.getConfig().OCPIService;
     // Check Cloud Foundry
-    if (ocpiService && Configuration.isCloudFoundry()) {
+    if (!Configuration.isUndefined(ocpiService) && Configuration.isCloudFoundry()) {
       // CF Environment: Override
-      ocpiService.port = _appEnv.port;
-      ocpiService.host = _appEnv.bind;
+      ocpiService.port = Configuration.getAppEnv().port;
+      ocpiService.host = Configuration.getAppEnv().bind;
     }
-    // Read conf
     return ocpiService;
   }
 
   // OData Server Configuration
   public static getODataServiceConfig(): ODataServiceConfiguration {
+    // Read conf
     const oDataservice = Configuration.getConfig().ODataService;
     // Check Cloud Foundry
-    if (oDataservice && Configuration.isCloudFoundry()) {
+    if (!Configuration.isUndefined(oDataservice) && Configuration.isCloudFoundry()) {
       // CF Environment: Override
-      oDataservice.port = _appEnv.port;
-      oDataservice.host = _appEnv.bind;
+      oDataservice.port = Configuration.getAppEnv().port;
+      oDataservice.host = Configuration.getAppEnv().bind;
     }
-    // Read conf
     return oDataservice;
   }
 
@@ -208,46 +220,70 @@ export default class Configuration {
   // Email config
   public static getEmailConfig(): EmailConfiguration {
     // Read conf
-    return Configuration.getConfig().Email;
+    const emailConfig = Configuration.getConfig().Email;
+    if (!Configuration.isUndefined(emailConfig) && Configuration.isCloudFoundry()) {
+      if (!Configuration.isUndefined(emailConfig.smtp)) {
+        emailConfig.smtp.user = Configuration.getUserProvidedCredential(CloudCredentialsKey.SMTP_USERNAME);
+        emailConfig.smtp.password = Configuration.getUserProvidedCredential(CloudCredentialsKey.SMTP_PASSWORD);
+      }
+      if (!Configuration.isUndefined(emailConfig.smtpBackup)) {
+        emailConfig.smtpBackup.user = Configuration.getUserProvidedCredential(CloudCredentialsKey.SMTP_BACKUP_USERNAME);
+        emailConfig.smtpBackup.password = Configuration.getUserProvidedCredential(CloudCredentialsKey.SMTP_BACKUP_PASSWORD);
+      }
+    }
+    return emailConfig;
   }
 
   // Email config
   public static getEVDatabaseConfig(): EVDatabaseConfiguration {
     // Read conf
-    return Configuration.getConfig().EVDatabase;
+    const evDatabaseConfig = Configuration.getConfig().EVDatabase;
+    if (Configuration.isCloudFoundry()) {
+      evDatabaseConfig.key = Configuration.getUserProvidedCredential(CloudCredentialsKey.EV_DATABASE_KEY);
+    }
+    return evDatabaseConfig;
   }
 
   // DB config
   public static getStorageConfig(): StorageConfiguration {
-    const storage: StorageConfiguration = Configuration.getConfig().Storage;
+    // Read conf
+    let storageConfig: StorageConfiguration = Configuration.getConfig().Storage;
     // Check Cloud Foundry
-    if (storage && Configuration.isCloudFoundry()) {
+    if (Configuration.isCloudFoundry()) {
+      if (Configuration.isUndefined(storageConfig)) {
+        storageConfig = {} as StorageConfiguration;
+      }
+      if (Configuration.isUndefined(storageConfig.implementation)) {
+        storageConfig.implementation = 'mongodb';
+      }
+      if (Configuration.isUndefined(storageConfig.poolSize)) {
+        storageConfig.poolSize = 200;
+      }
       // CF Environment: Override
       // Check if MongoDB is provisioned inside SCP
-      if (_appEnv.services['mongodb']) {
-        // Only one DB
-        const mongoDBService = _appEnv.services['mongodb'][0];
+      if (Configuration.getAppEnv().getService(new RegExp(/^e-Mobility-db*/))) {
+        const mongoDBServiceCredentials = Configuration.getAppEnv().getServiceCreds(new RegExp(/^e-Mobility-db*/));
         // Set MongoDB URI
-        if (mongoDBService) {
-          storage.uri = mongoDBService.credentials.uri;
-          storage.port = mongoDBService.credentials.port;
-          storage.user = mongoDBService.credentials.username;
-          storage.password = mongoDBService.credentials.password;
-          storage.replicaSet = mongoDBService.credentials.replicaset;
+        if (mongoDBServiceCredentials) {
+          storageConfig.uri = mongoDBServiceCredentials['uri'];
+          storageConfig.port = mongoDBServiceCredentials['port'];
+          storageConfig.user = mongoDBServiceCredentials['username;'];
+          storageConfig.password = mongoDBServiceCredentials['password'];
+          storageConfig.replicaSet = mongoDBServiceCredentials['replicaset'];
         }
-        // Provisioned with User Provided Service
-      } else if (_appEnv.services['user-provided']) {
+      // Provisioned with User Provided Service
+      } else if (Configuration.getAppEnv().getService(new RegExp(/^mongodbatlas*/))) {
         // Find the service
-        const mongoDBService = _appEnv.services['user-provided'].find((userProvidedService) =>
-          userProvidedService.name && userProvidedService.name.includes('mongodb'));
+        const mongoDBServiceCredentials = Configuration.getAppEnv().getServiceCreds(new RegExp(/^mongodbatlas*/));
         // Set MongoDB URI
-        if (mongoDBService) {
-          storage.uri = mongoDBService.credentials.uri;
+        if (!Configuration.isUndefined(mongoDBServiceCredentials['uri'])) {
+          storageConfig.uri = mongoDBServiceCredentials['uri'];
+        } else {
+          console.error('Connection URI not found in MongoDB Atlas User Defined Service');
         }
       }
     }
-    // Read conf
-    return storage;
+    return storageConfig;
   }
 
   // Central System config
@@ -356,17 +392,38 @@ export default class Configuration {
     }
   }
 
-  // Read the config file
-  private static getConfig(): ConfigurationData {
-    if (!this.config) {
-      this.config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
+  private static getUserProvidedCredential(key: CloudCredentialsKey): string {
+    // Get the credentials
+    const credentials: CloudCredentials = Configuration.getAppEnv().getServiceCreds('emobility-credentials') as CloudCredentials;
+    if (!Configuration.isNullOrUndefined(credentials) && !Configuration.isUndefined(credentials[key])) {
+      return credentials[key];
     }
-    return this.config;
+    console.error(`Credentials or credential key ${key} not found or bound in CF 'emobility-credentials' User Provided Credentials Service`);
   }
 
-  // Declare a class private helper for undefined detection to avoid circular dependency with mocha and Utils helpers
+  // Read the config file
+  private static getConfig(): ConfigurationData {
+    if (!Configuration.config) {
+      Configuration.config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
+    }
+    return Configuration.config;
+  }
+
+  private static getAppEnv(): AppEnv {
+    if (!Configuration.appEnv) {
+      Configuration.appEnv = getAppEnv();
+    }
+    return Configuration.appEnv;
+  }
+
+  // Declare class private helpers for undefined or null detection to avoid circular dependency with mocha and Utils helpers
   private static isUndefined(obj: any): boolean {
     return typeof obj === 'undefined';
+  }
+
+  private static isNullOrUndefined(obj: any): boolean {
+    // eslint-disable-next-line no-eq-null, eqeqeq
+    return obj == null;
   }
 }
 
