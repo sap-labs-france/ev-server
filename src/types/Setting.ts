@@ -106,8 +106,8 @@ export interface OcpiIdentifier {
 export interface OicpIdentifier {
   countryCode: string;
   partyID: string;
-  clientCertificate?: string;
-  privateKey?: string;
+  key?: string;
+  cert?: string;
 }
 
 export interface OcpiBusinessDetails {

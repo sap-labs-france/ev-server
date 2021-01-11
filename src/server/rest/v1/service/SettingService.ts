@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
@@ -113,7 +114,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
+    const filteredRequest = await SettingSecurity.filterSettingCreateRequest(req.body);
     // Process the sensitive data if any
     Cypher.encryptSensitiveDataInJSON(filteredRequest);
     // Update timestamp
@@ -136,7 +137,7 @@ export default class SettingService {
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
+    const settingUpdate = await SettingSecurity.filterSettingUpdateRequest(req.body, req.user.tenantID);
     UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {

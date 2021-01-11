@@ -1,6 +1,8 @@
 import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, OicpBusinessDetails, OicpSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
+import Cypher from '../../../../../utils/Cypher';
+import SettingStorage from '../../../../../storage/mongodb/SettingStorage';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -27,17 +29,17 @@ export default class SettingSecurity {
     return filteredRequest;
   }
 
-  public static filterSettingUpdateRequest(request: any): Partial<SettingDB> {
-    const filteredRequest = SettingSecurity._filterSettingRequest(request);
+  public static async filterSettingUpdateRequest(request: any, tenantID?: string): Promise<Partial<SettingDB>> {
+    const filteredRequest = await SettingSecurity._filterSettingRequest(request, tenantID);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  public static filterSettingCreateRequest(request: any): Partial<SettingDB> {
-    return SettingSecurity._filterSettingRequest(request);
+  public static async filterSettingCreateRequest(request: any): Promise<Partial<SettingDB>> {
+    return await SettingSecurity._filterSettingRequest(request);
   }
 
-  public static _filterSettingRequest(request: Partial<SettingDB>): Partial<SettingDB> {
+  public static async _filterSettingRequest(request: Partial<SettingDB>, tenantID?: string): Promise<Partial<SettingDB>> {
     const settings: SettingDB = {
       identifier: sanitize(request.identifier),
       sensitiveData: request.sensitiveData ? request.sensitiveData.map(sanitize) : []
@@ -120,8 +122,22 @@ export default class SettingSecurity {
           if (request.content.oicp.cpo) {
             settings.content.oicp.cpo = {
               countryCode: sanitize(request.content.oicp.cpo.countryCode),
-              partyID: sanitize(request.content.oicp.cpo.partyID)
+              partyID: sanitize(request.content.oicp.cpo.partyID),
+              key: '',
+              cert:'',
             };
+            const oicpSettings = await SettingStorage.getOICPSettings(tenantID);
+            // Encrypt key and certificate if not already encrypted
+            if (oicpSettings.oicp.cpo?.key !== request.content.oicp.cpo.key) {
+              settings.content.oicp.cpo.key = sanitize(Cypher.encrypt(request.content.oicp.cpo.key));
+            } else {
+              settings.content.oicp.cpo.key = request.content.oicp.cpo.key;
+            }
+            if (oicpSettings.oicp.cpo?.cert !== request.content.oicp.cpo.cert) {
+              settings.content.oicp.cpo.cert = sanitize(Cypher.encrypt(request.content.oicp.cpo.cert));
+            } else {
+              settings.content.oicp.cpo.cert = request.content.oicp.cpo.cert;
+            }
           }
           if (request.content.oicp.emsp) {
             settings.content.oicp.emsp = {

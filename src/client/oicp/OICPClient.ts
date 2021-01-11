@@ -4,6 +4,7 @@ import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
+import Cypher from '../../utils/Cypher';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
@@ -130,7 +131,7 @@ export default abstract class OICPClient {
     });
   }
 
-  private getPrivateKey(action: ServerAction): Buffer {
+  private getPrivateKeyFromConfig(action: ServerAction): Buffer {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -147,7 +148,7 @@ export default abstract class OICPClient {
     return key;
   }
 
-  private getClientCertificate(action: ServerAction): Buffer {
+  private getClientCertificateFromConfig(action: ServerAction): Buffer {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -164,6 +165,38 @@ export default abstract class OICPClient {
     return cert;
   }
 
+  private getPrivateKeyFromDB(action: ServerAction): string {
+    if (!this.settings[this.role]) {
+      throw new BackendError({
+        action, message: `OICP Settings are missing for role ${this.role}`,
+        module: MODULE_NAME, method: 'getPrivateKey',
+      });
+    }
+    if (!this.settings[this.role].key) {
+      throw new BackendError({
+        action, message: `OICP private Key setting is missing for role ${this.role}`,
+        module: MODULE_NAME, method: 'getPrivateKey',
+      });
+    }
+    return Cypher.decrypt(this.settings[this.role].key);
+  }
+
+  private getClientCertificateFromDB(action: ServerAction): string {
+    if (!this.settings[this.role]) {
+      throw new BackendError({
+        action, message: `OICP Settings are missing for role ${this.role}`,
+        module: MODULE_NAME, method: 'getClientCertificate',
+      });
+    }
+    if (!this.settings[this.role].cert) {
+      throw new BackendError({
+        action, message: `OICP client certificate setting is missing for role ${this.role}`,
+        module: MODULE_NAME, method: 'getClientCertificate',
+      });
+    }
+    return Cypher.decrypt(this.settings[this.role].cert);
+  }
+
   private getAxiosConfig(action: ServerAction): AxiosRequestConfig {
     const axiosConfig: AxiosRequestConfig = {} as AxiosRequestConfig;
     axiosConfig.httpsAgent = this.getHttpsAgent(action);
@@ -174,8 +207,8 @@ export default abstract class OICPClient {
   }
 
   private getHttpsAgent(action: ServerAction): https.Agent {
-    const publicCert = this.getClientCertificate(action);
-    const privateKey = this.getPrivateKey(action);
+    const publicCert = this.getClientCertificateFromDB(action);
+    const privateKey = this.getPrivateKeyFromDB(action);
 
     const httpsAgent = new https.Agent({
       rejectUnauthorized: false,

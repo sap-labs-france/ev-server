@@ -95,10 +95,17 @@ export default class ExpressTools {
       // Create the options
       const options: https.ServerOptions = {};
       // Set the keys
-      options.key = fs.readFileSync(serverConfig['ssl-key']);
-      options.cert = fs.readFileSync(serverConfig['ssl-cert']);
+      // FIXME read certificates directly from config.json file. In the future: config for OICP in default tenant
+      if (serverConfig['ssl-key'].includes('-----BEGIN PRIVATE KEY-----')) {
+        options.key = serverConfig['ssl-key'];
+        options.cert = serverConfig['ssl-cert'];
+      } else {
+        options.key = fs.readFileSync(serverConfig['ssl-key']);
+        options.cert = fs.readFileSync(serverConfig['ssl-cert']);
+      }
       // Options.requestCert = true; // TODO: Test on QA System: Reject incoming requests without valid certificate (OICP: accept only requests from Hubject)
       // options.rejectUnauthorized = true; // TODO: Test on QA System
+
       // Intermediate cert?
       if (serverConfig['ssl-ca']) {
         // Array?
@@ -106,7 +113,12 @@ export default class ExpressTools {
           options.ca = [];
           // Add all
           for (let i = 0; i < serverConfig['ssl-ca'].length; i++) {
-            options.ca.push(fs.readFileSync(serverConfig['ssl-ca'][i]));
+            // FIXME read certificates directly from config.json file. In the future: config for OICP in default tenant
+            if (serverConfig['ssl-ca'][i].includes('-----BEGIN CERTIFICATE-----')) {
+              options.ca.push(serverConfig['ssl-ca'][i]);
+            } else {
+              options.ca.push(fs.readFileSync(serverConfig['ssl-ca'][i]));
+            }
           }
         } else {
           // Add one
