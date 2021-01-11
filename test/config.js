@@ -309,6 +309,21 @@ const config = convict({
       format: String,
       default: ''
     },
+    stickyLimitation: {
+      doc: 'Sticky limitation',
+      format: Boolean,
+      default: ''
+    },
+    limitBufferDC: {
+      doc: 'Limit buffer dc',
+      format: Number,
+      default: ''
+    },
+    limitBufferAC: {
+      doc: 'Limit buffer ac',
+      format: Number,
+      default: ''
+    }
   }
 });
 

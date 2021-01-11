@@ -107,8 +107,8 @@ export default class ContextBuilder {
           components[componentName] = {
             active: true
           };
-          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'type')) {
-            components[componentName]['type'] = tenantContextDef.componentSettings[componentName].type;
+          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'content') && Utils.objectHasProperty(tenantContextDef.componentSettings[componentName].content, 'type')) {
+            components[componentName]['type'] = tenantContextDef.componentSettings[componentName].content.type;
           }
         }
       }

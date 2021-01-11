@@ -71,7 +71,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
           const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
           const numberOfConnectors = chargingStation.connectors.length;
           const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors;
-          if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
+          if (!Utils.objectHasProperty(connector, 'amperageLimit') || (Utils.objectHasProperty(connector, 'amperageLimit') && Utils.isNullOrUndefined(connector.amperageLimit))) {
             connector.amperageLimit = connectorAmperageLimitMax;
             chargingStationUpdated = true;
           } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimitMax) {
@@ -87,10 +87,10 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
             if (chargingStation?.siteArea?.numberOfPhases === 3) {
               // Single Phase
               if (numberOfPhases === 1) {
-                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null } ;
+                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null };
               // Tri-phase
               } else if (numberOfPhases === 3) {
-                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 } ;
+                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 };
               }
             } else {
               connector.phaseAssignmentToGrid = null;

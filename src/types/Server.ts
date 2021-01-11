@@ -380,6 +380,7 @@ export enum ServerAction {
   TAG_CREATE = 'TagCreate',
   TAG_UPDATE = 'TagUpdate',
   TAG_DELETE = 'TagDelete',
+  TAGS_DELETE = 'TagsDelete',
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
 

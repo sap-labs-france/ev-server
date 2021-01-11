@@ -20,6 +20,7 @@ import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
 import UserToken from '../types/UserToken';
+import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -224,6 +225,11 @@ export default class Utils {
     return typeof obj === 'undefined';
   }
 
+  static isNullOrUndefined(obj: any): boolean {
+    // eslint-disable-next-line no-eq-null, eqeqeq
+    return obj == null;
+  }
+
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,
@@ -334,6 +340,26 @@ export default class Utils {
       case ConnectorCurrentLimitSource.STATIC_LIMITATION:
         return 'Static Limitation';
     }
+  }
+
+  public static getWebSocketCloseEventStatusString(code: number): string {
+    if (code >= 0 && code <= 999) {
+      return '(Unused)';
+    } else if (code >= 1016) {
+      if (code <= 1999) {
+        return '(For WebSocket standard)';
+      } else if (code <= 2999) {
+        return '(For WebSocket extensions)';
+      } else if (code <= 3999) {
+        return '(For libraries and frameworks)';
+      } else if (code <= 4999) {
+        return '(For applications)';
+      }
+    }
+    if (!Utils.isUndefined(WebSocketCloseEventStatusString[code])) {
+      return WebSocketCloseEventStatusString[code];
+    }
+    return '(Unknown)';
   }
 
   public static convertToBoolean(value: any): boolean {
@@ -902,16 +928,42 @@ export default class Utils {
     const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
     switch (ocppProtocol) {
       case OCPPProtocol.JSON:
-        ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
-        if (token) {
-          ocppUrl += `/${token}`;
+        if (Configuration.getJsonEndpointConfig().baseUrl) {
+          ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
+          if (token) {
+            ocppUrl += `/${token}`;
+          }
         }
         return ocppUrl;
       case OCPPProtocol.SOAP:
-      default:
-        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
-        if (token) {
-          ocppUrl += `%26Token=${token}`;
+        if (Configuration.getWSDLEndpointConfig()?.baseUrl) {
+          ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
+          if (token) {
+            ocppUrl += `%26Token=${token}`;
+          }
+        }
+        return ocppUrl;
+    }
+  }
+
+  public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
+    let ocppUrl: string;
+    const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
+    switch (ocppProtocol) {
+      case OCPPProtocol.JSON:
+        if (Configuration.getJsonEndpointConfig().baseSecureUrl) {
+          ocppUrl = `${Configuration.getJsonEndpointConfig().baseSecureUrl}/OCPP16/${tenantID}`;
+          if (token) {
+            ocppUrl += `/${token}`;
+          }
+        }
+        return ocppUrl;
+      case OCPPProtocol.SOAP:
+        if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl) {
+          ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${version}?TenantID=${tenantID}`;
+          if (token) {
+            ocppUrl += `%26Token=${token}`;
+          }
         }
         return ocppUrl;
     }

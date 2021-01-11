@@ -263,6 +263,7 @@ class RequestMapper {
           [ServerAction.OICP_ENDPOINT_DELETE]: OICPEndpointService.handleDeleteOicpEndpoint.bind(this),
           [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
           [ServerAction.TAG_DELETE]: TagService.handleDeleteTag.bind(this),
+          [ServerAction.TAGS_DELETE]: TagService.handleDeleteTags.bind(this),
         });
         break;
     }
