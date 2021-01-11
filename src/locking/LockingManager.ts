@@ -82,6 +82,11 @@ export default class LockingManager {
     return true;
   }
 
+  public static async cleanUpLocks(): Promise<void> {
+    const hostname = Utils.getHostname();
+    await LockingStorage.deleteLockByHostname(hostname);
+  }
+
   private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE): Lock {
     if (!tenantID) {
       throw new BackendError({

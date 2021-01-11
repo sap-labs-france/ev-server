@@ -23,10 +23,12 @@ import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import cfenv from 'cfenv';
 import crypto from 'crypto';
 import fs from 'fs';
 import http from 'http';
 import moment from 'moment';
+import os from 'os';
 import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
@@ -1344,5 +1346,9 @@ export default class Utils {
 
   public static isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
+  }
+
+  public static getHostname(): string {
+    return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 }
