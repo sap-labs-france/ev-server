@@ -79,7 +79,7 @@
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check",
     "import-sort": "npx import-sort-cli --write 'src/**/*.ts{,x}' 'test/**/*.ts{,x}' 'build/types/**/*.ts{,x}'",
-    "xmake:download-node-headers": "wget https://nexus.wdf.sap.corp:8443/nexus/service/local/repositories/3rd-party.releases.manual-uploads.hosted/content/org/nodejs/download/node/node-headers/14.15.4/node-headers-14.15.4.tar.gz -P ${WORKSPACE}/gen/tmp/"
+    "xmake:download-node-headers": "wget http://nexusrel.wdf.sap.corp:8081/nexus/service/local/repositories/3rd-partyreleasesmanual-uploadsprofile-10148/content/org/nodejs/download/node/node-headers/14.15.4/node-headers-14.15.4.tar.gz -P ${WORKSPACE}/gen/tmp/"
   },
   "dependencies": {
     "ajv": "^6.12.6",
