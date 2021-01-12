@@ -9,8 +9,8 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   siteAreaID: string;
   siteArea?: SiteArea;
   assetType: AssetType;
-  fluctuation: number;
-  fallbackValue: number;
+  fluctuationPercent: number;
+  staticValueWatt: number;
   coordinates: number[];
   issuer: boolean;
   image?: string;
