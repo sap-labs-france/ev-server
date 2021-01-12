@@ -1353,6 +1353,9 @@ export default class Utils {
       keySize: parseInt(regExp[2]),
       operationMode: regExp[3].toUpperCase()
     };
+  }
 
+  public static buildAlgorithm(properties: CryptoKeyProperties): string {
+    return `${properties.blockCypher.toLowerCase()}-${properties.keySize}-${properties.operationMode.toLowerCase()}`;
   }
 }

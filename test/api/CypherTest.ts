@@ -18,6 +18,8 @@ const FAKE_JSON: CypherJSON = { 'sensitiveData': ['content.secret1', 'content.se
 const FAKE_WORD = 'Wingardium Leviosa';
 const FAKE_WORD_ENCRYPTED = '73d49673e8f70de6e16ba99bc0c273da:8b9cb41f960d2b50604921a68d7d0382472d';
 
+
+// TODO No point of testing this without tenant? How to change here?
 describe('Cypher Tests', function() {
   this.timeout(30000);
 

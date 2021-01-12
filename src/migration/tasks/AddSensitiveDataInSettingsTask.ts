@@ -25,6 +25,8 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
         }
       }])
       .toArray();
+    // Get Crypto Setting
+    const cryptoSetting = await Cypher.getCryptoSetting(tenant.id);
     // Process each setting
     for (const setting of settings) {
       // Add sensitiveData property if not present
@@ -34,7 +36,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
         setting.sensitiveData = ['content.concur.clientSecret'];
         // Encrypt
         if (setting.content.concur.clientSecret) {
-          setting.content.concur.clientSecret = Cypher.encrypt(setting.content.concur.clientSecret);
+          setting.content.concur.clientSecret = Cypher.encrypt(setting.content.concur.clientSecret, cryptoSetting);
         } else {
           setting.content.concur.clientSecret = '';
         }
@@ -42,7 +44,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
       } else if (setting.content.type === PricingSettingsType.CONVERGENT_CHARGING) {
         setting.sensitiveData = ['content.convergentCharging.password'];
         if (setting.content.convergentCharging.password) {
-          setting.content.convergentCharging.password = Cypher.encrypt(setting.content.convergentCharging.password);
+          setting.content.convergentCharging.password = Cypher.encrypt(setting.content.convergentCharging.password, cryptoSetting);
         } else {
           setting.content.convergentCharging.password = '';
         }

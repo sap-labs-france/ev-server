@@ -45,14 +45,18 @@ class TestData {
   public static async setBillingSystemValidCredentials(testData) {
     const stripeSettings = TestData.getStripeSettings();
     await TestData.saveBillingSettings(testData, stripeSettings);
-    stripeSettings.secretKey = Cypher.encrypt(stripeSettings.secretKey);
+    // Get Crypto Setting
+    const cryptoSetting = await Cypher.getCryptoSetting(testData.tenantContext.getTenant().id);
+    stripeSettings.secretKey = Cypher.encrypt(stripeSettings.secretKey, cryptoSetting);
     billingImpl = new StripeBillingIntegration(testData.tenantContext.getTenant().id, stripeSettings);
     expect(billingImpl).to.not.be.null;
   }
 
   public static async setBillingSystemInvalidCredentials(testData) {
     const stripeSettings = TestData.getStripeSettings();
-    stripeSettings.secretKey = Cypher.encrypt('sk_test_invalid_credentials');
+    // Get Crypto Setting
+    const cryptoSetting = await Cypher.getCryptoSetting(testData.tenantContext.getTenant().id);
+    stripeSettings.secretKey = Cypher.encrypt('sk_test_invalid_credentials', cryptoSetting);
     await TestData.saveBillingSettings(testData, stripeSettings);
     billingImpl = new StripeBillingIntegration(testData.tenantContext.getTenant().id, stripeSettings);
     expect(billingImpl).to.not.be.null;
