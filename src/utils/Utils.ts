@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
@@ -1344,5 +1344,15 @@ export default class Utils {
 
   public static isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
+  }
+
+  public static separateCryptoAlgo(algo: string): CryptoKeyProperties {
+    const regExp = /(.*?)-(.*?)-(.*)/.exec(algo);
+    return {
+      blockCypher: regExp[1].toUpperCase(),
+      keySize: parseInt(regExp[2]),
+      operationMode: regExp[3].toUpperCase()
+    };
+
   }
 }

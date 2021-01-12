@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoSetting, CryptoSettingsType, KeySetting, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -301,6 +301,50 @@ export default class SettingStorage {
         };
       }
       return billingSettings;
+    }
+  }
+
+  public static async saveCryptoSettings(tenantID: string, cryptoSettingToSave: KeySetting): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      id: cryptoSettingToSave.id,
+      identifier: 'crypto',
+      lastChangedOn: new Date(),
+      content: {
+        crypto: cryptoSettingToSave.crypto
+      },
+    } as SettingDB;
+    // Save
+    await this.saveSettings(tenantID, settingsToSave);
+  }
+
+  public static async getCryptoSettings(tenantID: string): Promise<KeySetting> {
+    // Get the Crypto Key settings
+    const settings = await SettingStorage.getSettings(tenantID,
+      { identifier: TenantComponents.CRYPTO },
+      Constants.DB_PARAMS_MAX_LIMIT);
+    if (settings.count > 0) {
+      const cryptoSetting = {
+        formerKey: settings.result[0].content.crypto.formerKey,
+        formerKeyProperties: {
+          blockCypher: settings.result[0].content.crypto.formerKeyProperties?.blockCypher,
+          keySize: settings.result[0].content.crypto.formerKeyProperties?.keySize,
+          operationMode: settings.result[0].content.crypto.formerKeyProperties?.operationMode,
+        },
+        key: settings.result[0].content.crypto.key,
+        keyProperties: {
+          blockCypher: settings.result[0].content.crypto.keyProperties.blockCypher,
+          keySize: settings.result[0].content.crypto.keyProperties.keySize,
+          operationMode: settings.result[0].content.crypto.keyProperties.operationMode,
+        }
+      } as CryptoSetting;
+      const keySetting = {
+        id: settings.result[0].id,
+        identifier: settings.result[0].identifier,
+        type: CryptoSettingsType.CRYPTO,
+        crypto: cryptoSetting
+      } as KeySetting;
+      return keySetting;
     }
   }
 
