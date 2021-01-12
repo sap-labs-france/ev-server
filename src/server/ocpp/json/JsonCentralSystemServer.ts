@@ -10,12 +10,14 @@ import JsonWSConnection from './JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import WSServer from './WSServer';
+import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 import global from '../../../types/GlobalType';
 import http from 'http';
 
+const MODULE_NAME = 'JsonCentralSystemServer';
+
 export default class JsonCentralSystemServer extends CentralSystemServer {
   private serverName: string;
-  private MODULE_NAME: string;
   private serverConfig: CentralSystemConfiguration;
   private wsServer: WSServer;
   private jsonChargingStationClients: Map<string, JsonWSConnection>;
@@ -28,7 +30,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     super(centralSystemConfig, chargingStationConfig);
     // Keep local
     this.serverName = 'OCPP';
-    this.MODULE_NAME = 'JsonCentralSystemServer';
     this.serverConfig = centralSystemConfig;
     this.jsonChargingStationClients = new Map<string, JsonWSConnection>();
     this.jsonRestClients = new Map<string, JsonRestWSConnection>();
@@ -45,8 +46,21 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   public getChargingStationClient(tenantID: string, chargingStationID: string): ChargingStationClient {
     // Build ID
     const id = `${tenantID}~${chargingStationID}}`;
-    // Return from the cache
-    return this.jsonChargingStationClients.get(id)?.getChargingStationClient();
+    // Get the Json Web Socket
+    const jsonWebSocket = this.jsonChargingStationClients.get(id);
+    if (!jsonWebSocket) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargingStationID,
+        module: MODULE_NAME, method: 'getChargingStationClient',
+        action: ServerAction.WS_CONNECTION,
+        message: 'No Web Socket connection found',
+        detailedMessages: { chargingStations: Array.from(this.jsonChargingStationClients.keys()) }
+      });
+      return null;
+    }
+    // Return the client
+    return jsonWebSocket.getChargingStationClient();
   }
 
   public get port(): number {
@@ -91,7 +105,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       }
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this.MODULE_NAME, method: 'verifyClient',
+        module: MODULE_NAME, method: 'verifyClient',
         action: ServerAction.EXPRESS_SERVER,
         message: `Invalid connection URL ${info.req.url}`
       });
@@ -115,7 +129,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       }
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this.MODULE_NAME, method: 'handleProtocols',
+        module: MODULE_NAME, method: 'handleProtocols',
         action: ServerAction.EXPRESS_SERVER,
         message: `Invalid protocol ${protocols.toString()}`
       });
@@ -149,9 +163,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       } catch (error) {
         // Log
         Logging.logException(
-          error, ServerAction.WS_CONNECTION, '', this.MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
+          error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
-        ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
+        ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
       }
     });
     // Keep alive WebSocket connection
@@ -164,8 +178,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
               tenantID: jsonWSConnection.getTenantID(),
               source: jsonWSConnection.getChargingStationID(),
               action: ServerAction.WS_JSON_CONNECTION_CLOSED,
-              module: this.MODULE_NAME,
-              method: 'createWSServer',
+              module: MODULE_NAME, method: 'createWSServer',
               message: `WebSocket does not respond to ping (IP: ${jsonWSConnection.getClientIP().toString()}), terminating`
             });
             jsonWSConnection.getWSConnection().terminate();

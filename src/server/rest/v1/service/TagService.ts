@@ -3,6 +3,7 @@ import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 
+import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
@@ -18,6 +19,7 @@ import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -103,6 +105,25 @@ export default class TagService {
     next();
   }
 
+  public static async handleDeleteTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const tagsIds = TagSecurity.filterTagRequestByIDs(req.body);
+    // Check auth
+    if (!Authorizations.canDeleteTag(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.DELETE, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleDeleteTags',
+        value: tagsIds.toString()
+      });
+    }
+    // Delete
+    const result = await TagService.deleteTags(action, req.user, tagsIds);
+    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+    next();
+  }
+
   public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const tagId = TagSecurity.filterTagRequestByID(req.query);
@@ -154,7 +175,7 @@ export default class TagService {
         issuer: true,
       });
       if (firstActiveTag) {
-      // Set default
+        // Set default
         firstActiveTag.default = true;
         await TagStorage.saveTag(req.user.tenantID, firstActiveTag);
       }
@@ -442,5 +463,103 @@ export default class TagService {
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+  private static async deleteTags(action: ServerAction, loggedUser: UserToken, tagsIDs: string[]): Promise<ActionsResponse> {
+    const result: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    };
+    for (const tagID of tagsIDs) {
+      // Get Tag
+      const tag = await TagStorage.getTag(loggedUser.tenantID, tagID, { withNbrTransactions: true, withUser: true });
+      // Not Found
+      if (!tag) {
+        result.inError++;
+        Logging.logError({
+          tenantID: loggedUser.tenantID,
+          user: loggedUser,
+          module: MODULE_NAME, method: 'handleDeleteTags',
+          message: `Tag ID '${tagID}' does not exist`,
+          action: action,
+          detailedMessages: { tag }
+        });
+      } else if (!tag.issuer) {
+        result.inError++;
+        Logging.logError({
+          tenantID: loggedUser.tenantID,
+          user: loggedUser,
+          module: MODULE_NAME, method: 'handleDeleteTags',
+          message: `Tag ID '${tag.id}' not issued by the organization`,
+          action: action,
+          detailedMessages: { tag }
+        });
+      } else if (tag.transactionsCount > 0) {
+        result.inError++;
+        Logging.logError({
+          tenantID: loggedUser.tenantID,
+          user: loggedUser,
+          module: MODULE_NAME, method: 'handleDeleteTags',
+          message: `Cannot delete Tag ID '${tag.id}' which has '${tag.transactionsCount}' transaction(s)`,
+          action: action,
+          detailedMessages: { tag }
+        });
+      } else {
+        // Delete the Tag
+        await TagStorage.deleteTag(loggedUser.tenantID, tag.id);
+        result.inSuccess++;
+        // Check if default deleted?
+        if (tag.default) {
+          // Clear all default
+          await TagStorage.clearDefaultUserTag(loggedUser.tenantID, tag.userID);
+          // Make the next active Tag the new default one
+          const firstActiveTag = await TagStorage.getFirstActiveUserTag(loggedUser.tenantID, tag.userID, {
+            issuer: true,
+          });
+          if (firstActiveTag) {
+            // Set default
+            firstActiveTag.default = true;
+            await TagStorage.saveTag(loggedUser.tenantID, firstActiveTag);
+          }
+        }
+        // OCPI
+        if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
+          try {
+            const tenant = await TenantStorage.getTenant(loggedUser.tenantID);
+            const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+            if (ocpiClient) {
+              await ocpiClient.pushToken({
+                uid: tag.id,
+                type: OCPITokenType.RFID,
+                auth_id: tag.userID,
+                visual_number: tag.userID,
+                issuer: tenant.name,
+                valid: false,
+                whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+                last_updated: new Date()
+              });
+            }
+          } catch (error) {
+            Logging.logError({
+              tenantID: loggedUser.tenantID,
+              module: MODULE_NAME, method: 'handleDeleteTags',
+              action: action,
+              message: `Unable to synchronize tokens of user ${tag.userID} with IOP`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
+        }
+      }
+    }
+    // Log
+    Logging.logActionsResponse(loggedUser.tenantID,
+      ServerAction.TAGS_DELETE,
+      MODULE_NAME, 'handleDeleteTags', result,
+      '{{inSuccess}} tag(s) were successfully deleted',
+      '{{inError}} tag(s) failed to be deleted',
+      '{{inSuccess}} tag(s) were successfully deleted and {{inError}} failed to be deleted',
+      'No tags have been deleted'
+    );
+    return result;
   }
 }

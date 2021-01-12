@@ -8,7 +8,9 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   name: string;
   siteAreaID: string;
   siteArea?: SiteArea;
-  assetType: string;
+  assetType: AssetType;
+  fluctuation: number;
+  fallbackValue: number;
   coordinates: number[];
   issuer: boolean;
   image?: string;
@@ -16,6 +18,12 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   connectionID?: string;
   meterID?: string;
   values: Consumption[],
+}
+
+export enum AssetType {
+  CO = 'CO',
+  PR = 'PR',
+  CO_PR = 'CO-PR',
 }
 
 export enum SchneiderProperty {

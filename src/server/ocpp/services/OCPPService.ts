@@ -30,7 +30,6 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
-import TagStorage from '../../../storage/mongodb/TagStorage';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -473,53 +472,9 @@ export default class OCPPService {
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
         authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
       // OCPI User
-      if (user && !user.issuer) {
-        const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
-        if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Unable to authorize user '${user.id}' not issued locally`
-          });
-        }
-        // GetTag
-        const tag = await TagStorage.getTag(headers.tenantID, authorize.idTag);
-        if (!tag) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Tag ID '${authorize.idTag}' does not exists`
-          });
-        }
-        if (!tag.ocpiToken) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Tag ID '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
-          });
-        }
-        // Check Charging Station
-        if (!chargingStation.public) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Tag ID '${authorize.idTag}' cannot be authorized on a private charging station`
-          });
-        }
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-        if (!ocpiClient) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: 'OCPI component requires at least one CPO endpoint to authorize users'
-          });
-        }
-        authorize.authorizationId = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
+      if (user && !user.issuer && user.authorizationID) {
+        // Keep the Auth ID
+        authorize.authorizationId = user.authorizationID;
       }
       // Set
       authorize.user = user;
@@ -1152,7 +1107,8 @@ export default class OCPPService {
     }
   }
 
-  private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+  private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation,
+    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check the status
     if (statusNotification.connectorId > 0 &&
       connector.currentTransactionID > 0 &&
@@ -1188,7 +1144,8 @@ export default class OCPPService {
 
   private async notifyStatusNotification(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Faulted?
-    if (statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
+    if (statusNotification.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
+        statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
       // Log
       Logging.logError({
         tenantID: tenantID,

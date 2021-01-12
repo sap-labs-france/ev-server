@@ -284,7 +284,7 @@ export enum OCPPAuthorizationStatus {
   BLOCKED = 'Blocked',
   EXPIRED = 'Expired',
   INVALID = 'Invalid',
-  CONCURENT_TX = 'ConcurrentTx'
+  CONCURRENT_TX = 'ConcurrentTx'
 }
 
 export interface OCPPDiagnosticsStatusNotificationRequest {

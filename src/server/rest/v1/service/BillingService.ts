@@ -533,17 +533,17 @@ export default class BillingService {
       const filename = 'invoice_' + invoice.id + '.' + invoiceDocument.type;
       fs.writeFile(filename, base64RawData, { encoding: invoiceDocument.encoding }, (err) => {
         if (err) {
-          console.log(err);
+          console.error(err);
           throw err;
         }
         res.download(filename, (err2) => {
           if (err2) {
-            console.log(err2);
+            console.error(err2);
             throw err2;
           }
           fs.unlink(filename, (err3) => {
             if (err3) {
-              console.log(err3);
+              console.error(err3);
               throw err3;
             }
           });

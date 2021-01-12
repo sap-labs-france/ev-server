@@ -1,9 +1,11 @@
-import { MessageType, WSClientOptions } from '../../../../src/types/WebSocket';
 import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
+import { OCPPIncomingRequest, OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
 
 import OCPPService from '../OCPPService';
+import { ServerAction } from '../../../../src/types/Server';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
+import { WSClientOptions } from '../../../../src/types/WebSocket';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
 
@@ -14,7 +16,7 @@ export default class OCPPJsonService16 extends OCPPService {
   public constructor(serverUrl: string, requestHandler) {
     super(serverUrl);
     // eslint-disable-next-line no-undef
-    this.wsSessions = new Map();
+    this.wsSessions = new Map<string, { connection: WSClient, requests: any }>();
     this.requestHandler = requestHandler;
   }
 
@@ -57,18 +59,17 @@ export default class OCPPJsonService16 extends OCPPService {
         const t1 = performance.now();
         try {
           // Parse the message
-          const messageJson = JSON.parse(message.data);
+          const [messageType, messageId, commandName, commandPayload]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
           // Check if this corresponds to a request
-          if (messageJson[0] === MessageType.CALL_RESULT_MESSAGE && sentRequests[messageJson[1]]) {
+          if (messageType === OCPPMessageType.CALL_RESULT_MESSAGE && sentRequests[messageId]) {
             const response: any = {};
             // Set the data
-            response.responseMessageId = messageJson[1];
-            response.executionTime = t1 - sentRequests[messageJson[1]].t0;
-            response.data = messageJson[2];
+            response.responseMessageId = messageId;
+            response.executionTime = t1 - sentRequests[messageId].t0;
+            response.data = commandName;
             // Respond to the request
-            sentRequests[messageJson[1]].resolve(response);
-          } else if (messageJson[0] === MessageType.CALL_MESSAGE) {
-            const [messageType, messageId, commandName, commandPayload] = messageJson;
+            sentRequests[messageId].resolve(response);
+          } else if (messageType === OCPPMessageType.CALL_MESSAGE) {
             await this.handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload);
           }
         } catch (error) {
@@ -78,7 +79,7 @@ export default class OCPPJsonService16 extends OCPPService {
     });
   }
 
-  public async handleRequest(chargeBoxIdentity: string, messageId: string, commandName: string, commandPayload): Promise<void> {
+  public async handleRequest(chargeBoxIdentity: string, messageId: string, commandName: ServerAction, commandPayload): Promise<void> {
     let result = {};
     if (this.requestHandler && typeof this.requestHandler['handle' + commandName] === 'function') {
       result = await this.requestHandler['handle' + commandName](commandPayload);
@@ -147,9 +148,9 @@ export default class OCPPJsonService16 extends OCPPService {
   private async send(chargeBoxIdentity: string, message: any): Promise<any> {
     // Debug
     if (config.trace_logs) {
-      console.log('OCPP Request ====================================');
-      console.log({ chargeBoxIdentity, message });
-      console.log('====================================');
+      console.debug('OCPP Request ====================================');
+      console.debug({ chargeBoxIdentity, message });
+      console.debug('====================================');
     }
     // WS Opened?
     if (!this.wsSessions?.get(chargeBoxIdentity)?.connection?.isConnectionOpen()) {
@@ -160,9 +161,9 @@ export default class OCPPJsonService16 extends OCPPService {
     // Send
     const t0 = performance.now();
     this.wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message), {}, (error?: Error) => {
-      config.trace_logs && console.log(`Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
+      config.trace_logs && console.debug(`Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
     });
-    if (message[0] === MessageType.CALL_MESSAGE) {
+    if (message[0] === OCPPMessageType.CALL_MESSAGE) {
       // Return a promise
       // eslint-disable-next-line no-undef
       return new Promise((resolve, reject) => {
@@ -175,7 +176,7 @@ export default class OCPPJsonService16 extends OCPPService {
   private buildRequest(command: string, payload: any) {
     // Build the request
     return [
-      MessageType.CALL_MESSAGE,
+      OCPPMessageType.CALL_MESSAGE,
       Utils.generateUUID(),
       command,
       payload];
@@ -184,7 +185,7 @@ export default class OCPPJsonService16 extends OCPPService {
   private buildResponse(messageId, payload: any) {
     // Build the request
     return [
-      MessageType.CALL_MESSAGE,
+      OCPPMessageType.CALL_MESSAGE,
       messageId,
       payload];
   }
