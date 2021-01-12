@@ -12,6 +12,12 @@
       "maxLength": 100,
       "sanitize": "mongo"
     },
+    "firstName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "sanitize": "mongo"
+    },
     "email": {
       "type": "string",
       "format": "email",
@@ -76,6 +82,18 @@
           "sanitize": "mongo"
         }
       }
+    },
+    "acceptEula": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "password": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "captcha": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   }
 }

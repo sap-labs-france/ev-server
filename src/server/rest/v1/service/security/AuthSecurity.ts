@@ -45,15 +45,6 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterLoginRequest(request: HttpLoginRequest): Partial<HttpLoginRequest> {
-    return {
-      email: sanitize(request.email),
-      password: sanitize(request.password),
-      tenant: sanitize(request.tenant),
-      acceptEula: UtilsSecurity.filterBoolean(request.acceptEula)
-    };
-  }
-
   public static filterVerifyEmailRequest(request: any): Partial<HttpVerifyEmailRequest> {
     return {
       Email: sanitize(request.Email),

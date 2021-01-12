@@ -5,6 +5,7 @@ import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import AuthSecurity from './security/AuthSecurity';
+import AuthValidator from '../validator/AuthValidation';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
@@ -60,7 +61,7 @@ export default class AuthService {
 
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
+    const filteredRequest = AuthValidator.getInstance().validateAuthSignIn(req.body);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -161,7 +162,11 @@ export default class AuthService {
 
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
+    const filteredRequest = AuthValidator.getInstance().validateAuthSignOn(req.body);
+    filteredRequest.status = UserStatus.PENDING;
+    if (!filteredRequest.locale) {
+      filteredRequest.locale = Constants.DEFAULT_LOCALE;
+    }
     // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -228,7 +233,7 @@ export default class AuthService {
       });
     }
     // Generate a password
-    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
+    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.passwords.password);
     // Create the user
     const newUser = UserStorage.createNewUser() as User;
     newUser.email = filteredRequest.email;
