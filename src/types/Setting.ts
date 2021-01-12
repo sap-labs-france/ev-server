@@ -223,11 +223,13 @@ export interface AssetConnectionSetting {
   url: string;
   timestamp: Date;
   type: AssetConnectionType;
-  connection?: AssetSchneiderConnectionType;
+  schneiderConnection?: AssetSchneiderConnectionType;
+  greencomConnection?: AssetGreencomConnectionType;
 }
 
 export enum AssetConnectionType {
   SCHNEIDER = 'schneider',
+  GREENCOM = 'greencom'
 }
 
 export interface AssetUserPasswordConnectionType {
@@ -238,3 +240,8 @@ export interface AssetUserPasswordConnectionType {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
 }
+export interface AssetGreencomConnectionType {
+  clientId: string;
+  clientSecret: string;
+}
+

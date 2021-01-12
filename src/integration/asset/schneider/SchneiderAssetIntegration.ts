@@ -126,8 +126,8 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
   private getCredentialURLParams(): URLSearchParams {
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
-    params.append('username', this.connection.connection.user);
-    params.append('password', Cypher.decrypt(this.connection.connection.password));
+    params.append('username', this.connection.schneiderConnection.user);
+    params.append('password', Cypher.decrypt(this.connection.schneiderConnection.password));
     return params;
   }
 
