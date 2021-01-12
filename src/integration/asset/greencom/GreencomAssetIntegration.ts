@@ -65,25 +65,29 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
 
   private filterConsumptionRequest(asset: Asset, data: any, currentTime: Date): AbstractCurrentConsumption {
     const consumption = {} as AbstractCurrentConsumption;
-    // Convert data value to number and get consumption
+    // Convert data
     let consumptionWh = 0;
 
-    switch (asset.assetType) {
-      case AssetType.CO:
-        consumption.currentInstantWatts = data.power.average;
-        consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
-        consumptionWh = data.energy.sum;
-        break;
-      case AssetType.PR:
-        consumption.currentInstantWatts = data.power.average * -1;
-        consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
-        consumptionWh = data.energy.sum * -1;
-        break;
-      case AssetType.CO_PR:
-        consumption.currentInstantWatts = data.power.charge.average - data.power.discharge.average;
-        consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
-        consumptionWh = data.energy.charge.sum - data.energy.discharge.sum;
-        break;
+    if (data.power && data.energy) {
+      switch (asset.assetType) {
+        case AssetType.CO:
+          consumption.currentInstantWatts = data.power.average;
+          consumptionWh = data.energy.sum;
+          break;
+        case AssetType.PR:
+          consumption.currentInstantWatts = data.power.average * -1;
+          consumptionWh = data.energy.sum * -1;
+          break;
+        case AssetType.CO_PR:
+          consumption.currentInstantWatts = data.power.charge.average - data.power.discharge.average;
+          consumptionWh = data.energy.charge.sum - data.energy.discharge.sum;
+          break;
+      }
+    }
+
+    // Check if site area provided and set amp value
+    if (asset.siteArea?.voltage) {
+      consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
     }
 
     consumption.lastConsumption = {
@@ -98,7 +102,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
   private async connect(): Promise<string> {
     // Check if connection is initialized
     this.checkConnectionIsProvided();
-    // Get credential params
+    // Get Authentication
     const credentials = this.getAuthentication();
     // Send credentials to get the token
     const response = await Utils.executePromiseWithTimeout(5000,
