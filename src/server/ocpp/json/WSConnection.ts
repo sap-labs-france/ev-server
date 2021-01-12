@@ -1,4 +1,4 @@
-import { MessageType, OcppErrorType } from '../../../types/WebSocket';
+import { OCPPErrorType, OCPPIncomingRequest, OCPPMessageType, OCPPRequest } from '../../../types/ocpp/OCPPCommon';
 import WebSocket, { CLOSED, CLOSING, CONNECTING, CloseEvent, ErrorEvent, MessageEvent, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
@@ -27,10 +27,10 @@ export default abstract class WSConnection {
   protected readonly tenantID: string;
   private readonly token: string;
   private readonly url: string;
-  private readonly clientIP: string|string[];
+  private readonly clientIP: string | string[];
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
-  private requests: { [id: string]: [(payload?) => void, (reason?: string|OCPPError) => void] };
+  private requests: { [id: string]: OCPPRequest };
   private tenantIsValid: boolean;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
@@ -112,7 +112,7 @@ export default abstract class WSConnection {
       throw backendError;
     }
     // Handle incoming messages
-    this.wsConnection.on('message',this.onMessage.bind(this));
+    this.wsConnection.on('message', this.onMessage.bind(this));
     // Handle Socket error
     this.wsConnection.on('error', this.onError.bind(this));
     // Handle Socket close
@@ -150,24 +150,24 @@ export default abstract class WSConnection {
   }
 
   public async onMessage(messageEvent: MessageEvent): Promise<void> {
-    let [messageType, messageId, commandName, commandPayload, errorDetails] = [0, '', ServerAction.CHARGING_STATION, '', ''];
+    let [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = [0, '', '' as ServerAction, '', ''];
+    let responseCallback: (payload?) => void;
+    let rejectCallback: (reason?: string | OCPPError) => void;
     try {
       // Parse the message
-      [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.toString());
+      [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.toString()) as OCPPIncomingRequest;
       // Initialize: done in the message as init could be lengthy and first message may be lost
       await this.initialize();
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
-        case MessageType.CALL_MESSAGE:
+        case OCPPMessageType.CALL_MESSAGE:
           // Process the call
           await this.handleRequest(messageId, commandName, commandPayload);
           break;
         // Outcome Message
-        case MessageType.CALL_RESULT_MESSAGE:
+        case OCPPMessageType.CALL_RESULT_MESSAGE:
           // Respond
-          // eslint-disable-next-line no-case-declarations
-          let responseCallback: Function;
           if (Utils.isIterable(this.requests[messageId])) {
             [responseCallback] = this.requests[messageId];
           } else {
@@ -193,7 +193,7 @@ export default abstract class WSConnection {
           responseCallback(commandName);
           break;
         // Error Message
-        case MessageType.CALL_ERROR_MESSAGE:
+        case OCPPMessageType.CALL_ERROR_MESSAGE:
           // Log
           Logging.logError({
             tenantID: this.getTenantID(),
@@ -213,8 +213,6 @@ export default abstract class WSConnection {
               action: commandName
             });
           }
-          // eslint-disable-next-line no-case-declarations
-          let rejectCallback: Function;
           if (Utils.isIterable(this.requests[messageId])) {
             [, rejectCallback] = this.requests[messageId];
           } else {
@@ -267,39 +265,39 @@ export default abstract class WSConnection {
     return this.url;
   }
 
-  public getClientIP(): string|string[] {
+  public getClientIP(): string | string[] {
     return this.clientIP;
   }
 
-  public async sendError(messageId: string, err: Error|OCPPError): Promise<unknown> {
+  public async sendError(messageId: string, err: Error | OCPPError): Promise<unknown> {
     // Check exception type: only OCPP error are accepted
     const error = (err instanceof OCPPError ? err : new OCPPError({
       source: this.getChargingStationID(),
       module: MODULE_NAME,
       method: 'sendError',
-      code: OcppErrorType.INTERNAL_ERROR,
+      code: OCPPErrorType.INTERNAL_ERROR,
       message: err.message,
       details: { err }
     }));
     // Send error
-    return this.sendMessage(messageId, error, MessageType.CALL_ERROR_MESSAGE);
+    return this.sendMessage(messageId, error, OCPPMessageType.CALL_ERROR_MESSAGE);
   }
 
-  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.CALL_RESULT_MESSAGE, commandName?: Command|ServerAction): Promise<unknown> {
+  public async sendMessage(messageId: string, commandParams: any, messageType: OCPPMessageType = OCPPMessageType.CALL_RESULT_MESSAGE, commandName?: Command | ServerAction): Promise<unknown> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     // Send a message through WSConnection
     const tenant = await TenantStorage.getTenant(this.tenantID);
     // Create a promise
     return await new Promise((resolve, reject) => {
-      let messageToSend;
+      let messageToSend: string;
       // Function that will receive the request's response
       function responseCallback(payload): void {
         // Send the response
         resolve(payload);
       }
       // Function that will receive the request's rejection
-      function rejectCallback(reason: string|OCPPError): void {
+      function rejectCallback(reason: string | OCPPError): void {
         // Build Exception
         self.requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
@@ -309,20 +307,20 @@ export default abstract class WSConnection {
       // Type of message
       switch (messageType) {
         // Request
-        case MessageType.CALL_MESSAGE:
+        case OCPPMessageType.CALL_MESSAGE:
           // Build request
           this.requests[messageId] = [responseCallback, rejectCallback];
           messageToSend = JSON.stringify([messageType, messageId, commandName, commandParams]);
           break;
         // Response
-        case MessageType.CALL_RESULT_MESSAGE:
+        case OCPPMessageType.CALL_RESULT_MESSAGE:
           // Build response
           messageToSend = JSON.stringify([messageType, messageId, commandParams]);
           break;
         // Error Message
-        case MessageType.CALL_ERROR_MESSAGE:
+        case OCPPMessageType.CALL_ERROR_MESSAGE:
           // Build Error Message
-          messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OcppErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
+          messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OCPPErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
           break;
       }
       // Check if wsConnection is ready
@@ -334,7 +332,7 @@ export default abstract class WSConnection {
         return rejectCallback(`WebSocket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant?.name})`);
       }
       // Response?
-      if (messageType !== MessageType.CALL_MESSAGE) {
+      if (messageType !== OCPPMessageType.CALL_MESSAGE) {
         // Yes: send Ok
         resolve();
       } else {
@@ -371,11 +369,7 @@ export default abstract class WSConnection {
   }
 
   public isWSConnectionOpen(): boolean {
-    return this.wsConnection.readyState === OPEN;
-  }
-
-  public getConnectionStatus(): number {
-    return this.wsConnection.readyState;
+    return this.wsConnection?.readyState === OPEN;
   }
 
   public getConnectionStatusString(): string {
@@ -389,8 +383,12 @@ export default abstract class WSConnection {
       case CLOSED:
         return 'Closed';
       default:
-        return `Unknown code '${this.wsConnection.readyState}'`;
+        return `Unknown code '${this.getConnectionStatus()}'`;
     }
+  }
+
+  private getConnectionStatus(): number {
+    return this.wsConnection?.readyState;
   }
 
   public abstract handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
