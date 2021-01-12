@@ -128,7 +128,7 @@ export default class Bootstrap {
 
         // Locks remain in storage if server crashes
         // Delete acquired database locks with same hostname
-        await LockingManager.cleanUpLocks();
+        await LockingManager.cleanupLocks(Configuration.isCloudFoundry() || Utils.isDevelopmentEnv());
       }
     } catch (error) {
       // Log

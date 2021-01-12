@@ -67,7 +67,7 @@ export default class LoggingStorage {
       actionOnUserID: Utils.convertUserToObjectID(logToSave.actionOnUser),
       level: logToSave.level,
       source: logToSave.source,
-      host: logToSave.host ? logToSave.host : (Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()),
+      host: logToSave.host ? logToSave.host : (Utils.getHostname()),
       process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master'),
       type: logToSave.type,
       timestamp: Utils.convertToDate(logToSave.timestamp),

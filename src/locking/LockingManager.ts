@@ -1,14 +1,11 @@
 import Lock, { LockEntity, LockType } from '../types/Locking';
 
 import BackendError from '../exception/BackendError';
-import Configuration from '../utils/Configuration';
 import Cypher from '../utils/Cypher';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import Utils from '../utils/Utils';
-import cfenv from 'cfenv';
-import os from 'os';
 
 const MODULE_NAME = 'LockingManager';
 
@@ -82,9 +79,11 @@ export default class LockingManager {
     return true;
   }
 
-  public static async cleanUpLocks(): Promise<void> {
-    const hostname = Utils.getHostname();
-    await LockingStorage.deleteLockByHostname(hostname);
+  public static async cleanupLocks(doCleanup = true): Promise<void> {
+    if (doCleanup) {
+      const hostname = Utils.getHostname();
+      await LockingStorage.deleteLockByHostname(hostname);
+    }
   }
 
   private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE): Lock {
@@ -120,7 +119,7 @@ export default class LockingManager {
       key: key.toLowerCase(),
       type: type,
       timestamp: new Date(),
-      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
+      hostname: Utils.getHostname()
     };
   }
 }
