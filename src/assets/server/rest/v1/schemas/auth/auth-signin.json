@@ -1,0 +1,24 @@
+{
+  "title": "Sign in",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "common.json#/definitions/email"
+    },
+    "password": {
+      "$ref": "common.json#/definitions/password"
+    },
+    "acceptEula": {
+      "$ref": "common.json#/definitions/acceptEula"
+    },
+    "tenant": {
+      "$ref": "common.json#/definitions/subdomain"
+    }
+  },
+  "required": [
+    "email",
+    "password",
+    "acceptEula",
+    "tenant"
+  ]
+}
