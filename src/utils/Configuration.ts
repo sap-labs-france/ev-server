@@ -36,13 +36,13 @@ export default class Configuration {
   private static config: ConfigurationData;
   private static appEnv: AppEnv;
 
-  private constructor() {}
+  private constructor() { }
 
   // Crypto config
   public static getCryptoConfig(): CryptoConfiguration {
     // Read conf
-    const cryptoConfig = Configuration.getConfig().Crypto;
-    if (Configuration.isCloudFoundry()) {
+    const cryptoConfig: CryptoConfiguration = Configuration.getConfig().Crypto;
+    if (!Configuration.isUndefined(cryptoConfig) && Configuration.isCloudFoundry()) {
       cryptoConfig.key = Configuration.getUserProvidedCredential(CloudCredentialsKey.CRYPTO_KEY);
     }
     return cryptoConfig;
@@ -57,8 +57,8 @@ export default class Configuration {
   // Firebase config
   public static getFirebaseConfig(): FirebaseConfiguration {
     // Read conf
-    const firebaseConfig = Configuration.getConfig().Firebase;
-    if (Configuration.isCloudFoundry()) {
+    const firebaseConfig: FirebaseConfiguration = Configuration.getConfig().Firebase;
+    if (!Configuration.isUndefined(firebaseConfig) && Configuration.isCloudFoundry()) {
       firebaseConfig.privateKeyID = Configuration.getUserProvidedCredential(CloudCredentialsKey.FIREBASE_PRIVATE_KEY_ID);
       firebaseConfig.privateKey = Configuration.getUserProvidedCredential(CloudCredentialsKey.FIREBASE_PRIVATE_KEY);
     }
@@ -92,7 +92,7 @@ export default class Configuration {
   // Central System config
   public static getCentralSystemsConfig(): CentralSystemConfiguration[] {
     // Read conf
-    const centralSystems = Configuration.getConfig().CentralSystems;
+    const centralSystems: CentralSystemConfiguration[] = Configuration.getConfig().CentralSystems;
     // Check Cloud Foundry
     if (!Configuration.isUndefined(centralSystems) && Configuration.isCloudFoundry()) {
       // Change host/port
@@ -142,7 +142,7 @@ export default class Configuration {
   // Central System REST config
   public static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
     // Read conf
-    const centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
+    const centralSystemRestService: CentralSystemRestServiceConfiguration = Configuration.getConfig().CentralSystemRestService;
     // Check Cloud Foundry
     if (!Configuration.isUndefined(centralSystemRestService)) {
       if (Configuration.isCloudFoundry()) {
@@ -168,7 +168,7 @@ export default class Configuration {
   // OCPI Server Configuration
   public static getOCPIServiceConfig(): OCPIServiceConfiguration {
     // Read conf
-    const ocpiService = Configuration.getConfig().OCPIService;
+    const ocpiService: OCPIServiceConfiguration = Configuration.getConfig().OCPIService;
     // Check Cloud Foundry
     if (!Configuration.isUndefined(ocpiService) && Configuration.isCloudFoundry()) {
       // CF Environment: Override
@@ -181,14 +181,14 @@ export default class Configuration {
   // OData Server Configuration
   public static getODataServiceConfig(): ODataServiceConfiguration {
     // Read conf
-    const oDataservice = Configuration.getConfig().ODataService;
+    const oDataService: ODataServiceConfiguration = Configuration.getConfig().ODataService;
     // Check Cloud Foundry
-    if (!Configuration.isUndefined(oDataservice) && Configuration.isCloudFoundry()) {
+    if (!Configuration.isUndefined(oDataService) && Configuration.isCloudFoundry()) {
       // CF Environment: Override
-      oDataservice.port = Configuration.getCFAppEnv().port;
-      oDataservice.host = Configuration.getCFAppEnv().bind;
+      oDataService.port = Configuration.getCFAppEnv().port;
+      oDataService.host = Configuration.getCFAppEnv().bind;
     }
-    return oDataservice;
+    return oDataService;
   }
 
   // Rest Service Configuration - Internet view
@@ -220,7 +220,7 @@ export default class Configuration {
   // Email config
   public static getEmailConfig(): EmailConfiguration {
     // Read conf
-    const emailConfig = Configuration.getConfig().Email;
+    const emailConfig: EmailConfiguration = Configuration.getConfig().Email;
     if (!Configuration.isUndefined(emailConfig) && Configuration.isCloudFoundry()) {
       if (!Configuration.isUndefined(emailConfig.smtp)) {
         emailConfig.smtp.user = Configuration.getUserProvidedCredential(CloudCredentialsKey.SMTP_USERNAME);
@@ -237,8 +237,8 @@ export default class Configuration {
   // Email config
   public static getEVDatabaseConfig(): EVDatabaseConfiguration {
     // Read conf
-    const evDatabaseConfig = Configuration.getConfig().EVDatabase;
-    if (Configuration.isCloudFoundry()) {
+    const evDatabaseConfig: EVDatabaseConfiguration = Configuration.getConfig().EVDatabase;
+    if (!Configuration.isUndefined(evDatabaseConfig) && Configuration.isCloudFoundry()) {
       evDatabaseConfig.key = Configuration.getUserProvidedCredential(CloudCredentialsKey.EV_DATABASE_KEY);
     }
     return evDatabaseConfig;
@@ -261,8 +261,8 @@ export default class Configuration {
       }
       // CF Environment: Override
       // Check if MongoDB is provisioned inside SCP
-      if (Configuration.getCFAppEnv().getService(new RegExp(/^e-Mobility-db*/))) {
-        const mongoDBServiceCredentials = Configuration.getCFAppEnv().getServiceCreds(new RegExp(/^e-Mobility-db*/));
+      if (Configuration.getCFAppEnv().getService(new RegExp(/^e-Mobility-db.*/))) {
+        const mongoDBServiceCredentials = Configuration.getCFAppEnv().getServiceCreds(new RegExp(/^e-Mobility-db.*/));
         // Set MongoDB URI
         if (mongoDBServiceCredentials) {
           storageConfig.uri = mongoDBServiceCredentials['uri'];
@@ -272,9 +272,9 @@ export default class Configuration {
           storageConfig.replicaSet = mongoDBServiceCredentials['replicaset'];
         }
       // Provisioned with User Provided Service
-      } else if (Configuration.getCFAppEnv().getService(new RegExp(/^mongodbatlas*/))) {
+      } else if (Configuration.getCFAppEnv().getService(new RegExp(/^mongodbatlas.*/))) {
         // Find the service
-        const mongoDBServiceCredentials = Configuration.getCFAppEnv().getServiceCreds(new RegExp(/^mongodbatlas*/));
+        const mongoDBServiceCredentials = Configuration.getCFAppEnv().getServiceCreds(new RegExp(/^mongodbatlas.*/));
         // Set MongoDB URI
         if (!Configuration.isUndefined(mongoDBServiceCredentials['uri'])) {
           storageConfig.uri = mongoDBServiceCredentials['uri'];
@@ -290,31 +290,33 @@ export default class Configuration {
   public static getChargingStationConfig(): ChargingStationConfiguration {
     // Read conf and set defaults values
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
-    Configuration.deprecateConfigurationKey('heartbeatIntervalSecs', 'ChargingStation', 'Please use \'heartbeatIntervalOCPPSSecs\' and \'heartbeatIntervalOCPPJSecs\' instead');
-    if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPSSecs)) {
-      if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
-        chargingStationConfiguration.heartbeatIntervalOCPPSSecs = chargingStationConfiguration.heartbeatIntervalSecs;
-      } else {
-        chargingStationConfiguration.heartbeatIntervalOCPPSSecs = 180;
+    if (!Configuration.isUndefined(chargingStationConfiguration)) {
+      Configuration.deprecateConfigurationKey('useServerLocalIPForRemoteCommand', 'ChargingStation');
+      Configuration.deprecateConfigurationKey('secureLocalServer', 'ChargingStation');
+      Configuration.deprecateConfigurationKey('heartbeatIntervalSecs', 'ChargingStation', 'Please use \'heartbeatIntervalOCPPSSecs\' and \'heartbeatIntervalOCPPJSecs\' instead');
+      if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPSSecs)) {
+        if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+          chargingStationConfiguration.heartbeatIntervalOCPPSSecs = chargingStationConfiguration.heartbeatIntervalSecs;
+        } else {
+          chargingStationConfiguration.heartbeatIntervalOCPPSSecs = 180;
+        }
       }
-    }
-    if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPJSecs)) {
-      if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
-        chargingStationConfiguration.heartbeatIntervalOCPPJSecs = chargingStationConfiguration.heartbeatIntervalSecs;
-      } else {
-        chargingStationConfiguration.heartbeatIntervalOCPPJSecs = 3600;
+      if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPJSecs)) {
+        if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+          chargingStationConfiguration.heartbeatIntervalOCPPJSecs = chargingStationConfiguration.heartbeatIntervalSecs;
+        } else {
+          chargingStationConfiguration.heartbeatIntervalOCPPJSecs = 3600;
+        }
       }
-    }
-    if (Configuration.isUndefined(chargingStationConfiguration.maxLastSeenIntervalSecs)) {
-      if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
-        chargingStationConfiguration.maxLastSeenIntervalSecs = 3 * chargingStationConfiguration.heartbeatIntervalSecs;
-      } else {
-        chargingStationConfiguration.maxLastSeenIntervalSecs = 540;
+      if (Configuration.isUndefined(chargingStationConfiguration.maxLastSeenIntervalSecs)) {
+        if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+          chargingStationConfiguration.maxLastSeenIntervalSecs = 3 * chargingStationConfiguration.heartbeatIntervalSecs;
+        } else {
+          chargingStationConfiguration.maxLastSeenIntervalSecs = 540;
+        }
       }
+      delete chargingStationConfiguration.heartbeatIntervalSecs;
     }
-    delete chargingStationConfiguration.heartbeatIntervalSecs;
-    Configuration.deprecateConfigurationKey('useServerLocalIPForRemoteCommand', 'ChargingStation');
-    Configuration.deprecateConfigurationKey('secureLocalServer', 'ChargingStation');
     return chargingStationConfiguration;
   }
 
