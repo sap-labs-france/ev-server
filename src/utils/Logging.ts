@@ -17,9 +17,7 @@ import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
-import cfenv from 'cfenv';
 import cluster from 'cluster';
-import os from 'os';
 import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'Logging';
@@ -677,7 +675,7 @@ export default class Logging {
       log.source = `${Constants.CENTRAL_SERVER}`;
     }
     // Host
-    log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+    log.host = Utils.getHostname();
     // Process
     log.process = log.process ? log.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master');
     // Anonymize message
