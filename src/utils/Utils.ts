@@ -1360,6 +1360,16 @@ export default class Utils {
   }
 
   public static generateKey(): string {
-    return crypto.randomBytes(32).toString('hex');
+    // TODO change 16 to 32 and test on Mac
+    return crypto.randomBytes(16).toString('hex');
+  }
+
+  public static getKeyProperties(): CryptoKeyProperties {
+    // TODO change CTR to GCM and test on Mac
+    return {
+      blockCypher: 'AES',
+      keySize: 256,
+      operationMode: 'CTR'
+    };
   }
 }
