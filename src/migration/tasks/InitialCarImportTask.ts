@@ -25,7 +25,7 @@ export default class InitialCarImportTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.5';
+    return '1.6';
   }
 
   isAsynchronous(): boolean {
