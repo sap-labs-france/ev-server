@@ -98,8 +98,8 @@ export default class Configuration {
       // Change host/port
       for (const centralSystem of centralSystems) {
         // CF Environment: Override
-        centralSystem.port = Configuration.getAppEnv().port;
-        centralSystem.host = Configuration.getAppEnv().bind;
+        centralSystem.port = Configuration.getCFAppEnv().port;
+        centralSystem.host = Configuration.getCFAppEnv().bind;
       }
     }
     return centralSystems;
@@ -118,18 +118,18 @@ export default class Configuration {
   }
 
   public static isCloudFoundry(): boolean {
-    return !Configuration.getAppEnv().isLocal;
+    return !Configuration.getCFAppEnv().isLocal;
   }
 
   public static getCFInstanceIndex(): string {
     if (Configuration.isCloudFoundry()) {
-      return Configuration.getAppEnv().app['instance_index'];
+      return Configuration.getCFAppEnv().app['instance_index'];
     }
   }
 
   public static getCFApplicationID(): string {
     if (Configuration.isCloudFoundry()) {
-      return Configuration.getAppEnv().app['application_id'];
+      return Configuration.getCFAppEnv().app['application_id'];
     }
   }
 
@@ -147,8 +147,8 @@ export default class Configuration {
     if (!Configuration.isUndefined(centralSystemRestService)) {
       if (Configuration.isCloudFoundry()) {
         // CF Environment: Override
-        centralSystemRestService.port = Configuration.getAppEnv().port;
-        centralSystemRestService.host = Configuration.getAppEnv().bind;
+        centralSystemRestService.port = Configuration.getCFAppEnv().port;
+        centralSystemRestService.host = Configuration.getCFAppEnv().bind;
         centralSystemRestService.userTokenKey = Configuration.getUserProvidedCredential(CloudCredentialsKey.USER_TOKEN_KEY);
         centralSystemRestService.captchaSecretKey = Configuration.getUserProvidedCredential(CloudCredentialsKey.CAPTCHA_SECRET_KEY);
       }
@@ -172,8 +172,8 @@ export default class Configuration {
     // Check Cloud Foundry
     if (!Configuration.isUndefined(ocpiService) && Configuration.isCloudFoundry()) {
       // CF Environment: Override
-      ocpiService.port = Configuration.getAppEnv().port;
-      ocpiService.host = Configuration.getAppEnv().bind;
+      ocpiService.port = Configuration.getCFAppEnv().port;
+      ocpiService.host = Configuration.getCFAppEnv().bind;
     }
     return ocpiService;
   }
@@ -185,8 +185,8 @@ export default class Configuration {
     // Check Cloud Foundry
     if (!Configuration.isUndefined(oDataservice) && Configuration.isCloudFoundry()) {
       // CF Environment: Override
-      oDataservice.port = Configuration.getAppEnv().port;
-      oDataservice.host = Configuration.getAppEnv().bind;
+      oDataservice.port = Configuration.getCFAppEnv().port;
+      oDataservice.host = Configuration.getCFAppEnv().bind;
     }
     return oDataservice;
   }
@@ -261,8 +261,8 @@ export default class Configuration {
       }
       // CF Environment: Override
       // Check if MongoDB is provisioned inside SCP
-      if (Configuration.getAppEnv().getService(new RegExp(/^e-Mobility-db*/))) {
-        const mongoDBServiceCredentials = Configuration.getAppEnv().getServiceCreds(new RegExp(/^e-Mobility-db*/));
+      if (Configuration.getCFAppEnv().getService(new RegExp(/^e-Mobility-db*/))) {
+        const mongoDBServiceCredentials = Configuration.getCFAppEnv().getServiceCreds(new RegExp(/^e-Mobility-db*/));
         // Set MongoDB URI
         if (mongoDBServiceCredentials) {
           storageConfig.uri = mongoDBServiceCredentials['uri'];
@@ -272,9 +272,9 @@ export default class Configuration {
           storageConfig.replicaSet = mongoDBServiceCredentials['replicaset'];
         }
       // Provisioned with User Provided Service
-      } else if (Configuration.getAppEnv().getService(new RegExp(/^mongodbatlas*/))) {
+      } else if (Configuration.getCFAppEnv().getService(new RegExp(/^mongodbatlas*/))) {
         // Find the service
-        const mongoDBServiceCredentials = Configuration.getAppEnv().getServiceCreds(new RegExp(/^mongodbatlas*/));
+        const mongoDBServiceCredentials = Configuration.getCFAppEnv().getServiceCreds(new RegExp(/^mongodbatlas*/));
         // Set MongoDB URI
         if (!Configuration.isUndefined(mongoDBServiceCredentials['uri'])) {
           storageConfig.uri = mongoDBServiceCredentials['uri'];
@@ -394,7 +394,7 @@ export default class Configuration {
 
   private static getUserProvidedCredential(key: CloudCredentialsKey): string {
     // Get the credentials
-    const credentials: CloudCredentials = Configuration.getAppEnv().getServiceCreds('emobility-credentials') as CloudCredentials;
+    const credentials: CloudCredentials = Configuration.getCFAppEnv().getServiceCreds('emobility-credentials') as CloudCredentials;
     if (!Configuration.isNullOrUndefined(credentials) && !Configuration.isUndefined(credentials[key])) {
       return credentials[key];
     }
@@ -409,7 +409,7 @@ export default class Configuration {
     return Configuration.config;
   }
 
-  private static getAppEnv(): AppEnv {
+  private static getCFAppEnv(): AppEnv {
     if (!Configuration.appEnv) {
       Configuration.appEnv = getAppEnv();
     }
