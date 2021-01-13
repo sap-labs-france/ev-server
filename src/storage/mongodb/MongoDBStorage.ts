@@ -158,9 +158,6 @@ export default class MongoDBStorage {
       { fields: { coordinates: '2dsphere' } },
     ]);
 
-    // Create initial settings for tenant
-    await this.createInitialSettingsForTenant(tenantID);
-
     Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
@@ -174,21 +171,25 @@ export default class MongoDBStorage {
   }
 
   public async createInitialCryptoSetting(tenantID: string): Promise<void> {
+    // Check for settings in db
+    const keySettings = await SettingStorage.getCryptoSettings(tenantID);
     // Generate Crypto Key Settings
-    const keySettingToSave = {
-      identifier: TenantComponents.CRYPTO,
-      type: CryptoSettingsType.CRYPTO,
-      crypto: {
-        key: Utils.generateKey(),
-        keyProperties: {
-          blockCypher: 'AES',
-          keySize: 256,
-          operationMode: 'GCM'
+    if (!keySettings) {
+      const keySettingToSave = {
+        identifier: TenantComponents.CRYPTO,
+        type: CryptoSettingsType.CRYPTO,
+        crypto: {
+          key: Utils.generateKey(),
+          keyProperties: {
+            blockCypher: 'AES',
+            keySize: 256,
+            operationMode: 'GCM'
+          }
         }
-      }
-    } as KeySetting;
-    // Save Crypto Key Settings
-    await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
+      } as KeySetting;
+      // Save Crypto Key Settings
+      await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
+    }
   }
 
   public async deleteTenantDatabase(tenantID: string): Promise<void> {
