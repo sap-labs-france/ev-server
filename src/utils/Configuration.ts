@@ -279,7 +279,7 @@ export default class Configuration {
         if (!Configuration.isUndefined(mongoDBServiceCredentials['uri'])) {
           storageConfig.uri = mongoDBServiceCredentials['uri'];
         } else {
-          console.error('Connection URI not found in MongoDB Atlas User Defined Service');
+          console.error('Connection URI not found in MongoDB Atlas User Provided Service');
         }
       }
     }
