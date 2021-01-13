@@ -18,7 +18,7 @@ export default abstract class CarIntegration {
     const externalCars = await this.getCarCatalogs();
     for (const externalCar of externalCars) {
       try {
-        const internalCar = await CarStorage.getCarCatalog(externalCar.id);
+        const internalCar = await CarStorage.getCarCatalog(externalCar.id, { withImage: true });
         if (!internalCar) {
           // New Car: Create it
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
@@ -28,7 +28,8 @@ export default abstract class CarIntegration {
           // Get images
           externalCar.images = await this.getCarCatalogImages(externalCar);
           // Create the Hash
-          externalCar.imagesHash = Cypher.hash(externalCar.imageURLs.toString()),
+          externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === externalCar.images.length && externalCar.image) ?
+            Cypher.hash(externalCar.imageURLs.toString()) : null;
           // Save
           externalCar.id = await CarStorage.saveCarCatalog(externalCar, true);
           actionsDone.inSuccess++;
@@ -40,19 +41,20 @@ export default abstract class CarIntegration {
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been created successfully`,
           });
-        } else if (!internalCar.imagesHash || Cypher.hash(JSON.stringify(externalCar)) !== internalCar.hash) {
+        } else if (!internalCar.imagesHash || (internalCar.imagesHash && !internalCar.image) || Cypher.hash(JSON.stringify(externalCar)) !== internalCar.hash) {
           // Car has changed: Update it
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
           externalCar.lastChangedOn = new Date();
           externalCar.createdOn = internalCar.createdOn;
           // Images have changed?
-          if (!internalCar.imagesHash || (externalCar.imagesHash !== internalCar.imagesHash)) {
+          if (!internalCar.imagesHash || (Cypher.hash(externalCar.imageURLs.toString()) !== internalCar.imagesHash)) {
             // Get image
             externalCar.image = await this.getCarCatalogThumb(externalCar);
             // Get images
             externalCar.images = await this.getCarCatalogImages(externalCar);
             // Create the Hash
-            externalCar.imagesHash = Cypher.hash(externalCar.imageURLs.toString()),
+            externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === externalCar.images.length && externalCar.image) ?
+              Cypher.hash(externalCar.imageURLs.toString()) : null;
             // Save
             await CarStorage.saveCarCatalog(externalCar, true);
           } else {
