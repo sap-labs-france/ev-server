@@ -1358,4 +1358,8 @@ export default class Utils {
   public static buildAlgorithm(properties: CryptoKeyProperties): string {
     return `${properties.blockCypher.toLowerCase()}-${properties.keySize}-${properties.operationMode.toLowerCase()}`;
   }
+
+  public static generateKey(): string {
+    return crypto.randomBytes(32).toString('hex');
+  }
 }
