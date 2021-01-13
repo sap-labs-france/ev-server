@@ -400,7 +400,12 @@ export default class Configuration {
     if (!Configuration.isNullOrUndefined(credentials) && !Configuration.isUndefined(credentials[key])) {
       return credentials[key];
     }
-    console.error(`Credentials or credential key ${key} not found in CF 'emobility-credentials' User Provided Credentials Service or bound to the application`);
+    if (Configuration.isNullOrUndefined(credentials)) {
+      console.error('Credentials \'emobility-credentials\' User Provided Service not found or bound to the application in CF space');
+    }
+    if (!Configuration.isNullOrUndefined(credentials) && Configuration.isUndefined(credentials[key])) {
+      console.error(`Credential key ${key} not found in 'emobility-credentials' User Provided Service in CF space`);
+    }
   }
 
   // Read the config file
