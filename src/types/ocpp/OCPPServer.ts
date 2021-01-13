@@ -42,6 +42,13 @@ export enum OCPPVersion {
   VERSION_20 = '2.0',
 }
 
+export const OCPPVersionURLPath: Record<OCPPVersion, string> = Object.freeze({
+  '1.2': 'OCPP12',
+  '1.5': 'OCPP15',
+  '1.6': 'OCPP16',
+  '2.0': 'OCPP20'
+});
+
 export enum RegistrationStatus {
   ACCEPTED = 'Accepted',
   PENDING = 'Pending',

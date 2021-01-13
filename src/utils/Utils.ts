@@ -1,6 +1,6 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -198,7 +198,7 @@ export default class Utils {
     return uuid();
   }
 
-  static generateTagID(name: string, firstName: string): string {
+  public static generateTagID(name: string, firstName: string): string {
     let tagID = '';
     if (name && name.length > 0) {
       tagID = name[0].toUpperCase();
@@ -225,7 +225,7 @@ export default class Utils {
     return typeof obj === 'undefined';
   }
 
-  static isNullOrUndefined(obj: any): boolean {
+  public static isNullOrUndefined(obj: any): boolean {
     // eslint-disable-next-line no-eq-null, eqeqeq
     return obj == null;
   }
@@ -914,48 +914,41 @@ export default class Utils {
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
     let ocppUrl: string;
-    const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
-    switch (ocppProtocol) {
-      case OCPPProtocol.JSON:
-        if (Configuration.getJsonEndpointConfig().baseUrl) {
-          ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
-          if (token) {
-            ocppUrl += `/${token}`;
-          }
-        }
-        return ocppUrl;
-      case OCPPProtocol.SOAP:
-        if (Configuration.getWSDLEndpointConfig()?.baseUrl) {
-          ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
-          if (token) {
-            ocppUrl += `%26Token=${token}`;
-          }
-        }
-        return ocppUrl;
+    if (Configuration.getJsonEndpointConfig().baseUrl && ocppProtocol === OCPPProtocol.JSON) {
+      ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
+      if (token) {
+        ocppUrl += `/${token}`;
+      }
+    } else if (Configuration.getWSDLEndpointConfig()?.baseUrl && ocppProtocol === OCPPProtocol.SOAP) {
+      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
+      if (token) {
+        ocppUrl += `%26Token=${token}`;
+      }
     }
+    return ocppUrl;
   }
 
   public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
     let ocppUrl: string;
-    const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
-    switch (ocppProtocol) {
-      case OCPPProtocol.JSON:
-        if (Configuration.getJsonEndpointConfig().baseSecureUrl) {
-          ocppUrl = `${Configuration.getJsonEndpointConfig().baseSecureUrl}/OCPP16/${tenantID}`;
-          if (token) {
-            ocppUrl += `/${token}`;
-          }
-        }
-        return ocppUrl;
-      case OCPPProtocol.SOAP:
-        if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl) {
-          ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${version}?TenantID=${tenantID}`;
-          if (token) {
-            ocppUrl += `%26Token=${token}`;
-          }
-        }
-        return ocppUrl;
+    if (Configuration.getJsonEndpointConfig().baseSecureUrl && ocppProtocol === OCPPProtocol.JSON) {
+      ocppUrl = `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
+      if (token) {
+        ocppUrl += `/${token}`;
+      }
+    } else if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl && ocppProtocol === OCPPProtocol.SOAP) {
+      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
+      if (token) {
+        ocppUrl += `%26Token=${token}`;
+      }
     }
+    return ocppUrl;
+  }
+
+  public static getOCPPServerVersionURLPath(ocppVersion: OCPPVersion): string {
+    if (!Utils.isUndefined(OCPPVersionURLPath[ocppVersion])) {
+      return OCPPVersionURLPath[ocppVersion];
+    }
+    return 'UNKNOWN';
   }
 
   public static buildEvseTagURL(tenantSubdomain: string, tag: Tag): string {
