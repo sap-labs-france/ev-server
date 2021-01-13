@@ -398,7 +398,7 @@ export default class Configuration {
     if (!Configuration.isNullOrUndefined(credentials) && !Configuration.isUndefined(credentials[key])) {
       return credentials[key];
     }
-    console.error(`Credentials or credential key ${key} not found or bound in CF 'emobility-credentials' User Provided Credentials Service`);
+    console.error(`Credentials or credential key ${key} not found in CF 'emobility-credentials' User Provided Credentials Service or bound to the application`);
   }
 
   // Read the config file
