@@ -51,6 +51,7 @@ export default class TenantContext {
     if (!tokenID) {
       tokenID = await this.createRegistrationToken(siteAreaID);
     }
+    // FIXME: define helpers to build the URL
     this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}/${tokenID}`, this.ocppRequestHandler);
     this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}%26Token=${tokenID}`);
   }
@@ -473,7 +474,7 @@ export default class TenantContext {
       `Number of connector of charging station ${createdChargingStation.id} must be 2`);
     expect(createdChargingStation.connectors[0].power).to.eql(150000,
       `Connector ID 1 of charging station ${createdChargingStation.id} must have 150000 W`);
-    // Expect(createdChargingStation.connectors[0].amperage).to.eql(654,
+    // pragma expect(createdChargingStation.connectors[0].amperage).to.eql(654,
     //   `Connector ID 1 of charging station ${createdChargingStation.id} must have 654 A`);
     expect(createdChargingStation.connectors[0].type).to.eql('CCS',
       `Connector ID 1 of charging station ${createdChargingStation.id} must have CCS connector`);
@@ -487,7 +488,7 @@ export default class TenantContext {
     }
     expect(createdChargingStation.connectors[1].power).to.eql(150000,
       `Connector ID 2 of charging station ${createdChargingStation.id} must have 150000 W`);
-    // Expect(createdChargingStation.connectors[1].amperage).to.eql(654,
+    // pragma expect(createdChargingStation.connectors[1].amperage).to.eql(654,
     //   `Connector ID 2 of charging station ${createdChargingStation.id} must have 654 A`);
     expect(createdChargingStation.connectors[1].type).to.eql('CCS',
       `Connector ID 2 of charging station ${createdChargingStation.id} must have CCS connector`);
