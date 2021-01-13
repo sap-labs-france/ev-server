@@ -28,7 +28,6 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
   }
 
   public async retrieveConsumption(asset: Asset): Promise<AbstractCurrentConsumption> {
-
     // Set new Token
     const token = await this.connect();
     const request = `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${moment().subtract(1, 'minutes').toISOString()}&to=${moment().toISOString()}&step=PT1M`;
@@ -76,7 +75,6 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
 
   private filterConsumptionRequest(asset: Asset, data: any): AbstractCurrentConsumption {
     const consumption = {} as AbstractCurrentConsumption;
-
     // Convert data
     if (data.power && data.energy) {
       switch (asset.assetType) {
@@ -94,12 +92,10 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
           break;
       }
     }
-
     // Check if site area provided and set amp value
     if (asset.siteArea?.voltage) {
       consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
     }
-
     return consumption;
   }
 
