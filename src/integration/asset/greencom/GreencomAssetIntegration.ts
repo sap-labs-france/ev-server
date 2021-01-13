@@ -59,7 +59,6 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
         detailedMessages: { request, token, error: error.message, stack: error.stack, asset }
       });
     }
-    return null;
   }
 
   public createConsumption(asset: Asset, currentConsumption: AbstractCurrentConsumption): Consumption {
@@ -100,12 +99,6 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     if (asset.siteArea?.voltage) {
       consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
     }
-
-    // Workaround to get started at in consumption task
-    consumption.lastConsumption = {
-      timestamp: new Date(),
-      value: 0
-    };
 
     return consumption;
   }
