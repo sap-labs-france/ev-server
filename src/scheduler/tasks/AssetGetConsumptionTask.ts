@@ -40,20 +40,13 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
             if (assetImpl) {
               // Retrieve Consumption
               const assetConsumption = await assetImpl.retrieveConsumption(asset);
+              // Create Consumption to save
+              // Needs to be implemented separately, because of different timestamp handling
+              const consumption = assetImpl.createConsumption(asset, assetConsumption);
               // Set Consumption to Asset
               this.assignAssetConsumption(asset, assetConsumption);
               // Save Asset
               await AssetStorage.saveAsset(tenant.id, asset);
-              // Create Consumption
-              const consumption: Consumption = {
-                startedAt: asset.lastConsumption.timestamp,
-                endedAt: new Date(),
-                assetID: asset.id,
-                cumulatedConsumptionWh: asset.currentConsumptionWh,
-                cumulatedConsumptionAmps: Math.floor(asset.currentConsumptionWh / 230),
-                instantAmps: asset.currentInstantAmps,
-                instantWatts: asset.currentInstantWatts,
-              };
               // Add limits
               await OCPPUtils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, consumption);
               // Save Consumption

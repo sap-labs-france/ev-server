@@ -1,7 +1,7 @@
 import Asset, { AssetType } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+import Consumption, { AbstractCurrentConsumption } from '../../../types/Consumption';
 
-import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -28,11 +28,10 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
   }
 
   public async retrieveConsumption(asset: Asset): Promise<AbstractCurrentConsumption> {
-    const currentTime = moment();
 
     // Set new Token
     const token = await this.connect();
-    const request = `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${currentTime.subtract(1, 'minutes').toISOString()}&to=${currentTime.add(1, 'minutes').toISOString()}&step=PT1M`;
+    const request = `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${moment().subtract(1, 'minutes').toISOString()}&to=${moment().toISOString()}&step=PT1M`;
     try {
       // Get consumption
       const response = await this.axiosInstance.get(
@@ -49,7 +48,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
         module: MODULE_NAME, method: 'retrieveConsumption',
         detailedMessages: { response: response.data }
       });
-      return this.filterConsumptionRequest(asset, response.data, new Date(currentTime.toDate()));
+      return this.filterConsumptionRequest(asset, response.data);
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -63,24 +62,36 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     return null;
   }
 
-  private filterConsumptionRequest(asset: Asset, data: any, currentTime: Date): AbstractCurrentConsumption {
-    const consumption = {} as AbstractCurrentConsumption;
-    // Convert data
-    let consumptionWh = 0;
+  public createConsumption(asset: Asset, currentConsumption: AbstractCurrentConsumption): Consumption {
+    const consumption: Consumption = {
+      startedAt: moment().subtract(1, 'minutes').toDate(),
+      endedAt: new Date(),
+      assetID: asset.id,
+      cumulatedConsumptionWh: currentConsumption.currentConsumptionWh,
+      cumulatedConsumptionAmps: currentConsumption.currentConsumptionWh,
+      instantAmps: currentConsumption.currentInstantAmps,
+      instantWatts: currentConsumption.currentInstantWatts
+    };
+    return consumption;
+  }
 
+  private filterConsumptionRequest(asset: Asset, data: any): AbstractCurrentConsumption {
+    const consumption = {} as AbstractCurrentConsumption;
+
+    // Convert data
     if (data.power && data.energy) {
       switch (asset.assetType) {
         case AssetType.CO:
           consumption.currentInstantWatts = data.power.average;
-          consumptionWh = data.energy.sum;
+          consumption.currentConsumptionWh = data.energy.sum;
           break;
         case AssetType.PR:
           consumption.currentInstantWatts = data.power.average * -1;
-          consumptionWh = data.energy.sum * -1;
+          consumption.currentConsumptionWh = data.energy.sum * -1;
           break;
         case AssetType.CO_PR:
           consumption.currentInstantWatts = data.power.charge.average - data.power.discharge.average;
-          consumptionWh = data.energy.charge.sum - data.energy.discharge.sum;
+          consumption.currentConsumptionWh = data.energy.charge.sum - data.energy.discharge.sum;
           break;
       }
     }
@@ -90,9 +101,10 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
       consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
     }
 
+    // Workaround to get started at in consumption task
     consumption.lastConsumption = {
-      value: consumptionWh,
-      timestamp: currentTime,
+      timestamp: new Date(),
+      value: 0
     };
 
     return consumption;
