@@ -13,6 +13,7 @@ import { HTTPError } from '../types/HTTPError';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
+import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
@@ -847,7 +848,7 @@ export default class Logging {
         console.warn('====================================');
       }
     }
-    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
+    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {
       Logging.logError({
         tenantID: tenantID,
         source: chargeBoxID,
