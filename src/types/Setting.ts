@@ -261,4 +261,5 @@ export interface CryptoSetting {
   keyProperties: CryptoKeyProperties;
   formerKey?: string;
   formerKeyProperties?: CryptoKeyProperties;
+  migrationToBeDone?: boolean;
 }
