@@ -41,8 +41,15 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
               // Retrieve Consumption
               const assetConsumption = await assetImpl.retrieveConsumption(asset);
               // Create Consumption to save
-              // Needs to be implemented separately, because of different timestamp handling
-              const consumption = assetImpl.createConsumption(asset, assetConsumption);
+              const consumption: Consumption = {
+                startedAt: asset.lastConsumption.timestamp,
+                endedAt: new Date(),
+                assetID: asset.id,
+                cumulatedConsumptionWh: assetConsumption.currentConsumptionWh,
+                cumulatedConsumptionAmps: Math.floor(assetConsumption.currentConsumptionWh / asset.siteArea.voltage),
+                instantAmps: assetConsumption.currentInstantAmps,
+                instantWatts: assetConsumption.currentInstantWatts,
+              };
               // Set Consumption to Asset
               this.assignAssetConsumption(asset, assetConsumption);
               // Save Asset

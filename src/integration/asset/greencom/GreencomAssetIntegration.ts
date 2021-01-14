@@ -27,10 +27,12 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     await this.connect();
   }
 
-  public async retrieveConsumption(asset: Asset): Promise<AbstractCurrentConsumption> {
+  public async retrieveConsumption(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption> {
     // Set new Token
     const token = await this.connect();
-    const request = `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${moment().subtract(1, 'minutes').toISOString()}&to=${moment().toISOString()}&step=PT1M`;
+    const request = manualCall ?
+      `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${moment().subtract(1, 'minutes').toISOString()}&to=${moment().toISOString()}&step=PT1M` :
+      `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${asset.lastConsumption.timestamp.toISOString()}&to=${moment().toISOString()}&step=PT1M`;
     try {
       // Get consumption
       const response = await this.axiosInstance.get(
@@ -60,19 +62,6 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     }
   }
 
-  public createConsumption(asset: Asset, currentConsumption: AbstractCurrentConsumption): Consumption {
-    const consumption: Consumption = {
-      startedAt: moment().subtract(1, 'minutes').toDate(),
-      endedAt: new Date(),
-      assetID: asset.id,
-      cumulatedConsumptionWh: currentConsumption.currentConsumptionWh,
-      cumulatedConsumptionAmps: currentConsumption.currentConsumptionWh,
-      instantAmps: currentConsumption.currentInstantAmps,
-      instantWatts: currentConsumption.currentInstantWatts
-    };
-    return consumption;
-  }
-
   private filterConsumptionRequest(asset: Asset, data: any): AbstractCurrentConsumption {
     const consumption = {} as AbstractCurrentConsumption;
     // Convert data
@@ -96,6 +85,13 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     if (asset.siteArea?.voltage) {
       consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
     }
+
+    // Set last consumption
+    consumption.lastConsumption = {
+      value: consumption.currentConsumptionWh,
+      timestamp: new Date()
+    };
+
     return consumption;
   }
 

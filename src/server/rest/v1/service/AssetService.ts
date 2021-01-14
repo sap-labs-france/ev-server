@@ -176,7 +176,7 @@ export default class AssetService {
       });
     }
     // Retrieve consumption
-    const consumption = await assetImpl.retrieveConsumption(asset);
+    const consumption = await assetImpl.retrieveConsumption(asset, true);
     // Assign
     asset.lastConsumption = consumption.lastConsumption;
     asset.currentConsumptionWh = consumption.currentConsumptionWh;

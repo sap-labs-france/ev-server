@@ -59,18 +59,6 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     }
   }
 
-  public createConsumption(asset: Asset, currentConsumption: AbstractCurrentConsumption): Consumption {
-    const consumption: Consumption = {
-      startedAt: asset.lastConsumption.timestamp,
-      endedAt: new Date(),
-      assetID: asset.id,
-      cumulatedConsumptionWh: currentConsumption.currentConsumptionWh,
-      cumulatedConsumptionAmps: Math.floor(currentConsumption.currentConsumptionWh / 230),
-      instantAmps: currentConsumption.currentInstantAmps,
-      instantWatts: currentConsumption.currentInstantWatts,
-    };
-    return consumption;
-  }
 
   private filterConsumptionRequest(asset: Asset, data: any[]): AbstractCurrentConsumption {
     const consumption = {} as AbstractCurrentConsumption;
