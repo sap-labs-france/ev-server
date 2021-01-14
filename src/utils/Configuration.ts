@@ -43,7 +43,7 @@ export default class Configuration {
     // Read conf
     const cryptoConfig: CryptoConfiguration = Configuration.getConfig().Crypto;
     if (!Configuration.isUndefined(cryptoConfig) && Configuration.isCloudFoundry()) {
-      cryptoConfig.key = Configuration.getUserProvidedCredential(CloudCredentialsKey.CRYPTO_KEY);
+      cryptoConfig.key = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.CRYPTO_KEY);
     }
     return cryptoConfig;
   }
@@ -59,8 +59,8 @@ export default class Configuration {
     // Read conf
     const firebaseConfig: FirebaseConfiguration = Configuration.getConfig().Firebase;
     if (!Configuration.isUndefined(firebaseConfig) && Configuration.isCloudFoundry()) {
-      firebaseConfig.privateKeyID = Configuration.getUserProvidedCredential(CloudCredentialsKey.FIREBASE_PRIVATE_KEY_ID);
-      firebaseConfig.privateKey = Configuration.getUserProvidedCredential(CloudCredentialsKey.FIREBASE_PRIVATE_KEY);
+      firebaseConfig.privateKeyID = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.FIREBASE_PRIVATE_KEY_ID);
+      firebaseConfig.privateKey = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.FIREBASE_PRIVATE_KEY);
     }
     return firebaseConfig;
   }
@@ -149,8 +149,8 @@ export default class Configuration {
         // CF Environment: Override
         centralSystemRestService.port = Configuration.getCFAppEnv().port;
         centralSystemRestService.host = Configuration.getCFAppEnv().bind;
-        centralSystemRestService.userTokenKey = Configuration.getUserProvidedCredential(CloudCredentialsKey.USER_TOKEN_KEY);
-        centralSystemRestService.captchaSecretKey = Configuration.getUserProvidedCredential(CloudCredentialsKey.CAPTCHA_SECRET_KEY);
+        centralSystemRestService.userTokenKey = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.USER_TOKEN_KEY);
+        centralSystemRestService.captchaSecretKey = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.CAPTCHA_SECRET_KEY);
       }
       if (Configuration.isUndefined(centralSystemRestService.socketIO)) {
         centralSystemRestService.socketIO = true;
@@ -223,12 +223,12 @@ export default class Configuration {
     const emailConfig: EmailConfiguration = Configuration.getConfig().Email;
     if (!Configuration.isUndefined(emailConfig) && Configuration.isCloudFoundry()) {
       if (!Configuration.isUndefined(emailConfig.smtp)) {
-        emailConfig.smtp.user = Configuration.getUserProvidedCredential(CloudCredentialsKey.SMTP_USERNAME);
-        emailConfig.smtp.password = Configuration.getUserProvidedCredential(CloudCredentialsKey.SMTP_PASSWORD);
+        emailConfig.smtp.user = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.SMTP_USERNAME);
+        emailConfig.smtp.password = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.SMTP_PASSWORD);
       }
       if (!Configuration.isUndefined(emailConfig.smtpBackup)) {
-        emailConfig.smtpBackup.user = Configuration.getUserProvidedCredential(CloudCredentialsKey.SMTP_BACKUP_USERNAME);
-        emailConfig.smtpBackup.password = Configuration.getUserProvidedCredential(CloudCredentialsKey.SMTP_BACKUP_PASSWORD);
+        emailConfig.smtpBackup.user = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.SMTP_BACKUP_USERNAME);
+        emailConfig.smtpBackup.password = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.SMTP_BACKUP_PASSWORD);
       }
     }
     return emailConfig;
@@ -239,7 +239,7 @@ export default class Configuration {
     // Read conf
     const evDatabaseConfig: EVDatabaseConfiguration = Configuration.getConfig().EVDatabase;
     if (!Configuration.isUndefined(evDatabaseConfig) && Configuration.isCloudFoundry()) {
-      evDatabaseConfig.key = Configuration.getUserProvidedCredential(CloudCredentialsKey.EV_DATABASE_KEY);
+      evDatabaseConfig.key = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.EV_DATABASE_KEY);
     }
     return evDatabaseConfig;
   }
@@ -394,7 +394,7 @@ export default class Configuration {
     }
   }
 
-  private static getUserProvidedCredential(key: CloudCredentialsKey): string {
+  private static getUserProvidedCredentialsValue(key: CloudCredentialsKey): string {
     // Get the credentials
     const credentials: CloudCredentials = Configuration.getCFAppEnv().getServiceCreds('emobility-credentials') as CloudCredentials;
     if (!Configuration.isNullOrUndefined(credentials) && !Configuration.isUndefined(credentials[key])) {
