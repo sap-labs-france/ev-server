@@ -27,7 +27,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     await this.connect();
   }
 
-  public async retrieveConsumption(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption> {
+  public async retrieveConsumption(asset: Asset, manualCall?: boolean): Promise<AbstractCurrentConsumption> {
     // Set new Token
     const token = await this.connect();
     const request = manualCall ?
