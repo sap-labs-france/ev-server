@@ -1,4 +1,5 @@
 import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
+import { CryptoSettingsType, KeySetting } from '../../types/Setting';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -9,7 +10,9 @@ import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import MigrationConfiguration from '../../types/configuration/MigrationConfiguration';
 import { ServerAction } from '../../types/Server';
+import SettingStorage from './SettingStorage';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
+import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 import mongoUriBuilder from 'mongo-uri-builder';
@@ -160,6 +163,32 @@ export default class MongoDBStorage {
       message: 'Check of MongoDB database done',
       module: MODULE_NAME, method: 'checkAndCreateTenantDatabase'
     });
+  }
+
+  public async createInitialSettingsForTenant(tenantID: string): Promise<void> {
+    await this.createInitialCryptoSetting(tenantID);
+  }
+
+  public async createInitialCryptoSetting(tenantID: string): Promise<void> {
+    // Check for settings in db
+    const keySettings = await SettingStorage.getCryptoSettings(tenantID);
+    // Generate Crypto Key Settings
+    if (!keySettings) {
+      const keySettingToSave = {
+        identifier: TenantComponents.CRYPTO,
+        type: CryptoSettingsType.CRYPTO,
+        crypto: {
+          key: Utils.generateKey(),
+          keyProperties: {
+            blockCypher: 'AES',
+            keySize: 256,
+            operationMode: 'GCM'
+          }
+        }
+      } as KeySetting;
+      // Save Crypto Key Settings
+      await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
+    }
   }
 
   public async deleteTenantDatabase(tenantID: string): Promise<void> {

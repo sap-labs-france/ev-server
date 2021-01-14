@@ -121,6 +121,8 @@ export default class TenantStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'createTenantDB');
     // Create tenant collections
     await global.database.checkAndCreateTenantDatabase(tenantID);
+    // Create initial settings for tenant
+    await global.database.createInitialSettingsForTenant(tenantID);
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'createTenantDB', uniqueTimerID, { tenantID });
   }
