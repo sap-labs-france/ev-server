@@ -252,7 +252,7 @@ export interface KeySetting extends Setting {
 
 export interface CryptoKeyProperties {
   blockCypher: string;
-  keySize: number;
+  blockSize: number;
   operationMode: string;
 }
 

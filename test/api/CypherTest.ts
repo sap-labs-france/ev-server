@@ -23,7 +23,7 @@ const CRYPTO_KEY: CryptoSetting = {
   'key': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   'keyProperties': {
     'blockCypher': 'AES',
-    'keySize': 256,
+    'blockSize': 256,
     'operationMode': 'CTR'
   }
 };

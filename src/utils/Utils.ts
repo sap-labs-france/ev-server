@@ -1345,13 +1345,13 @@ export default class Utils {
     const regExp = /(.*?)-(.*?)-(.*)/.exec(algo);
     return {
       blockCypher: regExp[1].toUpperCase(),
-      keySize: parseInt(regExp[2]),
+      blockSize: parseInt(regExp[2]),
       operationMode: regExp[3].toUpperCase()
     };
   }
 
   public static buildAlgorithm(properties: CryptoKeyProperties): string {
-    return `${properties.blockCypher.toLowerCase()}-${properties.keySize}-${properties.operationMode.toLowerCase()}`;
+    return `${properties.blockCypher.toLowerCase()}-${properties.blockSize}-${properties.operationMode.toLowerCase()}`;
   }
 
   public static generateKey(): string {
@@ -1362,7 +1362,7 @@ export default class Utils {
   public static getKeyProperties(): CryptoKeyProperties {
     return {
       blockCypher: 'AES',
-      keySize: 256,
+      blockSize: 256,
       operationMode: 'GCM'
     };
   }

@@ -328,13 +328,13 @@ export default class SettingStorage {
         formerKey: settings.result[0].content.crypto.formerKey,
         formerKeyProperties: {
           blockCypher: settings.result[0].content.crypto.formerKeyProperties?.blockCypher,
-          keySize: settings.result[0].content.crypto.formerKeyProperties?.keySize,
+          blockSize: settings.result[0].content.crypto.formerKeyProperties?.blockSize,
           operationMode: settings.result[0].content.crypto.formerKeyProperties?.operationMode,
         },
         key: settings.result[0].content.crypto.key,
         keyProperties: {
           blockCypher: settings.result[0].content.crypto.keyProperties.blockCypher,
-          keySize: settings.result[0].content.crypto.keyProperties.keySize,
+          blockSize: settings.result[0].content.crypto.keyProperties.blockSize,
           operationMode: settings.result[0].content.crypto.keyProperties.operationMode,
         }
       } as CryptoSetting;
