@@ -4,6 +4,7 @@
 
 import chai, { expect } from 'chai';
 
+import { CryptoSetting } from '../types/Setting';
 import CypherJSON from './client/utils/CypherJSON';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
@@ -16,17 +17,24 @@ chai.use(responseHelper);
 
 const FAKE_JSON: CypherJSON = { 'sensitiveData': ['content.secret1', 'content.secret2'], 'content': { 'secret1': 'Harry', 'secret2': 'Potter' } };
 const FAKE_WORD = 'Wingardium Leviosa';
-const FAKE_WORD_ENCRYPTED = '73d49673e8f70de6e16ba99bc0c273da:8b9cb41f960d2b50604921a68d7d0382472d';
+const FAKE_WORD_ENCRYPTED = '04480e7ab47eb5729faea20f0844dffa:81927d0bc660c4548b27cc0e3427d6874ea3';
 
+const CRYPTO_KEY: CryptoSetting = {
+  'key': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  'keyProperties': {
+    'blockCypher': 'AES',
+    'keySize': 256,
+    'operationMode': 'CTR'
+  }
+};
 
-// TODO No point of testing this without tenant? How to change here?
 describe('Cypher Tests', function() {
   this.timeout(30000);
 
   describe('Success cases', () => {
     it('Check that encryption and decryption work', () => {
-      const encrypted = cypher.encrypt(FAKE_WORD);
-      expect(FAKE_WORD).to.equal(cypher.decrypt(encrypted));
+      const encrypted = cypher.encrypt(FAKE_WORD, CRYPTO_KEY);
+      expect(FAKE_WORD).to.equal(cypher.decrypt(encrypted, CRYPTO_KEY));
     });
 
     it('Check that hashing works', () => {
@@ -36,18 +44,18 @@ describe('Cypher Tests', function() {
 
     it('Check that the sensitive data present in JSONs are encrypted', () => {
       const testJSON: CypherJSON = { 'sensitiveData': ['content.secret1', 'content.secret2'], 'content': { 'secret1': 'Harry', 'secret2': 'Potter' } };
-      cypher.encryptSensitiveDataInJSON(testJSON);
+      cypher.encryptSensitiveDataInJSON(testJSON, CRYPTO_KEY);
       // Check encryption
       expect(FAKE_JSON.content.secret1).to.not.equal(testJSON.content.secret1);
       expect(FAKE_JSON.content.secret2).to.not.equal(testJSON.content.secret2);
       // Check decryption
-      cypher.decryptSensitiveDataInJSON(testJSON);
+      cypher.decryptSensitiveDataInJSON(testJSON, CRYPTO_KEY);
       expect(FAKE_JSON.content.secret1).to.equal(testJSON.content.secret1);
       expect(FAKE_JSON.content.secret2).to.equal(testJSON.content.secret2);
     });
 
     it('Check that the global encryption key is unchanged', () => {
-      const decrypted = cypher.decrypt(FAKE_WORD_ENCRYPTED);
+      const decrypted = cypher.decrypt(FAKE_WORD_ENCRYPTED, CRYPTO_KEY);
       expect(FAKE_WORD).to.equal(decrypted);
     });
   });
