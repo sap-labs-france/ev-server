@@ -1360,11 +1360,10 @@ export default class Utils {
   }
 
   public static getKeyProperties(): CryptoKeyProperties {
-    // TODO change CTR to GCM and test on Mac
     return {
       blockCypher: 'AES',
       keySize: 256,
-      operationMode: 'CTR'
+      operationMode: 'GCM'
     };
   }
 
