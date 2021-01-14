@@ -207,11 +207,13 @@ export default class OICPUtils {
           }
         }
       }
+      return {
+        sessionId: sessionId,
+        identification: OICPUtils.convertTagID2OICPIdentification(transaction.tagID)
+      };
     }
-    return {
-      sessionId: sessionId,
-      identification: OICPUtils.convertTagID2OICPIdentification(transaction.tagID)
-    };
+
+    return null;
   }
 
 }

@@ -744,13 +744,6 @@ export default class CpoOICPClient extends OICPClient {
       authorizeResponse = error.response?.data as OICPAuthorizeStopCpoReceive;
       requestError = error;
     });
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OICP_AUTHORIZE_STOP,
-      message: `'authorizeStop': '${authorizeResponse.StatusCode.AdditionalInfo}'`,
-      module: MODULE_NAME, method: 'authorizeStop',
-      detailedMessages: { response: authorizeResponse }
-    });
     if (requestError) {
       throw new BackendError({
         user: user,
@@ -779,7 +772,7 @@ export default class CpoOICPClient extends OICPClient {
       Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_STOP,
-        message: `'authorizeStop': '${authorizeResponse.AuthorizationStatus}'`,
+        message: `'authorizeStop': '${authorizeResponse?.AuthorizationStatus}'`,
         module: MODULE_NAME, method: 'authorizeStop',
         detailedMessages: { authorizeResponse }
       });
