@@ -1366,6 +1366,8 @@ export default class Utils {
       keySize: 256,
       operationMode: 'CTR'
     };
+  }
+
   public static getHostname(): string {
     return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
