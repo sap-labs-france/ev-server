@@ -179,7 +179,7 @@ export default class MongoDBStorage {
         type: CryptoSettingsType.CRYPTO,
         crypto: {
           key: Utils.generateKey(),
-          keyProperties: Utils.getKeyProperties()
+          keyProperties: Utils.getDefaultKeyProperties()
         }
       } as KeySetting;
       // Save Crypto Key Settings

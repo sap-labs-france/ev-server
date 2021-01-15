@@ -127,9 +127,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.connection.user);
-    // Get Crypto Setting
-    const cryptoSetting = await Cypher.getCryptoSetting(this.tenantID);
-    params.append('password', Cypher.decrypt(this.connection.connection.password, cryptoSetting));
+    params.append('password', (await Cypher.decrypt(this.connection.connection.password, this.tenantID)));
     return params;
   }
 

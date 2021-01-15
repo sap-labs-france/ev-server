@@ -1341,12 +1341,12 @@ export default class Utils {
     return /^[A-Z0-9- ]*$/.test(plateID);
   }
 
-  public static separateCryptoAlgo(algo: string): CryptoKeyProperties {
-    const regExp = /(.*?)-(.*?)-(.*)/.exec(algo);
+  public static parseConfigCryptoAlgorithm(algo: string): CryptoKeyProperties {
+    const [blockCypher, blockSize, operationMode] = algo.split('-');
     return {
-      blockCypher: regExp[1].toUpperCase(),
-      blockSize: parseInt(regExp[2]),
-      operationMode: regExp[3].toUpperCase()
+      blockCypher: blockCypher,
+      blockSize: parseInt(blockSize),
+      operationMode: operationMode
     };
   }
 
@@ -1359,7 +1359,7 @@ export default class Utils {
     return crypto.randomBytes(16).toString('hex');
   }
 
-  public static getKeyProperties(): CryptoKeyProperties {
+  public static getDefaultKeyProperties(): CryptoKeyProperties {
     return {
       blockCypher: 'AES',
       blockSize: 256,
