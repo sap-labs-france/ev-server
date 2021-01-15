@@ -119,7 +119,7 @@ export default class SettingService {
     // Filter
     const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
     // Process the sensitive data if any
-    Cypher.encryptSensitiveDataInJSON(filteredRequest, req.user.tenantID);
+    await Cypher.encryptSensitiveDataInJSON(filteredRequest, req.user.tenantID);
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
