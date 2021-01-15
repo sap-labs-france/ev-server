@@ -7,6 +7,7 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import Constants from '../../../../utils/Constants';
 import { DataResult } from '../../../../types/DataResult';
 import { HTTPAuthError } from '../../../../types/HTTPError';
+import I18nManager from '../../../../utils/I18nManager';
 import { Log } from '../../../../types/Log';
 import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
@@ -56,9 +57,20 @@ export default class LoggingService {
 
   private static convertToCSV(req: Request, loggings: Log[], writeHeader = true): string {
     let csv = '';
+    const i18nManager = new I18nManager(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = `Date${Constants.CSV_SEPARATOR}Time${Constants.CSV_SEPARATOR}Level${Constants.CSV_SEPARATOR}Type${Constants.CSV_SEPARATOR}Action${Constants.CSV_SEPARATOR}Message${Constants.CSV_SEPARATOR}Method${Constants.CSV_SEPARATOR}Module${Constants.CSV_SEPARATOR}Source${Constants.CSV_SEPARATOR}Host${Constants.CSV_SEPARATOR}Process\r\n`;
+      csv = `${i18nManager.translate('general.date')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.time')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('loggings.level')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('loggings.type')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('loggings.action')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('loggings.message')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('loggings.method')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('loggings.module')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('loggings.source')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('loggings.host')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('loggings.process')}\r\n`;
     }
     // Content
     for (const log of loggings) {

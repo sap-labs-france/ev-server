@@ -1,4 +1,55 @@
 {
+  "billing": {
+    "generatedUser": "Erstellter Benutzer für '{{email}}'",
+    "chargingStopSiteArea": "Ladung von {{totalConsumption}} kWh, Ort: {{siteArea}} (beendet um {{time}})",
+    "chargingStopChargeBox": "Ladung von {{totalConsumption}} kWh an Ladestation {{chargeBox}} (beendet um {{time}})"
+  },
+  "chargers": {
+    "chargeBoxSN": "Charge Box S/N",
+    "chargePointSN": "Charge Point S/N",
+    "chargingStation": "Charging Station",
+    "connector": "Anschluss",
+    "firmwareVersion": "Firmware Version",
+    "lastReboot": "Last Reboot",
+    "lastSeen": "Last Seen",
+    "maxPower": "Maximum Power (Watt)",
+    "model": "Model",
+    "numberOfConnectors": "Number Of Connectors",
+    "ocppProtocol": "OCPP Protocol",
+    "ocppVersion": "OCPP Version",
+    "powerLimitUnit": "Power Limit Unit",
+    "vendor": "Vendor"
+  },
+  "general": {
+    "changedBy": "Changed By",
+    "changedOn": "Changed On",
+    "createdOn": "Created On",
+    "date": "Date",
+    "endDate": "End Date",
+    "endTime": "End Time",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "month": "Month",
+    "name": "Name",
+    "price": "Price",
+    "priceUnit": "Price Unit",
+    "siteArea": "Site Area",
+    "startDate": "Start Date",
+    "startTime": "Start Time",
+    "time": "Time",
+    "year": "Year"
+  },
+  "loggings": {
+    "action": "Action",
+    "host": "Host",
+    "level": "Level",
+    "message": "Message",
+    "method": "Method",
+    "module": "Module",
+    "process": "Process",
+    "source": "Source",
+    "type": "Type"
+  },
   "notifications": {
     "sessionNotStarted": {
       "title": "Der Ladevorgang wurde nicht gestartet",
@@ -79,16 +130,29 @@
       "body": "'{{userName}}' hat foglenden Fehler: '{{errorTitle}}' - '{{errorDescription}}' in Organisaion '{{tenantName}}' gemeldet"
     }
   },
-  "billing": {
-    "generatedUser": "Erstellter Benutzer für '{{email}}'",
-    "chargingStopSiteArea": "Ladung von {{totalConsumption}} kWh, Ort: {{siteArea}} (beendet um {{time}})",
-    "chargingStopChargeBox": "Ladung von {{totalConsumption}} kWh an Ladestation {{chargeBox}} (beendet um {{time}})"
+  "siteArea": "Standortbereich",
+  "statistics": {
+    "consumption": "Consumption (kW.h)",
+    "inactivity": "Inactivity (Hours)",
+    "numberOfSessions": "Number of Sessions",
+    "usage": "Usage (Hours)"
   },
   "tags": {
     "virtualBadge": "Virtual Badge"
   },
-  "chargers": {
-    "connector": "Anschluss"
+  "transactions": {
+    "totalConsumption": "Total Consumption (kW.h)",
+    "totalDuration": "Total Duration (Mins)",
+    "totalInactivity": "Total Inactivity (Mins)"
   },
-  "siteArea": "Standortbereich"
+  "users": {
+    "email": "Email",
+    "eulaAcceptedOn": "EULA Accepted On",
+    "firstName": "First Name",
+    "id": "ID",
+    "role": "Role",
+    "status": "Status",
+    "user": "User",
+    "userID": "User ID"
+  }
 }

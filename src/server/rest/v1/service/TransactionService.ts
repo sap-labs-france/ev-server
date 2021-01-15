@@ -15,6 +15,7 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
+import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -846,9 +847,26 @@ export default class TransactionService {
 
   public static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
     let csv = '';
+
     // Header
     if (writeHeader) {
-      csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}Start Time${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}End Time${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+      const headerArray = [
+        'users.id',
+        'chargers.chargingStation',
+        'chargers.connector',
+        'users.userID',
+        'users.user',
+        'general.startDate',
+        'general.startTime',
+        'general.endDate',
+        'general.endTime',
+        'transactions.totalConsumption',
+        'transactions.totalDuration',
+        'transactions.totalInactivity',
+        'general.price',
+        'general.priceUnit'
+      ];
+      csv = UtilsService.getCsvColumnHeaders(headerArray, req.user.locale);
     }
     // Content
     for (const transaction of transactions) {

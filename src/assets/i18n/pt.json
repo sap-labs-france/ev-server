@@ -1,4 +1,55 @@
 {
+  "billing": {
+    "generatedUser": "Utilizador criado para '{{email}}'",
+    "chargingStopSiteArea": "Carregamento {{totalConsumption}} kWh na {{siteArea}} (terminado as {{time}})",
+    "chargingStopChargeBox": "Carregamento {{totalConsumption}} kWh em curso na estação {{chargeBox}} (termiando as {{time}})"
+  },
+  "chargers": {
+    "chargeBoxSN": "Charge Box S/N",
+    "chargePointSN": "Charge Point S/N",
+    "chargingStation": "Charging Station",
+    "connector": "Connector",
+    "firmwareVersion": "Firmware Version",
+    "lastReboot": "Last Reboot",
+    "lastSeen": "Last Seen",
+    "maxPower": "Maximum Power (Watt)",
+    "model": "Model",
+    "numberOfConnectors": "Number Of Connectors",
+    "ocppProtocol": "OCPP Protocol",
+    "ocppVersion": "OCPP Version",
+    "powerLimitUnit": "Power Limit Unit",
+    "vendor": "Vendor"
+  },
+  "general": {
+    "changedBy": "Changed By",
+    "changedOn": "Changed On",
+    "createdOn": "Created On",
+    "date": "Date",
+    "endDate": "End Date",
+    "endTime": "End Time",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "month": "Month",
+    "name": "Name",
+    "price": "Price",
+    "priceUnit": "Price Unit",
+    "siteArea": "Site Area",
+    "startDate": "Start Date",
+    "startTime": "Start Time",
+    "time": "Time",
+    "year": "Year"
+  },
+  "loggings": {
+    "action": "Action",
+    "host": "Host",
+    "level": "Level",
+    "message": "Message",
+    "method": "Method",
+    "module": "Module",
+    "process": "Process",
+    "source": "Source",
+    "type": "Type"
+  },
   "notifications": {
     "sessionNotStarted": {
       "title": "Sessão não iniciada",
@@ -70,21 +121,38 @@
       "title": "Charging Profiles failed",
       "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
     },
+    "billingNewInvoice": {
+      "title": "New invoice",
+      "body": "A new invoice ({{invoiceNumber}}) is now available"
+    },
     "endUserErrorNotification": {
       "title": "Um utilizador reportou um erro",
       "body": "'{{userName}}' reportou: '{{errorTitle}}' - '{{errorDescription}}' do '{{tenantName}}'"
     }
   },
-  "billing": {
-    "generatedUser": "Utilizador criado para '{{email}}'",
-    "chargingStopSiteArea": "Carregamento {{totalConsumption}} kWh na {{siteArea}} (terminado as {{time}})",
-    "chargingStopChargeBox": "Carregamento {{totalConsumption}} kWh em curso na estação {{chargeBox}} (termiando as {{time}})"
+  "siteArea": "Area de Site",
+  "statistics": {
+    "consumption": "Consumption (kW.h)",
+    "inactivity": "Inactivity (Hours)",
+    "numberOfSessions": "Number of Sessions",
+    "usage": "Usage (Hours)"
   },
   "tags": {
     "virtualBadge": "Virtual Badge"
   },
-  "chargers": {
-    "connector": "Connector"
+  "transactions": {
+    "totalConsumption": "Total Consumption (kW.h)",
+    "totalDuration": "Total Duration (Mins)",
+    "totalInactivity": "Total Inactivity (Mins)"
   },
-  "siteArea": "Area de Site"
+  "users": {
+    "email": "Email",
+    "eulaAcceptedOn": "EULA Accepted On",
+    "firstName": "First Name",
+    "id": "ID",
+    "role": "Role",
+    "status": "Status",
+    "user": "User",
+    "userID": "User ID"
+  }
 }

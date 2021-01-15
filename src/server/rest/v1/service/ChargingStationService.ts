@@ -1331,7 +1331,23 @@ export default class ChargingStationService {
     const i18nManager = new I18nManager(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Seen${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+      csv = `${i18nManager.translate('general.name')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.createdOn')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.numberOfConnectors')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.siteArea')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.latitude')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.longitude')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.chargePointSN')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.model')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.chargeBoxSN')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.vendor')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.firmwareVersion')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.ocppVersion')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.ocppProtocol')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.lastSeen')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.lastReboot')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.maxPower')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.powerLimitUnit')}\r\n`;
     }
     // Content
     for (const chargingStation of chargingStations) {

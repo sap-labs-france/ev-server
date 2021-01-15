@@ -16,6 +16,7 @@ import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
@@ -1077,9 +1078,19 @@ export default class UserService {
 
   private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
     let csv = '';
+    const i18nManager = new I18nManager(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = `ID${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}First Name${Constants.CSV_SEPARATOR}Role${Constants.CSV_SEPARATOR}Status${Constants.CSV_SEPARATOR}Email${Constants.CSV_SEPARATOR}EULA Accepted On${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Changed On${Constants.CSV_SEPARATOR}Changed By\r\n`;
+      csv = `${i18nManager.translate('users.id')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.name')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('users.firstName')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('users.role')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('users.status')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('users.email')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('users.eulaAcceptedOn')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.createdOn')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.changedOn')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.changedBy')}\r\n`;
     }
     // Content
     for (const user of users) {

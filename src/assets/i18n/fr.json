@@ -1,4 +1,55 @@
 {
+  "billing": {
+    "generatedUser": "Utilisateur généré pour '{{email}}'",
+    "chargingStopSiteArea": "Charging Station {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
+    "chargingStopChargeBox": "Charging Station {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
+  },
+  "chargers": {
+    "chargeBoxSN": "Numéro de Série Charge Box",
+    "chargePointSN": "Numéro de Série Point de Charge",
+    "chargingStation": "Borne",
+    "connector": "Connecteur",
+    "firmwareVersion": "Version du firmware",
+    "lastReboot": "Dernier redémarrage",
+    "lastSeen": "Dernière connexion",
+    "maxPower": "Puissance maximum (Watt)",
+    "model": "Modèle",
+    "numberOfConnectors": "Nombre de connecteurs",
+    "ocppProtocol": "Protocol OCPP",
+    "ocppVersion": "Version OCPP",
+    "powerLimitUnit": "Unité de limite de puissance",
+    "vendor": "Vendeur"
+  },
+  "general": {
+    "changedBy": "Changé Par",
+    "changedOn": "Changé Le",
+    "createdOn": "Créé le",
+    "date": "Date",
+    "endDate": "Date De Fin",
+    "endTime": "Heure De Fin",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "month": "Mois",
+    "name": "Nom",
+    "price": "Prix",
+    "priceUnit": "Unité De Prix",
+    "siteArea": "Zone",
+    "startDate": "Date De Début",
+    "startTime": "Heure De Début",
+    "time": "Heure",
+    "year": "Année"
+  },
+  "loggings": {
+    "action": "Action",
+    "host": "Hôte",
+    "level": "Niveau",
+    "message": "Message",
+    "method": "Méthode",
+    "module": "Module",
+    "process": "Processus",
+    "source": "Source",
+    "type": "Type"
+  },
   "notifications": {
     "sessionNotStarted": {
       "title": "Session Non Démarrée",
@@ -79,16 +130,29 @@
       "body": "'{{userName}}' a reporté: '{{errorTitle}}' - '{{errorDescription}}' dans l'organisation '{{tenantName}}'"
     }
   },
-  "billing": {
-    "generatedUser": "Utilisateur généré pour '{{email}}'",
-    "chargingStopSiteArea": "Charging Station {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
-    "chargingStopChargeBox": "Charging Station {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
+  "siteArea": "Zone",
+  "statistics": {
+    "consumption": "Consommation (kW.h)",
+    "inactivity": "Inactivité (Heures)",
+    "numberOfSessions": "Nombre de Sessions",
+    "usage": "Utilisation (Heures)"
   },
   "tags": {
     "virtualBadge": "Badge Virtuel"
   },
-  "chargers": {
-    "connector": "Connecteur"
+  "transactions": {
+    "totalConsumption": "Consommation Totale (kW.h)",
+    "totalDuration": "Durée Totale (Mins)",
+    "totalInactivity": "Inactivité Totale (Mins)"
   },
-  "siteArea": "Zone"
+  "users": {
+    "email": "Email",
+    "eulaAcceptedOn": "CGU Acceptées Le",
+    "firstName": "Prénom",
+    "id": "Identifiant",
+    "role": "Rôle",
+    "status": "Statut",
+    "user": "Utilisateur",
+    "userID": "Identifiant Utilisateur"
+  }
 }
