@@ -13,6 +13,7 @@ export default interface UserNotifications {
   sendChargingStationStatusError: boolean;
   sendChargingStationRegistered: boolean;
   sendOcpiPatchStatusError: boolean;
+  sendOicpPatchStatusError: boolean;
   sendSmtpAuthError: boolean;
   sendUserAccountInactivity: boolean;
   sendPreparingSessionNotStarted: boolean;
@@ -36,7 +37,6 @@ export type UserNotificationKeys =
  'sendChargingStationRegistered' |
  'sendOcpiPatchStatusError' |
  'sendOicpPatchStatusError' |
- 'sendOicpPatchEvseError' |
  'sendSmtpAuthError' |
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |

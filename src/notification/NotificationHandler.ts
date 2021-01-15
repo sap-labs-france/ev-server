@@ -651,7 +651,7 @@ export default class NotificationHandler {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
       // Enrich with admins
-      const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendOicpPatchEvseError');
+      const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendOicpPatchStatusError');
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
