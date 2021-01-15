@@ -765,7 +765,6 @@ export default class Authorizations {
         });
       }
     }
-
     // Get Tag
     let tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
     if (!tag) {
