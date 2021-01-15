@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from 'express';
 import AbstractEndpoint from './oicp-services-impl/AbstractEndpoint';
 import AppAuthError from '../../exception/AppAuthError';
 import AppError from '../../exception/AppError';
-import BackendError from '../../exception/BackendError';
 import { Configuration } from '../../types/configuration/Configuration';
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
@@ -105,7 +104,6 @@ export default abstract class AbstractOICPService {
     const endpointName = params.endpoint as string;
     try {
       const registeredEndpoints = this.getRegisteredEndpoints();
-
       // Get tenant from database
       const tenant: Tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
       // Check if tenant was found
@@ -129,7 +127,6 @@ export default abstract class AbstractOICPService {
           oicpError: OICPStatusCode.Code021
         });
       }
-
       // Pass tenant id to req
       req.user.tenantID = tenant.id;
       // Handle request action (endpoint)

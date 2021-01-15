@@ -4,7 +4,6 @@ import { OICPStatus, OICPStatusCode } from '../../types/oicp/OICPStatusCode';
 
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
 import { OICPEvseID } from '../../types/oicp/OICPEvse';
@@ -59,7 +58,6 @@ export default class OICPUtils {
     status.Description = error.message;
     response.StatusCode = status;
     response.Result = false;
-
     return response;
   }
 
@@ -84,11 +82,7 @@ export default class OICPUtils {
     return evseID.replace(/[\W_]+/g, '*').toUpperCase();
   }
 
-  public static breakUpEvseID(evseID: OICPEvseID): {
-    countryCode: string,
-    partyId: string,
-    connectorId: string
-  } {
+  public static breakUpEvseID(evseID: OICPEvseID): { countryCode: string, partyId: string, connectorId: string } {
     // Problem: it is not save to derive the chargingStationId from evseID because all characters that are not alphanumeric and underscores are replaced with '*'
     // also: evseId is set to upper case
     // see function buildEvseID()
@@ -111,7 +105,6 @@ export default class OICPUtils {
     }, Constants.DB_PARAMS_MAX_LIMIT);
     let chargingStation: ChargingStation;
     let connector: Connector;
-
     if (chargingStations && chargingStations.result) {
       for (const cs of chargingStations.result) {
         cs.connectors.forEach((conn) => {
@@ -139,7 +132,7 @@ export default class OICPUtils {
   }
 
   public static convertOICPIdentification2TagID(identification: OICPIdentification): string {
-    let tagID;
+    let tagID: string;
     // No tag ID in case of remote Identification, QR Code Identification and Plug and Charge Identification
     if (identification.RFIDMifareFamilyIdentification) {
       tagID = identification.RFIDMifareFamilyIdentification.UID;
@@ -186,7 +179,8 @@ export default class OICPUtils {
     }
   }
 
-  public static async getOICPIdentificationFromAuthorization(tenantID: string, transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
+  public static async getOICPIdentificationFromAuthorization(tenantID: string,
+      transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
     // Retrieve Session Id from Authorization ID
     let sessionId: OICPSessionID;
     const authorizations = await OCPPStorage.getAuthorizes(tenantID, {
@@ -212,8 +206,6 @@ export default class OICPUtils {
         identification: OICPUtils.convertTagID2OICPIdentification(transaction.tagID)
       };
     }
-
     return null;
   }
-
 }
