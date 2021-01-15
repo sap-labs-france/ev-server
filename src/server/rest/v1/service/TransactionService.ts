@@ -847,26 +847,23 @@ export default class TransactionService {
 
   public static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
     let csv = '';
-
+    const i18nManager = new I18nManager(req.user.locale);
     // Header
     if (writeHeader) {
-      const headerArray = [
-        'users.id',
-        'chargers.chargingStation',
-        'chargers.connector',
-        'users.userID',
-        'users.user',
-        'general.startDate',
-        'general.startTime',
-        'general.endDate',
-        'general.endTime',
-        'transactions.totalConsumption',
-        'transactions.totalDuration',
-        'transactions.totalInactivity',
-        'general.price',
-        'general.priceUnit'
-      ];
-      csv = UtilsService.getCsvColumnHeaders(headerArray, req.user.locale);
+      csv = `${i18nManager.translate('users.id')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.chargingStation')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('chargers.connector')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('users.userID')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('users.user')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.startDate')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.startTime')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.endDate')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.endTime')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('transactions.totalConsumption')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('transactions.totalDuration')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('transactions.totalInactivity')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.price')}${Constants.CSV_SEPARATOR}`;
+      csv += `${i18nManager.translate('general.priceUnit')}${Constants.CSV_SEPARATOR}`;
     }
     // Content
     for (const transaction of transactions) {
