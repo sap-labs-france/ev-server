@@ -2,17 +2,15 @@
 // Endpoint for eRoamingAuthorizeRemoteStart and eRoamingAuthorizeRemoteStop from the eMSP
 
 import ChargingStation, { Connector, RemoteAuthorization } from '../../../../types/ChargingStation';
-import { NextFunction, Request, Response, response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandResult } from '../../../../types/ocpp/OCPPClient';
 import { OICPAuthorizeRemoteStartCpoReceive, OICPAuthorizeRemoteStopCpoReceive } from '../../../../types/oicp/OICPAuthorize';
 
 import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOICPService from '../../AbstractOICPService';
-import AppError from '../../../../exception/AppError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { OICPAcknowledgment } from '../../../../types/oicp/OICPAcknowledgment';
 import { OICPRemoteActionType } from '../../../../types/oicp/OICPRemoteActionType';
@@ -59,17 +57,14 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     const authorizeRemoteStart = req.body as OICPAuthorizeRemoteStartCpoReceive;
     // Check props
     OICPValidation.getInstance().validateRemoteStart(authorizeRemoteStart);
-
     const evseID = authorizeRemoteStart.EvseID;
     const session = {} as Partial<OICPSession>;
     session.id = authorizeRemoteStart.SessionID;
     session.providerID = authorizeRemoteStart.ProviderID;
     session.identification = authorizeRemoteStart.Identification;
-
     const chargingStationConnector = await OICPUtils.getChargingStationConnectorFromEvseID(tenant, evseID);
     const connector = chargingStationConnector.connector;
     const chargingStation = chargingStationConnector.chargingStation;
-
     if (!connector) {
       Logging.logDebug({
         tenantID: tenant.id,
@@ -140,7 +135,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       // Ok
       return OICPUtils.success(session);
     }
-
     // Rejected
     return OICPUtils.noSuccess(session, 'Remote Start rejected by Charging Station');
   }
@@ -155,7 +149,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     const session = {} as Partial<OICPSession>;
     session.id = authorizeRemoteStop.SessionID;
     session.providerID = authorizeRemoteStop.ProviderID;
-
     const transaction = await TransactionStorage.getOICPTransaction(tenant.id, authorizeRemoteStop.SessionID);
     if (!transaction) {
       Logging.logDebug({
@@ -201,7 +194,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       // Ok
       return OICPUtils.success(session);
     }
-
     // Rejected
     return OICPUtils.noSuccess(session, 'Remote Stop rejected by Charging Station');
   }
@@ -223,12 +215,9 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     if (!chargingStationClient) {
       return;
     }
-
     const result = await chargingStationClient.remoteStopTransaction({
       transactionId: transactionId
     });
-
     return result;
   }
-
 }
