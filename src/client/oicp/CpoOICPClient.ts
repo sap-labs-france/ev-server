@@ -200,10 +200,10 @@ export default class CpoOICPClient extends OICPClient {
    */
   public async sendEVSEs(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
-      actionType = OICPActionType.fullLoad;
+      actionType = OICPActionType.FULL_LOAD;
     }
     if (!processAllEVSEs) {
-      actionType = OICPActionType.insert;
+      actionType = OICPActionType.INSERT;
     }
     // Result
     const result = {
@@ -317,10 +317,10 @@ export default class CpoOICPClient extends OICPClient {
    */
   public async sendEVSEStatuses(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
-      actionType = OICPActionType.fullLoad;
+      actionType = OICPActionType.FULL_LOAD;
     }
     if (!processAllEVSEs) {
-      actionType = OICPActionType.insert;
+      actionType = OICPActionType.INSERT;
     }
     // Result
     const result = {
@@ -463,7 +463,7 @@ export default class CpoOICPClient extends OICPClient {
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
     };
     const evseStatus = OICPMapping.convertConnector2EvseStatus(this.tenant, chargingStation, connector, options);
-    const response = await this.pushEvseStatus([evseStatus], OICPActionType.update);
+    const response = await this.pushEvseStatus([evseStatus], OICPActionType.UPDATE);
     return response;
   }
 
@@ -1318,7 +1318,7 @@ export default class CpoOICPClient extends OICPClient {
       message: `Ping Hubject at ${this.getEndpointUrl('evses',ServerAction.OICP_PUSH_EVSE_DATA)}`,
       module: MODULE_NAME, method: 'pingEvseEndpoint'
     });
-    const response = await this.pushEvseData([], OICPActionType.insert);
+    const response = await this.pushEvseData([], OICPActionType.INSERT);
     return response;
   }
 
