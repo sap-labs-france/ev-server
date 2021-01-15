@@ -47,9 +47,7 @@ class TestData {
   public static async setSmartChargingValidCredentials(testData): Promise<void> {
     const sapSmartChargingSettings = TestData.getSmartChargingSettings();
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
-    // Get Crypto Setting
-    const cryptoSetting = await Cypher.getCryptoSetting(testData.tenantContext.getTenant().id);
-    sapSmartChargingSettings.password = Cypher.encrypt(sapSmartChargingSettings.password, cryptoSetting);
+    sapSmartChargingSettings.password = await Cypher.encrypt(sapSmartChargingSettings.password, testData.tenantContext.getTenant().id);
     aCBufferFactor = 1 + sapSmartChargingSettings.limitBufferAC / 100,
     dCBufferFactor = 1 + sapSmartChargingSettings.limitBufferDC / 100,
     smartChargingIntegration = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);

@@ -31,7 +31,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   private stripe: Stripe;
   private stripeSettings: StripeBillingSetting;
 
-  // TODO refactor
   constructor(tenantId: string, settings: StripeBillingSetting) {
     super(tenantId, settings);
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
@@ -693,10 +692,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   private async initializeStripe() {
     this.settings.currency = this.stripeSettings.currency;
-    // Get Crypto Setting
-    const cryptoSetting = await Cypher.getCryptoSetting(this.tenantID);
     if (this.settings.secretKey) {
-      this.settings.secretKey = Cypher.decrypt(this.stripeSettings.secretKey, cryptoSetting);
+      this.settings.secretKey = await Cypher.decrypt(this.stripeSettings.secretKey, this.tenantID);
     }
     // Currently the public key is not encrypted
     this.stripe = new Stripe(this.settings.secretKey);

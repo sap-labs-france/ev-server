@@ -11,31 +11,20 @@ const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
 
-  public static async getCryptoSetting(tenantID: string): Promise<CryptoSetting> {
-    const cryptoSettings = (await SettingStorage.getCryptoSettings(tenantID)).crypto;
-    if (!cryptoSettings) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getCryptoSetting',
-        message: 'No Crypto Settings found in the database'
-      });
-    }
-    return cryptoSettings;
-  }
-
-  public static encrypt(data: string, cryptoSetting: CryptoSetting): string {
+  public static async encrypt(data: string, tenantID: string): Promise<string> {
     const iv = crypto.randomBytes(IV_LENGTH);
+    const cryptoSetting = await this.getCryptoSetting(tenantID);
     const cipher = crypto.createCipheriv(Utils.buildAlgorithm(cryptoSetting.keyProperties), Buffer.from(cryptoSetting.key), iv);
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
   }
 
-  public static decrypt(data: string, cryptoSetting: CryptoSetting): string {
+  public static async decrypt(data: string, tenantID: string): Promise<string> {
     const dataParts = data.split(':');
     const iv = Buffer.from(dataParts.shift(), 'hex');
     const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
+    const cryptoSetting = await this.getCryptoSetting(tenantID);
     const decipher = crypto.createDecipheriv(Utils.buildAlgorithm(cryptoSetting.keyProperties), Buffer.from(cryptoSetting.key), iv);
     let decrypted = decipher.update(encryptedData);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
@@ -46,7 +35,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static encryptSensitiveDataInJSON(obj: Record<string, any>, cryptoSetting: CryptoSetting): void {
+  public static encryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -71,7 +60,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, Cypher.encrypt(value, cryptoSetting));
+            _.set(obj, property, Cypher.encrypt(value, tenantID));
           }
         }
       }
@@ -80,7 +69,7 @@ export default class Cypher {
     }
   }
 
-  public static decryptSensitiveDataInJSON(obj: Record<string, any>, cryptoSetting: CryptoSetting): void {
+  public static decryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -105,7 +94,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, Cypher.decrypt(value, cryptoSetting));
+            _.set(obj, property, Cypher.decrypt(value, tenantID));
           }
         }
       }
@@ -142,5 +131,18 @@ export default class Cypher {
         }
       }
     }
+  }
+
+  private static async getCryptoSetting(tenantID: string): Promise<CryptoSetting> {
+    const cryptoSettings = (await SettingStorage.getCryptoSettings(tenantID)).crypto;
+    if (!cryptoSettings) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'getCryptoSetting',
+        message: 'No Crypto Settings found in the database'
+      });
+    }
+    return cryptoSettings;
   }
 }
