@@ -7,11 +7,14 @@ import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
+import { LockEntity } from '../../../../types/Locking';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
+import TenantComponents from '../../../../types/TenantComponents';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
 
@@ -196,6 +199,12 @@ export default class SettingService {
     setting.lastChangedOn = new Date();
     // Update Setting
     settingUpdate.id = await SettingStorage.saveSettings(req.user.tenantID, settingUpdate);
+    // Crypto Setting handling
+    if (settingUpdate.identifier === TenantComponents.CRYPTO) {
+      if (settingUpdate.content.crypto.migrationToBeDone === true) {
+        await Cypher.handleCryptoSettingsChange(req.user.tenantID);
+      }
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
