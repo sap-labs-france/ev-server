@@ -35,7 +35,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static encryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string): void {
+  public static async encryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string): Promise<void> {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -60,7 +60,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, Cypher.encrypt(value, tenantID));
+            _.set(obj, property, await Cypher.encrypt(value, tenantID));
           }
         }
       }
@@ -69,7 +69,7 @@ export default class Cypher {
     }
   }
 
-  public static decryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string): void {
+  public static async decryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string): Promise<void> {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -94,7 +94,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, Cypher.decrypt(value, tenantID));
+            _.set(obj, property, await Cypher.decrypt(value, tenantID));
           }
         }
       }
