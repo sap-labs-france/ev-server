@@ -22,7 +22,7 @@ export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTa
     // Crypto Key from config file
     const configCryptoKey: string = Configuration.getCryptoConfig().key;
     // Crypto Key Properties from config file
-    const confiCryptoKeyProperties: CryptoKeyProperties = Utils.separateCryptoAlgo(Configuration.getCryptoConfig().algorithm);
+    const configCryptoKeyProperties: CryptoKeyProperties = Utils.parseConfigCryptoAlgorithm(Configuration.getCryptoConfig().algorithm);
     // Crypto Key Setting from db
     const keySettings = await SettingStorage.getCryptoSettings(tenant.id);
     // If no Crypto Key Setting exist, initialize them with Crypto Key from config file
@@ -33,7 +33,7 @@ export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTa
         type: CryptoSettingsType.CRYPTO,
         crypto: {
           key: configCryptoKey,
-          keyProperties: confiCryptoKeyProperties,
+          keyProperties: configCryptoKeyProperties,
         }
       } as KeySetting;
       await SettingStorage.saveCryptoSettings(tenant.id, keySettingToSave);

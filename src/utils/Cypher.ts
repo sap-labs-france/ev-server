@@ -1,7 +1,5 @@
 import BackendError from '../exception/BackendError';
-import Configuration from './Configuration';
 import Constants from './Constants';
-import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import { CryptoSetting } from '../types/Setting';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import Utils from './Utils';
@@ -14,7 +12,16 @@ const MODULE_NAME = 'Cypher';
 export default class Cypher {
 
   public static async getCryptoSetting(tenantID: string): Promise<CryptoSetting> {
-    return (await SettingStorage.getCryptoSettings(tenantID)).crypto;
+    const cryptoSettings = (await SettingStorage.getCryptoSettings(tenantID)).crypto;
+    if (!cryptoSettings) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'getCryptoSetting',
+        message: 'No Crypto Settings found in the database'
+      });
+    }
+    return cryptoSettings;
   }
 
   public static encrypt(data: string, cryptoSetting: CryptoSetting): string {
