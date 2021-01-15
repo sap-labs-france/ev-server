@@ -6,7 +6,6 @@ import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Cypher from '../../utils/Cypher';
 import { HTTPError } from '../../types/HTTPError';
-import Logging from '../../utils/Logging';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
 import OICPEndpointStorage from '../../storage/mongodb/OICPEndpointStorage';
 import { OICPOperatorID } from '../../types/oicp/OICPEvse';
@@ -45,7 +44,7 @@ export default abstract class OICPClient {
     this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) }, true); // FIXME: set noInterceptors = true to avoid 'Converting circular structure to JSON' Error
   }
 
-  getLocalCountryCode(action: ServerAction): string {
+  public getLocalCountryCode(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -61,7 +60,7 @@ export default abstract class OICPClient {
     return this.settings[this.role].countryCode;
   }
 
-  getLocalPartyID(action: ServerAction): string {
+  public getLocalPartyID(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -77,14 +76,14 @@ export default abstract class OICPClient {
     return this.settings[this.role].partyID;
   }
 
-  getOperatorID(action: ServerAction): OICPOperatorID {
+  public getOperatorID(action: ServerAction): OICPOperatorID {
     const countryCode = this.getLocalCountryCode(action);
     const partyID = this.getLocalPartyID(action);
     const operatorID = `${countryCode}*${partyID}`;
     return operatorID;
   }
 
-  async unregister(): Promise<any> {
+  public async unregister(): Promise<any> {
     const unregisterResult: any = {};
     try {
       // Save endpoint
@@ -101,7 +100,7 @@ export default abstract class OICPClient {
     return unregisterResult;
   }
 
-  async register(): Promise<any> {
+  public async register(): Promise<any> {
     const registerResult: any = {};
     try {
       // Save endpoint
@@ -117,6 +116,13 @@ export default abstract class OICPClient {
     // Return result
     return registerResult;
   }
+
+  public abstract triggerJobs(): Promise<{
+    evses?: OICPResult,
+    evseStatuses?: OICPResult;
+  }>;
+
+  public abstract ping();
 
   protected getEndpointUrl(service: string, action: ServerAction): string {
     if (this.oicpEndpoint.availableEndpoints) {
@@ -209,7 +215,6 @@ export default abstract class OICPClient {
   private getHttpsAgent(action: ServerAction): https.Agent {
     const publicCert = this.getClientCertificateFromDB(action);
     const privateKey = this.getPrivateKeyFromDB(action);
-
     const httpsAgent = new https.Agent({
       rejectUnauthorized: false,
       cert: publicCert,
@@ -218,11 +223,4 @@ export default abstract class OICPClient {
     });
     return httpsAgent;
   }
-
-  abstract triggerJobs(): Promise<{
-    evses?: OICPResult,
-    evseStatuses?: OICPResult;
-  }>;
-
-  abstract ping();
 }
