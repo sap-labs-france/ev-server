@@ -376,7 +376,7 @@ export default class TenantService {
     if (tenant.components && tenant.components?.oicp) {
       const checkOICPComponent = tenant.components.oicp;
       // Virtual user needed for unknown roaming user
-      const virtualOICPUser = await UserStorage.getOICPVirtualUser(tenant.id);
+      const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
       // Activate or deactivate virtual user depending on the oicp component status
       if (checkOICPComponent.active) {
         if (!virtualOICPUser) {

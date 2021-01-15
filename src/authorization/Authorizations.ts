@@ -744,14 +744,10 @@ export default class Authorizations {
       // Access Control Enabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
-        let user;
-        try {
-          user = await UserStorage.getUserByTagId(tenantID, tagID);
-        } finally {
-          if (!user && Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-            // In case of OICP, use virtual user if there is no user in the db
-            user = await UserStorage.getOICPVirtualUser(tenantID);
-          }
+        let user = await UserStorage.getUserByTagId(tenantID, tagID);
+        if (!user && Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+          // In case of OICP, use virtual user if there is no user in the db
+          user = await UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
         }
         return user;
       }
@@ -778,7 +774,7 @@ export default class Authorizations {
         // FIXME: No tag will be created if OICP component is activated. What if unknown user is no OICP User? No information beforehand.
         // You have to try the OICP authorization first (with a successful OICP authorization the session starts)
         // Problem: Even if the user is no roaming user, the OICP virtual user will be returned
-        return await UserStorage.getOICPVirtualUser(tenantID);
+        return UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
       }
       // Create the tag as inactive
       tag = {

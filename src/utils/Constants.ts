@@ -54,7 +54,7 @@ export default class Constants {
 
   // OICP constants
   public static readonly OICP_PROGRESS_NOTIFICATION_MAX_INTERVAL = 300; // Hubject restriction: "Progress Notification can be sent only at interval of at least 300 seconds." (5 Minutes)
-
+  public static readonly OICP_VIRTUAL_USER_EMAIL = 'virtual@oicp.com';
 
   public static readonly WITH_CHARGING_STATIONS = true; // Not used
   public static readonly WITHOUT_CHARGING_STATIONS = false; // Not used
