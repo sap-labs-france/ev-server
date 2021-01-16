@@ -34,8 +34,7 @@ export default class OICPMapping {
     // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
     const evses = connectors.map((connector) => {
-      const evse: OICPEvseDataRecord = OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
-      return evse;
+      return OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
     });
     // Return all evses
     return evses;
@@ -51,8 +50,7 @@ export default class OICPMapping {
     // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => (connector !== null) && (connector.connectorId === connectorId));
     const evses = connectors.map((connector) => {
-      const evse: OICPEvseDataRecord = OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
-      return evse;
+      return OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
     });
     // Return evse
     if (evses.length > 0) {
@@ -68,13 +66,12 @@ export default class OICPMapping {
    * @return EVSE
    */
   static convertConnector2Evse(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
-    let accessible;
+    let accessible: OICPAccessibility;
     if (chargingStation.public === true) {
       accessible = OICPAccessibility.FreePubliclyAccessible;
     } else {
       accessible = OICPAccessibility.RestrictedAccess;
     }
-
     const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
     const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;
     evse.deltaType; // Optional
@@ -115,12 +112,10 @@ export default class OICPMapping {
     evse.ClearinghouseID; // Optional
     evse.IsHubjectCompatible = true;
     evse.DynamicInfoAvailable = OICPDynamicInfoAvailable.auto;
-
     // Check addChargeBoxID flag
     if (options && options.addChargeBoxID) {
       evse.chargeBoxId = chargingStation.id;
     }
-
     // Return evse
     return evse;
   }
@@ -153,7 +148,6 @@ export default class OICPMapping {
     const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
     evseStatus.EvseID = evseID;
     evseStatus.EvseStatus = OICPMapping.convertStatus2OICPEvseStatus(connector.status);
-
     // Check addChargeBoxID flag
     if (options && options.addChargeBoxID) {
       evseStatus.chargeBoxId = chargingStation.id;
@@ -172,11 +166,11 @@ export default class OICPMapping {
     // Build evses array
     const evses: OICPEvseDataRecord[] = [];
     // Convert charging stations to evse(s)
-    siteArea.chargingStations.forEach((chargingStation) => {
+    for (const chargingStation of siteArea.chargingStations) {
       if (chargingStation.issuer === true && chargingStation.public) {
         evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, siteArea, chargingStation, options));
       }
-    });
+    };
     // Return evses
     return evses;
   }
@@ -192,11 +186,11 @@ export default class OICPMapping {
     // Build evses array
     const evseStatuses: OICPEvseStatusRecord[] = [];
     // Convert charging stations to evse status(es)
-    siteArea.chargingStations.forEach((chargingStation) => {
+    for (const chargingStation of siteArea.chargingStations) {
       if (chargingStation.issuer === true && chargingStation.public) {
         evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, options));
       }
-    });
+    };
     // Return evses
     return evseStatuses;
   }
@@ -492,5 +486,4 @@ export default class OICPMapping {
       EvseStatusRecord: OICPEvseStatusRecords
     };
   }
-
 }

@@ -132,10 +132,8 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       console.log('Error Remote Start: ', error);
     });
     if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-      // Ok
       return OICPUtils.success(session);
     }
-    // Rejected
     return OICPUtils.noSuccess(session, 'Remote Start rejected by Charging Station');
   }
 
@@ -190,11 +188,9 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     }
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     const result = await this.remoteStopTransaction(tenant, chargingStation, transaction.id);
-    if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-      // Ok
+    if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       return OICPUtils.success(session);
     }
-    // Rejected
     return OICPUtils.noSuccess(session, 'Remote Stop rejected by Charging Station');
   }
 
