@@ -19,7 +19,6 @@ export default class OICPServer {
     this.expressApplication = ExpressTools.initApplication(null, oicpRestConfig.debug);
     // New OICP Services Instances
     const oicpServices = new OICPServices(this.oicpRestConfig);
-
     // Register all services in express
     oicpServices.getOICPServiceImplementations().forEach((oicpService) => {
       this.expressApplication.use(oicpService.getPath(), async (req: TenantIdHoldingRequest, res: Response, next: NextFunction) => {

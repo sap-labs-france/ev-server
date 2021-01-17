@@ -31,7 +31,7 @@ export default class NotificationHandler {
     }
   ];
 
-  static async saveNotification(tenantID: string, channel: string, notificationID: string, sourceDescr: ServerAction,
+  public static async saveNotification(tenantID: string, channel: string, notificationID: string, sourceDescr: ServerAction,
     extraParams: { user?: User, chargingStation?: ChargingStation, notificationData?: any } = {}): Promise<void> {
     // Save it
     await NotificationStorage.saveNotification(tenantID, {
@@ -66,7 +66,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async getAdminUsers(tenantID: string, notificationKey?: UserNotificationKeys): Promise<User[]> {
+  public static async getAdminUsers(tenantID: string, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
     let params;
     if (tenantID === Constants.DEFAULT_TENANT) {
@@ -84,12 +84,10 @@ export default class NotificationHandler {
     }
   }
 
-  static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, chargeBoxID: string, userID: string,
+  public static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, chargeBoxID: string, userID: string,
     interval: { intervalMins: number; additionalFilters?: any }): Promise<boolean> {
     try {
-      // Check
       if (interval && interval.intervalMins) {
-        // Save it
         const notifications = await NotificationStorage.getNotifications(
           tenantID, {
             channel,
@@ -103,17 +101,15 @@ export default class NotificationHandler {
         );
         return notifications.count > 0;
       }
-      // Default
       return false;
     } catch (error) {
-      // Log error
       Logging.logActionExceptionMessage(tenantID, ServerAction.NOTIFICATION, error);
     }
   }
 
-  static async hasNotifiedSourceByID(tenantID: string, channel: string, notificationID: string): Promise<boolean> {
+  public static async hasNotifiedSourceByID(tenantID: string, channel: string, notificationID: string): Promise<boolean> {
     try {
-      // Get Notif
+      // Get the Notification
       const notifications = await NotificationStorage.getNotifications(
         tenantID,
         {
@@ -122,25 +118,22 @@ export default class NotificationHandler {
         },
         Constants.DB_PARAMS_COUNT_ONLY
       );
-      // Return
       return notifications.count > 0;
     } catch (error) {
-      // Log error
       Logging.logActionExceptionMessage(tenantID, ServerAction.NOTIFICATION, error);
     }
   }
 
-  static async sendEndOfCharge(tenantID: string, user: User, chargingStation: ChargingStation,
+  public static async sendEndOfCharge(tenantID: string, user: User, chargingStation: ChargingStation,
     sourceData: EndOfChargeNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
-        // Active?
         if (notificationSource.enabled) {
           try {
-            // Get interval
+            // Get the interval
             const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(
               chargingStation, Utils.getConnectorIDFromConnectorLetter(sourceData.connectorId));
             // Check notification
@@ -173,7 +166,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendOptimalChargeReached(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+  public static async sendOptimalChargeReached(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
     sourceData: OptimalChargeReachedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -211,7 +204,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndOfSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+  public static async sendEndOfSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
     sourceData: EndOfSessionNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -249,7 +242,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndOfSignedSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+  public static async sendEndOfSignedSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
     sourceData: EndOfSignedSessionNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -287,7 +280,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendRequestPassword(tenantID: string, notificationID: string, user: User,
+  public static async sendRequestPassword(tenantID: string, notificationID: string, user: User,
     sourceData: RequestPasswordNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -311,7 +304,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendUserAccountStatusChanged(tenantID: string, notificationID: string, user: User,
+  public static async sendUserAccountStatusChanged(tenantID: string, notificationID: string, user: User,
     sourceData: UserAccountStatusChangedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -331,7 +324,6 @@ export default class NotificationHandler {
                 sourceData, user, tenant, NotificationSeverity.WARNING);
             }
           } catch (error) {
-            // Log error
             Logging.logActionExceptionMessage(tenantID, ServerAction.USER_ACCOUNT_STATUS_CHANGED, error);
           }
         }
@@ -339,7 +331,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendNewRegisteredUser(tenantID: string, notificationID: string, user: User,
+  public static async sendNewRegisteredUser(tenantID: string, notificationID: string, user: User,
     sourceData: NewRegisteredUserNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -363,7 +355,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendVerificationEmail(tenantID: string, notificationID: string, user: User,
+  public static async sendVerificationEmail(tenantID: string, notificationID: string, user: User,
     sourceData: VerificationEmailNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -387,12 +379,12 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendChargingStationStatusError(tenantID: string, notificationID: string, chargingStation: ChargingStation,
+  public static async sendChargingStationStatusError(tenantID: string, notificationID: string, chargingStation: ChargingStation,
     sourceData: ChargingStationStatusErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendChargingStationStatusError');
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -424,12 +416,12 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendChargingStationRegistered(tenantID: string, notificationID: string, chargingStation: ChargingStation,
+  public static async sendChargingStationRegistered(tenantID: string, notificationID: string, chargingStation: ChargingStation,
     sourceData: ChargingStationRegisteredNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendChargingStationRegistered');
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -454,12 +446,12 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendUnknownUserBadged(tenantID: string, notificationID: string, chargingStation: ChargingStation,
+  public static async sendUnknownUserBadged(tenantID: string, notificationID: string, chargingStation: ChargingStation,
     sourceData: UnknownUserBadgedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendUnknownUserBadged');
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -476,7 +468,6 @@ export default class NotificationHandler {
                   sourceData, adminUser, tenant, NotificationSeverity.WARNING);
               }
             } catch (error) {
-              // Log error
               Logging.logActionExceptionMessage(tenantID, ServerAction.UNKNOWN_USER_BADGED, error);
             }
           }
@@ -485,7 +476,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendSessionStarted(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+  public static async sendSessionStarted(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
     sourceData: TransactionStartedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -525,11 +516,11 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendSmtpAuthError(tenantID: string, sourceData: SmtpAuthErrorNotification): Promise<void> {
+  public static async sendSmtpAuthError(tenantID: string, sourceData: SmtpAuthErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendSmtpAuthError');
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -563,11 +554,11 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendOCPIPatchChargingStationsStatusesError(tenantID: string, sourceData: OCPIPatchChargingStationsStatusesErrorNotification): Promise<void> {
+  public static async sendOCPIPatchChargingStationsStatusesError(tenantID: string, sourceData: OCPIPatchChargingStationsStatusesErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendOcpiPatchStatusError');
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -607,11 +598,11 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendOICPPatchChargingStationsStatusesError(tenantID: string, sourceData: OICPPatchChargingStationsStatusesErrorNotification): Promise<void> {
+  public static async sendOICPPatchChargingStationsStatusesError(tenantID: string, sourceData: OICPPatchChargingStationsStatusesErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendOicpPatchStatusError');
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -646,11 +637,11 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendOICPPatchChargingStationsError(tenantID: string, sourceData: OICPPatchChargingStationsErrorNotification): Promise<void> {
+  public static async sendOICPPatchChargingStationsError(tenantID: string, sourceData: OICPPatchChargingStationsErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendOicpPatchStatusError');
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -685,7 +676,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendUserAccountInactivity(tenantID: string, user: User, sourceData: UserAccountInactivityNotification): Promise<void> {
+  public static async sendUserAccountInactivity(tenantID: string, user: User, sourceData: UserAccountInactivityNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -699,6 +690,7 @@ export default class NotificationHandler {
               tenantID, notificationSource.channel, ServerAction.USER_ACCOUNT_INACTIVITY,
               null, user.id, { intervalMins: 60 * 24 * 30 });
             if (!hasBeenNotified) {
+              // Save
               await NotificationHandler.saveNotification(
                 tenantID, notificationSource.channel, null, ServerAction.USER_ACCOUNT_INACTIVITY, { user });
               // Send
@@ -713,7 +705,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendPreparingSessionNotStarted(tenantID: string, chargingStation: ChargingStation, user: User, sourceData: PreparingSessionNotStartedNotification): Promise<void> {
+  public static async sendPreparingSessionNotStarted(tenantID: string, chargingStation: ChargingStation, user: User, sourceData: PreparingSessionNotStartedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -751,11 +743,11 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendOfflineChargingStations(tenantID: string, sourceData: OfflineChargingStationNotification): Promise<void> {
+  public static async sendOfflineChargingStations(tenantID: string, sourceData: OfflineChargingStationNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -790,11 +782,11 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendBillingSynchronizationFailed(tenantID: string, sourceData: BillingUserSynchronizationFailedNotification): Promise<void> {
+  public static async sendBillingSynchronizationFailed(tenantID: string, sourceData: BillingUserSynchronizationFailedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -828,11 +820,11 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendBillingInvoicesSynchronizationFailed(tenantID: string, sourceData: BillingInvoiceSynchronizationFailedNotification): Promise<void> {
+  public static async sendBillingInvoicesSynchronizationFailed(tenantID: string, sourceData: BillingInvoiceSynchronizationFailedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -866,8 +858,8 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendCarsSynchronizationFailed(sourceData: CarCatalogSynchronizationFailedNotification): Promise<void> {
-    // Enrich with admins
+  public static async sendCarsSynchronizationFailed(sourceData: CarCatalogSynchronizationFailedNotification): Promise<void> {
+    // Get admin users
     const adminUsers = await NotificationHandler.getAdminUsers(Constants.DEFAULT_TENANT);
     if (adminUsers && adminUsers.length > 0) {
       // For each Sources
@@ -901,11 +893,11 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendComputeAndApplyChargingProfilesFailed(tenantID: string, chargingStation: ChargingStation, sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
+  public static async sendComputeAndApplyChargingProfilesFailed(tenantID: string, chargingStation: ChargingStation, sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -940,11 +932,11 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndUserErrorNotification(tenantID: string, sourceData: EndUserErrorNotification): Promise<void> {
+  public static async sendEndUserErrorNotification(tenantID: string, sourceData: EndUserErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
-      // Enrich with admins
+      // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
@@ -976,7 +968,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendSessionNotStarted(tenantID: string, notificationID: string, chargingStation: ChargingStation,
+  public static async sendSessionNotStarted(tenantID: string, notificationID: string, chargingStation: ChargingStation,
     sourceData: SessionNotStartedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -1010,7 +1002,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendBillingNewInvoiceNotification(tenantID: string, notificationID: string, user: User,
+  public static async sendBillingNewInvoiceNotification(tenantID: string, notificationID: string, user: User,
     sourceData: BillingNewInvoiceNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant

@@ -99,24 +99,15 @@ export default class UserStorage {
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
-  public static async getOICPVirtualUser(tenantID: string): Promise<User> {
-    const email = 'virtual@oicp.com';
-    const userMDB = await UserStorage.getUsers(tenantID, {
-      email: email,
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return userMDB.count === 1 ? userMDB.result[0] : null;
-  }
-
   public static async createOICPVirtualUser(tenantID: string): Promise<void> {
     // Create the virtual OICP user
     const newVirtualOICPUser = UserStorage.createNewUser() as User;
-    newVirtualOICPUser.email = 'virtual@oicp.com';
+    newVirtualOICPUser.email = Constants.OICP_VIRTUAL_USER_EMAIL;
     newVirtualOICPUser.name = 'OICP';
     newVirtualOICPUser.firstName = 'Virtual';
     newVirtualOICPUser.issuer = false;
     newVirtualOICPUser.status = UserStatus.ACTIVE;
     newVirtualOICPUser.notificationsActive = false;
-
     // Save User
     newVirtualOICPUser.id = await UserStorage.saveUser(tenantID, newVirtualOICPUser);
     // Save User Status

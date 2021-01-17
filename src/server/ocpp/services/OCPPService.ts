@@ -28,8 +28,6 @@ import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
-import { OICPSession } from '../../../types/oicp/OICPSession';
-import OICPUtils from '../../oicp/OICPUtils';
 import RegistrationToken from '../../../types/RegistrationToken';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import { ServerAction } from '../../../types/Server';
@@ -626,7 +624,7 @@ export default class OCPPService {
       startTransaction.chargeBoxID = chargingStation.id;
       startTransaction.tagID = startTransaction.idTag;
       startTransaction.timezone = Utils.getTimezone(chargingStation.coordinates);
-      // Check Authorization with Tag ID and get user or virtual OICP user
+      // Check Authorization with Tag ID
       const user = await Authorizations.isAuthorizedToStartTransaction(
         headers.tenantID, chargingStation, startTransaction.tagID, ServerAction.START_TRANSACTION, Action.START_TRANSACTION);
       if (user) {
@@ -714,10 +712,10 @@ export default class OCPPService {
         // Assumption: Either Gireve or Hubject is enabled for eRoaming
         // OCPI or OICP
         if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-        // OCPI
+          // OCPI
           await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
         } else if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-        // OICP
+          // OICP
           await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
         }
       }
@@ -872,8 +870,7 @@ export default class OCPPService {
       let user: User, alternateUser: User;
       // Transaction is stopped by central system?
       if (!stoppedByCentralSystem) {
-        // Check if there is a OICP Authorization
-        // Check and get users or virtual OICP user
+        // Check and get the users
         const users = await Authorizations.isAuthorizedToStopTransaction(
           headers.tenantID, chargingStation, transaction, tagId, ServerAction.STOP_TRANSACTION, Action.STOP_TRANSACTION);
         user = users.user;
@@ -926,12 +923,12 @@ export default class OCPPService {
         // Save Consumption
         await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
       }
-      // Indicator needed to decide if transaction is handled with either Gireve or Hubject.
+      // Handle OCPI
       if (transaction.ocpiData?.session) {
-        // Handle OCPI
         await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
-      } else if (transaction.oicpData?.session) {
-        // Handle OICP
+      }
+      // Handle OICP
+      if (transaction.oicpData?.session) {
         await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       }
       // Save the transaction
@@ -1143,12 +1140,12 @@ export default class OCPPService {
           lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
         // Build extra inactivity consumption
         await OCPPUtils.buildExtraConsumptionInactivity(tenantID, lastTransaction);
-        // Indicator needed to decide if transaction is handled with either Gireve or Hubject.
+        // OCPI: Post the CDR
         if (lastTransaction.ocpiData?.session) {
-          // OCPI: Post the CDR
           await this.checkAndSendOCPITransactionCdr(tenantID, lastTransaction, chargingStation);
-        } else if (lastTransaction.oicpData?.session) {
-          // OICP: Post the CDR
+        }
+        // OICP: Post the CDR
+        if (lastTransaction.oicpData?.session) {
           const user = await UserStorage.getUser(tenantID, lastTransaction.userID);
           lastTransaction.user = user;
           await this.checkAndSendOICPTransactionCdr(tenantID, lastTransaction, chargingStation);

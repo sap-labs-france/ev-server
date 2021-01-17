@@ -10,8 +10,8 @@ export interface OICPPushEvseDataCpoSend {
 }
 
 export enum OICPActionType {
-  fullLoad = 'fullLoad',
-  update = 'update',
-  insert = 'insert',
-  delete = 'delete'
+  FULL_LOAD = 'fullLoad',
+  UPDATE = 'update',
+  INSERT = 'insert',
+  DELETE = 'delete',
 }

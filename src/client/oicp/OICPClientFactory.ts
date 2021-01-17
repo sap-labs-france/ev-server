@@ -1,4 +1,3 @@
-import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import CpoOICPClient from './CpoOICPClient';
 import Logging from '../../utils/Logging';

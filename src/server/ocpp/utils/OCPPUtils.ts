@@ -193,7 +193,6 @@ export default class OCPPUtils {
         message: `OICP component requires at least one CPO endpoint to ${transactionAction} a Session`
       });
     }
-
     let authorization;
     switch (transactionAction) {
       case TransactionAction.START:
@@ -210,7 +209,6 @@ export default class OCPPUtils {
             module: MODULE_NAME, method: 'startSession',
           });
         }
-
         await oicpClient.startSession(chargingStation, transaction, authorization.sessionId, authorization.identification);
         break;
       case TransactionAction.UPDATE:
