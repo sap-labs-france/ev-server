@@ -5,7 +5,6 @@ import SingleChangeNotification, { NotificationData } from '../../types/SingleCh
 import express, { NextFunction, Request, Response } from 'express';
 
 import AuthService from './v1/service/AuthService';
-import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
 import ChangeNotification from '../../types/ChangeNotification';
@@ -47,8 +46,6 @@ export default class CentralRestServer {
     this.expressApplication.use(AuthService.initialize());
     // Routers
     this.expressApplication.use('/v1', new GlobalRouter().buildRoutes());
-    // Auth services
-    this.expressApplication.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
     // Secured API
     this.expressApplication.all('/client/api/:action', AuthService.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
     // Util API
