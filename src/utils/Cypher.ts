@@ -142,7 +142,7 @@ export default class Cypher {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCryptoSetting',
-        message: `Tenant with ID: ${tenantName} does not have crypto settings.`
+        message: `Tenant ${tenantName} (tenandID: ${tenantID}) does not have crypto settings.`
       });
     }
     return cryptoSettings;
