@@ -1,10 +1,9 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
-import AuthSecurity from './security/AuthSecurity';
 import AuthValidator from '../validator/AuthValidation';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
@@ -61,7 +60,38 @@ export default class AuthService {
 
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthSignIn(req.body);
+    let filteredRequest: Partial<HttpLoginRequest>;
+    try {
+      filteredRequest = AuthValidator.getInstance().validateAuthSignIn(req.body);
+    } catch (e) {
+      if (!req.body.email) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'The Email is mandatory',
+          module: MODULE_NAME,
+          method: 'handleLogIn'
+        });
+      }
+      if (!req.body.password) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'The Password is mandatory',
+          module: MODULE_NAME,
+          method: 'handleLogIn'
+        });
+      }
+      if (!req.body.acceptEula) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_EULA_ERROR,
+          message: 'The End-user License Agreement is mandatory',
+          module: MODULE_NAME,
+          method: 'handleLogIn'
+        });
+      }
+    }
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -75,34 +105,6 @@ export default class AuthService {
       });
     }
     req.user = { tenantID };
-    // Check
-    if (!filteredRequest.email) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Email is mandatory',
-        module: MODULE_NAME,
-        method: 'handleLogIn'
-      });
-    }
-    if (!filteredRequest.password) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Password is mandatory',
-        module: MODULE_NAME,
-        method: 'handleLogIn'
-      });
-    }
-    if (!filteredRequest.acceptEula) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.USER_EULA_ERROR,
-        message: 'The End-user License Agreement is mandatory',
-        module: MODULE_NAME,
-        method: 'handleLogIn'
-      });
-    }
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'handleLogIn', req.user);
@@ -162,7 +164,31 @@ export default class AuthService {
 
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthSignOn(req.body);
+    let filteredRequest: Partial<HttpRegisterUserRequest>;
+    try {
+      filteredRequest = AuthValidator.getInstance().validateAuthSignOn(req.body);
+    } catch (e) {
+      // Check EULA
+      if (!req.body.acceptEula) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_EULA_ERROR,
+          message: 'The End-user License Agreement is mandatory',
+          module: MODULE_NAME,
+          method: 'handleLogIn'
+        });
+      }
+      // Check
+      if (!req.body.captcha) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'The captcha is mandatory',
+          module: MODULE_NAME,
+          method: 'handleRegisterUser'
+        });
+      }
+    }
     filteredRequest.status = UserStatus.PENDING;
     if (!filteredRequest.locale) {
       filteredRequest.locale = Constants.DEFAULT_LOCALE;
@@ -179,26 +205,6 @@ export default class AuthService {
       });
     }
     req.user = { tenantID };
-    // Check EULA
-    if (!filteredRequest.acceptEula) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.USER_EULA_ERROR,
-        message: 'The End-user License Agreement is mandatory',
-        module: MODULE_NAME,
-        method: 'handleLogIn'
-      });
-    }
-    // Check
-    if (!filteredRequest.captcha) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The captcha is mandatory',
-        module: MODULE_NAME,
-        method: 'handleRegisterUser'
-      });
-    }
     // Check Captcha
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
     const response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
@@ -447,7 +453,28 @@ export default class AuthService {
   }
 
   public static async handleUserPasswordReset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
+    let filteredRequest: Partial<HttpResetPasswordRequest>;
+    try {
+      filteredRequest = AuthValidator.getInstance().validateAuthResetPassword(req.body);
+    } catch (e) {
+      if (!req.body.email) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'The E-mail is mandatory',
+          module: MODULE_NAME,
+          method: 'handleUserPasswordReset'
+        });
+      } else if (!req.body.captcha && !req.body.hash) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'The Captcha or the Hash is mandatory',
+          module: MODULE_NAME,
+          method: 'handleUserPasswordReset'
+        });
+      }
+    }
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -472,16 +499,29 @@ export default class AuthService {
 
   public static async handleCheckEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthSecurity.filterCheckEulaRequest(req.query);
-    // Check
-    if (!filteredRequest.Tenant) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Tenant is mandatory',
-        module: MODULE_NAME,
-        method: 'handleCheckEndUserLicenseAgreement'
-      });
+    let filteredRequest: Partial<HttpCheckEulaRequest>;
+    try {
+      filteredRequest = AuthValidator.getInstance().validateAuthCheckEula(req.query);
+    } catch (e) {
+      // Check
+      if (!req.body.Tenant) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'The Tenant is mandatory',
+          module: MODULE_NAME,
+          method: 'handleCheckEndUserLicenseAgreement'
+        });
+      }
+      if (!req.body.Email) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'The Email is mandatory',
+          module: MODULE_NAME,
+          method: 'handleCheckEndUserLicenseAgreement'
+        });
+      }
     }
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
@@ -490,16 +530,6 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Tenant is mandatory',
-        module: MODULE_NAME,
-        method: 'handleCheckEndUserLicenseAgreement'
-      });
-    }
-    // Check hash
-    if (!filteredRequest.Email) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Email is mandatory',
         module: MODULE_NAME,
         method: 'handleCheckEndUserLicenseAgreement'
       });
@@ -527,10 +557,9 @@ export default class AuthService {
 
   public static async handleGetEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
+    const filteredRequest = AuthValidator.getInstance().validateAuthEula({ ...req.query, ...req.headers });
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -548,7 +577,31 @@ export default class AuthService {
 
   public static async handleVerifyEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
+    let filteredRequest;
+    try {
+      filteredRequest = AuthValidator.getInstance().validateAuthVerifyEmail(req.body);
+    } catch (e) {
+      // Check email
+      if (!req.body.Email) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          action: action,
+          module: MODULE_NAME, method: 'handleVerifyEmail',
+          message: 'The email is mandatory'
+        });
+      }
+      // Check verificationToken
+      if (!req.body.VerificationToken) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          action: action,
+          module: MODULE_NAME, method: 'handleVerifyEmail',
+          message: 'Verification token is mandatory'
+        });
+      }
+    }
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
     if (!tenantID) {
@@ -568,26 +621,6 @@ export default class AuthService {
         action: action,
         module: MODULE_NAME, method: 'handleVerifyEmail',
         message: 'Cannot verify email in the Super Tenant'
-      });
-    }
-    // Check email
-    if (!filteredRequest.Email) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleVerifyEmail',
-        message: 'The email is mandatory'
-      });
-    }
-    // Check verificationToken
-    if (!filteredRequest.VerificationToken) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleVerifyEmail',
-        message: 'Verification token is mandatory'
       });
     }
     // Check email
@@ -670,10 +703,35 @@ export default class AuthService {
 
   public static async handleResendVerificationEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
+    let filteredRequest;
+    try {
+      filteredRequest = AuthValidator.getInstance().validateAuthResendVerificationEmail(req.body);
+    } catch (e) {
+      // Check email
+      if (!filteredRequest.email) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'The Email is mandatory',
+          module: MODULE_NAME,
+          method: 'handleResendVerificationEmail',
+          action: action
+        });
+      }
+      // Check captcha
+      if (!filteredRequest.captcha) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'The captcha is mandatory',
+          module: MODULE_NAME,
+          method: 'handleResendVerificationEmail',
+          action: action
+        });
+      }
+    }
     // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -690,28 +748,6 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot request a verification Email in the Super Tenant',
-        module: MODULE_NAME,
-        method: 'handleResendVerificationEmail',
-        action: action
-      });
-    }
-    // Check email
-    if (!filteredRequest.email) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Email is mandatory',
-        module: MODULE_NAME,
-        method: 'handleResendVerificationEmail',
-        action: action
-      });
-    }
-    // Check captcha
-    if (!filteredRequest.captcha) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The captcha is mandatory',
         module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action

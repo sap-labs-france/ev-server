@@ -96,3 +96,8 @@ export interface HttpResendVerificationMailRequest {
   tenant: string;
   captcha: string;
 }
+
+export interface HttpEulaRequest {
+  Language: string;
+  tenant: string;
+}

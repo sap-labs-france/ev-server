@@ -25,8 +25,7 @@
     },
     "subdomain": {
       "type": "string",
-      "pattern": "^[a-z0-9]+$",
-      "minLength": 1,
+      "pattern": "^[a-z0-9]*$",
       "maxLength": 20,
       "sanitize": "mongo"
     },
@@ -92,6 +91,10 @@
       "sanitize": "mongo"
     },
     "captcha": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "language": {
       "type": "string",
       "sanitize": "mongo"
     }

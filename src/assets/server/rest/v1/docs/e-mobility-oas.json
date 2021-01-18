@@ -391,18 +391,22 @@
             "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
+                "required": ["email", "tenant"],
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "firstname.name@sap.com"
+                    "example": "demo.demo@sap.com"
                   },
                   "captcha": {
                     "type": "string",
                     "example": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA"
                   },
+                  "hash": {
+                    "type": "string"
+                  },
                   "tenant": {
                     "type": "string",
-                    "example": ""
+                    "example": "slf"
                   }
                 }
               }
@@ -414,13 +418,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Password reset notification sent successfully"
+            "description": "Password reset notification sent successfully or password has been reset "
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           },
           "550": {
-            "description": "User does not exist or is deleted logically"
+            "description": "Unknown tenant or user does not exist"
           }
         }
       }
@@ -488,7 +492,8 @@
             "name": "Email",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "demo.demo@sap.com"
             }
           },
           {
@@ -496,7 +501,8 @@
             "name": "Tenant",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "slf"
             }
           }
         ],
@@ -615,7 +621,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully validated email"
+            "description": "Successfully resent email"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"

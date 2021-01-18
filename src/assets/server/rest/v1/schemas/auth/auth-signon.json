@@ -1,5 +1,5 @@
 {
-  "title": "Sign in",
+  "title": "Sign On",
   "type": "object",
   "properties": {
     "email": {
@@ -43,7 +43,6 @@
     "firstName",
     "passwords",
     "acceptEula",
-    "tenant",
     "captcha"
   ]
 }

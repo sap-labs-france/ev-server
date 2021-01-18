@@ -91,7 +91,7 @@ export default class AuthenticationApi {
   public async verifyEmail(email, verificationToken, tenant = '') {
     const data = {
       Email: email,
-      tenant: tenant,
+      Tenant: tenant,
       VerificationToken: verificationToken
     };
     // Send
