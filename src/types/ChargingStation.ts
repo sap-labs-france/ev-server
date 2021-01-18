@@ -280,6 +280,7 @@ export type OCPPParams = {
   siteAreaName: string;
   chargingStationName: string;
   params: OcppParameter[];
+  userLocale: string;
 };
 
 export enum ChargerVendor {
