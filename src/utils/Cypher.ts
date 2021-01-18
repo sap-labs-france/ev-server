@@ -42,7 +42,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static async encryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string): Promise<void> {
+  public static async encryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string, former = false): Promise<void> {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -76,7 +76,7 @@ export default class Cypher {
     }
   }
 
-  public static async decryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string): Promise<void> {
+  public static async decryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string, former = false): Promise<void> {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -189,9 +189,9 @@ export default class Cypher {
           formerSensitiveData['formerKeyHash'] = this.hash(cryptoSetting.formerKey);
           setting.formerSensitiveData = formerSensitiveData;
           // Decrypt sensitive data with former key and key properties
-          this.decryptSensitiveDataInJSON(setting, tenantID, true);
+          await this.decryptSensitiveDataInJSON(setting, tenantID, true);
           // Encrypt sensitive data with new key and key properties
-          this.encryptSensitiveDataInJSON(setting, tenantID);
+          await this.encryptSensitiveDataInJSON(setting, tenantID);
           // Save setting with sensitive data encrypted with new key
           await SettingStorage.saveSettings(tenantID, setting);
         }
