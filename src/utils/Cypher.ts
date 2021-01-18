@@ -151,7 +151,12 @@ export default class Cypher {
         keySettings.crypto.migrationToBeDone = false;
         await SettingStorage.saveCryptoSettings(tenantID, keySettings);
       } catch (err) {
-        console.error(err);
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'handleCryptoSettingsChange',
+          message: `Sensitive Data migration for tenant with ID: ${tenantID} failed.`
+        });
       } finally {
         // Release the database Lock
         await LockingManager.release(createDatabaseLock);
@@ -183,7 +188,7 @@ export default class Cypher {
     if (!Utils.isEmptyArray(settingsToMigrate)) {
       // Migrate
       for (const setting of settingsToMigrate) {
-        if (!setting.formerSensitiveData) {
+        if (!setting.formerSensitiveData && Utils.isEmptyArray(setting.formerSensitiveData)) {
           // Save former senitive data in setting
           const formerSensitiveData = this.prepareFormerSenitiveData(setting);
           formerSensitiveData['formerKeyHash'] = this.hash(cryptoSetting.formerKey);
