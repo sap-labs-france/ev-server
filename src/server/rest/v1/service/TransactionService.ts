@@ -850,38 +850,39 @@ export default class TransactionService {
     const i18nManager = new I18nManager(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = `${i18nManager.translate('users.id')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('chargers.chargingStation')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('chargers.connector')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('users.userID')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('users.user')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.startDate')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.startTime')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.endDate')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.endTime')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('transactions.totalConsumption')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('transactions.totalDuration')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('transactions.totalInactivity')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.price')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.priceUnit')}${Constants.CSV_SEPARATOR}`;
+      csv = i18nManager.translate('users.id') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.connector') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('users.userID') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.timezone') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.startDate') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.startTime') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.endDate') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.endTime') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('transactions.totalConsumption') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('transactions.totalDuration') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('transactions.totalInactivity') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.price') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.priceUnit') + '\r\n';
     }
     // Content
     for (const transaction of transactions) {
-      csv += `${transaction.id}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.chargeBoxID}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.connectorId}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.user ? Cypher.hash(transaction.user.id) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.user ? Utils.buildUserFullName(transaction.user, false) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.timezone || 'N/A (UTC by default)'}` + Constants.CSV_SEPARATOR;
-      csv += `${(transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      csv += `${(transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss')}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${(transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD')}` : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${(transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss')}` : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? Utils.truncTo(transaction.stop.price, 2) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
+      csv += transaction.id + Constants.CSV_SEPARATOR;
+      csv += transaction.chargeBoxID + Constants.CSV_SEPARATOR;
+      csv += transaction.connectorId + Constants.CSV_SEPARATOR;
+      csv += (transaction.user ? Cypher.hash(transaction.user.id) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.user ? Utils.buildUserFullName(transaction.user, false) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.timezone || 'N/A (UTC by default)') + Constants.CSV_SEPARATOR;
+      csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
+      csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? `${(transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD')}` : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? `${(transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss')}` : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? Utils.truncTo(transaction.stop.price, 2) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? transaction.stop.priceUnit : '') + '\r\n';
     }
     return csv;
   }

@@ -18,6 +18,7 @@
     "ocppProtocol": "OCPP Protocol",
     "ocppVersion": "OCPP Version",
     "powerLimitUnit": "Power Limit Unit",
+    "timezone" : "Charging station timezone",
     "vendor": "Vendor"
   },
   "general": {
@@ -27,16 +28,20 @@
     "date": "Date",
     "endDate": "End Date",
     "endTime": "End Time",
+    "invalidDate": "Invalid Date",
+    "invalidTime": "Invalid Time",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "month": "Month",
     "name": "Name",
     "price": "Price",
     "priceUnit": "Price Unit",
+    "site": "Site",
     "siteArea": "Site Area",
     "startDate": "Start Date",
     "startTime": "Start Time",
     "time": "Time",
+    "value": "Value",
     "year": "Year"
   },
   "loggings": {

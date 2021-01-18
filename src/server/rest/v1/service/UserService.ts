@@ -1081,29 +1081,29 @@ export default class UserService {
     const i18nManager = new I18nManager(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = `${i18nManager.translate('users.id')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.name')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('users.firstName')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('users.role')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('users.status')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('users.email')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('users.eulaAcceptedOn')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.createdOn')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.changedOn')}${Constants.CSV_SEPARATOR}`;
-      csv += `${i18nManager.translate('general.changedBy')}\r\n`;
+      csv = i18nManager.translate('users.id') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('users.firstName') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('users.role') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('users.status') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('users.email') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('users.eulaAcceptedOn') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.createdOn') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.changedOn') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.changedBy') + '\r\n';
     }
     // Content
     for (const user of users) {
-      csv += `${Cypher.hash(user.id)}` + Constants.CSV_SEPARATOR;
-      csv += `${user.name}` + Constants.CSV_SEPARATOR;
-      csv += `${user.firstName}` + Constants.CSV_SEPARATOR;
-      csv += `${user.role}` + Constants.CSV_SEPARATOR;
-      csv += `${user.status}` + Constants.CSV_SEPARATOR;
-      csv += `${user.email}` + Constants.CSV_SEPARATOR;
-      csv += `${moment(user.eulaAcceptedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      csv += `${moment(user.createdOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      csv += `${moment(user.lastChangedOn).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      csv += `${user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : ''}\r\n`;
+      csv += Cypher.hash(user.id) + Constants.CSV_SEPARATOR;
+      csv += user.name + Constants.CSV_SEPARATOR;
+      csv += user.firstName + Constants.CSV_SEPARATOR;
+      csv += user.role + Constants.CSV_SEPARATOR;
+      csv += user.status + Constants.CSV_SEPARATOR;
+      csv += user.email + Constants.CSV_SEPARATOR;
+      csv += moment(user.eulaAcceptedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
+      csv += moment(user.createdOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
+      csv += moment(user.lastChangedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
+      csv += (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '') + '\r\n';
     }
     return csv;
   }
