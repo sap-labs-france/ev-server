@@ -876,8 +876,8 @@ export default class TransactionService {
       csv += (transaction.timezone || 'N/A (UTC by default)') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? `${(transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD')}` : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? `${(transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss')}` : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD') : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss') : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
