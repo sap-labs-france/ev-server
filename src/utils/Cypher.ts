@@ -2,6 +2,7 @@ import BackendError from '../exception/BackendError';
 import Constants from './Constants';
 import { CryptoSetting } from '../types/Setting';
 import SettingStorage from '../storage/mongodb/SettingStorage';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 import Utils from './Utils';
 import _ from 'lodash';
 import crypto from 'crypto';
@@ -136,11 +137,12 @@ export default class Cypher {
   private static async getCryptoSetting(tenantID: string): Promise<CryptoSetting> {
     const cryptoSettings = (await SettingStorage.getCryptoSettings(tenantID)).crypto;
     if (!cryptoSettings) {
+      const tenantName = (await TenantStorage.getTenant(tenantID)).name;
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCryptoSetting',
-        message: `Tenant with ID: ${tenantID} does not have crypto settings.`
+        message: `Tenant with ID: ${tenantName} does not have crypto settings.`
       });
     }
     return cryptoSettings;
