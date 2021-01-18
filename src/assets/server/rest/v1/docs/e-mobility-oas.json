@@ -2,16 +2,16 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "description": "Localhost - Development",
-      "url": "http://localhost:8080/v1"
-    },
-    {
       "description": "SCP - Production system",
       "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
     },
     {
       "description": "SCP - Quality system",
       "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
+    },
+    {
+      "description": "Localhost - Development",
+      "url": "http://localhost:8080/v1"
     }
   ],
   "info": {
@@ -292,7 +292,7 @@
         "description": "Register",
         "requestBody": {
           "content": {
-            "application/x-www-form-urlencoded": {
+            "application/json": {
               "schema": {
                 "type": "object",
                 "required": [
@@ -301,7 +301,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "firstname.name@sap.com"
+                    "example": "demo.demo@sap.com"
                   },
                   "name": {
                     "type": "string",
@@ -316,11 +316,11 @@
                     "properties": {
                       "password": {
                         "type": "string",
-                        "example": "Azerty123!"
+                        "example": "DeM*Us$r1"
                       },
                       "repeatPassword": {
                         "type": "string",
-                        "example": "Azerty123!"
+                        "example": "DeM*Us$r1"
                       }
                     }
                   },
@@ -547,7 +547,8 @@
             "name": "Email",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "demo.demo@sap.com"
             }
           },
           {
@@ -555,7 +556,8 @@
             "name": "Tenant",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "demo.demo@sap.com"
             }
           },
           {
@@ -601,11 +603,11 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "firstname.name@sap.com"
+                    "example": "demo.demo@sap.com"
                   },
                   "tenant": {
                     "type": "string",
-                    "example": "utall"
+                    "example": "slf"
                   },
                   "captcha": {
                     "type": "string",

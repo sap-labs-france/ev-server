@@ -339,7 +339,7 @@ export default class AuthService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is mandatory',
         module: MODULE_NAME,
-        method: 'handleUserPasswordReset'
+        method: 'checkAndSendResetPasswordConfirmationEmail'
       });
     }
     // Check captcha
@@ -352,7 +352,7 @@ export default class AuthService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The reCaptcha is invalid',
         module: MODULE_NAME,
-        method: 'handleRegisterUser'
+        method: 'checkAndSendResetPasswordConfirmationEmail'
       });
     } else if (response.data.score < 0.5) {
       throw new AppError({
@@ -360,13 +360,13 @@ export default class AuthService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
         module: MODULE_NAME,
-        method: 'handleRegisterUser'
+        method: 'checkAndSendResetPasswordConfirmationEmail'
       });
     }
     // Generate a new password
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
-      MODULE_NAME, 'handleUserPasswordReset', req.user);
+      MODULE_NAME, 'checkAndSendResetPasswordConfirmationEmail', req.user);
     // Deleted
     if (user.deleted) {
       throw new AppError({
@@ -374,7 +374,7 @@ export default class AuthService {
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' is logically deleted`,
         module: MODULE_NAME,
-        method: 'handleUserPasswordReset'
+        method: 'checkAndSendResetPasswordConfirmationEmail'
       });
     }
     const resetHash = Utils.generateUUID();
@@ -385,7 +385,7 @@ export default class AuthService {
       tenantID: tenantID,
       user: user, action: action,
       module: MODULE_NAME,
-      method: 'handleUserPasswordReset',
+      method: 'checkAndSendResetPasswordConfirmationEmail',
       message: `User with Email '${req.body.email}' will receive an email to reset his password`
     });
     // Send notification
@@ -587,7 +587,8 @@ export default class AuthService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           action: action,
-          module: MODULE_NAME, method: 'handleVerifyEmail',
+          module: MODULE_NAME,
+          method: 'handleVerifyEmail',
           message: 'The email is mandatory'
         });
       }
@@ -597,7 +598,8 @@ export default class AuthService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           action: action,
-          module: MODULE_NAME, method: 'handleVerifyEmail',
+          module: MODULE_NAME,
+          method: 'handleVerifyEmail',
           message: 'Verification token is mandatory'
         });
       }
@@ -609,7 +611,8 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         action: action,
-        module: MODULE_NAME, method: 'handleVerifyEmail',
+        module: MODULE_NAME,
+        method: 'handleVerifyEmail',
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.Tenant}'!`
       });
     }
