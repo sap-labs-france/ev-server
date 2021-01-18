@@ -43,6 +43,7 @@
     "firstName",
     "passwords",
     "acceptEula",
-    "captcha"
+    "captcha",
+    "tenant"
   ]
 }

@@ -270,13 +270,13 @@
             "description": "The End-user License Agreement is mandatory"
           },
           "550": {
-            "description": "User tried to log into an unknown tenant, does not exists, or credentials are invalid"
+            "description": "Unknown tenant, user does not exists, or credentials are invalid"
           },
           "590": {
-            "description": "User account is locked"
+            "description": "Account is locked"
           },
           "592": {
-            "description": "Account is pending. User must activate his account in his email"
+            "description": "Account is pending"
           },
           "593": {
             "description": "Account is blocked"

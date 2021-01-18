@@ -18,6 +18,7 @@
   "required": [
     "email",
     "password",
-    "acceptEula"
+    "acceptEula",
+    "tenant"
   ]
 }

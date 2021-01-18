@@ -175,7 +175,7 @@ export default class AuthService {
           errorCode: HTTPError.USER_EULA_ERROR,
           message: 'The End-user License Agreement is mandatory',
           module: MODULE_NAME,
-          method: 'handleLogIn'
+          method: 'handleRegisterUser'
         });
       }
       // Check
@@ -201,7 +201,7 @@ export default class AuthService {
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to register with an unknown tenant '${filteredRequest.tenant}'!`,
         module: MODULE_NAME,
-        method: 'handleGetEndUserLicenseAgreement'
+        method: 'handleRegisterUser'
       });
     }
     req.user = { tenantID };
