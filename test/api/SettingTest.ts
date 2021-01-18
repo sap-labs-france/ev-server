@@ -133,5 +133,41 @@ describe('Setting tests', function() {
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
     });
+    it('Check crypto settings change', async () => {
+      // Retrieve the setting id
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(read.status).to.equal(200);
+      expect(read.data.count).to.equal(1);
+
+      // Update crypto setting
+      testData.data = JSON.parse(`{
+          "id":"${read.data.result[0].id}",
+          "identifier":"${read.data.result[0].identifier}",
+          "sensitiveData":[],
+          "content":{
+            "type":"crypto",
+            "crypto" : {
+              "key" : "17e0ff2e141ebab9e1b681eb9fa8a43e",
+              "keyProperties" : {
+                  "blockCypher" : "${read.data.result[0].content.crypto.keyProperties.blockCypher}",
+                  "blockSize" : "${read.data.result[0].content.crypto.keyProperties.blockSize}",
+                  "operationMode" : "${read.data.result[0].content.crypto.keyProperties.operationMode}"
+              },
+              "formerKey" : "${read.data.result[0].identifier}",
+              "formerKeyProperties" : {
+                  "blockCypher" : "${read.data.result[0].content.crypto.keyProperties.blockCypher}",
+                  "blockSize" : "${read.data.result[0].content.crypto.keyProperties.blockSize}",
+                  "operationMode" : "${read.data.result[0].content.crypto.keyProperties.operationMode}"
+              },
+              "migrationToBeDone" : true
+            }
+          }
+      }`);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+    });
   });
 });
