@@ -151,6 +151,9 @@ export default class CrudApi {
   private _buildOrdering(ordering, queryString): void {
     // Check
     if (ordering && ordering.length) {
+      if (!queryString.SortFields) {
+        Object.assign(queryString, { SortFields: [] });
+      }
       // Set
       ordering.forEach((order) => {
         queryString.SortFields.push(order.field);
