@@ -1345,13 +1345,13 @@ export default class Utils {
     const [blockCypher, blockSize, operationMode] = algo.split('-');
     return {
       blockCypher: blockCypher,
-      blockSize: parseInt(blockSize),
+      blockSize: Utils.convertToInt(blockSize),
       operationMode: operationMode
     };
   }
 
   public static buildAlgorithm(properties: CryptoKeyProperties): string {
-    return `${properties.blockCypher.toLowerCase()}-${properties.blockSize}-${properties.operationMode.toLowerCase()}`;
+    return `${properties.blockCypher}-${properties.blockSize}-${properties.operationMode}`;
   }
 
   public static generateKey(): string {
@@ -1361,9 +1361,9 @@ export default class Utils {
 
   public static getDefaultKeyProperties(): CryptoKeyProperties {
     return {
-      blockCypher: 'AES',
+      blockCypher: 'aes',
       blockSize: 256,
-      operationMode: 'GCM'
+      operationMode: 'gcm'
     };
   }
 
