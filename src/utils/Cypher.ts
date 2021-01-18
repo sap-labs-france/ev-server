@@ -16,7 +16,7 @@ export default class Cypher {
 
   public static async encrypt(data: string, tenantID: string, former = false): Promise<string> {
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cryptoSetting = await this.getCryptoSetting(tenantID);
+    const cryptoSetting = await Cypher.getCryptoSetting(tenantID);
     const algo = former ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
     const key = former ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
     const cipher = crypto.createCipheriv(algo, key, iv);
@@ -29,7 +29,7 @@ export default class Cypher {
     const dataParts = data.split(':');
     const iv = Buffer.from(dataParts.shift(), 'hex');
     const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
-    const cryptoSetting = await this.getCryptoSetting(tenantID);
+    const cryptoSetting = await Cypher.getCryptoSetting(tenantID);
     const algo = former ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
     const key = former ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
     const decipher = crypto.createDecipheriv(algo, key , iv);
@@ -220,7 +220,7 @@ export default class Cypher {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCryptoSetting',
-        message: 'No Crypto Settings found in the database'
+        message: `Tenant with ID: ${tenantID} does not have crypto settings.`
       });
     }
     return cryptoSettings;

@@ -187,7 +187,7 @@ export default class SettingService {
             }
           } else {
             // Value in db is empty then encrypt
-            _.set(settingUpdate, property, Cypher.encrypt(valueInRequest, req.user.tenantID));
+            _.set(settingUpdate, property, await Cypher.encrypt(valueInRequest, req.user.tenantID));
           }
         }
       }
