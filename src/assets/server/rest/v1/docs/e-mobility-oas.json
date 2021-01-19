@@ -43,7 +43,7 @@
         "description": "Create a Tenant",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "$ref": "#/components/schemas/Tenant"
               }
@@ -292,7 +292,7 @@
         "description": "Register",
         "requestBody": {
           "content": {
-            "application/json": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "required": [
