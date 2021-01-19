@@ -119,7 +119,7 @@ export default class OCPIUtils {
    * @param {*} countryCode the code of the CPO
    * @param {*} partyId the partyId of the CPO
    * @param {*} chargingStation the charging station used to build the evse ID
-   * @param {*} connector the connector used to build the evse id
+   * @param {*} connector the connector used to build the evse ID
    */
   public static buildEvseID(countryCode: string, partyId: string, chargingStation: ChargingStation, connector?: Connector): string {
     let evseID = `${countryCode}*${partyId}*E${chargingStation.id}`;
@@ -155,7 +155,7 @@ export default class OCPIUtils {
   /**
    * Build evse UIDs from charging station
    * @param {*} chargingStation the charging station used to build the evse ID
-   * @param {*} connector the connector used to build the evse id
+   * @param {*} connector the connector used to build the evse ID
    */
   public static buildEvseUIDs(chargingStation: ChargingStation, connector?: Connector): string[] {
     const evseUIDs = [];
