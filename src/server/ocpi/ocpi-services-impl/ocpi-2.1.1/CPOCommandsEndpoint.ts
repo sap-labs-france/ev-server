@@ -102,7 +102,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       siteIDs: [startSession.location_id],
       issuer: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (chargingStations && chargingStations.result) {
+    if (chargingStations?.result) {
       for (const cs of chargingStations.result) {
         for (const conn of cs.connectors) {
           if (startSession.evse_uid === OCPIUtils.buildEvseUID(cs, conn)) {
