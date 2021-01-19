@@ -11,7 +11,6 @@ import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
-import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
@@ -50,7 +49,7 @@ export default abstract class OCPIClient {
       const endpoints = await this.getVersions();
       // Check response
       if (!endpoints.data || !(endpoints.data.status_code === 1000) || !endpoints.data.data) {
-        pingResult.statusCode = 412;
+        pingResult.statusCode = StatusCodes.PRECONDITION_FAILED;
         pingResult.statusText = `Invalid response from GET ${this.ocpiEndpoint.baseUrl}`;
       } else {
         pingResult.statusCode = endpoints.status;
