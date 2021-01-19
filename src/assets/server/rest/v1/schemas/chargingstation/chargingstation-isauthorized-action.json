@@ -1,0 +1,23 @@
+{
+  "title": "Check Authorization for Charging Station Action Request",
+  "type": "object",
+  "properties": {
+    "Action": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Arg1": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Arg2": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Arg3": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": []
+}

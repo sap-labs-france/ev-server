@@ -1,0 +1,16 @@
+{
+  "title": "Get Charging Station Connector Request",
+  "type": "object",
+  "properties": {
+    "ChargeBoxID": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "ConnectorID": {
+      "$ref": "common.json#/definitions/connectorID"
+    }
+  },
+  "required": [
+    "ChargeBoxID",
+    "ConnectorID"
+  ]
+}

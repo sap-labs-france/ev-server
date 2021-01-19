@@ -1,0 +1,12 @@
+{
+  "title": "Charging Station OCPP Parameters Request",
+  "type": "object",
+  "properties": {
+    "ChargeBoxID": {
+      "$ref": "common.json#/definitions/id"
+    }
+  },
+  "required": [
+    "ChargeBoxID"
+  ]
+}

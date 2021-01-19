@@ -1,0 +1,96 @@
+{
+  "$id": "chargingstation.json",
+  "definitions": {
+    "chargingProfile": {
+      "type": "object",
+      "properties": {
+        "chargingProfileId": {
+          "$ref": "common.json#/definitions/id"
+        },
+        "transactionId": {
+          "$ref": "common.json#/definitions/id"
+        },
+        "stackLevel": {
+          "$ref": "#/definitions/stackLevel"
+        },
+        "chargingProfilePurpose": {
+          "$ref": "#/definitions/chargingProfilePurpose"
+        },
+        "chargingProfileKind": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "recurrencyKind": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "validFrom": {
+          "type": "date",
+          "sanitize": "mongo"
+        },
+        "validTo": {
+          "type": "date",
+          "sanitize": "mongo"
+        },
+        "chargingSchedule": {
+          "$ref": "#/definitions/chargingSchedule"
+        }
+      }
+    },
+    "chargingSchedule": {
+      "type": "object",
+      "properties": {
+        "duration": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "startSchedule": {
+          "type": "date",
+          "sanitize": "mongo"
+        },
+        "chargingRateUnit": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "chargingSchedulePeriod": {
+          "$ref": "#/definitions/chargingSchedulePeriod"
+        },
+        "minChargeRate": {
+          "type": "number",
+          "sanitize": "mongo"
+        }
+      },
+      "required": ["chargingRateUnit", "chargingSchedulePeriod"]
+    },
+    "chargingSchedulePeriod": {
+      "type": "object",
+      "properties": {
+        "startPeriod": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "limit": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "numberPhases": {
+          "type": "number",
+          "sanitize": "mongo"
+        }
+      },
+      "required": ["startPeriod", "limit"]
+    },
+    "connectorID": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "chargingProfilePurpose": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "stackLevel": {
+      "type": "number",
+      "sanitize": "mongo"
+    }
+  }
+}

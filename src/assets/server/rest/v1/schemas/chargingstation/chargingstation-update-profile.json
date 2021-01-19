@@ -1,0 +1,24 @@
+{
+  "title": "Update Charging Station Profile Request",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "chargingStationID": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "connectorID": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "chargePointID": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "profile": {
+      "$ref": "chargingstation.json#/definitions/chargingProfile"
+    }
+  },
+  "required": [
+    "id"
+  ]
+}

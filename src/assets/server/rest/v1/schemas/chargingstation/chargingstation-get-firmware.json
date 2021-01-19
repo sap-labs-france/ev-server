@@ -1,0 +1,11 @@
+{
+  "title": "Get Charging Station Firmware Request",
+  "type": "object",
+  "properties": {
+    "Filename": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": ["Filename"]
+}
