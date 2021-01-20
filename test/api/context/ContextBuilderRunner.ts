@@ -1,6 +1,7 @@
 import chai, { expect } from 'chai';
 
 import ContextBuilder from './ContextBuilder';
+import { OCPPStatus } from '../../types/ocpp/OCPPClient';
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
@@ -38,7 +39,7 @@ describe('Unit test Context Builder', function() {
     it('Builder dummy test', async () => {
       const test = 2;
       // pragma const adminUser = this.tenantContextAll.getUserContext(null, 'florent.pernice@sap.com');
-      // startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted')
+      // startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = OCPPStatus.ACCEPTED);
       // await this.tenantContextAll.startTransaction(this.tenantContextAll.getOrganizationContext(SITE_CONTEXTS.SITE_BASIC).getChargingStations()[0], 1,
       // adminUser.tagIDs[0], 0, moment());
       expect(test).to.equal(2);
