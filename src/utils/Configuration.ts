@@ -395,16 +395,17 @@ export default class Configuration {
   }
 
   private static getUserProvidedCredentialsValue(key: CloudCredentialsKey): string {
+    const upsName = 'e-Mobility-credentials';
     // Get the credentials
-    const credentials: CloudCredentials = Configuration.getCFAppEnv().getServiceCreds('emobility-credentials') as CloudCredentials;
+    const credentials: CloudCredentials = Configuration.getCFAppEnv().getServiceCreds(upsName) as CloudCredentials;
     if (!Configuration.isNullOrUndefined(credentials) && !Configuration.isUndefined(credentials[key])) {
       return credentials[key];
     }
     if (Configuration.isNullOrUndefined(credentials)) {
-      console.error('Credentials \'emobility-credentials\' User Provided Service not found or bound to the application in CF space');
+      console.error(`Credentials '${upsName}' User Provided Service not found or bound to the application in CF space`);
     }
     if (!Configuration.isNullOrUndefined(credentials) && Configuration.isUndefined(credentials[key])) {
-      console.error(`Credential key ${key} not found in 'emobility-credentials' User Provided Service in CF space`);
+      console.error(`Credential key ${key} not found in '${upsName}' User Provided Service in CF space`);
     }
   }
 
