@@ -194,7 +194,8 @@ export default class TransactionService {
       });
     }
     // Check if transaction was handled with Gireve or Hubject
-    if (transaction.ocpiData.session) { // Check OCPI
+    // Check OCPI
+    if (transaction.ocpiData.session) {
       // CDR already pushed
       if (transaction.ocpiData.cdr?.id) {
         throw new AppError({
@@ -225,7 +226,9 @@ export default class TransactionService {
           await LockingManager.release(ocpiLock);
         }
       }
-    } else if (transaction.oicpData.session) { // Check OICP
+    }
+    // Check OICP
+    if (transaction.oicpData.session) {
       // CDR already pushed
       if (transaction.oicpData.cdr?.SessionID) {
         throw new AppError({
@@ -257,7 +260,9 @@ export default class TransactionService {
           await LockingManager.release(oicpLock);
         }
       }
-    } else {
+    }
+    // No Roaming Cdr to push
+    if (!transaction.oicpData.session && !transaction.ocpiData.session) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,

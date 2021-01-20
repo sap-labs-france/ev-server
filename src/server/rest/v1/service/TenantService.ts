@@ -331,7 +331,6 @@ export default class TenantService {
   private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
     // Check if OICP component is activated or deactivated and create/activate/deactivate virtual user (and Badges) accordingly
     await this.checkOICPComponent(tenant);
-
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
@@ -389,7 +388,6 @@ export default class TenantService {
         // Deactivate user and save user status
         await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.INACTIVE);
       }
-
       if (!checkOICPComponent.active) {
       // Delete Endpoints if component is inactive
         const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
