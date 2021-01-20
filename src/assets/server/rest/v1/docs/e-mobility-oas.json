@@ -43,7 +43,7 @@
         "description": "Create a Tenant",
         "requestBody": {
           "content": {
-            "application/x-www-form-urlencoded": {
+            "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Tenant"
               }
@@ -228,7 +228,7 @@
         "description": "Sign in",
         "requestBody": {
           "content": {
-            "application/x-www-form-urlencoded": {
+            "application/json": {
               "schema": {
                 "type": "object",
                 "required": [
@@ -292,7 +292,7 @@
         "description": "Register",
         "requestBody": {
           "content": {
-            "application/x-www-form-urlencoded": {
+            "application/json": {
               "schema": {
                 "type": "object",
                 "required": [
@@ -388,7 +388,7 @@
         "description": "Reset password",
         "requestBody": {
           "content": {
-            "application/x-www-form-urlencoded": {
+            "application/json": {
               "schema": {
                 "type": "object",
                 "required": ["email", "tenant"],
@@ -401,17 +401,32 @@
                     "type": "string",
                     "example": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA"
                   },
-                  "hash": {
-                    "type": "string"
-                  },
                   "tenant": {
                     "type": "string",
                     "example": "slf"
                   }
                 }
+              },
+              "examples": {
+                "resetRequest": {
+                  "summary": "Request a password reset",
+                  "value": {
+                    "email": "demo.demo@sap.com",
+                    "captcha": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA",
+                    "tenant": "slf"
+                    }
+                  },
+                  "resetValidation": {
+                    "summary": "Validate password reset",
+                    "value": {
+                      "email": "demo.demo@sap.com",
+                      "hash": "dcff1ec7-cecb-4c2f-99da-47aeb1f83509",
+                      "tenant": "slf"
+                      }
+                    }
+                }
               }
             }
-          }
         },
         "tags": [
           "Authentication"
@@ -434,7 +449,7 @@
         "description": "Get tenant EULA",
         "parameters": [
           {
-            "in": "header",
+            "in": "query",
             "name": "Tenant",
             "description": "Tenant's subdomain",
             "required": true,
@@ -445,7 +460,7 @@
           },
           {
             "in": "query",
-            "name": "language",
+            "name": "Language",
             "description": "Browser language",
             "schema": {
               "type": "string",
@@ -596,7 +611,7 @@
         "description": "Resend a verification email",
         "requestBody": {
           "content": {
-            "application/x-www-form-urlencoded": {
+            "application/json": {
               "schema": {
                 "type": "object",
                 "required": ["email", "tenant", "captcha"],

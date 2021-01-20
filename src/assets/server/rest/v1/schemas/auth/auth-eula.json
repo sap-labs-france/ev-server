@@ -5,7 +5,7 @@
     "Language": {
       "$ref": "common.json#/definitions/language"
     },
-    "tenant": {
+    "Tenant": {
       "$ref": "common.json#/definitions/subdomain"
     }
   }

@@ -557,7 +557,7 @@ export default class AuthService {
 
   public static async handleGetEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthEula({ ...req.query, ...req.headers });
+    const filteredRequest = AuthValidator.getInstance().validateAuthEula(req.query);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {

@@ -105,5 +105,19 @@ export default class AuthenticationApi {
     });
     return response;
   }
+
+  public async getTenantEula(tenant = '', language?: string) {
+    const data = { tenant, language };
+    // Send
+    const response = await this._baseApi.send({
+      method: 'GET',
+      url: '/v1/auth/' + ServerAction.REST_END_USER_LICENSE_AGREEMENT,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: data
+    });
+    return response;
+  }
 }
 
