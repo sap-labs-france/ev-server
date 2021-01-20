@@ -14,11 +14,11 @@
     "lastSeen": "Last Seen",
     "maxPower": "Maximum Power (Watt)",
     "model": "Model",
-    "numberOfConnectors": "Number Of Connectors",
+    "numberOfConnectors": "Number of Connectors",
     "ocppProtocol": "OCPP Protocol",
     "ocppVersion": "OCPP Version",
     "powerLimitUnit": "Power Limit Unit",
-    "timezone" : "Charging station timezone",
+    "timezone" : "Charging Station Timezone",
     "vendor": "Vendor"
   },
   "general": {
