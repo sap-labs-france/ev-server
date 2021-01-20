@@ -38,7 +38,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async checkConnection(): Promise<void> {
-    // Check Stripe
+    // Initialize Stripe
     await this.initializeStripe();
     // Check Key
     if (!this.settings.secretKey) {
