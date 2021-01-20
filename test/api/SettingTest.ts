@@ -10,7 +10,6 @@ import Tenant from '../types/Tenant';
 import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
 import Utils from '../../src/utils/Utils';
-import _ from 'lodash';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
@@ -208,8 +207,6 @@ describe('Setting tests', function() {
       });
       expect(readSettingAfter.status).to.equal(200);
       expect(readSettingAfter.data.count).to.equal(1);
-
-      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
     });
   });
 });
