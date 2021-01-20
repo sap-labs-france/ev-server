@@ -64,7 +64,7 @@ export default class JsonRestWSConnection extends WSConnection {
     this.wsServer.removeRestConnection(this);
   }
 
-  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
     if (!chargingStation) {

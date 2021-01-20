@@ -175,7 +175,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('tokens', ServerAction.OCPI_AUTHORIZE_TOKEN)}/${token.uid}/authorize`;
-    let siteID;
+    let siteID: string;
     if (!chargingStation.siteArea || !chargingStation.siteArea.siteID) {
       const siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
@@ -186,7 +186,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const payload: OCPILocationReference =
     {
       location_id: siteID,
-      evse_uids: [OCPIUtils.buildEvseUID(chargingStation)]
+      evse_uids: OCPIUtils.buildEvseUIDs(chargingStation)
     };
     // Log
     Logging.logDebug({
