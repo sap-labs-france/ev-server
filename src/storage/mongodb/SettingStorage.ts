@@ -56,7 +56,7 @@ export default class SettingStorage {
       identifier: settingToSave.identifier,
       content: settingToSave.content,
       sensitiveData: settingToSave.sensitiveData,
-      formerSenitiveData: settingToSave.formerSensitiveData
+      formerSensitiveData: settingToSave.formerSensitiveData
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
@@ -345,7 +345,8 @@ export default class SettingStorage {
           blockCypher: settings.result[0].content.crypto.keyProperties.blockCypher,
           blockSize: settings.result[0].content.crypto.keyProperties.blockSize,
           operationMode: settings.result[0].content.crypto.keyProperties.operationMode,
-        }
+        },
+        migrationToBeDone: settings.result[0].content.crypto.migrationToBeDone
       } as CryptoSetting;
       const keySetting = {
         id: settings.result[0].id,

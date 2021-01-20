@@ -190,6 +190,7 @@ export default class Cypher {
       // Migrate
       for (const setting of settingsToMigrate) {
         if (!setting.formerSensitiveData && Utils.isEmptyArray(setting.formerSensitiveData)) {
+          delete setting.formerSensitiveData;
           // Save former senitive data in setting
           const formerSensitiveData = Cypher.prepareFormerSenitiveData(setting);
           formerSensitiveData['formerKeyHash'] = Cypher.hash(cryptoSetting.formerKey);

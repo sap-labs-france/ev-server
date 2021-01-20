@@ -9,6 +9,7 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
+import MigrateSensitiveDataTask from './tasks/MigrateSensitiveDataTask';
 import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
 import OCPICheckLocationsTask from './tasks/ocpi/OCPICheckLocationsTask';
 import OCPICheckSessionsTask from './tasks/ocpi/OCPICheckSessionsTask';
@@ -121,6 +122,9 @@ export default class SchedulerManager {
             break;
           case 'CheckChargingStationTemplateTask':
             schedulerTask = new CheckChargingStationTemplateTask();
+            break;
+          case 'MigrateSensitiveDataTask':
+            schedulerTask = new MigrateSensitiveDataTask();
             break;
           default:
             Logging.logError({
