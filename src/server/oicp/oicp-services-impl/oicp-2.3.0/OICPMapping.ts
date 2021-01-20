@@ -77,8 +77,8 @@ export default class OICPMapping {
     evse.deltaType; // Optional
     evse.lastUpdate; // Optional
     evse.EvseID = evseID;
-    evse.ChargingPoolID; // Optional
-    evse.ChargingStationID; // Optional
+    evse.ChargingPoolID = OICPMapping.buildEChargingPoolID(options.countryID, options.partyID, siteArea.id); // Optional
+    evse.ChargingStationID = chargingStation.id; // Optional
     evse.ChargingStationNames = [
       {
         lang: 'en',
@@ -112,10 +112,6 @@ export default class OICPMapping {
     evse.ClearinghouseID; // Optional
     evse.IsHubjectCompatible = true;
     evse.DynamicInfoAvailable = OICPDynamicInfoAvailable.auto;
-    // Check addChargeBoxID flag
-    if (options && options.addChargeBoxID) {
-      evse.chargeBoxId = chargingStation.id;
-    }
     // Return evse
     return evse;
   }
@@ -148,10 +144,7 @@ export default class OICPMapping {
     const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
     evseStatus.EvseID = evseID;
     evseStatus.EvseStatus = OICPMapping.convertStatus2OICPEvseStatus(connector.status);
-    // Check addChargeBoxID flag
-    if (options && options.addChargeBoxID) {
-      evseStatus.chargeBoxId = chargingStation.id;
-    }
+    evseStatus.ChargingStationID = chargingStation.id;
     return evseStatus;
   }
 
@@ -406,7 +399,7 @@ export default class OICPMapping {
         // To be done
         return {
           Google: {
-            Coordinates: 'To be done'
+            Coordinates: 'TODO'
           },
         };
       case OICPGeoCoordinatesResponseFormat.DecimalDegree:
@@ -420,8 +413,8 @@ export default class OICPMapping {
         // To be done
         return {
           DegreeMinuteSeconds: {
-            Longitude: 'To be done',
-            Latitude: 'To be done'
+            Longitude: 'TODO',
+            Latitude: 'TODO'
           },
         };
     }
@@ -431,10 +424,9 @@ export default class OICPMapping {
    * Build ChargingPoolID from charging station
    * @param {*} chargingStation
    */
-  public static buildEChargingPoolID(countryCode: string, partyId: string,chargingStation: ChargingStation): OICPChargingPoolID {
-    if (chargingStation.siteAreaID) {
-      return `${countryCode}*${partyId}*P${chargingStation.siteAreaID}`;
-    }
+  public static buildEChargingPoolID(countryCode: string, partyId: string, siteAreaID: string): OICPChargingPoolID {
+    let chargingPoolID = `${countryCode}*${partyId}*P${siteAreaID}`;
+    return chargingPoolID.replace(/[\W_]+/g, '*').toUpperCase();
   }
 
   /**

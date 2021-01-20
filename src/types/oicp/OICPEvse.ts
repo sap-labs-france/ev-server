@@ -36,8 +36,7 @@ export interface OICPEvseDataRecord {
   OpeningTimes?: OICPOpeningTimes[], // Opening time in case that the charging station cannot be accessed around the clock.
   ClearinghouseID?: string, // Identification of the corresponding clearing house in the event that roaming between different clearing houses must be processed in the future. Field Length = 20
   IsHubjectCompatible: boolean, // Is eRoaming via intercharge at this charging station possible? If set to "false" the charge spot will not be started/stopped remotely via Hubject.
-  DynamicInfoAvailable: OICPDynamicInfoAvailable, // Values; true / false / auto This attribute indicates whether a CPO provides (dynamic) EVSE Status info in addition to the (static) EVSE Data for this EVSERecord. Value auto is set to true by Hubject if the operator offers Hubject EVSEStatus data.
-  chargeBoxId?: string
+  DynamicInfoAvailable: OICPDynamicInfoAvailable // Values; true / false / auto This attribute indicates whether a CPO provides (dynamic) EVSE Status info in addition to the (static) EVSE Data for this EVSERecord. Value auto is set to true by Hubject if the operator offers Hubject EVSEStatus data.
 }
 
 export enum OICPDelta {
@@ -250,7 +249,7 @@ export interface OICPOperatorEvseStatus {
 export interface OICPEvseStatusRecord {
   EvseID: OICPEvseID, // The ID that identifies the charging spot.
   EvseStatus: OICPEvseStatus, // The status of the charging spot
-  chargeBoxId?: string
+  ChargingStationID?: string // Not part of OICP protocol
 }
 
 export enum OICPEvseStatus {
@@ -290,4 +289,4 @@ export type OICPLanguageCode = string; // ^[a-z]{2,3}(?:-[A-Z]{2,3}(?:-[a-zA-Z]{
 export type OICPPhoneNumber = string; // ^\+[0-9]{5,15}$ The expression validates the string as a telephone number starting with “+” and containing only numbers. Example: “+0305132787”
 export type OICPGeoCoordinatesDecimalDegreeFormat = string; // A string that MUST be valid with respect to the following regular expression: ^-?1?\d{1,2}\.\d{1,6}$ The expression validates the string as a geo coordinate (longitude or latitude) with decimal degree syntax. Example: “9.360922”, “-21.568201”
 export type OICPGeoCoordinatesDegreeMinuteSecondsFormat = string; // A string that MUST be valid with respect to the following regular expression: ^-?1?\d{1,2}°[ ]?\d{1,2}'[ ]?\d{1,2}\.\d+’'$ The expression validates the string as a geo coordinate (longitude or latitude) consisting of degree, minutes, and seconds. Example: “9°21'39.32''”, “-21°34'23.16''
-export type OICPChargingPoolID = string; // VSEs may be grouped by using a charging pool id according to emi³ standard definition. The Evse Pool ID MUST match the following structure (the notation corresponds to the augmented Backus-Naur Form (ABNF) as defined in RFC5234): <Evse Pool ID> = <Country Code> <S> <Spot Operator ID> <S> <ID Type> <Pool ID> This leads to the following regular expression: ([A-Za-z]{2}\*?[A-Za-z0-9]{3}\*?P[A-Za-z0-9\*]{1,30})
+export type OICPChargingPoolID = string; // VSEs may be grouped by using a charging pool id according to emi³ standard definition. The Evse Pool ID MUST match the following structure (the notation corresponds to the augmented Backus-Naur Form (ABNF) as defined in RFC5234): <Evse Pool ID> = <Country Code> <S> <Spot Operator ID> <S> <ID Type> <Pool ID> This leads to the following regular expression: ([A-Za-z]{2}\*?[A-Za-z0-9]{3}\*?P[A-Za-z0-9\*]{1,30}) An example for a valid Evse Pool ID is “IT*123*P456*AB789”

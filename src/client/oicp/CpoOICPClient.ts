@@ -232,7 +232,7 @@ export default class CpoOICPClient extends OICPClient {
     //    - EVSEs (ChargingStations) with status notification from latest pushDate
     if (processAllEVSEs) {
       evsesToProcess = evses.result;
-      chargeBoxIDsToProcessFromInput = evsesToProcess.map((evse) => evse.chargeBoxId);
+      chargeBoxIDsToProcessFromInput = evsesToProcess.map((evse) => evse.ChargingStationID);
     } else {
       let chargeBoxIDsToProcess = [];
       // Get ChargingStation in Failure from previous run
@@ -245,12 +245,12 @@ export default class CpoOICPClient extends OICPClient {
       for (const evse of evses.result) {
         if (evse) {
           // Check if Charging Station should be processed
-          if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.chargeBoxId)) {
+          if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.ChargingStationID)) {
             continue;
           }
           // Process
           evsesToProcess.push(evse);
-          chargeBoxIDsToProcessFromInput.push(evse.chargeBoxId);
+          chargeBoxIDsToProcessFromInput.push(evse.ChargingStationID);
         }
       }
     }
@@ -349,7 +349,7 @@ export default class CpoOICPClient extends OICPClient {
     //    - EVSEs (ChargingStations) with status notification from latest pushDate
     if (processAllEVSEs) {
       evseStatusesToProcess = evseStatuses.result;
-      chargeBoxIDsToProcessFromInput = evseStatusesToProcess.map((evseStatus) => evseStatus.chargeBoxId);
+      chargeBoxIDsToProcessFromInput = evseStatusesToProcess.map((evseStatus) => evseStatus.ChargingStationID);
     } else {
       let chargeBoxIDsToProcess = [];
       // Get ChargingStation in Failure from previous run
@@ -362,12 +362,12 @@ export default class CpoOICPClient extends OICPClient {
       for (const evseStatus of evseStatuses.result) {
         if (evseStatus) {
           // Check if Charging Station should be processed
-          if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evseStatus.chargeBoxId)) {
+          if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evseStatus.ChargingStationID)) {
             continue;
           }
           // Process
           evseStatusesToProcess.push(evseStatus);
-          chargeBoxIDsToProcessFromInput.push(evseStatus.chargeBoxId);
+          chargeBoxIDsToProcessFromInput.push(evseStatus.ChargingStationID);
         }
       }
     }
