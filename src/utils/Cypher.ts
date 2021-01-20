@@ -5,7 +5,6 @@ import Constants from './Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import SettingStorage from '../storage/mongodb/SettingStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import Utils from './Utils';
 import _ from 'lodash';
 import crypto from 'crypto';
@@ -192,7 +191,7 @@ export default class Cypher {
         if (!setting.formerSensitiveData && Utils.isEmptyArray(setting.formerSensitiveData)) {
           // Save former senitive data in setting
           const formerSensitiveData = Cypher.prepareFormerSenitiveData(setting);
-          formerSensitiveData['formerKeyHash'] = Cypher.hash(cryptoSetting.formerKey);
+          formerSensitiveData.push(Cypher.hash(cryptoSetting.formerKey));
           setting.formerSensitiveData = formerSensitiveData;
           // Decrypt sensitive data with former key and key properties
           await Cypher.decryptSensitiveDataInJSON(setting, tenantID, true);
@@ -240,7 +239,7 @@ export default class Cypher {
         const value: string = _.get(setting, property);
         // If the value is undefined, null or empty then do nothing and skip to the next property
         if (value && value.length > 0) {
-          formerSensitiveData[`${property}`] = value;
+          formerSensitiveData.push(value);
         }
       }
     }

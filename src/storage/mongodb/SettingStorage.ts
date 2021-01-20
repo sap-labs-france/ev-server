@@ -56,7 +56,7 @@ export default class SettingStorage {
       identifier: settingToSave.identifier,
       content: settingToSave.content,
       sensitiveData: settingToSave.sensitiveData,
-      formerSenitiveData: settingToSave.formerSensitiveData
+      formerSensitiveData: settingToSave.formerSensitiveData
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
