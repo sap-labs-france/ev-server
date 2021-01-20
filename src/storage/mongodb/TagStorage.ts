@@ -5,9 +5,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { OICPDefaultTagId } from '../../types/oicp/OICPIdentification';
 import Tag from '../../types/Tag';
-import UserStorage from './UserStorage';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
