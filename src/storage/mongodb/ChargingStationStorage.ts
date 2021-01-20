@@ -214,7 +214,7 @@ export default class ChargingStationStorage {
       $match: filters
     });
     // Connector ID
-    if (params.connectorIDs) {
+    if (!Utils.isEmptyArray(params.connectorIDs)) {
       filters['connectors.connectorId'] = { $in: params.connectorIDs };
       aggregation.push({
         '$addFields': {
