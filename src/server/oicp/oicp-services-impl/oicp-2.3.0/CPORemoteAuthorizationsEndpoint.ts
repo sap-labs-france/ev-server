@@ -78,10 +78,10 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
-        message: `Charging Station ID '${authorizeRemoteStart.EvseID}' cannot be used in with OICP`,
+        message: `Charging Station ID '${authorizeRemoteStart.EvseID}' cannot be used with OICP`,
         module: MODULE_NAME, method: 'authorizeRemoteStart'
       });
-      return OICPUtils.noSuccess(session, `EVSE '${authorizeRemoteStart.EvseID}' cannot be used in with OICP`);
+      return OICPUtils.noSuccess(session, `EVSE '${authorizeRemoteStart.EvseID}' cannot be used with OICP`);
     }
     if (connector.status !== ChargePointStatus.AVAILABLE) {
       Logging.logDebug({

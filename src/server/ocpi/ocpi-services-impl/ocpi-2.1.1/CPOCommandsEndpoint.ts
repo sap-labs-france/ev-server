@@ -135,7 +135,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
-        message: `Charging Station ID '${startSession.evse_uid}' cannot be used in with OCPI`,
+        message: `Charging Station ID '${startSession.evse_uid}' cannot be used with OCPI`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
