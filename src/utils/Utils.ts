@@ -1363,7 +1363,7 @@ export default class Utils {
     return {
       blockCypher: 'aes',
       blockSize: 256,
-      operationMode: 'gcm'
+      operationMode: 'ctr'
     };
   }
 
