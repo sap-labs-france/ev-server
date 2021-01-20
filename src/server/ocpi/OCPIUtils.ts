@@ -121,6 +121,7 @@ export default class OCPIUtils {
    * @param {*} chargingStation the charging station used to build the evse ID
    * @param {*} connector the connector used to build the evse id
    */
+  // TODO: connector should be mandatory!
   public static buildEvseID(countryCode: string, partyId: string, chargingStation: ChargingStation, connector?: Connector): string {
     let evseID = `${countryCode}*${partyId}*E${chargingStation.id}`;
     if (!connector) {

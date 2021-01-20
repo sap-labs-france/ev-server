@@ -126,8 +126,7 @@ export default class OICPMapping {
     // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
     const evseStatuses = connectors.map((connector) => {
-      const evseStatus = OICPMapping.convertConnector2EvseStatus(tenant, chargingStation, connector, options);
-      return evseStatus;
+      return OICPMapping.convertConnector2EvseStatus(tenant, chargingStation, connector, options);
     });
     // Return all EVSE Statuses
     return evseStatuses;
