@@ -87,6 +87,7 @@ export default class ChargingStationSecurity {
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.ConnectorID = sanitize(request.ConnectorID);
     filteredRequest.ConnectorStatus = sanitize(request.ConnectorStatus);
     filteredRequest.ConnectorType = sanitize(request.ConnectorType);
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);

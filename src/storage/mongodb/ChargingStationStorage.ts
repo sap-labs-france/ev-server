@@ -146,7 +146,7 @@ export default class ChargingStationStorage {
       search?: string; chargingStationIDs?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number; connectorIDs?: number[];
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
@@ -213,6 +213,23 @@ export default class ChargingStationStorage {
     aggregation.push({
       $match: filters
     });
+    // Connector ID
+    if (params.connectorIDs) {
+      filters['connectors.connectorId'] = { $in: params.connectorIDs };
+      aggregation.push({
+        '$addFields': {
+          'connectors': {
+            '$filter': {
+              input: '$connectors',
+              as: 'connector',
+              cond: {
+                $in: ['$$connector.connectorId', params.connectorIDs]
+              }
+            }
+          }
+        }
+      });
+    }
     // Connector Status
     if (params.connectorStatuses) {
       filters['connectors.status'] = { $in: params.connectorStatuses };
@@ -429,7 +446,7 @@ export default class ChargingStationStorage {
     if (!Utils.isEmptyArray(params.errorType)) {
       // Check allowed
       if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION)
-          && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
+        && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
