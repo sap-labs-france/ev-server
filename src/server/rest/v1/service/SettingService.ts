@@ -163,17 +163,6 @@ export default class SettingService {
         value: settingUpdate.id
       });
     }
-    if (settingUpdate.identifier === 'crypto') {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-        message: 'No support for Crypto Setting change yet.',
-        module: MODULE_NAME,
-        method: 'handleUpdateSetting',
-        user: req.user
-      });
-    }
-
 
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
@@ -220,6 +209,11 @@ export default class SettingService {
     // Update timestamp
     setting.lastChangedBy = { 'id': req.user.id };
     setting.lastChangedOn = new Date();
+
+    if (settingUpdate.identifier === TenantComponents.CRYPTO) {
+      settingUpdate.content.crypto.formerKey = setting.content.crypto.key;
+    }
+
     // Update Setting
     settingUpdate.id = await SettingStorage.saveSettings(req.user.tenantID, settingUpdate);
     // Crypto Setting handling
