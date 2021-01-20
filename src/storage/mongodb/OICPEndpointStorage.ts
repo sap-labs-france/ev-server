@@ -41,7 +41,6 @@ export default class OICPEndpointStorage {
     } else {
       oicpEndpointFilter._id = new ObjectID();
     }
-
     const oicpEndpointMDB: any = {
       _id: oicpEndpointFilter._id,
       name: oicpEndpointToSave.name,
@@ -53,7 +52,7 @@ export default class OICPEndpointStorage {
       status: oicpEndpointToSave.status,
       businessDetails: oicpEndpointToSave.businessDetails,
       availableEndpoints: oicpEndpointToSave.availableEndpoints,
-      lastPatchJobOn: oicpEndpointToSave.lastPatchJobOn,
+      lastPatchJobOn: Utils.convertToDate(oicpEndpointToSave.lastPatchJobOn),
       lastPatchJobResult: oicpEndpointToSave.lastPatchJobResult,
       version: oicpEndpointToSave.version
     };

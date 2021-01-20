@@ -347,11 +347,11 @@ export default class DatabaseUtils {
     dest.lastChangedBy = null;
     if (entity.createdBy || entity.createdOn) {
       dest.createdBy = DatabaseUtils._mongoConvertUserID(entity, 'createdBy');
-      dest.createdOn = entity.createdOn;
+      dest.createdOn = Utils.convertToDate(entity.createdOn);
     }
     if (entity.lastChangedBy || entity.lastChangedOn) {
       dest.lastChangedBy = DatabaseUtils._mongoConvertUserID(entity, 'lastChangedBy');
-      dest.lastChangedOn = entity.lastChangedOn;
+      dest.lastChangedOn = Utils.convertToDate(entity.lastChangedOn);
     }
   }
 
