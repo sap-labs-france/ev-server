@@ -146,8 +146,8 @@ export default class Cypher {
     const createDatabaseLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE, 'migrate-settings-sensitive-data');
     if (await LockingManager.acquire(createDatabaseLock)) {
       try {
-        await this.migrate(tenantID);
-        await this.cleanupFormerSensitiveData(tenantID);
+        await Cypher.migrate(tenantID);
+        await Cypher.cleanupFormerSensitiveData(tenantID);
         const keySettings = await SettingStorage.getCryptoSettings(tenantID);
         keySettings.crypto.migrationToBeDone = false;
         await SettingStorage.saveCryptoSettings(tenantID, keySettings);
@@ -166,8 +166,8 @@ export default class Cypher {
   }
 
   public static async migrate(tenantID: string): Promise<void> {
-    const cryptoSetting = await this.getCryptoSetting(tenantID);
-    await this.migrateSettings(tenantID, cryptoSetting);
+    const cryptoSetting = await Cypher.getCryptoSetting(tenantID);
+    await Cypher.migrateSettings(tenantID, cryptoSetting);
   }
 
   public static async getSettingsWithSensitiveData(tenantID: string): Promise<SettingDB[]> {
@@ -184,20 +184,20 @@ export default class Cypher {
 
   public static async migrateSettings(tenantID: string, cryptoSetting: CryptoSetting): Promise<void> {
 
-    const settingsToMigrate = await this.getSettingsWithSensitiveData(tenantID);
+    const settingsToMigrate = await Cypher.getSettingsWithSensitiveData(tenantID);
     // If tenant has settings with sensitive data, migrate them
     if (!Utils.isEmptyArray(settingsToMigrate)) {
       // Migrate
       for (const setting of settingsToMigrate) {
         if (!setting.formerSensitiveData && Utils.isEmptyArray(setting.formerSensitiveData)) {
           // Save former senitive data in setting
-          const formerSensitiveData = this.prepareFormerSenitiveData(setting);
-          formerSensitiveData['formerKeyHash'] = this.hash(cryptoSetting.formerKey);
+          const formerSensitiveData = Cypher.prepareFormerSenitiveData(setting);
+          formerSensitiveData['formerKeyHash'] = Cypher.hash(cryptoSetting.formerKey);
           setting.formerSensitiveData = formerSensitiveData;
           // Decrypt sensitive data with former key and key properties
-          await this.decryptSensitiveDataInJSON(setting, tenantID, true);
+          await Cypher.decryptSensitiveDataInJSON(setting, tenantID, true);
           // Encrypt sensitive data with new key and key properties
-          await this.encryptSensitiveDataInJSON(setting, tenantID);
+          await Cypher.encryptSensitiveDataInJSON(setting, tenantID);
           // Save setting with sensitive data encrypted with new key
           await SettingStorage.saveSettings(tenantID, setting);
         }
@@ -206,7 +206,7 @@ export default class Cypher {
   }
 
   public static async cleanupFormerSensitiveData(tenantID: string): Promise<void> {
-    const settingsToCleanup = await this.getSettingsWithSensitiveData(tenantID);
+    const settingsToCleanup = await Cypher.getSettingsWithSensitiveData(tenantID);
     // If tenant has settings with sensitive data, clean them
     if (!Utils.isEmptyArray(settingsToCleanup)) {
       // Cleanup
