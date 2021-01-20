@@ -2,16 +2,16 @@
   "openapi": "3.0.3",
   "servers": [
     {
+      "description": "Localhost - Development",
+      "url": "http://localhost:8080/v1"
+    },
+    {
       "description": "SCP - Production system",
       "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
     },
     {
       "description": "SCP - Quality system",
       "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
-    },
-    {
-      "description": "Localhost - Development",
-      "url": "http://localhost:8080/v1"
     }
   ],
   "info": {
@@ -35,6 +35,10 @@
     {
       "name": "Authentication",
       "description": "Authentication API"
+    },
+    {
+      "name": "Charging Stations",
+      "description": "Charging Stations API"
     }
   ],
   "paths": {
@@ -852,6 +856,149 @@
         "type": "string",
         "format": "date-time",
         "example": "2020-07-22T17:02:42.036Z"
+      },
+      "Charging Station": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": ""
+          },
+          "templateHash": {
+            "type": "string"
+          },
+          "templateHashCapabilities": {
+            "type": "string"
+          },
+          "templateHashTechnical": {
+            "type": "string"
+          },
+          "templateHashOcppStandard": {
+            "type": "string"
+          },
+          "templateHashOcppVendor": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "boolean"
+          },
+          "public": {
+            "type": "boolean"
+          },
+          "siteAreaID": {
+            "type": "string"
+          },
+          "chargePointSerialNumber": {
+            "type": "string"
+          },
+          "chargePointModel": {
+            "type": "string"
+          },
+          "chargeBoxSerialNumber": {
+            "type": "string"
+          },
+          "chargePointVendor": {
+            "type": "string"
+          },
+          "iccid": {
+            "type": "string"
+          },
+          "imsi": {
+            "type": "string"
+          },
+          "meterType": {
+            "type": "string"
+          },
+          "firmwareVersion": {
+            "type": "string"
+          },
+          "firmwareUpdateStatus": {
+            "type": "string"
+          },
+          "meterSerialNumber": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "ocppVersion": {
+            "type": "string"
+          },
+          "ocppProtocol": {
+            "type": "string"
+          },
+          "cfApplicationIDAndInstanceIndex": {
+            "type": "string"
+          },
+          "lastSeen": {
+            "type": "string"
+          },
+          "deleted": {
+            "type": "string"
+          },
+          "inactive": {
+            "type": "string"
+          },
+          "forceInactive": {
+            "type": "string"
+          },
+          "lastReboot": {
+            "type": "string"
+          },
+          "chargingStationURL": {
+            "type": "string"
+          },
+          "maximumPower": {
+            "type": "string"
+          },
+          "voltage": {
+            "type": "string"
+          },
+          "excludeFromSmartCharging": {
+            "type": "string"
+          },
+          "powerLimitUnit": {
+            "type": "string"
+          },
+          "coordinates": {
+            "type": "string"
+          },
+          "chargePoints": {
+            "type": "string"
+          },
+          "connectors": {
+            "type": "string"
+          },
+          "remoteAuthorizations": {
+            "type": "string"
+          },
+          "currentIPAddress": {
+            "type": "string"
+          },
+          "siteArea": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "string"
+          },
+          "ocppStandardParameters": {
+            "type": "string"
+          },
+          "ocppVendorParameters": {
+            "type": "string"
+          },
+          "distanceMeters": {
+            "type": "string"
+          },
+          "ocpiData": {
+            "type": "object",
+            "properties": {
+              "evse": {
+                "type": "string"
+              }
+            }
+          }
+        }
       }
     },
     "parameters": {
