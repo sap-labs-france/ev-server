@@ -395,6 +395,8 @@ export enum ServerAction {
   REST_END_USER_LICENSE_AGREEMENT_CHECK = 'eula/check',
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
+
+  REST_CHARGING_STATIONS = 'chargingstations',
   REST_PING = 'ping',
   REST_TENANTS = 'tenants'
 }
