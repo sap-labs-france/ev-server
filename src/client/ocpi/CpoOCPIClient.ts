@@ -186,7 +186,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const payload: OCPILocationReference =
     {
       location_id: siteID,
-      evse_uids: [OCPIUtils.buildEvseUID(chargingStation)]
+      evse_uids: OCPIUtils.buildEvseUIDs(chargingStation)
     };
     // Log
     Logging.logDebug({
