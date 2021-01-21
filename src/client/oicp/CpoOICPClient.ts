@@ -81,6 +81,7 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      user: transaction.user,
       action: ServerAction.OICP_PUSH_SESSIONS,
       message: `Start OICP Transaction ID (ID '${transaction.id}')`,
       module: MODULE_NAME, method: 'startSession',
@@ -114,6 +115,7 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      user: transaction.user,
       action: ServerAction.OICP_PUSH_SESSIONS,
       message: 'OICP Session update',
       module: MODULE_NAME, method: 'updateSession',
@@ -132,6 +134,7 @@ export default class CpoOICPClient extends OICPClient {
     if (response) {
       Logging.logDebug({
         tenantID: this.tenant.id,
+        user: transaction.user,
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `Update Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response received from Hubject`,
         module: MODULE_NAME, method: 'updateSession',
@@ -176,6 +179,7 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      user: transaction.user,
       action: ServerAction.OICP_PUSH_SESSIONS,
       message: `Stop OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') to Hubject`,
       module: MODULE_NAME, method: 'stopSession',
@@ -187,6 +191,7 @@ export default class CpoOICPClient extends OICPClient {
       const response = await this.authorizeStop(transaction);
       Logging.logDebug({
         tenantID: this.tenant.id,
+        user: transaction.user,
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `Push OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response retrieved from Hubject`,
         module: MODULE_NAME, method: 'stopSession',
@@ -613,6 +618,7 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      user: user,
       action: ServerAction.OICP_AUTHORIZE_START,
       message: 'Start Authorization',
       module: MODULE_NAME, method: 'authorizeStart',
@@ -651,16 +657,17 @@ export default class CpoOICPClient extends OICPClient {
           response: authorizeResponse
         }
       });
-    } else {
-      // Log
-      Logging.logInfo({
-        tenantID: this.tenant.id,
-        action: ServerAction.OICP_AUTHORIZE_START,
-        message: `User '${user.id}' with Authorization '${tagID}' authorized thought OICP protocol`,
-        module: MODULE_NAME, method: 'authorizeStart',
-        detailedMessages: { authorizeResponse }
-      });
     }
+    // Log
+    Logging.logInfo({
+      tenantID: this.tenant.id,
+      user: user,
+      action: ServerAction.OICP_AUTHORIZE_START,
+      message: `User '${user.id}' with Authorization '${tagID}' authorized thought OICP protocol`,
+      module: MODULE_NAME, method: 'authorizeStart',
+      detailedMessages: { authorizeResponse }
+    });
+
     return authorizeResponse;
   }
 
@@ -694,6 +701,7 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      user: user,
       action: ServerAction.OICP_AUTHORIZE_STOP,
       message: 'Stop Authorization',
       module: MODULE_NAME, method: 'authorizeStop',
@@ -722,7 +730,8 @@ export default class CpoOICPClient extends OICPClient {
           payload: payload
         }
       });
-    } else if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
+    }
+    if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
       throw new BackendError({
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
@@ -736,6 +745,7 @@ export default class CpoOICPClient extends OICPClient {
       // Log
       Logging.logInfo({
         tenantID: this.tenant.id,
+        user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         message: `'authorizeStop': '${authorizeResponse?.AuthorizationStatus}'`,
         module: MODULE_NAME, method: 'authorizeStop',
@@ -802,6 +812,7 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      user: transaction.user,
       action: ServerAction.OICP_PUSH_CDRS,
       message: `Post CDR of OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') at ${fullUrl}`,
       module: MODULE_NAME, method: 'pushCdr',
@@ -820,6 +831,7 @@ export default class CpoOICPClient extends OICPClient {
     if (!pushCdrResponse?.Result || pushCdrResponse?.Result !== true) {
       Logging.logError({
         tenantID: this.tenant.id,
+        user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
         message: `'pushCdr' Error: '${pushCdrResponse?.StatusCode?.AdditionalInfo ? pushCdrResponse?.StatusCode?.AdditionalInfo : pushCdrResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
         module: MODULE_NAME, method: 'pushCdr',
@@ -833,6 +845,7 @@ export default class CpoOICPClient extends OICPClient {
     } else {
       Logging.logInfo({
         tenantID: this.tenant.id,
+        user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
         message: `Push CDR of OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response retrieved from ${fullUrl}`,
         module: MODULE_NAME, method: 'pushCdr',
@@ -993,6 +1006,7 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      user: transaction.user,
       action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
       message: `Send Charging Notification Start for EVSE: ${payload.EvseID}`,
       module: MODULE_NAME, method: 'sendChargingNotificationStart',
@@ -1011,6 +1025,7 @@ export default class CpoOICPClient extends OICPClient {
     if (!notificationStartResponse?.Result || notificationStartResponse?.Result !== true) {
       Logging.logError({
         tenantID: this.tenant.id,
+        user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
         message: `'sendChargingNotificationStart' Error: '${notificationStartResponse?.StatusCode?.AdditionalInfo ? notificationStartResponse?.StatusCode?.AdditionalInfo : notificationStartResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
         module: MODULE_NAME, method: 'sendChargingNotificationStart',
@@ -1072,6 +1087,7 @@ export default class CpoOICPClient extends OICPClient {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
+        user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
         message: `Send Charging Notification Progress for EVSE: ${payload.EvseID}`,
         module: MODULE_NAME, method: 'sendChargingNotificationProgress',
@@ -1091,6 +1107,7 @@ export default class CpoOICPClient extends OICPClient {
       if (!notificationProgressResponse?.Result || notificationProgressResponse?.Result !== true) {
         Logging.logError({
           tenantID: this.tenant.id,
+          user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
           message: `'sendChargingNotificationProgress' Error: '${notificationProgressResponse?.StatusCode?.AdditionalInfo ? notificationProgressResponse?.StatusCode?.AdditionalInfo : notificationProgressResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
           module: MODULE_NAME, method: 'sendChargingNotificationProgress',
@@ -1181,6 +1198,7 @@ export default class CpoOICPClient extends OICPClient {
     if (!notificationEndResponse?.Result || notificationEndResponse?.Result !== true) {
       Logging.logError({
         tenantID: this.tenant.id,
+        user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: `'sendChargingNotificationEnd' Error: '${notificationEndResponse?.StatusCode?.AdditionalInfo ? notificationEndResponse?.StatusCode?.AdditionalInfo : notificationEndResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
@@ -1235,6 +1253,7 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
+      user: transaction.user,
       action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
       message: `Send Charging Notification Error for EVSE: ${payload.EvseID}`,
       module: MODULE_NAME, method: 'sendChargingNotificationError',
@@ -1253,6 +1272,7 @@ export default class CpoOICPClient extends OICPClient {
     if (!notificationErrorResponse?.Result || notificationErrorResponse?.Result !== true) {
       Logging.logError({
         tenantID: this.tenant.id,
+        user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
         message: `'sendChargingNotificationError' Error: '${notificationErrorResponse?.StatusCode?.AdditionalInfo ? notificationErrorResponse?.StatusCode?.AdditionalInfo : notificationErrorResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
         module: MODULE_NAME, method: 'sendChargingNotificationError',
