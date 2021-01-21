@@ -1078,7 +1078,7 @@ export default class UserService {
 
   private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
     let csv = '';
-    const i18nManager = new I18nManager(req.user.locale);
+    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
       csv = i18nManager.translate('users.id') + Constants.CSV_SEPARATOR;

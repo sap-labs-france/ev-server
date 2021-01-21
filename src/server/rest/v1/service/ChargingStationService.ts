@@ -1311,7 +1311,7 @@ export default class ChargingStationService {
 
   private static convertOCPPParamsToCSV(ocppParams: OCPPParams, userLocale: string, writeHeader = true): string {
     let csv = '';
-    const i18nManager = new I18nManager(userLocale);
+    const i18nManager = I18nManager.getInstanceForLocale(userLocale);
     // Header
     if (writeHeader) {
       csv = i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
@@ -1333,7 +1333,8 @@ export default class ChargingStationService {
 
   private static convertToCSV(req: Request, chargingStations: ChargingStation[], writeHeader = true): string {
     let csv = '';
-    const i18nManager = new I18nManager(req.user.locale);
+
+    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
       csv = i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
@@ -1392,7 +1393,7 @@ export default class ChargingStationService {
   }
 
   private static async convertQrCodeToPDF(req: Request, pdfDocument: PDFKit.PDFDocument, chargingStations: ChargingStation[]): Promise<void> {
-    const i18nManager = new I18nManager(req.user.locale);
+    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Check for Connector ID
     let connectorID = null;
     if (req.query.ConnectorID) {

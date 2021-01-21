@@ -474,7 +474,7 @@ export default class StatisticService {
   static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string): string {
     let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false);
-    const i18nManager = new I18nManager(loggedUser.locale);
+    const i18nManager = I18nManager.getInstanceForLocale(loggedUser.locale);
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }
