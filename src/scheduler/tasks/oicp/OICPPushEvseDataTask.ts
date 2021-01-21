@@ -49,7 +49,8 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
             message: `The OICP Endpoint ${oicpEndpoint.name} is not registered. Skipping the oicpendpoint.`
           });
           return;
-        } else if (!oicpEndpoint.backgroundPatchJob) {
+        }
+        if (!oicpEndpoint.backgroundPatchJob) {
           Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOICPEndpoint',
