@@ -96,7 +96,7 @@ export default class ExpressTools {
       const options: https.ServerOptions = {};
       // Set the keys
       // FIXME read certificates directly from config.json file. In the future: config for OICP in default tenant
-      if (serverConfig['ssl-key'].includes('-----BEGIN PRIVATE KEY-----')) {
+      if (serverConfig['ssl-key'] && serverConfig['ssl-cert']) {
         options.key = serverConfig['ssl-key'];
         options.cert = serverConfig['ssl-cert'];
       } else {
@@ -114,7 +114,7 @@ export default class ExpressTools {
           // Add all
           for (let i = 0; i < serverConfig['ssl-ca'].length; i++) {
             // FIXME read certificates directly from config.json file. In the future: config for OICP in default tenant
-            if (serverConfig['ssl-ca'][i].includes('-----BEGIN CERTIFICATE-----')) {
+            if (serverConfig['ssl-ca'][i]) {
               options.ca.push(serverConfig['ssl-ca'][i]);
             } else {
               options.ca.push(fs.readFileSync(serverConfig['ssl-ca'][i]));
