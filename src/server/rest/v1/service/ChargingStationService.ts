@@ -820,9 +820,8 @@ export default class ChargingStationService {
         params: ocppParameters.result,
         siteName: chargingStation.siteArea.site.name,
         siteAreaName: chargingStation.siteArea.name,
-        chargingStationName: chargingStation.id,
-        userLocale: req.user.locale
-      }, writeHeader);
+        chargingStationName: chargingStation.id
+      }, req.user.locale, writeHeader);
       // Send OCPP Params
       res.write(dataToExport);
       writeHeader = false;
@@ -1310,9 +1309,9 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static convertOCPPParamsToCSV(ocppParams: OCPPParams, writeHeader = true): string {
+  private static convertOCPPParamsToCSV(ocppParams: OCPPParams, userLocale: string, writeHeader = true): string {
     let csv = '';
-    const i18nManager = new I18nManager(ocppParams.userLocale);
+    const i18nManager = new I18nManager(userLocale);
     // Header
     if (writeHeader) {
       csv = i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
