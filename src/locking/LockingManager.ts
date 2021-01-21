@@ -1,13 +1,11 @@
 import Lock, { LockEntity, LockType } from '../types/Locking';
 
 import BackendError from '../exception/BackendError';
-import Configuration from '../utils/Configuration';
 import Cypher from '../utils/Cypher';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
-import cfenv from 'cfenv';
-import os from 'os';
+import Utils from '../utils/Utils';
 
 const MODULE_NAME = 'LockingManager';
 
@@ -42,17 +40,17 @@ export default class LockingManager {
         message: `Acquired successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock }
       });
-      // pragma console.log(`Acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+      Utils.isDevelopmentEnv() && console.debug(`Acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`);
       return true;
     } catch (error) {
-      Logging.logError({
+      Logging.logWarning({
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
-        message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
+        message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID}`,
         detailedMessages: { lock, error: error.message, stack: error.stack }
       });
-      console.log(`Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+      Utils.isDevelopmentEnv() && console.warn(`>>>>> Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`);
       return false;
     }
   }
@@ -61,7 +59,7 @@ export default class LockingManager {
     // Delete
     const result = await LockingStorage.deleteLock(lock);
     if (!result) {
-      Logging.logError({
+      Logging.logWarning({
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'release',
         action: ServerAction.LOCKING,
@@ -77,8 +75,15 @@ export default class LockingManager {
       message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
       detailedMessages: { lock }
     });
-    // pragma console.log(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
+    Utils.isDevelopmentEnv() && console.debug(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`);
     return true;
+  }
+
+  public static async cleanupLocks(doCleanup = true): Promise<void> {
+    if (doCleanup) {
+      const hostname = Utils.getHostname();
+      await LockingStorage.deleteLockByHostname(hostname);
+    }
   }
 
   private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE): Lock {
@@ -114,7 +119,7 @@ export default class LockingManager {
       key: key.toLowerCase(),
       type: type,
       timestamp: new Date(),
-      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
+      hostname: Utils.getHostname()
     };
   }
 }

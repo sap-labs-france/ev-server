@@ -19,15 +19,13 @@ build
 .netrwhist
 *~
 *.orig
+*.log
 Procfile
 postman
 archi
 cloud-infos.md
 README.md
 tam-model.png
-users-template.json
-user-test-case.txt
-security-scan-source-clear.txt
 webpack.config.js
 yarn-error.log
 manifest-cf-template.yml

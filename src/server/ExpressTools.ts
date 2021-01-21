@@ -5,9 +5,11 @@ import CFLog from 'cf-nodejs-logging-support';
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
+import { StatusCodes } from 'http-status-codes';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import Utils from '../utils/Utils';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cluster from 'cluster';
@@ -17,12 +19,14 @@ import helmet from 'helmet';
 import hpp from 'hpp';
 import http from 'http';
 import https from 'https';
+import jwt from 'jsonwebtoken';
 import locale from 'locale';
+import morgan from 'morgan';
 
 bodyParserXml(bodyParser);
 
 export default class ExpressTools {
-  public static initApplication(bodyLimit = '1mb'): express.Application {
+  public static initApplication(bodyLimit = '1mb', debug = false): express.Application {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -36,6 +40,18 @@ export default class ExpressTools {
       extended: false,
       limit: bodyLimit
     }));
+    // Debug
+    if (debug || Utils.isDevelopmentEnv()) {
+      app.use(morgan((tokens, req: Request, res: Response) =>
+        [
+          tokens.method(req, res),
+          tokens.url(req, res), '-',
+          tokens.status(req, res), '-',
+          tokens['response-time'](req, res) + 'ms', '-',
+          tokens.res(req, res, 'content-length') / 1024 + 'Kb',
+        ].join(' ')
+      ));
+    }
     app.use(hpp());
     app.use(bodyParser['xml']({
       limit: bodyLimit
@@ -52,8 +68,17 @@ export default class ExpressTools {
       app.use(CFLog.logNetwork);
     }
     // Log Express Request
-    app.use(Logging.logExpressRequest.bind(this));
+    app.use(this.logExpressRequest.bind(this));
     return app;
+  }
+
+  public static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Decode the Token
+    const decodedToken = this.getDecodedTokenFromHttpRequest(req);
+    // Get the Tenant
+    const tenantID = await this.retrieveTenantFromHttpRequest(req, decodedToken);
+    req['tenantID'] = tenantID;
+    await Logging.logExpressRequest(tenantID, decodedToken, req, res, next);
   }
 
   public static postInitApplication(app: express.Application): void {
@@ -95,19 +120,11 @@ export default class ExpressTools {
     return server;
   }
 
-  public static getHttpServerPort(httpServer: http.Server): number {
-    return (httpServer.address() as AddressInfo).port;
-  }
-
-  public static getHttpServerAddress(httpServer: http.Server): string {
-    return (httpServer.address() as AddressInfo).address;
-  }
-
   public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
     // Default listen callback
     function defaultListenCb(): void {
       // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerPort(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}'`;
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerAddress(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'startServer',
@@ -115,7 +132,7 @@ export default class ExpressTools {
         message: logMsg
       });
       // eslint-disable-next-line no-console
-      console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
+      console.log(logMsg);
     }
     let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
@@ -124,9 +141,8 @@ export default class ExpressTools {
       cb = defaultListenCb;
     }
     // Log
-    const logMsg = `Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
     // eslint-disable-next-line no-console
-    console.log(logMsg);
+    console.log(`Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`);
 
     // Listen
     if (serverConfig.host && serverConfig.port && listen) {
@@ -139,7 +155,68 @@ export default class ExpressTools {
     }
   }
 
-  public static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.sendStatus(HttpStatusCodes.OK);
+  public static healthCheckService(req: Request, res: Response, next: NextFunction): void {
+    res.sendStatus(StatusCodes.OK);
+  }
+
+  private static getHttpServerPort(httpServer: http.Server): number {
+    return (httpServer.address() as AddressInfo).port;
+  }
+
+  private static getHttpServerAddress(httpServer: http.Server): string {
+    return (httpServer.address() as AddressInfo).address;
+  }
+
+  private static getDecodedTokenFromHttpRequest(req: Request): string | { [key: string]: any; } {
+    // Retrieve Tenant ID from JWT token if available
+    try {
+      if (req.headers?.authorization.startsWith('Bearer')) {
+        // Decode the token (REST)
+        try {
+          return jwt.decode(req.headers.authorization.slice(7));
+        } catch (error) {
+          // Try Base 64 decoding (OCPI)
+          return JSON.parse(Buffer.from(req.headers.authorization.slice(7), 'base64').toString());
+        }
+      }
+    } catch (error) {
+      // Do nothing
+    }
+  }
+
+  private static async retrieveTenantFromHttpRequest(req: Request, decodedToken: any): Promise<string> {
+    // Try from Token
+    if (decodedToken) {
+      // REST
+      if (Utils.objectHasProperty(decodedToken, 'tenantID')) {
+        return decodedToken.tenantID;
+      }
+      // OCPI
+      if (Utils.objectHasProperty(decodedToken, 'tid')) {
+        const tenant = await TenantStorage.getTenantBySubdomain(decodedToken.tid);
+        if (tenant) {
+          return tenant.id;
+        }
+      }
+    }
+    // Try from body
+    if (req.body?.tenant !== '') {
+      const tenant = await TenantStorage.getTenantBySubdomain(req.body.tenant);
+      if (tenant) {
+        return tenant.id;
+      }
+    }
+    // Try from host header
+    if (req.headers?.host) {
+      const hostParts = req.headers.host.split('.');
+      if (hostParts.length > 1) {
+        // Try with the first param
+        const tenant = await TenantStorage.getTenantBySubdomain(hostParts[0]);
+        if (tenant) {
+          return tenant.id;
+        }
+      }
+    }
+    return Constants.DEFAULT_TENANT;
   }
 }

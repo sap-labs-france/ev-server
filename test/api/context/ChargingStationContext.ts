@@ -1,4 +1,4 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPP15MeterValuesRequest, OCPP15TransactionData, OCPPAuthorizeResponse, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPFirmwareStatus, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPReadingContext, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPP15MeterValuesRequest, OCPP15TransactionData, OCPPAuthorizeResponse, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPFirmwareStatus, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatResponse, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPReadingContext, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
 
 import { AxiosResponse } from 'axios';
 import CentralServerService from '../client/CentralServerService';
@@ -7,7 +7,6 @@ import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import OCPPService from '../ocpp/OCPPService';
 import TenantContext from './TenantContext';
-import Transaction from '../../types/Transaction';
 import Utils from '../../../src/utils/Utils';
 import faker from 'faker';
 

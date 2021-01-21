@@ -53,27 +53,27 @@ describe('Car Tests', function() {
         });
         it('Should not be able to get car catalogs', async () => {
           const response = await testData.centralService.carApi.readCarCatalogs({});
-          expect(response.status).to.equal(560);
+          expect(response.status).to.equal(401);
         });
 
         it('Should not be able to get car catalog by ID', async () => {
           const response = await testData.centralService.carApi.readCarCatalog(null);
-          expect(response.status).to.equal(560);
+          expect(response.status).to.equal(401);
         });
 
         it('Should not be able to get image of a car', async () => {
           const response = await testData.centralService.carApi.readCarImages(null);
-          expect(response.status).to.equal(560);
+          expect(response.status).to.equal(401);
         });
 
         it('Should not be able to get car makers', async () => {
           const response = await testData.centralService.carApi.readCarMakers({});
-          expect(response.status).to.equal(560);
+          expect(response.status).to.equal(401);
         });
 
         it('Should not be able to get a detailed car catalog', async () => {
           const response = await testData.centralService.carApi.readCarCatalog(null);
-          expect(response.status).to.equal(560);
+          expect(response.status).to.equal(401);
         });
       });
     });
@@ -112,12 +112,6 @@ describe('Car Tests', function() {
         it('Should not be able to get a detailed car catalog without ID', async () => {
           const response = await testData.centralService.carApi.readCarCatalog(null);
           expect(response.status).to.equal(500);
-        });
-
-        it('Should not be able to get car catalog debug object', async () => {
-          const response = await testData.centralService.carApi.readCarCatalog(carID);
-          expect(response.status).to.equal(200);
-          expect(response.data).to.not.have.property('hash');
         });
 
         it('Should be able to create a new car', async () => {
@@ -198,8 +192,9 @@ describe('Car Tests', function() {
         it('Should be able to update a car', async () => {
           // Update
           const carToUpdate = (await testData.centralService.carApi.readCar(testData.createdCars[0].id)).data;
+          const carUsers = (await testData.centralService.carApi.readCarUsers({ CarID: testData.createdCars[0].id })).data.result;
           carToUpdate.carCatalogID = 1010;
-          carToUpdate['usersRemoved'] = [carToUpdate.carUsers.find((carUser) => carUser.user.id === testData.userContext.id)];
+          carToUpdate['usersRemoved'] = [carUsers.find((carUser) => carUser.user.id === testData.userContext.id)];
           carToUpdate['usersUpserted'] = [];
           testData.newCar = await testData.centralService.updateEntity(
             testData.centralService.carApi,
@@ -376,12 +371,12 @@ describe('Car Tests', function() {
 
       it('Should not be able to get cars from super tenant', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCars({});
-        expect(response.status).to.equal(560);
+        expect(response.status).to.equal(401);
       });
 
       it('Should not be able to get car from super tenant', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCar({});
-        expect(response.status).to.equal(560);
+        expect(response.status).to.equal(401);
       });
 
       it('Should not be able to create a car from super tenant', async () => {
@@ -391,7 +386,7 @@ describe('Car Tests', function() {
           Factory.car.build(),
           false
         );
-        expect(response.status).to.equal(560);
+        expect(response.status).to.equal(401);
       });
     });
   });

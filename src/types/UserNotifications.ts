@@ -1,3 +1,4 @@
+import { BillingInvoice } from './Billing';
 import NotificationTask from '../notification/NotificationTask';
 import User from './User';
 
@@ -17,7 +18,9 @@ export default interface UserNotifications {
   sendPreparingSessionNotStarted: boolean;
   sendOfflineChargingStations: boolean;
   sendBillingSynchronizationFailed: boolean;
+  sendBillingNewInvoice: boolean;
   sendCarCatalogSynchronizationFailed: boolean;
+  sendComputeAndApplyChargingProfilesFailed: boolean;
   sendSessionNotStarted: boolean;
   sendEndUserErrorNotification: boolean;
 }
@@ -37,6 +40,7 @@ export type UserNotificationKeys =
  'sendPreparingSessionNotStarted' |
  'sendOfflineChargingStations' |
  'sendBillingSynchronizationFailed' |
+ 'sendBillingNewInvoice' |
  'sendSessionNotStarted' |
  'sendCarCatalogSynchronizationFailed' |
  'sendEndUserErrorNotification'
@@ -58,7 +62,9 @@ export enum UserNotificationType {
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
+  BILLING_NEW_INVOICE = 'BillingNewInvoice',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
+  CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'ComputeAndApplyChargingProfilesFailed',
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
   END_USER_ERROR_NOTIFICATION = 'EndUserErrorNotification'
 }
@@ -170,7 +176,7 @@ export interface UnknownUserBadgedNotification extends BaseNotification {
   chargeBoxID: string;
   badgeID: string;
   evseDashboardURL: string;
-  evseDashboardUserURL: string;
+  evseDashboardTagURL: string;
 }
 
 export interface TransactionStartedNotification extends BaseNotification {
@@ -222,8 +228,23 @@ export interface BillingInvoiceSynchronizationFailedNotification extends BaseNot
   evseDashboardURL: string;
   evseDashboardBillingURL: string;
 }
+
+export interface BillingNewInvoiceNotification extends BaseNotification {
+  evseDashboardURL: string;
+  evseDashboardInvoiceURL: string;
+  user: User;
+  invoice: BillingInvoice;
+  invoiceDownloadUrl: string;
+}
+
 export interface CarCatalogSynchronizationFailedNotification extends BaseNotification {
   nbrCarsInError: number;
+  evseDashboardURL: string;
+}
+
+export interface ComputeAndApplyChargingProfilesFailedNotification extends BaseNotification {
+  siteAreaName: string;
+  chargeBoxID: string;
   evseDashboardURL: string;
 }
 export interface NotificationSource {

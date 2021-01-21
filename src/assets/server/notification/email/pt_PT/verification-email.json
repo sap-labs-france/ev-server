@@ -1,0 +1,38 @@
+{
+  "subject": "Ativação de Conta",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Ativação de Conta",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Olá <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Você solicitou a ativação da sua conta.",
+      "",
+      "Clique no link abaixo para concluir a ativação."
+    ],
+    "actions": [{
+      "title": "Ative a sua conta",
+      "url": "<%- evseDashboardVerifyEmailURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhors cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

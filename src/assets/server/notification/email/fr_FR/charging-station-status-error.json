@@ -19,12 +19,12 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "Une erreur est survenue sur <b>'<%- chargeBoxID %>'</b>, connecteur <b>'<%- connectorId %>'</b>: <b><%- error %></b>."
+      "Une erreur est survenue sur <strong>'<%- chargeBoxID %>'</strong>, connecteur <strong>'<%- connectorId %>'</strong>: <strong><%- error %></strong>."
     ],
-    "action": {
+    "actions": [{
       "title": "Voir Erreur",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

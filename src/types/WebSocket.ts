@@ -1,33 +1,42 @@
 import WSClientConfiguration from './configuration/WSClientConfiguration';
 import WebSocket from 'ws';
 
-export enum MessageType {
-  CALL_MESSAGE = 2, // Client-to-Server
-  RESULT_MESSAGE = 3, // Server-to-Client
-  ERROR_MESSAGE = 4, // Server-to-Client
-}
+export const WebSocketCloseEventStatusString: Record<WebSocketCloseEventStatusCode, string> = Object.freeze({
+  1000: 'Normal Closure',
+  1001: 'Going Away',
+  1002: 'Protocol Error',
+  1003: 'Unsupported Frame Data',
+  1004: 'Reserved',
+  1005: 'No Status Received',
+  1006: 'Abnormal Closure',
+  1007: 'Invalid Frame Payload Data',
+  1008: 'Policy Violation',
+  1009: 'Message Too Large',
+  1010: 'Missing Extension',
+  1011: 'Server Internal Error',
+  1012: 'Service Restart',
+  1013: 'Try Again Later',
+  1014: 'Bad Gateway',
+  1015: 'TLS Handshake'
+});
 
-export enum OcppErrorType {
-  // Requested Action is not known by receiver
-  NOT_IMPLEMENTED = 'NotImplemented',
-  // Requested Action is recognized but not supported by the receiver
-  NOT_SUPPORTED = 'NotSupported',
-  // An internal error occurred and the receiver was not able to process the requested Action successfully
-  INTERNAL_ERROR = 'InternalError',
-  // Payload for Action is incomplete
-  PROTOCOL_ERROR = 'ProtocolError',
-  // During the processing of Action a security issue occurred preventing receiver from completing the Action successfully
-  SECURITY_ERROR = 'SecurityError',
-  // Payload for Action is syntactically incorrect or not conform the PDU structure for Action
-  FORMATION_VIOLATION = 'FormationViolation',
-  // Payload is syntactically correct but at least one field contains an invalid value
-  PROPERTY_RAINT_VIOLATION = 'PropertyraintViolation',
-  // Payload for Action is syntactically correct but at least one of the fields violates occurrence raints
-  OCCURENCE_RAINT_VIOLATION = 'OccurenceraintViolation',
-  // Payload for Action is syntactically correct but at least one of the fields violates data type raints (e.g. "somestring" = 12)
-  TYPERAINT_VIOLATION = 'TyperaintViolation',
-  // Any other error not covered by the previous ones
-  GENERIC_ERROR = 'GenericError',
+export enum WebSocketCloseEventStatusCode {
+  CLOSE_NORMAL = 1000,
+  CLOSE_GOING_AWAY = 1001,
+  CLOSE_PROTOCOL_ERROR = 1002,
+  CLOSE_UNSUPPORTED = 1003,
+  CLOSE_RESERVED = 1004,
+  CLOSE_NO_STATUS = 1005,
+  CLOSE_ABNORMAL = 1006,
+  CLOSE_INVALID_PAYLOAD = 1007,
+  CLOSE_POLICY_VIOLATION = 1008,
+  CLOSE_TOO_LARGE = 1009,
+  CLOSE_MISSING_EXTENSION = 1010,
+  CLOSE_SERVER_INTERNAL_ERROR = 1011,
+  CLOSE_SERVICE_RESTART = 1012,
+  CLOSE_TRY_AGAIN_LATER = 1013,
+  CLOSE_BAD_GATEWAY = 1014,
+  CLOSE_TLS_HANDSHAKE = 1015
 }
 
 export interface WSClientOptions extends WSClientConfiguration {

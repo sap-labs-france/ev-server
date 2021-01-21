@@ -19,13 +19,13 @@
     "beforeActionLines": [
       "Estimado administrador,",
       "",
-      "Las siguientes terminales en su organización están fuera de línea:  <b> <% - chargeBoxIDs%> </b> ",
+      "Las siguientes terminales en su organización están fuera de línea:  <strong> <% - chargeBoxIDs%> </strong> ",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Atentamente,",
       "EV Admins."

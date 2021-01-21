@@ -5,7 +5,7 @@ import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
-import User from '../../src/types/User';
+import { TransactionInErrorType } from '../../src/types/InError';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
@@ -23,7 +23,7 @@ export default class TransactionCommonTests {
   public centralUserService: CentralServerService;
   public currentPricingSetting;
   public pricekWh = 2;
-  public transactionUser: User;
+  public transactionUser;
   public transactionUserService: CentralServerService;
 
   public constructor(tenantContext: TenantContext, centralUserContext) {
@@ -103,7 +103,7 @@ export default class TransactionCommonTests {
       expect(transactionResponse.data).not.null;
       expect(transactionResponse.data.tagID).eq(tagId);
     } else {
-      expect(transactionResponse.status).eq(560);
+      expect(transactionResponse.status).eq(401);
       expect(transactionResponse.data).not.null;
       expect(transactionResponse.data.message).eq(`Role Basic is not authorized to perform Read on Transaction '${response.transactionId}'`);
     }
@@ -524,20 +524,12 @@ export default class TransactionCommonTests {
       transactionId2, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllInError(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+      { ChargeBoxID: this.chargingStationContext.getChargingStation().id, ErrorType: TransactionInErrorType.NO_CONSUMPTION });
     expect(transactions.status).to.equal(200);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.result).to.containSubset([{
       id: transactionId1,
       meterStart: meterStart,
-      stop: {
-        totalConsumptionWh: 0,
-        totalInactivitySecs: 3600,
-        inactivityStatus: InactivityStatus.ERROR,
-        meterStop: meterStart,
-        timestamp: stopDate.toISOString(),
-        tagID: tagId,
-      }
     }]);
   }
 
@@ -603,6 +595,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: transaction.timestamp,
+          startedAt: transaction.timestamp,
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -612,6 +605,7 @@ export default class TransactionCommonTests {
         },
         {
           date: meterValues[0].timestamp.toISOString(),
+          startedAt: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
@@ -664,6 +658,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
+          startedAt: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -673,6 +668,7 @@ export default class TransactionCommonTests {
         },
         {
           date: meterValues[1].timestamp.toISOString(),
+          startedAt: meterValues[1].timestamp.toISOString(),
           instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
@@ -723,6 +719,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
+          startedDate: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -743,6 +740,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
+          startedDate: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -763,6 +761,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
+          startedDate: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -772,6 +771,7 @@ export default class TransactionCommonTests {
         },
         {
           date: meterValues[1].timestamp.toISOString(),
+          startedDate: meterValues[1].timestamp.toISOString(),
           instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
@@ -792,6 +792,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
+          startedDate: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -801,6 +802,7 @@ export default class TransactionCommonTests {
         },
         {
           date: meterValues[1].timestamp.toISOString(),
+          startedDate: meterValues[1].timestamp.toISOString(),
           instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
@@ -821,6 +823,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[1].timestamp.toISOString(),
+          startedDate: meterValues[1].timestamp.toISOString(),
           instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
@@ -841,6 +844,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[1].timestamp.toISOString(),
+          startedDate: meterValues[1].timestamp.toISOString(),
           instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
@@ -879,6 +883,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
+          startedDate: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -898,6 +903,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
+          startedDate: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -907,6 +913,7 @@ export default class TransactionCommonTests {
         },
         {
           date: meterValues[1].timestamp.toISOString(),
+          startedDate: meterValues[1].timestamp.toISOString(),
           instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
@@ -926,6 +933,7 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
+          startedDate: meterValues[0].timestamp.toISOString(),
           instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
@@ -935,6 +943,7 @@ export default class TransactionCommonTests {
         },
         {
           date: meterValues[1].timestamp.toISOString(),
+          startedDate: meterValues[1].timestamp.toISOString(),
           instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
@@ -965,7 +974,9 @@ export default class TransactionCommonTests {
       id: transactionId,
       values: [
         {
-          date: stopDate.toISOString(),
+          date: startDate.toISOString(),
+          startedAt: startDate.toISOString(),
+          endedAt: stopDate.toISOString(),
           instantWatts: meterStop - meterStart,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterStop - meterStart),
@@ -1019,17 +1030,17 @@ export default class TransactionCommonTests {
 
   public async testDeleteNotExistingTransaction() {
     const response = await this.transactionUserService.transactionApi.delete(faker.random.number(100000));
-    expect(response.status).to.equal(560);
+    expect(response.status).to.equal(401);
   }
 
   public async testDeleteTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.delete('&é"\'(§è!çà)');
-    expect(response.status).to.equal(560);
+    expect(response.status).to.equal(401);
   }
 
   public async testDeleteTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.delete(null);
-    expect(response.status).to.equal(560);
+    expect(response.status).to.equal(401);
   }
 
   public async testDeleteStartedTransaction(allowed = true) {
@@ -1045,7 +1056,7 @@ export default class TransactionCommonTests {
     if (allowed) {
       expect(transactionDeleted.status).to.equal(200);
     } else {
-      expect(transactionDeleted.status).to.equal(560);
+      expect(transactionDeleted.status).to.equal(401);
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
@@ -1072,7 +1083,7 @@ export default class TransactionCommonTests {
     if (allowed) {
       expect(transactionDeleted.status).to.equal(200);
     } else {
-      expect(transactionDeleted.status).to.equal(560);
+      expect(transactionDeleted.status).to.equal(401);
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
@@ -1108,7 +1119,7 @@ export default class TransactionCommonTests {
       expect(transactionsDeleted.data.inSuccess).to.equal(1);
       expect(transactionsDeleted.data.inError).to.equal(1);
     } else {
-      expect(transactionsDeleted.status).to.equal(560);
+      expect(transactionsDeleted.status).to.equal(401);
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {

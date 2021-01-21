@@ -1,24 +1,29 @@
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
+import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import _ from 'lodash';
 import crypto from 'crypto';
 
-const _configuration = Configuration.getCryptoConfig();
 const IV_LENGTH = 16;
 const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
-  public static getConfiguration() {
-    if (!_configuration) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getConfiguration',
-        message: 'Crypto configuration is missing'
-      });
+  private static configuration: CryptoConfiguration;
+
+  public static getConfiguration(): CryptoConfiguration {
+    if (!this.configuration) {
+      this.configuration = Configuration.getCryptoConfig();
+      if (!this.configuration) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'getConfiguration',
+          message: 'Crypto configuration is missing'
+        });
+      }
     }
-    return _configuration;
+    return this.configuration;
   }
 
   public static encrypt(data: string): string {
@@ -43,7 +48,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static encryptSensitiveDataInJSON(obj: Record<string, any>) {
+  public static encryptSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -62,7 +67,7 @@ export default class Cypher {
           message: 'The property \'sensitiveData\' is not an array'
         });
       }
-      obj.sensitiveData.forEach((property: string) => {
+      for (const property of obj.sensitiveData as string[]) {
         // Check that the property does exist otherwise skip to the next property
         if (_.has(obj, property)) {
           const value = _.get(obj, property);
@@ -71,13 +76,13 @@ export default class Cypher {
             _.set(obj, property, Cypher.encrypt(value));
           }
         }
-      });
+      }
     } else {
       obj.sensitiveData = [];
     }
   }
 
-  public static decryptSensitiveDataInJSON(obj: Record<string, any>) {
+  public static decryptSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -96,7 +101,7 @@ export default class Cypher {
           message: 'The property \'sensitiveData\' is not an array'
         });
       }
-      obj.sensitiveData.forEach((property: string) => {
+      for (const property of obj.sensitiveData as string[]) {
         // Check that the property does exist otherwise skip to the next property
         if (_.has(obj, property)) {
           const value = _.get(obj, property);
@@ -105,11 +110,11 @@ export default class Cypher {
             _.set(obj, property, Cypher.decrypt(value));
           }
         }
-      });
+      }
     }
   }
 
-  public static hashSensitiveDataInJSON(obj: Record<string, any>) {
+  public static hashSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -128,7 +133,7 @@ export default class Cypher {
           message: 'The property \'sensitiveData\' is not an array'
         });
       }
-      obj.sensitiveData.forEach((property: string) => {
+      for (const property of obj.sensitiveData as string[]) {
         // Check that the property does exist otherwise skip to the next property
         if (_.has(obj, property)) {
           const value = _.get(obj, property);
@@ -137,7 +142,7 @@ export default class Cypher {
             _.set(obj, property, Cypher.hash(value));
           }
         }
-      });
+      }
     }
   }
 }

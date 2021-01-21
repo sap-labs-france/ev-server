@@ -19,12 +19,12 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "La borne <b><%- chargeBoxID %></b> vient de se connecter au serveur central."
+      "La borne <strong><%- chargeBoxID %></strong> vient de se connecter au serveur central."
     ],
-    "action": {
+    "actions": [{
       "title": "Voir <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

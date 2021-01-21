@@ -66,6 +66,14 @@
       "title": "Synchro Factures",
       "body": "Impossible de synchronizer {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Profils de Charge",
+      "body": "Impossible d'appliquer les profils de charge sur '{{chargeBoxID}}' de la zone '{{siteAreaName}}' dans l'organization '{{tenantName}}'"
+    },
+    "billingNewInvoice": {
+      "title": "Nouvelle facture",
+      "body": "Une nouvelle facture ({{invoiceNumber}}) est disponible"
+    },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",
       "body": "'{{userName}}' a reporté: '{{errorTitle}}' - '{{errorDescription}}' dans l'organisation '{{tenantName}}'"
@@ -75,5 +83,12 @@
     "generatedUser": "Utilisateur généré pour '{{email}}'",
     "chargingStopSiteArea": "Charging Station {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
     "chargingStopChargeBox": "Charging Station {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
-  }
+  },
+  "tags": {
+    "virtualBadge": "Badge Virtuel"
+  },
+  "chargers": {
+    "connector": "Connecteur"
+  },
+  "siteArea": "Zone"
 }

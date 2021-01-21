@@ -6,9 +6,11 @@ import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
+import { OCPPPhase } from '../../types/ocpp/OCPPServer';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
+import { StaticLimitAmps } from '../../types/ChargingStation';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -18,7 +20,7 @@ const MODULE_NAME = 'CheckChargingStationTemplateTask';
 export default class CheckChargingStationTemplateTask extends SchedulerTask {
   public async run(name: string, config: TaskConfig): Promise<void> {
     // Update Template
-    await this.updateChargingStationTemplate();
+    this.updateChargingStationTemplates();
     // Call default implementation
     await super.run(name, config);
   }
@@ -46,7 +48,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     if (tenant.subdomain === 'testperf') {
       Logging.logWarning({
         tenantID: tenant.id,
-        action: ServerAction.MIGRATION,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
         message: `Bypassed tenant '${tenant.name}' ('${tenant.subdomain}')`
       });
@@ -59,74 +61,101 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     // Update
     for (const chargingStation of chargingStations.result) {
       try {
-        const chargingStationTemplateUpdated =
-          await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation);
+        const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation);
         // Enrich
         let chargingStationUpdated = false;
         // Check Connectors
         for (const connector of chargingStation.connectors) {
-          if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
-            connector.amperageLimit = connector.amperage;
+          // Amperage limit
+          const connectorAmperageLimitMax = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
+          const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+          const numberOfConnectors = chargingStation.connectors.length;
+          const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors;
+          if (!Utils.objectHasProperty(connector, 'amperageLimit') || (Utils.objectHasProperty(connector, 'amperageLimit') && Utils.isNullOrUndefined(connector.amperageLimit))) {
+            connector.amperageLimit = connectorAmperageLimitMax;
+            chargingStationUpdated = true;
+          } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimitMax) {
+            connector.amperageLimit = connectorAmperageLimitMax;
+            chargingStationUpdated = true;
+          } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit < connectorAmperageLimitMin) {
+            connector.amperageLimit = connectorAmperageLimitMin;
+            chargingStationUpdated = true;
+          }
+          // Phase Assignment
+          if (!Utils.objectHasProperty(connector, 'phaseAssignmentToGrid')) {
+            // Phase Assignment to Grid has to be handled only for Site Area with 3 phases
+            if (chargingStation?.siteArea?.numberOfPhases === 3) {
+              // Single Phase
+              if (numberOfPhases === 1) {
+                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: null, csPhaseL3: null };
+              // Tri-phase
+              } else if (numberOfPhases === 3) {
+                connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 };
+              }
+            } else {
+              connector.phaseAssignmentToGrid = null;
+            }
             chargingStationUpdated = true;
           }
         }
         // Save
         if (chargingStationTemplateUpdated.technicalUpdated ||
             chargingStationTemplateUpdated.capabilitiesUpdated ||
-            chargingStationTemplateUpdated.ocppUpdated ||
+            chargingStationTemplateUpdated.ocppStandardUpdated ||
+            chargingStationTemplateUpdated.ocppVendorUpdated ||
             chargingStationUpdated) {
           const sectionsUpdated = [];
           if (chargingStationTemplateUpdated.technicalUpdated) {
             sectionsUpdated.push('Technical');
           }
-          if (chargingStationTemplateUpdated.ocppUpdated) {
-            sectionsUpdated.push('OCPP');
-          }
           if (chargingStationTemplateUpdated.capabilitiesUpdated) {
             sectionsUpdated.push('Capabilities');
+          }
+          if (chargingStationTemplateUpdated.ocppStandardUpdated || chargingStationTemplateUpdated.ocppVendorUpdated) {
+            sectionsUpdated.push('OCPP');
           }
           Logging.logInfo({
             tenantID: tenant.id,
             source: chargingStation.id,
-            action: ServerAction.MIGRATION,
-            module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+            action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+            module: MODULE_NAME, method: 'applyTemplateToChargingStations',
             message: `Charging Station '${chargingStation.id}' updated with the following Template's section(s): ${sectionsUpdated.join(', ')}`,
-            detailedMessages: { chargingStationTemplateUpdated }
+            detailedMessages: { chargingStationUpdated, chargingStationTemplateUpdated }
           });
           // Save
           await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
           updated++;
-          // Retrieve OCPP params and update them if needed
-          if (chargingStationTemplateUpdated.ocppUpdated) {
+          // Retrieve OCPP parameters and update them if needed
+          if (chargingStationTemplateUpdated.ocppStandardUpdated || chargingStationTemplateUpdated.ocppVendorUpdated) {
             Logging.logDebug({
               tenantID: tenant.id,
-              action: ServerAction.MIGRATION,
+              action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
               source: chargingStation.id,
               module: MODULE_NAME, method: 'applyTemplateToChargingStations',
               message: `Apply Template's OCPP Parameters for '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
             });
             // Request the latest configuration
             const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
-              60 * 1000, OCPPUtils.requestAndSaveChargingStationOcppParameters(tenant.id, chargingStation),
-              'Time out error (60s) in requesting OCPP params');
+              Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.requestAndSaveChargingStationOcppParameters(tenant.id, chargingStation),
+              `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in requesting OCPP Parameters`);
             if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
               Logging.logError({
                 tenantID: tenant.id,
-                action: ServerAction.MIGRATION,
+                action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                 source: chargingStation.id,
                 module: MODULE_NAME, method: 'applyTemplateToChargingStations',
                 message: `Cannot request OCPP Parameters from '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
               });
               continue;
             }
-            // Update the OCPP parameters from the template
+            // Update the OCPP Parameters from the template
             const updatedOcppParameters = await Utils.executePromiseWithTimeout<ActionsResponse>(
-              60 * 1000, OCPPUtils.updateChargingStationTemplateOcppParameters(tenant.id, chargingStation),
-              'Time out error (60s) in updating OCPP Parameters');
+              Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationTemplateOcppParameters(tenant.id, chargingStation),
+              `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in updating OCPP Parameters`);
             // Log
-            Utils.logActionsResponse(
+            Logging.logActionsResponse(
               tenant.id,
-              ServerAction.MIGRATION,
+              ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
               MODULE_NAME, 'applyTemplateToChargingStations', updatedOcppParameters,
               `{{inSuccess}} OCPP Parameter(s) were successfully synchronized, check details in the Tenant '${tenant.name}' ('${tenant.subdomain}')`,
               `{{inError}} OCPP Parameter(s) failed to be synchronized, check details in the Tenant '${tenant.name}' ('${tenant.subdomain}')`,
@@ -138,7 +167,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
       } catch (error) {
         Logging.logError({
           tenantID: tenant.id,
-          action: ServerAction.MIGRATION,
+          action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
           message: `Template update error in Tenant '${tenant.name}' ('${tenant.subdomain}'): ${error.message}`,
@@ -149,14 +178,14 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: tenant.id,
-        action: ServerAction.MIGRATION,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
         message: `${updated} Charging Stations have been processed with Template in Tenant '${tenant.name}' ('${tenant.subdomain}')`
       });
     }
   }
 
-  private async updateChargingStationTemplate() {
+  private updateChargingStationTemplates() {
     // Update current Chargers
     ChargingStationStorage.updateChargingStationTemplatesFromFile().catch(
       (error) => {

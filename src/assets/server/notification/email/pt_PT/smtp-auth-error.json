@@ -1,0 +1,39 @@
+{
+  "subject": "Servidor de e-mail primário - Falha na autenticação",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Erro de autenticação do servidor de e-mail",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Caro Administrador,",
+      "",
+      "A autenticação para o servidor de e-mail primário falhou.",
+      "",
+      "Verifique sua configuração.",
+      ""
+    ],
+    "actions": [{
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

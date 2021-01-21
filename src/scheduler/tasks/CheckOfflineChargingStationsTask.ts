@@ -1,12 +1,13 @@
-import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { CheckOfflineChargingStationsTaskConfig } from '../../types/TaskConfig';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPPGetConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -23,7 +24,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
       try {
         // Compute the date some minutes ago
         const offlineSince = moment().subtract(
-          Utils.getChargingStationHeartbeatMaxIntervalSecs(), 'seconds').toDate();
+          Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').toDate();
         const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
           issuer: true,
           offlineSince
@@ -31,29 +32,27 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
         if (chargingStations.count > 0) {
           for (let i = chargingStations.result.length - 1; i >= 0; i--) {
             const chargingStation = chargingStations.result[i];
-            let configuration: OCPPGetConfigurationCommandResult;
+            let ocppHeartbeatConfiguration: OCPPGetConfigurationCommandResult;
             // Check if charging station is still connected
             try {
-              const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
-              if (chargingStationClient) {
-                configuration = await chargingStationClient.getConfiguration({});
-              }
+              const ocppParamHeartbeatKeys = ['HeartBeatInterval', 'HeartbeatInterval'];
+              ocppHeartbeatConfiguration = await OCPPUtils.requestChargingStationOcppParameters(tenant.id, chargingStation, { key: ocppParamHeartbeatKeys });
             } catch (error) {
               // Charging Station is offline!
               continue;
             }
             // Charging Station is still connected: ignore it
-            if (configuration) {
+            if (ocppHeartbeatConfiguration) {
               Logging.logInfo({
                 tenantID: tenant.id,
                 source: chargingStation.id,
-                action: ServerAction.MIGRATION,
+                action: ServerAction.OFFLINE_CHARGING_STATION,
                 module: MODULE_NAME, method: 'processTenant',
-                message: 'Offline charging station responded successfuly to an OCPP command and will be ignored',
+                message: 'Offline charging station responded successfully to an OCPP command and will be ignored',
               });
-              // Update Heartbeat
-              await ChargingStationStorage.saveChargingStationHeartBeat(tenant.id, chargingStation.id,
-                { lastHeartBeat: new Date() }
+              // Update lastSeen
+              await ChargingStationStorage.saveChargingStationLastSeen(tenant.id, chargingStation.id,
+                { lastSeen: new Date() }
               );
               // Remove charging station from notification
               chargingStations.result.splice(i, 1);

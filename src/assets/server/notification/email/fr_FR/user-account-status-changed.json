@@ -19,12 +19,12 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Votre compte a été <b><%- (user.status === 'A' ? 'activé' : 'suspendu'); %></b> par un administrateur."
+      "Votre compte a été <strong><%- (user.status === 'A' ? 'activé' : 'suspendu'); %></strong> par un administrateur."
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

@@ -1,0 +1,890 @@
+{
+  "openapi": "3.0.3",
+  "servers": [
+    {
+      "description": "SCP - Production system",
+      "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
+    },
+    {
+      "description": "SCP - Quality system",
+      "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
+    },
+    {
+      "description": "Localhost - Development",
+      "url": "http://localhost:8080/v1"
+    }
+  ],
+  "info": {
+    "title": "e-Mobility REST API",
+    "description": "Charging Station Management Software",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Serge FABIANO",
+      "email": "serge.fabiano@sap.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://github.com/LucasBrazi06/ev-server/blob/master/LICENSE"
+    }
+  },
+  "tags": [
+    {
+      "name": "Tenant",
+      "description": "Tenant API"
+    },
+    {
+      "name": "Authentication",
+      "description": "Authentication API"
+    }
+  ],
+  "paths": {
+    "/api/tenants": {
+      "post": {
+        "description": "Create a Tenant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tenant"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tenant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenant is created with success"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      },
+      "get": {
+        "description": "Retrieve a list of Tenants",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "Search",
+            "description": "Search on common Tenant's fields",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "WithLogo",
+            "description": "Request Tenants with their logos",
+            "example": false,
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "WithComponents",
+            "description": "Request Tenants with their components",
+            "example": false,
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "WithAddress",
+            "description": "Request Tenants with their address",
+            "example": false,
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the tenant list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tenant"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/tenants/{tenantID}": {
+      "get": {
+        "description": "Retrieve a Tenant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenantID",
+            "description": "Tenant ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the found Tenant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tenant"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a Tenant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenantID",
+            "description": "Tenant ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenant has been successfully deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/auth/signin": {
+      "post": {
+        "description": "Sign in",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "demo.demo@sap.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "DeM*Us$r1"
+                  },
+                  "acceptEula": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "tenant": {
+                    "type": "string",
+                    "example": "slf"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Logged in successfully"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "520": {
+            "description": "The End-user License Agreement is mandatory"
+          },
+          "550": {
+            "description": "User tried to log in with an invalid user or password"
+          }
+        }
+      }
+    },
+    "/auth/signon": {
+      "post": {
+        "description": "Register",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "firstname.name@sap.com"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Alouache"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "Loan"
+                  },
+                  "passwords": {
+                    "type": "object",
+                    "properties": {
+                      "password": {
+                        "type": "string",
+                        "example": "Azerty123!"
+                      },
+                      "repeatPassword": {
+                        "type": "string",
+                        "example": "Azerty123!"
+                      }
+                    }
+                  },
+                  "acceptEula": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "tenant": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "captcha": {
+                    "type": "string",
+                    "example": "03AGdBq27rf-WyiNvo8yOO11OjDwgST4ZiQ-dtKxxDvVzxtU7XG6Oqff-M-KXe8RwCsHrlgU-4BCi_Y9CLLSC-DHMZkK-YS2fIJ4TpVxwn2mCQ7PwgIi8HUJHudaq5Jb7W88zebKr_xWBa9zyLp4k8exaWwQ9v2Pnj-FSKTHHDpT66PZiHOfRVjg9Za6eQIHhbXkNK5m6ZKWgT92XYigaJuTEPigGK7N5kbXHydXZFX6Ku5lntg9FRl7n737SRSAsO0joBb5XtgJV1vfZGyvnSjHECf3lmNdhZCQbdhGjEqn2vtHuodFk1i3kFzgEgMOS59A42m_zr4AME1Avd-hyAW80dybsbSKWbThyQx6iBRcOydgM9b10TI9kIpL8feLHBCvnmVutnhlp_Zz9MDTop5_Fdi3xvZHW-tLcLYHljECgnTHbApkcHfCSzgSJBlkB7_qifzRGitTfCUFGztgOCho6pKXeHAzc4XQ"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Registered successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "510": {
+            "description": "Email already used"
+          },
+          "520": {
+            "description": "End-user License Agreement has not been accepted"
+          },
+          "550": {
+            "description": "User tried to register with an unknown tenant"
+          }
+        }
+      }
+    },
+    "/auth/signout": {
+      "get": {
+        "description": "Sign out",
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully signed out"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/auth/password/reset": {
+      "post": {
+        "description": "Reset password",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "firstname.name@sap.com"
+                  },
+                  "captcha": {
+                    "type": "string",
+                    "example": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA"
+                  },
+                  "tenant": {
+                    "type": "string",
+                    "example": ""
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset notification sent successfully"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "User does not exist or is deleted logically"
+          }
+        }
+      }
+    },
+    "/auth/eula": {
+      "get": {
+        "description": "Get tenant EULA",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Tenant",
+            "description": "Tenant's subdomain",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "description": "Browser language",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved tenant's EULA",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["text"],
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "example": "<h3>End-user Agreement Usage of the e-Mobility Software</h3>..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "Unknown tenant"
+          }
+        }
+      }
+    },
+    "/auth/eula/check": {
+      "get": {
+        "description": "Check if a user accepted latest EULA",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "Email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "User accepted latest EULA",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Accepted latest": {
+                    "value": {
+                      "acceptedEula": true
+                    }
+                  },
+                  "Not accepted latest": {
+                    "value": {
+                      "acceptedEula": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "Unknown tenant"
+          },
+          "591": {
+            "description": "Account already activated"
+          }
+        }
+      }
+    },
+    "/auth/mail/check": {
+      "get": {
+        "description": "Verify email",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "Email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "VerificationToken",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully validated email"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "Unknown tenant or logically deleted user"
+          },
+          "591": {
+            "description": "Account already activated"
+          }
+        }
+      }
+    },
+    "/auth/mail/resend": {
+      "post": {
+        "description": "Resend a verification email",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "tenant", "captcha"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "firstname.name@sap.com"
+                  },
+                  "tenant": {
+                    "type": "string",
+                    "example": "utall"
+                  },
+                  "captcha": {
+                    "type": "string",
+                    "example": "03AGdBq261sQ2KzqROGD8E2Xb2ljxLkmQbUumIL9m6FqtJZau9Z5Aq4Pp8K-VzbjTwuvnBvdaZBgD-6VU0IY8PMSyGmSJNH9Ctkgde4l8XoQUVLYLhspglIRSjkPS15-DZQtJ2gLG910Kq3RXE-S5M9gkuXBfEh6Y-81qC9gRb-FFwN_Ao5_NO7j6iu1kZqJHpyxHvwVqtbLK5APvTngU_8gx9tRDfXUBtLMmgZAofmkIE1qbefMNTDceJsiNKtHHykP-xFIt-lNRN1H6h_HZ8EbRjncT5k_AeqjL8ClBTZy9Pdqwy9jkpvas4l5EH7WPVT-9VPV0C0tuwKkwwwesMhzYSo2Vso_wN15G5x1Zgji8xsndjvMthTkIWe4zyRNKNr2gc4z1Sgfy-dGcRkDc7lUnet0fJfII5bXKl_njo_S8no8KGVZ2IeOTzhTKigA7A0hdtNrKnAOmU"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully validated email"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "Unknown tenant"
+          },
+          "591": {
+            "description": "Account already activated"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Access token is missing or invalid"
+      },
+      "500BackendError": {
+        "description": "Unexpected Backend error, checks the Logs"
+      }
+    },
+    "schemas": {
+      "Tenant": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "email",
+          "subdomain"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "5be7fb271014d90008992347"
+          },
+          "name": {
+            "type": "string",
+            "example": "SAP Labs France"
+          },
+          "email": {
+            "type": "string",
+            "example": "serge.fabiano@sap.com"
+          },
+          "subdomain": {
+            "type": "string",
+            "example": "slf"
+          },
+          "logo": {
+            "type": "string",
+            "example": "data:image/png;base64,iVBORw0KGgoAAAANS"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/CreatedBy"
+          },
+          "createdOn": {
+            "$ref": "#/components/schemas/CreatedOn"
+          },
+          "lastChangedBy": {
+            "$ref": "#/components/schemas/LastChangedBy"
+          },
+          "lastChangedOn": {
+            "$ref": "#/components/schemas/LastChangedOn"
+          },
+          "components": {
+            "type": "object",
+            "properties": {
+              "ocpi": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "gireve"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "refund": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "concur"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "pricing": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "simple",
+                      "convergentCharging"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "billing": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "stripe"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "organization": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "statistics": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "analytics": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "sac"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "smartCharging": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "sapSmartCharging"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "asset": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "car": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "address1": {
+            "type": "string",
+            "example": "805 av. du Docteur Maurice Donat"
+          },
+          "address2": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "06250"
+          },
+          "city": {
+            "type": "string",
+            "example": "Mougins"
+          },
+          "department": {
+            "type": "string",
+            "example": "Alpes Maritimes"
+          },
+          "region": {
+            "type": "string",
+            "example": "PACA"
+          },
+          "country": {
+            "type": "string",
+            "example": "France"
+          },
+          "coordinates": {
+            "type": "array",
+            "example": [
+              43.6121053,
+              7.016958099999999
+            ],
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "LastChangedBy": {
+        "type": "string"
+      },
+      "LastChangedOn": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2020-07-22T17:02:42.036Z"
+      },
+      "CreatedBy": {
+        "type": "string"
+      },
+      "CreatedOn": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2020-07-22T17:02:42.036Z"
+      }
+    },
+    "parameters": {
+      "Limit": {
+        "in": "query",
+        "name": "Limit",
+        "description": "Limit the number of records",
+        "example": 100,
+        "required": false,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "Skip": {
+        "in": "query",
+        "name": "Skip",
+        "description": "Skip number of records",
+        "example": 0,
+        "required": false,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "SortFields": {
+        "in": "query",
+        "name": "SortFields",
+        "description": "Sorted fields",
+        "example": "id",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

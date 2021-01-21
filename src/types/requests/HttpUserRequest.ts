@@ -31,11 +31,13 @@ export interface HttpSitesAssignUserRequest {
 
 export interface HttpUsersRequest extends HttpDatabaseRequest {
   Issuer: boolean;
+  WithTag?: boolean;
   Search: string;
   SiteID: string;
   Role: string;
   Status: string;
   ErrorType?: string;
+  TagID?: string;
   ExcludeSiteID: string;
   ExcludeUserIDs: string;
   IncludeCarUserIDs: string;
@@ -45,6 +47,13 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
 export interface HttpUserSitesRequest extends HttpDatabaseRequest {
   Search: string;
   UserID: string;
+}
+
+export interface HttpTagsRequest extends HttpDatabaseRequest {
+  Search: string;
+  UserID?: string;
+  Issuer?: boolean;
+  Active?: boolean;
 }
 
 export interface HttpLoginRequest {

@@ -1,4 +1,6 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
+
 import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -7,7 +9,6 @@ import Logging from '../../utils/Logging';
 import OCPICredential from '../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
@@ -39,10 +40,7 @@ export default abstract class OCPIClient {
     this.role = role.toLowerCase();
   }
 
-  /**
-   * Ping Ocpi Endpoint
-   */
-  async ping() {
+  public async ping(): Promise<any> {
     const pingResult: any = {};
     // Try to access base Url (GET .../versions)
     // Access versions API
@@ -51,7 +49,7 @@ export default abstract class OCPIClient {
       const endpoints = await this.getVersions();
       // Check response
       if (!endpoints.data || !(endpoints.data.status_code === 1000) || !endpoints.data.data) {
-        pingResult.statusCode = 412;
+        pingResult.statusCode = StatusCodes.PRECONDITION_FAILED;
         pingResult.statusText = `Invalid response from GET ${this.ocpiEndpoint.baseUrl}`;
       } else {
         pingResult.statusCode = endpoints.status;
@@ -65,7 +63,7 @@ export default abstract class OCPIClient {
     return pingResult;
   }
 
-  async unregister() {
+  public async unregister(): Promise<any> {
     const unregisterResult: any = {};
     try {
       // Get available version.
@@ -94,8 +92,8 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
       // Send success
-      unregisterResult.statusCode = 200;
-      unregisterResult.statusText = 'OK';
+      unregisterResult.statusCode = StatusCodes.OK;
+      unregisterResult.statusText = ReasonPhrases.OK;
     } catch (error) {
       unregisterResult.message = error.message;
       unregisterResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
@@ -104,10 +102,7 @@ export default abstract class OCPIClient {
     return unregisterResult;
   }
 
-  /**
-   * Register Ocpi Endpoint
-   */
-  async register() {
+  public async register(): Promise<any> {
     const registerResult: any = {};
     try {
       // Get available version.
@@ -148,8 +143,8 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
       // Send success
-      registerResult.statusCode = 200;
-      registerResult.statusText = 'OK';
+      registerResult.statusCode = StatusCodes.OK;
+      registerResult.statusText = ReasonPhrases.OK;
     } catch (error) {
       registerResult.message = error.message;
       registerResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
@@ -158,10 +153,7 @@ export default abstract class OCPIClient {
     return registerResult;
   }
 
-  /**
-   * GET /ocpi/{role}/versions
-   */
-  async getVersions() {
+  public async getVersions(): Promise<any> {
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_VERSIONS,
@@ -179,7 +171,7 @@ export default abstract class OCPIClient {
   /**
    * GET /ocpi/{role}/{version}
    */
-  async getServices() {
+  public async getServices(): Promise<any> {
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,
@@ -195,7 +187,7 @@ export default abstract class OCPIClient {
     return response;
   }
 
-  async deleteCredentials(): Promise<AxiosResponse<OCPICredential>> {
+  public async deleteCredentials(): Promise<AxiosResponse<OCPICredential>> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
     // Log
@@ -219,7 +211,7 @@ export default abstract class OCPIClient {
   /**
    * POST /ocpi/{role}/{version}/credentials
    */
-  async postCredentials(): Promise<AxiosResponse<OCPICredential>> {
+  public async postCredentials(): Promise<AxiosResponse<OCPICredential>> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
     const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
@@ -242,7 +234,7 @@ export default abstract class OCPIClient {
     return response;
   }
 
-  getLocalCountryCode(action: ServerAction): string {
+  public getLocalCountryCode(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OCPI Settings are missing for role ${this.role}`,
@@ -258,7 +250,7 @@ export default abstract class OCPIClient {
     return this.settings[this.role].countryCode;
   }
 
-  getLocalPartyID(action: ServerAction): string {
+  public getLocalPartyID(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OCPI Settings are missing for role ${this.role}`,
@@ -280,13 +272,11 @@ export default abstract class OCPIClient {
     }
     throw new BackendError({
       action, message: `No endpoint URL defined for service ${service}`,
-      module: MODULE_NAME, method: 'getLocalPartyID',
+      module: MODULE_NAME, method: 'getEndpointUrl',
     });
   }
 
   protected getLocalEndpointUrl(service: string): string {
     return `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${this.role}/${this.ocpiEndpoint.version}/${service}`;
   }
-
-  async abstract triggerJobs(): Promise<{ tokens: OCPIJobResult; locations: OCPIJobResult; sessions: OCPIJobResult; cdrs: OCPIJobResult }>;
 }

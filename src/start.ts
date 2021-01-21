@@ -6,6 +6,7 @@ import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
+import LockingManager from './locking/LockingManager';
 import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
@@ -65,9 +66,6 @@ export default class Bootstrap {
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
       Bootstrap.migrationConfig = Configuration.getMigrationConfig();
-      // Init global user and tenant IDs hashmap
-      global.userHashMapIDs = new Map<string, string>();
-      global.tenantHashMapIDs = new Map<string, string>();
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {
         // Check database implementation
@@ -127,6 +125,10 @@ export default class Bootstrap {
         // Init the Scheduler
         // -------------------------------------------------------------------------
         SchedulerManager.init();
+
+        // Locks remain in storage if server crashes
+        // Delete acquired database locks with same hostname
+        await LockingManager.cleanupLocks(Configuration.isCloudFoundry() || Utils.isDevelopmentEnv());
       }
     } catch (error) {
       // Log
@@ -144,7 +146,7 @@ export default class Bootstrap {
 
   private static startServerWorkers(serverName: string): void {
     Bootstrap.numWorkers = Configuration.getClusterConfig().numWorkers;
-    function onlineCb(worker): void {
+    function onlineCb(worker: cluster.Worker): void {
       // Log
       const logMsg = `${serverName} server worker ${worker.id} is online`;
       Logging.logInfo({
@@ -156,7 +158,7 @@ export default class Bootstrap {
       // eslint-disable-next-line no-console
       console.log(logMsg);
     }
-    function exitCb(worker, code, signal?): void {
+    function exitCb(worker: cluster.Worker, code, signal?): void {
       // Log
       const logMsg = serverName + ' server worker ' + worker.id.toString() + ' died with code: ' + code + ', and signal: ' + signal +
         '.\n Starting new ' + serverName + ' server worker';
@@ -194,7 +196,7 @@ export default class Bootstrap {
 
   private static startMaster(): void {
     try {
-      if (Bootstrap.isClusterEnabled && Utils.isEmptyArray(cluster.workers)) {
+      if (Bootstrap.isClusterEnabled && Utils.isEmptyObject(cluster.workers)) {
         Bootstrap.startServerWorkers('Main');
       }
     } catch (error) {
@@ -225,15 +227,19 @@ export default class Bootstrap {
         await Bootstrap.centralRestServer.start();
         // FIXME: Issue with cluster, see https://github.com/LucasBrazi06/ev-server/issues/1097
         if (this.centralSystemRestConfig.socketIO) {
-          // Create database Socket IO notifications
-          if (!Bootstrap.storageNotification) {
-            Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
-          }
           // Start database Socket IO notifications
-          await Bootstrap.storageNotification.start();
           await this.centralRestServer.startSocketIO();
         }
       }
+
+      // -------------------------------------------------------------------------
+      // Listen to DB changes
+      // -------------------------------------------------------------------------
+      // Create database notifications
+      if (!Bootstrap.storageNotification) {
+        Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
+      }
+      await Bootstrap.storageNotification.start();
 
       // -------------------------------------------------------------------------
       // Central Server (Charging Stations)

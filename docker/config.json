@@ -127,13 +127,15 @@
     "debug": false
   },
   "ChargingStation": {
-    "heartbeatIntervalSecs": 180,
+    "heartbeatIntervalOCPPSSecs": 180,
+    "heartbeatIntervalOCPPJSecs": 3600,
     "checkEndOfChargeNotificationAfterMin": 5,
     "notifBeforeEndOfChargePercent": 85,
     "notifBeforeEndOfChargeEnabled": true,
     "notifEndOfChargePercent": 0,
     "notifEndOfChargeEnabled": true,
-    "notifStopTransactionAndUnlockConnector": false
+    "notifStopTransactionAndUnlockConnector": false,
+    "maxLastSeenIntervalSecs": 540
   },
   "Locales": {
     "default": "en_US",
@@ -141,7 +143,8 @@
       "en_US",
       "fr_FR",
       "es_MX",
-      "de_DE"
+      "de_DE",
+      "pt_PT"
     ]
   },
   "Migration": {
@@ -206,7 +209,7 @@
         "name": "AssetGetConsumptionTask",
         "active": true,
         "periodicity": "* * * * *"
-			},
+      },
       {
         "name": "CheckUserAccountInactivityTask",
         "active": false,
@@ -216,7 +219,7 @@
         }
       },
       {
-        "name": "OCPIPatchLocationsTask",
+        "name": "OCPIPushLocationsTask",
         "active": false,
         "periodicity": "0 1 * * *",
         "config": {}

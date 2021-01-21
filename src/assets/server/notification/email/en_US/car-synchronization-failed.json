@@ -22,10 +22,10 @@
       "Unable to synchronize <%- nbrCarsInError %> car(s) with the electric vehicles data provider.",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

@@ -1,0 +1,35 @@
+{
+  "subject": "Sessão iniciada",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Sessão iniciada",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Olá <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Seu veículo elétrico foi conectado com sucesso à estação de carregamento <b> '<%- chargeBoxID %>' </b>, conector <b> '<%- connectorId %>' </b>."
+    ],
+    "actions": [{
+      "title": "Ver Sessão",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {}
+  }
+}
+

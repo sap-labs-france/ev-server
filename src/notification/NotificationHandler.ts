@@ -1,5 +1,5 @@
 import User, { UserRole } from '../types/User';
-import UserNotifications, { BillingInvoiceSynchronizationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -156,8 +156,8 @@ export default class NotificationHandler {
                     user,
                     chargingStation,
                     notificationData: {
-                      'transactionId': sourceData.transactionId,
-                      'connectorId': sourceData.connectorId
+                      transactionId: sourceData.transactionId,
+                      connectorId: sourceData.connectorId
                     }
                   }
                 );
@@ -265,7 +265,7 @@ export default class NotificationHandler {
             if (!hasBeenNotified) {
               // Enabled?
               if (user.notificationsActive && user.notifications.sendEndOfSession) {
-                // Save notif
+                // Save notification
                 await NotificationHandler.saveNotification(
                   tenantID, notificationSource.channel, notificationID, ServerAction.END_OF_SESSION, {
                     user,
@@ -297,7 +297,7 @@ export default class NotificationHandler {
         // Active?
         if (notificationSource.enabled) {
           try {
-            // Save notif
+            // Save notification
             await NotificationHandler.saveNotification(
               tenantID, notificationSource.channel, notificationID, ServerAction.REQUEST_PASSWORD, { user });
             // Send
@@ -823,6 +823,45 @@ export default class NotificationHandler {
     }
   }
 
+  static async sendComputeAndApplyChargingProfilesFailed(tenantID: string, chargingStation: ChargingStation, sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get the Tenant
+      const tenant = await TenantStorage.getTenant(tenantID);
+      // Enrich with admins
+      const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+      if (adminUsers && adminUsers.length > 0) {
+        // For each Sources
+        for (const notificationSource of NotificationHandler.notificationSources) {
+          // Active?
+          if (notificationSource.enabled) {
+            try {
+              // Check notification
+              const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+                tenantID, notificationSource.channel, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED,
+                sourceData.chargeBoxID, null, { intervalMins: 60 * 24 });
+              // Notified?
+              if (!hasBeenNotified) {
+                // Save
+                await NotificationHandler.saveNotification(
+                  tenantID, notificationSource.channel, null, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED, { chargingStation: chargingStation });
+                // Send
+                for (const adminUser of adminUsers) {
+                // Enabled?
+                  if (adminUser.notificationsActive && adminUser.notifications.sendComputeAndApplyChargingProfilesFailed) {
+                    await notificationSource.notificationTask.sendComputeAndApplyChargingProfilesFailed(
+                      sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                  }
+                }
+              }
+            } catch (error) {
+              Logging.logActionExceptionMessage(tenantID, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED, error);
+            }
+          }
+        }
+      }
+    }
+  }
+
   static async sendEndUserErrorNotification(tenantID: string, sourceData: EndUserErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
@@ -837,7 +876,7 @@ export default class NotificationHandler {
             try {
               // Save
               await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, null, ServerAction.END_USER_ERROR_NOTIFICATION, {
+                tenantID, notificationSource.channel, null, ServerAction.END_USER_REPORT_ERROR, {
                   notificationData: {
                     'userID': sourceData.userID,
                   }
@@ -851,7 +890,7 @@ export default class NotificationHandler {
                 }
               }
             } catch (error) {
-              Logging.logActionExceptionMessage(tenantID, ServerAction.END_USER_ERROR_NOTIFICATION, error);
+              Logging.logActionExceptionMessage(tenantID, ServerAction.END_USER_REPORT_ERROR, error);
             }
           }
         }
@@ -887,6 +926,38 @@ export default class NotificationHandler {
             }
           } catch (error) {
             Logging.logActionExceptionMessage(tenantID, ServerAction.OPTIMAL_CHARGE_REACHED, error);
+          }
+        }
+      }
+    }
+  }
+
+  static async sendBillingNewInvoiceNotification(tenantID: string, notificationID: string, user: User,
+    sourceData: BillingNewInvoiceNotification): Promise<void> {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get the Tenant
+      const tenant = await TenantStorage.getTenant(tenantID);
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+              tenantID, notificationSource.channel, notificationID);
+            if (!hasBeenNotified) {
+              // Enabled?
+              if (sourceData.user.notificationsActive && sourceData.user.notifications.sendBillingNewInvoice) {
+                // Save
+                await NotificationHandler.saveNotification(
+                  tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
+                // Send
+                await notificationSource.notificationTask.sendBillingNewInvoice(
+                  sourceData, user, tenant, NotificationSeverity.INFO);
+              }
+            }
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, ServerAction.BILLING_NEW_INVOICE, error);
           }
         }
       }

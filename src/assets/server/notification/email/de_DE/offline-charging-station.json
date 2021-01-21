@@ -19,13 +19,13 @@
     "beforeActionLines": [
       "Sehr geehrter Administrator,",
       "",
-      "Die folgenden Ladestationen sind offline in Ihrer Organisation: <b><%- chargeBoxIDs %></b>",
+      "Die folgenden Ladestationen sind offline in Ihrer Organisation: <strong><%- chargeBoxIDs %></strong>",
       ""
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

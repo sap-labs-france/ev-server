@@ -10,7 +10,6 @@ import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../../utils/Logging';
 import { OCPICommandType } from '../../../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
@@ -22,9 +21,10 @@ import OCPITokensService from './OCPITokensService';
 import OCPIUtils from '../../OCPIUtils';
 import { OCPPRemoteStartStopStatus } from '../../../../types/ocpp/OCPPClient';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import moment from 'moment';
 
 const EP_IDENTIFIER = 'commands';
@@ -77,17 +77,13 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME, method: 'remoteStartSession',
         action: ServerAction.OCPI_START_SESSION,
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: 'Start Session command body is invalid',
         detailedMessages: { payload: req.body },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const user = await UserStorage.getUserByTagId(tenant.id, startSession.token.uid);
-    if (!user || user.deleted || user.issuer) {
-      return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
-    }
-    const localToken = user.tags.find((tag) => tag.id === startSession.token.uid);
+    const localToken = await TagStorage.getTag(tenant.id, startSession.token.uid, { withUser: true });
     if (!localToken || !localToken.active || !localToken.ocpiToken || !localToken.ocpiToken.valid) {
       Logging.logDebug({
         tenantID: tenant.id,
@@ -97,24 +93,25 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-
+    if (!localToken.user || localToken.user.deleted || localToken.user.issuer) {
+      return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
+    }
     let chargingStation: ChargingStation;
     let connector: Connector;
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
       siteIDs: [startSession.location_id],
       issuer: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (chargingStations && chargingStations.result) {
+    if (chargingStations?.result) {
       for (const cs of chargingStations.result) {
-        cs.connectors.forEach((conn) => {
+        for (const conn of cs.connectors) {
           if (startSession.evse_uid === OCPIUtils.buildEvseUID(cs, conn)) {
             chargingStation = cs;
             connector = conn;
           }
-        });
+        }
       }
     }
-
     if (!chargingStation) {
       Logging.logDebug({
         tenantID: tenant.id,
@@ -154,7 +151,8 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!chargingStation.remoteAuthorizations) {
       chargingStation.remoteAuthorizations = [];
     }
-    const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find((authorization) => authorization.connectorId === connector.connectorId);
+    const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find(
+      (authorization) => authorization.connectorId === connector.connectorId);
     if (existingAuthorization) {
       if (OCPIUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
         Logging.logDebug({
@@ -179,9 +177,11 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         }
       );
     }
+    // Save Auth
     await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint);
+    // Start the transaction
+    this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => {});
+    // Ok
     return this.getOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
 
@@ -195,7 +195,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME, method: 'remoteStopSession',
         action: ServerAction.OCPI_START_SESSION,
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: 'StopSession command body is invalid',
         detailedMessages: { payload: req.body },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -229,7 +229,6 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
     if (!chargingStation) {
       Logging.logDebug({
@@ -243,7 +242,6 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.remoteStopTransaction(tenant, chargingStation, transaction.id, stopSession, ocpiEndpoint);
-
     return this.getOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
 
@@ -279,12 +277,10 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!chargingStationClient) {
       return;
     }
-
     const result = await chargingStationClient.remoteStartTransaction({
       connectorId: connector.connectorId,
       idTag: startSession.token.uid
     });
-
     if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_START_SESSION, startSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
     } else {

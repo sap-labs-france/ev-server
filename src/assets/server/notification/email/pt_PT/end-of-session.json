@@ -1,0 +1,44 @@
+{
+  "subject": "Sessão Terminada",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Sessão Terminada",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Olá <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Sua sessão na estação de carregamento <b> '<%- chargeBoxID %>' </b>, conector <b> '<%- connectorId %>' </b> acabou de terminar."
+    ],
+    "stats": [
+      { "label": "Consumo", "value": "<%- totalConsumption %> kW.h" },
+      { "label": "Duração Total", "value": "<%- totalDuration %>" },
+      { "label": "Tempo Total de Inatividade", "value": "<%- totalInactivity %>" },
+      { "label": "Nível de Bateria", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
+    ],
+    "actions": [{
+      "title": "Ver Sessões",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    }],
+    "afterActionLines": [
+      "<%- (alternateUser ? 'O utilizador <b> '+ (alternateUser.firstName? AlternateUser.name +' '+ alternateUser.firstName: alternateUser.name) +' </b> interrompeu a sua sessão.' : '') %>",
+      "",
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

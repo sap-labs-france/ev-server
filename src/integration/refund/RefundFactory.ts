@@ -4,6 +4,7 @@ import ConcurRefundIntegration from './export/concur';
 import DummyRefundIntegration from './dummy/DummyRefundIntegration';
 import Logging from '../../utils/Logging';
 import RefundIntegration from './RefundIntegration';
+import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -36,6 +37,7 @@ export default class RefundFactory {
       }
       Logging.logDebug({
         tenantID: tenant.id,
+        action: ServerAction.REFUND,
         module: MODULE_NAME,
         method: 'getRefundImpl',
         message: 'Refund settings are not configured'

@@ -16,14 +16,32 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Program",
+      "name": "Debug ev-server",
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run-script",
         "start:dev:debug"
       ],
-      "port": 9229
+      "port": 9229,
+      "stopOnEntry": true
+    },
+    {
+      "name": "Debug ev-server Nodemon",
+      "type": "pwa-node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script",
+        "start:dev:debug:nodemon"
+      ],
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "stopOnEntry": true
     }
   ]
 }

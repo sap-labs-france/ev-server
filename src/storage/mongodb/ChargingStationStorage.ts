@@ -1,7 +1,9 @@
+import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorMDB, ConnectorType, OcppParameter } from '../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream } from 'mongodb';
+import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectID } from 'mongodb';
+import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -10,23 +12,49 @@ import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import { InactivityStatus } from '../../types/Transaction';
 import Logging from '../../utils/Logging';
-import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
 import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
 import fs from 'fs';
-import global from '../../types/GlobalType';
 import moment from 'moment';
 
 const MODULE_NAME = 'ChargingStationStorage';
+
+export interface ConnectorMDB {
+  connectorId: number;
+  currentInstantWatts: number;
+  currentStateOfCharge: number;
+  currentTotalConsumptionWh: number;
+  currentTotalInactivitySecs: number;
+  currentInactivityStatus: InactivityStatus;
+  currentTransactionID: number;
+  currentTransactionDate: Date;
+  currentTagID: string;
+  status: ChargePointStatus;
+  errorCode: string;
+  info: string;
+  vendorErrorCode: string;
+  power: number;
+  type: ConnectorType;
+  voltage: Voltage;
+  amperage: number;
+  amperageLimit: number;
+  userID: ObjectID;
+  statusLastChangedOn: Date;
+  numberOfConnectedPhase: number;
+  currentType: CurrentType;
+  chargePointID: number;
+  phaseAssignmentToGrid: PhaseAssignmentToGrid;
+}
 
 export default class ChargingStationStorage {
 
   public static async updateChargingStationTemplatesFromFile(): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateChargingStationTemplatesFromFile');
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateChargingStationTemplatesFromFile');
     // Read File
     let chargingStationTemplates: ChargingStationTemplate[];
     try {
@@ -36,6 +64,8 @@ export default class ChargingStationStorage {
         throw error;
       }
     }
+    // Delete all previous templates
+    await ChargingStationStorage.deleteChargingStationTemplates();
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
@@ -52,12 +82,12 @@ export default class ChargingStationStorage {
       }
     }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'updateChargingStationTemplatesFromFile', uniqueTimerID);
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateChargingStationTemplatesFromFile', uniqueTimerID, chargingStationTemplates);
   }
 
   public static async getChargingStationTemplates(chargePointVendor?: string): Promise<ChargingStationTemplate[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStationTemplates');
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationTemplates');
     // Create Aggregation
     const aggregation = [];
     // Add in aggregation
@@ -74,38 +104,41 @@ export default class ChargingStationStorage {
     const chargingStationTemplatesMDB: ChargingStationTemplate[] =
       await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
         .aggregate(aggregation).toArray();
-    // Transfer
-    const chargingStationTemplates: ChargingStationTemplate[] = [];
-    for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
-      chargingStationTemplates.push(chargingStationTemplateMDB);
-    }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getChargingStationTemplates', uniqueTimerID, { chargePointVendor });
-    return chargingStationTemplates;
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationTemplates', uniqueTimerID, chargingStationTemplatesMDB);
+    return chargingStationTemplatesMDB;
+  }
+
+  public static async deleteChargingStationTemplates(): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteChargingStationTemplates');
+    // Delete all records
+    await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').deleteMany(
+      { qa: { $not: { $eq: true } } }
+    );
+    // Debug
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteChargingStationTemplates', uniqueTimerID);
   }
 
   public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationTemplate');
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveChargingStationTemplate');
     // Modify and return the modified document
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
+    await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },
       chargingStationTemplate,
       { upsert: true });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveChargingStationTemplate', uniqueTimerID);
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveChargingStationTemplate', uniqueTimerID, chargingStationTemplate);
   }
 
   public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-    params: { includeDeleted?: boolean } = {}): Promise<ChargingStation> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStation');
-    // Query single Charging Station
-    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID,
-      { chargingStationIDs: [id], withSite: true, ...params }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'getChargingStation', uniqueTimerID, { id });
-    return chargingStationsMDB.result[0];
+    params: { includeDeleted?: boolean } = {}, projectFields?: string[]): Promise<ChargingStation> {
+    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
+      chargingStationIDs: [id],
+      withSite: true, ...params
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
   public static async getChargingStations(tenantID: string,
@@ -117,11 +150,11 @@ export default class ChargingStationStorage {
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStations');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -143,7 +176,7 @@ export default class ChargingStationStorage {
       });
     }
     // Set the filters
-    const filters: any = {
+    const filters: FilterParams = {
       $or: DatabaseUtils.getNotDeletedFilter()
     };
     // Filter
@@ -160,12 +193,12 @@ export default class ChargingStationStorage {
         $in: params.chargingStationIDs
       };
     }
-    // Filter on last heart beat
+    // Filter on lastSeen
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
-      filters.lastHeartBeat = { $lte: params.offlineSince };
+      filters.lastSeen = { $lte: params.offlineSince };
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Add Charging Station inactive flag
@@ -260,6 +293,7 @@ export default class ChargingStationStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStations', uniqueTimerID, chargingStationsCountMDB);
       return {
         count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
         result: []
@@ -271,8 +305,11 @@ export default class ChargingStationStorage {
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
     }
+    // Always add Connector ID
+    dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
     // Position coordinates
     if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+      // Override (can have only one sort)
       dbParams.sort = { distanceMeters: 1 };
     }
     aggregation.push({
@@ -298,6 +335,12 @@ export default class ChargingStationStorage {
         asField: 'siteArea.site', oneToOneCardinality: true
       });
     }
+    // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
+    aggregation.push({
+      '$addFields': {
+        'lastHeartBeat': '$lastSeen'
+      }
+    });
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert siteID back to string after having queried the site
@@ -310,11 +353,12 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getChargingStations', uniqueTimerID);
-    // Ok
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStations', uniqueTimerID, chargingStationsMDB);
     return {
       count: (chargingStationsCountMDB.length > 0 ?
         (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
@@ -324,13 +368,13 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationsInError(tenantID: string,
     params: { search?: string; siteIDs?: string[]; siteAreaIDs: string[]; errorType?: string[] },
-    dbParams: DbParams): Promise<DataResult<ChargingStationInError>> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationInError>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStations');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -340,7 +384,7 @@ export default class ChargingStationStorage {
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
     // Set the filters
-    const filters: any = { '$or': DatabaseUtils.getNotDeletedFilter() };
+    const filters: FilterParams = { '$or': DatabaseUtils.getNotDeletedFilter() };
     filters.issuer = true;
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
@@ -384,7 +428,8 @@ export default class ChargingStationStorage {
     const facets: any = { $facet: {} };
     if (!Utils.isEmptyArray(params.errorType)) {
       // Check allowed
-      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
+      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION)
+          && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
@@ -394,10 +439,10 @@ export default class ChargingStationStorage {
       }
       // Build facet only for one error type
       const array = [];
-      params.errorType.forEach((type) => {
+      for (const type of params.errorType) {
         array.push(`$${type}`);
         facets.$facet[type] = ChargingStationStorage.getChargerInErrorFacet(type);
-      });
+      }
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
       aggregation.push({ $project: { chargersInError: { $setUnion: array } } });
@@ -425,13 +470,16 @@ export default class ChargingStationStorage {
     });
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getChargingStations', uniqueTimerID);
-    // Ok
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStations', uniqueTimerID, chargingStationsMDB);
     return {
       count: chargingStationsMDB.length,
       result: chargingStationsMDB
@@ -440,9 +488,9 @@ export default class ChargingStationStorage {
 
   public static async saveChargingStation(tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStation');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStation');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Build Request
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
@@ -467,7 +515,7 @@ export default class ChargingStationStorage {
       ocppVersion: chargingStationToSave.ocppVersion,
       ocppProtocol: chargingStationToSave.ocppProtocol,
       cfApplicationIDAndInstanceIndex: chargingStationToSave.cfApplicationIDAndInstanceIndex,
-      lastHeartBeat: chargingStationToSave.lastHeartBeat,
+      lastSeen: chargingStationToSave.lastSeen,
       deleted: Utils.convertToBoolean(chargingStationToSave.deleted),
       lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
       chargingStationURL: chargingStationToSave.chargingStationURL,
@@ -477,9 +525,9 @@ export default class ChargingStationStorage {
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       voltage: Utils.convertToInt(chargingStationToSave.voltage),
       connectors: chargingStationToSave.connectors ? chargingStationToSave.connectors.map(
-        (connector) => ChargingStationStorage.connector2connectorMDB(connector)) : [],
+        (connector) => ChargingStationStorage.filterConnectorMDB(connector)) : [],
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
-        (chargePoint) => ChargingStationStorage.chargePoint2ChargePointMDB(chargePoint)) : [],
+        (chargePoint) => ChargingStationStorage.filterChargePointMDB(chargePoint)) : [],
       coordinates: Utils.containsGPSCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       remoteAuthorizations: chargingStationToSave.remoteAuthorizations ? chargingStationToSave.remoteAuthorizations : [],
@@ -497,83 +545,77 @@ export default class ChargingStationStorage {
       { $set: chargingStationMDB },
       { upsert: true });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveChargingStation', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStation', uniqueTimerID, chargingStationMDB);
     return chargingStationMDB._id;
   }
 
   public static async saveChargingStationConnector(tenantID: string, chargingStation: ChargingStation, connector: Connector): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationConnector');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationConnector');
     // Ensure good typing
-    const connectorMDB = ChargingStationStorage.connector2connectorMDB(connector);
+    const connectorMDB = ChargingStationStorage.filterConnectorMDB(connector);
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const updatedFields: any = {};
     updatedFields['connectors.' + (connector.connectorId - 1).toString()] = connectorMDB;
-    // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveChargingStationConnector', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnector', uniqueTimerID, updatedFields);
   }
 
-  public static async saveChargingStationHeartBeat(tenantID: string, id: string,
-    params: { lastHeartBeat: Date; currentIPAddress?: string | string[] }): Promise<void> {
+  public static async saveChargingStationLastSeen(tenantID: string, id: string,
+    params: { lastSeen: Date; currentIPAddress?: string | string[] }): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationHeartBeat');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationLastSeen');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set data
-    // Modify and return the modified document
-    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
-      { $set: params },
-      { upsert: true });
+      { $set: params });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveChargingStationHeartBeat', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationLastSeen', uniqueTimerID, params);
   }
 
   public static async saveChargingStationFirmwareStatus(tenantID: string, id: string, firmwareUpdateStatus: OCPPFirmwareStatus): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationFirmwareStatus');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationFirmwareStatus');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set data
-    // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: { firmwareUpdateStatus } },
       { upsert: true });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveChargingStationFirmwareStatus', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationFirmwareStatus', uniqueTimerID, firmwareUpdateStatus);
   }
 
   public static async deleteChargingStation(tenantID: string, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteChargingStation');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteChargingStation');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete Configuration
     await global.database.getCollection<any>(tenantID, 'configurations')
       .findOneAndDelete({ '_id': id });
     // Delete Charging Profiles
     await this.deleteChargingProfiles(tenantID, id);
     // Delete Charging Station
-    await global.database.getCollection<any>(tenantID, 'chargingstations')
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });
-    // Keep the rest (bootnotif, authorize...)
+    // Keep the rest (boot notification, authorize...)
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteChargingStation', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
   }
 
   public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string): Promise<string> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOcppParameterValue');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Get the config
     const configuration = await ChargingStationStorage.getOcppParameters(tenantID, chargeBoxID);
     let value: string = null;
     if (configuration) {
@@ -587,16 +629,14 @@ export default class ChargingStationStorage {
         return true;
       });
     }
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'getOcppParameterValue', uniqueTimerID);
     return value;
   }
 
   static async saveOcppParameters(tenantID: string, parameters: ChargingStationOcppParameters): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveOcppParameters');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveOcppParameters');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(tenantID, 'configurations').findOneAndUpdate({
       '_id': parameters.id
@@ -610,14 +650,14 @@ export default class ChargingStationStorage {
       returnOriginal: false
     });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveOcppParameters', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveOcppParameters', uniqueTimerID, parameters);
   }
 
   public static async getOcppParameters(tenantID: string, id: string): Promise<DataResult<OcppParameter>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOcppParameters');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcppParameters');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenantID, 'configurations')
       .findOne({ '_id': id });
@@ -635,13 +675,14 @@ export default class ChargingStationStorage {
         });
       }
       // Debug
-      Logging.traceEnd(MODULE_NAME, 'getOcppParameters', uniqueTimerID);
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getOcppParameters', uniqueTimerID, parametersMDB);
       return {
         count: parametersMDB.configuration.length,
         result: parametersMDB.configuration
       };
     }
     // No conf
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getOcppParameters', uniqueTimerID, parametersMDB);
     return {
       count: 0,
       result: []
@@ -649,40 +690,37 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingProfile(tenantID: string, id: string): Promise<ChargingProfile> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingProfile');
-    // Query single Site
-    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenantID,
-      { chargingProfileID: id },
-      Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'getChargingProfile', uniqueTimerID, { id });
-    return chargingProfilesMDB.count > 0 ? chargingProfilesMDB.result[0] : null;
+    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenantID, {
+      chargingProfileID: id
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
   }
 
   public static async getChargingProfiles(tenantID: string,
     params: {
       search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
-      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean; siteIDs?: string[];
+      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
+      withSiteArea?: boolean; siteIDs?: string[];
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingProfiles');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingProfiles');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Query by chargingStationID
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Build filter
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'chargingStationID': { $regex: searchRegex, $options: 'i' } },
+        { 'profile.transactionId': Utils.convertToInt(searchRegex) },
       ];
     }
     if (params.chargingProfileID) {
@@ -741,11 +779,12 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const chargingProfilesCountMDB = await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+    const chargingProfilesCountMDB = await global.database.getCollection<DataResult<ChargingProfile>>(tenantID, 'chargingprofiles')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingProfiles', uniqueTimerID, chargingProfilesCountMDB);
       return {
         count: (chargingProfilesCountMDB.length > 0 ? chargingProfilesCountMDB[0].count : 0),
         result: []
@@ -784,10 +823,12 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenantID, 'chargingprofiles')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getChargingProfiles', uniqueTimerID, { params, dbParams });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingProfiles', uniqueTimerID, chargingProfilesMDB);
     return {
       count: (chargingProfilesCountMDB.length > 0 ?
         (chargingProfilesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingProfilesCountMDB[0].count) : 0),
@@ -796,9 +837,9 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingProfile(tenantID: string, chargingProfileToSave: ChargingProfile): Promise<string> {
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingProfile');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingProfile');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     const chargingProfileFilter: any = {};
     // Build Request
     if (chargingProfileToSave.id) {
@@ -819,46 +860,52 @@ export default class ChargingStationStorage {
       chargingProfileFilter,
       { $set: chargingProfileMDB },
       { upsert: true });
-    Logging.traceEnd(MODULE_NAME, 'saveChargingProfile', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingProfile', uniqueTimerID, chargingProfileMDB);
     return chargingProfileFilter._id as string;
   }
 
   public static async deleteChargingProfile(tenantID: string, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteChargingProfile');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteChargingProfile');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete Charging Profile
     await global.database.getCollection<any>(tenantID, 'chargingprofiles')
       .findOneAndDelete({ '_id': id });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteChargingProfile', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingProfile', uniqueTimerID, { id });
   }
 
   public static async deleteChargingProfiles(tenantID: string, chargingStationID: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteChargingProfile');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteChargingProfile');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete Charging Profiles
     await global.database.getCollection<any>(tenantID, 'chargingprofiles')
       .findOneAndDelete({ 'chargingStationID': chargingStationID });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteChargingProfile', uniqueTimerID);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingProfile', uniqueTimerID, { chargingStationID });
   }
 
   public static getChargingStationFirmware(filename: string): GridFSBucketReadStream {
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationFirmware');
     // Get the bucket
     const bucket: GridFSBucket = global.database.getGridFSBucket('default.firmwares');
     // Get the file
-    return bucket.openDownloadStreamByName(filename);
+    const firmware = bucket.openDownloadStreamByName(filename);
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationFirmware', uniqueTimerID, firmware);
+    return firmware;
   }
 
   public static putChargingStationFirmware(filename: string): GridFSBucketWriteStream {
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'putChargingStationFirmware');
     // Get the bucket
     const bucket: GridFSBucket = global.database.getGridFSBucket('default.firmwares');
     // Put the file
-    return bucket.openUploadStream(filename);
+    const firmware = bucket.openUploadStream(filename);
+    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'putChargingStationFirmware', uniqueTimerID, firmware);
+    return firmware;
   }
 
   private static getChargerInErrorFacet(errorType: string) {
@@ -881,15 +928,15 @@ export default class ChargingStationStorage {
         { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
       case ChargingStationInErrorType.CONNECTION_BROKEN: {
-        const inactiveDate = new Date(new Date().getTime() - Utils.getChargingStationHeartbeatMaxIntervalSecs() * 1000);
+        const inactiveDate = new Date(new Date().getTime() - Configuration.getChargingStationConfig().maxLastSeenIntervalSecs * 1000);
         return [
-          { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
+          { $match: { 'lastSeen': { $lte: inactiveDate } } },
           { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }
         ];
       }
       case ChargingStationInErrorType.CONNECTOR_ERROR:
         return [
-          { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: 'Faulted' } }] } },
+          { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: ChargePointStatus.FAULTED } }] } },
           { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTOR_ERROR } }
         ];
       case ChargingStationInErrorType.MISSING_SITE_AREA:
@@ -902,54 +949,61 @@ export default class ChargingStationStorage {
     }
   }
 
-  private static connector2connectorMDB(connector: Connector): ConnectorMDB {
-    if (!connector) {
-      return null;
+  private static filterConnectorMDB(connector: Connector): ConnectorMDB {
+    if (connector) {
+      const filteredConnector: ConnectorMDB = {
+        connectorId: Utils.convertToInt(connector.connectorId),
+        currentInstantWatts: Utils.convertToFloat(connector.currentInstantWatts),
+        currentStateOfCharge: connector.currentStateOfCharge,
+        currentTotalInactivitySecs: Utils.convertToInt(connector.currentTotalInactivitySecs),
+        currentTotalConsumptionWh: Utils.convertToFloat(connector.currentTotalConsumptionWh),
+        currentTransactionDate: Utils.convertToDate(connector.currentTransactionDate),
+        currentTagID: connector.currentTagID,
+        status: connector.status,
+        errorCode: connector.errorCode,
+        info: connector.info,
+        vendorErrorCode: connector.vendorErrorCode,
+        power: Utils.convertToInt(connector.power),
+        type: connector.type,
+        voltage: Utils.convertToInt(connector.voltage),
+        amperage: Utils.convertToInt(connector.amperage),
+        amperageLimit: connector.amperageLimit,
+        currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
+        userID: Utils.convertToObjectID(connector.userID),
+        statusLastChangedOn: Utils.convertToDate(connector.statusLastChangedOn),
+        currentInactivityStatus: connector.currentInactivityStatus,
+        numberOfConnectedPhase: connector.numberOfConnectedPhase,
+        currentType: connector.currentType,
+        chargePointID: connector.chargePointID,
+        phaseAssignmentToGrid: connector.phaseAssignmentToGrid ?
+          {
+            csPhaseL1: connector.phaseAssignmentToGrid.csPhaseL1,
+            csPhaseL2: connector.phaseAssignmentToGrid.csPhaseL2,
+            csPhaseL3: connector.phaseAssignmentToGrid.csPhaseL3,
+          } : null,
+      };
+      return filteredConnector;
     }
-    return {
-      connectorId: Utils.convertToInt(connector.connectorId),
-      currentInstantWatts: Utils.convertToFloat(connector.currentInstantWatts),
-      currentStateOfCharge: connector.currentStateOfCharge,
-      currentTotalInactivitySecs: Utils.convertToInt(connector.currentTotalInactivitySecs),
-      currentTotalConsumptionWh: Utils.convertToFloat(connector.currentTotalConsumptionWh),
-      currentTransactionDate: Utils.convertToDate(connector.currentTransactionDate),
-      currentTagID: connector.currentTagID,
-      status: connector.status,
-      errorCode: connector.errorCode,
-      info: connector.info,
-      vendorErrorCode: connector.vendorErrorCode,
-      power: Utils.convertToInt(connector.power),
-      type: connector.type,
-      voltage: Utils.convertToInt(connector.voltage),
-      amperage: Utils.convertToInt(connector.amperage),
-      amperageLimit: connector.amperageLimit,
-      currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
-      userID: Utils.convertToObjectID(connector.userID),
-      statusLastChangedOn: connector.statusLastChangedOn,
-      currentInactivityStatus: connector.currentInactivityStatus,
-      numberOfConnectedPhase: connector.numberOfConnectedPhase,
-      currentType: connector.currentType,
-      chargePointID: connector.chargePointID,
-    };
+    return null;
   }
 
-  private static chargePoint2ChargePointMDB(chargePoint: ChargePoint): ChargePoint {
-    if (!chargePoint) {
-      return null;
+  private static filterChargePointMDB(chargePoint: ChargePoint): ChargePoint {
+    if (chargePoint) {
+      return {
+        chargePointID: Utils.convertToInt(chargePoint.chargePointID),
+        currentType: chargePoint.currentType,
+        voltage: chargePoint.voltage ? Utils.convertToInt(chargePoint.voltage) : null,
+        amperage: chargePoint.amperage ? Utils.convertToInt(chargePoint.amperage) : null,
+        numberOfConnectedPhase: chargePoint.numberOfConnectedPhase ? Utils.convertToInt(chargePoint.numberOfConnectedPhase) : null,
+        cannotChargeInParallel: Utils.convertToBoolean(chargePoint.cannotChargeInParallel),
+        sharePowerToAllConnectors: Utils.convertToBoolean(chargePoint.sharePowerToAllConnectors),
+        excludeFromPowerLimitation: Utils.convertToBoolean(chargePoint.excludeFromPowerLimitation),
+        ocppParamForPowerLimitation: chargePoint.ocppParamForPowerLimitation,
+        power: chargePoint.power ? Utils.convertToInt(chargePoint.power) : null,
+        efficiency: chargePoint.efficiency ? Utils.convertToInt(chargePoint.efficiency) : null,
+        connectorIDs: chargePoint.connectorIDs.map((connectorID) => Utils.convertToInt(connectorID)),
+      };
     }
-    return {
-      chargePointID: Utils.convertToInt(chargePoint.chargePointID),
-      currentType: chargePoint.currentType,
-      voltage: chargePoint.voltage ? Utils.convertToInt(chargePoint.voltage) : null,
-      amperage: chargePoint.amperage ? Utils.convertToInt(chargePoint.amperage) : null,
-      numberOfConnectedPhase: chargePoint.numberOfConnectedPhase ? Utils.convertToInt(chargePoint.numberOfConnectedPhase) : null,
-      cannotChargeInParallel: Utils.convertToBoolean(chargePoint.cannotChargeInParallel),
-      sharePowerToAllConnectors: Utils.convertToBoolean(chargePoint.sharePowerToAllConnectors),
-      excludeFromPowerLimitation: Utils.convertToBoolean(chargePoint.excludeFromPowerLimitation),
-      ocppParamForPowerLimitation: chargePoint.ocppParamForPowerLimitation,
-      power: chargePoint.power ? Utils.convertToInt(chargePoint.power) : null,
-      efficiency: chargePoint.efficiency ? Utils.convertToInt(chargePoint.efficiency) : null,
-      connectorIDs: chargePoint.connectorIDs.map((connectorID) => Utils.convertToInt(connectorID)),
-    };
+    return null;
   }
 }

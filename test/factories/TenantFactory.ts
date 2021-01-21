@@ -9,7 +9,7 @@ export default Factory.define('tenant')
     address1: faker.address.streetAddress(false),
     address2: faker.address.streetAddress(true),
     postalCode: faker.address.zipCode(),
-    city: faker.address.city(10),
+    city: faker.address.city(),
     department: faker.random.alphaNumeric(20),
     region: faker.random.alphaNumeric(20),
     country: faker.address.country(),

@@ -19,12 +19,12 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "Un utilisateur inconnu vient juste de badger sur <b>'<%- chargeBoxID %>'</b> avec le badge ID <b>'<%- badgeID %>'</b>."
+      "Un utilisateur inconnu vient juste de badger sur <strong>'<%- chargeBoxID %>'</strong> avec le badge ID <strong>'<%- badgeID %>'</strong>."
     ],
-    "action": {
-      "title": "Editer Utilisateur",
-      "url": "<%- evseDashboardUserURL %>"
-    },
+    "actions": [{
+      "title": "Editer Badge",
+      "url": "<%- evseDashboardTagURL %>"
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

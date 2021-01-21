@@ -1,0 +1,32 @@
+{
+  "title": "Create one Tenant",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "name": {
+      "$ref": "common.json#/definitions/name"
+    },
+    "email": {
+      "$ref": "common.json#/definitions/email"
+    },
+    "subdomain": {
+      "$ref": "common.json#/definitions/subdomain"
+    },
+    "logo": {
+      "$ref": "common.json#/definitions/logo"
+    },
+    "address": {
+      "$ref": "common.json#/definitions/address"
+    },
+    "components": {
+      "$ref": "tenant-components.json#/definitions/components"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "subdomain"
+  ]
+}

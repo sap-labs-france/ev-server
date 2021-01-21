@@ -1,0 +1,35 @@
+{
+  "subject": "'<%- chargeBoxID %>' apenas conectado",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Estação de carregamento conectada",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Caro Administrador,",
+      "",
+      "A estação de carregamento <b> '<%- chargeBoxID %>' </b> acabou de se conectar ao servidor central."
+    ],
+    "actions": [{
+      "title": "Ver <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

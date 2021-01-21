@@ -19,17 +19,17 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Votre véhicule électrique, qui est connecté sur la borne <b>'<%- chargeBoxID %>'</b>, connecteur <b>'<%- connectorId %>'</b>, a terminé sa charge."
+      "Votre véhicule électrique, qui est connecté sur la borne <strong>'<%- chargeBoxID %>'</strong>, connecteur <strong>'<%- connectorId %>'</strong>, a terminé sa charge."
     ],
     "stats": [
       { "label": "Consommation", "value": "<%- totalConsumption %> kW.h" },
       { "label": "Durée Estimée", "value": "<%- totalDuration %>" },
       { "label": "Niveau Batterie", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
-    "action": {
+    "actions": [{
       "title": "Voir Session",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Vous pouvez maintenant stopper la session et deplacer votre véhicule.",
       "",

@@ -1,5 +1,8 @@
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
+import AddCreatedPropertiesToTagTask from './tasks/AddCreatedPropertiesToTagTask';
+import AddDefaultPropertyToTagsTask from './tasks/AddDefaultPropertyToTagsTask';
+import AddDescriptionToTagsTask from './tasks/AddDescriptionToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
@@ -9,14 +12,18 @@ import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsum
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import AddUserInTransactionsTask from './tasks/AddUserInTransactionsTask';
+import AlignTagsWithUsersIssuerTask from './tasks/AlignTagsWithUsersIssuerTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import CleanupSiteAreasTask from './tasks/CleanupSiteAreasTask';
 import Constants from '../utils/Constants';
+import DeleteChargingStationPropertiesTask from './tasks/DeleteChargingStationPropertiesTask';
+import FixedConsumptionRoundedPriceTask from './tasks/FixedConsumptionRoundedPriceTask';
 import InitialCarImportTask from './tasks/InitialCarImportTask';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
+import LogicallyDeleteTagsOfDeletedUsersTask from './tasks/LogicallyDeleteTagsOfDeletedUsersTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
@@ -27,10 +34,10 @@ import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPr
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
 import { ServerAction } from '../types/Server';
+import SetDefaultTagToUserTask from './tasks/SetDefaultTagToUserTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UnmarkTransactionExtraInactivitiesTask from './tasks/UnmarkTransactionExtraInactivitiesTask';
 import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
-import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjectIDsTask';
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
 import cluster from 'cluster';
@@ -39,7 +46,7 @@ import moment from 'moment';
 const MODULE_NAME = 'MigrationHandler';
 
 export default class MigrationHandler {
-  public static async migrate(processAsyncTasksOnly = false) {
+  public static async migrate(processAsyncTasksOnly = false): Promise<void> {
     // Check we're on the master nodejs process
     if (!cluster.isMaster) {
       return;
@@ -70,13 +77,11 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddInactivityStatusInTransactionsTask());
         currentMigrationTasks.push(new AddIssuerFieldTask());
         currentMigrationTasks.push(new CleanupOrphanBadgeTask());
-        currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
         currentMigrationTasks.push(new AddActivePropertyToTagsTask());
         currentMigrationTasks.push(new InitialCarImportTask());
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDsTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
-        currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
         currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
@@ -87,6 +92,15 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new UnmarkTransactionExtraInactivitiesTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsConsumptionsTask());
         currentMigrationTasks.push(new AddUserInTransactionsTask());
+        currentMigrationTasks.push(new AlignTagsWithUsersIssuerTask());
+        currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
+        currentMigrationTasks.push(new LogicallyDeleteTagsOfDeletedUsersTask());
+        currentMigrationTasks.push(new AddCreatedPropertiesToTagTask());
+        currentMigrationTasks.push(new AddDescriptionToTagsTask());
+        currentMigrationTasks.push(new AddDefaultPropertyToTagsTask());
+        currentMigrationTasks.push(new SetDefaultTagToUserTask());
+        currentMigrationTasks.push(new DeleteChargingStationPropertiesTask());
+        currentMigrationTasks.push(new FixedConsumptionRoundedPriceTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
@@ -142,15 +156,15 @@ export default class MigrationHandler {
   private static async executeTask(currentMigrationTask: MigrationTask): Promise<void> {
     try {
       // Log Start Task
+      let logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrate',
-        message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
+        module: MODULE_NAME, method: 'executeTask',
+        message: logMsg
       });
       // Log in the console also
-      // eslint-disable-next-line no-console
-      console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
+      console.log(logMsg);
       // Start time and date
       const startTaskTime = moment();
       const startDate = new Date();
@@ -166,24 +180,25 @@ export default class MigrationHandler {
         timestamp: startDate,
         durationSecs: totalTaskTimeSecs
       });
+      logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrate',
-        message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
+        module: MODULE_NAME, method: 'executeTask',
+        message: logMsg
       });
       // Log in the console also
-      // eslint-disable-next-line no-console
-      console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+      console.log(logMsg);
     } catch (error) {
+      const logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()} ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'executeTask',
-        message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()}`,
+        message: logMsg,
         detailedMessages: { error: error.message, stack: error.stack }
       });
-      console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()} ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+      console.error(logMsg);
     }
   }
 }

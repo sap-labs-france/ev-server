@@ -6,13 +6,13 @@ import soap from 'strong-soap';
 export default class OCPPSoapService15 extends OCPPService {
   public client: any;
   public service: any;
-  public constructor(serverUrl) {
+  public constructor(serverUrl: string) {
     super(serverUrl);
     // Init
     this.client = null;
   }
 
-  public getVersion() {
+  public getVersion(): OCPPVersion {
     return OCPPVersion.VERSION_15;
   }
 

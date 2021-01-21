@@ -1,5 +1,6 @@
-import { AbstractConsumption, AbstractCurrentConsumption } from './Consumption';
+import { Car, CarCatalog } from './Car';
 import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
+import Consumption, { AbstractCurrentConsumption } from './Consumption';
 
 import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
@@ -30,6 +31,10 @@ export enum TransactionAction {
 export default interface Transaction extends AbstractCurrentConsumption {
   id?: number;
   carID?: string;
+  car?: Car;
+  carCatalogID?: number;
+  carCatalog?: CarCatalog;
+  phasesUsed?: CSPhasesUsed;
   siteID?: string;
   siteAreaID?: string;
   issuer: boolean;
@@ -67,14 +72,24 @@ export default interface Transaction extends AbstractCurrentConsumption {
   status?: ChargePointStatus;
   numberOfMeterValues: number;
   uniqueId?: string;
-  values?: TransactionConsumption[];
+  values?: Consumption[];
   billingData?: BillingTransactionData;
-  ocpiData?: {
-    session?: OCPISession;
-    cdr?: OCPICdr;
-    sessionCheckedOn?: Date;
-    cdrCheckedOn?: Date;
-  };
+  ocpi?: boolean;
+  ocpiWithCdr?: boolean;
+  ocpiData?: OcpiData;
+}
+
+export interface OcpiData {
+  session?: OCPISession;
+  cdr?: OCPICdr;
+  sessionCheckedOn?: Date;
+  cdrCheckedOn?: Date;
+}
+
+export interface CSPhasesUsed {
+  csPhase1: boolean;
+  csPhase2: boolean;
+  csPhase3: boolean;
 }
 
 export interface TransactionStop {
@@ -96,14 +111,4 @@ export interface TransactionStop {
   inactivityStatus?: InactivityStatus;
   transactionData?: OCPP15TransactionData|OCPPMeterValue[];
   signedData?: string;
-}
-
-export interface TransactionConsumption extends AbstractConsumption {
-  date: Date;
-  limitWatts: number;
-  limitAmps: number;
-  cumulatedConsumptionWh: number;
-  cumulatedConsumptionAmps: number;
-  stateOfCharge: number;
-  cumulatedAmount: number;
 }

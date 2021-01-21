@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Su sesión en la terminal <b> '<% - chargeBoxID%>' </b>, conector <b> '<% - connectorId%>' </b> ha finalizado."
+      "Su sesión en la terminal <strong> '<% - chargeBoxID%>' </strong>, conector <strong> '<% - connectorId%>' </strong> ha finalizado."
     ],
     "stats": [
       { "label": "Consumo", "value": "<%- totalConsumption %> kW.h" },
@@ -27,12 +27,12 @@
       { "label": "Inactividad total", "value": "<%- totalInactivity %>" },
       { "label": "Nivel de batería", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
-    "action": {
+    "actions": [{
       "title": "Ver sesión",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
-      "<%- (alternateUser ? 'L&#39;utilisateur <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> detuvo su sesión.' : '') %>",
+      "<%- (alternateUser ? 'L&#39;utilisateur <strong>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</strong> detuvo su sesión.' : '') %>",
       "",
       "Atentamente,",
       "EV Admins."

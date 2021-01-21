@@ -1,19 +1,20 @@
-import { MessageType, OcppErrorType } from '../../../types/WebSocket';
-import WebSocket, { OPEN } from 'ws';
+import { OCPPErrorType, OCPPIncomingRequest, OCPPMessageType, OCPPRequest } from '../../../types/ocpp/OCPPCommon';
+import WebSocket, { CLOSED, CLOSING, CONNECTING, CloseEvent, ErrorEvent, MessageEvent, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Command } from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
+import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
 import http from 'http';
-import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'WSConnection';
 
@@ -23,15 +24,14 @@ export default abstract class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
-  protected readonly serverIPPort: string;
   protected readonly chargingStationID: string;
   protected readonly tenantID: string;
   private readonly token: string;
   private readonly url: string;
-  private readonly clientIP: string|string[];
+  private readonly clientIP: string | string[];
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
-  private requests: any = {};
+  private requests: { [id: string]: OCPPRequest };
   private tenantIsValid: boolean;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
@@ -44,12 +44,13 @@ export default abstract class WSConnection {
     this.wsServer = wsServer;
     Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
-      action: ServerAction.WS_JSON_CONNECTION_OPENED,
+      action: ServerAction.WS_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'constructor',
-      message: `Charging Station attemps to connect with URL: '${req.url}'`,
+      message: `WS connection opening attempts with URL: '${req.url}'`,
     });
     // Default
     this.tenantIsValid = false;
+    this.requests = {};
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
       // Remove '/'
@@ -59,16 +60,16 @@ export default abstract class WSConnection {
       // Remove '/'
       this.url = this.url.substring(1, this.url.length);
     }
-    // Parse URL: should be like /OCPP16/TENANTID/TOKEN/CHARGEBOXID
-    // We support previous format for existing charging station without token /OCPP16/TENANTID/CHARGEBOXID
+    // Parse URL: should be like /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
+    // We support previous format for existing charging station without token /OCPPxx/TENANTID/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
     if (splittedURL.length === 4) {
-      // URL /OCPP16/TENANTID/TOKEN/CHARGEBOXID
+      // URL /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
       this.tenantID = splittedURL[1];
       this.token = splittedURL[2];
       this.chargingStationID = splittedURL[3];
     } else if (splittedURL.length === 3) {
-      // URL /OCPP16/TENANTID/CHARGEBOXID
+      // URL /OCPPxx/TENANTID/CHARGEBOXID
       this.tenantID = splittedURL[1];
       this.chargingStationID = splittedURL[2];
     } else {
@@ -76,14 +77,23 @@ export default abstract class WSConnection {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'constructor',
-        message: `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`
+        message: `The URL '${req.url}' is invalid (/(OCPPxx|REST)/TENANT_ID/CHARGEBOX_ID)`
       });
+    }
+    let logMsg = `Unknown type WS connection attempts with URL: '${req.url}'`;
+    let action: ServerAction = ServerAction.WS_CONNECTION_OPENED;
+    if (req.url.startsWith('/REST')) {
+      logMsg = `REST service connection attempts to Charging Station with URL: '${req.url}'`;
+      action = ServerAction.WS_REST_CONNECTION_OPENED;
+    } else if (req.url.startsWith(`/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`)) {
+      logMsg = `Charging Station connection attempts with URL: '${req.url}'`;
+      action = ServerAction.WS_JSON_CONNECTION_OPENED;
     }
     Logging.logDebug({
       tenantID: this.tenantID,
-      action: ServerAction.WS_CONNECTION,
+      action: action,
       module: MODULE_NAME, method: 'constructor',
-      message: `Charging Station attemps to connect with URL: '${req.url}'`,
+      message: logMsg,
     });
     if (!Utils.isChargingStationIDValid(this.chargingStationID)) {
       const backendError = new BackendError({
@@ -103,17 +113,17 @@ export default abstract class WSConnection {
       throw backendError;
     }
     // Handle incoming messages
-    this.wsConnection.onmessage = this.onMessage.bind(this);
-    // Handle Error on Socket
-    this.wsConnection.onerror = this.onError.bind(this);
+    this.wsConnection.on('message', this.onMessage.bind(this));
+    // Handle Socket error
+    this.wsConnection.on('error', this.onError.bind(this));
     // Handle Socket close
-    this.wsConnection.onclose = this.onClose.bind(this);
+    this.wsConnection.on('close', this.onClose.bind(this));
   }
 
   public async initialize(): Promise<void> {
     try {
       // Check Tenant?
-      await Utils.checkTenant(this.tenantID);
+      await DatabaseUtils.checkTenant(this.tenantID);
       this.tenantIsValid = true;
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
@@ -140,31 +150,25 @@ export default abstract class WSConnection {
     }
   }
 
-  public onError(event: Event): void {
-  }
-
-  public onClose(closeEvent: CloseEvent): void {
-  }
-
   public async onMessage(messageEvent: MessageEvent): Promise<void> {
-    let [messageType, messageId, commandName, commandPayload, errorDetails] = [0, '', ServerAction.CHARGING_STATION, '', ''];
+    let [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = [0, '', '' as ServerAction, '', {}];
+    let responseCallback: (payload?: Record<string, unknown> | string) => void;
+    let rejectCallback: (reason?: OCPPError) => void;
     try {
       // Parse the message
-      [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.data);
+      [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.toString()) as OCPPIncomingRequest;
       // Initialize: done in the message as init could be lengthy and first message may be lost
       await this.initialize();
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
-        case MessageType.CALL_MESSAGE:
+        case OCPPMessageType.CALL_MESSAGE:
           // Process the call
           await this.handleRequest(messageId, commandName, commandPayload);
           break;
         // Outcome Message
-        case MessageType.RESULT_MESSAGE:
+        case OCPPMessageType.CALL_RESULT_MESSAGE:
           // Respond
-          // eslint-disable-next-line no-case-declarations
-          let responseCallback: Function;
           if (Utils.isIterable(this.requests[messageId])) {
             [responseCallback] = this.requests[messageId];
           } else {
@@ -172,7 +176,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Response request for unknown message id ${messageId} is not iterable`,
+              message: `Response request for message id ${messageId} is not iterable`,
               action: commandName
             });
           }
@@ -182,7 +186,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Response for unknown message id ${messageId}`,
+              message: `Response request for unknown message id ${messageId}`,
               action: commandName
             });
           }
@@ -190,14 +194,14 @@ export default abstract class WSConnection {
           responseCallback(commandName);
           break;
         // Error Message
-        case MessageType.ERROR_MESSAGE:
+        case OCPPMessageType.CALL_ERROR_MESSAGE:
           // Log
           Logging.logError({
             tenantID: this.getTenantID(),
             module: MODULE_NAME,
-            method: 'sendMessage',
-            action: ServerAction.WS_ERROR,
-            message: `Error occurred when calling the command '${commandName}'`,
+            method: 'onMessage',
+            action: commandName,
+            message: `Error occurred '${commandName}' with message content '${JSON.stringify(commandPayload)}'`,
             detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
           });
           if (!this.requests[messageId]) {
@@ -206,12 +210,10 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Error for unknown message id ${messageId}`,
+              message: `Error request for unknown message id ${messageId}`,
               action: commandName
             });
           }
-          // eslint-disable-next-line no-case-declarations
-          let rejectCallback: Function;
           if (Utils.isIterable(this.requests[messageId])) {
             [, rejectCallback] = this.requests[messageId];
           } else {
@@ -219,7 +221,7 @@ export default abstract class WSConnection {
               source: this.getChargingStationID(),
               module: MODULE_NAME,
               method: 'onMessage',
-              message: `Error request for unknown message id ${messageId} is not iterable`,
+              message: `Error request for message id ${messageId} is not iterable`,
               action: commandName
             });
           }
@@ -229,8 +231,8 @@ export default abstract class WSConnection {
             module: MODULE_NAME,
             method: 'onMessage',
             code: commandName,
-            message: commandPayload,
-            detailedMessages: { errorDetails }
+            message: commandPayload.toString(),
+            details: { errorDetails }
           }));
           break;
         // Error
@@ -264,47 +266,30 @@ export default abstract class WSConnection {
     return this.url;
   }
 
-  public getClientIP(): string|string[] {
+  public getClientIP(): string | string[] {
     return this.clientIP;
   }
 
-  public getServerIPPort(): string {
-    return this.serverIPPort;
-  }
-
-  public async send(command, messageType = MessageType.CALL_MESSAGE): Promise<unknown> {
-    // Send Message
-    return this.sendMessage(uuid(), command, messageType);
-  }
-
-  public async sendError(messageId, err): Promise<unknown> {
-    // Check exception: only OCPP error are accepted
-    const error = (err instanceof OCPPError ? err : new OCPPError({
-      source: this.getChargingStationID(),
-      module: MODULE_NAME,
-      method: 'sendError',
-      code: OcppErrorType.INTERNAL_ERROR,
-      message: err.message
-    }));
+  public async sendError(messageId: string, error: OCPPError): Promise<unknown> {
     // Send error
-    return this.sendMessage(messageId, error, MessageType.ERROR_MESSAGE);
+    return this.sendMessage(messageId, error, OCPPMessageType.CALL_ERROR_MESSAGE);
   }
 
-  public async sendMessage(messageId: string, commandParams: any, messageType: MessageType = MessageType.RESULT_MESSAGE, commandName?: Command): Promise<unknown> {
-    // Send a message through WSConnection
+  public async sendMessage(messageId: string, commandParams: Record<string, unknown> | OCPPError, messageType: OCPPMessageType = OCPPMessageType.CALL_RESULT_MESSAGE, commandName?: Command | ServerAction): Promise<unknown> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
+    // Send a message through WSConnection
     const tenant = await TenantStorage.getTenant(this.tenantID);
     // Create a promise
     return await new Promise((resolve, reject) => {
-      let messageToSend;
+      let messageToSend: string;
       // Function that will receive the request's response
-      function responseCallback(payload) {
+      function responseCallback(payload: Record<string, unknown> | string): void {
         // Send the response
         resolve(payload);
       }
       // Function that will receive the request's rejection
-      function rejectCallback(reason) {
+      function rejectCallback(reason: string | OCPPError): void {
         // Build Exception
         self.requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
@@ -314,20 +299,20 @@ export default abstract class WSConnection {
       // Type of message
       switch (messageType) {
         // Request
-        case MessageType.CALL_MESSAGE:
+        case OCPPMessageType.CALL_MESSAGE:
           // Build request
           this.requests[messageId] = [responseCallback, rejectCallback];
           messageToSend = JSON.stringify([messageType, messageId, commandName, commandParams]);
           break;
         // Response
-        case MessageType.RESULT_MESSAGE:
+        case OCPPMessageType.CALL_RESULT_MESSAGE:
           // Build response
           messageToSend = JSON.stringify([messageType, messageId, commandParams]);
           break;
         // Error Message
-        case MessageType.ERROR_MESSAGE:
-          // Build Message
-          messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OcppErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
+        case OCPPMessageType.CALL_ERROR_MESSAGE:
+          // Build Error Message
+          messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OCPPErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
           break;
       }
       // Check if wsConnection is ready
@@ -336,15 +321,15 @@ export default abstract class WSConnection {
         this.wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant.name})`);
+        return rejectCallback(`WebSocket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant?.name})`);
       }
-      // Request?
-      if (messageType !== MessageType.CALL_MESSAGE) {
+      // Response?
+      if (messageType !== OCPPMessageType.CALL_MESSAGE) {
         // Yes: send Ok
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant.name}`), Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name})`), Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
   }
@@ -356,10 +341,10 @@ export default abstract class WSConnection {
   public getTenantID(): string {
     // Check
     if (this.isTenantValid()) {
-      // Ok verified
+      // Ok
       return this.tenantID;
     }
-    // No: go to the master tenant
+    // No, go to the master tenant
     return Constants.DEFAULT_TENANT;
   }
 
@@ -376,8 +361,31 @@ export default abstract class WSConnection {
   }
 
   public isWSConnectionOpen(): boolean {
-    return this.wsConnection.readyState === OPEN;
+    return this.wsConnection?.readyState === OPEN;
   }
 
-  public abstract async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
+  public getConnectionStatusString(): string {
+    switch (this.getConnectionStatus()) {
+      case OPEN:
+        return 'Open';
+      case CONNECTING:
+        return 'Connecting';
+      case CLOSING:
+        return 'Closing';
+      case CLOSED:
+        return 'Closed';
+      default:
+        return `Unknown code '${this.getConnectionStatus()}'`;
+    }
+  }
+
+  private getConnectionStatus(): number {
+    return this.wsConnection?.readyState;
+  }
+
+  public abstract handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void>;
+
+  public abstract onError(errorEvent: ErrorEvent): void;
+
+  public abstract onClose(closeEvent: CloseEvent): void;
 }

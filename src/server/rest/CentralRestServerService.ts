@@ -1,27 +1,29 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AssetService from './service/AssetService';
-import BillingService from './service/BillingService';
-import CarService from './service/CarService';
-import ChargingStationService from './service/ChargingStationService';
+import AssetService from './v1/service/AssetService';
+import BillingService from './v1/service/BillingService';
+import CarService from './v1/service/CarService';
+import ChargingStationService from './v1/service/ChargingStationService';
 import { Command } from '../../types/ChargingStation';
-import CompanyService from './service/CompanyService';
-import ConnectionService from './service/ConnectionService';
+import CompanyService from './v1/service/CompanyService';
+import ConnectionService from './v1/service/ConnectionService';
 import Logging from '../../utils/Logging';
-import LoggingService from './service/LoggingService';
-import NotificationService from './service/NotificationService';
-import OCPIEndpointService from './service/OCPIEndpointService';
-import RegistrationTokenService from './service/RegistrationTokenService';
+import LoggingService from './v1/service/LoggingService';
+import NotificationService from './v1/service/NotificationService';
+import OCPIEndpointService from './v1/service/OCPIEndpointService';
+import RegistrationTokenService from './v1/service/RegistrationTokenService';
 import { ServerAction } from '../../types/Server';
-import SessionHashService from './service/SessionHashService';
-import SettingService from './service/SettingService';
-import SiteAreaService from './service/SiteAreaService';
-import SiteService from './service/SiteService';
-import StatisticService from './service/StatisticService';
-import TenantService from './service/TenantService';
-import TransactionService from './service/TransactionService';
-import UserService from './service/UserService';
-import UtilsService from './service/UtilsService';
+import SessionHashService from './v1/service/SessionHashService';
+import SettingService from './v1/service/SettingService';
+import SiteAreaService from './v1/service/SiteAreaService';
+import SiteService from './v1/service/SiteService';
+import StatisticService from './v1/service/StatisticService';
+import { StatusCodes } from 'http-status-codes';
+import TagService from './v1/service/TagService';
+import TenantService from './v1/service/TenantService';
+import TransactionService from './v1/service/TransactionService';
+import UserService from './v1/service/UserService';
+import UtilsService from './v1/service/UtilsService';
 
 class RequestMapper {
   // eslint-disable-next-line no-undef
@@ -84,7 +86,6 @@ class RequestMapper {
           [ServerAction.BILLING_CREATE_TRANSACTION_INVOICE]: BillingService.handleCreateTransactionInvoice.bind(this),
           [ServerAction.OCPI_ENPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_TRIGGER_JOBS]: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_CHECK_CDRS]: OCPIEndpointService.handleCheckCdrsEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_CHECK_LOCATIONS]: OCPIEndpointService.handleCheckLocationsEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_CHECK_SESSIONS]: OCPIEndpointService.handleCheckSessionsEndpoint.bind(this),
@@ -98,7 +99,8 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
-          [ServerAction.END_USER_ERROR_NOTIFICATION]: NotificationService.handleEndUserErrorNotification.bind(this),
+          [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
+          [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
         });
         break;
 
@@ -106,9 +108,9 @@ class RequestMapper {
       case 'GET':
         // Register REST actions
         this.registerJsonActionsPaths({
-          [ServerAction.LOGGINGS]: LoggingService.handleGetLoggings.bind(this),
-          [ServerAction.LOGGING]: LoggingService.handleGetLogging.bind(this),
-          [ServerAction.LOGGINGS_EXPORT]: LoggingService.handleGetLoggingsExport.bind(this),
+          [ServerAction.LOGGINGS]: LoggingService.handleGetLogs.bind(this),
+          [ServerAction.LOGGING]: LoggingService.handleGetLog.bind(this),
+          [ServerAction.LOGGINGS_EXPORT]: LoggingService.handleExportLogs.bind(this),
           [ServerAction.CHARGING_STATIONS]: ChargingStationService.handleGetChargingStations.bind(this),
           [ServerAction.CAR_CATALOGS]: CarService.handleGetCarCatalogs.bind(this),
           [ServerAction.CAR_CATALOG]: CarService.handleGetCarCatalog.bind(this),
@@ -117,18 +119,19 @@ class RequestMapper {
           [ServerAction.CAR]: CarService.handleGetCar.bind(this),
           [ServerAction.CAR_USERS]: CarService.handleGetCarUsers.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
-          [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleGetChargingStationsExport.bind(this),
-          [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
+          [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleExportChargingStations.bind(this),
+          [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleExportChargingStationsOCPPParams.bind(this),
           [ServerAction.CHARGING_STATION]: ChargingStationService.handleGetChargingStation.bind(this),
           [ServerAction.CHECK_SMART_CHARGING_CONNECTION]: ChargingStationService.handleCheckSmartChargingConnection.bind(this),
           [ServerAction.CHARGING_PROFILES]: ChargingStationService.handleGetChargingProfiles.bind(this),
           [ServerAction.TRIGGER_SMART_CHARGING]: ChargingStationService.handleTriggerSmartCharging.bind(this),
+          [ServerAction.GENERATE_QR_CODE_FOR_CONNECTOR]: ChargingStationService.handleGenerateQrCodeForConnector.bind(this),
+          [ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF]: ChargingStationService.handleDownloadQrCodesPdf.bind(this),
           [ServerAction.REGISTRATION_TOKENS]: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           [ServerAction.STATUS_NOTIFICATIONS]: ChargingStationService.handleGetStatusNotifications.bind(this),
           [ServerAction.BOOT_NOTIFICATION]: ChargingStationService.handleGetBootNotifications.bind(this),
           [ServerAction.COMPANIES]: CompanyService.handleGetCompanies.bind(this),
           [ServerAction.COMPANY]: CompanyService.handleGetCompany.bind(this),
-          [ServerAction.COMPANY_LOGO]: CompanyService.handleGetCompanyLogo.bind(this),
           [ServerAction.ASSETS]: AssetService.handleGetAssets.bind(this),
           [ServerAction.ASSET]: AssetService.handleGetAsset.bind(this),
           [ServerAction.ASSET_IMAGE]: AssetService.handleGetAssetImage.bind(this),
@@ -138,37 +141,41 @@ class RequestMapper {
           [ServerAction.ASSET_CONSUMPTION]: AssetService.handleGetAssetConsumption.bind(this),
           [ServerAction.SITES]: SiteService.handleGetSites.bind(this),
           [ServerAction.SITE]: SiteService.handleGetSite.bind(this),
-          [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
           [ServerAction.SITE_USERS]: SiteService.handleGetUsers.bind(this),
           [ServerAction.TENANTS]: TenantService.handleGetTenants.bind(this),
           [ServerAction.TENANT]: TenantService.handleGetTenant.bind(this),
-          [ServerAction.TENANT_LOGO]: TenantService.handleGetTenantLogo.bind(this),
           [ServerAction.SITE_AREAS]: SiteAreaService.handleGetSiteAreas.bind(this),
           [ServerAction.SITE_AREA]: SiteAreaService.handleGetSiteArea.bind(this),
-          [ServerAction.SITE_AREA_IMAGE]: SiteAreaService.handleGetSiteAreaImage.bind(this),
           [ServerAction.SITE_AREA_CONSUMPTION]: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
+          // TODO: To remove the 'SITE_IMAGE' when new version of Mobile App will be released (> V1.3.22)
+          [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
           [ServerAction.USERS]: UserService.handleGetUsers.bind(this),
           [ServerAction.USER_SITES]: UserService.handleGetSites.bind(this),
           [ServerAction.USERS_IN_ERROR]: UserService.handleGetUsersInError.bind(this),
           [ServerAction.USER_IMAGE]: UserService.handleGetUserImage.bind(this),
           [ServerAction.USER]: UserService.handleGetUser.bind(this),
+          [ServerAction.USERS_EXPORT]: UserService.handleExportUsers.bind(this),
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
+          [ServerAction.TAGS]: TagService.handleGetTags.bind(this),
+          [ServerAction.TAG]: TagService.handleGetTag.bind(this),
+          [ServerAction.USER_DEFAUlT_TAG_CAR]: UserService.handleGetUserDefaultTagCar.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
-          [ServerAction.TRANSACTIONS_TO_REFUND_EXPORT]: TransactionService.handleGetTransactionsToRefundExport.bind(this),
+          [ServerAction.TRANSACTIONS_TO_REFUND_EXPORT]: TransactionService.handleExportTransactionsToRefund.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND_REPORTS]: TransactionService.handleGetRefundReports.bind(this),
-          [ServerAction.TRANSACTIONS_EXPORT]: TransactionService.handleGetTransactionsExport.bind(this),
+          [ServerAction.TRANSACTIONS_EXPORT]: TransactionService.handleExportTransactions.bind(this),
           [ServerAction.TRANSACTIONS_ACTIVE]: TransactionService.handleGetTransactionsActive.bind(this),
           [ServerAction.TRANSACTIONS_IN_ERROR]: TransactionService.handleGetTransactionsInError.bind(this),
           [ServerAction.TRANSACTION_YEARS]: TransactionService.handleGetTransactionYears.bind(this),
           [ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS]: TransactionService.handleRebuildTransactionConsumptions.bind(this),
           [ServerAction.UNASSIGNED_TRANSACTIONS_COUNT]: TransactionService.handleGetUnassignedTransactionsCount.bind(this),
+          [ServerAction.TRANSACTION_OCPI_CDR_EXPORT]: TransactionService.handleExportTransactionOcpiCdr.bind(this),
           [ServerAction.CHARGING_STATION_CONSUMPTION_STATISTICS]: StatisticService.handleGetChargingStationConsumptionStatistics.bind(this),
           [ServerAction.CHARGING_STATION_USAGE_STATISTICS]: StatisticService.handleGetChargingStationUsageStatistics.bind(this),
           [ServerAction.CHARGING_STATION_INACTIVITY_STATISTICS]: StatisticService.handleGetChargingStationInactivityStatistics.bind(this),
           [ServerAction.CHARGING_STATION_TRANSACTIONS_STATISTICS]: StatisticService.handleGetChargingStationTransactionsStatistics.bind(this),
           [ServerAction.CHARGING_STATION_PRICING_STATISTICS]: StatisticService.handleGetChargingStationPricingStatistics.bind(this),
-          [ServerAction.STATISTICS_EXPORT]: StatisticService.handleGetStatisticsExport.bind(this),
+          [ServerAction.STATISTICS_EXPORT]: StatisticService.handleExportStatistics.bind(this),
           [ServerAction.USER_CONSUMPTION_STATISTICS]: StatisticService.handleGetUserConsumptionStatistics.bind(this),
           [ServerAction.USER_USAGE_STATISTICS]: StatisticService.handleGetUserUsageStatistics.bind(this),
           [ServerAction.USER_INACTIVITY_STATISTICS]: StatisticService.handleGetUserInactivityStatistics.bind(this),
@@ -190,7 +197,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTIONS]: ConnectionService.handleGetConnections.bind(this),
           [ServerAction.INTEGRATION_CONNECTION]: ConnectionService.handleGetConnection.bind(this),
           [ServerAction.PING]: (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
-            res.sendStatus(200);
+            res.sendStatus(StatusCodes.OK);
           },
         });
         break;
@@ -219,6 +226,7 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_UNREGISTER]: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
+          [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
         });
         break;
 
@@ -242,6 +250,8 @@ class RequestMapper {
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
           [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
+          [ServerAction.TAG_DELETE]: TagService.handleDeleteTag.bind(this),
+          [ServerAction.TAGS_DELETE]: TagService.handleDeleteTags.bind(this),
         });
         break;
     }
@@ -289,10 +299,25 @@ export default class CentralRestServerService {
           switch (action) {
             // Ping
             case ServerAction.PING:
-              res.sendStatus(200);
+              res.sendStatus(StatusCodes.OK);
               break;
             case ServerAction.CAR_CATALOG_IMAGE:
               await CarService.handleGetCarCatalogImage(action, req, res, next);
+              break;
+            case ServerAction.ASSET_IMAGE:
+              await AssetService.handleGetAssetImage(action, req, res, next);
+              break;
+            case ServerAction.COMPANY_LOGO:
+              await CompanyService.handleGetCompanyLogo(action, req, res, next);
+              break;
+            case ServerAction.SITE_IMAGE:
+              await SiteService.handleGetSiteImage(action, req, res, next);
+              break;
+            case ServerAction.SITE_AREA_IMAGE:
+              await SiteAreaService.handleGetSiteAreaImage(action, req, res, next);
+              break;
+            case ServerAction.TENANT_LOGO:
+              await TenantService.handleGetTenantLogo(action, req, res, next);
               break;
             // Firmware Download
             case ServerAction.FIRMWARE_DOWNLOAD:
@@ -313,7 +338,7 @@ export default class CentralRestServerService {
     // Parse the action
     const action = req.params.action as ServerAction;
     // Check if User has been updated and require new login
-    if (SessionHashService.isSessionHashUpdated(req, res, next)) {
+    if ((await SessionHashService.isSessionHashUpdated(req, res, next))) {
       return;
     }
     // Check HTTP Verbs

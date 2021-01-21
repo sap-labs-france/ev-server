@@ -42,4 +42,8 @@ export default class CarApi extends CrudApi {
     return super.delete(id, '/client/api/CarDelete');
   }
 
+  public async readCarUsers(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, '/client/api/CarUsers');
+  }
+
 }

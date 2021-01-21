@@ -1,0 +1,39 @@
+{
+  "subject": "OCPI - Falha na correção dos status da estação de carregamento",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Falha no patch de status da estação de carregamento",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Caro Administrador,",
+      "",
+      "A transferência do status da estação de carregamento falhou no local <b> '<%- location %>' </b>.",
+      "",
+      "Verifique os registos.",
+      ""
+    ],
+    "actions": [{
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

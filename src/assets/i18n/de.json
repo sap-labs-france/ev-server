@@ -59,12 +59,20 @@
       "body": "Folgende Ladestationen sind offline. Organisation: '{{tenantName}}': {{chargeBoxIDs}}"
     },
     "billingUserSynchronizationFailed": {
-      "title": "Benutzer Synchro fehlgeschlagen",
-      "body": "Die Synchronisation der Benutzer(n) {{nbrUsersInError}} mit dem Bezahl-Dienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
+      "title": "Benutzersynchronisierung fehlgeschlagen",
+      "body": "Die Synchronisierung von {{nbrUsersInError}} Nutzer(n)  mit dem Bezahldienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
     },
     "billingInvoiceSynchronizationFailed": {
-      "title": "Invoice Synchro Failed",
-      "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
+      "title": "Rechnungssynchronisierung fehlgeschlagen",
+      "body": "Die Synchronisierung von {{nbrInvoicesInError}} Rechnung(en) mit dem Abrechnungsdienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
+    },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Charging Profiles fehlgeschlagen",
+      "body": "Es war nicht möglich die Ladeprofile für '{{chargeBoxID}}' auf dem Standortbereich '{{siteAreaName}}' in der Organisation '{{tenantName}}' anzuwenden"
+    },
+    "billingNewInvoice": {
+      "title": "Neue Rechnung",
+      "body": "Eine neue Rechnung ({{invoiceNumber}}) ist jetzt verfügbar"
     },
     "endUserErrorNotification": {
       "title": "Ein Nutzer hat einen Fehler gemeldet",
@@ -75,5 +83,12 @@
     "generatedUser": "Erstellter Benutzer für '{{email}}'",
     "chargingStopSiteArea": "Ladung von {{totalConsumption}} kWh, Ort: {{siteArea}} (beendet um {{time}})",
     "chargingStopChargeBox": "Ladung von {{totalConsumption}} kWh an Ladestation {{chargeBox}} (beendet um {{time}})"
-  }
+  },
+  "tags": {
+    "virtualBadge": "Virtual Badge"
+  },
+  "chargers": {
+    "connector": "Anschluss"
+  },
+  "siteArea": "Standortbereich"
 }

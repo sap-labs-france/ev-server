@@ -2,23 +2,23 @@ import AbstractOCPIService, { TenantIdHoldingRequest } from './AbstractOCPIServi
 import { Application, NextFunction, Request, Response } from 'express';
 
 import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
-import { Configuration } from '../../types/configuration/Configuration';
 import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
 import ExpressTools from '../ExpressTools';
+import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
 import OCPIServices from './OCPIServices';
 
 const MODULE_NAME = 'OCPIServer';
 
 export default class OCPIServer {
-  private ocpiRestConfig: Configuration['OCPIService'];
+  private ocpiRestConfig: OCPIServiceConfiguration;
   private expressApplication: Application;
 
   // Create the rest server
-  constructor(ocpiRestConfig: Configuration['OCPIService']) {
+  constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     // Keep params
     this.ocpiRestConfig = ocpiRestConfig;
     // Initialize express app
-    this.expressApplication = ExpressTools.initApplication();
+    this.expressApplication = ExpressTools.initApplication(null, ocpiRestConfig.debug);
     // New OCPI Services Instances
     const ocpiServices = new OCPIServices(this.ocpiRestConfig);
     // OCPI versions
@@ -27,7 +27,7 @@ export default class OCPIServer {
     this.expressApplication.use(EMSPService.PATH + AbstractOCPIService.VERSIONS_PATH,
       (req: Request, res: Response, next: NextFunction) => ocpiServices.getEMSPVersions(req, res, next));
     // Register all services in express
-    ocpiServices.getOCPIServiceImplementations().forEach((ocpiService) => {
+    for (const ocpiService of ocpiServices.getOCPIServiceImplementations()) {
       this.expressApplication.use(ocpiService.getPath(), async (req: TenantIdHoldingRequest, res: Response, next: NextFunction) => {
         try {
           await ocpiService.restService(req, res, next);
@@ -35,7 +35,7 @@ export default class OCPIServer {
           next(error);
         }
       });
-    });
+    }
     // Post init
     ExpressTools.postInitApplication(this.expressApplication);
   }

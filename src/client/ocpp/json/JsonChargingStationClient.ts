@@ -4,9 +4,9 @@ import ChargingStationClient from '../../ocpp/ChargingStationClient';
 import { Command } from '../../../types/ChargingStation';
 import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
 import Logging from '../../../utils/Logging';
-import { MessageType } from '../../../types/WebSocket';
+import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction } from '../../../types/Server';
-import { v4 as uuid } from 'uuid';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'JsonChargingStationClient';
 
@@ -31,64 +31,64 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   }
 
   public async remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.REMOTE_START_TRANSACTION);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.REMOTE_START_TRANSACTION);
   }
 
   public async reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.RESET);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.RESET);
   }
 
   public async clearCache(): Promise<OCPPClearCacheCommandResult> {
-    return this.sendMessage({}, MessageType.CALL_MESSAGE, Command.CLEAR_CACHE);
+    return this.sendMessage({}, OCPPMessageType.CALL_MESSAGE, Command.CLEAR_CACHE);
   }
 
   public async getConfiguration(params: OCPPGetConfigurationCommandParam = {}): Promise<OCPPGetConfigurationCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.GET_CONFIGURATION);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.GET_CONFIGURATION);
   }
 
   public async changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.CHANGE_CONFIGURATION);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.CHANGE_CONFIGURATION);
   }
 
   public async remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.REMOTE_STOP_TRANSACTION);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.REMOTE_STOP_TRANSACTION);
   }
 
   public async unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.UNLOCK_CONNECTOR);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.UNLOCK_CONNECTOR);
   }
 
   public async setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.SET_CHARGING_PROFILE);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.SET_CHARGING_PROFILE);
   }
 
   public async getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.GET_COMPOSITE_SCHEDULE);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.GET_COMPOSITE_SCHEDULE);
   }
 
   public async clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.CLEAR_CHARGING_PROFILE);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.CLEAR_CHARGING_PROFILE);
   }
 
   public async changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.CHANGE_AVAILABILITY);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.CHANGE_AVAILABILITY);
   }
 
   public async getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.GET_DIAGNOSTICS);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.GET_DIAGNOSTICS);
   }
 
   public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
-    return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.UPDATE_FIRMWARE);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.UPDATE_FIRMWARE);
   }
 
-  private async sendMessage(params: any, messageType: MessageType, commandName: Command): Promise<any> {
+  private async sendMessage(params: any, messageType: OCPPMessageType, commandName: Command): Promise<any> {
     // Log
-    Logging.logSendAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, params);
+    Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, params);
     // Execute
-    const result = await this.wsConnection.sendMessage(uuid(), params, messageType, commandName);
+    const result = await this.wsConnection.sendMessage(Utils.generateUUID(), params, messageType, commandName);
     // Log
-    Logging.logReturnedAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, result);
+    Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, result);
     return result;
   }
 }

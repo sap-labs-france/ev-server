@@ -1,10 +1,12 @@
 import ChargingStation, { ChargerVendor } from '../../types/ChargingStation';
 
+import AbbChargingStationVendorIntegration from './abb/AbbChargingStationVendorIntegration';
 import AtessChargingStationVendorIntegration from './atess/AtessChargingStationVendorIntegration';
 import ChargingStationVendorIntegration from './ChargingStationVendorIntegration';
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
 import EbeeChargingStationVendorIntegration from './ebee/EbeeChargingStationVendorIntegration';
 import LegrandChargingStationVendorIntegration from './legrand/LegrandChargingStationVendorIntegration';
+import SAPLabsFranceChargingStationVendorIntegration from './sap/SAPLabsFranceChargingStationVendorIntegration';
 import SchneiderChargingStationVendorIntegration from './schneider/SchneiderChargingStationVendorIntegration';
 
 export default class ChargingStationVendorFactory {
@@ -12,6 +14,9 @@ export default class ChargingStationVendorFactory {
   static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
     let chargingStationVendorImpl: ChargingStationVendorIntegration = null;
     switch (chargingStation.chargePointVendor) {
+      case ChargerVendor.ABB:
+        chargingStationVendorImpl = new AbbChargingStationVendorIntegration(chargingStation);
+        break;
       case ChargerVendor.SCHNEIDER:
         chargingStationVendorImpl = new SchneiderChargingStationVendorIntegration(chargingStation);
         break;
@@ -29,6 +34,9 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.ATESS:
         chargingStationVendorImpl = new AtessChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.SAP_LABS_FRANCE:
+        chargingStationVendorImpl = new SAPLabsFranceChargingStationVendorIntegration(chargingStation);
         break;
     }
     return chargingStationVendorImpl;

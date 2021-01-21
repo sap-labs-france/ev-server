@@ -1,3 +1,4 @@
+
 const nodeExternals = require('webpack-node-externals');
 const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
@@ -46,10 +47,12 @@ const config = {
       /\.d\.ts$/
     ]),
     new webpack.ProgressPlugin(),
-    new CopyPlugin([
-      { from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**'] },
-      { from: 'src/integration/pricing/convergent-charging/assets/', to: 'integration/pricing/convergent-charging/assets/', noErrorOnMissing: true }
-    ])
+    new CopyPlugin({
+      patterns: [
+        { from: 'src/assets/', to: 'assets/', globOptions: { ignore: ['**/configs/**'] } },
+        { from: 'src/integration/pricing/convergent-charging/assets/', to: 'integration/pricing/convergent-charging/assets/', noErrorOnMissing: true }
+      ]
+    })
   ],
   optimization: {
     minimize: false,

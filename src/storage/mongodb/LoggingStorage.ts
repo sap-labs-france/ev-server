@@ -1,14 +1,14 @@
+import global, { FilterParams } from './../../types/GlobalType';
+
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { Log } from '../../types/Log';
-import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
-import global from './../../types/GlobalType';
 import os from 'os';
 
 const MODULE_NAME = 'LoggingStorage';
@@ -16,9 +16,9 @@ const MODULE_NAME = 'LoggingStorage';
 export default class LoggingStorage {
   public static async deleteLogs(tenantID: string, deleteUpToDate: Date): Promise<{ ok?: number; n?: number; }> {
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Build filter
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Do Not Delete Security Logs
     filters.type = {};
     filters.type.$ne = 'S';
@@ -38,9 +38,9 @@ export default class LoggingStorage {
 
   public static async deleteSecurityLogs(tenantID: string, deleteUpToDate: Date): Promise<{ ok?: number; n?: number; }> {
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Build filter
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Delete Only Security Logs
     filters.type = {};
     filters.type.$eq = 'S';
@@ -60,14 +60,14 @@ export default class LoggingStorage {
 
   public static async saveLog(tenantID: string, logToSave: Log): Promise<void> {
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const logMDB: any = {
       userID: logToSave.user ? Utils.convertUserToObjectID(logToSave.user) : null,
       actionOnUserID: Utils.convertUserToObjectID(logToSave.actionOnUser),
       level: logToSave.level,
       source: logToSave.source,
-      host: logToSave.host ? logToSave.host : (Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()),
+      host: logToSave.host ? logToSave.host : Utils.getHostname(),
       process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master'),
       type: logToSave.type,
       timestamp: Utils.convertToDate(logToSave.timestamp),
@@ -83,32 +83,31 @@ export default class LoggingStorage {
     }
   }
 
-  public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Log> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLog');
-    // Query single Site
-    const logsMDB = await LoggingStorage.getLogs(tenantID,
-      { logID: id },
-      Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'getLog', uniqueTimerID, { id });
-    return logsMDB.count > 0 ? logsMDB.result[0] : null;
+  public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields: string[]): Promise<Log> {
+    const logsMDB = await LoggingStorage.getLogs(tenantID, {
+      logIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 
   public static async getLogs(tenantID: string, params: {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
-    hosts?: string[]; userIDs?: string[]; search?: string; logID?: string;
-  } = {}, dbParams: DbParams): Promise<DataResult<Log>> {
+    hosts?: string[]; userIDs?: string[]; search?: string; logIDs?: string[];
+  } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
+    // Search
+    if (params.search) {
+      filters.$text = { $search: params.search };
+    }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
       filters.timestamp = {};
@@ -142,35 +141,17 @@ export default class LoggingStorage {
       filters.host = { $in: params.hosts };
     }
     // Filter on users
-    if (params.userIDs && params.userIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.userIDs)) {
       filters.$or = [
-        { userID: { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) } },
-        { actionOnUserID: { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) } }
+        { userID: { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) } },
+        { actionOnUserID: { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) } }
       ];
     }
-    // Search
-    if (params.logID) {
-      filters._id = Utils.convertToObjectID(params.logID);
-    } else if (params.search) {
-      // Set
-      const searchArray = [
-        { 'source': { $regex: params.search, $options: 'i' } },
-        { 'host': { $regex: params.search, $options: 'i' } },
-        { 'message': { $regex: params.search, $options: 'i' } },
-        { 'detailedMessages': { $regex: params.search, $options: 'i' } },
-        { 'action': { $regex: params.search, $options: 'i' } }
-      ];
-      // Already exists?
-      if (filters.$or) {
-        // Add them all
-        filters.$and = [
-          { $or: [...filters.$or] },
-          { $or: [...searchArray] },
-        ];
-      } else {
-        // Only one
-        filters.$or = searchArray;
-      }
+    // Log ID
+    if (!Utils.isEmptyArray(params.logIDs)) {
+      filters._id = {
+        $in: params.logIDs.map((logID) => Utils.convertToObjectID(logID))
+      };
     }
     // Create Aggregation
     const aggregation = [];
@@ -195,7 +176,6 @@ export default class LoggingStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      // Return only the count
       return {
         count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
         result: []
@@ -227,7 +207,9 @@ export default class LoggingStorage {
       foreignField: '_id',
       oneToOneCardinality: true,
       oneToOneCardinalityNotNull: false
-    });
+    }, [
+      { $project: { name: 1, firstName: 1 } }
+    ]);
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID,
       aggregation: aggregation,
@@ -236,38 +218,28 @@ export default class LoggingStorage {
       foreignField: '_id',
       oneToOneCardinality: true,
       oneToOneCardinalityNotNull: false
+    }, [
+      { $project: { name: 1, firstName: 1 } }
+    ]);
+    // Check if it has detailed messages
+    aggregation.push({
+      $addFields: {
+        'hasDetailedMessages': { $gt: ['$detailedMessages', null] }
+      }
     });
+    // Change ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const loggingsMDB = await global.database.getCollection<any>(tenantID, 'logs')
+    const loggingsMDB = await global.database.getCollection<Log>(tenantID, 'logs')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-    const loggings = [];
-    for (const loggingMDB of loggingsMDB) {
-      const logging: Log = {
-        tenantID: tenantID,
-        id: loggingMDB._id.toString(),
-        level: loggingMDB.level,
-        source: loggingMDB.source,
-        host: loggingMDB.host,
-        process: loggingMDB.process,
-        module: loggingMDB.module,
-        method: loggingMDB.method,
-        timestamp: loggingMDB.timestamp,
-        action: loggingMDB.action,
-        type: loggingMDB.type,
-        message: loggingMDB.message,
-        user: loggingMDB.user,
-        actionOnUser: loggingMDB.actionOnUser,
-        detailedMessages: loggingMDB.detailedMessages
-      };
-      // Set the model
-      loggings.push(logging);
-    }
     // Ok
     return {
       count: (loggingsCountMDB.length > 0 ?
         (loggingsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : loggingsCountMDB[0].count) : 0),
-      result: loggings
+      result: loggingsMDB
     };
   }
 }

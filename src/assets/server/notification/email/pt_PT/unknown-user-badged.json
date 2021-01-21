@@ -1,0 +1,36 @@
+{
+  "subject": "'<%- chargeBoxID %>' - Badge de utilizador desconhecido",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Badge de utilizador desconhecido",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Caro Administrador,",
+      "",
+      "Um utilizador desconhecido acabou de tentar inciiaar sessão na <b> '<%- chargeBoxID %>' </b> com o badge <b> '<%- badgeID %>' </b>."
+    ],
+    "actions": [{
+      "title": "Editar Utilizador",
+      "url": "<%- evseDashboardUserURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

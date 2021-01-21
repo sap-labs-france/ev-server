@@ -5,6 +5,7 @@ import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import { Request } from 'express';
+import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 /**
@@ -118,53 +119,32 @@ export default class OCPIUtils {
    * @param {*} countryCode the code of the CPO
    * @param {*} partyId the partyId of the CPO
    * @param {*} chargingStation the charging station used to build the evse ID
-   * @param {*} connector the connector used to build the evse id
+   * @param {*} connector the connector used to build the evse ID
    */
-  public static buildEvseID(countryCode: string, partyId: string, chargingStation: ChargingStation, connector?: Connector): string {
-    let evseID = `${countryCode}*${partyId}*E${chargingStation.id}`;
-    if (!connector) {
-      for (const _connector of chargingStation.connectors) {
-        if (_connector) {
-          connector = _connector;
-          break;
-        }
-      }
-    }
-    evseID = `${evseID}*${connector.connectorId}`;
+  public static buildEvseID(countryCode: string, partyId: string, chargingStation: ChargingStation, connector: Connector): string {
+    // Format follows the eMI3 string format for EVSE: https://emi3group.com/wp-content/uploads/sites/5/2018/12/eMI3-standard-v1.0-Part-2.pdf
+    const evseID = `${OCPIUtils.buildOperatorName(countryCode, partyId)}*E${chargingStation.id}*${connector.connectorId}`;
     return evseID.replace(/[\W_]+/g, '*').toUpperCase();
   }
 
   /**
    * Build evse UID from charging station
-   * @param {*} chargingStation the charging station used to build the evse ID
-   * @param {*} connector the connector used to build the evse id
+   * @param {*} chargingStation the charging station used to build the evse UID
+   * @param {*} connector the connector used to build the evse UID
    */
-  public static buildEvseUID(chargingStation: ChargingStation, connector?: Connector): string {
-    if (!connector) {
-      for (const _connector of chargingStation.connectors) {
-        if (_connector) {
-          connector = _connector;
-          break;
-        }
-      }
-    }
+  public static buildEvseUID(chargingStation: ChargingStation, connector: Connector): string {
     return `${chargingStation.id}*${connector.connectorId}`;
   }
 
   /**
    * Build evse UIDs from charging station
-   * @param {*} chargingStation the charging station used to build the evse ID
-   * @param {*} connector the connector used to build the evse id
+   * @param {*} chargingStation the charging station used to build the evse UIDs
    */
-  public static buildEvseUIDs(chargingStation: ChargingStation, connector?: Connector): string[] {
-    const evseUIDs = [];
-    if (connector) {
-      evseUIDs.push(`${chargingStation.id}*${connector.connectorId}`);
-    } else if (chargingStation.connectors) {
-      for (const _connector of chargingStation.connectors) {
-        if (_connector) {
-          evseUIDs.push(`${chargingStation.id}*${_connector.connectorId}`);
-        }
+  public static buildEvseUIDs(chargingStation: ChargingStation): string[] {
+    const evseUIDs: string[] = [];
+    for (const _connector of chargingStation.connectors) {
+      if (_connector) {
+        evseUIDs.push(OCPIUtils.buildEvseUID(chargingStation, _connector));
       }
     }
     return evseUIDs;
@@ -176,8 +156,8 @@ export default class OCPIUtils {
    * @param {*} countryCode the country code of the eMSP
    * @param {*} partyId the party identifier of the eMSP
    */
-  public static buildUserEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
-    if (token && token.issuer) {
+  public static buildEmspEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
+    if (token?.issuer) {
       return `${token.issuer}@${partyId}.${countryCode}`;
     }
   }
@@ -205,11 +185,11 @@ export default class OCPIUtils {
   public static generateLocalToken(tenantSubdomain: string): string {
     const newToken: any = {};
     // Generate random
-    newToken.ak = Math.floor(Math.random() * 100);
+    newToken.ak = Utils.getRandomInt(100);
     // Fill new Token with tenant subdomain
     newToken.tid = tenantSubdomain;
     // Generate random
-    newToken.zk = Math.floor(Math.random() * 100);
+    newToken.zk = Utils.getRandomInt(100);
     // Return in Base64
     return OCPIUtils.btoa(JSON.stringify(newToken));
   }

@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Ihr elektrisches Fahrzeug, welches mit der Ladestation <b>'<%- chargeBoxID %>'</b>, Ladepunkt <b>'<%- connectorId %>'</b> verbunden ist, hat den optimalen Ladestand erreicht."
+      "Ihr elektrisches Fahrzeug, welches mit der Ladestation <strong>'<%- chargeBoxID %>'</strong>, Ladepunkt <strong>'<%- connectorId %>'</strong> verbunden ist, hat den optimalen Ladestand erreicht."
     ],
     "stats": [
       {
@@ -27,10 +27,10 @@
         "value": "<%- stateOfCharge %> %"
       }
     ],
-    "action": {
+    "actions": [{
       "title": "Ladevorgang anzeigen",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

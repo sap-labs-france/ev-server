@@ -1,0 +1,37 @@
+{
+  "subject": "Estações de carregamento offline",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Estações de carregamento offline",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Caro Administrador,",
+      "",
+      "As seguintes estações de carregamento estão offline na sua organização: <b> <%- chargeBoxIDs %> </b>",
+      ""
+    ],
+    "actions": [{
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

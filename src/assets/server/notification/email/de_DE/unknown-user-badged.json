@@ -19,12 +19,12 @@
     "beforeActionLines": [
       "Sehr geehrter Administrator,",
       "",
-      "An der Ladestation <b>'<%- chargeBoxID %>'</b> hat sich gerade ein unbekannter Nutzer mit der Badge-ID <b>'<%- badgeID %>'</b> angemeldet."
+      "An der Ladestation <strong>'<%- chargeBoxID %>'</strong> hat sich gerade ein unbekannter Nutzer mit der Badge-ID <strong>'<%- badgeID %>'</strong> angemeldet."
     ],
-    "action": {
-      "title": "Nutzer bearbeiten",
-      "url": "<%- evseDashboardUserURL %>"
-    },
+    "actions": [{
+      "title": "Nutzer badge",
+      "url": "<%- evseDashboardTagURL %>"
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

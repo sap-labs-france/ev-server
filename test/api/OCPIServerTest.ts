@@ -533,15 +533,15 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
      * Failure cases
      */
     describe('Failure cases', () => {
-      // Invalid location
-      // It('should not find this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
+      // // Invalid location
+      // it('should not find this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
       //   // Call
-      //   const locationResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67`);
+      //   const locationResponse = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
       //   // Check status
       //   expect(locationResponse.status).to.be.eql(500);
-      //   expect(locationResponse.data).to.have.property("timestamp");
-      //   expect(locationResponse.data).to.have.property("status_code", 3000);
-      //   expect(locationResponse.data).to.have.property("status_message", "Site id '5abeba9e4bae1457eb565e67' not found");
+      //   expect(locationResponse.data).to.have.property('timestamp');
+      //   expect(locationResponse.data).to.have.property('status_code', 3000);
+      //   expect(locationResponse.data).to.have.property('status_message', 'Site id \'5abeba9e4bae1457eb565e67\' not found');
       // });
     });
   });

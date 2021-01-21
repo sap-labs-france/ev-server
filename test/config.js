@@ -10,7 +10,7 @@ const config = convict({
     env: 'TEST_ENV'
   },
   trace_logs: {
-    doc: 'true to trace communication with servers',
+    doc: 'Set to true to trace communication with servers',
     format: Boolean,
     default: 'false',
     env: 'TRACE_LOGS'
@@ -185,12 +185,12 @@ const config = convict({
   },
   wsClient: {
     autoReconnectMaxRetries: {
-      doc: 'Web Socket client re-connection max retries.',
+      doc: 'WebSocket client re-connection max retries.',
       format: 'int',
       default: 10,
     },
     autoReconnectTimeout: {
-      doc: 'Web Socket client re-connection timeout.',
+      doc: 'WebSocket client re-connection timeout.',
       format: 'int',
       default: 0,
     },
@@ -290,6 +290,38 @@ const config = convict({
     periodicBillingAllowed: {
       doc: 'Allow periodic billing',
       format: Boolean,
+      default: ''
+    }
+  },
+  smartCharging: {
+    optimizerUrl: {
+      doc: 'Smart charging url',
+      format: String,
+      default: ''
+    },
+    user: {
+      doc: 'Smart charging user',
+      format: String,
+      default: ''
+    },
+    password: {
+      doc: 'Smart charging password',
+      format: String,
+      default: ''
+    },
+    stickyLimitation: {
+      doc: 'Sticky limitation',
+      format: Boolean,
+      default: ''
+    },
+    limitBufferDC: {
+      doc: 'Limit buffer dc',
+      format: Number,
+      default: ''
+    },
+    limitBufferAC: {
+      doc: 'Limit buffer ac',
+      format: Number,
       default: ''
     }
   }

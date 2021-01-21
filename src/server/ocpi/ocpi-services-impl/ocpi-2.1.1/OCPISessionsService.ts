@@ -8,12 +8,13 @@ import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import { HTTPError } from '../../../../types/HTTPError';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../../utils/Logging';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
+import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
@@ -27,8 +28,8 @@ export default class OCPISessionsService {
     if (!OCPISessionsService.validateSession(session)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'updateSession',
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        module: MODULE_NAME, method: 'updateTransaction',
+        errorCode: StatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
         detailedMessages: { session },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -46,7 +47,7 @@ export default class OCPISessionsService {
       if (!user) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'updateSession',
+          module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No User found for auth_id ${session.auth_id}`,
           detailedMessages: { session },
@@ -59,7 +60,7 @@ export default class OCPISessionsService {
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'updateSession',
+          module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No Charging Station found for ID '${evse.uid}'`,
           detailedMessages: { session },
@@ -69,7 +70,7 @@ export default class OCPISessionsService {
       if (chargingStation.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'updateSession',
+          module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `OCPI Transaction is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: { session },
@@ -79,11 +80,11 @@ export default class OCPISessionsService {
       let connectorId = 1;
       if (evse.connectors && evse.connectors.length === 1) {
         const evseConnectorId = evse.connectors[0].id;
-        chargingStation.connectors.forEach((connector) => {
+        for (const connector of chargingStation.connectors) {
           if (evseConnectorId === connector.id) {
             connectorId = connector.connectorId;
           }
-        });
+        }
       }
       transaction = {
         issuer: false,
@@ -117,8 +118,9 @@ export default class OCPISessionsService {
     if (moment(session.last_updated).isBefore(transaction.lastConsumption.timestamp)) {
       Logging.logDebug({
         tenantID: tenantId,
+        action: ServerAction.OCPI_PUSH_SESSION,
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'updateSession',
+        module: MODULE_NAME, method: 'updateTransaction',
         message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session }
       });
@@ -134,7 +136,7 @@ export default class OCPISessionsService {
     transaction.currentTimestamp = session.last_updated;
     transaction.price = session.total_cost;
     transaction.priceUnit = session.currency;
-    transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
+    transaction.roundedPrice = Utils.truncTo(session.total_cost, 2);
     transaction.lastConsumption = {
       value: session.kwh * 1000,
       timestamp: session.last_updated
@@ -148,7 +150,7 @@ export default class OCPISessionsService {
         price: session.total_cost,
         priceUnit: session.currency,
         pricingSource: 'ocpi',
-        roundedPrice: Utils.convertToFloat(session.total_cost.toFixed(2)),
+        roundedPrice: Utils.truncTo(session.total_cost, 2),
         stateOfCharge: 0,
         tagID: session.auth_id,
         timestamp: stopTimestamp,
@@ -167,7 +169,7 @@ export default class OCPISessionsService {
     if (!OCPISessionsService.validateCdr(cdr)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'postCdrRequest',
+        module: MODULE_NAME, method: 'processCdr',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cdr object is invalid',
         detailedMessages: { cdr },
@@ -178,7 +180,7 @@ export default class OCPISessionsService {
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'postCdrRequest',
+        module: MODULE_NAME, method: 'processCdr',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
         detailedMessages: { cdr },
@@ -199,7 +201,7 @@ export default class OCPISessionsService {
     }
     transaction.priceUnit = cdr.currency;
     transaction.price = cdr.total_cost;
-    transaction.roundedPrice = Utils.convertToFloat(cdr.total_cost.toFixed(2));
+    transaction.roundedPrice = Utils.truncTo(cdr.total_cost, 2);
     transaction.currentTimestamp = cdr.last_updated;
     transaction.stop = {
       extraInactivityComputed: false,
@@ -208,7 +210,7 @@ export default class OCPISessionsService {
       price: cdr.total_cost,
       priceUnit: cdr.currency,
       pricingSource: 'ocpi',
-      roundedPrice: Utils.convertToFloat(cdr.total_cost.toFixed(2)),
+      roundedPrice: Utils.truncTo(cdr.total_cost, 2),
       stateOfCharge: 0,
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,

@@ -7,4 +7,10 @@ export interface HttpTenantVerifyRequest {
 export interface HttpTenantsRequest extends HttpDatabaseRequest {
   Search?: string;
   WithLogo?: boolean;
+  WithComponents?: boolean;
+}
+
+export interface HttpTenantLogoRequest {
+  ID?: string;
+  Subdomain?: string;
 }

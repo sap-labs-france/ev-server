@@ -1,0 +1,90 @@
+{
+  "notifications": {
+    "sessionNotStarted": {
+      "title": "Sessão não iniciada",
+      "body": "Voce selecionou a estação de carga '{{chargeBoxID}}' mas a sessão não foi iniciada"
+    },
+    "sessionStarted": {
+      "title": "Sessão iniciada",
+      "body": "A sua sessão na estação '{{chargeBoxID}}', conector '{{connectorId}}' foi iniciada com sucesso no '{{tenantName}}'"
+    },
+    "ocpiPatchChargingStationsStatusesError": {
+      "title": "Enviando informações",
+      "body": "O envio de informações para a plataforma de carregamento '{{location}}' falhou, por favor veririfcar a informação no '{{tenantName}}'"
+    },
+    "smtpAuthError": {
+      "title": "Error no servidor de Email",
+      "body": "A autenticação no servidor de email falhou por favor verificar a configuração do  '{{tenantName}}'"
+    },
+    "optimalChargeReached": {
+      "title": "Carga Ideal alcançada",
+      "body": "O seu veículo eletrico conectado na estação'{{chargeBoxID}}', conector '{{connectorId}}', atingui a percentagem de carregamento de (85%) no '{{tenantName}}'"
+    },
+    "endOfCharge": {
+      "title": "Carregamento Terminado",
+      "body": "O seu veículo eletrico conectado na estação '{{chargeBoxID}}', conector '{{connectorId}}', terminou o carregamento no '{{tenantName}}'"
+    },
+    "endOfSession": {
+      "title": "Sessão Terminada",
+      "body": "A sessão de carregamento na estação '{{chargeBoxID}}', conector '{{connectorId}}' terminou o carregamento '{{tenantName}}'"
+    },
+    "chargingStationStatusError": {
+      "title": "Error na Estação de Carregamento",
+      "body": "Ocurreu um erro na estação '{{chargeBoxID}}', conector '{{connectorId}}' e '{{tenantName}}': {{error}}"
+    },
+    "unknownUserBadged": {
+      "title": "Utilizador Desconhecido",
+      "body": "Um utilizador desconhecido acabou de utilizar o'{{chargeBoxID}}' com o badge ID '{{badgeID}}' no'{{tenantName}}'"
+    },
+    "chargingStationRegistered": {
+      "title": "Estação de Carregamento Connectada",
+      "body": "A estação de carregamento '{{chargeBoxID}}' foi conectada ao servidor central do '{{tenantName}}'"
+    },
+    "userAccountStatusChanged": {
+      "title": "Conta {{status}}",
+      "activated": "activa",
+      "suspended": "suspensa",
+      "body": "A sua conta foi {{status}} pelo administrador do '{{tenantName}}'"
+    },
+    "userAccountInactivity": {
+      "title": "Conta de Utilizador",
+      "body": "A sua conta foi suspensa em {{lastLogin}} no carregador '{{tenantName}}'. Por rasões de segurança, tenha em atenção que uma conta inactiva por um periodo de 6 meses será eliminada"
+    },
+    "preparingSessionNotStarted": {
+      "title": "Sessão não iniciada",
+      "body": "A sessão não foi iniciada no '{{chargeBoxID}}', conector '{{connectorId}}' do '{{tenantName}}'"
+    },
+    "offlineChargingStation": {
+      "title": "Estações de carregamento Desligadas",
+      "body": "As seguintes estações de carregamento estão desligadas '{{tenantName}}': {{chargeBoxIDs}}"
+    },
+    "billingUserSynchronizationFailed": {
+      "title": "Falha ao efetuar a sincronização do utilizador",
+      "body": "Falha ao sincronizar {{nbrUsersInError}} o utilizador com o provedor de serviços de faturação do '{{tenantName}}'"
+    },
+    "billingInvoiceSynchronizationFailed": {
+      "title": "Falha na sincronização da fatura",
+      "body": "Falha ao sincronizar {{nbrInvoicesInError}} a fatura com o provedor de serviços de faturação do '{{tenantName}}'"
+    },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Charging Profiles failed",
+      "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
+    },
+    "endUserErrorNotification": {
+      "title": "Um utilizador reportou um erro",
+      "body": "'{{userName}}' reportou: '{{errorTitle}}' - '{{errorDescription}}' do '{{tenantName}}'"
+    }
+  },
+  "billing": {
+    "generatedUser": "Utilizador criado para '{{email}}'",
+    "chargingStopSiteArea": "Carregamento {{totalConsumption}} kWh na {{siteArea}} (terminado as {{time}})",
+    "chargingStopChargeBox": "Carregamento {{totalConsumption}} kWh em curso na estação {{chargeBox}} (termiando as {{time}})"
+  },
+  "tags": {
+    "virtualBadge": "Virtual Badge"
+  },
+  "chargers": {
+    "connector": "Connector"
+  },
+  "siteArea": "Area de Site"
+}

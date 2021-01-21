@@ -1,0 +1,35 @@
+{
+  "subject": "Faturação - Falha na sincronização do utilizador",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Faturação - Falha na sincronização do utilizador",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Caro Administrador,",
+      "",
+      "Não foi possível sincronizar <%- nbrUsersInError %> utilizadores (s) com o provedor de serviços de cobrança."
+    ],
+    "actions": [{
+      "title": "Mostrar Configurações",
+      "url": "<%- evseDashboardBillingURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

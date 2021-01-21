@@ -1,0 +1,37 @@
+{
+  "subject": "'<%- chargeBoxID %>' - Sessão não iniciada",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Sessão não iniciada",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Olá <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Você não iniciou a sessão na estação de carregamento <b> '<%- chargeBoxID %>' </b>, conector <b> '<% -connectorId %>' </b>.",
+      ""
+    ],
+    "actions": [{
+      "title": "View <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

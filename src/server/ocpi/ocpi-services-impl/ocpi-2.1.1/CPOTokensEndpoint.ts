@@ -4,7 +4,6 @@ import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OCPIMapping from './OCPIMapping';
@@ -13,8 +12,10 @@ import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import OCPITokensService from './OCPITokensService';
 import OCPIUtils from '../../OCPIUtils';
+import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'CPOTokensEndpoint';
@@ -76,6 +77,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     Logging.logDebug({
       tenantID: tenant.id,
+      action: ServerAction.OCPI_PUSH_TOKEN,
       module: MODULE_NAME, method: 'putToken',
       message: `Updating Token ID '${tokenId}' for eMSP '${countryCode}/${partyId}'`
     });
@@ -83,45 +85,44 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     if (!updatedToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'patchToken',
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        module: MODULE_NAME, method: 'putToken',
+        errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing content to put token ${tokenId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
     // Retrieve token
-    const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
-    if (user) {
-      const tag = user.tags.find((value) => value.id === tokenId);
-      if (user.issuer) {
+    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
+    if (tag) {
+      if (tag.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'patchToken',
-          errorCode: HttpStatusCodes.NOT_FOUND,
-          message: `Invalid User found for Token ID '${tokenId}', Token issued locally`,
-          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-        });
-      }
-      if (tag && tag.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'patchToken',
-          errorCode: HttpStatusCodes.NOT_FOUND,
+          module: MODULE_NAME, method: 'putToken',
+          errorCode: StatusCodes.NOT_FOUND,
           message: `Invalid User found for Token ID '${tokenId}', Token does not belongs to OCPI`,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
-      if (user.name !== OCPIUtils.buildOperatorName(countryCode, partyId)) {
+      if (tag.user?.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'patchToken',
-          errorCode: HttpStatusCodes.CONFLICT,
+          module: MODULE_NAME, method: 'putToken',
+          errorCode: StatusCodes.NOT_FOUND,
+          message: `Invalid User found for Token ID '${tokenId}', Token issued locally`,
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      }
+      if (tag.user.name !== OCPIUtils.buildOperatorName(countryCode, partyId)) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'putToken',
+          errorCode: StatusCodes.CONFLICT,
           message: `Invalid User found for Token ID '${tokenId}', Token belongs to another partner`,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
     }
-    await OCPITokensService.updateToken(tenant.id, ocpiEndpoint, updatedToken);
+    await OCPITokensService.updateToken(tenant.id, ocpiEndpoint, updatedToken, tag, tag.user);
     return OCPIUtils.success();
   }
 
@@ -140,6 +141,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     Logging.logDebug({
       tenantID: tenant.id,
+      action: ServerAction.OCPI_PATCH_TOKEN,
       module: MODULE_NAME, method: 'patchToken',
       message: `Patching Token ID '${tokenId}' for eMSP '${countryCode}/${partyId}'`
     });
@@ -148,46 +150,45 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchToken',
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing content to patch Token ID '${tokenId}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
     // Retrieve token
-    const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'patchToken',
-        errorCode: HttpStatusCodes.NOT_FOUND,
-        message: `No User found for Token ID '${tokenId}'`,
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-      });
-    }
-    const tag = user.tags.find((value) => value.id === tokenId);
-    if (user.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'patchToken',
-        errorCode: HttpStatusCodes.NOT_FOUND,
-        message: `Invalid User found for Token ID '${tokenId}', Token issued locally`,
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-      });
-    }
+    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
     if (!tag || !tag.ocpiToken || tag.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchToken',
-        errorCode: HttpStatusCodes.NOT_FOUND,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `Invalid User found for Token ID '${tokenId}', Token does not belongs to OCPI`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    if (user.name !== OCPIUtils.buildOperatorName(countryCode, partyId)) {
+    if (!tag.user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchToken',
-        errorCode: HttpStatusCodes.CONFLICT,
+        errorCode: StatusCodes.NOT_FOUND,
+        message: `No User found for Token ID '${tokenId}'`,
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    if (tag.user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'patchToken',
+        errorCode: StatusCodes.NOT_FOUND,
+        message: `Invalid User found for Token ID '${tokenId}', Token issued locally`,
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    if (tag.user.name !== OCPIUtils.buildOperatorName(countryCode, partyId)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'patchToken',
+        errorCode: StatusCodes.CONFLICT,
         message: `Invalid User found for Token '${tokenId}', Token belongs to another partner`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
@@ -222,12 +223,13 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchToken',
-        errorCode: HttpStatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing or invalid content to patch Token ID '${tokenId}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    await UserStorage.saveUserTag(tenant.id, user.id, tag);
+    tag.userID = tag.user.id;
+    await TagStorage.saveTag(tenant.id, tag);
     return OCPIUtils.success();
   }
 }

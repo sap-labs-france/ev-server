@@ -1,4 +1,4 @@
-import { ChargingProfile, ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
+import { ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
 
 import { OcppParameter } from '../ChargingStation';
 
@@ -56,6 +56,10 @@ export interface OCPPChangeConfigurationCommandResult {
   status: OCPPConfigurationStatus;
 }
 
+export interface OCPPCustomConfigurationParam extends OCPPChangeConfigurationCommandParam {
+  custom: boolean;
+}
+
 export enum OCPPConfigurationStatus {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected',
@@ -66,7 +70,7 @@ export enum OCPPConfigurationStatus {
 export interface OCPPRemoteStartTransactionCommandParam extends OCPPCommandParam {
   connectorId: number;
   idTag: string;
-  chargingProfile?: ChargingProfile;
+  chargingProfile?: Profile;
 }
 
 export interface OCPPRemoteStartTransactionCommandResult {
@@ -156,8 +160,8 @@ export enum OCPPChargingProfilePurposeType {
 }
 
 export interface OCPPChangeAvailabilityCommandParam extends OCPPCommandParam {
-  connectorId?: number;
-  type?: OCPPAvailabilityType;
+  connectorId: number;
+  type: OCPPAvailabilityType;
 }
 
 export interface OCPPChangeAvailabilityCommandResult {

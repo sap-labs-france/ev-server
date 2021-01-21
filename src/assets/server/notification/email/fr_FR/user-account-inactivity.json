@@ -25,10 +25,10 @@
       "",
       "Veuiller vous connecter à votre compte et prendre connaissance des dernières conditions générales d'utilisation."
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

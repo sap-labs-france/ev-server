@@ -33,6 +33,7 @@ export default class ContextDefinition {
     TENANT_BILLING: 'utbilling', // Only billing and pricing component is active
     TENANT_ASSET: 'utasset', // Only asset component is active
     TENANT_CAR: 'utcar', // Only car component is active
+    TENANT_SMART_CHARGING: 'utsmartcharging' // Organization and Smart Charging components are active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -45,7 +46,10 @@ export default class ContextDefinition {
   static readonly SITE_AREA_CONTEXTS: any = {
     NO_SITE: 'No site', // Used for unassigned Charging Station or CS in tenant with no organizations
     WITH_ACL: 'withACL', // ACL is active
-    WITHOUT_ACL: 'withoutACL' // ACL is inactive
+    WITHOUT_ACL: 'withoutACL', // ACL is inactive
+    WITH_SMART_CHARGING_THREE_PHASED: 'withSmartChargingThreePhased', // Smart Charging is active three phased
+    WITH_SMART_CHARGING_SINGLE_PHASED: 'withSmartChargingSinglePhased', // Smart Charging is active single phased
+    WITH_SMART_CHARGING_DC: 'withSmartChargingDC', // Smart Charging is active DC
   };
 
   static readonly CHARGING_STATION_CONTEXTS: any = {
@@ -61,28 +65,31 @@ export default class ContextDefinition {
 
   static readonly USER_CONTEXTS: any = {
     DEFAULT_ADMIN: {
-      role: 'A', status: 'A', assignedToSite: true, withTags: true
+      role: 'A', status: 'A', assignedToSite: true, withTags: true, issuer: true
     },
     ADMIN_UNASSIGNED: {
-      role: 'A', status: 'A', assignedToSite: false, withTags: true
+      role: 'A', status: 'A', assignedToSite: false, withTags: true, issuer: true
     },
     BASIC_USER: {
-      role: 'B', status: 'A', assignedToSite: true, withTags: true
+      role: 'B', status: 'A', assignedToSite: true, withTags: true, issuer: true
     },
     BASIC_USER_UNASSIGNED: {
-      role: 'B', status: 'A', assignedToSite: false, withTags: true
+      role: 'B', status: 'A', assignedToSite: false, withTags: true, issuer: true
     },
     BASIC_USER_PENDING: {
-      role: 'B', status: 'P', assignedToSite: true, withTags: true
+      role: 'B', status: 'P', assignedToSite: true, withTags: true, issuer: true
     },
     BASIC_USER_LOCKED: {
-      role: 'B', status: 'L', assignedToSite: true, withTags: true
+      role: 'B', status: 'L', assignedToSite: true, withTags: true, issuer: true
     },
     BASIC_USER_NO_TAGS: {
-      role: 'B', status: 'A', assignedToSite: true, withTags: false
+      role: 'B', status: 'A', assignedToSite: true, withTags: false, issuer: true
     },
     DEMO_USER: {
-      role: 'D', status: 'A', assignedToSite: true, withTags: true
+      role: 'D', status: 'A', assignedToSite: true, withTags: true, issuer: true
+    },
+    EXTERNAL_USER: {
+      role: 'B', status: 'A', assignedToSite: false, withTags: true, issuer: false
     },
   };
 
@@ -158,7 +165,10 @@ export default class ContextDefinition {
           sapSmartCharging: {
             optimizerUrl: '',
             user: '',
-            password: ''
+            password: '',
+            stickyLimitation: true,
+            limitBufferDC: 20,
+            limitBufferAC: 10,
           }
         }
       },
@@ -306,7 +316,8 @@ export default class ContextDefinition {
             taxID: ''
           }
         }
-      }
+      },
+      organization: {},
     },
   },
   {
@@ -325,7 +336,30 @@ export default class ContextDefinition {
     componentSettings: {
       car: {},
     }
-  }];
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_SMART_CHARGING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaab2',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_SMART_CHARGING,
+    componentSettings: {
+      organization: {},
+      smartCharging:
+      {
+        content:
+        {
+          type: SmartChargingSettingsType.SAP_SMART_CHARGING, sapSmartCharging:
+          {
+            optimizerUrl: '',
+            user: '',
+            password: '',
+            stickyLimitation: true,
+            limitBufferDC: 20,
+            limitBufferAC: 10, }
+        }
+      },
+    }
+  }
+  ];
 
   // List of users created in a tenant
   static readonly TENANT_USER_LIST: any = [
@@ -338,6 +372,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.issuer,
       role: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.role,
       status: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
@@ -355,6 +390,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.issuer,
       role: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.role,
       status: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.assignedToSite,
@@ -373,6 +409,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER.assignedToSite,
@@ -391,6 +428,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.DEMO_USER.issuer,
       role: ContextDefinition.USER_CONTEXTS.DEMO_USER.role,
       status: ContextDefinition.USER_CONTEXTS.DEMO_USER.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.DEMO_USER.assignedToSite,
@@ -409,6 +447,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.assignedToSite,
@@ -427,6 +466,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.assignedToSite,
@@ -445,6 +485,7 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.assignedToSite,
@@ -463,12 +504,32 @@ export default class ContextDefinition {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.issuer,
       role: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.role,
       status: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.status,
       assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.assignedToSite,
       emailPrefix: 'b-notTag',
       tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
         id: 'A123411',
+        issuer: false,
+        active: true
+      }] : null)
+    },
+    { // External User
+      id: '5ce249a1a39ae1c056c456ae',
+      name: 'External',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.issuer,
+      role: ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.role,
+      status: ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.assignedToSite,
+      emailPrefix: 'b-external-',
+      tags: (ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.withTags ? [{
+        id: 'A220311',
         issuer: false,
         active: true
       }] : null)
@@ -516,40 +577,72 @@ export default class ContextDefinition {
     { // With access control
       id: '5ce249a2372f0b1c8caf9294',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      numberOfPhases: 3,
       accessControl: true,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5476',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      numberOfPhases: 3,
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf1234',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      numberOfPhases: 3,
       accessControl: true,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf4678',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      numberOfPhases: 3,
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf5497',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      numberOfPhases: 3,
       accessControl: true,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5432',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      numberOfPhases: 3,
       accessControl: false,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+    },
+    // Smart Charging must be deactivated. (Connection to CS will fail, because they do not exist)
+    { // With smart charging three phased
+      id: '5ce249a2372f0b1c8caf5442',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`,
+      numberOfPhases: 3,
+      maximumPower: 100000,
+      voltage: 230,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+    },
+    { // With smart charging single phased
+      id: '5ce249a2372f0b1c8caf5443',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
+      numberOfPhases: 1,
+      maximumPower: 100000,
+      voltage: 230,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+    },
+    { // With smart charging DC
+      id: '5ce249a2372f0b1c8caf5444',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`,
+      numberOfPhases: 3,
+      maximumPower: 200000,
+      voltage: 230,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     }
   ];
+
 
   // List of Charging Station created in a tenant
   // siteAreaNames must refer the site Areas where teh charging station will be created
@@ -564,7 +657,10 @@ export default class ContextDefinition {
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
-        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`]
     },
     {
       baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15, // Concatenated with siteAreaName

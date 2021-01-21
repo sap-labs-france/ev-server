@@ -1,3 +1,5 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
@@ -6,72 +8,74 @@ import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import RegistrationToken from '../../types/RegistrationToken';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'RegistrationTokenStorage';
 
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenantID: string, registrationToken: RegistrationToken): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveRegistrationToken');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveRegistrationToken');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const registrationTokenMDB = {
-      _id: !registrationToken.id ? new ObjectID() : Utils.convertToObjectID(registrationToken.id),
+      _id: registrationToken.id ? Utils.convertToObjectID(registrationToken.id) : new ObjectID(),
       description: registrationToken.description,
-      siteAreaID: registrationToken.siteAreaID ? Utils.convertToObjectID(registrationToken.siteAreaID) : null,
-      expirationDate: registrationToken.expirationDate,
-      revocationDate: registrationToken.revocationDate
+      siteAreaID: Utils.convertToObjectID(registrationToken.siteAreaID),
+      expirationDate: Utils.convertToDate(registrationToken.expirationDate),
+      revocationDate: Utils.convertToDate(registrationToken.revocationDate)
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(registrationTokenMDB, registrationToken);
     // Modify
-    await global.database.getCollection<RegistrationTokenStorage>(tenantID, 'registrationtokens').findOneAndUpdate(
+    await global.database.getCollection(tenantID, 'registrationtokens').findOneAndUpdate(
       { _id: registrationTokenMDB._id },
       { $set: registrationTokenMDB },
       { upsert: true, returnOriginal: false }
     );
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, { registrationToken });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, registrationTokenMDB);
     return registrationTokenMDB._id.toHexString();
   }
 
   static async getRegistrationTokens(tenantID: string,
-    params: { id?: string; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams):
+    params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
     Promise<DataResult<RegistrationToken>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRegistrationTokens');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getRegistrationTokens');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
-    dbParams = Utils.cloneJSonDocument(dbParams);
+    dbParams = Utils.cloneObject(dbParams);
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Add Site Area
+    DatabaseUtils.pushSiteAreaLookupInAggregation({
+      tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
+      asField: 'siteArea', oneToOneCardinality: true
+    });
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     // Build filter
     if (params.siteAreaID) {
       filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
     }
     // Build filter
-    if (params.id) {
-      filters._id = Utils.convertToObjectID(params.id);
+    if (!Utils.isEmptyArray(params.tokenIDs)) {
+      filters._id = {
+        $in: params.tokenIDs.map((tokenID) => Utils.convertToObjectID(tokenID))
+      };
     }
+    // Sites
     if (!Utils.isEmptyArray(params.siteIDs)) {
-      // Build filter
       filters['siteArea.siteID'] = {
         $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
-    // Create Aggregation
-    const aggregation = [];
-    DatabaseUtils.pushSiteAreaLookupInAggregation({
-      tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
-      asField: 'siteArea', oneToOneCardinality: true
-    });
     // Filters
     if (filters) {
       aggregation.push({
@@ -90,6 +94,7 @@ export default class RegistrationTokenStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokensCountMDB);
       return {
         count: (registrationTokensCountMDB.length > 0 ? registrationTokensCountMDB[0].count : 0),
         result: []
@@ -114,13 +119,18 @@ export default class RegistrationTokenStorage {
     aggregation.push({
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const registrationTokens = await global.database.getCollection<any>(tenantID, 'registrationtokens')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getRegistrationTokens', uniqueTimerID,
-      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokens);
     // Ok
     return {
       count: (registrationTokensCountMDB.length > 0 ?
@@ -130,26 +140,18 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationToken(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<RegistrationToken> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRegistrationToken');
-    // Reuse
-    const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(tenantID, { id: id }, Constants.DB_PARAMS_SINGLE_RECORD);
-    let registrationToken: RegistrationToken = null;
-    // Check
-    if (registrationTokens && registrationTokens.count > 0) {
-      registrationToken = registrationTokens.result[0];
-    }
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'getRegistrationToken', uniqueTimerID, { id });
-    return registrationToken;
+    const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(tenantID, {
+      tokenIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return registrationTokensMDB.count === 1 ? registrationTokensMDB.result[0] : null;
   }
 
   static async deleteRegistrationToken(tenantID: string, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteRegistrationToken');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteRegistrationToken');
     await global.database.getCollection<any>(tenantID, 'registrationtokens')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteRegistrationToken', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteRegistrationToken', uniqueTimerID, { id });
   }
 }

@@ -7,12 +7,12 @@ import BackendError from '../../exception/BackendError';
 import { Configuration } from '../../types/configuration/Configuration';
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../utils/Logging';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from './OCPIUtils';
 import { ServerAction } from '../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -27,7 +27,7 @@ export interface TenantIdHoldingRequest extends Request {
 export default abstract class AbstractOCPIService {
   public static readonly VERSIONS_PATH = '/versions';
 
-  private endpoints: Map<string, AbstractEndpoint> = new Map();
+  private endpoints: Map<string, AbstractEndpoint> = new Map<string, AbstractEndpoint>();
 
   // Create OCPI Service
   protected constructor(
@@ -103,6 +103,7 @@ export default abstract class AbstractOCPIService {
         await this.processEndpointAction(action, req, res, next);
         break;
     }
+    next();
   }
 
   /**
@@ -133,7 +134,7 @@ export default abstract class AbstractOCPIService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
-          errorCode: HttpStatusCodes.UNAUTHORIZED,
+          errorCode: StatusCodes.UNAUTHORIZED,
           message: 'Missing authorization token',
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
@@ -148,7 +149,7 @@ export default abstract class AbstractOCPIService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
-          errorCode: HttpStatusCodes.UNAUTHORIZED,
+          errorCode: StatusCodes.UNAUTHORIZED,
           message: 'Invalid authorization token',
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -164,7 +165,7 @@ export default abstract class AbstractOCPIService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
-          errorCode: HttpStatusCodes.UNAUTHORIZED,
+          errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not exist`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -174,7 +175,7 @@ export default abstract class AbstractOCPIService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
-          errorCode: HttpStatusCodes.UNAUTHORIZED,
+          errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not support OCPI`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -186,7 +187,7 @@ export default abstract class AbstractOCPIService {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
-          errorCode: HttpStatusCodes.UNAUTHORIZED,
+          errorCode: StatusCodes.UNAUTHORIZED,
           message: 'Invalid token',
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -223,10 +224,9 @@ export default abstract class AbstractOCPIService {
             message: `<< OCPI Endpoint ${req.method} ${req.originalUrl} not implemented`,
             action: ServerAction.OCPI_ENDPOINT
           });
-          res.sendStatus(HttpStatusCodes.NOT_IMPLEMENTED);
+          res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
         }
       } else {
-        // pragma res.sendStatus(501);
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',

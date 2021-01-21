@@ -5,11 +5,12 @@ export interface HttpTransactionsRefundRequest {
 }
 
 export interface HttpAssignTransactionsToUserRequest {
-  UserID?: string;
+  UserID: string;
+  TagID: string;
 }
 
 export interface HttpUnassignTransactionsToUserRequest {
-  UserID?: string;
+  TagID: string;
 }
 
 export interface HttpTransactionRequest {
@@ -27,6 +28,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   SiteAreaID?: string;
   SiteID?: string;
   UserID?: string;
+  TagID?: string;
   StartDateTime?: Date;
   EndDateTime?: Date;
   Search?: string;

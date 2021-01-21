@@ -1,0 +1,38 @@
+{
+  "subject": "Conta criada com Sucesso",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Conta Criada",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Olá <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "A sua conta foi criada com sucesso.",
+      "",
+      "Clique no link abaixo para ativá-lo."
+    ],
+    "actions": [{
+      "title": "Ative sua conta",
+      "url": "<%- evseDashboardVerifyEmailURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

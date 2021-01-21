@@ -2,10 +2,11 @@
 export enum ServerAction {
   LOGIN = 'Login',
   LOGOUT = 'Logout',
+  PASSWORD_RESET = 'Reset',
   PING = 'Ping',
   CHECK_CONNECTION = 'CheckConnection',
-  RESET = 'Reset',
 
+  CHARGING_STATION_CLIENT_INITIALIZATION = 'ChargingStationClientInitialization',
   CHARGING_STATION_RESET = 'ChargingStationReset',
   CHARGING_STATION_REQUEST_OCPP_PARAMETERS = 'ChargingStationRequestOcppParameters',
   CHARGING_STATION_CLEAR_CACHE = 'ChargingStationClearCache',
@@ -21,6 +22,7 @@ export enum ServerAction {
   CHARGING_STATION_GET_DIAGNOSTICS = 'ChargingStationGetDiagnostics',
   CHARGING_STATION_UPDATE_FIRMWARE = 'ChargingStationUpdateFirmware',
   CHARGING_STATION_CHANGE_AVAILABILITY = 'ChargingStationChangeAvailability',
+  CHARGING_STATION_DOWNLOAD_QR_CODE_PDF = 'ChargingStationDownloadQrCodePdf',
 
   CHARGING_STATIONS_EXPORT = 'ChargingStationsExport',
   CHARGING_STATIONS_OCPP_PARAMS_EXPORT = 'ChargingStationsOCPPParamsExport',
@@ -73,6 +75,7 @@ export enum ServerAction {
   CHARGING_PROFILES = 'ChargingProfiles',
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
+  GENERATE_QR_CODE_FOR_CONNECTOR = 'GenerateQrCodeForConnector',
   OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
   RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
   END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
@@ -88,7 +91,7 @@ export enum ServerAction {
 
   REMOTE_PUSH_NOTIFICATION = 'RemotePushNotification',
   EMAIL_NOTIFICATION = 'EmailNotification',
-  END_USER_ERROR_NOTIFICATION = 'EndUserErrorNotification',
+  END_USER_REPORT_ERROR = 'EndUserReportError',
 
   SYNCHRONIZE_REFUND = 'RefundSynchronize',
 
@@ -99,9 +102,10 @@ export enum ServerAction {
   INTEGRATION_CONNECTION = 'IntegrationConnection',
   INTEGRATION_CONNECTION_DELETE = 'IntegrationConnectionDelete',
 
+  OCPI_SETTINGS = 'OcpiSettings',
+  OCPI_CLIENT_INITIALIZATION = 'OcpiClientInitialization',
   OCPI_ENPOINT_CREATE = 'OcpiEndpointCreate',
   OCPI_ENPOINT_PING = 'OcpiEndpointPing',
-  OCPI_ENPOINT_TRIGGER_JOBS = 'OcpiEndpointTriggerJobs',
   OCPI_ENPOINT_CHECK_CDRS = 'OcpiEndpointCheckCdrs',
   OCPI_ENPOINT_CHECK_LOCATIONS = 'OcpiEndpointCheckLocations',
   OCPI_ENPOINT_CHECK_SESSIONS = 'OcpiEndpointCheckSessions',
@@ -116,14 +120,18 @@ export enum ServerAction {
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_REGISTER = 'OcpiRegister',
   OCPI_AUTHORIZE_TOKEN = 'OcpiAuthorizeToken',
+  OCPI_PATCH_TOKEN = 'OcpiPatchToken',
   OCPI_PATCH_LOCATIONS = 'OcpiPatchLocations',
   OCPI_PATCH_STATUS = 'OcpiPatchStatus',
   OCPI_CHECK_CDRS = 'OcpiCheckCdrs',
   OCPI_CHECK_SESSIONS = 'OcpiCheckSessions',
   OCPI_CHECK_LOCATIONS = 'OcpiCheckLocations',
   OCPI_CHECK_TOKENS = 'OcpiCheckTokens',
+  OCPI_PUSH_TOKEN = 'OcpiPushToken',
   OCPI_PUSH_TOKENS = 'OcpiPushTokens',
+  OCPI_PUSH_SESSION = 'OcpiPushSession',
   OCPI_PUSH_SESSIONS = 'OcpiPushSessions',
+  OCPI_PUSH_LOCATIONS = 'OcpiPushLocations',
   OCPI_PUSH_CDRS = 'OcpiPushCdrs',
   OCPI_PULL_CDRS = 'OcpiPullCdrs',
   OCPI_PULL_LOCATIONS = 'OcpiPullLocations',
@@ -135,9 +143,6 @@ export enum ServerAction {
   OCPI_UNLOCK_CONNECTOR = 'OcpiUnlockConnector',
   OCPI_GET_VERSIONS = 'OcpiGetVersions',
   OCPI_GET_LOCATIONS = 'OcpiGetLocations',
-  OCPI_GET_SESSIONS = 'OcpiGetSessions',
-  OCPI_GET_TOKENS = 'OcpiGetTokens',
-  OCPI_GET_CDRS = 'OcpiGetCdrs',
   OCPI_GET_TARIFF = 'OcpiGetTariff',
   OCPI_GET_TARIFFS = 'OcpiGetTariffs',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
@@ -154,6 +159,7 @@ export enum ServerAction {
   AUTHORIZATIONS = 'Authorizations',
 
   DB_WATCH = 'DBWatch',
+  DB_MONITOR = 'DBMonitor',
 
   EXPRESS_SERVER = 'ExpressServer',
   ODATA_SERVER = 'ODataServer',
@@ -173,13 +179,16 @@ export enum ServerAction {
   CONSUMPTION = 'Consumption',
   REBUILD_TRANSACTION_CONSUMPTIONS = 'RebuildTransactionConsumptions',
 
-  WS_ERROR = 'WSError',
   WS_CLIENT_ERROR = 'WSClientError',
   WS_CLIENT_INFO = 'WSClientInfo',
 
   WS_CONNECTION = 'WSConnection',
+  WS_CONNECTION_OPENED = 'WSConnectionOpened',
+  WS_CONNECTION_CLOSED = 'WSConnectionClosed',
+
   WS_JSON_CONNECTION_OPENED = 'WSJsonConnectionOpened',
   WS_JSON_CONNECTION_CLOSED = 'WSJsonConnectionClosed',
+  WS_JSON_CONNECTION_ERROR = 'WSJsonConnectionError',
 
   WS_REST_CONNECTION_OPENED = 'WSRestServerConnectionOpened',
   WS_REST_CONNECTION_CLOSED = 'WSRestServerConnectionClosed',
@@ -190,6 +199,7 @@ export enum ServerAction {
   WS_REST_CLIENT_SEND_MESSAGE = 'WSRestClientSendMessage',
   WS_REST_CLIENT_CONNECTION_CLOSED = 'WSRestClientConnectionClosed',
   WS_REST_CLIENT_CONNECTION_OPENED = 'WSRestClientConnectionOpened',
+  WS_REST_CLIENT_CONNECTION_ERROR = 'WSRestClientConnectionError',
 
   BOOT_NOTIFICATION = 'BootNotification',
 
@@ -238,6 +248,8 @@ export enum ServerAction {
   UNASSIGNED_TRANSACTIONS_COUNT = 'UnassignedTransactionsCount',
   TRANSACTION = 'Transaction',
   TRANSACTION_CONSUMPTION = 'TransactionConsumption',
+
+  TRANSACTION_OCPI_CDR_EXPORT = 'TransactionOcpiCdrExport',
 
   CHARGING_STATION_CONSUMPTION_STATISTICS = 'ChargingStationConsumptionStatistics',
   CHARGING_STATION_USAGE_STATISTICS = 'ChargingStationUsageStatistics',
@@ -331,7 +343,15 @@ export enum ServerAction {
   USER_SITES = 'UserSites',
   USERS_IN_ERROR = 'UsersInError',
   USER_IMAGE = 'UserImage',
+  TAGS = 'Tags',
+  TAG = 'Tag',
+  USER_DEFAUlT_TAG_CAR = 'UserDefaultTagCar',
+  TAG_CREATE = 'TagCreate',
+  TAG_UPDATE = 'TagUpdate',
+  TAG_DELETE = 'TagDelete',
+  TAGS_DELETE = 'TagsDelete',
   USER = 'User',
+  USERS_EXPORT = 'UsersExport',
 
   NOTIFICATIONS = 'Notifications',
 
@@ -352,10 +372,12 @@ export enum ServerAction {
   BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
   BILLING_CREATE_TRANSACTION_INVOICE = 'BillingCreateTransactionInvoice',
+  BILLING_NEW_INVOICE = 'BillingNewInvoice',
 
   MONGO_DB = 'MongoDB',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
+  COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED = 'ComputeAndApplyChargingProfilesFailed',
   SMART_CHARGING = 'SmartCharging',
 
   INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',
@@ -363,4 +385,16 @@ export enum ServerAction {
   HTTP_REQUEST = 'HttpRequest',
   HTTP_RESPONSE = 'HttpResponse',
   HTTP_ERROR = 'HttpError',
+
+  // RESTful API
+  REST_SIGNIN = 'signin',
+  REST_SIGNON = 'signon',
+  REST_SIGNOUT = 'signout',
+  REST_PASSWORD_RESET = 'password/reset',
+  REST_END_USER_LICENSE_AGREEMENT = 'eula',
+  REST_END_USER_LICENSE_AGREEMENT_CHECK = 'eula/check',
+  REST_MAIL_CHECK = 'mail/check',
+  REST_MAIL_RESEND = 'mail/resend',
+  REST_PING = 'ping',
+  REST_TENANTS = 'tenants'
 }

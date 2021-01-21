@@ -77,10 +77,6 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
         });
@@ -133,6 +129,10 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testDataTransfer();
         });
 
+        it('Should not be able to remote start transaction without a badge', async () => {
+          await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
+        });
+
       });
 
       describe('Where basic user', () => {
@@ -159,6 +159,20 @@ describe('OCPP tests (all versions)', function() {
 
         it('Should authorize transaction', async () => {
           await testData.ocppCommonTests.testStartTransaction();
+        });
+
+      });
+
+      describe('Where external user', () => {
+
+        before(() => {
+          testData.ocppCommonTests.setUsers(
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
+          );
+        });
+
+        it('Should not be authorized on a remote start transaction', async () => {
+          await testData.ocppCommonTests.testRemoteStartTransactionWithExternalUser();
         });
 
       });
@@ -186,10 +200,6 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
         });
@@ -242,6 +252,10 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testDataTransfer();
         });
 
+        it('Should not be able to remote start transaction without a badge', async () => {
+          await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
+        });
+
       });
 
       describe('Where basic user', () => {
@@ -268,6 +282,20 @@ describe('OCPP tests (all versions)', function() {
 
         it('Should authorize transaction', async () => {
           await testData.ocppCommonTests.testStartTransaction();
+        });
+
+      });
+
+      describe('Where external user', () => {
+
+        before(() => {
+          testData.ocppCommonTests.setUsers(
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
+          );
+        });
+
+        it('Should not be authorized on a remote start transaction', async () => {
+          await testData.ocppCommonTests.testRemoteStartTransactionWithExternalUser();
         });
 
       });
@@ -391,6 +419,20 @@ describe('OCPP tests (all versions)', function() {
 
         });
 
+        describe('Where external user', () => {
+
+          before(() => {
+            testData.ocppCommonTests.setUsers(
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
+            );
+          });
+
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithExternalUser();
+          });
+
+        });
+
       });
 
       describe('With charger not assigned to a site area', () => {
@@ -416,6 +458,10 @@ describe('OCPP tests (all versions)', function() {
             await testData.ocppCommonTests.testStartTransaction(false);
           });
 
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithUnassignedChargingStation();
+          });
+
         });
 
         describe('Where unassigned basic user', () => {
@@ -428,6 +474,10 @@ describe('OCPP tests (all versions)', function() {
 
           it('Should not authorize transaction', async () => {
             await testData.ocppCommonTests.testStartTransaction(false);
+          });
+
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithUnassignedChargingStation();
           });
 
         });
@@ -444,6 +494,10 @@ describe('OCPP tests (all versions)', function() {
             await testData.ocppCommonTests.testStartTransaction(false);
           });
 
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithUnassignedChargingStation();
+          });
+
         });
 
         describe('Where unassigned admin user', () => {
@@ -456,6 +510,24 @@ describe('OCPP tests (all versions)', function() {
 
           it('Should not authorize transaction', async () => {
             await testData.ocppCommonTests.testStartTransaction(false);
+          });
+
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithUnassignedChargingStation();
+          });
+
+        });
+
+        describe('Where external user', () => {
+
+          before(() => {
+            testData.ocppCommonTests.setUsers(
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
+            );
+          });
+
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithUnassignedChargingStation();
           });
 
         });
@@ -562,6 +634,20 @@ describe('OCPP tests (all versions)', function() {
 
         });
 
+        describe('Where external user', () => {
+
+          before(() => {
+            testData.ocppCommonTests.setUsers(
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
+            );
+          });
+
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithExternalUser();
+          });
+
+        });
+
       });
 
       describe('With charger not assigned to a site area', () => {
@@ -601,6 +687,10 @@ describe('OCPP tests (all versions)', function() {
             await testData.ocppCommonTests.testStartTransaction(false);
           });
 
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithUnassignedChargingStation();
+          });
+
         });
 
         describe('Where admin user', () => {
@@ -615,6 +705,10 @@ describe('OCPP tests (all versions)', function() {
             await testData.ocppCommonTests.testStartTransaction(false);
           });
 
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithUnassignedChargingStation();
+          });
+
         });
 
         describe('Where unassigned admin user', () => {
@@ -627,6 +721,24 @@ describe('OCPP tests (all versions)', function() {
 
           it('Should not authorize transaction', async () => {
             await testData.ocppCommonTests.testStartTransaction(false);
+          });
+
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithUnassignedChargingStation();
+          });
+
+        });
+
+        describe('Where external user', () => {
+
+          before(() => {
+            testData.ocppCommonTests.setUsers(
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
+            );
+          });
+
+          it('Should not be authorized on a remote start transaction', async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithUnassignedChargingStation();
           });
 
         });
@@ -673,10 +785,6 @@ describe('OCPP tests (all versions)', function() {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
-
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start a transaction with connectorId as string', async () => {
@@ -729,6 +837,10 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should send data transfer', async () => {
           await testData.ocppCommonTests.testDataTransfer();
+        });
+
+        it('Should not be able to remote start transaction without a badge', async () => {
+          await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
         });
 
       });
@@ -849,10 +961,6 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('With unknown badge ID should create an unknown user', async () => {
-          await testData.ocppCommonTests.testAuthorizeUnknownTag();
-        });
-
         it('Should be able to start a transaction with connectorId as string', async () => {
           await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
         });
@@ -903,6 +1011,10 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should send data transfer', async () => {
           await testData.ocppCommonTests.testDataTransfer();
+        });
+
+        it('Should not be able to remote start transaction without a badge', async () => {
+          await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
         });
 
       });

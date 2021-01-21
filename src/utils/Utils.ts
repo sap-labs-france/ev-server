@@ -1,60 +1,56 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { Car, CarCatalog, CarType } from '../types/Car';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, SiteAreaLimitSource } from '../types/ChargingStation';
-import Transaction, { InactivityStatus } from '../types/Transaction';
+import { Car, CarCatalog } from '../types/Car';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
+import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 
-import { ActionsResponse } from '../types/GlobalType';
 import Address from '../types/Address';
-import AppError from '../exception/AppError';
-import Asset from '../types/Asset';
-import Authorizations from '../authorization/Authorizations';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
-import { ChargingProfile } from '../types/ChargingProfile';
-import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
-import Company from '../types/Company';
 import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
-import Consumption from '../types/Consumption';
 import Cypher from './Cypher';
-import { HTTPError } from '../types/HTTPError';
-import { HttpEndUserErrorNotificationRequest } from '../types/requests/HttpNotificationRequest';
-import Logging from './Logging';
-import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
+import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
-import Site from '../types/Site';
-import SiteArea from '../types/SiteArea';
-import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
+import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import cfenv from 'cfenv';
 import crypto from 'crypto';
 import fs from 'fs';
 import http from 'http';
 import moment from 'moment';
+import os from 'os';
 import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
-import url from 'url';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
-  private static tenants = [];
-  private static centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-  private static centralSystemRestServer = Configuration.getCentralSystemRestServer();
+  public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
+    const connectors: Connector[] = [];
+    if (!chargingStation || !chargePoint || Utils.isEmptyArray(chargePoint.connectorIDs)) {
+      return connectors;
+    }
+    for (const connectorID of chargePoint.connectorIDs) {
+      const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+      if (connector) {
+        connectors.push(connector);
+      }
+    }
+    return connectors;
+  }
 
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
@@ -70,39 +66,65 @@ export default class Utils {
     });
   }
 
-  public static isDevMode(): boolean {
-    return process.env.NODE_ENV === 'development';
-  }
-
   public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    let threePhases = true;
     if (currentType === CurrentType.AC &&
-      (transaction.currentInstantAmpsL1 > 0 &&
-        (transaction.currentInstantAmpsL2 === 0 ||
-          transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL2 > 0 &&
-        (transaction.currentInstantAmpsL1 === 0 ||
-          transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL3 > 0 &&
-        (transaction.currentInstantAmpsL1 === 0 ||
-          transaction.currentInstantAmpsL2 === 0))) {
-      threePhases = false;
+      (transaction.currentInstantAmpsL1 > 0 && (transaction.currentInstantAmpsL2 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL2 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL3 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL2 === 0))) {
+      return false;
     }
-    return threePhases;
+    return true;
   }
 
-  public static getNumberOfUsedPhaseInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
+  public static getUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): CSPhasesUsed {
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    let nbrOfPhases = 0;
-    if (currentType === CurrentType.AC) {
-      if (transaction.currentInstantAmpsL1 > 0) {
+    // AC Chargers
+    if (currentType === CurrentType.AC && Utils.checkIfPhasesProvidedInTransactionInProgress(transaction)) {
+      const cSPhasesUsed: CSPhasesUsed = {
+        csPhase1: false,
+        csPhase2: false,
+        csPhase3: false
+      };
+      // Check current consumption
+      if (transaction.currentInstantAmpsL1 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
+        cSPhasesUsed.csPhase1 = true;
+      }
+      if (transaction.currentInstantAmpsL2 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
+        cSPhasesUsed.csPhase2 = true;
+      }
+      if (transaction.currentInstantAmpsL3 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
+        cSPhasesUsed.csPhase3 = true;
+      }
+      return cSPhasesUsed;
+    }
+    // Standard on three phases
+    return {
+      csPhase1: true,
+      csPhase2: true,
+      csPhase3: true
+    };
+  }
+
+  public static checkIfPhasesProvidedInTransactionInProgress(transaction: Transaction): boolean {
+    return transaction.currentInstantAmps > Constants.AMPERAGE_DETECTION_THRESHOLD &&
+      (transaction.currentInstantAmpsL1 > Constants.AMPERAGE_DETECTION_THRESHOLD ||
+        transaction.currentInstantAmpsL2 > Constants.AMPERAGE_DETECTION_THRESHOLD ||
+        transaction.currentInstantAmpsL3 > Constants.AMPERAGE_DETECTION_THRESHOLD);
+  }
+
+  public static getNumberOfUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+    let nbrOfPhases = -1;
+    if (currentType === CurrentType.AC && transaction.phasesUsed) {
+      nbrOfPhases = 0;
+      if (transaction.phasesUsed.csPhase1) {
         nbrOfPhases++;
       }
-      if (transaction.currentInstantAmpsL2 > 0) {
+      if (transaction.phasesUsed.csPhase2) {
         nbrOfPhases++;
       }
-      if (transaction.currentInstantAmpsL3 > 0) {
+      if (transaction.phasesUsed.csPhase3) {
         nbrOfPhases++;
       }
     }
@@ -115,18 +137,20 @@ export default class Utils {
       return 0;
     }
     const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-    if (connector.power <= 3680) {
-      // Notify every 120 mins
-      intervalMins = 120;
-    } else if (connector.power <= 7360) {
-      // Notify every 60 mins
-      intervalMins = 60;
-    } else if (connector.power < 50000) {
-      // Notify every 30 mins
-      intervalMins = 30;
-    } else if (connector.power >= 50000) {
-      // Notify every 15 mins
-      intervalMins = 15;
+    if (connector) {
+      if (connector.power <= 3680) {
+        // Notify every 120 mins
+        intervalMins = 120;
+      } else if (connector.power <= 7360) {
+        // Notify every 60 mins
+        intervalMins = 60;
+      } else if (connector.power < 50000) {
+        // Notify every 30 mins
+        intervalMins = 30;
+      } else if (connector.power >= 50000) {
+        // Notify every 15 mins
+        intervalMins = 15;
+      }
     }
     return intervalMins;
   }
@@ -149,47 +173,6 @@ export default class Utils {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  public static logActionsResponse(
-    tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
-    messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string): void {
-    // Replace
-    messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
-    messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
-    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
-    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', actionsResponse.inError.toString());
-    // Success and Error
-    if (actionsResponse.inSuccess > 0 && actionsResponse.inError > 0) {
-      Logging.logError({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action, module, method,
-        message: messageSuccessAndError
-      });
-    } else if (actionsResponse.inSuccess > 0) {
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action, module, method,
-        message: messageSuccess
-      });
-    } else if (actionsResponse.inError > 0) {
-      Logging.logError({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action, module, method,
-        message: messageError
-      });
-    } else {
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action, module, method,
-        message: messageNoSuccessNoError
-      });
-    }
-  }
-
   public static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatus {
     if (!inactivitySecs) {
       return InactivityStatus.INFO;
@@ -205,19 +188,19 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
-  public static getRoundedNumberToTwoDecimals(numberToRound: number): number {
-    return Math.round(numberToRound * 100) / 100;
-  }
-
   public static objectHasProperty(object: any, key: string): boolean {
     return _.has(object, key);
   }
 
-  public static generateGUID(): string {
+  public static isBooleanValue(value: boolean): boolean {
+    return _.isBoolean(value);
+  }
+
+  public static generateUUID(): string {
     return uuid();
   }
 
-  static generateTagID(name: string, firstName: string): string {
+  public static generateTagID(name: string, firstName: string): string {
     let tagID = '';
     if (name && name.length > 0) {
       tagID = name[0].toUpperCase();
@@ -229,7 +212,7 @@ export default class Utils {
     } else {
       tagID += 'F';
     }
-    tagID += Math.floor((Math.random() * 2147483648) + 1);
+    tagID += Utils.getRandomIntSafe();
     return tagID;
   }
 
@@ -242,6 +225,11 @@ export default class Utils {
 
   public static isUndefined(obj: any): boolean {
     return typeof obj === 'undefined';
+  }
+
+  public static isNullOrUndefined(obj: any): boolean {
+    // eslint-disable-next-line no-eq-null, eqeqeq
+    return obj == null;
   }
 
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
@@ -264,7 +252,6 @@ export default class Utils {
         continue;
       }
       // Check connectors
-      Utils.checkAndUpdateConnectorsStatus(chargingStation);
       connectorStats.totalChargers++;
       // Handle Connectors
       if (!chargingStation.connectors) {
@@ -316,53 +303,6 @@ export default class Utils {
     return connectorStats;
   }
 
-  public static getChargingStationHeartbeatMaxIntervalSecs(): number {
-    // Get Heartbeat Interval from conf
-    const config = Configuration.getChargingStationConfig();
-    return config.heartbeatIntervalSecs * 3;
-  }
-
-  public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation): void {
-    // Cannot charge in //
-    if (chargingStation.chargePoints) {
-      for (const chargePoint of chargingStation.chargePoints) {
-        if (chargePoint.cannotChargeInParallel) {
-          let lockAllConnectors = false;
-          // Check
-          for (const connectorID of chargePoint.connectorIDs) {
-            const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-            if (!connector) {
-              continue;
-            }
-            if (connector.status !== ChargePointStatus.AVAILABLE) {
-              lockAllConnectors = true;
-              break;
-            }
-          }
-          // Lock?
-          if (lockAllConnectors) {
-            for (const connectorID of chargePoint.connectorIDs) {
-              const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-              if (!connector) {
-                continue;
-              }
-              if (connector.status === ChargePointStatus.AVAILABLE) {
-                // Check OCPP Version
-                if (chargingStation.ocppVersion === OCPPVersion.VERSION_15) {
-                  // Set OCPP 1.5 Occupied
-                  connector.status = ChargePointStatus.OCCUPIED;
-                } else {
-                  // Set OCPP 1.6 Unavailable
-                  connector.status = ChargePointStatus.UNAVAILABLE;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
   /**
    * Map user locale (en_US, fr_FR...) to language (en, fr...)
    * @param locale
@@ -387,35 +327,10 @@ export default class Utils {
       return 'es_MX';
     } else if (language === 'de') {
       return 'de_DE';
+    } else if (language === 'pt') {
+      return 'pt_PT';
     }
     return Constants.DEFAULT_LOCALE;
-  }
-
-  public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
-    // Normalize
-    Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
-    Utils._normalizeOneSOAPParam(headers, 'Action');
-    Utils._normalizeOneSOAPParam(headers, 'To');
-    Utils._normalizeOneSOAPParam(headers, 'From.Address');
-    Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
-    // Parse the request (lower case for fucking charging station DBT URL registration)
-    const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
-    const tenantID = urlParts.query.tenantid as string;
-    const token = urlParts.query.token;
-    // Check
-    await Utils.checkTenant(tenantID);
-    // Set the Tenant ID
-    headers.tenantID = tenantID;
-    headers.token = token;
-
-    if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
-      throw new BackendError({
-        source: headers.chargeBoxIdentity,
-        module: MODULE_NAME,
-        method: 'normalizeAndCheckSOAPParams',
-        message: 'The Charging Station ID is invalid'
-      });
-    }
   }
 
   public static getConnectorLimitSourceString(limitSource: ConnectorCurrentLimitSource): string {
@@ -429,41 +344,24 @@ export default class Utils {
     }
   }
 
-  public static async checkTenant(tenantID: string): Promise<void> {
-    if (!tenantID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'checkTenant',
-        message: 'The Tenant ID is mandatory'
-      });
-    }
-    // Check in cache
-    if (Utils.tenants.includes(tenantID)) {
-      return Promise.resolve(null);
-    }
-    if (tenantID !== Constants.DEFAULT_TENANT) {
-      // Valid Object ID?
-      if (!ObjectID.isValid(tenantID)) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkTenant',
-          message: `Invalid Tenant ID '${tenantID}'`
-        });
-      }
-      // Get the Tenant
-      const tenant = await TenantStorage.getTenant(tenantID);
-      if (!tenant) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkTenant',
-          message: `Invalid Tenant ID '${tenantID}'`
-        });
+  public static getWebSocketCloseEventStatusString(code: number): string {
+    if (code >= 0 && code <= 999) {
+      return '(Unused)';
+    } else if (code >= 1016) {
+      if (code <= 1999) {
+        return '(For WebSocket standard)';
+      } else if (code <= 2999) {
+        return '(For WebSocket extensions)';
+      } else if (code <= 3999) {
+        return '(For libraries and frameworks)';
+      } else if (code <= 4999) {
+        return '(For applications)';
       }
     }
-    Utils.tenants.push(tenantID);
+    if (!Utils.isUndefined(WebSocketCloseEventStatusString[code])) {
+      return WebSocketCloseEventStatusString[code];
+    }
+    return '(Unknown)';
   }
 
   public static convertToBoolean(value: any): boolean {
@@ -482,16 +380,16 @@ export default class Utils {
     return result;
   }
 
-  public static convertToDate(date: any): Date {
+  public static convertToDate(value: any): Date {
     // Check
-    if (!date) {
+    if (!value) {
       return null;
     }
     // Check Type
-    if (!(date instanceof Date)) {
-      return new Date(date);
+    if (!(value instanceof Date)) {
+      return new Date(value);
     }
-    return date;
+    return value;
   }
 
   public static replaceSpecialCharsInCSVValueParam(value: string): string {
@@ -575,11 +473,11 @@ export default class Utils {
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.convertToFloat((pricePerkWh * (consumptionWh / 1000)).toFixed(6));
+    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 6);
   }
 
   public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.convertToFloat((pricePerkWh * consumptionWh).toFixed(2));
+    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 2);
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -669,7 +567,7 @@ export default class Utils {
               if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
                 // Check Connector ID
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-                if (connector.power) {
+                if (connector?.power) {
                   return connector.power;
                 }
                 return chargePointOfCS.power;
@@ -716,7 +614,7 @@ export default class Utils {
             if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.numberOfConnectedPhase) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.numberOfConnectedPhase) {
+              if (connector?.numberOfConnectedPhase) {
                 return connector.numberOfConnectedPhase;
               }
               return chargePointOfCS.numberOfConnectedPhase;
@@ -758,7 +656,7 @@ export default class Utils {
             if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.voltage) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.voltage) {
+              if (connector?.voltage) {
                 return connector.voltage;
               }
               return chargePointOfCS.voltage;
@@ -795,7 +693,7 @@ export default class Utils {
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-              if (connector.currentType) {
+              if (connector?.currentType) {
                 return connector.currentType;
               }
               return chargePointOfCS.currentType;
@@ -834,7 +732,7 @@ export default class Utils {
                 // Same power for all connectors
                 // Check Connector ID first
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-                if (connector.amperage) {
+                if (connector?.amperage) {
                   return connector.amperage;
                 }
                 return chargePointOfCS.amperage;
@@ -860,11 +758,20 @@ export default class Utils {
     return totalAmps;
   }
 
+  public static getChargingStationAmperagePerPhase(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+    const totalAmps = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+    const numberOfConnectedPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
+    if (totalAmps % numberOfConnectedPhases === 0) {
+      return totalAmps / numberOfConnectedPhases;
+    }
+    return Math.round(totalAmps / numberOfConnectedPhases);
+  }
+
   public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
     let amperageLimit = 0;
     if (chargingStation) {
       if (connectorId > 0) {
-        return Utils.getConnectorFromID(chargingStation, connectorId).amperageLimit;
+        return Utils.getConnectorFromID(chargingStation, connectorId)?.amperageLimit;
       }
       // Check at charge point level
       if (chargingStation.chargePoints) {
@@ -876,11 +783,11 @@ export default class Utils {
             if (chargePointOfCS.cannotChargeInParallel ||
               chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
-              amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
+              amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0])?.amperageLimit;
             } else {
               // Add limit amp of all connectors
               for (const connectorID of chargePointOfCS.connectorIDs) {
-                amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID).amperageLimit;
+                amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID)?.amperageLimit;
               }
             }
           }
@@ -896,7 +803,7 @@ export default class Utils {
     return amperageLimit;
   }
 
-  public static isEmptyArray(array: any): boolean {
+  public static isEmptyArray(array: any[]): boolean {
     if (!array) {
       return true;
     }
@@ -904,6 +811,10 @@ export default class Utils {
       return false;
     }
     return true;
+  }
+
+  static isEmptyObject(obj: any): boolean {
+    return !Object.keys(obj).length;
   }
 
   public static findDuplicatesInArray(arr: any[]): any[] {
@@ -979,74 +890,96 @@ export default class Utils {
     fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
   }
 
-  public static getRandomInt(): number {
-    return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
+  public static getRandomInt(max: number, min = 0): number {
+    if (min) {
+      return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+    return Math.floor(Math.random() * max + 1);
   }
 
-  public static buildRestServerURL() {
-    return `${Utils.centralSystemRestServer.protocol}://${Utils.centralSystemRestServer.host}:${Utils.centralSystemRestServer.port}`;
+  public static getRandomIntSafe(): number {
+    return Utils.getRandomInt(2147483648); // INT32 (signed: issue in Schneider)
+  }
+
+  public static buildRestServerURL(): string {
+    const centralSystemRestServer = Configuration.getCentralSystemRestServer();
+    return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
   }
 
   public static buildEvseURL(subdomain: string = null): string {
+    const centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     if (subdomain) {
-      return `${Utils.centralSystemFrontEndConfig.protocol}://${subdomain}.${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
+      return `${centralSystemFrontEndConfig.protocol}://${subdomain}.${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
     }
-    return `${Utils.centralSystemFrontEndConfig.protocol}://${Utils.centralSystemFrontEndConfig.host}:${Utils.centralSystemFrontEndConfig.port}`;
+    return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
     let ocppUrl: string;
-    const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
-    switch (ocppProtocol) {
-      case OCPPProtocol.JSON:
-        ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
-        if (token) {
-          ocppUrl += `/${token}`;
-        }
-        return ocppUrl;
-      case OCPPProtocol.SOAP:
-      default:
-        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
-        if (token) {
-          ocppUrl += `%26Token=${token}`;
-        }
-        return ocppUrl;
+    if (Configuration.getJsonEndpointConfig().baseUrl && ocppProtocol === OCPPProtocol.JSON) {
+      ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
+      if (token) {
+        ocppUrl += `/${token}`;
+      }
+    } else if (Configuration.getWSDLEndpointConfig()?.baseUrl && ocppProtocol === OCPPProtocol.SOAP) {
+      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
+      if (token) {
+        ocppUrl += `%26Token=${token}`;
+      }
     }
+    return ocppUrl;
   }
 
-  public static async buildEvseUserURL(tenantID: string, user: User, hash = ''): Promise<string> {
-    const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    // Add
-    return _evseBaseURL + '/users?UserID=' + user.id + hash;
+  public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
+    let ocppUrl: string;
+    if (Configuration.getJsonEndpointConfig().baseSecureUrl && ocppProtocol === OCPPProtocol.JSON) {
+      ocppUrl = `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
+      if (token) {
+        ocppUrl += `/${token}`;
+      }
+    } else if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl && ocppProtocol === OCPPProtocol.SOAP) {
+      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
+      if (token) {
+        ocppUrl += `%26Token=${token}`;
+      }
+    }
+    return ocppUrl;
   }
 
-  public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = ''): Promise<string> {
-    const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
+  public static getOCPPServerVersionURLPath(ocppVersion: OCPPVersion): string {
+    if (!Utils.isUndefined(OCPPVersionURLPath[ocppVersion])) {
+      return OCPPVersionURLPath[ocppVersion];
+    }
+    return 'UNKNOWN';
   }
 
-  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId: number, hash = ''): Promise<string> {
-    const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/transactions?TransactionID=' + transactionId.toString() + hash;
+  public static buildEvseTagURL(tenantSubdomain: string, tag: Tag): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/users#tag?TagID=${tag.id}`;
   }
 
-  public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
-    const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    return _evseBaseURL + '/settings#billing';
+  public static buildEvseChargingStationURL(tenantSubdomain: string, chargingStation: ChargingStation, hash = ''): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/charging-stations?ChargingStationID=${chargingStation.id}${hash}`;
   }
 
-  public static isServerInProductionMode(): boolean {
-    const env = process.env.NODE_ENV || 'dev';
-    return (env === 'production');
+  public static buildEvseTransactionURL(tenantSubdomain: string, transactionId: number, hash = ''): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/transactions?TransactionID=${transactionId.toString()}${hash}`;
+  }
+
+  public static buildEvseBillingSettingsURL(tenantSubdomain: string): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/settings#billing`;
+  }
+
+  public static buildEvseBillingInvoicesURL(tenantSubdomain: string): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/invoices`;
+  }
+
+  public static buildEvseBillingDownloadInvoicesURL(tenantSubdomain: string, invoiceID: string): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
   public static hideShowMessage(message: string): string {
     // Check Prod
-    if (Utils.isServerInProductionMode()) {
+    if (Utils.isProductionEnv()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
     }
     return message;
@@ -1082,8 +1015,14 @@ export default class Utils {
     return recordLimit;
   }
 
-  public static roundTo(number: number, scale: number): number {
-    return Utils.convertToFloat(number.toFixed(scale));
+  public static roundTo(value: number, scale: number): number {
+    const roundPower = Math.pow(10, scale);
+    return Math.round(value * roundPower) / roundPower;
+  }
+
+  public static truncTo(value: number, scale: number): number {
+    const truncPower = Math.pow(10, scale);
+    return Math.trunc(value * truncPower) / truncPower;
   }
 
   public static firstLetterInUpperCase(value: string): string {
@@ -1094,8 +1033,8 @@ export default class Utils {
     return value[0].toLowerCase() + value.substring(1);
   }
 
-  public static cloneJSonDocument(jsonDocument: any): any {
-    return JSON.parse(JSON.stringify(jsonDocument));
+  public static cloneObject<T>(object: T): T {
+    return JSON.parse(JSON.stringify(object)) as T;
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -1196,7 +1135,7 @@ export default class Utils {
     if (coordinates && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude
       if (new RegExp(Constants.REGEX_VALIDATION_LONGITUDE).test(coordinates[0].toString()) &&
-          new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
+        new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
         return true;
       }
     }
@@ -1205,7 +1144,7 @@ export default class Utils {
 
   public static generatePassword(): string {
     let password = '';
-    const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
+    const randomLength = Utils.getRandomInt(Constants.PWD_MAX_LENGTH, Constants.PWD_MIN_LENGTH);
     while (!Utils.isPasswordStrongEnough(password)) {
       // eslint-disable-next-line no-useless-escape
       password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
@@ -1234,585 +1173,20 @@ export default class Utils {
     return Cypher.hash(password);
   }
 
-  public static checkIfOCPIEndpointValid(ocpiEndpoint: Partial<OCPIEndpoint>, req: Request): void {
-    if (req.method !== 'POST' && !ocpiEndpoint.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid'
-      });
-    }
-    if (!ocpiEndpoint.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!ocpiEndpoint.role) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint role is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!ocpiEndpoint.baseUrl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint base URL is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!ocpiEndpoint.localToken) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint local token is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!ocpiEndpoint.token) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint token is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
-    filteredRequest: ChargingProfile, req: Request): void {
-    if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Station ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!Utils.objectHasProperty(filteredRequest, 'connectorID')) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Connector ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.profile) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile is mandatory',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
-      !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
-      !filteredRequest.profile.chargingSchedule) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid Charging Profile',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid Charging Profile\'s Schedule',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile\'s schedule must not be empty',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    // Check End of Schedule <= 24h
-    const endScheduleDate = new Date(new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() +
-      filteredRequest.profile.chargingSchedule.duration * 1000);
-    if (!moment(endScheduleDate).isBefore(moment(filteredRequest.profile.chargingSchedule.startSchedule).add('1', 'd').add('1', 'm'))) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile\'s schedule should not exeed 24 hours',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    // Check Max Limitation of each Schedule
-    const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
-    const numberOfConnectors = filteredRequest.connectorID === 0 ?
-      (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
-    const maxAmpLimit = Utils.getChargingStationAmperageLimit(
-      chargingStation, chargePoint, filteredRequest.connectorID);
-    for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
-      // Check Min
-      if (chargingSchedulePeriod.limit < 0) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.CHARGING_PROFILE_UPDATE,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Charging Schedule is below the min limitation (0A)',
-          module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-          user: req.user.id,
-          detailedMessages: { chargingSchedulePeriod }
-        });
-      }
-      // Check Max
-      if (chargingSchedulePeriod.limit > maxAmpLimit) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.CHARGING_PROFILE_UPDATE,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Schedule is above the max limitation (${maxAmpLimit}A)`,
-          module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-          user: req.user.id,
-          detailedMessages: { chargingSchedulePeriod }
-        });
-      }
-    }
-  }
-
-  public static checkIfSiteValid(site: Partial<Site>, req: Request): void {
-    if (req.method !== 'POST' && !site.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteValid',
-        user: req.user.id
-      });
-    }
-    if (!site.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site Name is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteValid',
-        user: req.user.id
-      });
-    }
-    if (!site.companyID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Company ID is mandatory for the Site',
-        module: MODULE_NAME, method: 'checkIfSiteValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfSiteAreaValid(siteArea: Partial<SiteArea>, req: Request): void {
-    if (req.method !== 'POST' && !siteArea.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site Area ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (!siteArea.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site Area name is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (!siteArea.siteID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    // Power
-    if (siteArea.maximumPower <= 0) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (siteArea.voltage !== 230 && siteArea.voltage !== 110) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage} kW`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site area number of phases must be either 1 or 3 but got ${siteArea.numberOfPhases}`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfCompanyValid(company: Partial<Company>, req: Request): void {
-    if (req.method !== 'POST' && !company.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Company ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfCompanyValid',
-        user: req.user.id
-      });
-    }
-    if (!company.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Company Name is mandatory',
-        module: MODULE_NAME, method: 'checkIfCompanyValid',
-        user: req.user.id
-      });
-    }
-  }
-
   public static isValidDate(date: any): boolean {
     return moment(date).isValid();
   }
 
-  public static checkIfAssetValid(asset: Partial<Asset>, req: Request): void {
-    if (req.method !== 'POST' && !asset.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
-    if (!asset.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset Name is mandatory',
-        module: MODULE_NAME, method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
-    if (!asset.siteAreaID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset Site Area is mandatory',
-        module: MODULE_NAME, method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
-    if (!asset.assetType) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset type is mandatory',
-        module: MODULE_NAME, method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
-    if (asset.dynamicAsset) {
-      if (!asset.connectionID) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Asset connection is mandatory',
-          module: MODULE_NAME, method: 'checkIfAssetValid',
-          user: req.user.id
-        });
-      }
-      if (!asset.meterID) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Asset meter ID is mandatory',
-          module: MODULE_NAME, method: 'checkIfAssetValid',
-          user: req.user.id
-        });
-      }
-    }
+  public static isDevelopmentEnv(): boolean {
+    return process.env.NODE_ENV === 'development';
   }
 
-  public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request): Promise<void> {
-    // Check that the Badge ID is not already used
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      if (tags) {
-        for (const tag of tags) {
-          // Check if exists
-          const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
-          if (foundUser && (!user || (foundUser.id !== user.id))) {
-            // Tag already used!
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
-              message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
-              module: MODULE_NAME,
-              method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-          // Check params
-          if (!tag.id) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.GENERAL_ERROR,
-              message: 'Tag ID is mandatory',
-              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-          if (!Utils.objectHasProperty(tag, 'active')) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPError.GENERAL_ERROR,
-              message: 'Tag Active property is mandatory',
-              module: MODULE_NAME, method: 'checkIfUserTagsAreValid',
-              user: req.user.id
-            });
-          }
-        }
-      }
-    }
+  public static isProductionEnv(): boolean {
+    return process.env.NODE_ENV === 'production';
   }
 
-  public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request): void {
-    const tenantID = req.user.tenantID;
-    if (!tenantID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tenant is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id
-      });
-    }
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id
-      });
-    }
-    // Creation?
-    if (req.method === 'POST') {
-      if (!filteredRequest.role) {
-        filteredRequest.role = UserRole.BASIC;
-      }
-    } else if (!Authorizations.isAdmin(req.user)) {
-      filteredRequest.role = user.role;
-    }
-    if (req.method === 'POST' && !filteredRequest.status) {
-      filteredRequest.status = UserStatus.BLOCKED;
-    }
-    // Creation?
-    if ((filteredRequest.role !== UserRole.BASIC) && (filteredRequest.role !== UserRole.DEMO) &&
-      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    // Only Basic, Demo, Admin user other Tenants (!== default)
-    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === UserRole.SUPER_ADMIN) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User cannot have the Super Admin role in this Tenant',
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    // Only Admin and Super Admin can use role different from Basic
-    if ((filteredRequest.role === UserRole.ADMIN || filteredRequest.role === UserRole.SUPER_ADMIN) &&
-      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (!filteredRequest.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User Last Name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (req.method === 'POST' && !filteredRequest.email) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User Email is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (req.method === 'POST' && !Utils._isUserEmailValid(filteredRequest.email)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Email '${filteredRequest.email}' is not valid`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User Password is not valid',
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.phone && !Utils._isPhoneValid(filteredRequest.phone)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Phone '${filteredRequest.phone}' is not valid`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.mobile && !Utils._isPhoneValid(filteredRequest.mobile)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Mobile '${filteredRequest.mobile}' is not valid`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.tags) {
-      if (!Utils._areTagsValid(filteredRequest.tags)) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `User Tags '${JSON.stringify(filteredRequest.tags)}' is/are not valid`,
-          module: MODULE_NAME,
-          method: 'checkIfUserValid',
-          user: req.user.id,
-          actionOnUser: filteredRequest.id
-        });
-      }
-    }
-    if (filteredRequest.plateID && !Utils._isPlateIDValid(filteredRequest.plateID)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Plate ID '${filteredRequest.plateID}' is not valid`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-  }
-
-  public static async addSiteLimitationToConsumption(tenantID: string, siteArea: SiteArea, consumption: Consumption): Promise<void> {
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && siteArea) {
-      // Get limit of the site area
-      consumption.limitSiteAreaWatts = 0;
-      // Maximum power of the Site Area provided?
-      if (siteArea && siteArea.maximumPower) {
-        consumption.limitSiteAreaWatts = siteArea.maximumPower;
-        consumption.limitSiteAreaAmps = siteArea.maximumPower / siteArea.voltage;
-        consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
-      } else {
-        // Compute it for Charging Stations
-        const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_MAX_LIMIT);
-        for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
-          for (const connector of chargingStationOfSiteArea.connectors) {
-            consumption.limitSiteAreaWatts += connector.power;
-          }
-        }
-        consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / siteArea.voltage);
-        consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
-        // Save Site Area max consumption
-        if (siteArea) {
-          siteArea.maximumPower = consumption.limitSiteAreaWatts;
-          await SiteAreaStorage.saveSiteArea(tenantID, siteArea);
-        }
-      }
-      consumption.smartChargingActive = siteArea.smartCharging;
-    }
+  public static isTestEnv(): boolean {
+    return process.env.NODE_ENV === 'test';
   }
 
   public static getTimezone(coordinates: number[]): string {
@@ -1839,6 +1213,14 @@ export default class Utils {
       }
     }
     return false;
+  }
+
+  public static getChargingStationEndpoint() : ChargingStationEndpoint {
+    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.SCP : ChargingStationEndpoint.AWS;
+  }
+
+  public static async generateQrCode(data: string) :Promise<string> {
+    return await QRCode.toDataURL(data);
   }
 
   public static createDefaultSettingContent(activeComponent: any, currentSettingContent: SettingDBContent): SettingDBContent {
@@ -1885,7 +1267,7 @@ export default class Utils {
         }
         break;
 
-      // Refund
+      // OCPI
       case TenantComponents.OCPI:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
@@ -1934,7 +1316,8 @@ export default class Utils {
   }
 
   public static isChargingStationIDValid(name: string): boolean {
-    return /^[A-Za-z0-9_-]*$/.test(name);
+    // eslint-disable-next-line no-useless-escape
+    return /^[A-Za-z0-9_\.\-~]*$/.test(name);
   }
 
   public static isPasswordValid(password: string): boolean {
@@ -1942,161 +1325,23 @@ export default class Utils {
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
-  public static checkIfCarValid(car: Partial<Car>, req: Request): void {
-    if (req.method !== 'POST' && !car.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.vin) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vin Car is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.licensePlate) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'License Plate is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!Utils._isPlateIDValid(car.licensePlate)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Car License Plate ID '${car.licensePlate}' is not valid`,
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id,
-        actionOnUser: car.id
-      });
-    }
-    if (!car.carCatalogID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Catalog ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.type) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car type is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!Authorizations.isAdmin(req.user)) {
-      if (car.type === CarType.POOL_CAR) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Pool cars can only be created by admin',
-          module: MODULE_NAME, method: 'checkIfCarValid',
-          user: req.user.id
-        });
-      }
-    }
-    if (!car.converter) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.converter.amperagePerPhase) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter amperage per phase is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.converter.numberOfPhases) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter number of phases is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.converter.powerWatts) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter power is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.converter.type) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car CarConverter type is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserErrorNotificationRequest, req: Request): void {
-    if (!endUserErrorNotificationValid.errorTitle || !endUserErrorNotificationValid.errorDescription) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Error Title and Description are mandatory.',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-    if (!this._isPhoneValid(endUserErrorNotificationValid.phone)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Phone is invalid',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  private static _isUserEmailValid(email: string): boolean {
-    return validator.isEmail(email);
-  }
-
-  private static _areTagsValid(tags: Tag[]): boolean {
-    return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
-  }
-
-  private static _isPhoneValid(phone: string): boolean {
+  public static isPhoneValid(phone: string): boolean {
     return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
 
-  private static _isPlateIDValid(plateID): boolean {
+  public static isUserEmailValid(email: string): boolean {
+    return validator.isEmail(email);
+  }
+
+  public static areTagsValid(tags: Tag[]): boolean {
+    return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
+  }
+
+  public static isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
   }
 
-  private static _normalizeOneSOAPParam(headers: any, name: string) {
-    const val = _.get(headers, name);
-    if (val && val.$value) {
-      _.set(headers, name, val.$value);
-    }
+  public static getHostname(): string {
+    return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 }

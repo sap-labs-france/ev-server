@@ -14,9 +14,9 @@ import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
+import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../types/ocpi/OCPISession';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
@@ -29,12 +29,12 @@ import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
+import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
+import Utils from '../../utils/Utils';
 import _ from 'lodash';
 import moment from 'moment';
-import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'EmspOCPIClient';
 
@@ -49,67 +49,43 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  async sendTokens(): Promise<OCPIJobResult> {
+  async sendTokens(): Promise<OCPIResult> {
     // Result
-    const sendResult = {
+    const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
       logs: [],
-      tokenIDsInFailure: [],
-      tokenIDsInSuccess: []
+      objectIDsInFailure: [],
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
     // Get all tokens
     const tokensResult = await OCPIMapping.getAllTokens(this.tenant, 0, 0);
     for (const token of tokensResult.result) {
-      sendResult.total++;
+      result.total++;
       try {
         await this.pushToken(token);
-        sendResult.success++;
-        sendResult.tokenIDsInSuccess.push(token.uid);
-        sendResult.logs.push(
-          `Token ID '${token.uid}' successfully updated`
-        );
+        result.success++;
       } catch (error) {
-        sendResult.failure++;
-        sendResult.tokenIDsInFailure.push(token.uid);
-        sendResult.logs.push(
+        result.failure++;
+        result.objectIDsInFailure.push(token.uid);
+        result.logs.push(
           `Failed to update Token ID '${token.uid}': ${error.message}`
         );
       }
     }
-    // Log error if any
-    if (sendResult.failure > 0) {
-      // Log error if failure
-      Logging.logError({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
-        detailedMessages: { logs: sendResult.logs },
-        module: MODULE_NAME, method: 'sendTokens'
-      });
-    } else if (sendResult.success > 0) {
-      // Log info
-      Logging.logInfo({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_PUSH_TOKENS,
-        message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
-        detailedMessages: { logs: sendResult.logs },
-        module: MODULE_NAME, method: 'sendTokens'
-      });
-    }
     // Save result in ocpi endpoint
     this.ocpiEndpoint.lastPatchJobOn = startDate;
     // Set result
-    if (sendResult) {
+    if (result) {
       this.ocpiEndpoint.lastPatchJobResult = {
-        'successNbr': sendResult.success,
-        'failureNbr': sendResult.failure,
-        'totalNbr': sendResult.total,
-        'tokenIDsInFailure': _.uniq(sendResult.tokenIDsInFailure),
-        'tokenIDsInSuccess': _.uniq(sendResult.tokenIDsInSuccess)
+        'successNbr': result.success,
+        'failureNbr': result.failure,
+        'totalNbr': result.total,
+        'tokenIDsInFailure': _.uniq(result.objectIDsInFailure),
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
@@ -117,13 +93,19 @@ export default class EmspOCPIClient extends OCPIClient {
         'failureNbr': 0,
         'totalNbr': 0,
         'tokenIDsInFailure': [],
-        'tokenIDsInSuccess': []
       };
     }
     // Save
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
-    // Return result
-    return sendResult;
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PUSH_TOKENS,
+      MODULE_NAME, 'sendTokens', result,
+      `{{inSuccess}} Token(s) were successfully pushed in ${executionDurationSecs}s`,
+      `{{inError}} Token(s) failed to be pushed in ${executionDurationSecs}s`,
+      `{{inSuccess}} Token(s) were successfully pushed and {{inError}} failed to be pushed in ${executionDurationSecs}s`,
+      'No Tokens have been pushed'
+    );
+    return result;
   }
 
   async getCompany(): Promise<Company> {
@@ -140,14 +122,16 @@ export default class EmspOCPIClient extends OCPIClient {
     return company;
   }
 
-  async pullLocations(partial = true): Promise<OCPIJobResult> {
+  async pullLocations(partial = true): Promise<OCPIResult> {
     // Result
-    const sendResult = {
+    const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
       logs: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Get locations endpoint url
     let locationsUrl = this.getEndpointUrl('locations', ServerAction.OCPI_PULL_LOCATIONS);
     if (partial) {
@@ -160,7 +144,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const sites = await SiteStorage.getSites(this.tenant.id, { companyIDs: [company.id] },
       Constants.DB_PARAMS_MAX_LIMIT);
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -178,13 +162,10 @@ export default class EmspOCPIClient extends OCPIClient {
       for (const location of response.data.data as OCPILocation[]) {
         try {
           await this.processLocation(location, company, sites.result);
-          sendResult.success++;
-          sendResult.logs.push(
-            `Location '${location.name}' successfully updated`
-          );
+          result.success++;
         } catch (error) {
-          sendResult.failure++;
-          sendResult.logs.push(
+          result.failure++;
+          result.logs.push(
             `Failed to update Location '${location.name}': ${error.message}`
           );
         }
@@ -195,24 +176,34 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
-    return sendResult;
+    } while (nextResult);
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_LOCATIONS,
+      MODULE_NAME, 'pullLocations', result,
+      `{{inSuccess}} Location(s) were successfully pulled in ${executionDurationSecs}s`,
+      `{{inError}} Location(s) failed to be pulled in ${executionDurationSecs}s`,
+      `{{inSuccess}} Location(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s`,
+      'No Locations have been pulled'
+    );
+    return result;
   }
 
-  async pullSessions(): Promise<OCPIJobResult> {
+  async pullSessions(): Promise<OCPIResult> {
     // Result
-    const sendResult = {
+    const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
       logs: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Get sessions endpoint url
     let sessionsUrl = this.getEndpointUrl('sessions', ServerAction.OCPI_PULL_SESSIONS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -230,13 +221,10 @@ export default class EmspOCPIClient extends OCPIClient {
       for (const session of response.data.data as OCPISession[]) {
         try {
           await OCPISessionsService.updateTransaction(this.tenant.id, session);
-          sendResult.success++;
-          sendResult.logs.push(
-            `OCPI Session '${session.id}' successfully updated`
-          );
+          result.success++;
         } catch (error) {
-          sendResult.failure++;
-          sendResult.logs.push(
+          result.failure++;
+          result.logs.push(
             `Failed to update OCPI Transaction ID '${session.id}': ${error.message}`
           );
         }
@@ -247,25 +235,35 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
-    sendResult.total = sendResult.failure + sendResult.success;
-    return sendResult;
+    } while (nextResult);
+    result.total = result.failure + result.success;
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_SESSIONS,
+      MODULE_NAME, 'pullSessions', result,
+      `{{inSuccess}} Session(s) were successfully pulled in ${executionDurationSecs}s`,
+      `{{inError}} Session(s) failed to be pulled in ${executionDurationSecs}s`,
+      `{{inSuccess}} Session(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s`,
+      'No Sessions have been pulled'
+    );
+    return result;
   }
 
-  async pullCdrs(): Promise<OCPIJobResult> {
+  async pullCdrs(): Promise<OCPIResult> {
     // Result
-    const sendResult = {
+    const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
       logs: []
     };
+    // Perfs trace
+    const startTime = new Date().getTime();
     // Get cdrs endpoint url
     let cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_PULL_CDRS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
-    while (nextResult) {
+    do {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -283,13 +281,10 @@ export default class EmspOCPIClient extends OCPIClient {
       for (const cdr of response.data.data as OCPICdr[]) {
         try {
           await OCPISessionsService.processCdr(this.tenant.id, cdr);
-          sendResult.success++;
-          sendResult.logs.push(
-            `CDR ID '${cdr.id}' successfully updated`
-          );
+          result.success++;
         } catch (error) {
-          sendResult.failure++;
-          sendResult.logs.push(
+          result.failure++;
+          result.logs.push(
             `Failed to update CDR ID '${cdr.id}': ${error.message}`
           );
         }
@@ -300,9 +295,17 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
-    }
-    sendResult.total = sendResult.failure + sendResult.success;
-    return sendResult;
+    } while (nextResult);
+    result.total = result.failure + result.success;
+    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
+    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_CDRS,
+      MODULE_NAME, 'pullCdrs', result,
+      `{{inSuccess}} CDR(s) were successfully pulled in ${executionDurationSecs}s`,
+      `{{inError}} CDR(s) failed to be pulled in ${executionDurationSecs}s`,
+      `{{inSuccess}} CDR(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s`,
+      'No CDRs have been pulled'
+    );
+    return result;
   }
 
   async processLocation(location: OCPILocation, company: Company, sites: Site[]): Promise<void> {
@@ -333,8 +336,8 @@ export default class EmspOCPIClient extends OCPIClient {
       } as Site;
       if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
         site.address.coordinates = [
-          location.coordinates.longitude,
-          location.coordinates.latitude
+          Utils.convertToFloat(location.coordinates.longitude),
+          Utils.convertToFloat(location.coordinates.latitude)
         ];
       }
       site.id = await SiteStorage.saveSite(this.tenant.id, site, false);
@@ -363,8 +366,8 @@ export default class EmspOCPIClient extends OCPIClient {
       } as SiteArea;
       if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
         siteArea.address.coordinates = [
-          location.coordinates.longitude,
-          location.coordinates.latitude
+          Utils.convertToFloat(location.coordinates.longitude),
+          Utils.convertToFloat(location.coordinates.latitude)
         ];
       }
       siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant.id, siteArea, false);
@@ -481,37 +484,36 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.START_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.START_SESSION;
-    const user = await UserStorage.getUserByTagId(this.tenant.id, tagId);
-    if (!user || user.deleted || !user.issuer) {
+    const tag = await TagStorage.getTag(this.tenant.id, tagId, { withUser: true });
+    if (!tag || !tag.issuer || !tag.active) {
+      throw new BackendError({
+        action: ServerAction.OCPI_START_SESSION,
+        source: chargingStation.id,
+        message: `Connector ID '${connectorId}' > OCPI Remote Start Session is not available for Tag ID '${tagId}'`,
+        module: MODULE_NAME, method: 'remoteStartSession',
+        detailedMessages: { tag: tag }
+      });
+    }
+    if (!tag.user || tag.user.deleted || !tag.user.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
         message: `OCPI Remote Start Session is not available for user with Tag ID '${tagId}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
-        detailedMessages: { user: user }
-      });
-    }
-    const tag = user.tags.find((value) => value.id === tagId);
-    if (!tag || !tag.issuer || !tag.active) {
-      throw new BackendError({
-        action: ServerAction.OCPI_START_SESSION,
-        source: chargingStation.id,
-        message: `Connector '${connectorId}' > OCPI Remote Start Session is not available for Tag ID '${tagId}'`,
-        module: MODULE_NAME, method: 'remoteStartSession',
-        detailedMessages: { tag: tag }
+        detailedMessages: { user: tag.user }
       });
     }
     const token: OCPIToken = {
       uid: tag.id,
       type: OCPITokenType.RFID,
-      auth_id: user.id,
-      visual_number: user.id,
+      auth_id: tag.user.id,
+      visual_number: tag.user.id,
       issuer: this.tenant.name,
       valid: true,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
       last_updated: new Date()
     };
-    const authorizationId = uuid();
+    const authorizationId = Utils.generateUUID();
     const payload: OCPIStartSession = {
       response_url: callbackUrl + '/' + authorizationId,
       token: token,
@@ -524,7 +526,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
       source: chargingStation.id,
-      message: `Connector '${connectorId}' > OCPI Remote Start Session with Tad ID '${tagId}' at ${commandUrl}`,
+      message: `Connector ID '${connectorId}' > OCPI Remote Start Session with Tad ID '${tagId}' at ${commandUrl}`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { payload }
     });
@@ -540,7 +542,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
       source: chargingStation.id,
-      message: `Connector '${connectorId}' > OCPI Remote Start session response status ${response.status}`,
+      message: `Connector ID '${connectorId}' > OCPI Remote Start session response status ${response.status}`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { response: response.data }
     });
@@ -570,7 +572,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
       source: transaction.chargeBoxID,
-      message: `Connector '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' at ${commandUrl}`,
+      message: `Connector ID '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' at ${commandUrl}`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { payload }
     });
@@ -591,14 +593,5 @@ export default class EmspOCPIClient extends OCPIClient {
       detailedMessages: { response: response.data }
     });
     return response.data.data as OCPICommandResponse;
-  }
-
-  async triggerJobs(): Promise<{ tokens: OCPIJobResult; locations: OCPIJobResult; sessions: OCPIJobResult; cdrs: OCPIJobResult }> {
-    return {
-      tokens: await this.sendTokens(),
-      locations: await this.pullLocations(false),
-      sessions: await this.pullSessions(),
-      cdrs: await this.pullCdrs(),
-    };
   }
 }

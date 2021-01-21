@@ -4,6 +4,7 @@ import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
 import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
 import BillingContext from './BillingContext';
 import CentralServerService from '../client/CentralServerService';
+import ChargingStation from '../../types/ChargingStation';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Constants from '../../../src/utils/Constants';
 import Factory from '../../factories/Factory';
@@ -18,6 +19,8 @@ import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import StatisticsContext from './StatisticsContext';
+import Tag from '../../types/Tag';
+import TagStorage from '../../../src/storage/mongodb/TagStorage';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
@@ -49,7 +52,7 @@ export default class ContextBuilder {
     this.initialized = false;
   }
 
-  public static generateLocalToken(role: OCPIRole, tenantSubdomain: string) {
+  public static generateLocalToken(role: OCPIRole, tenantSubdomain: string): string {
     const newToken: any = {};
     newToken.ak = role;
     newToken.tid = tenantSubdomain;
@@ -57,15 +60,15 @@ export default class ContextBuilder {
     return OCPIUtils.btoa(JSON.stringify(newToken));
   }
 
-  async init() {
+  async init(): Promise<void> {
     if (!this.initialized) {
-      // Connect to the the DB
+      // Connect to the DB
       await global.database.start();
     }
     this.initialized = true;
   }
 
-  async destroy() {
+  async destroy(): Promise<void> {
     if (this.tenantsContexts && this.tenantsContexts.length > 0) {
       this.tenantsContexts.forEach(async (tenantContext) => {
         console.log(`Delete Tenant context '${tenantContext.getTenant().id} (${tenantContext.getTenant().subdomain})`);
@@ -85,7 +88,7 @@ export default class ContextBuilder {
     }
   }
 
-  async prepareContexts() {
+  async prepareContexts(): Promise<void> {
     await this.init();
     await this.destroy();
     // Build each tenant context
@@ -94,7 +97,7 @@ export default class ContextBuilder {
     }
   }
 
-  async buildTenantContext(tenantContextDef: TenantDefinition) {
+  async buildTenantContext(tenantContextDef: TenantDefinition): Promise<TenantContext> {
     // Build component list
     const components = {};
     if (tenantContextDef.componentSettings) {
@@ -104,13 +107,14 @@ export default class ContextBuilder {
           components[componentName] = {
             active: true
           };
-          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'type')) {
-            components[componentName]['type'] = tenantContextDef.componentSettings[componentName].type;
+          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'content') && Utils.objectHasProperty(tenantContextDef.componentSettings[componentName].content, 'type')) {
+            components[componentName]['type'] = tenantContextDef.componentSettings[componentName].content.type;
           }
         }
       }
     }
-    // Check if tenant exist
+    // Check if tenant exists
+    TenantStorage.clearCache();
     const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);
@@ -145,7 +149,8 @@ export default class ContextBuilder {
     await UserStorage.saveUserPassword(buildTenant.id, userId, { password: await Utils.hashPasswordBcrypt(config.get('admin.password')) });
     if (ContextDefinition.TENANT_USER_LIST[0].tags) {
       for (const tag of ContextDefinition.TENANT_USER_LIST[0].tags) {
-        await UserStorage.saveUserTag(buildTenant.id, ContextDefinition.TENANT_USER_LIST[0].id, tag);
+        tag.userID = ContextDefinition.TENANT_USER_LIST[0].id;
+        await TagStorage.saveTag(buildTenant.id, tag);
       }
     }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, ContextDefinition.TENANT_USER_LIST[0].id);
@@ -206,6 +211,7 @@ export default class ContextBuilder {
     }
     let userListToAssign: User[] = null;
     let userList: User[] = null;
+    let tagList: Tag[] = null;
     // Read admin user
     const adminUser: User = (await localCentralServiceService.getEntityById(
       localCentralServiceService.userApi, defaultAdminUser, false)).data;
@@ -220,7 +226,7 @@ export default class ContextBuilder {
       const userDef = ContextDefinition.TENANT_USER_LIST[index];
       const createUser = UserFactory.build();
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
-      createUser.issuer = true;
+      createUser.issuer = Utils.objectHasProperty(userDef, 'issuer') ? userDef.issuer : true;
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.id = userDef.id;
@@ -231,7 +237,8 @@ export default class ContextBuilder {
       await UserStorage.saveUserPassword(buildTenant.id, user.id, { password: newPasswordHashed });
       if (userDef.tags) {
         for (const tag of userDef.tags) {
-          await UserStorage.saveUserTag(buildTenant.id, user.id, tag);
+          tag.userID = user.id;
+          await TagStorage.saveTag(buildTenant.id, tag);
         }
       }
       const userModel = await UserStorage.getUser(buildTenant.id, user.id);
@@ -246,6 +253,8 @@ export default class ContextBuilder {
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, '', localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
+    tagList = (await TagStorage.getTags(buildTenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT)).result;
+    newTenantContext.addTags(tagList);
     // Check if Organization is active
     if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&
       buildTenant.components[TenantComponents.ORGANIZATION].active) {
@@ -284,6 +293,10 @@ export default class ContextBuilder {
           siteAreaTemplate.accessControl = siteAreaDef.accessControl;
           siteAreaTemplate.siteID = site.id;
           siteAreaTemplate.issuer = true;
+          siteAreaTemplate.smartCharging = siteAreaDef.smartCharging;
+          siteAreaTemplate.maximumPower = siteAreaDef.maximumPower;
+          siteAreaTemplate.numberOfPhases = siteAreaDef.numberOfPhases;
+          siteAreaTemplate.voltage = siteAreaDef.voltage;
           console.log(`${buildTenant.id} (${buildTenant.name}) - Site Area '${siteAreaTemplate.name}'`);
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
@@ -292,18 +305,44 @@ export default class ContextBuilder {
             (chargingStation) => chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true);
           // Create Charging Station for site area
           for (const chargingStationDef of relevantCS) {
-            const chargingStationTemplate = Factory.chargingStation.build();
-            chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-            console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
-            const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-            await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            let chargingStationTemplate: ChargingStation;
+            if (siteAreaModel.numberOfPhases === 1) {
+              chargingStationTemplate = Factory.chargingStation.buildChargingStationSinglePhased();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+              const newChargingStationContext = await newTenantContext.createSinglePhasedChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            } else if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`) {
+              chargingStationTemplate = Factory.chargingStation.buildChargingStationDC();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+              const newChargingStationContext = await newTenantContext.createChargingStationDC(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            } else if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`) {
+              chargingStationTemplate = Factory.chargingStation.build();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+              let newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+              chargingStationTemplate = Factory.chargingStation.buildChargingStationSinglePhased();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name + '-' + 'singlePhased';
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+              newChargingStationContext = await newTenantContext.createSinglePhasedChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            } else {
+              chargingStationTemplate = Factory.chargingStation.build();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+              const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            }
           }
         }
         newTenantContext.addSiteContext(siteContext);
       }
       // Check if the asset tenant exists and is activated
       if (Utils.objectHasProperty(buildTenant.components, TenantComponents.ASSET) &&
-      buildTenant.components[TenantComponents.ASSET].active) {
+        buildTenant.components[TenantComponents.ASSET].active) {
         // Create Asset list
         for (const assetDef of ContextDefinition.TENANT_ASSET_LIST) {
           const dummyAsset = Factory.asset.build();

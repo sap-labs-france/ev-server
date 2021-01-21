@@ -179,9 +179,9 @@ This application server will listen to the charging stations and store the data 
 
 It can also communicate with the charging stations (reboot, stop a transaction...)
 
-The protocol used by this application server is OCPP (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6 (SOAP).
+The protocol used by this application server is OCPP (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6 (OCPP-S or OCPP-J).
 
-Other protocols, like the ISO 15118, or OCPP 2.0 will also be supported in the future.
+Other protocols, like the ISO 15118, or OCPP version 2.0 will also be supported in the future.
 
 #### Configuration
 
@@ -419,6 +419,7 @@ Here are the default delivered locales:
       "fr_FR",
       "es_MX",
       "de_DE",
+      "pt_PT",
     ]
  },
 ```
@@ -431,17 +432,7 @@ Each charging station vendor has its own configuration interface, so I'll just d
 * Rename the charging station ID if necessary: this will be the key (use Company-Town-Number)
 * Set the charging station endpoint public URL to a reachable URL so the server can use it to trigger action on it (avoid using *localhost*)
 
-Tested and supported Charging Station:
-
-* **Schneider Electric**
-	* **Type**: Accelerated Charger
-	* **Power**: 2 connectors AC of 22 kW
-	* **Connector**: Type 2
-	* **Product Id**: 501FE25
-	* **Reference**: EV.2S22P44R
-	* **OCPP Version**: 1.5
-	* **Firmware**: 2.7.4.17
-
+All charging stations supporting OCPP-J and OCPP-S version 1.5 and 1.6 protocols are compatibles.
 
 ## Start the Central Service Server (CSS)
 
@@ -508,8 +499,8 @@ npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 
   For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
 * Start a server containing the configured admin user in the database
-* If you have not done it yet, run the command `npm run test:createContext`
-* Run the command `npm test`
+* If you have not done it yet, run the command `npm run mochatest:createContext`
+* Run the command `npm run mochatest`
 
 ### Docker Mode
 Depending on the need it is possible to start different docker containers.
@@ -568,6 +559,11 @@ It is possible to build and start all containers in one command:
 ```bash
 make
 ```
+Or without the optional git submodules:
+```bash
+make SUBMODULES_INIT=false
+```
+That Makefile option works for all targets.
 
 ## Architecture
 

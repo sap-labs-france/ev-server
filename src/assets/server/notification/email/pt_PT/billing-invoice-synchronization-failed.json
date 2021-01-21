@@ -1,0 +1,35 @@
+{
+  "subject": "Faturação - Falha na sincronização da fatura",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Faturação - Falha na sincronização da fatura",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Caro Administrador,",
+      "",
+      "Não foi possível sincronizar <%- nbrInvoicesInError %> faturas com o provedor de serviços de cobrança."
+    ],
+    "actions": [{
+      "title": "View Settings",
+      "url": "<%- evseDashboardBillingURL %>"
+    }],
+    "afterActionLines": [
+      "Melhores Cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

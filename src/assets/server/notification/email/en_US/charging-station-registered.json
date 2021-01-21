@@ -19,12 +19,12 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "The charging station <b>'<%- chargeBoxID %>'</b> just got connected to the central server."
+      "The charging station <strong>'<%- chargeBoxID %>'</strong> just got connected to the central server."
     ],
-    "action": {
+    "actions": [{
       "title": "View <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
-    },
+    }],
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

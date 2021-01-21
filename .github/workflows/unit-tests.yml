@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [12.x, 14.x]
         mongodb-version: [4.2]
     steps:
     - uses: actions/checkout@v2
@@ -46,19 +46,19 @@ jobs:
       run: |
         npm run start:email &
         npm run start:devbuild &
-    - name: npm run test:createContext
+    - name: npm run mochatest:createContext
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
-        npm run test:createContext
-    - name: npm test
-      run: npm test
+        npm run mochatest:createContext
+    - name: npm run mochatest
+      run: npm run mochatest
 
   unit-tests-submodules:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [12.x, 14.x]
         mongodb-version: [4.2]
     steps:
     - uses: actions/checkout@v2
@@ -88,11 +88,11 @@ jobs:
       run: |
         npm run start:email &
         npm run start:devbuild &
-    - name: npm run test:createContext
+    - name: npm run mochatest:createContext
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
-        npm run test:createContext
-    - name: npm test
-      run: npm test
+        npm run mochatest:createContext
+    - name: npm run mochatest
+      run: npm run mochatest
 

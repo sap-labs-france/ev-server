@@ -1,11 +1,10 @@
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
-import { ObjectID } from 'mongodb';
 import SiteArea from './SiteArea';
 import User from './User';
 
@@ -33,7 +32,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppVersion: OCPPVersion;
   ocppProtocol: OCPPProtocol;
   cfApplicationIDAndInstanceIndex: string;
-  lastHeartBeat: Date;
+  lastSeen: Date;
   deleted: boolean;
   inactive: boolean;
   forceInactive: boolean;
@@ -48,7 +47,6 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   connectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string|string[];
-  currentServerLocalIPAddressPort?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;
   ocppStandardParameters?: KeyValue[];
@@ -59,10 +57,32 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   };
 }
 
+export interface ChargingStationQRCode {
+  tenantSubDomain?: string;
+  tenantName?: string;
+  endpoint?: ChargingStationEndpoint;
+  chargingStationID?: string;
+  connectorID?: number;
+}
+
+export enum ChargingStationEndpoint {
+  SCP = 'scp',
+  AWS = 'aws'
+}
+
+export interface TemplateUpdate {
+  chargingStationUpdate: boolean;
+  technicalUpdate: boolean;
+  capabilitiesUpdate: boolean;
+  ocppStandardUpdate: boolean;
+  ocppVendorUpdate: boolean;
+}
+
 export interface TemplateUpdateResult {
   technicalUpdated: boolean;
   capabilitiesUpdated: boolean;
-  ocppUpdated: boolean;
+  ocppStandardUpdated: boolean;
+  ocppVendorUpdated: boolean;
 }
 
 export interface OcppCommand {
@@ -116,34 +136,13 @@ export interface Connector {
   numberOfConnectedPhase?: number;
   currentType?: CurrentType;
   chargePointID?: number;
+  phaseAssignmentToGrid?: PhaseAssignmentToGrid;
 }
 
-export interface ConnectorMDB {
-  id?: string;
-  connectorId: number;
-  currentInstantWatts?: number;
-  currentStateOfCharge?: number;
-  currentTotalConsumptionWh?: number;
-  currentTotalInactivitySecs?: number;
-  currentInactivityStatus?: InactivityStatus;
-  currentTransactionID?: number;
-  currentTransactionDate?: Date;
-  currentTagID?: string;
-  status: ChargePointStatus;
-  errorCode?: string;
-  info?: string;
-  vendorErrorCode?: string;
-  power?: number;
-  type?: ConnectorType;
-  voltage?: Voltage;
-  amperage?: number;
-  amperageLimit?: number;
-  userID?: ObjectID;
-  user?: User;
-  statusLastChangedOn?: Date;
-  numberOfConnectedPhase?: number;
-  currentType?: CurrentType;
-  chargePointID?: number;
+export interface PhaseAssignmentToGrid {
+  csPhaseL1: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
+  csPhaseL2: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
+  csPhaseL3: OCPPPhase.L1 | OCPPPhase.L2 | OCPPPhase.L3;
 }
 
 export interface RemoteAuthorization {
@@ -197,6 +196,7 @@ export enum Voltage {
 
 export interface ChargingStationTemplate {
   id?: string;
+  qa?: boolean;
   hash?: string;
   hashTechnical?: string;
   hashCapabilities?: string;
@@ -230,12 +230,12 @@ export interface ChargingStationTemplate {
   ocppStandardParameters: {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: any;
+    parameters: Record<string, string>;
   }[];
   ocppVendorParameters: {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: any;
+    parameters: Record<string, string>;
   }[];
 }
 
@@ -258,6 +258,8 @@ export interface ChargingStationCapabilities {
   supportUnlockConnector: boolean;
   supportReservation: boolean;
   supportRFIDCard: boolean;
+  supportFirmwareUpgrade?: boolean;
+  supportConnectorIsSlave?: boolean;
 }
 
 export interface ChargingStationOcppParameters {
@@ -268,8 +270,9 @@ export interface ChargingStationOcppParameters {
 
 export interface OcppParameter {
   key: string;
-  value: string;
+  value?: string;
   readonly: boolean;
+  custom?: boolean;
 }
 
 export type OCPPParams = {
@@ -289,4 +292,5 @@ export enum ChargerVendor {
   LEGRAND = 'Legrand',
   ATESS = 'ATESS',
   MENNEKES = 'MENNEKES',
+  SAP_LABS_FRANCE = 'SAP Labs France Caen',
 }

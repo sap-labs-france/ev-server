@@ -152,13 +152,11 @@ export default class CrudApi {
     // Check
     if (ordering && ordering.length) {
       if (!queryString.SortFields) {
-        queryString.SortFields = [];
-        queryString.SortDirs = [];
+        Object.assign(queryString, { SortFields: [] });
       }
       // Set
       ordering.forEach((order) => {
         queryString.SortFields.push(order.field);
-        queryString.SortDirs.push(order.direction);
       });
     }
   }

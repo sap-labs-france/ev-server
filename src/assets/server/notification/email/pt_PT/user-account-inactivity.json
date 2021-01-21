@@ -1,0 +1,40 @@
+{
+  "subject": "Conta de utilizador sem atividade",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Conta de utilizador sem atividade",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Ola <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Você não efetuou nenhum login na aplicação e-Mobility desde <%- lastLogin %>.",
+      "",
+      "Esteja ciente de que, para cumprir o regulamento geral de proteção de dados, sua conta pode ser desativada por um administrador e eventualmente excluída.",
+      "",
+      "Faça login em sua conta e esteja ciente do contrato de licença de utilizador final mais recente."
+    ],
+    "actions": [{
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

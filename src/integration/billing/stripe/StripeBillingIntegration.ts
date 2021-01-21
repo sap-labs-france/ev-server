@@ -164,8 +164,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // Get Invoice
-    const stripeInvoice = await this.stripe.invoices.retrieve(id);
-    if (stripeInvoice) {
+    try {
+      const stripeInvoice = await this.stripe.invoices.retrieve(id);
       return {
         invoiceID: stripeInvoice.id,
         customerID: stripeInvoice.customer.toString(),
@@ -177,8 +177,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         nbrOfItems: stripeInvoice.lines.total_count,
         downloadUrl: stripeInvoice.invoice_pdf
       } as BillingInvoice;
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
@@ -330,15 +331,29 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'Invoice item not provided',
       });
     }
-    return await this.stripe.invoiceItems.create({
-      customer: user.billingData.customerID,
-      currency: this.settings.currency.toLocaleLowerCase(),
-      amount: invoiceItem.amount,
-      description: invoiceItem.description,
-      invoice: invoiceID
-    }, {
-      idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
-    });
+    try {
+      const stripeInvoiceItem = await this.stripe.invoiceItems.create({
+        customer: user.billingData.customerID,
+        currency: this.settings.currency.toLocaleLowerCase(),
+        amount: invoiceItem.amount,
+        description: invoiceItem.description,
+        invoice: invoiceID
+      }, {
+        idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
+      });
+      const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(this.tenantID, invoiceID);
+      invoice.nbrOfItems++;
+      await BillingStorage.saveInvoice(this.tenantID, invoice);
+      return stripeInvoiceItem;
+    } catch (e) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_CREATE_INVOICE_ITEM,
+        module: MODULE_NAME, method: 'createInvoiceItem',
+        message: 'Failed to create invoice item',
+        detailedMessages: { error: e.message, stack: e.stack }
+      });
+    }
   }
 
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
@@ -365,6 +380,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     try {
       const stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
+      invoice.downloadUrl = stripeInvoice.invoice_pdf;
+      invoice.status = BillingInvoiceStatus.OPEN;
+      invoice.downloadable = true;
+      await BillingStorage.saveInvoice(this.tenantID, invoice);
+      const invoicedocument = await this.downloadInvoiceDocument(invoice);
+      await BillingStorage.saveInvoiceDocument(this.tenantID, invoicedocument);
       return stripeInvoice.invoice_pdf;
     } catch (error) {
       throw new BackendError({
@@ -442,7 +463,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       description = i18nManager.translate('billing.chargingStopChargeBox',
         { totalConsumption: totalConsumptionkWh, chargeBox: transaction.chargeBoxID, time: time });
     }
-    // Const taxRates: ITaxRate[] = [];
+    // pragma const taxRates: ITaxRate[] = [];
     // if (this.settings.taxID) {
     //   taxRates.push(this.settings.taxID);
     // }
@@ -452,7 +473,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     };
     // Get the draft invoice
     const draftInvoices = await BillingStorage.getInvoices(this.tenantID,
-      { invoiceStatus: [BillingInvoiceStatus.DRAFT], userIDs: [transaction.userID] }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { invoiceStatus: [BillingInvoiceStatus.DRAFT], userIDs: [transaction.userID] }, { limit: 1, skip: 0, sort: { createdOn: -1 } });
     // Set
     invoice.invoice = draftInvoices.count > 0 ? draftInvoices.result[0] : null;
     if (invoice.invoice) {

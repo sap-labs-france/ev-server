@@ -1,0 +1,38 @@
+{
+  "subject": "Abrechnung - Neue Rechnung",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Abrechnung - Neue Rechnung",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Hallo <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Eine neue Rechnung ist verfügbar : <%- invoice.number %>."
+    ],
+    "actions": [{
+      "title": "Anzeigen",
+      "url": "<%- evseDashboardInvoiceURL %>"
+    }, {
+      "title": "Download",
+      "url": "<%- invoiceDownloadUrl %>"
+    }],
+    "afterActionLines": [
+      "Mit freundlichen Grüßen",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

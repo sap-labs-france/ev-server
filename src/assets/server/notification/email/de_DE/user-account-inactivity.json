@@ -25,10 +25,10 @@
       "",
       "Bitte loggen Sie sich in Ihr Konto ein und informieren Sie sich über den aktuellen Endnutzer-Lizenzvertrag."
     ],
-    "action": {
+    "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    },
+    }],
     "afterActionLines": [
       "Mit freundlichen Grüßen",
       "EV Admins."

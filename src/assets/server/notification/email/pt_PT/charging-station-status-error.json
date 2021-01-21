@@ -1,0 +1,36 @@
+{
+  "subject": "'<%- chargeBoxID %>' - Conector '<%- connectorId %>' - '<%- error %>'",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Erro na estação de carregamento",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Caro Administrador,",
+      "",
+      "Ocorreu um erro em <b> '<%- chargeBoxID %>' </b>, conector <b> '<%- connectorId %>' </b>: <b> <%- error %> </b>."
+    ],
+    "actions": [{
+      "title": "Ver Erros",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    }],
+    "afterActionLines": [
+      "Com os melhores cumprimentos,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+
