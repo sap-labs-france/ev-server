@@ -267,8 +267,8 @@ export default class Configuration {
       }
       // CF Environment: Override
       // Check if MongoDB is provisioned inside SCP
-      if (Configuration.getCFAppEnv().getService(new RegExp(/^e-Mobility-db.*/))) {
-        const mongoDBServiceCredentials = Configuration.getCFAppEnv().getServiceCreds(new RegExp(/^e-Mobility-db.*/));
+      if (Configuration.getCFAppEnv().getService(new RegExp(/^e-Mobility-.*db-.*/))) {
+        const mongoDBServiceCredentials = Configuration.getCFAppEnv().getServiceCreds(new RegExp(/^e-Mobility-.*db-.*/));
         // Set MongoDB URI
         if (mongoDBServiceCredentials) {
           storageConfig.uri = mongoDBServiceCredentials['uri'];
