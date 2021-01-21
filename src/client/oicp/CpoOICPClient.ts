@@ -96,6 +96,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: 'OICP Session not started',
         module: MODULE_NAME, method: 'updateSession',
+        user: transaction.user
       });
     }
     transaction.oicpData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
@@ -150,6 +151,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'stopSession',
+        user: transaction.user
       });
     }
     if (!transaction.oicpData.session) {
@@ -158,6 +160,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'stopSession',
+        user: transaction.user
       });
     }
     if (!transaction.stop) {
@@ -166,6 +169,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') not yet stopped`,
         module: MODULE_NAME, method: 'stopSession',
+        user: transaction.user
       });
     }
     transaction.oicpData.session.kwh = transaction.stop.totalConsumptionWh / 1000;
@@ -599,6 +603,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_AUTHORIZE_START,
         message: 'No Tag ID for OICP Authorization',
         module: MODULE_NAME, method: 'authorizeStart',
+        user: user
       });
     }
     const identification = OICPUtils.convertTagID2OICPIdentification(tagID);
@@ -684,6 +689,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_AUTHORIZE_STOP,
         message: 'Invalid parameters',
         module: MODULE_NAME, method: 'authorizeStop',
+        user: transaction.user
       });
     }
     // Get authorize stop endpoint url
@@ -767,6 +773,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_PUSH_CDRS,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'pushCdr',
+        user: transaction.user
       });
     }
     if (!transaction.oicpData.session) {
@@ -775,6 +782,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_PUSH_CDRS,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'pushCdr',
+        user: transaction.user
       });
     }
     if (!transaction.stop) {
@@ -783,6 +791,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_PUSH_CDRS,
         message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') not stopped`,
         module: MODULE_NAME, method: 'pushCdr',
+        user: transaction.user
       });
     }
     // Get CDR endpoint url
@@ -976,6 +985,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationStart',
+        user: transaction.user
       });
     }
     if (!transaction.oicpData.session) {
@@ -984,6 +994,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationStart',
+        user: transaction.user
       });
     }
     // Get notification endpoint url
@@ -1054,6 +1065,7 @@ export default class CpoOICPClient extends OICPClient {
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
           message: `OICP data does not exists on Session ID '${transaction.id}'`,
           module: MODULE_NAME, method: 'sendChargingNotificationProgress',
+          user: transaction.user
         });
       }
       if (!transaction.oicpData.session) {
@@ -1062,6 +1074,7 @@ export default class CpoOICPClient extends OICPClient {
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
           message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
           module: MODULE_NAME, method: 'sendChargingNotificationProgress',
+          user: transaction.user
         });
       }
       // Get notification endpoint url
@@ -1136,6 +1149,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
+        user: transaction.user
       });
     }
     if (!transaction.oicpData.session) {
@@ -1144,6 +1158,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
+        user: transaction.user
       });
     }
     if (!transaction.stop) {
@@ -1152,6 +1167,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') not stopped`,
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
+        user: transaction.user
       });
     }
     // Get notification endpoint url
@@ -1226,6 +1242,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationError',
+        user: transaction.user
       });
     }
     if (!transaction.oicpData.session) {
@@ -1234,6 +1251,7 @@ export default class CpoOICPClient extends OICPClient {
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationError',
+        user: transaction.user
       });
     }
     // Get notification endpoint url
