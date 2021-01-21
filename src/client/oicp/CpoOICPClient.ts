@@ -500,15 +500,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! pushEvseData: ', response); // Will be removed
       pushEvseDataResponse = response.data as OICPAcknowledgment;
-    }).catch((error) => {
+    } catch (error) {
       console.log('Error! pushEvseData: ',error.message); // Will be removed
       pushEvseDataResponse = error.response?.data as OICPAcknowledgment;
       requestError = error;
-    });
+    }
     if (!pushEvseDataResponse?.Result || pushEvseDataResponse?.Result !== true) {
       throw new BackendError({
         action: ServerAction.OICP_PUSH_EVSE_DATA,
@@ -558,15 +558,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! pushEvseStatus: ', response); // Will be removed
       pushEvseStatusResponse = response.data as OICPAcknowledgment;
-    }).catch((error) => {
+    } catch (error) {
       console.log('Error! pushEvseStatus: ', error.response); // Will be removed
       pushEvseStatusResponse = error.response?.data as OICPAcknowledgment;
       requestError = error;
-    });
+    }
     if (!pushEvseStatusResponse?.Result || pushEvseStatusResponse?.Result !== true) {
       throw new BackendError({
         action: ServerAction.OICP_PUSH_EVSE_STATUSES,
@@ -619,15 +619,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! authorizeStart: ', response); // Will be removed
       authorizeResponse = response.data as OICPAuthorizeStartCpoReceive;
-    }).catch((error) => {
+    } catch (error) {
       console.log('Error! authorizeStart: ', error.response); // Will be removed
       authorizeResponse = error.response?.data as OICPAuthorizeStartCpoReceive;
       requestError = error;
-    });
+    }
     if (requestError) {
       throw new BackendError({
         user: user,
@@ -700,15 +700,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! authorizeStop: ', response); // Will be removed
       authorizeResponse = response.data as OICPAuthorizeStopCpoReceive;
-    }).catch((error) => {
+    } catch (error) {
       console.log('Error! authorizeStop: ', error.response); // Will be removed
       authorizeResponse = error.response?.data as OICPAuthorizeStopCpoReceive;
       requestError = error;
-    });
+    }
     if (requestError) {
       throw new BackendError({
         user: user,
@@ -808,15 +808,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload: transaction.oicpData.cdr }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! pushCdr: ', response); // Will be removed
       pushCdrResponse = response.data as OICPAcknowledgment;
-    }).catch((error) => {
+    } catch (error) {
       console.log('Error! pushCdr: ', error); // Will be removed
       pushCdrResponse = error.response?.data as OICPAcknowledgment;
       requestError = error;
-    });
+    }
     if (!pushCdrResponse?.Result || pushCdrResponse?.Result !== true) {
       Logging.logError({
         tenantID: this.tenant.id,
@@ -871,15 +871,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! pushEvsePricing: ', response); // Will be removed
       pushEvsePricingResponse = response.data as OICPAcknowledgment;
-    }).catch((error) => {
+    } catch (error) {
       console.log('Error! pushEvsePricing: ', error.response); // Will be removed
       pushEvsePricingResponse = error.response?.data as OICPAcknowledgment;
       requestError = error;
-    });
+    }
     if (!pushEvsePricingResponse?.Result || pushEvsePricingResponse?.Result !== true) {
       throw new BackendError({
         action: ServerAction.OICP_PUSH_EVSE_PRICING,
@@ -925,15 +925,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! pushPricingProductData: ', response); // Will be removed
       pushPricingProductDataResponse = response.data as OICPAcknowledgment;
-    }).catch((error) => {
+    } catch (error) {
       console.log('Error! pushPricingProductData: ', error.response); // Will be removed
       pushPricingProductDataResponse = error.response?.data as OICPAcknowledgment;
       requestError = error;
-    });
+    }
     if (!pushPricingProductDataResponse?.Result || pushPricingProductDataResponse?.Result !== true) {
       throw new BackendError({
         action: ServerAction.OICP_PUSH_PRICING_PRODUCT_DATA,
@@ -999,15 +999,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! sendChargingNotificationStart: ', response); // Will be removed
       notificationStartResponse = response.data as OICPAcknowledgment;
-    }).catch((error) => {
+    } catch (error) {
       console.log('Error! sendChargingNotificationStart: ', error.response); // Will be removed
       notificationStartResponse = error.response?.data as OICPAcknowledgment;
       requestError = error;
-    });
+    }
     if (!notificationStartResponse?.Result || notificationStartResponse?.Result !== true) {
       Logging.logError({
         tenantID: this.tenant.id,
@@ -1078,15 +1078,15 @@ export default class CpoOICPClient extends OICPClient {
         detailedMessages: { payload }
       });
       // Call Hubject
-      await this.axiosInstance.post(fullUrl, payload
-      ).then(function(response) {
+      try {
+        const response = await this.axiosInstance.post(fullUrl, payload);
         console.log('Success! sendChargingNotificationProgress: ', response); // Will be removed
         notificationProgressResponse = response.data as OICPAcknowledgment;
-      }).catch((error) => {
+      } catch (error) {
         console.log('Error! sendChargingNotificationProgress: ', error.response); // Will be removed
         notificationProgressResponse = error.response?.data as OICPAcknowledgment;
         requestError = error;
-      });
+      }
       transaction.oicpData.session.last_progress_notification = new Date();
       if (!notificationProgressResponse?.Result || notificationProgressResponse?.Result !== true) {
         Logging.logError({
@@ -1169,15 +1169,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! sendChargingNotificationEnd: ', response); // Will be removed
       notificationEndResponse = response.data as OICPAcknowledgment;
-    }).catch((error) => {
+    } catch (error) {
       console.log('Error! sendChargingNotificationEnd: ', error.response); // Will be removed
       notificationEndResponse = error.response?.data as OICPAcknowledgment;
       requestError = error;
-    });
+    }
     if (!notificationEndResponse?.Result || notificationEndResponse?.Result !== true) {
       Logging.logError({
         tenantID: this.tenant.id,
@@ -1241,15 +1241,15 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload }
     });
     // Call Hubject
-    await this.axiosInstance.post(fullUrl, payload
-    ).then(function(response) {
+    try {
+      const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! sendChargingNotificationError: ', response); // Will be removed
       notificationErrorResponse = response.data as OICPAcknowledgment;
-    }).catch((errors) => {
-      console.log('Error! sendChargingNotificationError: ', errors.response); // Will be removed
-      notificationErrorResponse = errors.response?.data as OICPAcknowledgment;
+    } catch (error) {
+      console.log('Error! sendChargingNotificationError: ', error.response); // Will be removed
+      notificationErrorResponse = error.response?.data as OICPAcknowledgment;
       requestError = error;
-    });
+    }
     if (!notificationErrorResponse?.Result || notificationErrorResponse?.Result !== true) {
       Logging.logError({
         tenantID: this.tenant.id,
