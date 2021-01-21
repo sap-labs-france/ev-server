@@ -99,9 +99,6 @@ export default class ExpressTools {
       if (serverConfig['ssl-key'] && serverConfig['ssl-cert']) {
         options.key = serverConfig['ssl-key'];
         options.cert = serverConfig['ssl-cert'];
-      } else {
-        options.key = fs.readFileSync(serverConfig['ssl-key']);
-        options.cert = fs.readFileSync(serverConfig['ssl-cert']);
       }
       // Options.requestCert = true; // TODO: Test on QA System: Reject incoming requests without valid certificate (OICP: accept only requests from Hubject)
       // options.rejectUnauthorized = true; // TODO: Test on QA System
@@ -116,13 +113,11 @@ export default class ExpressTools {
             // FIXME read certificates directly from config.json file. In the future: config for OICP in default tenant
             if (serverConfig['ssl-ca'][i]) {
               options.ca.push(serverConfig['ssl-ca'][i]);
-            } else {
-              options.ca.push(fs.readFileSync(serverConfig['ssl-ca'][i]));
             }
           }
         } else {
           // Add one
-          options.ca = fs.readFileSync(serverConfig['ssl-ca']);
+          options.ca = serverConfig['ssl-ca'];
         }
       }
       // Https server
