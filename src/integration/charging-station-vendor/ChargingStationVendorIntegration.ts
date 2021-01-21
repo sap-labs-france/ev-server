@@ -387,7 +387,7 @@ export default abstract class ChargingStationVendorIntegration {
         });
       }
       // Check first matching Charging Profile
-      if (chargingStation.capabilities && chargingStation.capabilities.supportChargingProfiles) {
+      if (chargingStation.capabilities?.supportChargingProfiles) {
         // Get the current Charging Profiles
         const chargingProfiles = (await ChargingStationStorage.getChargingProfiles(tenantID, {
           chargingStationIDs: [chargingStation.id]
