@@ -131,7 +131,7 @@
       "body": "A new invoice ({{invoiceNumber}}) is now available"
     },
     "endUserErrorNotification": {
-      "title": "An User Reported an Error",
+      "title": "A User Reported an Error",
       "body": "'{{userName}}' reported: '{{errorTitle}}' - '{{errorDescription}}' in organization '{{tenantName}}'"
     }
   },

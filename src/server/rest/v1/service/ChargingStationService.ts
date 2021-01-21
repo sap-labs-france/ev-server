@@ -1369,7 +1369,8 @@ export default class ChargingStationService {
         csv += chargingStation.coordinates[1] + Constants.CSV_SEPARATOR;
         csv += chargingStation.coordinates[0] + Constants.CSV_SEPARATOR;
       } else {
-        csv += '' + Constants.CSV_SEPARATOR + '';
+        csv += '' + Constants.CSV_SEPARATOR;
+        csv += '' + Constants.CSV_SEPARATOR;
       }
       csv += chargingStation.chargePointSerialNumber + Constants.CSV_SEPARATOR;
       csv += chargingStation.chargePointModel + Constants.CSV_SEPARATOR;
