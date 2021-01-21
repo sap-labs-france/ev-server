@@ -8,10 +8,14 @@ import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
+import CpoOICPClient from '../client/oicp/CpoOICPClient';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../types/ocpi/OCPIRole';
+import OICPClientFactory from '../client/oicp/OICPClientFactory';
+import { OICPDefaultTagId } from '../types/oicp/OICPIdentification';
+import { OICPRole } from '../types/oicp/OICPRole';
 import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
@@ -767,14 +771,36 @@ export default class Authorizations {
     }
     // Get Tag
     let tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
-    if (!tag) {
-      // Unknown User -> OICP component activated -> return virtual user (do not create inactive Tag)
+
+    if (!tag || !tag?.active) {
+      // Check OICP User
+      // OICP Active?
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-        // FIXME: No tag will be created if OICP component is activated. What if unknown user is no OICP User? No information beforehand.
-        // You have to try the OICP authorization first (with a successful OICP authorization the session starts)
-        // Problem: Even if the user is no roaming user, the OICP virtual user will be returned
-        return UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
+        // OICP user
+        const virtualOICPUser = await UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
+
+        if (tagID === OICPDefaultTagId.RemoteIdentification) {
+          return virtualOICPUser;
+        }
+        const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
+        if (!oicpClient) {
+          throw new BackendError({
+            action: ServerAction.AUTHORIZE,
+            module: MODULE_NAME,
+            method: 'handleAuthorize',
+            message: 'OICP component requires at least one CPO endpoint to start a Session'
+          });
+        }
+        // Call Hubject
+        const response = await oicpClient.authorizeStart(tagID);
+        if (response.SessionID) {
+          virtualOICPUser.authorizationID = response.SessionID;
+          return virtualOICPUser;
+        }
       }
+    }
+
+    if (!tag) {
       // Create the tag as inactive
       tag = {
         id: tagID,

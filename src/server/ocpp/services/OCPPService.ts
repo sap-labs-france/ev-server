@@ -481,29 +481,10 @@ export default class OCPPService {
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
         authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
       // Roaming User
-      if (user && !user.issuer) {
+      if (user && !user.issuer && user.authorizationID) {
         if (chargingStation.public) {
-          const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
-          // OCPI User
-          if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) && user.authorizationID) {
-            // Keep the Auth ID
-            authorize.authorizationId = user.authorizationID;
-          } else if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-            // OICP user
-            const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
-            if (!oicpClient) {
-              throw new BackendError({
-                user: user,
-                action: ServerAction.AUTHORIZE,
-                module: MODULE_NAME,
-                method: 'handleAuthorize',
-                message: 'OICP component requires at least one CPO endpoint to start a Session'
-              });
-            }
-            // Call Hubject
-            const response = await oicpClient.authorizeStart(authorize.idTag, user);
-            authorize.authorizationId = response.SessionID;
-          }
+          // Keep the Auth ID
+          authorize.authorizationId = user.authorizationID;
         } else {
           throw new BackendError({
             user: user,
@@ -1146,8 +1127,6 @@ export default class OCPPService {
         }
         // OICP: Post the CDR
         if (lastTransaction.oicpData?.session) {
-          const user = await UserStorage.getUser(tenantID, lastTransaction.userID);
-          lastTransaction.user = user;
           await this.checkAndSendOICPTransactionCdr(tenantID, lastTransaction, chargingStation);
         }
         // Save

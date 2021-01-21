@@ -595,15 +595,14 @@ export default class CpoOICPClient extends OICPClient {
   /**
    * ERoaming Authorize Start
    */
-  public async authorizeStart(tagID: string, user: User, transactionId?: number): Promise<OICPAuthorizeStartCpoReceive> {
+  public async authorizeStart(tagID: string, transactionId?: number): Promise<OICPAuthorizeStartCpoReceive> {
     let authorizeResponse = {} as OICPAuthorizeStartCpoReceive;
     let requestError: any;
     if (!tagID) {
       throw new BackendError({
         action: ServerAction.OICP_AUTHORIZE_START,
         message: 'No Tag ID for OICP Authorization',
-        module: MODULE_NAME, method: 'authorizeStart',
-        user: user
+        module: MODULE_NAME, method: 'authorizeStart'
       });
     }
     const identification = OICPUtils.convertTagID2OICPIdentification(tagID);
@@ -623,7 +622,6 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
-      user: user,
       action: ServerAction.OICP_AUTHORIZE_START,
       message: 'Start Authorization',
       module: MODULE_NAME, method: 'authorizeStart',
@@ -641,7 +639,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (requestError) {
       throw new BackendError({
-        user: user,
         action: ServerAction.OICP_AUTHORIZE_START,
         message: `'authorizeStart' Error: '${authorizeResponse?.StatusCode?.AdditionalInfo ? authorizeResponse?.StatusCode?.AdditionalInfo : authorizeResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
         module: MODULE_NAME, method: 'authorizeStart',
@@ -652,12 +649,12 @@ export default class CpoOICPClient extends OICPClient {
           payload: payload
         }
       });
-    } else if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
+    }
+    if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
       throw new BackendError({
-        user: user,
         action: ServerAction.OICP_AUTHORIZE_START,
         module: MODULE_NAME, method: 'authorizeStart',
-        message: `User '${user.id}' with Authorization '${tagID}' cannot ${TransactionAction.START} Transaction thought OICP protocol due to missing Authorization`,
+        message: `User with Authorization '${tagID}' cannot ${TransactionAction.START} Transaction thought OICP protocol due to missing Authorization`,
         detailedMessages: {
           response: authorizeResponse
         }
@@ -666,9 +663,8 @@ export default class CpoOICPClient extends OICPClient {
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,
-      user: user,
       action: ServerAction.OICP_AUTHORIZE_START,
-      message: `User '${user.id}' with Authorization '${tagID}' authorized thought OICP protocol`,
+      message: `User with Authorization '${tagID}' authorized thought OICP protocol`,
       module: MODULE_NAME, method: 'authorizeStart',
       detailedMessages: { authorizeResponse }
     });
