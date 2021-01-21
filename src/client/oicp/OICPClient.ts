@@ -137,40 +137,6 @@ export default abstract class OICPClient {
     });
   }
 
-  private getPrivateKeyFromConfig(action: ServerAction): Buffer {
-    if (!this.settings[this.role]) {
-      throw new BackendError({
-        action, message: `OICP Settings are missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getPrivateKey',
-      });
-    }
-    const key = fs.readFileSync(this.oicpConfig['ssl-key']);
-    if (!key) {
-      throw new BackendError({
-        action, message: `OICP private Key setting is missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getPrivateKey',
-      });
-    }
-    return key;
-  }
-
-  private getClientCertificateFromConfig(action: ServerAction): Buffer {
-    if (!this.settings[this.role]) {
-      throw new BackendError({
-        action, message: `OICP Settings are missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getClientCertificate',
-      });
-    }
-    const cert = fs.readFileSync(this.oicpConfig['ssl-cert']);
-    if (!cert) {
-      throw new BackendError({
-        action, message: `OICP client certificate setting is missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getClientCertificate',
-      });
-    }
-    return cert;
-  }
-
   private getPrivateKeyFromDB(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
