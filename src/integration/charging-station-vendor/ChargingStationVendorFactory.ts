@@ -3,11 +3,15 @@ import ChargingStation, { ChargerVendor } from '../../types/ChargingStation';
 import AbbChargingStationVendorIntegration from './abb/AbbChargingStationVendorIntegration';
 import AtessChargingStationVendorIntegration from './atess/AtessChargingStationVendorIntegration';
 import ChargingStationVendorIntegration from './ChargingStationVendorIntegration';
+import DefaultChargingStationVendorIntegration from './default/DefaultChargingStationVendorIntegration';
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
+import EVBOXChargingStationVendorIntegration from './evbox/EVBOXChargingStationVendorIntegration';
 import EbeeChargingStationVendorIntegration from './ebee/EbeeChargingStationVendorIntegration';
+import IESChargingStationVendorIntegration from './ies/IESChargingStationVendorIntegration';
 import LegrandChargingStationVendorIntegration from './legrand/LegrandChargingStationVendorIntegration';
 import SAPLabsFranceChargingStationVendorIntegration from './sap/SAPLabsFranceChargingStationVendorIntegration';
 import SchneiderChargingStationVendorIntegration from './schneider/SchneiderChargingStationVendorIntegration';
+import WallboxChargersChargingStationVendorIntegration from './wallboxchargers/WallboxChargersChargingStationVendorIntegration';
 
 export default class ChargingStationVendorFactory {
 
@@ -19,6 +23,15 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.SCHNEIDER:
         chargingStationVendorImpl = new SchneiderChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.EVBOX:
+        chargingStationVendorImpl = new EVBOXChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.IES:
+        chargingStationVendorImpl = new IESChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.WALLBOX_CHARGERS:
+        chargingStationVendorImpl = new WallboxChargersChargingStationVendorIntegration(chargingStation);
         break;
       case ChargerVendor.EBEE:
       case ChargerVendor.BENDER:
@@ -38,6 +51,10 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.SAP_LABS_FRANCE:
         chargingStationVendorImpl = new SAPLabsFranceChargingStationVendorIntegration(chargingStation);
         break;
+      // FIXME: adding a default vendor class to only require a vendor class when existing methods need adaptation needs more work
+      // default:
+      //   chargingStationVendorImpl = new DefaultChargingStationVendorIntegration(chargingStation);
+      //   break;
     }
     return chargingStationVendorImpl;
   }
