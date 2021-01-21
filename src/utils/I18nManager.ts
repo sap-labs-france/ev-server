@@ -36,7 +36,6 @@ export default class I18nManager {
     return I18nManager.instances.get(locale);
   }
 
-
   public static initialize(): void {
     // Get translation files
     i18n.translations['en'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
