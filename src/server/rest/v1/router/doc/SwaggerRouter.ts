@@ -4,7 +4,8 @@ import global from '../../../../../types/GlobalType';
 import swaggerUi from 'swagger-ui-express';
 
 const options = {
-  explorer: false
+  explorer: false,
+  apis: ['src/assets/server/rest/v1/docs/*.json'],
 };
 
 export default class SwaggerRouter {

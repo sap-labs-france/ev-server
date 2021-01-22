@@ -996,7 +996,7 @@ export default class ChargingStationService {
   public static async handleAction(action: ServerAction, command: Command, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest =
-      ChargingStationSecurity.filterChargingStationActionRequest(req.body);
+      ChargingStationSecurity.filterChargingStationActionRequest({ ...req.query, ...req.body });
     UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);

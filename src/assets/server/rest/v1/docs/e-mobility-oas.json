@@ -612,6 +612,1174 @@
           }
         }
       }
+    },
+    "/api/chargingstations": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Charging Stations",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "Issuer",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "WithNoSiteArea",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "WithSite",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteAreaID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ConnectorStatus",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ConnectorType",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ChargeBoxID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "IncludeDeleted",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ErrorType",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "LocLongitude",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "LocLatitude",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "LocMaxDistanceMeters",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging Stations list",
+            "content": {
+              "application/json": {
+                "example": {
+                    "chargeBoxSerialNumber": "EV.2S22P44R3N164750700100350246E2",
+                    "chargePointModel": "MONOBLOCK",
+                    "chargePointSerialNumber": "3N163730715E2S1B7551700014",
+                    "chargePointVendor": "Schneider Electric",
+                    "connectors": [
+                        {
+                            "connectorId": 1,
+                            "currentInstantWatts": 0,
+                            "currentStateOfCharge": 0,
+                            "currentTotalInactivitySecs": 0,
+                            "currentTotalConsumptionWh": 0,
+                            "currentTransactionDate": null,
+                            "currentTagID": null,
+                            "status": "Available",
+                            "errorCode": "NoError",
+                            "info": "",
+                            "vendorErrorCode": "",
+                            "power": 22080,
+                            "type": "T2",
+                            "voltage": 0,
+                            "amperage": 96,
+                            "amperageLimit": 96,
+                            "currentTransactionID": 0,
+                            "userID": null,
+                            "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
+                            "currentInactivityStatus": "I",
+                            "numberOfConnectedPhase": null,
+                            "currentType": null,
+                            "chargePointID": 1,
+                            "phaseAssignmentToGrid": null
+                        },
+                        {
+                            "connectorId": 2,
+                            "currentInstantWatts": 0,
+                            "currentStateOfCharge": 0,
+                            "currentTotalInactivitySecs": 0,
+                            "currentTotalConsumptionWh": 0,
+                            "currentTransactionDate": null,
+                            "currentTagID": null,
+                            "status": "Available",
+                            "errorCode": "NoError",
+                            "info": "",
+                            "vendorErrorCode": "",
+                            "power": 22080,
+                            "type": "T2",
+                            "voltage": 0,
+                            "amperage": 96,
+                            "amperageLimit": 96,
+                            "currentTransactionID": 0,
+                            "userID": null,
+                            "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
+                            "currentInactivityStatus": "I",
+                            "numberOfConnectedPhase": null,
+                            "currentType": null,
+                            "chargePointID": 1,
+                            "phaseAssignmentToGrid": null
+                        }
+                    ],
+                    "endpoint": "http://192.168.0.114:8080/",
+                    "firmwareVersion": "3.3.0.12",
+                    "lastReboot": "2020-12-08T09:06:14.948Z",
+                    "ocppVersion": "1.5",
+                    "siteAreaID": "5abebb1b4bae1457eb565e98",
+                    "chargingStationURL": "wss://sap-ev-chargebox-json-server-prod.cfapps.eu10.hana.ondemand.com",
+                    "maximumPower": 44160,
+                    "ocppProtocol": "soap",
+                    "powerLimitUnit": "A",
+                    "createdOn": "2019-03-20T07:41:57.583Z",
+                    "currentIPAddress": "37.71.38.83, 10.0.136.8",
+                    "coordinates": [
+                        7.01643370298905,
+                        43.6120451027249
+                    ],
+                    "capabilities": {
+                        "supportStaticLimitation": true,
+                        "supportChargingProfiles": true,
+                        "supportRemoteStartStopTransaction": true,
+                        "supportUnlockConnector": true,
+                        "supportReservation": false,
+                        "supportCreditCard": false,
+                        "supportRFIDCard": false
+                    },
+                    "ocppStandardParameters": [
+                        {
+                            "key": "AllowOfflineTxForUnknownId",
+                            "value": "true"
+                        },
+                        {
+                            "key": "AuthorizationCacheEnabled",
+                            "value": "false"
+                        },
+                        {
+                            "key": "StopTransactionOnInvalidId",
+                            "value": "true"
+                        }
+                    ],
+                    "ocppVendorParameters": [
+                        {
+                            "key": "authenticationmanager",
+                            "value": "2"
+                        },
+                        {
+                            "key": "ocppconnecttimeout",
+                            "value": "60"
+                        },
+                        {
+                            "key": "clockaligneddatainterval",
+                            "value": "0"
+                        },
+                        {
+                            "key": "metervaluessampleddata",
+                            "value": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3"
+                        },
+                        {
+                            "key": "metervaluesampleinterval",
+                            "value": "60"
+                        },
+                        {
+                            "key": "emsetting",
+                            "value": "3"
+                        },
+                        {
+                            "key": "enableevdetection",
+                            "value": "true"
+                        },
+                        {
+                            "key": "useautotimemanagment",
+                            "value": "true"
+                        },
+                        {
+                            "key": "timeservername",
+                            "value": "pool.ntp.org"
+                        },
+                        {
+                            "key": "websocketpinginterval",
+                            "value": "30"
+                        }
+                    ],
+                    "issuer": true,
+                    "chargePoints": [
+                        {
+                            "chargePointID": 1,
+                            "currentType": "AC",
+                            "voltage": null,
+                            "amperage": 192,
+                            "numberOfConnectedPhase": 3,
+                            "cannotChargeInParallel": false,
+                            "sharePowerToAllConnectors": false,
+                            "excludeFromPowerLimitation": false,
+                            "ocppParamForPowerLimitation": "maxintensitysocket",
+                            "power": 44160,
+                            "efficiency": null,
+                            "connectorIDs": [
+                                1,
+                                2
+                            ]
+                        }
+                    ],
+                    "excludeFromSmartCharging": false,
+                    "voltage": 230,
+                    "public": false,
+                    "forceInactive": false,
+                    "lastSeen": "2020-12-20T22:34:37.468Z",
+                    "inactive": true,
+                    "siteArea": {
+                        "name": "Mougins - South",
+                        "siteID": "5abeba8d4bae1457eb565e5b",
+                        "smartCharging": true,
+                        "id": "5abebb1b4bae1457eb565e98",
+                        "site": {
+                            "name": "SAP Labs Mougins",
+                            "id": "5abeba8d4bae1457eb565e5b"
+                        }
+                    },
+                    "id": "SAP-Mougins-03"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Charging Station",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging Station",
+            "content": {
+              "application/json": {
+                "example": {
+                    "chargeBoxSerialNumber": "EV.2S22P44R3N164750700100350246E2",
+                    "chargePointModel": "MONOBLOCK",
+                    "chargePointSerialNumber": "3N163730715E2S1B7551700014",
+                    "chargePointVendor": "Schneider Electric",
+                    "connectors": [
+                        {
+                            "connectorId": 1,
+                            "currentInstantWatts": 0,
+                            "currentStateOfCharge": 0,
+                            "currentTotalInactivitySecs": 0,
+                            "currentTotalConsumptionWh": 0,
+                            "currentTransactionDate": null,
+                            "currentTagID": null,
+                            "status": "Available",
+                            "errorCode": "NoError",
+                            "info": "",
+                            "vendorErrorCode": "",
+                            "power": 22080,
+                            "type": "T2",
+                            "voltage": 0,
+                            "amperage": 96,
+                            "amperageLimit": 96,
+                            "currentTransactionID": 0,
+                            "userID": null,
+                            "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
+                            "currentInactivityStatus": "I",
+                            "numberOfConnectedPhase": null,
+                            "currentType": null,
+                            "chargePointID": 1,
+                            "phaseAssignmentToGrid": null
+                        },
+                        {
+                            "connectorId": 2,
+                            "currentInstantWatts": 0,
+                            "currentStateOfCharge": 0,
+                            "currentTotalInactivitySecs": 0,
+                            "currentTotalConsumptionWh": 0,
+                            "currentTransactionDate": null,
+                            "currentTagID": null,
+                            "status": "Available",
+                            "errorCode": "NoError",
+                            "info": "",
+                            "vendorErrorCode": "",
+                            "power": 22080,
+                            "type": "T2",
+                            "voltage": 0,
+                            "amperage": 96,
+                            "amperageLimit": 96,
+                            "currentTransactionID": 0,
+                            "userID": null,
+                            "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
+                            "currentInactivityStatus": "I",
+                            "numberOfConnectedPhase": null,
+                            "currentType": null,
+                            "chargePointID": 1,
+                            "phaseAssignmentToGrid": null
+                        }
+                    ],
+                    "endpoint": "http://192.168.0.114:8080/",
+                    "firmwareVersion": "3.3.0.12",
+                    "lastReboot": "2020-12-08T09:06:14.948Z",
+                    "ocppVersion": "1.5",
+                    "siteAreaID": "5abebb1b4bae1457eb565e98",
+                    "chargingStationURL": "wss://sap-ev-chargebox-json-server-prod.cfapps.eu10.hana.ondemand.com",
+                    "maximumPower": 44160,
+                    "ocppProtocol": "soap",
+                    "powerLimitUnit": "A",
+                    "createdOn": "2019-03-20T07:41:57.583Z",
+                    "currentIPAddress": "37.71.38.83, 10.0.136.8",
+                    "coordinates": [
+                        7.01643370298905,
+                        43.6120451027249
+                    ],
+                    "capabilities": {
+                        "supportStaticLimitation": true,
+                        "supportChargingProfiles": true,
+                        "supportRemoteStartStopTransaction": true,
+                        "supportUnlockConnector": true,
+                        "supportReservation": false,
+                        "supportCreditCard": false,
+                        "supportRFIDCard": false
+                    },
+                    "ocppStandardParameters": [
+                        {
+                            "key": "AllowOfflineTxForUnknownId",
+                            "value": "true"
+                        },
+                        {
+                            "key": "AuthorizationCacheEnabled",
+                            "value": "false"
+                        },
+                        {
+                            "key": "StopTransactionOnInvalidId",
+                            "value": "true"
+                        }
+                    ],
+                    "ocppVendorParameters": [
+                        {
+                            "key": "authenticationmanager",
+                            "value": "2"
+                        },
+                        {
+                            "key": "ocppconnecttimeout",
+                            "value": "60"
+                        },
+                        {
+                            "key": "clockaligneddatainterval",
+                            "value": "0"
+                        },
+                        {
+                            "key": "metervaluessampleddata",
+                            "value": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3"
+                        },
+                        {
+                            "key": "metervaluesampleinterval",
+                            "value": "60"
+                        },
+                        {
+                            "key": "emsetting",
+                            "value": "3"
+                        },
+                        {
+                            "key": "enableevdetection",
+                            "value": "true"
+                        },
+                        {
+                            "key": "useautotimemanagment",
+                            "value": "true"
+                        },
+                        {
+                            "key": "timeservername",
+                            "value": "pool.ntp.org"
+                        },
+                        {
+                            "key": "websocketpinginterval",
+                            "value": "30"
+                        }
+                    ],
+                    "issuer": true,
+                    "chargePoints": [
+                        {
+                            "chargePointID": 1,
+                            "currentType": "AC",
+                            "voltage": null,
+                            "amperage": 192,
+                            "numberOfConnectedPhase": 3,
+                            "cannotChargeInParallel": false,
+                            "sharePowerToAllConnectors": false,
+                            "excludeFromPowerLimitation": false,
+                            "ocppParamForPowerLimitation": "maxintensitysocket",
+                            "power": 44160,
+                            "efficiency": null,
+                            "connectorIDs": [
+                                1,
+                                2
+                            ]
+                        }
+                    ],
+                    "excludeFromSmartCharging": false,
+                    "voltage": 230,
+                    "public": false,
+                    "forceInactive": false,
+                    "lastSeen": "2020-12-20T22:34:37.468Z",
+                    "inactive": true,
+                    "siteArea": {
+                        "name": "Mougins - South",
+                        "siteID": "5abeba8d4bae1457eb565e5b",
+                        "smartCharging": true,
+                        "id": "5abebb1b4bae1457eb565e98",
+                        "site": {
+                            "name": "SAP Labs Mougins",
+                            "id": "5abeba8d4bae1457eb565e5b"
+                        }
+                    },
+                    "id": "SAP-Mougins-03"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a Charging Station",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging Station has been successfully deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "description": "Charging Station does not exist"
+          },
+          "570": {
+            "description": "Charging Station can't be deleted due to existing active transactions"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/reset": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Reset a Charging Station",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["chargeBoxID", "type"],
+                "properties": {
+                  "chargeBoxID": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              },
+              "examples": {
+                "softReset": {
+                  "summary": "Soft Reset",
+                  "value": {
+                    "chargeBoxID": "SAP-Mougins-03",
+                    "type": "Soft"
+                    }
+                  },
+                  "hardReset": {
+                    "summary": "Hard Reset",
+                    "value": {
+                      "chargeBoxID": "SAP-Mougins-03",
+                      "type": "Hard"
+                      }
+                    }
+                }
+              }
+            }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging Station has been successfully reset"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/cache/clear": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Clear a Charging Station cache",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging Station cache has been successfully cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/configuration": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get a Charging Station configuration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-033"
+            }
+          },
+          {
+            "in": "query",
+            "name": "key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["configurationKey"],
+                  "properties": {
+                    "configurationKey": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["key", "readonly"],
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          },
+                          "readonly": {
+                            "type": "boolean"
+                          },
+                          "custom": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "unknownKey": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/remote/start": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Start a remote transaction",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "connectorId": {
+                    "type": "number"
+                  },
+                  "tagID": {
+                    "type": "string",
+                    "example": "DEMODEMO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Remote transaction started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status"],
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "570": {
+            "$ref": "#/components/responses/NoBadgeError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/remote/stop": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Stop a remote transaction",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transactionId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Remote transaction stopped",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status"],
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "570": {
+            "$ref": "#/components/responses/NoBadgeError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/connectors/{connectorId}/unlock": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unlock a connector",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          },
+          {
+            "in": "path",
+            "name": "connectorId",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": "0"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Connector unlocked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status"],
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unlocked": {
+                    "summary": "Unlocked",
+                    "value": {
+                      "status": "Unlocked"
+                    }
+                  },
+                  "unlockedFailed": {
+                    "summary": "Unlocked failed",
+                    "value": {
+                      "status": "UnlockedFailed"
+                    }
+                  },
+                  "notsupported": {
+                    "summary": "Not supported",
+                    "value": {
+                      "status": "NotSupported"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Generate connector's QRCode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          },
+          {
+            "in": "path",
+            "name": "connectorId",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": "0"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return genereated QRCode",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["image"],
+                  "properties": {
+                    "image": {
+                      "type": "string",
+                      "description": "Base 64 encoded",
+                      "example": "data:image/png;base64,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"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/compositeschedule": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Station composite schedule",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return composite schedule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status"],
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "connectorId": {
+                      "type": "number"
+                    },
+                    "scheduleStart": {
+                      "type": "object",
+                      "description": "Date"
+                    },
+                    "chargingSchedule": {
+                      "type": "object",
+                      "required": ["chargingRateUnit", "chargingSchedulePeriod"],
+                      "properties": {
+                        "duration": {
+                          "type": "number"
+                        },
+                        "startSchedule": {
+                          "type": "object",
+                          "description": "Date"
+                        },
+                        "chargingRateUnit": {
+                          "type": "string"
+                        },
+                        "chargingSchedulePeriod": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": ["startPeriod", "limit"],
+                            "properties": {
+                              "startPeriod": {
+                                "type": "number"
+                              },
+                              "limit": {
+                                "type": "number"
+                              },
+                              "numberPhases": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "585": {
+            "description": "Feature not supported"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -628,6 +1796,9 @@
       },
       "500BackendError": {
         "description": "Unexpected Backend error, checks the Logs"
+      },
+      "NoBadgeError": {
+        "description": "User doesn't have any badge"
       }
     },
     "schemas": {
