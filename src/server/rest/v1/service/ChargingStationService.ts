@@ -1022,7 +1022,7 @@ export default class ChargingStationService {
       }
       // Get Transaction
       const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
-      UtilsService.assertObjectExists(action, transaction, `Transaction ID '${String(filteredRequest.args.transactionId)}' does not exist`,
+      UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId.toString()}' does not exist`,
         MODULE_NAME, 'handleAction', req.user);
       // Add connector ID
       filteredRequest.args.connectorId = transaction.connectorId;

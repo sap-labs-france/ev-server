@@ -13,8 +13,6 @@ import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
-import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
-import { OICPRole } from '../../../../types/oicp/OICPRole';
 import OICPUtils from '../../../oicp/OICPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
@@ -331,7 +329,7 @@ export default class TenantService {
 
   private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
     // Check if OICP component is activated or deactivated and create/activate/deactivate virtual user (and Badges) accordingly
-    await this.checkOICPComponent(tenant);
+    OICPUtils.checkOICPComponent(tenant);
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
@@ -368,35 +366,6 @@ export default class TenantService {
           // Save Setting
           await SettingStorage.saveSettings(tenant.id, currentSetting);
         }
-      }
-    }
-  }
-
-  private static async checkOICPComponent(tenant: Partial<Tenant>): Promise<void> {
-    if (tenant.components && tenant.components?.oicp) {
-      const checkOICPComponent = tenant.components.oicp;
-      // Virtual user needed for unknown roaming user
-      const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
-      // Activate or deactivate virtual user depending on the oicp component status
-      if (checkOICPComponent.active) {
-        if (!virtualOICPUser) {
-          await OICPUtils.createOICPVirtualUser(tenant.id);
-        } else if (virtualOICPUser.status !== UserStatus.ACTIVE) {
-          // Activate user and save user status
-          await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.ACTIVE);
-        }
-      } else if (virtualOICPUser && virtualOICPUser?.status === UserStatus.ACTIVE) {
-        // Deactivate user and save user status
-        await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.INACTIVE);
-      }
-      if (!checkOICPComponent.active) {
-      // Delete Endpoints if component is inactive
-        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        oicpEndpoints.result.forEach(async (oicpEndpoint) => {
-          // Delete
-          await OICPEndpointStorage.deleteOicpEndpoint(tenant.id, oicpEndpoint.id);
-        });
       }
     }
   }

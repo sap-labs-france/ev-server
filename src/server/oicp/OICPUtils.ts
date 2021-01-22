@@ -7,7 +7,9 @@ import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
+import OICPEndpointStorage from '../../storage/mongodb/OICPEndpointStorage';
 import { OICPEvseID } from '../../types/oicp/OICPEvse';
+import { OICPRole } from '../../types/oicp/OICPRole';
 import { OICPSession } from '../../types/oicp/OICPSession';
 import { OICPStatusCode } from '../../types/oicp/OICPStatusCode';
 import { OicpSetting } from '../../types/Setting';
@@ -223,6 +225,34 @@ export default class OICPUtils {
     } else {
       oicpSetting.emsp.cert = oicpSetting.emsp.cert;
     }
+  }
 
+  public static async checkOICPComponent(tenant: Partial<Tenant>): Promise<void> {
+    if (tenant.components && tenant.components?.oicp) {
+      const checkOICPComponent = tenant.components.oicp;
+      // Virtual user needed for unknown roaming user
+      const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+      // Activate or deactivate virtual user depending on the oicp component status
+      if (checkOICPComponent.active) {
+        if (!virtualOICPUser) {
+          await OICPUtils.createOICPVirtualUser(tenant.id);
+        } else if (virtualOICPUser.status !== UserStatus.ACTIVE) {
+          // Activate user and save user status
+          await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.ACTIVE);
+        }
+      } else if (virtualOICPUser && virtualOICPUser?.status === UserStatus.ACTIVE) {
+        // Deactivate user and save user status
+        await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.INACTIVE);
+      }
+      if (!checkOICPComponent.active) {
+      // Delete Endpoints if component is inactive
+        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        oicpEndpoints.result.forEach(async (oicpEndpoint) => {
+          // Delete
+          await OICPEndpointStorage.deleteOicpEndpoint(tenant.id, oicpEndpoint.id);
+        });
+      }
+    }
   }
 }
