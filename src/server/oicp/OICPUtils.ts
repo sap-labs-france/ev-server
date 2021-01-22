@@ -20,6 +20,7 @@ import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import Utils from '../../utils/Utils';
 import moment from 'moment';
 import sanitize from 'mongo-sanitize';
 
@@ -164,7 +165,7 @@ export default class OICPUtils {
       tagID: transaction.tagID
     }, Constants.DB_PARAMS_MAX_LIMIT);
     // Found ID?
-    if (authorizations && authorizations.result && authorizations.result.length > 0) {
+    if (!Utils.isEmptyArray(authorizations.result)) {
       // Get the first non used Authorization OICP ID / Session ID
       for (const authorization of authorizations.result) {
         if (authorization.authorizationId) {

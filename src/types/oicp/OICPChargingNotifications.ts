@@ -2,8 +2,8 @@ import { OICPChargingNotification, OICPErrorClass } from './OICPStatusCode';
 import { OICPEvseID, OICPOperatorID } from './OICPEvse';
 import { OICPIdentification, OICPSessionID } from './OICPIdentification';
 
-import { OICPProductID } from './OICPPricing';
 import { OICPMeterValueInBetween } from './OICPChargeDetailRecord';
+import { OICPProductID } from './OICPPricing';
 
 //
 // eRoamingChargingNotifications Start

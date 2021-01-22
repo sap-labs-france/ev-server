@@ -234,7 +234,7 @@ export default class OICPMapping {
   private static convertCoordinates2OICPGeoCoordinates(coordinates: number[], format: OICPGeoCoordinatesResponseFormat): OICPGeoCoordinates {
     switch (format) {
       case OICPGeoCoordinatesResponseFormat.Google:
-        // To be done
+        // TODO
         return {
           Google: {
             Coordinates: 'TODO'
@@ -248,7 +248,7 @@ export default class OICPMapping {
           }
         };
       case OICPGeoCoordinatesResponseFormat.DegreeMinuteSeconds:
-        // To be done
+        // TODO
         return {
           DegreeMinuteSeconds: {
             Longitude: 'TODO',

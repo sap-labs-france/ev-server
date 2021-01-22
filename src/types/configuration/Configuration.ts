@@ -20,12 +20,12 @@ import NotificationConfiguration from './NotificationConfiguration';
 import OCPIEndpointConfiguration from './OCPIEndpointConfiguration';
 import OCPIServiceConfiguration from './OCPIServiceConfiguration';
 import ODataServiceConfiguration from './ODataServiceConfiguration';
+import OICPEndpointConfiguration from './OICPEndpointConfiguration';
 import OICPServiceConfiguration from './OICPServiceConfiguration';
 import SchedulerConfiguration from './SchedulerConfiguration';
 import StorageConfiguration from './StorageConfiguration';
 import WSClientConfiguration from './WSClientConfiguration';
 import WSDLEndpointConfiguration from './WSDLEndpointConfiguration';
-import OICPEndpointConfiguration from './OICPEndpointConfiguration';
 
 export interface Configuration {
   Crypto: CryptoConfiguration;

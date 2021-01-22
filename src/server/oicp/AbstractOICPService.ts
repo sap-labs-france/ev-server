@@ -81,18 +81,9 @@ export default abstract class AbstractOICPService {
     // Full endpoint path /:protocol/:role/:version/:tenantSubdomain/api/oicp/:module/:endpointVersion/providers/:providerID/:endpoint/:endpointAction?
     // Fixed path /:protocol/:role/:version/:tenantSubdomain
     // Added path by Hubject /api/oicp/:module/:endpointVersion/providers/:providerID/:endpoint/:endpointAction?
-    const params = req.params;
-    const module = params.module;
-    const endpointVersion = params.endpointVersion;
-    const providerID = params.providerID;
-    const endpoint = params.endpoint;
-    const endpointAction = params.endpointAction; // Optional, required for reservation endpoint
-    const tenantSubdomain = params.tenantSubdomain;
-    const version = params.version;
-
     // Set default tenant in case of exception
     req.user = { tenantID: Constants.DEFAULT_TENANT };
-    await this.processEndpointAction(params, req, res, next);
+    await this.processEndpointAction(req.params, req, res, next);
   }
 
   /**
