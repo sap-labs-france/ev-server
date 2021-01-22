@@ -29,17 +29,17 @@ export default class SettingSecurity {
     return filteredRequest;
   }
 
-  public static async filterSettingUpdateRequest(request: any, tenantID?: string): Promise<Partial<SettingDB>> {
-    const filteredRequest = await SettingSecurity._filterSettingRequest(request, tenantID);
+  public static filterSettingUpdateRequest(request: any): Partial<SettingDB> {
+    const filteredRequest = SettingSecurity._filterSettingRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  public static async filterSettingCreateRequest(request: any): Promise<Partial<SettingDB>> {
-    return await SettingSecurity._filterSettingRequest(request);
+  public static filterSettingCreateRequest(request: any): Partial<SettingDB> {
+    return SettingSecurity._filterSettingRequest(request);
   }
 
-  public static async _filterSettingRequest(request: Partial<SettingDB>, tenantID?: string): Promise<Partial<SettingDB>> {
+  public static _filterSettingRequest(request: Partial<SettingDB>): Partial<SettingDB> {
     const settings: SettingDB = {
       identifier: sanitize(request.identifier),
       sensitiveData: request.sensitiveData ? request.sensitiveData.map(sanitize) : []
@@ -124,25 +124,15 @@ export default class SettingSecurity {
               countryCode: sanitize(request.content.oicp.cpo.countryCode),
               partyID: sanitize(request.content.oicp.cpo.partyID),
               key: '',
-              cert:'',
+              cert:''
             };
-            const oicpSettings = await SettingStorage.getOICPSettings(tenantID);
-            // Encrypt key and certificate if not already encrypted
-            if (oicpSettings.oicp.cpo?.key !== request.content.oicp.cpo.key) {
-              settings.content.oicp.cpo.key = sanitize(Cypher.encrypt(request.content.oicp.cpo.key));
-            } else {
-              settings.content.oicp.cpo.key = request.content.oicp.cpo.key;
-            }
-            if (oicpSettings.oicp.cpo?.cert !== request.content.oicp.cpo.cert) {
-              settings.content.oicp.cpo.cert = sanitize(Cypher.encrypt(request.content.oicp.cpo.cert));
-            } else {
-              settings.content.oicp.cpo.cert = request.content.oicp.cpo.cert;
-            }
           }
           if (request.content.oicp.emsp) {
             settings.content.oicp.emsp = {
               countryCode: sanitize(request.content.oicp.emsp.countryCode),
-              partyID: sanitize(request.content.oicp.emsp.partyID)
+              partyID: sanitize(request.content.oicp.emsp.partyID),
+              key: '',
+              cert:''
             };
           }
           if (request.content.oicp.currency) {

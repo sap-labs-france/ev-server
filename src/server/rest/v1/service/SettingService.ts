@@ -8,6 +8,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import Logging from '../../../../utils/Logging';
+import OICPUtils from '../../../oicp/OICPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
@@ -114,9 +115,12 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = await SettingSecurity.filterSettingCreateRequest(req.body);
+    const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
     // Process the sensitive data if any
     Cypher.encryptSensitiveDataInJSON(filteredRequest);
+    if (filteredRequest.content.oicp) {
+      await OICPUtils.encryptCertificates(req.user.tenantID, filteredRequest.content.oicp);
+    }
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
@@ -137,7 +141,7 @@ export default class SettingService {
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingUpdate = await SettingSecurity.filterSettingUpdateRequest(req.body, req.user.tenantID);
+    const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {

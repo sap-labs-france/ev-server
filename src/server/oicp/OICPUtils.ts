@@ -4,18 +4,22 @@ import User, { UserStatus } from '../../types/User';
 
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
 import { OICPEvseID } from '../../types/oicp/OICPEvse';
 import { OICPSession } from '../../types/oicp/OICPSession';
 import { OICPStatusCode } from '../../types/oicp/OICPStatusCode';
+import { OicpSetting } from '../../types/Setting';
 import RoamingUtils from '../../utils/RoamingUtils';
 import { ServerAction } from '../../types/Server';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import moment from 'moment';
+import sanitize from 'mongo-sanitize';
 
 export default class OICPUtils {
 
@@ -191,5 +195,34 @@ export default class OICPUtils {
     newVirtualOICPUser.id = await UserStorage.saveUser(tenantID, newVirtualOICPUser);
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newVirtualOICPUser.id, UserStatus.ACTIVE);
+  }
+
+  public static async encryptCertificates(tenantID: string, oicpSetting: OicpSetting): Promise<void> {
+    const roamingSettings = await SettingStorage.getOICPSettings(tenantID);
+    // Encrypt key and certificate if not already encrypted
+    // CPO
+    if (roamingSettings.oicp.cpo?.key !== oicpSetting.cpo.key) {
+      oicpSetting.cpo.key = sanitize(Cypher.encrypt(oicpSetting.cpo.key));
+    } else {
+      oicpSetting.cpo.key = oicpSetting.cpo.key;
+    }
+    if (roamingSettings.oicp.cpo?.cert !== oicpSetting.cpo.cert) {
+      oicpSetting.cpo.cert = sanitize(Cypher.encrypt(oicpSetting.cpo.cert));
+    } else {
+      oicpSetting.cpo.cert = oicpSetting.cpo.cert;
+    }
+
+    // EMSP
+    if (roamingSettings.oicp.emsp?.key !== oicpSetting.emsp.key) {
+      oicpSetting.emsp.key = sanitize(Cypher.encrypt(oicpSetting.emsp.key));
+    } else {
+      oicpSetting.emsp.key = oicpSetting.emsp.key;
+    }
+    if (roamingSettings.oicp.emsp?.cert !== oicpSetting.emsp.cert) {
+      oicpSetting.emsp.cert = sanitize(Cypher.encrypt(oicpSetting.emsp.cert));
+    } else {
+      oicpSetting.emsp.cert = oicpSetting.emsp.cert;
+    }
+
   }
 }
