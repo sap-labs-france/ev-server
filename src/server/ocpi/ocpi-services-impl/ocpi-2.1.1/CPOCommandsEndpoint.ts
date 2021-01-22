@@ -25,7 +25,6 @@ import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import moment from 'moment';
 
 const EP_IDENTIFIER = 'commands';
@@ -103,7 +102,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       siteIDs: [startSession.location_id],
       issuer: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (chargingStations && chargingStations.result) {
+    if (chargingStations?.result) {
       for (const cs of chargingStations.result) {
         for (const conn of cs.connectors) {
           if (startSession.evse_uid === OCPIUtils.buildEvseUID(cs, conn)) {

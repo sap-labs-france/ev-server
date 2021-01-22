@@ -1,6 +1,6 @@
-import ChargingStation, { Connector } from "../types/ChargingStation";
+import ChargingStation, { Connector } from '../types/ChargingStation';
 
-import { EvseIdComponents } from "../types/oicp/OICPEvse";
+import { EvseIdComponents } from '../types/oicp/OICPEvse';
 
 export default class RoamingUtils {
 

@@ -155,7 +155,7 @@ export default class OICPUtils {
   }
 
   public static async getOICPIdentificationFromAuthorization(tenantID: string,
-      transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
+    transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
     // Retrieve Session Id from Authorization ID
     let sessionId: OICPSessionID;
     const authorizations = await OCPPStorage.getAuthorizes(tenantID, {

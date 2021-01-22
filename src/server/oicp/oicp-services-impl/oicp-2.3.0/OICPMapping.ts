@@ -38,9 +38,7 @@ export default class OICPMapping {
     } else {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
-    const evses = connectors.map((connector) => {
-      return OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
-    });
+    const evses = connectors.map((connector) => OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options));
     // Return all evses
     return evses;
   }
@@ -121,9 +119,7 @@ export default class OICPMapping {
   private static convertChargingStation2MultipleEvseStatuses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord[] {
     // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
-    const evseStatuses = connectors.map((connector) => {
-      return OICPMapping.convertConnector2EvseStatus(tenant, chargingStation, connector, options);
-    });
+    const evseStatuses = connectors.map((connector) => OICPMapping.convertConnector2EvseStatus(tenant, chargingStation, connector, options));
     // Return all EVSE Statuses
     return evseStatuses;
   }
@@ -158,15 +154,15 @@ export default class OICPMapping {
       if (chargingStation.issuer && chargingStation.public) {
         if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
           for (const chargePoint of chargingStation.chargePoints) {
-              // OICP does not support multiple connectors in one EVSE object
-              // It is not possible to flag if connectors of charge points can charge in parallel or not
-              evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant,siteArea, chargingStation, chargePoint, options));
-            }
-         }
+            // OICP does not support multiple connectors in one EVSE object
+            // It is not possible to flag if connectors of charge points can charge in parallel or not
+            evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant,siteArea, chargingStation, chargePoint, options));
+          }
+        }
       } else {
         evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, siteArea, chargingStation, null, options));
-       }
-    };
+      }
+    }
     // Return evses
     return evses;
   }
@@ -186,7 +182,7 @@ export default class OICPMapping {
       if (chargingStation.issuer && chargingStation.public) {
         evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, options));
       }
-    };
+    }
     // Return evses
     return evseStatuses;
   }
@@ -428,7 +424,7 @@ export default class OICPMapping {
    * @param {*} chargingStation
    */
   private static buildEChargingPoolID(countryCode: string, partyId: string, siteAreaID: string): OICPChargingPoolID {
-    let chargingPoolID = `${countryCode}*${partyId}*P${siteAreaID}`;
+    const chargingPoolID = `${countryCode}*${partyId}*P${siteAreaID}`;
     return chargingPoolID.replace(/[\W_]+/g, '*').toUpperCase();
   }
 

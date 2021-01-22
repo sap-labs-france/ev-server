@@ -911,7 +911,7 @@ export default class Authorizations {
           user: user,
           action: ServerAction.AUTHORIZE,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-          message: `Tag ID '${tag.id}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
+          message: `Tag ID '${tag.id}' cannot be authorized through OCPI protocol due to missing OCPI Token`
         });
       }
       // Check Charging Station

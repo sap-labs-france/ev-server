@@ -120,7 +120,7 @@ export default class JsonWSConnection extends WSConnection {
     await this.updateChargingStationLastSeen();
   }
 
-  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Log
     Logging.logChargingStationServerReceiveAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service

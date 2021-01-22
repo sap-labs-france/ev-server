@@ -323,6 +323,6 @@ export default class Bootstrap {
 // Start
 Bootstrap.start().catch(
   (error) => {
-    console.log(error);
+    console.error(error);
   }
 );

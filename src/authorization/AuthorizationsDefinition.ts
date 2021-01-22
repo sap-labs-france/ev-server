@@ -330,7 +330,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
 const MODULE_NAME = 'AuthorizationsDefinition';
 
 export default class AuthorizationsDefinition {
-
   private static _instance: AuthorizationsDefinition;
   private accessControl: AccessControl;
 

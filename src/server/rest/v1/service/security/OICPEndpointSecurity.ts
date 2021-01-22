@@ -25,7 +25,7 @@ export default class OICPEndpointSecurity {
     return OICPEndpointSecurity.filterOicpEndpointRequest(request);
   }
 
-  public static filterOicpEndpointsRequest(request: any):  Partial<HttpOICPEndpointsRequest> {
+  public static filterOicpEndpointsRequest(request: any): Partial<HttpOICPEndpointsRequest> {
     const filteredRequest: Partial<HttpOICPEndpointsRequest> = {
       Search: sanitize(request.Search)
     };

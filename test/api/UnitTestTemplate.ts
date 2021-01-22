@@ -2,6 +2,7 @@ import chai, { expect } from 'chai';
 
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
+import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
@@ -53,7 +54,7 @@ describe('Template for Dev Unit Test', function() {
       const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.NO_SITE);
       const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
       const response = await chargingStationContext.startTransaction(1, user.tags[0].id, 0, moment());
-      expect(response).to.be.transactionStatus('Rejected');
+      expect(response).to.be.transactionStatus(OCPPStatus.REJECTED);
     });
 
   });
