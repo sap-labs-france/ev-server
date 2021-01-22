@@ -329,7 +329,7 @@ export default class TenantService {
 
   private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
     // Check if OICP component is activated or deactivated and create/activate/deactivate virtual user (and Badges) accordingly
-    OICPUtils.checkOICPComponent(tenant);
+    await OICPUtils.checkOICPComponent(tenant);
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings

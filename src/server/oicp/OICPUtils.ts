@@ -205,25 +205,17 @@ export default class OICPUtils {
     // CPO
     if (roamingSettings.oicp.cpo?.key !== oicpSetting.cpo.key) {
       oicpSetting.cpo.key = sanitize(Cypher.encrypt(oicpSetting.cpo.key));
-    } else {
-      oicpSetting.cpo.key = oicpSetting.cpo.key;
     }
     if (roamingSettings.oicp.cpo?.cert !== oicpSetting.cpo.cert) {
       oicpSetting.cpo.cert = sanitize(Cypher.encrypt(oicpSetting.cpo.cert));
-    } else {
-      oicpSetting.cpo.cert = oicpSetting.cpo.cert;
     }
 
     // EMSP
     if (roamingSettings.oicp.emsp?.key !== oicpSetting.emsp.key) {
       oicpSetting.emsp.key = sanitize(Cypher.encrypt(oicpSetting.emsp.key));
-    } else {
-      oicpSetting.emsp.key = oicpSetting.emsp.key;
     }
     if (roamingSettings.oicp.emsp?.cert !== oicpSetting.emsp.cert) {
       oicpSetting.emsp.cert = sanitize(Cypher.encrypt(oicpSetting.emsp.cert));
-    } else {
-      oicpSetting.emsp.cert = oicpSetting.emsp.cert;
     }
   }
 

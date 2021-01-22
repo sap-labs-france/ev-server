@@ -1170,10 +1170,10 @@ export default class CpoOICPClient extends OICPClient {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! sendChargingNotificationError: ', response); // Will be removed
       notificationErrorResponse = response.data;
-    } catch (error) {
-      console.log('Error! sendChargingNotificationError: ', error.response); // Will be removed
-      notificationErrorResponse = error.response?.data;
-      requestError = error;
+    } catch (errors) {
+      console.log('Error! sendChargingNotificationError: ', errors.response); // Will be removed
+      notificationErrorResponse = errors.response?.data;
+      requestError = errors;
     }
     if (!notificationErrorResponse?.Result || notificationErrorResponse?.Result !== true) {
       Logging.logError({
@@ -1191,21 +1191,6 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     return notificationErrorResponse;
-  }
-
-  // Get ChargeBoxIds with new status notifications
-  private async getChargeBoxIDsWithNewStatusNotifications(): Promise<string[]> {
-    // Get last job
-    const lastPatchJobOn = this.oicpEndpoint.lastPatchJobOn ? this.oicpEndpoint.lastPatchJobOn : new Date();
-    // Build params
-    const params = { 'dateFrom': lastPatchJobOn };
-    // Get last status notifications
-    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(this.tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
-    // Loop through notifications
-    if (statusNotificationsResult.count > 0) {
-      return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
-    }
-    return [];
   }
 
   /**
@@ -1270,4 +1255,20 @@ export default class CpoOICPClient extends OICPClient {
     }
     return false;
   }
+
+  // Get ChargeBoxIds with new status notifications
+  private async getChargeBoxIDsWithNewStatusNotifications(): Promise<string[]> {
+    // Get last job
+    const lastPatchJobOn = this.oicpEndpoint.lastPatchJobOn ? this.oicpEndpoint.lastPatchJobOn : new Date();
+    // Build params
+    const params = { 'dateFrom': lastPatchJobOn };
+    // Get last status notifications
+    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(this.tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
+    // Loop through notifications
+    if (statusNotificationsResult.count > 0) {
+      return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
+    }
+    return [];
+  }
+
 }

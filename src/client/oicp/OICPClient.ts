@@ -117,8 +117,6 @@ export default abstract class OICPClient {
     return registerResult;
   }
 
-  public abstract ping();
-
   protected getEndpointUrl(service: string, action: ServerAction): string {
     if (this.oicpEndpoint.availableEndpoints) {
       const baseURL = this.oicpEndpoint.baseUrl;
@@ -184,4 +182,6 @@ export default abstract class OICPClient {
     });
     return httpsAgent;
   }
+
+  public abstract ping();
 }
