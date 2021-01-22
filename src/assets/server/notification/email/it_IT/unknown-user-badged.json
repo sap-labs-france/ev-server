@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Unknown User Badged",
+  "subject": "'<%- chargeBoxID %>' - Badge utente sconosciuto",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Unknown User Badged",
+      "title": "Badge utente sconosciuto",
       "image": {
         "left": {
           "height": 60,
@@ -17,17 +17,17 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "An unknown user has just badged on <strong>'<%- chargeBoxID %>'</strong> with the badge ID <strong>'<%- badgeID %>'</strong>."
+      "Un utente sconosciuto ha appena usato un badge su <strong>'<%- chargeBoxID %>'</strong> con ID Badge <strong>'<%- badgeID %>'</strong>."
     ],
     "actions": [{
-      "title": "Edit Badge",
+      "title": "Modifica Badge",
       "url": "<%- evseDashboardTagURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

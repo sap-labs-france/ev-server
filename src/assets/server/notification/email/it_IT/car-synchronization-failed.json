@@ -1,10 +1,10 @@
 {
-  "subject": "Car Synchronization Failed",
+  "subject": "Sincronizzazione dell'auto non riuscita",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Car Synchronization Failed",
+      "title": "Sincronizzazione dell'auto non riuscita",
       "image": {
         "left": {
           "height": 60,
@@ -17,9 +17,9 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "Unable to synchronize <%- nbrCarsInError %> car(s) with the electric vehicles data provider.",
+      "Impossibile sincronizzare <%- nbrCarsInError %> auto con il fornitore servizi di veicoli elettrici.",
       ""
     ],
     "actions": [{
@@ -27,8 +27,8 @@
       "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

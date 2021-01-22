@@ -1,10 +1,10 @@
 {
-  "subject": "Smart Charging - Applying Charging Profiles failed",
+  "subject": "Smart Charging - Applicazione dei profili di ricarica non riuscita",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charging Profiles Failed",
+      "title": "Profili di ricarica non riusciti",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "Applying the charging profiles for <strong>'<%- chargeBoxID %>'</strong> failed three times.",
+      "Applicazione dei profili di ricarica per <strong>'<%- chargeBoxID %>'</strong> è fallita tre volte.",
       "",
-      "The charging station was excluded from smart charging management automatically."
+      "La stazione di ricarica è stata esclusa automaticamente dalla gestione della ricarica intelligente."
     ],
     "action": {
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

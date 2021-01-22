@@ -67,12 +67,12 @@
       "body": "Impossibile sincronizzare {{nbrInvoicesInError}} fatture con il fornitore di servizi di fatturazione nell'organizzazione '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
-      "title": "Charging Profiles failed",
-      "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
+      "title": "Profili di ricarica falliti",
+      "body": "Impossibile impostare i profili di ricarica per '{{chargeBoxID}}' sull'area del sito '{{siteAreaName}}' nell'organizzazione '{{tenantName}}'"
     },
     "billingNewInvoice": {
-      "title": "New invoice",
-      "body": "A new invoice ({{invoiceNumber}}) is now available"
+      "title": "Nuova fattura",
+      "body": "Una nuova fattura ({{invoiceNumber}}) è ora disponibile"
     },
     "endUserErrorNotification": {
       "title": "Un utente ha riportato un errore",
@@ -86,5 +86,9 @@
   },
   "tags": {
     "virtualBadge": "Virtual Badge"
-  }
+  },
+  "chargers": {
+    "connector": "Presa"
+  },
+  "siteArea": "Site Area"
 }

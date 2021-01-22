@@ -1,10 +1,10 @@
 {
-  "subject": "Account Activation",
+  "subject": "Attivazione Account",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Account Activation",
+      "title": "Attivazione Account",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Ciao <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "You have initiated a request to activate your account.",
+      "Hai avviato una richiesta per attivare il tuo account.",
       "",
-      "Click on the link below to complete the activation."
+      "Clicca sul collegamento sottostante per completare l'attivazione."
     ],
     "actions": [{
-      "title": "Activate your Account",
+      "title": "Attiva il tuo Account",
       "url": "<%- evseDashboardVerifyEmailURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

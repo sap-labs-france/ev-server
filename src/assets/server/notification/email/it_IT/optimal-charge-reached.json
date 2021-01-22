@@ -1,10 +1,10 @@
 {
-  "subject": "Optimal Charge Reached",
+  "subject": "Carica Ottimale Raggiunta",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Optimal Charge Reached",
+      "title": "Carica Ottimale Raggiunta",
       "image": {
         "left": {
           "height": 60,
@@ -17,20 +17,20 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Ciao <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle, which is connected to <strong>'<%- chargeBoxID %>'</strong>, connector <strong>'<%- connectorId %>'</strong>, reached its optimal charge."
+      "Il tuo veicolo elettrico, collegato a <strong>'<%- chargeBoxID %>'</strong>, presa <strong>'<%- connectorId %>'</strong>, ha raggiunto la sua carica ottimale."
     ],
     "stats": [
-      { "label": "Battery Level", "value": "<%- stateOfCharge %> %" }
+      { "label": "Livello Batteria", "value": "<%- stateOfCharge %> %" }
     ],
     "actions": [{
-      "title": "View Session",
+      "title": "Vedi Sessioni",
       "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

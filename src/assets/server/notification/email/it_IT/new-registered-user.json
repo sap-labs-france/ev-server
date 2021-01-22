@@ -1,10 +1,10 @@
 {
-  "subject": "Account Created with Success",
+  "subject": "Account Creato con Successo",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Account Created",
+      "title": "Account Creato",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Ciao <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your account has been created successfully.",
+      "Il tuo account è stato creato con successo.",
       "",
-      "Click on the link below to activate it."
+      "Clicca sul collegamento sottostante per attivarlo."
     ],
     "actions": [{
-      "title": "Activate your Account",
+      "title": "Attiva il tuo Account",
       "url": "<%- evseDashboardVerifyEmailURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

@@ -17,17 +17,17 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName ? user.firstName : user.name) %>,",
+      "Ciao <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Your account has been <strong><%- (user.status === 'A' ? 'activated' : 'suspended'); %></strong> by an administrator."
+      "Il tuo Account è stato <strong><%- (user.status === 'A' ? 'activated' : 'suspended'); %></strong> da un amministratore."
     ],
     "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

@@ -1,10 +1,10 @@
 {
-  "subject": "Session Started",
+  "subject": "Sessione Avviata",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Session Started",
+      "title": "Sessione Avviata",
       "image": {
         "left": {
           "height": 60,
@@ -17,17 +17,17 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Ciao <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle is successfully connected to the charging station <strong>'<%- chargeBoxID %>'</strong>, connector <strong>'<%- connectorId %>'</strong>."
+      "Il tuo veicolo elettrico è collegato correttamente alla stazione di ricarica <strong>'<%- chargeBoxID %>'</strong>, presa <strong>'<%- connectorId %>'</strong>."
     ],
     "actions": [{
-      "title": "View Session",
+      "title": "Visualizza sessione",
       "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {}
   }

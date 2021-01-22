@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' just Connected",
+  "subject": "'<%- chargeBoxID %>' appena Collegata",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charging Station Connected",
+      "title": "Stazione di ricarica collegata",
       "image": {
         "left": {
           "height": 60,
@@ -17,17 +17,17 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "The charging station <strong>'<%- chargeBoxID %>'</strong> just got connected to the central server."
+      "La Stazione di Ricarica <strong>'<%- chargeBoxID %>'</strong> si è appena collegata al server centrale."
     ],
     "actions": [{
       "title": "View <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

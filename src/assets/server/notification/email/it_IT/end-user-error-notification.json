@@ -1,5 +1,5 @@
 {
-  "subject": "An user reported an error",
+  "subject": "Un utente ha segnalato un errore",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
@@ -17,12 +17,12 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "The user <%- name %> reported the following error: <%- errorDescription %>",
+      "L'utente <%- name %> ha segnalato l'errore seguente: <%- errorDescription %>",
       "",
       "E-mail: <%- email %>",
-      "Phone: <%- phone %>",
+      "Telefono: <%- phone %>",
       ""
     ],
     "actions": [{
@@ -30,8 +30,8 @@
       "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

@@ -1,10 +1,10 @@
 {
-  "subject": "Charge Finished",
+  "subject": "Carica terminata",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charge Finished",
+      "title": "Carica terminata",
       "image": {
         "left": {
           "height": 60,
@@ -17,24 +17,24 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Ciao <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle, which is connected to the charging station <strong>'<%- chargeBoxID %>'</strong>, connector <strong>'<%- connectorId %>'</strong>, has just finished charging."
+      "Il tuo veicolo elettrico, che è collegato alla stazione di ricarica <strong>'<%- chargeBoxID %>'</strong>, presa <strong>'<%- connectorId %>'</strong>, ha appena terminato la ricarica."
     ],
     "stats": [
-      { "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
-      { "label": "Estimated Duration", "value": "<%- totalDuration %>" },
-      { "label": "Battery Level", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
+      { "label": "Consumo", "value": "<%- totalConsumption %> kW.h" },
+      { "label": "Durata Stimata", "value": "<%- totalDuration %>" },
+      { "label": "Livello Batteria", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
     "actions": [{
-      "title": "View Session",
+      "title": "Visualizza sessione",
       "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [
-      "You can now stop the session and move your vehicle.",
+      "Ora puoi interrompere la sessione e spostare il tuo veicolo.",
       "",
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }
