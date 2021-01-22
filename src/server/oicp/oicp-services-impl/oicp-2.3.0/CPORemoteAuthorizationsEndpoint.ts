@@ -65,6 +65,15 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     const chargingStationConnector = await OICPUtils.getChargingStationConnectorFromEvseID(tenant, evseID);
     const connector = chargingStationConnector.connector;
     const chargingStation = chargingStationConnector.chargingStation;
+    if (!chargingStation) {
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
+        message: `Charging Station ID '${authorizeRemoteStart.EvseID}' not found`,
+        module: MODULE_NAME, method: 'authorizeRemoteStart'
+      });
+      return OICPUtils.noSuccess(session, `EVSE for EvseID '${authorizeRemoteStart.EvseID}' not found`);
+    }
     if (!connector) {
       Logging.logDebug({
         tenantID: tenant.id,
@@ -83,7 +92,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       });
       return OICPUtils.noSuccess(session, `EVSE '${authorizeRemoteStart.EvseID}' cannot be used with OICP`);
     }
-    if (connector.status !== ChargePointStatus.AVAILABLE) {
+    if (!(connector.status === ChargePointStatus.AVAILABLE || connector.status === ChargePointStatus.PREPARING)) {
       Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
@@ -95,18 +104,24 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     if (!chargingStation.remoteAuthorizations) {
       chargingStation.remoteAuthorizations = [];
     }
+    // Check if there is already a authorization for this charging station
     const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find(
       (authorization) => authorization.connectorId === connector.connectorId);
     if (existingAuthorization) {
-      if (OICPUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
-        Logging.logDebug({
-          tenantID: tenant.id,
-          source: chargingStation.id,
-          action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
-          message: `An existing remote authorization exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`,
-          module: MODULE_NAME, method: 'authorizeRemoteStart'
-        });
-        return OICPUtils.noSuccess(session, `An existing remote authorization exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`);
+      // Check if authorization is from same user or different user
+      if (existingAuthorization.oicpIdentification.RemoteIdentification.EvcoID !== authorizeRemoteStart.Identification.RemoteIdentification.EvcoID) {
+        // Check if authorization of different user is valid
+        if (OICPUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
+          // Current remote authorization fails due to valid remote authorization of different user
+          Logging.logDebug({
+            tenantID: tenant.id,
+            source: chargingStation.id,
+            action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
+            message: `An existing remote authorization exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`,
+            module: MODULE_NAME, method: 'authorizeRemoteStart'
+          });
+          return OICPUtils.noSuccess(session, `An existing remote authorization exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`);
+        }
       }
       existingAuthorization.timestamp = moment().toDate();
       // No authorization ID available
@@ -128,10 +143,8 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     // Save Auth
     await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
     // Start the transaction
-    const result = await this.remoteStartTransaction(tenant, chargingStation, connector, authorizeRemoteStart).catch((error) => {
-      console.log('Error Remote Start: ', error);
-    });
-    if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+    const result = await this.remoteStartTransaction(tenant, chargingStation, connector, authorizeRemoteStart);
+    if (result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       return OICPUtils.success(session);
     }
     return OICPUtils.noSuccess(session, 'Remote Start rejected by Charging Station');
@@ -197,6 +210,13 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   private async remoteStartTransaction(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, authorizeRemoteStart: OICPAuthorizeRemoteStartCpoReceive): Promise<OCPPRemoteStartTransactionCommandResult> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
     if (!chargingStationClient) {
+      Logging.logError({
+        tenantID: tenant.id,
+        source: chargingStation.id,
+        action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
+        message: `Charging Station '${chargingStation.id}' not found`,
+        module: MODULE_NAME, method: 'remoteStartTransaction'
+      });
       return;
     }
     const result = await chargingStationClient.remoteStartTransaction({
@@ -209,6 +229,13 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   private async remoteStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transactionId: number): Promise<OCPPRemoteStopTransactionCommandResult> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
     if (!chargingStationClient) {
+      Logging.logError({
+        tenantID: tenant.id,
+        source: chargingStation.id,
+        action: ServerAction.OICP_AUTHORIZE_REMOTE_STOP,
+        message: `Charging Station '${chargingStation.id}' not found`,
+        module: MODULE_NAME, method: 'remoteStopTransaction'
+      });
       return;
     }
     const result = await chargingStationClient.remoteStopTransaction({

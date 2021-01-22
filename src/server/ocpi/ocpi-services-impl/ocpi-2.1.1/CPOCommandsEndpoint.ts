@@ -140,7 +140,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    if (connector.status !== ChargePointStatus.AVAILABLE) {
+    if (!(connector.status === ChargePointStatus.AVAILABLE || connector.status === ChargePointStatus.PREPARING)) {
       Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
@@ -282,7 +282,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       connectorId: connector.connectorId,
       idTag: startSession.token.uid
     });
-    if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+    if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_START_SESSION, startSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
     } else {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_START_SESSION, startSession.response_url, OCPICommandResponseType.REJECTED, ocpiEndpoint);
@@ -299,7 +299,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       transactionId: transactionId
     });
 
-    if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+    if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_STOP_SESSION, stopSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
     } else {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_STOP_SESSION, stopSession.response_url, OCPICommandResponseType.REJECTED, ocpiEndpoint);
