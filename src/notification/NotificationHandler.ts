@@ -386,7 +386,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendChargingStationStatusError');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -423,7 +423,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendChargingStationRegistered');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -453,7 +453,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendUnknownUserBadged');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -522,7 +522,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendSmtpAuthError');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -560,7 +560,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendOcpiPatchStatusError');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -604,7 +604,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendOicpPatchStatusError');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -643,7 +643,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendOicpPatchStatusError');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -749,7 +749,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -788,7 +788,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -826,7 +826,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -861,7 +861,7 @@ export default class NotificationHandler {
   public static async sendCarsSynchronizationFailed(sourceData: CarCatalogSynchronizationFailedNotification): Promise<void> {
     // Get admin users
     const adminUsers = await NotificationHandler.getAdminUsers(Constants.DEFAULT_TENANT);
-    if (adminUsers && adminUsers.length > 0) {
+    if (!Utils.isEmptyArray(adminUsers)) {
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
         // Active?
@@ -899,7 +899,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -938,7 +938,7 @@ export default class NotificationHandler {
       const tenant = await TenantStorage.getTenant(tenantID);
       // Get admin users
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?

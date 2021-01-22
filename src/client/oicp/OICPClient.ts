@@ -10,13 +10,11 @@ import OICPEndpoint from '../../types/oicp/OICPEndpoint';
 import OICPEndpointStorage from '../../storage/mongodb/OICPEndpointStorage';
 import { OICPOperatorID } from '../../types/oicp/OICPEvse';
 import { OICPRegistrationStatus } from '../../types/oicp/OICPRegistrationStatus';
-import { OICPResult } from '../../types/oicp/OICPResult';
 import { OICPRole } from '../../types/oicp/OICPRole';
 import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfiguration';
 import { OicpSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import fs from 'fs';
 import https from 'https';
 
 const MODULE_NAME = 'OICPClient';

@@ -4,9 +4,7 @@ import { OICPAuthorizeStartCpoReceive, OICPAuthorizeStartCpoSend, OICPAuthorizeS
 import { OICPChargingNotification, OICPErrorClass, OICPStatusCode } from '../../types/oicp/OICPStatusCode';
 import { OICPChargingNotificationEndCpoSend, OICPChargingNotificationErrorCpoSend, OICPChargingNotificationProgressCpoSend, OICPChargingNotificationStartCpoSend } from '../../types/oicp/OICPChargingNotifications';
 import { OICPDefaultTagId, OICPIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
-import { OICPEVSEPricing, OICPPricingProductData } from '../../types/oicp/OICPPricing';
 import { OICPEvseDataRecord, OICPEvseStatusRecord, OICPOperatorEvseData, OICPOperatorEvseStatus } from '../../types/oicp/OICPEvse';
-import { OICPPushEVSEPricingCpoSend, OICPPushPricingProductDataCpoSend } from '../../types/oicp/OICPDynamicPricing';
 import { OICPSession, OICPSessionStatus } from '../../types/oicp/OICPSession';
 import Transaction, { TransactionAction } from '../../types/Transaction';
 
@@ -33,7 +31,6 @@ import SiteArea from '../../types/SiteArea';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../types/Tenant';
-import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
 
