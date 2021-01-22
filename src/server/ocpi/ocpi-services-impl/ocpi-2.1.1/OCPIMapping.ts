@@ -20,6 +20,7 @@ import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../../../types/ocpi/OCPISession';
 import OCPIUtils from '../../OCPIUtils';
+import RoamingUtils from '../../../../utils/RoamingUtils';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -365,7 +366,7 @@ export default class OCPIMapping {
       type: OCPILocationType.UNKNOWN,
       evses: [{
         uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
-        evse_id: OCPIUtils.buildEvseID(countryId, partyId, chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
+        evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
         status: OCPIMapping.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
@@ -548,7 +549,7 @@ export default class OCPIMapping {
     const evses = connectors.map((connector) => {
       const evse: OCPIEvse = {
         uid: OCPIUtils.buildEvseUID(chargingStation, connector),
-        evse_id: OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector),
+        evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector),
         status: OCPIMapping.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: [OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
@@ -591,7 +592,7 @@ export default class OCPIMapping {
     const evse: OCPIEvse = {
       // Force the connector id to always be 1 on charging station that have mutually exclusive connectors
       uid: OCPIUtils.buildEvseUID(chargingStation, { connectorId: 1, status: connectorsAggregatedStatus }),
-      evse_id: OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation, { connectorId: 1, status: connectorsAggregatedStatus }),
+      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, { connectorId: 1, status: connectorsAggregatedStatus }),
       status: OCPIMapping.convertStatus2OCPIStatus(connectorsAggregatedStatus),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
       connectors: ocpiConnectors,
@@ -683,7 +684,7 @@ export default class OCPIMapping {
     const amperage = OCPIMapping.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
     const ocpiNumberOfConnectedPhases = OCPIMapping.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {
-      id: OCPIUtils.buildEvseID(countryId, partyId, chargingStation, connector),
+      id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation, connector),
       standard: type,
       format: format,
       voltage: voltage,

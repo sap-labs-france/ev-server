@@ -115,19 +115,6 @@ export default class OCPIUtils {
   }
 
   /**
-   * Build evse_id from charging station
-   * @param {*} countryCode the code of the CPO
-   * @param {*} partyId the partyId of the CPO
-   * @param {*} chargingStation the charging station used to build the evse ID
-   * @param {*} connector the connector used to build the evse ID
-   */
-  public static buildEvseID(countryCode: string, partyId: string, chargingStation: ChargingStation, connector: Connector): string {
-    // Format follows the eMI3 string format for EVSE: https://emi3group.com/wp-content/uploads/sites/5/2018/12/eMI3-standard-v1.0-Part-2.pdf
-    const evseID = `${OCPIUtils.buildOperatorName(countryCode, partyId)}*E${chargingStation.id}*${connector.connectorId}`;
-    return evseID.replace(/[\W_]+/g, '*').toUpperCase();
-  }
-
-  /**
    * Build evse UID from charging station
    * @param {*} chargingStation the charging station used to build the evse UID
    * @param {*} connector the connector used to build the evse UID
