@@ -39,7 +39,7 @@ export default class SettingSecurity {
     return SettingSecurity._filterSettingRequest(request);
   }
 
-  public static _filterSettingRequest(request: Partial<SettingDB>): Partial<SettingDB> {
+  private static _filterSettingRequest(request: Partial<SettingDB>): Partial<SettingDB> {
     const settings: SettingDB = {
       identifier: sanitize(request.identifier),
       sensitiveData: request.sensitiveData ? request.sensitiveData.map(sanitize) : []

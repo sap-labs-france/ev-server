@@ -117,11 +117,6 @@ export default abstract class OICPClient {
     return registerResult;
   }
 
-  public abstract triggerJobs(): Promise<{
-    evses?: OICPResult,
-    evseStatuses?: OICPResult;
-  }>;
-
   public abstract ping();
 
   protected getEndpointUrl(service: string, action: ServerAction): string {

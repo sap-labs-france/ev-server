@@ -99,7 +99,6 @@ class RequestMapper {
           [ServerAction.OCPI_ENPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           [ServerAction.OICP_ENPOINT_CREATE]: OICPEndpointService.handleCreateOicpEndpoint.bind(this),
           [ServerAction.OICP_ENPOINT_PING]: OICPEndpointService.handlePingOicpEndpoint.bind(this),
-          [ServerAction.OICP_ENPOINT_TRIGGER_JOBS]: OICPEndpointService.handleTriggerJobsEndpoint.bind(this),
           [ServerAction.OICP_ENPOINT_SEND_EVSE_STATUSES]: OICPEndpointService.handleSendEVSEStatusesOicpEndpoint.bind(this),
           [ServerAction.OICP_ENPOINT_SEND_EVSES]: OICPEndpointService.handleSendEVSEsOicpEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),

@@ -1248,16 +1248,6 @@ export default class CpoOICPClient extends OICPClient {
     return response;
   }
 
-  public async triggerJobs(): Promise<{
-    evses?: OICPResult,
-    evseStatuses?: OICPResult;
-  }> {
-    return {
-      evses: await this.sendEVSEs(),
-      evseStatuses: await this.sendEVSEStatuses(),
-    };
-  }
-
   // Get ChargeBoxIDs in failure from previous job
   private getChargeBoxIDsInFailure(): string[] {
     if (this.oicpEndpoint.lastPatchJobResult && this.oicpEndpoint.lastPatchJobResult.chargeBoxIDsInFailure) {
