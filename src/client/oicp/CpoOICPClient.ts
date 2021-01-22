@@ -806,7 +806,7 @@ export default class CpoOICPClient extends OICPClient {
     cdr.SessionEnd = transaction.oicpData.session.end_datetime;
     cdr.MeterValueStart = Utils.convertWattHourToKiloWattHour(transaction.meterStart, 3); // Optional
     cdr.MeterValueEnd = Utils.convertWattHourToKiloWattHour(transaction.stop.meterStop, 3); // Optional
-    cdr.MeterValueInBetween = { meterValues:Utils.convertWhValuesTokWhValues(transaction.oicpData.session.meterValueInBetween, 3) }; // Optional
+    cdr.MeterValueInBetween = { meterValues: transaction.oicpData.session.meterValueInBetween.map((wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, 3)) }; // Optional
     cdr.ConsumedEnergy = Utils.convertWattHourToKiloWattHour(transaction.stop.totalConsumptionWh, 3); // In kW.h
     cdr.SignedMeteringValues; // Optional
     cdr.CalibrationLawVerificationInfo; // Optional
@@ -1077,7 +1077,7 @@ export default class CpoOICPClient extends OICPClient {
     payload.ConsumedEnergy = Utils.convertWattHourToKiloWattHour(transaction.stop.totalConsumptionWh, 3);
     payload.MeterValueStart = Utils.convertWattHourToKiloWattHour(transaction.meterStart, 3); // Optional. kw or kWh?
     payload.MeterValueEnd = Utils.convertWattHourToKiloWattHour(transaction.stop.meterStop, 3); // Optional. kW or kWh?
-    payload.MeterValueInBetween = { meterValues:Utils.convertWhValuesTokWhValues(transaction.oicpData.session.meterValueInBetween, 3) }; // Optional
+    payload.MeterValueInBetween = { meterValues: transaction.oicpData.session.meterValueInBetween.map((wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, 3)) }; // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END); // Optional
     payload.PartnerProductID; // Optional
     payload.PenaltyTimeStart = transaction.stop.timestamp; // Optional

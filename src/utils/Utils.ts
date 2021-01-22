@@ -522,10 +522,6 @@ export default class Utils {
     return Utils.convertToFloat((wattHours / 1000));
   }
 
-  public static convertWhValuesTokWhValues(WhValues: number[], decimalPlaces?: number): number[] {
-    return WhValues.map((wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, decimalPlaces));
-  }
-
   public static getChargePointFromID(chargingStation: ChargingStation, chargePointID: number): ChargePoint {
     if (!chargingStation.chargePoints) {
       return null;

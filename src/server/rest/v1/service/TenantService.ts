@@ -15,6 +15,7 @@ import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
 import { OICPRole } from '../../../../types/oicp/OICPRole';
+import OICPUtils from '../../../oicp/OICPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -379,7 +380,7 @@ export default class TenantService {
       // Activate or deactivate virtual user depending on the oicp component status
       if (checkOICPComponent.active) {
         if (!virtualOICPUser) {
-          await UserStorage.createOICPVirtualUser(tenant.id);
+          await OICPUtils.createOICPVirtualUser(tenant.id);
         } else if (virtualOICPUser.status !== UserStatus.ACTIVE) {
           // Activate user and save user status
           await UserStorage.saveUserStatus(tenant.id, virtualOICPUser.id, UserStatus.ACTIVE);

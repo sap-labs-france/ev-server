@@ -1,6 +1,6 @@
 import ChargingStation, { Connector, RemoteAuthorization } from '../../types/ChargingStation';
 import { OICPDefaultTagId, OICPIdentification, OICPRFIDmifarefamilyIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
-import { OICPStatus, OICPStatusCode } from '../../types/oicp/OICPStatusCode';
+import User, { UserStatus } from '../../types/User';
 
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
@@ -8,11 +8,13 @@ import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
 import { OICPEvseID } from '../../types/oicp/OICPEvse';
 import { OICPSession } from '../../types/oicp/OICPSession';
+import { OICPStatusCode } from '../../types/oicp/OICPStatusCode';
 import RoamingUtils from '../../utils/RoamingUtils';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
 import moment from 'moment';
 
 export default class OICPUtils {
@@ -174,5 +176,20 @@ export default class OICPUtils {
       };
     }
     return null;
+  }
+
+  public static async createOICPVirtualUser(tenantID: string): Promise<void> {
+    // Create the virtual OICP user
+    const newVirtualOICPUser = UserStorage.createNewUser() as User;
+    newVirtualOICPUser.email = Constants.OICP_VIRTUAL_USER_EMAIL;
+    newVirtualOICPUser.name = 'OICP';
+    newVirtualOICPUser.firstName = 'Virtual';
+    newVirtualOICPUser.issuer = false;
+    newVirtualOICPUser.status = UserStatus.ACTIVE;
+    newVirtualOICPUser.notificationsActive = false;
+    // Save User
+    newVirtualOICPUser.id = await UserStorage.saveUser(tenantID, newVirtualOICPUser);
+    // Save User Status
+    await UserStorage.saveUserStatus(tenantID, newVirtualOICPUser.id, UserStatus.ACTIVE);
   }
 }

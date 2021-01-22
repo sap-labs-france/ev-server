@@ -96,16 +96,16 @@ export interface OicpSetting {
   businessDetails: OicpBusinessDetails;
 }
 
-export interface OcpiIdentifier {
+export interface RoamingIdentifier {
   countryCode: string;
   partyID: string;
+}
+export interface OcpiIdentifier extends RoamingIdentifier {
 }
 
 // Should be renamed. Certificate and Key are bundled with OperatorID / ProviderID at this moment.
 // Because the roles CPO and EMPSP probably need different certificates to call the Hubject Backend
-export interface OicpIdentifier {
-  countryCode: string;
-  partyID: string;
+export interface OicpIdentifier extends RoamingIdentifier {
   key?: string;
   cert?: string;
 }
