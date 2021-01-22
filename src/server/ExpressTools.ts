@@ -14,7 +14,6 @@ import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cluster from 'cluster';
 import cors from 'cors';
-import fs from 'fs';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import http from 'http';
@@ -100,7 +99,7 @@ export default class ExpressTools {
         options.key = serverConfig['ssl-key'];
         options.cert = serverConfig['ssl-cert'];
       }
-      // Options.requestCert = true; // TODO: Test on QA System: Reject incoming requests without valid certificate (OICP: accept only requests from Hubject)
+      // pragma options.requestCert = true; // TODO: Test on QA System: Reject incoming requests without valid certificate (OICP: accept only requests from Hubject)
       // options.rejectUnauthorized = true; // TODO: Test on QA System
 
       // Intermediate cert?

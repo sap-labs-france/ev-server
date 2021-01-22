@@ -1,6 +1,4 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { OICPOperatorID } from './oicp/OICPEvse';
-import { OICPProviderID } from './oicp/OICPAuthentication';
 import TenantComponents from './TenantComponents';
 
 export interface Setting {
@@ -103,7 +101,7 @@ export interface RoamingIdentifier {
 export type OcpiIdentifier = RoamingIdentifier;
 
 // Should be renamed. Certificate and Key are bundled with OperatorID / ProviderID at this moment.
-// Because the roles CPO and EMPSP probably need different certificates to call the Hubject Backend
+// Because the roles CPO and EMSP probably need different certificates to call the Hubject Backend
 export interface OicpIdentifier extends RoamingIdentifier {
   key?: string;
   cert?: string;
