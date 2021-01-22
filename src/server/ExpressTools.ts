@@ -95,28 +95,28 @@ export default class ExpressTools {
       const options: https.ServerOptions = {};
       // Set the keys
       // FIXME: read certificates directly from config.json file. In the future: config for OICP in default tenant
-      if (serverConfig['ssl-key'] && serverConfig['ssl-cert']) {
-        options.key = serverConfig['ssl-key'];
-        options.cert = serverConfig['ssl-cert'];
+      if (serverConfig.sslKey && serverConfig.sslCert) {
+        options.key = serverConfig.sslKey;
+        options.cert = serverConfig.sslCert;
       }
       // pragma options.requestCert = true; // TODO: Test on QA System: Reject incoming requests without valid certificate (OICP: accept only requests from Hubject)
       // options.rejectUnauthorized = true; // TODO: Test on QA System
 
       // Intermediate cert?
-      if (serverConfig['ssl-ca']) {
+      if (serverConfig.sslCa) {
         // Array?
-        if (Array.isArray(serverConfig['ssl-ca'])) {
+        if (Array.isArray(serverConfig.sslCa)) {
           options.ca = [];
           // Add all
-          for (let i = 0; i < serverConfig['ssl-ca'].length; i++) {
+          for (let i = 0; i < serverConfig.sslCa.length; i++) {
             // FIXME: read certificates directly from config.json file. In the future: config for OICP in default tenant
-            if (serverConfig['ssl-ca'][i]) {
-              options.ca.push(serverConfig['ssl-ca'][i]);
+            if (serverConfig.sslCa[i]) {
+              options.ca.push(serverConfig.sslCa[i]);
             }
           }
         } else {
           // Add one
-          options.ca = serverConfig['ssl-ca'];
+          options.ca = serverConfig.sslCa;
         }
       }
       // Https server
