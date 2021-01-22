@@ -19,33 +19,35 @@ export default class OICPUtils {
 
   /**
    * Return OICP Success Body Response
+   * @param {Partial<OICPSession>} session
    * @param {*} data
    */
   public static success(session: Partial<OICPSession>, data?: any): OICPAcknowledgment {
-    const response = {} as OICPAcknowledgment;
-    const statusCode = {} as OICPStatus;
-    statusCode.Code = OICPStatusCode.Code000;
-    response.StatusCode = statusCode;
-    response.Result = true;
-    response.EMPPartnerSessionID = session.empPartnerSessionID;
-    response.SessionID = session.id;
-    return response;
+    return {
+      Result: true,
+      StatusCode: {
+        Code: OICPStatusCode.Code000
+      },
+      EMPPartnerSessionID: session.empPartnerSessionID,
+      SessionID: session.id
+    };
   }
 
   /**
    * Return OICP no success Body Response
+   * @param {Partial<OICPSession>} session
    * @param {*} data
    */
   public static noSuccess(session: Partial<OICPSession>, data?: any): OICPAcknowledgment {
-    const response = {} as OICPAcknowledgment;
-    const status = {} as OICPStatus;
-    status.Code = OICPStatusCode.Code022;
-    status.Description = data;
-    response.StatusCode = status;
-    response.Result = false;
-    response.EMPPartnerSessionID = session.empPartnerSessionID;
-    response.SessionID = session.id;
-    return response;
+    return {
+      Result: false,
+      StatusCode: {
+        Code: OICPStatusCode.Code022,
+        Description: data
+      },
+      EMPPartnerSessionID: session.empPartnerSessionID,
+      SessionID: session.id
+    };
   }
 
   /**
@@ -53,13 +55,13 @@ export default class OICPUtils {
    * @param {*} error
    */
   public static toErrorResponse(error: Error): OICPAcknowledgment {
-    const response = {} as OICPAcknowledgment;
-    const status = {} as OICPStatus;
-    status.Code = OICPStatusCode.Code022;
-    status.Description = error.message;
-    response.StatusCode = status;
-    response.Result = false;
-    return response;
+    return {
+      Result: false,
+      StatusCode: {
+        Code: OICPStatusCode.Code022,
+        Description: error.message
+      }
+    };
   }
 
   public static async getChargingStationConnectorFromEvseID(tenant: Tenant, evseID: OICPEvseID): Promise<{ chargingStation: ChargingStation, connector: Connector }> {
@@ -115,11 +117,11 @@ export default class OICPUtils {
 
   public static convertTagID2OICPIdentification(tagID: string): OICPIdentification {
     // RFID Mifare Family as default for tag IDs because we get no information about the card type from the charging station over OCPP
-    const identification: OICPIdentification = {} as OICPIdentification;
-    const rfidIdentification = {} as OICPRFIDmifarefamilyIdentification;
-    rfidIdentification.UID = tagID;
-    identification.RFIDMifareFamilyIdentification = rfidIdentification;
-    return identification;
+    return {
+      RFIDMifareFamilyIdentification: {
+        UID: tagID
+      }
+    };
   }
 
   public static getOICPIdentificationFromRemoteAuthorization(tenantID: string, chargingStation: ChargingStation, connectorId: number, action?: ServerAction): { sessionId: OICPSessionID; identification: OICPIdentification; } {
@@ -158,9 +160,9 @@ export default class OICPUtils {
       // Get the first non used Authorization OICP ID / Session ID
       for (const authorization of authorizations.result) {
         if (authorization.authorizationId) {
-          const ocpiTransaction = await TransactionStorage.getOICPTransaction(tenantID, authorization.authorizationId);
-          // OICP ID not used yet
-          if (!ocpiTransaction) {
+          const oicpTransaction = await TransactionStorage.getOICPTransaction(tenantID, authorization.authorizationId);
+          // OICP SessionID not used yet
+          if (!oicpTransaction) {
             sessionId = authorization.authorizationId;
             break;
           }
