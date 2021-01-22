@@ -33,7 +33,7 @@ export default class I18nManager {
     i18n.translations['es'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/es.json`, 'utf8'));
     i18n.translations['de'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/de.json`, 'utf8'));
     i18n.translations['pt'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/pt.json`, 'utf8'));
-    i18n.translations['pt'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/it.json`, 'utf8'));
+    i18n.translations['it'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/it.json`, 'utf8'));
     // Default
     i18n.locale = Constants.DEFAULT_LANGUAGE;
     moment.locale(Constants.DEFAULT_LANGUAGE);
