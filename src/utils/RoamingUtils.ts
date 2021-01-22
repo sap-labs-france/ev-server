@@ -22,7 +22,7 @@ export default class RoamingUtils {
   }
 
   public static getEvseIdComponents(evseID: string): EvseIdComponents {
-    // Problem: it is not save to derive the chargingStationId from evseID because all characters that are not alphanumeric and underscores are replaced with '*'
+    // Problem: it is not safe to derive the chargingStationId from evseID because all characters that are not alphanumeric and underscores are replaced with '*'
     // also: evseId is set to upper case
     // see function buildEvseID()
     const evseIDComponents: EvseIdComponents = {} as EvseIdComponents;

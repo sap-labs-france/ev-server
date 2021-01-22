@@ -1,5 +1,5 @@
 import ChargingStation, { Connector, RemoteAuthorization } from '../../types/ChargingStation';
-import { OICPDefaultTagId, OICPIdentification, OICPRFIDmifarefamilyIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
+import { OICPDefaultTagId, OICPIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
 import User, { UserStatus } from '../../types/User';
 
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
