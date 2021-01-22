@@ -30,9 +30,14 @@ export default class OICPMapping {
    * @param {*} chargingStation
    * @return Array of OICP EVSEs
    */
-  static convertChargingStation2MultipleEvses(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord[] {
+  private static convertChargingStation2MultipleEvses(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, chargePoint: ChargePoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord[] {
     // Loop through connectors and send one evse per connector
-    const connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    let connectors: Connector[];
+    if (chargePoint) {
+      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+    } else {
+      connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    }
     const evses = connectors.map((connector) => {
       return OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
     });
@@ -46,15 +51,12 @@ export default class OICPMapping {
    * @param {*} chargingStation
    * @return OICP EVSE
    */
-  static getEvseByConnectorId(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connectorId: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
+  public static getEvseByConnectorId(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connectorId: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
     // Loop through connectors and send one evse per connector
-    const connectors = chargingStation.connectors.filter((connector) => (connector !== null) && (connector.connectorId === connectorId));
-    const evses = connectors.map((connector) => {
+    const connector = chargingStation.connectors.find((connector) => (connector !== null) && (connector.connectorId === connectorId));
+
+    if (connector) {
       return OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
-    });
-    // Return evse
-    if (evses.length > 0) {
-      return evses[0];
     }
     return null;
   }
@@ -65,13 +67,7 @@ export default class OICPMapping {
    * @param {*} connector
    * @return EVSE
    */
-  static convertConnector2Evse(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
-    let accessible: OICPAccessibility;
-    if (chargingStation.public === true) {
-      accessible = OICPAccessibility.FreePubliclyAccessible;
-    } else {
-      accessible = OICPAccessibility.RestrictedAccess;
-    }
+  private static convertConnector2Evse(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
     const evseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
     const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;
     evse.deltaType; // Optional
@@ -101,7 +97,7 @@ export default class OICPMapping {
     evse.MaxCapacity; // Optional
     evse.PaymentOptions = [OICPPaymentOption.Contract]; // No information found for mandatory field
     evse.ValueAddedServices = [OICPValueAddedService.None]; // No information found for mandatory field
-    evse.Accessibility = accessible;
+    evse.Accessibility = OICPAccessibility.FreePubliclyAccessible;
     evse.AccessibilityLocation; // Optional
     evse.HotlinePhoneNumber = '+49123123123123'; // No information found for mandatory field
     evse.AdditionalInfo; // Optional
@@ -122,7 +118,7 @@ export default class OICPMapping {
    * @param {*} chargingStation
    * @return Array of OICP EVSE Statuses
    */
-  static convertChargingStation2MultipleEvseStatuses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord[] {
+  private static convertChargingStation2MultipleEvseStatuses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord[] {
     // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
     const evseStatuses = connectors.map((connector) => {
@@ -138,7 +134,7 @@ export default class OICPMapping {
    * @param {*} connector
    * @return Array of OICP EVSE Statuses
    */
-  static convertConnector2EvseStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
+  public static convertConnector2EvseStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
     const evseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
     const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
     evseStatus.EvseID = evseID;
@@ -159,9 +155,17 @@ export default class OICPMapping {
     const evses: OICPEvseDataRecord[] = [];
     // Convert charging stations to evse(s)
     for (const chargingStation of siteArea.chargingStations) {
-      if (chargingStation.issuer === true && chargingStation.public) {
-        evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, siteArea, chargingStation, options));
-      }
+      if (chargingStation.issuer && chargingStation.public) {
+        if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
+          for (const chargePoint of chargingStation.chargePoints) {
+              // OICP does not support multiple connectors in one EVSE object
+              // It is not possible to flag if connectors of charge points can charge in parallel or not
+              evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant,siteArea, chargingStation, chargePoint, options));
+            }
+         }
+      } else {
+        evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, siteArea, chargingStation, null, options));
+       }
     };
     // Return evses
     return evses;
@@ -174,12 +178,12 @@ export default class OICPMapping {
    * @param options
    * @return Array of OICP EVSE Statuses
    */
-  static async getEvseStatusesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseStatusRecord[]> {
+  private static async getEvseStatusesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseStatusRecord[]> {
     // Build evses array
     const evseStatuses: OICPEvseStatusRecord[] = [];
     // Convert charging stations to evse status(es)
     for (const chargingStation of siteArea.chargingStations) {
-      if (chargingStation.issuer === true && chargingStation.public) {
+      if (chargingStation.issuer && chargingStation.public) {
         evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, options));
       }
     };
@@ -194,7 +198,7 @@ export default class OICPMapping {
    * @param options
    * @return Array of OICP EVSE Statuses
    */
-  static async getEvseStatusesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseStatusRecord[]> {
+  private static async getEvseStatusesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseStatusRecord[]> {
     // Build evses array
     const evseStatuses: OICPEvseStatusRecord[] = [];
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
@@ -220,7 +224,7 @@ export default class OICPMapping {
    * @param options
    * @return Array of OICP EVSEs
    */
-  static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseDataRecord[]> {
+  private static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseDataRecord[]> {
     // Build evses array
     const evses = [];
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
@@ -244,7 +248,7 @@ export default class OICPMapping {
    * Get All OICP Evses from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllEvses(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OICPEvseDataRecord>> {
+  public static async getAllEvses(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OICPEvseDataRecord>> {
     // Result
     const oicpEvsesResult: DataResult<OICPEvseDataRecord> = { count: 0, result: [] };
     // Get all sites
@@ -263,7 +267,7 @@ export default class OICPMapping {
    * Get All OICP Evse Statuses from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllEvseStatuses(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OICPEvseStatusRecord>> {
+  public static async getAllEvseStatuses(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OICPEvseStatusRecord>> {
     // Result
     const oicpEvsesResult: DataResult<OICPEvseStatusRecord> = { count: 0, result: [] };
     // Get all sites
@@ -284,7 +288,7 @@ export default class OICPMapping {
    * @param connector
    * @param {*} connector
    */
-  static convertConnector2OICPChargingFacility(chargingStation: ChargingStation, connector: Connector): OICPChargingFacility {
+  private static convertConnector2OICPChargingFacility(chargingStation: ChargingStation, connector: Connector): OICPChargingFacility {
     let chargePoint: ChargePoint;
     if (connector.chargePointID) {
       chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
@@ -312,7 +316,7 @@ export default class OICPMapping {
    * @param connector
    * @param {*} connector
    */
-  static convertConnector2OICPPlug(connector: Connector): OICPPlug {
+  private static convertConnector2OICPPlug(connector: Connector): OICPPlug {
     switch (connector.type) {
       case ConnectorType.CHADEMO:
         return OICPPlug.CHAdeMO;
@@ -337,7 +341,7 @@ export default class OICPMapping {
    * Convert internal Power (1/3 Phase) to PowerType
    * @param {*} power
    */
-  static convertNumberOfConnectedPhase2PowerType(numberOfConnectedPhase: number): OICPPower {
+  private static convertNumberOfConnectedPhase2PowerType(numberOfConnectedPhase: number): OICPPower {
     switch (numberOfConnectedPhase) {
       case 0:
         return OICPPower.DC;
@@ -348,7 +352,7 @@ export default class OICPMapping {
     }
   }
 
-  static getOICPAddressIso19773FromSiteArea(siteArea: SiteArea, countryID: string): OICPAddressIso19773 {
+  private static getOICPAddressIso19773FromSiteArea(siteArea: SiteArea, countryID: string): OICPAddressIso19773 {
     let address: Address;
     if (siteArea.address) {
       address = siteArea.address;
@@ -365,12 +369,12 @@ export default class OICPMapping {
     oicpAddress.Region = address.region; // Optional
     oicpAddress.ParkingFacility; // Optional
     oicpAddress.ParkingSpot; // Optional
-    oicpAddress.Timezone; // Optional
+    oicpAddress.Timezone = Utils.getTimezone(address.coordinates); // Optional
     return oicpAddress;
   }
 
   // The CountryCodeType allows for Alpha-3 country codes. For Alpha-3 (three-letter) country codes as defined in ISO 3166-1. Example: FRA France
-  static convertCountry2CountryCode(country: string, countryID: string): OICPCountryCode {
+  private static convertCountry2CountryCode(country: string, countryID: string): OICPCountryCode {
     // Check input parameter
     if (!country) {
       throw new BackendError({
@@ -392,7 +396,7 @@ export default class OICPMapping {
     return countryCode;
   }
 
-  static convertCoordinates2OICPGeoCoordinates(coordinates: number[], format: OICPGeoCoordinatesResponseFormat): OICPGeoCoordinates {
+  private static convertCoordinates2OICPGeoCoordinates(coordinates: number[], format: OICPGeoCoordinatesResponseFormat): OICPGeoCoordinates {
     switch (format) {
       case OICPGeoCoordinatesResponseFormat.Google:
         // To be done
@@ -423,7 +427,7 @@ export default class OICPMapping {
    * Build ChargingPoolID from charging station
    * @param {*} chargingStation
    */
-  public static buildEChargingPoolID(countryCode: string, partyId: string, siteAreaID: string): OICPChargingPoolID {
+  private static buildEChargingPoolID(countryCode: string, partyId: string, siteAreaID: string): OICPChargingPoolID {
     let chargingPoolID = `${countryCode}*${partyId}*P${siteAreaID}`;
     return chargingPoolID.replace(/[\W_]+/g, '*').toUpperCase();
   }
@@ -432,7 +436,7 @@ export default class OICPMapping {
    * Convert internal status to OICP EVSE Status
    * @param {*} status
    */
-  static convertStatus2OICPEvseStatus(status: ChargePointStatus): OICPEvseStatus {
+  private static convertStatus2OICPEvseStatus(status: ChargePointStatus): OICPEvseStatus {
     switch (status) {
       case ChargePointStatus.AVAILABLE:
         return OICPEvseStatus.Available;
@@ -452,29 +456,5 @@ export default class OICPMapping {
       default:
         return OICPEvseStatus.Unknown;
     }
-  }
-
-  /**
-   * Convert internal charge point status to OICP EVSE Status Records
-   * @param {*} status
-   */
-  static convertConnectorStatus2OICPEvseStatusRecord(connector: Connector, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OICPEvseStatusRecord {
-    const evseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
-    return {
-      EvseID: evseID,
-      EvseStatus: OICPMapping.convertStatus2OICPEvseStatus(connector.status)
-    };
-  }
-
-  /**
-   * Convert OICP EVSE Status Records to OICP Operator EVSEs Status
-   * @param {*} status
-   */
-  static convertEvseStatusRecordList2OICPOperatorEvseStatus(OICPEvseStatusRecords: OICPEvseStatusRecord[], operatorID: OICPOperatorID, operatorName?: string): OICPOperatorEvseStatus {
-    return {
-      OperatorID: operatorID,
-      OperatorName: operatorName,
-      EvseStatusRecord: OICPEvseStatusRecords
-    };
   }
 }
