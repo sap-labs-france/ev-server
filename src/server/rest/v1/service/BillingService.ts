@@ -101,7 +101,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync users
-        synchronizeAction = await billingImpl.synchronizeUsers(req.user.tenantID);
+        synchronizeAction = await billingImpl.synchronizeUsers();
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);
@@ -207,7 +207,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync user
-        await billingImpl.forceSynchronizeUser(req.user.tenantID, user);
+        await billingImpl.forceSynchronizeUser(user);
       } finally {
         await LockingManager.release(billingLock);
       }
@@ -226,7 +226,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync invoices
-        await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+        await billingImpl.synchronizeInvoices(user);
       } finally {
         await LockingManager.release(billingLock);
       }
@@ -271,10 +271,8 @@ export default class BillingService {
     }
     // Get taxes
     const taxes = await billingImpl.getTaxes();
-    // Filter
-    const filteredTaxes = BillingSecurity.filterTaxesResponse(taxes, req.user);
     // Return
-    res.json(filteredTaxes);
+    res.json(taxes);
     next();
   }
 
@@ -289,6 +287,11 @@ export default class BillingService {
         entity: Entity.INVOICES, action: Action.LIST,
         module: MODULE_NAME, method: 'handleGetInvoices',
       });
+    }
+    // Check Users
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
     const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
@@ -306,9 +309,11 @@ export default class BillingService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
-      });
-    // Filter
-    BillingSecurity.filterInvoicesResponse(invoices, req.user);
+      },
+      [
+        'id', 'number', 'status', 'amount', 'createdOn', 'nbrOfItems', 'currency', 'downloadable',
+        ...userProject
+      ]);
     // Return
     res.json(invoices);
     next();
@@ -355,7 +360,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync invoices
-        synchronizeAction = await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+        synchronizeAction = await billingImpl.synchronizeInvoices(user);
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);
@@ -412,7 +417,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync invoices
-        synchronizeAction = await billingImpl.synchronizeInvoices(req.user.tenantID, user);
+        synchronizeAction = await billingImpl.synchronizeInvoices(user);
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);
@@ -528,17 +533,17 @@ export default class BillingService {
       const filename = 'invoice_' + invoice.id + '.' + invoiceDocument.type;
       fs.writeFile(filename, base64RawData, { encoding: invoiceDocument.encoding }, (err) => {
         if (err) {
-          console.log(err);
+          console.error(err);
           throw err;
         }
         res.download(filename, (err2) => {
           if (err2) {
-            console.log(err2);
+            console.error(err2);
             throw err2;
           }
           fs.unlink(filename, (err3) => {
             if (err3) {
-              console.log(err3);
+              console.error(err3);
               throw err3;
             }
           });

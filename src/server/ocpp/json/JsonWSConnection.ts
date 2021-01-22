@@ -1,9 +1,11 @@
-import { MessageType, OcppErrorType } from '../../../types/WebSocket';
+import { OCPPErrorType, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
@@ -12,13 +14,14 @@ import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { ServerAction } from '../../../types/Server';
+import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
-import WebSocket from 'ws';
 import http from 'http';
 
 const MODULE_NAME = 'JsonWSConnection';
 
 export default class JsonWSConnection extends WSConnection {
+  public isConnectionAlive: boolean;
   private chargingStationClient: ChargingStationClient;
   private chargingStationService: JsonChargingStationService;
   private headers: OCPPHeader;
@@ -45,6 +48,11 @@ export default class JsonWSConnection extends WSConnection {
           message: `Protocol ${wsConnection.protocol} not supported`
         });
     }
+    this.isConnectionAlive = true;
+    // Handle Socket ping
+    this.getWSConnection().on('ping', this.onPing.bind(this));
+    // Handle Socket pong
+    this.getWSConnection().on('pong', this.onPong.bind(this));
   }
 
   public async initialize(): Promise<void> {
@@ -57,7 +65,7 @@ export default class JsonWSConnection extends WSConnection {
         chargeBoxIdentity: this.getChargingStationID(),
         ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
         ocppProtocol: OCPPProtocol.JSON,
-        chargingStationURL: Configuration.getJsonEndpointConfig().baseUrl,
+        chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl ? Configuration.getJsonEndpointConfig().baseSecureUrl : Configuration.getJsonEndpointConfig().baseUrl,
         tenantID: this.getTenantID(),
         token: this.getToken(),
         From: {
@@ -81,10 +89,11 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
-      action: ServerAction.WS_ERROR,
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
       message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
-      detailedMessages: `${JSON.stringify(errorEvent)}`
+      detailedMessages: { errorEvent: errorEvent }
     });
   }
 
@@ -95,13 +104,23 @@ export default class JsonWSConnection extends WSConnection {
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
-      message: `Connection has been closed, Reason '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Code '${closeEvent.code}'`
+      message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
+      detailedMessages: { closeEvent: closeEvent }
     });
     // Remove the connection
     this.wsServer.removeJsonConnection(this);
   }
 
-  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
+  public async onPing(): Promise<void> {
+    await this.updateChargingStationLastSeen();
+  }
+
+  public async onPong(): Promise<void> {
+    this.isConnectionAlive = true;
+    await this.updateChargingStationLastSeen();
+  }
+
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Log
     Logging.logChargingStationServerReceiveAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
@@ -114,14 +133,14 @@ export default class JsonWSConnection extends WSConnection {
       // Log
       Logging.logChargingStationServerRespondAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
-      await this.sendMessage(messageId, result, MessageType.CALL_RESULT_MESSAGE, commandName);
+      await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, commandName);
     } else {
       // Throw Exception
       throw new OCPPError({
         source: this.getChargingStationID(),
         module: MODULE_NAME,
         method: 'handleRequest',
-        code: OcppErrorType.NOT_IMPLEMENTED,
+        code: OCPPErrorType.NOT_IMPLEMENTED,
         message: `The OCPP method 'handle${typeof commandName === 'string' ? commandName : JSON.stringify(commandName)}' has not been implemented`
       });
     }
@@ -132,7 +151,20 @@ export default class JsonWSConnection extends WSConnection {
     if (this.isWSConnectionOpen()) {
       return this.chargingStationClient;
     }
+    Logging.logError({
+      tenantID: this.getTenantID(),
+      source: this.getChargingStationID(),
+      module: MODULE_NAME, method: 'getChargingStationClient',
+      action: ServerAction.WS_CONNECTION,
+      message: `Cannot retrieve WS client from WS connection with status '${this.getConnectionStatusString()}'`,
+    });
     return null;
+  }
+
+  private async updateChargingStationLastSeen(): Promise<void> {
+    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
+      lastSeen: new Date()
+    });
   }
 }
 

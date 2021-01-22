@@ -20,6 +20,7 @@ import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import StatisticsContext from './StatisticsContext';
 import Tag from '../../types/Tag';
+import TagStorage from '../../../src/storage/mongodb/TagStorage';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
@@ -106,13 +107,14 @@ export default class ContextBuilder {
           components[componentName] = {
             active: true
           };
-          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'type')) {
-            components[componentName]['type'] = tenantContextDef.componentSettings[componentName].type;
+          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'content') && Utils.objectHasProperty(tenantContextDef.componentSettings[componentName].content, 'type')) {
+            components[componentName]['type'] = tenantContextDef.componentSettings[componentName].content.type;
           }
         }
       }
     }
     // Check if tenant exists
+    TenantStorage.clearCache();
     const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);
@@ -148,7 +150,7 @@ export default class ContextBuilder {
     if (ContextDefinition.TENANT_USER_LIST[0].tags) {
       for (const tag of ContextDefinition.TENANT_USER_LIST[0].tags) {
         tag.userID = ContextDefinition.TENANT_USER_LIST[0].id;
-        await UserStorage.saveTag(buildTenant.id, tag);
+        await TagStorage.saveTag(buildTenant.id, tag);
       }
     }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, ContextDefinition.TENANT_USER_LIST[0].id);
@@ -224,7 +226,7 @@ export default class ContextBuilder {
       const userDef = ContextDefinition.TENANT_USER_LIST[index];
       const createUser = UserFactory.build();
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
-      createUser.issuer = true;
+      createUser.issuer = Utils.objectHasProperty(userDef, 'issuer') ? userDef.issuer : true;
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.id = userDef.id;
@@ -236,7 +238,7 @@ export default class ContextBuilder {
       if (userDef.tags) {
         for (const tag of userDef.tags) {
           tag.userID = user.id;
-          await UserStorage.saveTag(buildTenant.id, tag);
+          await TagStorage.saveTag(buildTenant.id, tag);
         }
       }
       const userModel = await UserStorage.getUser(buildTenant.id, user.id);
@@ -251,7 +253,7 @@ export default class ContextBuilder {
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, '', localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
-    tagList = (await UserStorage.getTags(buildTenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT)).result;
+    tagList = (await TagStorage.getTags(buildTenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT)).result;
     newTenantContext.addTags(tagList);
     // Check if Organization is active
     if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&

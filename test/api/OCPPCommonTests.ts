@@ -4,6 +4,7 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import { Command } from '../../src/types/ChargingStation';
 import Constants from '../../src/utils/Constants';
 import Factory from '../factories/Factory';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
@@ -219,7 +220,6 @@ export default class OCPPCommonTests {
     this.energyActiveImportEndMeterValue = this.energyActiveImportStartMeterValue + this.transactionTotalConsumptionWh;
     this.transactionTotalInactivitySecs = this.energyActiveImportMeterValues.reduce(
       (sum, meterValue) => (meterValue === 0 ? sum + this.meterValueIntervalSecs : sum), 0);
-    this.totalPrice = this.pricekWh * (this.transactionTotalConsumptionWh / 1000);
     // Tags
     this.validTag = faker.random.alphaNumeric(20).toString();
     this.invalidTag = faker.random.alphaNumeric(21).toString();
@@ -266,7 +266,7 @@ export default class OCPPCommonTests {
     expect(response).to.eql({});
     response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector2);
     expect(response).to.eql({});
-    // Attention: connector status is always 'Unavailable', if too much time has passed since last heartbeat!!
+    // Warning: connector status is always 'Unavailable' if too much time has passed since last seen!
     response = await this.chargingStationContext.sendHeartbeat();
     // Now we can test the connector status!
     const foundChargingStation = await this.chargingStationContext.readChargingStation();
@@ -430,6 +430,39 @@ export default class OCPPCommonTests {
     expect(this.newTransaction.id).to.not.equal(transactionId);
   }
 
+  public async testRemoteStartTransactionWithNoBadge() {
+    const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
+      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'args': {
+        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
+      }
+    });
+    expect(response.status).to.equal(570);
+  }
+
+  public async testRemoteStartTransactionWithExternalUser() {
+    const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
+      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'args': {
+        'tagID': this.transactionStartUser.tags[0].id,
+        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
+      }
+    });
+    expect(response.status).to.equal(500);
+  }
+
+  public async testRemoteStartTransactionWithUnassignedChargingStation() {
+    const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
+      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'args': {
+        'tagID': this.transactionStartUser.tags[0].id,
+        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
+      }
+    });
+    expect(response.status).to.equal(500);
+  }
+
+
   public async testSendMeterValues(withSoC = false, withSignedData = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
@@ -468,8 +501,13 @@ export default class OCPPCommonTests {
     // ------------------------------------------------------------------
     // Send Meter Values (except the last one which is used in Stop Transaction)
     // ------------------------------------------------------------------
+    let currentCumulatedPrice = 0;
     for (let index = 0; index <= this.energyActiveImportMeterValues.length - 2; index++) {
       // Set new meter value
+      currentCumulatedPrice = Utils.truncTo(((this.energyActiveImportMeterValues[index] / 1000) * this.pricekWh), 3) + Utils.truncTo(currentCumulatedPrice, 3);
+      if (index === this.energyActiveImportMeterValues.length - 2) {
+        this.totalPrice = currentCumulatedPrice;
+      }
       currentEnergyActiveImportMeterValue += this.energyActiveImportMeterValues[index];
       // Add time
       this.transactionCurrentTime = moment(this.transactionCurrentTime).add(this.meterValueIntervalSecs, 's').toDate();
@@ -505,8 +543,8 @@ export default class OCPPCommonTests {
           currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
           currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
           currentTotalInactivitySecs: this.totalInactivities[index],
-          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.pricekWh,
-          currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
+          currentCumulatedPrice: Utils.truncTo(currentCumulatedPrice, 3),
+          currentInactivityStatus: Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
             this.newTransaction.connectorId, this.totalInactivities[index]),
         });
       } else {
@@ -517,8 +555,8 @@ export default class OCPPCommonTests {
           currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
           currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
           currentTotalInactivitySecs: this.totalInactivities[index],
-          currentCumulatedPrice: ((currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue) / 1000) * this.pricekWh,
-          currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
+          currentCumulatedPrice: Utils.truncTo(currentCumulatedPrice, 3),
+          currentInactivityStatus: Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
             this.newTransaction.connectorId, this.totalInactivities[index]),
         });
       }
@@ -602,7 +640,7 @@ export default class OCPPCommonTests {
         'price': this.totalPrice,
         'priceUnit': 'EUR',
         'pricingSource': PricingSettingsType.SIMPLE,
-        'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
+        'roundedPrice': Utils.truncTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
@@ -627,7 +665,7 @@ export default class OCPPCommonTests {
       'stop': {
         'price': this.totalPrice,
         'pricingSource': 'simple',
-        'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
+        'roundedPrice': Utils.truncTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
         'totalInactivitySecs': this.transactionTotalInactivitySecs,
@@ -706,7 +744,7 @@ export default class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
     let response = await this.transactionStartUserService.transactionApi.delete(this.newTransaction.id);
     if (noAuthorization) {
-      expect(response.status).to.equal(560);
+      expect(response.status).to.equal(401);
       // Transaction must be deleted by Admin user
       response = await this.centralUserService.transactionApi.delete(this.newTransaction.id);
     }
@@ -1118,7 +1156,7 @@ export default class OCPPCommonTests {
       'tagID': this.transactionStartUser.tags[0].id,
       'meterStart': meterStart,
       'userID': this.transactionStartUser.id,
-      'siteAreaID': this.chargingStationContext.getChargingStation().siteAreaID,
+      'siteAreaID': this.chargingStationContext.getChargingStation().siteAreaID ? this.chargingStationContext.getChargingStation().siteAreaID : null,
       'siteID': this.chargingStationContext.getChargingStation().siteArea ? this.chargingStationContext.getChargingStation().siteArea.siteID : null,
       'user': {
         'id': this.transactionStartUser.id,

@@ -14,11 +14,11 @@ const MODULE_NAME = 'AssetStorage';
 
 export default class AssetStorage {
   public static async getAsset(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSiteArea?: boolean} = {}): Promise<Asset> {
+    params: { withSiteArea?: boolean} = {}, projectFields?: string[]): Promise<Asset> {
     const assetsMDB = await AssetStorage.getAssets(tenantID, {
       assetIDs: [id],
       withSiteArea: params.withSiteArea
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return assetsMDB.count === 1 ? assetsMDB.result[0] : null;
   }
 
@@ -26,7 +26,7 @@ export default class AssetStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetImage');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const assetImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'assetimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
@@ -42,7 +42,7 @@ export default class AssetStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveAsset');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const assetMDB: any = {
       _id: assetToSave.id ? Utils.convertToObjectID(assetToSave.id) : new ObjectID(),
@@ -51,6 +51,8 @@ export default class AssetStorage {
       coordinates: Utils.containsGPSCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
+      fluctuation:  Utils.convertToFloat(assetToSave.fluctuation),
+      fallbackValue: Utils.convertToFloat(assetToSave.fallbackValue),
       dynamicAsset: assetToSave.dynamicAsset,
       issuer: Utils.convertToBoolean(assetToSave.issuer),
       connectionID: assetToSave.connectionID,
@@ -99,7 +101,7 @@ export default class AssetStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssets');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -195,7 +197,6 @@ export default class AssetStorage {
     // Read DB
     const assetsMDB = await global.database.getCollection<any>(tenantID, 'assets')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -214,7 +215,7 @@ export default class AssetStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetsInError');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -245,10 +246,10 @@ export default class AssetStorage {
     if (!Utils.isEmptyArray(params.errorType)) {
       // Build facet only for one error type
       const array = [];
-      params.errorType.forEach((type) => {
+      for (const type of params.errorType) {
         array.push(`$${type}`);
         facets.$facet[type] = AssetStorage.getAssetInErrorFacet(type);
-      });
+      }
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
       aggregation.push({ $project: { assetsInError: { $setUnion: array } } });
@@ -280,7 +281,6 @@ export default class AssetStorage {
     // Read DB
     const assetsMDB = await global.database.getCollection<any>(tenantID, 'assets')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
@@ -297,7 +297,7 @@ export default class AssetStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteAsset');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Delete the Asset
     await global.database.getCollection<Asset>(tenantID, 'assets')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
@@ -312,7 +312,7 @@ export default class AssetStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveAssetImage');
     // Check Tenant
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(tenantID, 'assetimages').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(assetID) },

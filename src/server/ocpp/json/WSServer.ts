@@ -1,12 +1,10 @@
 import WebSocket, { AddressInfo } from 'ws';
 
-import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServerConfiguration from '../../../types/configuration/CentralSystemServer';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import Utils from '../../../utils/Utils';
 import cluster from 'cluster';
 import fs from 'fs';
 import http from 'http';
@@ -15,51 +13,26 @@ import https from 'https';
 const MODULE_NAME = 'WSServer';
 
 export default class WSServer extends WebSocket.Server {
-  private httpServer: http.Server;
+  private static hasWebSocketSecure: boolean;
+  private port: number;
+  private hostname: string;
   private serverName: string;
-  private serverConfig: CentralSystemConfiguration;
-  private keepAliveIntervalValue: number;
-  private keepAliveInterval: NodeJS.Timeout;
+  private httpServer: http.Server;
 
-  public constructor(httpServer: http.Server, serverName: string, serverConfig: CentralSystemConfiguration,
+  public constructor(port: number, hostname: string, serverName: string, httpServer: http.Server,
     verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = ():
-    void => { }, handleProtocolsCb: Function = (): void => { }) {
-    // Create the Web Socket Server
+    void => { }, handleProtocolsCb: (protocols: string | string[], request: http.IncomingMessage) => boolean | string = (protocols, request) => '') {
+    // Create the WebSocket Server
     super({
       server: httpServer,
       verifyClient: verifyClientCb,
       handleProtocols: handleProtocolsCb
     });
-    this.httpServer = httpServer;
+    this.port = port;
+    this.hostname = hostname;
     this.serverName = serverName;
-    this.serverConfig = serverConfig;
-    this.keepAliveIntervalValue = (this.serverConfig.keepaliveinterval ?
-      this.serverConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // Ms
-    this.on('connection', (ws: WebSocket, req: http.IncomingMessage): void => {
-      ws['isAlive'] = true;
-      ws['ip'] = Utils.getRequestIP(req);
-      ws.on('pong', (): void => {
-        ws['isAlive'] = true;
-      });
-    });
-    if (!this.keepAliveInterval) {
-      this.keepAliveInterval = setInterval((): void => {
-        this.clients.forEach((ws: WebSocket) => {
-          if (ws['isAlive'] === false) {
-            // Log
-            Logging.logError({
-              tenantID: Constants.DEFAULT_TENANT,
-              module: MODULE_NAME,
-              method: 'constructor',
-              message: `Web Socket from ${(ws['ip'] as string|string[]).toString()} does not respond to ping, terminating`
-            });
-            ws.terminate();
-          }
-          ws['isAlive'] = false;
-          ws.ping((): void => { });
-        });
-      }, this.keepAliveIntervalValue);
-    }
+    this.httpServer = httpServer;
+    WSServer.hasWebSocketSecure = false;
   }
 
   public static createHttpServer(serverConfig: CentralSystemServerConfiguration): http.Server {
@@ -67,6 +40,7 @@ export default class WSServer extends WebSocket.Server {
     let httpServer: http.Server;
     // Secured protocol?
     if (serverConfig.protocol === 'wss') {
+      WSServer.hasWebSocketSecure = true;
       // Create the options
       const options: https.ServerOptions = {};
       // Set the keys
@@ -88,11 +62,11 @@ export default class WSServer extends WebSocket.Server {
   }
 
   public broadcastToClients(message: any): void {
-    this.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
+    for (const client of this.clients) {
+      if (client?.readyState === WebSocket.OPEN) {
         client.send(message);
       }
-    });
+    }
   }
 
   public start(): void {
@@ -111,9 +85,9 @@ export default class WSServer extends WebSocket.Server {
 
   public startListening(): void {
     // Start listening
-    this.httpServer.listen(this.serverConfig.port, this.serverConfig.host, (): void => {
+    this.httpServer.listen(this.port, this.hostname, (): void => {
       // Log
-      const logMsg = `${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${(this.httpServer.address() as AddressInfo).address}:${(this.httpServer.address() as AddressInfo).port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
+      const logMsg = `${this.serverName} Json ${MODULE_NAME} listening on '${WSServer.hasWebSocketSecure ? 'wss' : 'ws'}://${(this.httpServer.address() as AddressInfo).address}:${(this.httpServer.address() as AddressInfo).port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,

@@ -24,6 +24,5 @@ export default interface OCPIEndpoint extends CreatedUpdatedProps {
     chargeBoxIDsInFailure?: string[];
     chargeBoxIDsInSuccess?: string[];
     tokenIDsInFailure?: string[];
-    tokenIDsInSuccess?: string[];
   };
 }

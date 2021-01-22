@@ -25,6 +25,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
@@ -69,11 +70,11 @@ export default class OCPIMapping {
 
   static convertEvseToChargingStation(evseId: string, evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
     const chargingStation = {
-      id: evseId,
+      id: evse.evse_id,
       maximumPower: 0,
       issuer: false,
       connectors: [],
-      chargeBoxSerialNumber: evse.evse_id,
+      chargeBoxSerialNumber: evseId,
       ocpiData: {
         evse: evse
       }
@@ -89,7 +90,7 @@ export default class OCPIMapping {
         Utils.convertToFloat(location.coordinates.latitude)
       ];
     }
-    if (evse.connectors && evse.connectors.length > 0) {
+    if (!Utils.isEmptyArray(evse.connectors)) {
       let connectorId = 1;
       for (const ocpiConnector of evse.connectors) {
         const connector: Connector = {
@@ -137,7 +138,7 @@ export default class OCPIMapping {
     // Result
     const tokens: OCPIToken[] = [];
     // Get all tokens
-    const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
+    const tags = await TagStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
     // Convert Sites to Locations
     for (const tag of tags.result) {
       const user = await UserStorage.getUser(tenant.id, tag.userID);
@@ -235,8 +236,8 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
-    const tag = await UserStorage.getTag(tenant.id, tokenId, { withUser: true });
-    if (tag && tag.user) {
+    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
+    if (tag?.user) {
       if (!tag.user.issuer && tag.user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
         return tag.ocpiToken;
       }
@@ -341,12 +342,11 @@ export default class OCPIMapping {
   }
 
   static convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation, connectorId: number, countryId: string, partyId: string): OCPILocation {
-    const evseID = OCPIUtils.buildEvseID(countryId, partyId, chargingStation);
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
     for (const chargingStationConnector of chargingStation.connectors) {
       if (chargingStationConnector.connectorId === connectorId) {
-        connectors.push(OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, chargingStationConnector, evseID));
+        connectors.push(OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, chargingStationConnector, countryId, partyId));
         status = chargingStationConnector.status;
         break;
       }
@@ -364,8 +364,8 @@ export default class OCPIMapping {
       },
       type: OCPILocationType.UNKNOWN,
       evses: [{
-        uid: OCPIUtils.buildEvseUID(chargingStation),
-        evse_id: evseID,
+        uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
+        evse_id: OCPIUtils.buildEvseID(countryId, partyId, chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
         status: OCPIMapping.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
@@ -373,7 +373,7 @@ export default class OCPIMapping {
           latitude: chargingStation.coordinates[1].toString(),
           longitude: chargingStation.coordinates[0].toString()
         },
-        last_updated: chargingStation.lastHeartBeat
+        last_updated: chargingStation.lastSeen
       }],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: {
@@ -415,7 +415,7 @@ export default class OCPIMapping {
           start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
           dimensions: [{
             type: CdrDimensionType.PARKING_TIME,
-            volume: parseFloat((inactivity / 3600).toFixed(3))
+            volume: Utils.truncTo(inactivity / 3600, 3)
           }]
         });
       }
@@ -486,11 +486,21 @@ export default class OCPIMapping {
     // Build evses array
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
-    siteArea.chargingStations.forEach((chargingStation) => {
+    for (const chargingStation of siteArea.chargingStations) {
       if (chargingStation.issuer === true && chargingStation.public) {
-        evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
+        if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
+          for (const chargePoint of chargingStation.chargePoints) {
+            if (chargePoint.cannotChargeInParallel) {
+              evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, chargePoint, options));
+            } else {
+              evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, chargePoint, options));
+            }
+          }
+        } else {
+          evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
+        }
       }
-    });
+    }
     // Return evses
     return evses;
   }
@@ -527,25 +537,29 @@ export default class OCPIMapping {
    * @param {*} chargingStation
    * @return Array of OCPI EVSEs
    */
-  private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
+  private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     // Loop through connectors and send one evse per connector
-    const connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    let connectors: Connector[];
+    if (chargePoint) {
+      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+    } else {
+      connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    }
     const evses = connectors.map((connector) => {
-      const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
       const evse: OCPIEvse = {
         uid: OCPIUtils.buildEvseUID(chargingStation, connector),
-        evse_id: evseID,
+        evse_id: OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector),
         status: OCPIMapping.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-        connectors: [OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, evseID)],
-        last_updated: chargingStation.lastHeartBeat,
+        connectors: [OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
+        last_updated: chargingStation.lastSeen,
         coordinates: {
           latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
           longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
         }
       };
       // Check addChargeBoxID flag
-      if (options && options.addChargeBoxID) {
+      if (options?.addChargeBoxID) {
         evse.chargeBoxId = chargingStation.id;
       }
       return evse;
@@ -561,26 +575,34 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI EVSE
    */
-  private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
-    const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation);
+  private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
+    let connectors: Connector[];
+    if (chargePoint) {
+      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+    } else {
+      connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    }
     // Get all connectors
-    const connectors = chargingStation.connectors.map(
-      (connector: Connector) => OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, evseID));
+    const ocpiConnectors: OCPIConnector[] = connectors.map(
+      (connector: Connector) => OCPIMapping.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID));
+    // Get connectors aggregated status
+    const connectorsAggregatedStatus = OCPIMapping.aggregateConnectorsStatus(connectors);
     // Build evse
     const evse: OCPIEvse = {
-      uid: OCPIUtils.buildEvseUID(chargingStation),
-      evse_id: evseID,
-      status: OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
+      // Force the connector id to always be 1 on charging station that have mutually exclusive connectors
+      uid: OCPIUtils.buildEvseUID(chargingStation, { connectorId: 1, status: connectorsAggregatedStatus }),
+      evse_id: OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation, { connectorId: 1, status: connectorsAggregatedStatus }),
+      status: OCPIMapping.convertStatus2OCPIStatus(connectorsAggregatedStatus),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-      connectors: connectors,
-      last_updated: chargingStation.lastHeartBeat,
+      connectors: ocpiConnectors,
+      last_updated: chargingStation.lastSeen,
       coordinates: {
         latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
         longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
       }
     };
     // Check addChargeBoxID flag
-    if (options && options.addChargeBoxID) {
+    if (options?.addChargeBoxID) {
       evse.chargeBoxId = chargingStation.id;
     }
     return [evse];
@@ -640,54 +662,60 @@ export default class OCPIMapping {
     }
   }
 
-  private static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, evseID: string): OCPIConnector {
+  private static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, countryId: string, partyId: string): OCPIConnector {
     let type: OCPIConnectorType, format: OCPIConnectorFormat;
     switch (connector.type) {
-      case 'C':
+      case ConnectorType.CHADEMO:
         type = OCPIConnectorType.CHADEMO;
         format = OCPIConnectorFormat.CABLE;
         break;
-      case 'T2':
+      case ConnectorType.TYPE_2:
         type = OCPIConnectorType.IEC_62196_T2;
         format = OCPIConnectorFormat.SOCKET;
         break;
-      case 'CCS':
+      case ConnectorType.COMBO_CCS:
         type = OCPIConnectorType.IEC_62196_T2_COMBO;
         format = OCPIConnectorFormat.CABLE;
         break;
     }
-    let chargePoint: ChargePoint;
-    if (connector.chargePointID) {
-      chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-    }
+    const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
     const voltage = OCPIMapping.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
     const amperage = OCPIMapping.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
     const ocpiNumberOfConnectedPhases = OCPIMapping.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {
-      id: `${evseID}*${connector.connectorId}`,
+      id: OCPIUtils.buildEvseID(countryId, partyId, chargingStation, connector),
       standard: type,
       format: format,
       voltage: voltage,
       amperage: amperage,
       power_type: OCPIMapping.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
-      tariff_id: OCPIMapping.buildTariffID(tenant),
-      last_updated: chargingStation.lastHeartBeat
+      tariff_id: OCPIMapping.buildTariffID(tenant, chargingStation),
+      last_updated: chargingStation.lastSeen
     };
   }
 
-  // TODO: Implement the tariff module under dev in Gireve
+  // TODO: Implement the tariff module under dev in Gireve, to provide in UI later on
   // FIXME: add tariff id from the simple pricing settings remapping
-  private static buildTariffID(tenant: Tenant): string {
+  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
     switch (tenant?.id) {
       // SLF
       case '5be7fb271014d90008992f06':
-        return 'FR*SLF_AC_Sud2';
+        // Check Site Area
+        // FIXME: siteAreaID must always be an attribute non null
+        switch (chargingStation?.siteAreaID) {
+          // Mougins - South
+          case '5abebb1b4bae1457eb565e98':
+            return 'FR*SLF_AC_Sud2';
+          // Mougins - South - Fastcharging
+          case '5b72cef274ae30000855e458':
+            return 'FR*SLF_DC_Sud';
+        }
+        return '';
       // Proviridis
       case '5e2701b248aaa90007904cca':
         return '1';
-      default:
-        return '';
     }
+    return '';
   }
 
   /**
@@ -707,7 +735,7 @@ export default class OCPIMapping {
 
   private static buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
     const chargingPeriod: OCPIChargingPeriod = {
-      start_date_time: consumption.startedAt,
+      start_date_time: consumption.endedAt,
       dimensions: []
     };
     if (consumption.consumptionWh > 0) {
@@ -720,7 +748,7 @@ export default class OCPIMapping {
       if (duration > 0) {
         chargingPeriod.dimensions.push({
           type: CdrDimensionType.PARKING_TIME,
-          volume: parseFloat(duration.toFixed(3))
+          volume: Utils.truncTo(duration, 3)
         });
       }
     }

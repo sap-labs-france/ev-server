@@ -81,13 +81,15 @@
     "debug": false
   },
   "ChargingStation": {
-    "heartbeatIntervalSecs": 180,
+    "heartbeatIntervalOCPPSSecs": 180,
+    "heartbeatIntervalOCPPJSecs": 3600,
     "checkEndOfChargeNotificationAfterMin": 5,
     "notifBeforeEndOfChargePercent": 85,
     "notifBeforeEndOfChargeEnabled": true,
     "notifEndOfChargePercent": 0,
     "notifEndOfChargeEnabled": true,
-    "notifStopTransactionAndUnlockConnector": false
+    "notifStopTransactionAndUnlockConnector": false,
+    "maxLastSeenIntervalSecs": 540
   },
   "Locales": {
     "default": "en_US",
@@ -162,7 +164,7 @@
         "name": "AssetGetConsumptionTask",
         "active": true,
         "periodicity": "* * * * *"
-			},
+      },
       {
         "name": "CheckUserAccountInactivityTask",
         "active": false,

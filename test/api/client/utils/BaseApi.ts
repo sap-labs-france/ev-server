@@ -1,6 +1,7 @@
 import AxiosFactory from '../../../../src/utils/AxiosFactory';
 import { AxiosRequestConfig } from 'axios';
 import Constants from '../../../../src/utils/Constants';
+import config from '../../../config';
 import { performance } from 'perf_hooks';
 import querystring from 'querystring';
 
@@ -26,6 +27,18 @@ export default class BaseApi {
       t0 = performance.now();
       // Execute with Axios
       httpResponse = await axiosInstance(httpRequest);
+      // Debug
+      if (config.trace_logs) {
+        console.debug('HTTP Request ====================================');
+        console.debug(httpRequest.baseURL);
+        console.debug(httpRequest.url);
+        console.debug(httpRequest.method);
+        console.debug(httpRequest.data);
+        console.debug(httpResponse.status);
+        console.debug(httpResponse.statusText);
+        console.debug(httpResponse.data);
+        console.debug('====================================');
+      }
       t1 = performance.now();
     } catch (error) {
       // Handle errors

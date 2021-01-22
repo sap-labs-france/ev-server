@@ -19,7 +19,6 @@ import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'OCPIEndpointService';
@@ -79,11 +78,14 @@ export default class OCPIEndpointService {
       });
     }
     // Get it
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, endpointID);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, endpointID,
+      [
+        'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'patchJobStatus', 'localToken', 'token',
+        'patchJobResult.successNbr', 'patchJobResult.failureNbr', 'patchJobResult.totalNbr'
+      ]);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${endpointID}' does not exist`,
       MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
-    // Return
-    res.json(OCPIEndpointSecurity.filterOcpiEndpointResponse(ocpiEndpoint, req.user));
+    res.json(ocpiEndpoint);
     next();
   }
 
@@ -100,6 +102,11 @@ export default class OCPIEndpointService {
         module: MODULE_NAME, method: 'handleGetOcpiEndpoints'
       });
     }
+    // Check User
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
+    }
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointsRequest(req.query);
     // Get all ocpiendpoints
@@ -111,9 +118,13 @@ export default class OCPIEndpointService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
-      });
-    OCPIEndpointSecurity.filterOcpiEndpointsResponse(ocpiEndpoints, req.user);
-    // Return
+      },
+      [
+        'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'lastChangedOn', 'lastPatchJobOn',
+        'backgroundPatchJob', 'localToken', 'token',
+        'lastPatchJobResult.successNbr', 'lastPatchJobResult.failureNbr', 'lastPatchJobResult.totalNbr',
+        ...userProject
+      ]);
     res.json(ocpiEndpoints);
     next();
   }
@@ -134,7 +145,7 @@ export default class OCPIEndpointService {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointCreateRequest(req.body);
     // Check Mandatory fields
-    Utils.checkIfOCPIEndpointValid(filteredRequest, req);
+    UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
     const ocpiEndpoint: OCPIEndpoint = {
       ...filteredRequest,
       createdBy: { id: req.user.id },
@@ -162,7 +173,7 @@ export default class OCPIEndpointService {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body);
     // Check Mandatory fields
-    Utils.checkIfOCPIEndpointValid(filteredRequest, req);
+    UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -211,7 +222,7 @@ export default class OCPIEndpointService {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointPingRequest(req.body);
     // Check Mandatory fields
-    Utils.checkIfOCPIEndpointValid(filteredRequest, req);
+    UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, filteredRequest);

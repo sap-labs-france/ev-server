@@ -35,6 +35,6 @@ export default abstract class AbstractEndpoint {
   }
 
   // Abstract - Process endpoint
-  abstract async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse>;
+  abstract process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse>;
 }
 

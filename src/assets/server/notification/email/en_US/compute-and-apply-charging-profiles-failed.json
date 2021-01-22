@@ -21,7 +21,7 @@
       "",
       "Applying the charging profiles for <strong>'<%- chargeBoxID %>'</strong> failed three times.",
       "",
-      "The charging station was excluded from smart charging management automatically."
+      "The charging station was excluded from this smart charging run automatically."
     ],
     "action": {
       "title": "e-Mobility",

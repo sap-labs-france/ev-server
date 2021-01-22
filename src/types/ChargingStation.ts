@@ -32,7 +32,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppVersion: OCPPVersion;
   ocppProtocol: OCPPProtocol;
   cfApplicationIDAndInstanceIndex: string;
-  lastHeartBeat: Date;
+  lastSeen: Date;
   deleted: boolean;
   inactive: boolean;
   forceInactive: boolean;
@@ -57,10 +57,32 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   };
 }
 
+export interface ChargingStationQRCode {
+  tenantSubDomain?: string;
+  tenantName?: string;
+  endpoint?: ChargingStationEndpoint;
+  chargingStationID?: string;
+  connectorID?: number;
+}
+
+export enum ChargingStationEndpoint {
+  SCP = 'scp',
+  AWS = 'aws'
+}
+
+export interface TemplateUpdate {
+  chargingStationUpdate: boolean;
+  technicalUpdate: boolean;
+  capabilitiesUpdate: boolean;
+  ocppStandardUpdate: boolean;
+  ocppVendorUpdate: boolean;
+}
+
 export interface TemplateUpdateResult {
   technicalUpdated: boolean;
   capabilitiesUpdated: boolean;
-  ocppUpdated: boolean;
+  ocppStandardUpdated: boolean;
+  ocppVendorUpdated: boolean;
 }
 
 export interface OcppCommand {
@@ -174,6 +196,7 @@ export enum Voltage {
 
 export interface ChargingStationTemplate {
   id?: string;
+  qa?: boolean;
   hash?: string;
   hashTechnical?: string;
   hashCapabilities?: string;
@@ -207,12 +230,12 @@ export interface ChargingStationTemplate {
   ocppStandardParameters: {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: any;
+    parameters: Record<string, string>;
   }[];
   ocppVendorParameters: {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
-    parameters: any;
+    parameters: Record<string, string>;
   }[];
 }
 
@@ -235,6 +258,8 @@ export interface ChargingStationCapabilities {
   supportUnlockConnector: boolean;
   supportReservation: boolean;
   supportRFIDCard: boolean;
+  supportFirmwareUpgrade?: boolean;
+  supportConnectorIsSlave?: boolean;
 }
 
 export interface ChargingStationOcppParameters {
@@ -260,6 +285,9 @@ export type OCPPParams = {
 export enum ChargerVendor {
   BENDER = 'Bender GmbH Co. KG',
   EBEE = 'Ebee',
+  EVBOX = 'EV-BOX',
+  IES = 'IES',
+  WALLBOX_CHARGERS = 'Wall Box Chargers',
   SCHNEIDER = 'Schneider Electric',
   WEBASTO = 'Webasto',
   DELTA = 'DELTA',
@@ -267,4 +295,5 @@ export enum ChargerVendor {
   LEGRAND = 'Legrand',
   ATESS = 'ATESS',
   MENNEKES = 'MENNEKES',
+  SAP_LABS_FRANCE = 'SAP Labs France Caen',
 }

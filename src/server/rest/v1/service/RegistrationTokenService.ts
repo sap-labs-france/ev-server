@@ -72,8 +72,11 @@ export default class RegistrationTokenService {
     registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
+    registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
     // Ok
-    res.json(RegistrationTokenSecurity.filterRegistrationTokenResponse(registrationToken, req.user));
+    res.json(Object.assign({ id: registrationToken.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -123,8 +126,11 @@ export default class RegistrationTokenService {
     registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
+    registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
     // Ok
-    res.json(RegistrationTokenSecurity.filterRegistrationTokenResponse(registrationToken, req.user));
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -207,10 +213,15 @@ export default class RegistrationTokenService {
       });
     }
     const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokensRequest(req.query);
+    // Check User
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
+    }
     // Get the tokens
     const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(req.user.tenantID,
       {
-        siteAreaID: filteredRequest.siteAreaID,
+        siteAreaID: filteredRequest.SiteAreaID,
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, null),
       },
       {
@@ -218,17 +229,22 @@ export default class RegistrationTokenService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
-      }
+      },
+      [
+        'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+        'siteAreaID', 'siteArea.name',
+        ...userProject
+      ]
     );
     // Build OCPP URLs
-    registrationTokens.result.forEach((registrationToken) => {
+    for (const registrationToken of registrationTokens.result) {
       registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
       registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
       registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
-      return registrationToken;
-    });
-    // Filter
-    RegistrationTokenSecurity.filterRegistrationTokensResponse(registrationTokens, req.user);
+      registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+      registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+      registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
+    }
     // Ok
     res.json(registrationTokens);
     next();

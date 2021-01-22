@@ -6,7 +6,6 @@ import ChargingStationContext from './context/ChargingStationContext';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
 import { TransactionInErrorType } from '../../src/types/InError';
-import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
@@ -104,7 +103,7 @@ export default class TransactionCommonTests {
       expect(transactionResponse.data).not.null;
       expect(transactionResponse.data.tagID).eq(tagId);
     } else {
-      expect(transactionResponse.status).eq(560);
+      expect(transactionResponse.status).eq(401);
       expect(transactionResponse.data).not.null;
       expect(transactionResponse.data.message).eq(`Role Basic is not authorized to perform Read on Transaction '${response.transactionId}'`);
     }
@@ -1031,17 +1030,17 @@ export default class TransactionCommonTests {
 
   public async testDeleteNotExistingTransaction() {
     const response = await this.transactionUserService.transactionApi.delete(faker.random.number(100000));
-    expect(response.status).to.equal(560);
+    expect(response.status).to.equal(401);
   }
 
   public async testDeleteTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.delete('&é"\'(§è!çà)');
-    expect(response.status).to.equal(560);
+    expect(response.status).to.equal(401);
   }
 
   public async testDeleteTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.delete(null);
-    expect(response.status).to.equal(560);
+    expect(response.status).to.equal(401);
   }
 
   public async testDeleteStartedTransaction(allowed = true) {
@@ -1057,7 +1056,7 @@ export default class TransactionCommonTests {
     if (allowed) {
       expect(transactionDeleted.status).to.equal(200);
     } else {
-      expect(transactionDeleted.status).to.equal(560);
+      expect(transactionDeleted.status).to.equal(401);
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
@@ -1084,7 +1083,7 @@ export default class TransactionCommonTests {
     if (allowed) {
       expect(transactionDeleted.status).to.equal(200);
     } else {
-      expect(transactionDeleted.status).to.equal(560);
+      expect(transactionDeleted.status).to.equal(401);
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
@@ -1120,7 +1119,7 @@ export default class TransactionCommonTests {
       expect(transactionsDeleted.data.inSuccess).to.equal(1);
       expect(transactionsDeleted.data.inError).to.equal(1);
     } else {
-      expect(transactionsDeleted.status).to.equal(560);
+      expect(transactionsDeleted.status).to.equal(401);
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {

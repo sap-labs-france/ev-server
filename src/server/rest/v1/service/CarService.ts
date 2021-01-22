@@ -26,37 +26,35 @@ export default class CarService {
   public static async handleGetCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
     }
     // Check auth
     if (!Authorizations.canListCarCatalogs(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.CAR_CATALOGS,
-        module: MODULE_NAME,
-        method: 'handleGetCarCatalogs'
+        action: Action.LIST, entity: Entity.CAR_CATALOGS,
+        module: MODULE_NAME, method: 'handleGetCarCatalogs'
       });
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
-    const projectFields = ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
-      'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal',
-      'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
-      'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'];
-    // Get the cars
+    // Get the Cars
     const carCatalogs = await CarStorage.getCarCatalogs(
       {
         search: filteredRequest.Search,
-        carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null
+        carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
+        withImage: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      projectFields
+      [
+        'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
+        'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
+        'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'
+      ]
     );
-    // Filter
-    CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
-    // Return
     res.json(carCatalogs);
     next();
   }
@@ -64,38 +62,34 @@ export default class CarService {
   public static async handleGetCarCatalog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
     }
     // Check auth
     if (!Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME,
-        method: 'handleGetCarCatalog'
+        action: Action.LIST, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'handleGetCarCatalog'
       });
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalog', req.user);
-    let carCatalog;
-    if (!Authorizations.isSuperAdmin(req.user)) {
-      // Get the car
-      carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID,
-        ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
-          'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
-          'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
-          'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower',
-          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp']);
-    } else {
-      // Get the car
-      carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID);
-    }
+    // Get the car
+    const carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID,
+      { withImage: true },
+      [
+        'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
+        'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
+        'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
+        'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
+        'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
+        'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
+      ]);
     // Return
-    res.json(CarSecurity.filterCarCatalogResponse(carCatalog, req.user));
+    res.json(carCatalog);
     next();
   }
 
@@ -104,36 +98,39 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImage', req.user);
     // Get the car Image
-    const carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID, ['image']);
+    const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
     // Return
-    let header = 'image';
-    let encoding: BufferEncoding = 'base64';
-    // Remove encoding header
-    if (carCatalog.image.startsWith('data:image/')) {
-      header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
-      encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
-      carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
+    if (carCatalog?.image) {
+      // Remove encoding header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (carCatalog?.image.startsWith('data:image/')) {
+        header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
+        encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
+        carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
+      }
+      // Revert to binary
+      res.setHeader('content-type', header);
+      res.send(Buffer.from(carCatalog.image, encoding));
+    } else {
+      res.send(null);
     }
-    // Revert to binary
-    res.setHeader('content-type', header);
-    res.send(Buffer.from(carCatalog.image, encoding));
     next();
   }
 
   public static async handleGetCarCatalogImages(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
     }
     // Check auth
     if (!Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME,
-        method: 'handleGetCarCatalogImages'
+        action: Action.READ, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'handleGetCarCatalogImages'
       });
     }
     // Filter
@@ -195,9 +192,7 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarMakersRequest(req.query);
     // Get car makers
-    const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search });
-    // Filter
-    CarSecurity.filterCarMakersResponse(carMakers, req.user);
+    const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search }, [ 'carMaker' ]);
     res.json(carMakers);
     next();
   }
@@ -210,7 +205,7 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarCreateRequest(req.body);
     // Check
-    Utils.checkIfCarValid(filteredRequest, req);
+    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canCreateCar(req.user)) {
       throw new AppAuthError({
@@ -315,7 +310,7 @@ export default class CarService {
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.id, 'CarSecurity', 'filterCarUpdateRequest', req.user);
     // Check
-    Utils.checkIfCarValid(filteredRequest, req);
+    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateCar(req.user)) {
       throw new AppAuthError({
@@ -410,6 +405,12 @@ export default class CarService {
       });
     }
     const filteredRequest = CarSecurity.filterCarsRequest(req.query);
+    // Check User
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+        'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default' ];
+    }
     // Get cars
     const cars = await CarStorage.getCars(req.user.tenantID,
       {
@@ -418,10 +419,12 @@ export default class CarService {
         carMakers: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
         withUsers: filteredRequest.WithUsers
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
-    // Filter
-    CarSecurity.filterCarsResponse(cars, req.user);
-    // Return
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      [
+        'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+        'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
+        ...userProject
+      ]);
     res.json(cars);
     next();
   }
@@ -441,13 +444,28 @@ export default class CarService {
     }
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
+    // Check User
+    let userProject: string[] = [];
+    if (Authorizations.canReadUser(req.user, req.user.id)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
+      ];
+    }
     // Get the car
     const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID, {
       withUsers: true,
       userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
-    });
+    },
+    [
+      'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+      'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
+      'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
+      'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
+      'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase',
+      ...userProject
+    ]);
     // Return
-    res.json(CarSecurity.filterCarResponse(car, req.user));
+    res.json(car);
     next();
   }
 
@@ -473,9 +491,8 @@ export default class CarService {
         search: filteredRequest.Search,
         carIDs: [filteredRequest.CarID]
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
-    // Filter
-    CarSecurity.filterUsersCarsResponse(usersCars, req.user);
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      [ 'id', 'carID', 'default', 'owner', 'user.id', 'user.name', 'user.firstName', 'user.email' ]);
     // Return
     res.json(usersCars);
     next();

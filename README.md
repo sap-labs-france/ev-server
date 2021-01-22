@@ -179,9 +179,9 @@ This application server will listen to the charging stations and store the data 
 
 It can also communicate with the charging stations (reboot, stop a transaction...)
 
-The protocol used by this application server is OCPP (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6 (SOAP).
+The protocol used by this application server is OCPP (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6 (OCPP-S or OCPP-J).
 
-Other protocols, like the ISO 15118, or OCPP 2.0 will also be supported in the future.
+Other protocols, like the ISO 15118, or OCPP version 2.0 will also be supported in the future.
 
 #### Configuration
 

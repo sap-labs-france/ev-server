@@ -15,7 +15,7 @@ export default class SwaggerRouter {
   }
 
   public buildRoutes(): express.Router {
-    const oasDocument = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/docs/open-api-standard.json`, 'utf8'));
+    const oasDocument = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/docs/e-mobility-oas.json`, 'utf8'));
     this.router.use('/', swaggerUi.serve);
     this.router.get('/', swaggerUi.setup(oasDocument, options));
     return this.router;

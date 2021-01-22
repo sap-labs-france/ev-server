@@ -16,7 +16,7 @@ export default class ConsumptionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveConsumption');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Set the ID
     if (!consumptionToSave.id) {
       const timestamp = Utils.convertToDate(consumptionToSave.endedAt);
@@ -90,7 +90,7 @@ export default class ConsumptionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteConsumptions');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // DeleFte
     await global.database.getCollection<any>(tenantID, 'consumptions')
       .deleteMany({ 'transactionId': { $in: transactionIDs } });
@@ -102,7 +102,7 @@ export default class ConsumptionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetConsumptions');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Create filters
     const filters: FilterParams = {};
     // ID
@@ -177,11 +177,13 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getSiteAreaConsumptions(tenantID: string, params: { siteAreaID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
+  static async getSiteAreaConsumptions(tenantID: string,
+    params: { siteAreaID: string; startDate: Date; endDate: Date },
+    projectFields?: string[]): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaConsumptions');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Create filters
     const filters: FilterParams = {};
     // ID
@@ -248,7 +250,7 @@ export default class ConsumptionStorage {
       }
     });
     // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
+    DatabaseUtils.projectFields(aggregation, projectFields, ['_id']);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
       .aggregate(...aggregation, { allowDiskUse: true })
@@ -263,7 +265,7 @@ export default class ConsumptionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionConsumptions');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -319,7 +321,7 @@ export default class ConsumptionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastTransactionConsumption');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -358,7 +360,7 @@ export default class ConsumptionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOptimizedTransactionConsumptions');
     // Check
-    await Utils.checkTenant(tenantID);
+    await DatabaseUtils.checkTenant(tenantID);
     // Create Aggregation
     const aggregation = [];
     // Filters

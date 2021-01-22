@@ -159,6 +159,7 @@ export default class EMailNotificationTask implements NotificationTask {
       if (err) {
         // If authentication error in the primary email server then notify admins using the backup server
         if (!retry && this.serverBackup) {
+          // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
           NotificationHandler.sendSmtpAuthError(
             tenant.id,
             {

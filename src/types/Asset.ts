@@ -1,4 +1,5 @@
-import { AbstractCurrentConsumption } from './Consumption';
+import Consumption, { AbstractCurrentConsumption } from './Consumption';
+
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
 
@@ -7,22 +8,22 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   name: string;
   siteAreaID: string;
   siteArea?: SiteArea;
-  assetType: string;
+  assetType: AssetType;
+  fluctuation: number;
+  fallbackValue: number;
   coordinates: number[];
   issuer: boolean;
   image?: string;
   dynamicAsset: boolean;
   connectionID?: string;
   meterID?: string;
-  values: AssetConsumption[],
+  values: Consumption[],
 }
 
-export interface AssetConsumption {
-  date: Date;
-  instantWatts: number;
-  instantAmps: number;
-  limitWatts: number;
-  limitAmps: number;
+export enum AssetType {
+  CO = 'CO',
+  PR = 'PR',
+  CO_PR = 'CO-PR',
 }
 
 export enum SchneiderProperty {

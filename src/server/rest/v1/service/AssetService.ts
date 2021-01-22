@@ -16,7 +16,6 @@ import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import TenantComponents from '../../../../types/TenantComponents';
-import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
 
@@ -43,7 +42,9 @@ export default class AssetService {
       });
     }
     // Get it
-    const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.AssetID);
+    const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.AssetID, {},
+      [ 'id', 'name' ]
+    );
     UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.AssetID}' does not exist`,
       MODULE_NAME, 'handleGetAssetConsumption', req.user);
     // Check dates
@@ -74,9 +75,11 @@ export default class AssetService {
       assetID: filteredRequest.AssetID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
-    });
+    }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt' ]);
+    // Assign
+    asset.values = consumptions;
     // Return
-    res.json(AssetSecurity.filterAssetConsumptionResponse(asset, consumptions, req.user));
+    res.json(asset);
     next();
   }
 
@@ -225,14 +228,8 @@ export default class AssetService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
+      [ 'id', 'name', 'errorCodeDetails', 'errorCode' ]
     );
-    // Filter
-    AssetSecurity.filterAssetsResponse(assets, req.user);
-    // Limit to 100
-    if (assets.result.length > 100) {
-      assets.result.length = 100;
-    }
-    // Return
     res.json(assets);
     next();
   }
@@ -300,39 +297,31 @@ export default class AssetService {
       { withSiteArea: filteredRequest.WithSiteArea });
     UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetAsset', req.user);
-    // Return
-    res.json(
-      // Filter
-      AssetSecurity.filterAssetResponse(asset, req.user)
-    );
+    res.json(asset);
     next();
   }
 
   public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
-      Action.READ, Entity.ASSET, MODULE_NAME, 'handleGetAssetImage');
     // Filter
-    const assetID = AssetSecurity.filterAssetRequestByID(req.query);
-    // Charge Box is mandatory
-    UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleGetAssetImage', req.user);
-    // Check auth
-    if (!Authorizations.canReadAsset(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.READ, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleGetAssetImage',
-        value: assetID
-      });
-    }
+    const filteredRequest = AssetSecurity.filterAssetImageRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get it
-    const assetImage = await AssetStorage.getAssetImage(req.user.tenantID, assetID);
-    // Check
-    UtilsService.assertObjectExists(action, assetImage, `Asset with ID '${assetID}' does not exist`,
-      MODULE_NAME, 'handleGetAssetImage', req.user);
+    const assetImage = await AssetStorage.getAssetImage(filteredRequest.TenantID, filteredRequest.ID);
     // Return
-    res.json({ id: assetImage.id, image: assetImage.image });
+    if (assetImage?.image) {
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      // Remove encoding header
+      if (assetImage.image.startsWith('data:image/')) {
+        header = assetImage.image.substring(5, assetImage.image.indexOf(';'));
+        encoding = assetImage.image.substring(assetImage.image.indexOf(';') + 1, assetImage.image.indexOf(',')) as BufferEncoding;
+        assetImage.image = assetImage.image.substring(assetImage.image.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(assetImage.image ? Buffer.from(assetImage.image, encoding) : null);
+    } else {
+      res.send(null);
+    }
     next();
   }
 
@@ -361,11 +350,11 @@ export default class AssetService {
         dynamicOnly: filteredRequest.DynamicOnly,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates', 'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts']
+      [
+        'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates',
+        'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts'
+      ]
     );
-    // Filter
-    AssetSecurity.filterAssetsResponse(assets, req.user);
-    // Return
     res.json(assets);
     next();
   }
@@ -386,7 +375,7 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetSecurity.filterAssetCreateRequest(req.body);
     // Check Asset
-    Utils.checkIfAssetValid(filteredRequest, req);
+    UtilsService.checkIfAssetValid(filteredRequest, req);
     // Check Site Area
     if (filteredRequest.siteAreaID) {
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
@@ -398,6 +387,8 @@ export default class AssetService {
       name: filteredRequest.name,
       siteAreaID: filteredRequest.siteAreaID,
       assetType: filteredRequest.assetType,
+      fluctuation: filteredRequest.fluctuation,
+      fallbackValue: filteredRequest.fallbackValue,
       coordinates: filteredRequest.coordinates,
       image: filteredRequest.image,
       dynamicAsset: filteredRequest.dynamicAsset,
@@ -450,11 +441,13 @@ export default class AssetService {
     UtilsService.assertObjectExists(action, asset, `Site Area with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateAsset', req.user);
     // Check Mandatory fields
-    Utils.checkIfAssetValid(filteredRequest, req);
+    UtilsService.checkIfAssetValid(filteredRequest, req);
     // Update
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
     asset.assetType = filteredRequest.assetType;
+    asset.fluctuation = filteredRequest.fluctuation;
+    asset.fallbackValue = filteredRequest.fallbackValue;
     asset.coordinates = filteredRequest.coordinates;
     asset.image = filteredRequest.image;
     asset.dynamicAsset = filteredRequest.dynamicAsset;

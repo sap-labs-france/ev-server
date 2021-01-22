@@ -86,7 +86,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
       }, { concurrency: 5 }).then(() => {
         const totalDurationSecs = Math.trunc((new Date().getTime() - timeTotalFrom) / 1000);
         // Log in the default tenant
-        Utils.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
+        Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
           MODULE_NAME, 'migrateTenant', consumptionsUpdated,
           `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
           `{{inError}} transaction(s) failed to be processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,

@@ -1,11 +1,13 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPIdTagInfo, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
+import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
@@ -19,7 +21,6 @@ import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import { OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
@@ -51,6 +52,15 @@ export default class OCPPService {
   }
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
+    let heartbeatIntervalSecs: number;
+    switch (headers.ocppProtocol) {
+      case OCPPProtocol.SOAP:
+        heartbeatIntervalSecs = this.chargingStationConfig.heartbeatIntervalOCPPSSecs;
+        break;
+      case OCPPProtocol.JSON:
+        heartbeatIntervalSecs = this.chargingStationConfig.heartbeatIntervalOCPPJSecs;
+        break;
+    }
     try {
       // Check props
       OCPPValidation.getInstance().validateBootNotification(bootNotification);
@@ -72,9 +82,9 @@ export default class OCPPService {
       bootNotification.currentIPAddress = headers.currentIPAddress;
       bootNotification.ocppProtocol = headers.ocppProtocol;
       bootNotification.ocppVersion = headers.ocppVersion;
-      // Set the default Heart Beat
+      // Set the default
       bootNotification.lastReboot = new Date();
-      bootNotification.lastHeartBeat = bootNotification.lastReboot;
+      bootNotification.lastSeen = bootNotification.lastReboot;
       bootNotification.timestamp = bootNotification.lastReboot;
       // Get the charging station
       let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
@@ -119,7 +129,7 @@ export default class OCPPService {
           if (siteArea) {
             chargingStation.siteAreaID = token.siteAreaID;
             // Set the same coordinates
-            if (siteArea.address && siteArea.address.coordinates && siteArea.address.coordinates.length === 2) {
+            if (siteArea?.address?.coordinates?.length === 2) {
               chargingStation.coordinates = siteArea.address.coordinates;
             }
           }
@@ -136,7 +146,7 @@ export default class OCPPService {
             source: chargingStation.id,
             action: ServerAction.BOOT_NOTIFICATION,
             module: MODULE_NAME, method: 'handleBootNotification',
-            message: 'Boot Notif Rejected: Attribute mismatch: ' +
+            message: 'Boot Notification Rejected: Attribute mismatch: ' +
               (bootNotification.chargePointVendor !== chargingStation.chargePointVendor ?
                 `Got chargePointVendor='${bootNotification.chargePointVendor}' but expected '${chargingStation.chargePointVendor}'! ` : '') +
               (bootNotification.chargePointModel !== chargingStation.chargePointModel ?
@@ -154,7 +164,7 @@ export default class OCPPService {
       }
       chargingStation.ocppVersion = headers.ocppVersion;
       chargingStation.ocppProtocol = headers.ocppProtocol;
-      chargingStation.lastHeartBeat = bootNotification.lastHeartBeat;
+      chargingStation.lastSeen = bootNotification.lastSeen;
       chargingStation.currentIPAddress = bootNotification.currentIPAddress;
       // Set the Charging Station URL?
       if (headers.chargingStationURL) {
@@ -166,7 +176,7 @@ export default class OCPPService {
       }
       const currentTenant = await TenantStorage.getTenant(headers.tenantID);
       // Enrich Charging Station from templates
-      const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
+      const chargingStationTemplateUpdateResult = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Save Boot Notification
@@ -179,7 +189,7 @@ export default class OCPPService {
         {
           chargeBoxID: chargingStation.id,
           evseDashboardURL: Utils.buildEvseURL(currentTenant.subdomain),
-          evseDashboardChargingStationURL: await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
+          evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(currentTenant.subdomain, chargingStation, '#all')
         }
       ).catch(
         () => { }
@@ -194,9 +204,39 @@ export default class OCPPService {
       });
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
+        let result: OCPPChangeConfigurationCommandResult;
+        // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
+        // Set OCPP 'HeartBeatInterval'
+        let heartBeatIntervalSettingFailure = false;
+        result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
+          key: 'HeartBeatInterval',
+          value: heartbeatIntervalSecs.toString()
+        }, false);
+        if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+          heartBeatIntervalSettingFailure = true;
+        }
+        // Set OCPP 'HeartbeatInterval'
+        result = await OCPPUtils.requestChangeChargingStationOcppParameter(headers.tenantID, chargingStation, {
+          key: 'HeartbeatInterval',
+          value: heartbeatIntervalSecs.toString()
+        }, false);
+        let heartbeatIntervalSettingFailure = false;
+        if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+          heartbeatIntervalSettingFailure = true;
+        }
+        // Check
+        if (heartBeatIntervalSettingFailure && heartbeatIntervalSettingFailure) {
+          Logging.logError({
+            tenantID: headers.tenantID,
+            action: ServerAction.BOOT_NOTIFICATION,
+            source: chargingStation.id,
+            module: MODULE_NAME, method: 'handleBootNotification',
+            message: `Cannot set heartbeat interval OCPP Parameters on '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
+          });
+        }
         // Get config and save it
-        const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
-          headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
+        result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(headers.tenantID, chargingStation,
+          chargingStationTemplateUpdateResult.ocppStandardUpdated || chargingStationTemplateUpdateResult.ocppVendorUpdated);
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
           Logging.logError({
             tenantID: headers.tenantID,
@@ -211,7 +251,7 @@ export default class OCPPService {
       return {
         currentTime: bootNotification.timestamp.toISOString(),
         status: RegistrationStatus.ACCEPTED,
-        heartbeatInterval: this.chargingStationConfig.heartbeatIntervalSecs
+        interval: heartbeatIntervalSecs
       };
     } catch (error) {
       if (error.params) {
@@ -222,7 +262,7 @@ export default class OCPPService {
       return {
         status: RegistrationStatus.REJECTED,
         currentTime: bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
-        heartbeatInterval: this.chargingStationConfig.heartbeatIntervalSecs
+        interval: Constants.BOOT_NOTIFICATION_WAIT_TIME
       };
     }
   }
@@ -235,17 +275,17 @@ export default class OCPPService {
       chargingStation.currentIPAddress = headers.currentIPAddress;
       // Check props
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
-      // Set Heartbeat
-      chargingStation.lastHeartBeat = new Date();
+      // Set lastSeen
+      chargingStation.lastSeen = new Date();
       // Set Heart Beat Object
       heartbeat = {
         chargeBoxID: chargingStation.id,
         timestamp: new Date(),
         timezone: Utils.getTimezone(chargingStation.coordinates)
       };
-      // Save Charging Station
-      await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation.id, {
-        lastHeartBeat: chargingStation.lastHeartBeat,
+      // Save Charging Station lastSeen date
+      await ChargingStationStorage.saveChargingStationLastSeen(headers.tenantID, chargingStation.id, {
+        lastSeen: chargingStation.lastSeen,
         currentIPAddress: chargingStation.currentIPAddress,
       });
       // Save Heart Beat
@@ -260,7 +300,7 @@ export default class OCPPService {
       });
       // Return
       return {
-        'currentTime': chargingStation.lastHeartBeat.toISOString()
+        currentTime: chargingStation.lastSeen.toISOString()
       };
     } catch (error) {
       if (error.params) {
@@ -270,7 +310,7 @@ export default class OCPPService {
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.HEARTBEAT, error);
       // Send the response
       return {
-        'currentTime': new Date().toISOString()
+        currentTime: new Date().toISOString()
       };
     }
   }
@@ -311,7 +351,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleMeterValues(headers: OCPPHeader, meterValues: OCPPMeterValuesExtended): Promise<OCPPMeterValuesResponse> {
+  public async handleMeterValues(headers: OCPPHeader, meterValues: OCPPMeterValuesRequestExtended): Promise<OCPPMeterValuesResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -381,9 +421,8 @@ export default class OCPPService {
           await this.checkNotificationEndOfCharge(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
-          // First Meter Value -> Trigger Smart Charging to adjust the single phase Car
-          if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed &&
-            !Utils.isTransactionInProgressOnThreePhases(chargingStation, transaction)) {
+          // First Meter Value -> Trigger Smart Charging to adjust the limit
+          if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
             // Yes: Trigger Smart Charging
             await this.triggerSmartCharging(headers.tenantID, chargingStation);
           }
@@ -419,7 +458,7 @@ export default class OCPPService {
     return {};
   }
 
-  public async handleAuthorize(headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended): Promise<OCPPIdTagInfo> {
+  public async handleAuthorize(headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended): Promise<OCPPAuthorizeResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -433,44 +472,9 @@ export default class OCPPService {
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
         authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
       // OCPI User
-      if (user && !user.issuer) {
-        const tenant: Tenant = await TenantStorage.getTenant(headers.tenantID);
-        if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Unable to authorize user '${user.id}' not issued locally`
-          });
-        }
-        // Get tag
-        const tag = await UserStorage.getTag(headers.tenantID, authorize.idTag);
-        if (!tag) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Tag ID '${authorize.idTag}' does not exists`
-          });
-        }
-        if (!tag.ocpiToken) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: `Tag ID '${authorize.idTag}' cannot be authorized thought OCPI protocol due to missing OCPI Token`
-          });
-        }
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-        if (!ocpiClient) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'handleAuthorize',
-            message: 'OCPI component requires at least one CPO endpoint to authorize users'
-          });
-        }
-        authorize.authorizationId = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
+      if (user && !user.issuer && user.authorizationID) {
+        // Keep the Auth ID
+        authorize.authorizationId = user.authorizationID;
       }
       // Set
       authorize.user = user;
@@ -486,7 +490,9 @@ export default class OCPPService {
       });
       // Return
       return {
-        'status': OCPPAuthorizationStatus.ACCEPTED
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.ACCEPTED
+        }
       };
     } catch (error) {
       if (error.params) {
@@ -495,12 +501,15 @@ export default class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
       return {
-        'status': OCPPAuthorizationStatus.INVALID
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.INVALID
+        }
       };
     }
   }
 
-  public async handleDiagnosticsStatusNotification(headers: OCPPHeader, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+  public async handleDiagnosticsStatusNotification(headers: OCPPHeader,
+    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -624,6 +633,24 @@ export default class OCPPService {
         stateOfCharge: 0,
         user
       };
+      // Car handling
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR)) {
+        // Check default car
+        if (user.lastSelectedCarID) {
+          transaction.carID = user.lastSelectedCarID;
+        } else {
+          // Get default car if any
+          const defaultCar = await CarStorage.getDefaultUserCar(tenant.id, user.id, {}, ['id']);
+          if (defaultCar) {
+            transaction.carID = defaultCar.id;
+          }
+        }
+        // Set Car Catalog ID
+        if (transaction.carID) {
+          const car = await CarStorage.getCar(headers.tenantID, transaction.carID, {}, ['id', 'carCatalogID']);
+          transaction.carCatalogID = car?.carCatalogID;
+        }
+      }
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await OCPPUtils.createConsumptionFromMeterValue(
         headers.tenantID, chargingStation, transaction,
@@ -668,8 +695,8 @@ export default class OCPPService {
         });
       }
       // Set the active transaction on the connector
-      // Update Heartbeat
-      chargingStation.lastHeartBeat = new Date();
+      // Update lastSeen
+      chargingStation.lastSeen = new Date();
       // Save
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Notify
@@ -694,10 +721,16 @@ export default class OCPPService {
           message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been started`
         });
       }
+      // Clear last user's car selection
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user.lastSelectedCarID) {
+        await UserStorage.saveUserLastSelectedCarID(tenant.id, user.id, null);
+      }
       // Return
       return {
-        'transactionId': transaction.id,
-        'status': OCPPAuthorizationStatus.ACCEPTED
+        transactionId: transaction.id,
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.ACCEPTED
+        }
       };
     } catch (error) {
       if (error.params) {
@@ -706,8 +739,10 @@ export default class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.START_TRANSACTION, error);
       return {
-        'transactionId': 0,
-        'status': OCPPAuthorizationStatus.INVALID
+        transactionId: 0,
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.INVALID
+        }
       };
     }
   }
@@ -733,7 +768,7 @@ export default class OCPPService {
       });
       // Return
       return {
-        'status': OCPPDataTransferStatus.ACCEPTED
+        status: OCPPDataTransferStatus.ACCEPTED
       };
     } catch (error) {
       if (error.params) {
@@ -742,12 +777,12 @@ export default class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error);
       return {
-        'status': OCPPDataTransferStatus.REJECTED
+        status: OCPPDataTransferStatus.REJECTED
       };
     }
   }
 
-  public async handleStopTransaction(headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended, isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPIdTagInfo> {
+  public async handleStopTransaction(headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended, isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -765,7 +800,9 @@ export default class OCPPService {
         });
         // Ignore it! (DELTA bug)
         return {
-          'status': OCPPAuthorizationStatus.ACCEPTED
+          idTagInfo: {
+            status: OCPPAuthorizationStatus.ACCEPTED
+          }
         };
       }
       // Set header
@@ -807,7 +844,7 @@ export default class OCPPService {
       }
       // Free the connector
       OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
-      chargingStation.lastHeartBeat = new Date();
+      chargingStation.lastSeen = new Date();
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Soft Stop?
@@ -881,7 +918,9 @@ export default class OCPPService {
       });
       // Success
       return {
-        'status': OCPPAuthorizationStatus.ACCEPTED
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.ACCEPTED
+        }
       };
     } catch (error) {
       if (error.params) {
@@ -890,7 +929,7 @@ export default class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.STOP_TRANSACTION, error);
       // Error
-      return { 'status': OCPPAuthorizationStatus.INVALID };
+      return { idTagInfo: { status: OCPPAuthorizationStatus.INVALID } };
     }
   }
 
@@ -976,8 +1015,8 @@ export default class OCPPService {
     foundConnector.statusLastChangedOn = new Date(statusNotification.timestamp);
     // Save Status Notification
     await OCPPStorage.saveStatusNotification(tenantID, statusNotification);
-    // Update Heartbeat
-    chargingStation.lastHeartBeat = new Date();
+    // Update lastSeen
+    chargingStation.lastSeen = new Date();
     // Log
     Logging.logInfo({
       tenantID: tenantID,
@@ -1068,7 +1107,8 @@ export default class OCPPService {
     }
   }
 
-  private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+  private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation,
+    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check the status
     if (statusNotification.connectorId > 0 &&
       connector.currentTransactionID > 0 &&
@@ -1114,6 +1154,7 @@ export default class OCPPService {
         message: `Connector ID '${statusNotification.connectorId}' > Error occurred : '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}'`
       });
       // Send Notification (Async)
+      const tenant = await TenantStorage.getTenant(tenantID);
       NotificationHandler.sendChargingStationStatusError(
         tenantID,
         Utils.generateUUID(),
@@ -1122,8 +1163,8 @@ export default class OCPPService {
           'chargeBoxID': chargingStation.id,
           'connectorId': Utils.getConnectorLetterFromConnectorID(statusNotification.connectorId),
           'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${(statusNotification.info ? statusNotification.info : 'N/A')}`,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
-          'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(tenantID, chargingStation, '#inerror')
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+          'evseDashboardChargingStationURL': Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#inerror')
         }
       ).catch(() => { });
     }
@@ -1310,8 +1351,8 @@ export default class OCPPService {
       // Set Transaction ID
       foundConnector.currentTransactionID = transaction.id;
       foundConnector.userID = transaction.userID;
-      // Update Heartbeat
-      chargingStation.lastHeartBeat = new Date();
+      // Update lastSeen
+      chargingStation.lastSeen = new Date();
       // Log
       Logging.logInfo({
         tenantID: tenantID,
@@ -1319,7 +1360,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'updateChargingStationWithTransaction',
         action: ServerAction.CONSUMPTION,
         user: transaction.userID,
-        message: `Connector ID '${foundConnector.connectorId}' > Transaction ID '${foundConnector.currentTransactionID}' > Instant: ${Utils.roundTo(foundConnector.currentInstantWatts / 1000, 2)} kW, Total: ${Utils.roundTo(foundConnector.currentTotalConsumptionWh / 1000, 2)} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge.toString() + ' %' : ''}`
+        message: `Connector ID '${foundConnector.connectorId}' > Transaction ID '${foundConnector.currentTransactionID}' > Instant: ${Utils.truncTo(foundConnector.currentInstantWatts / 1000, 2)} kW, Total: ${Utils.truncTo(foundConnector.currentTotalConsumptionWh / 1000, 2)} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge.toString() + ' %' : ''}`
       });
       // Cleanup connector transaction data
     } else if (foundConnector) {
@@ -1331,6 +1372,7 @@ export default class OCPPService {
     if (transaction.user) {
       // Get the i18n lib
       const i18nManager = new I18nManager(transaction.user.locale);
+      const tenant = await TenantStorage.getTenant(tenantID);
       // Notify (Async)
       NotificationHandler.sendEndOfCharge(
         tenantID,
@@ -1344,8 +1386,8 @@ export default class OCPPService {
           'totalConsumption': i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
           'stateOfCharge': transaction.currentStateOfCharge,
           'totalDuration': this.transactionDurationToString(transaction),
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch(() => { });
     }
@@ -1355,6 +1397,7 @@ export default class OCPPService {
     if (transaction.user) {
       // Get the i18n lib
       const i18nManager = new I18nManager(transaction.user.locale);
+      const tenant = await TenantStorage.getTenant(tenantID);
       // Notification Before End Of Charge (Async)
       NotificationHandler.sendOptimalChargeReached(
         tenantID,
@@ -1368,8 +1411,8 @@ export default class OCPPService {
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'totalConsumption': i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
           'stateOfCharge': transaction.currentStateOfCharge,
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch(() => { });
     }
@@ -1444,13 +1487,13 @@ export default class OCPPService {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
       meterValues.values = meterValues.values.filter((meterValue) => {
         // Remove Sample Clock
-        if (meterValue.attribute && meterValue.attribute.context === 'Sample.Clock') {
+        if (meterValue.attribute && meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK) {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'filterMeterValuesOnSpecificChargingStations',
             action: ServerAction.METER_VALUES,
-            message: 'Removed Meter Value with attribute context \'Sample.Clock\'',
+            message: `Removed Meter Value with attribute context '${OCPPReadingContext.SAMPLE_CLOCK}'`,
             detailedMessages: { meterValue }
           });
           return false;
@@ -1460,7 +1503,7 @@ export default class OCPPService {
     }
   }
 
-  private normalizeMeterValues(chargingStation: ChargingStation, meterValues: OCPPMeterValuesExtended): OCPPNormalizedMeterValues {
+  private normalizeMeterValues(chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): OCPPNormalizedMeterValues {
     // Create the model
     const normalizedMeterValues: OCPPNormalizedMeterValues = {} as OCPPNormalizedMeterValues;
     normalizedMeterValues.values = [];
@@ -1490,7 +1533,7 @@ export default class OCPPService {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
             // Add Attributes
-            const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
+            const normalizedLocalMeterValue: OCPPNormalizedMeterValue = Utils.cloneObject(normalizedMeterValue);
             normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(sampledValue);
             // Data is to be interpreted as integer/decimal numeric data
             if (normalizedLocalMeterValue.attribute.format === OCPPValueFormat.RAW) {
@@ -1504,7 +1547,7 @@ export default class OCPPService {
           }
         } else {
           // Add Attributes
-          const normalizedLocalMeterValue = Utils.cloneObject(normalizedMeterValue);
+          const normalizedLocalMeterValue: OCPPNormalizedMeterValue = Utils.cloneObject(normalizedMeterValue);
           normalizedLocalMeterValue.attribute = this.buildMeterValueAttributes(value.sampledValue);
           // Add
           normalizedMeterValues.values.push(normalizedLocalMeterValue);
@@ -1575,7 +1618,7 @@ export default class OCPPService {
             'timestamp': Utils.convertToDate(activeTransaction.lastConsumption ? activeTransaction.lastConsumption.timestamp : activeTransaction.timestamp).toISOString(),
           }, false, true);
           // Check
-          if (result.status === OCPPAuthorizationStatus.INVALID) {
+          if (result.idTagInfo.status === OCPPAuthorizationStatus.INVALID) {
             // No consumption: delete
             Logging.logError({
               tenantID: tenantID,
@@ -1606,6 +1649,7 @@ export default class OCPPService {
   private async notifyStartTransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     if (user) {
       // Notify (Async)
+      const tenant = await TenantStorage.getTenant(tenantID);
       NotificationHandler.sendSessionStarted(
         tenantID,
         transaction.id.toString(),
@@ -1616,9 +1660,8 @@ export default class OCPPService {
           'transactionId': transaction.id,
           'chargeBoxID': chargingStation.id,
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
-          'evseDashboardChargingStationURL':
-            await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress')
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress')
         }
       ).catch(() => { });
     }
@@ -1650,6 +1693,7 @@ export default class OCPPService {
     if (user) {
       // Get the i18n lib
       const i18nManager = new I18nManager(user.locale);
+      const tenant = await TenantStorage.getTenant(tenantID);
       // Send Notification (Async)
       NotificationHandler.sendEndOfSession(
         tenantID,
@@ -1666,8 +1710,8 @@ export default class OCPPService {
           'totalDuration': this.buildTransactionDuration(transaction),
           'totalInactivity': this.transactionInactivityToString(transaction, user),
           'stateOfCharge': transaction.stop.stateOfCharge,
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch(() => { });
       if (transaction.stop.signedData !== '') {
@@ -1699,7 +1743,7 @@ export default class OCPPService {
             'relativeCost': (transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000)),
             'startSignedData': transaction.signedData,
             'endSignedData': transaction.stop.signedData,
-            'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
+            'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
           }
         ).catch(() => { });
       }

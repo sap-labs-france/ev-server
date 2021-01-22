@@ -17,9 +17,9 @@ export interface OCPPBootNotificationRequestExtended extends OCPPBootNotificatio
   id: string;
   chargeBoxID: string;
   currentIPAddress: string | string[];
-  ocppProtocol: string;
-  ocppVersion: string;
-  lastHeartBeat: Date;
+  ocppProtocol: OCPPProtocol;
+  ocppVersion: OCPPVersion;
+  lastSeen: Date;
   timestamp: Date;
   lastReboot: Date;
 }
@@ -27,7 +27,7 @@ export interface OCPPBootNotificationRequestExtended extends OCPPBootNotificatio
 export interface OCPPBootNotificationResponse {
   status: RegistrationStatus;
   currentTime: string;
-  heartbeatInterval: number;
+  interval: number;
 }
 
 export enum OCPPProtocol {
@@ -42,6 +42,13 @@ export enum OCPPVersion {
   VERSION_20 = '2.0',
 }
 
+export const OCPPVersionURLPath: Record<OCPPVersion, string> = Object.freeze({
+  '1.2': 'OCPP12',
+  '1.5': 'OCPP15',
+  '1.6': 'OCPP16',
+  '2.0': 'OCPP20'
+});
+
 export enum RegistrationStatus {
   ACCEPTED = 'Accepted',
   PENDING = 'Pending',
@@ -53,7 +60,7 @@ export interface OCPPStatusNotificationRequest {
   errorCode: ChargePointErrorCode;
   info?: string;
   status: ChargePointStatus;
-  timestamp: string;
+  timestamp?: string;
   vendorId?: string;
   vendorErrorCode?: string;
 }
@@ -81,12 +88,6 @@ export interface OCPPHeartbeatResponse {
   currentTime: string;
 }
 
-export interface OCPPMeterValuesRequest {
-  connectorId: number;
-  transactionId?: number;
-  meterValue: OCPPMeterValue[];
-}
-
 export interface OCPP15MeterValuesRequest {
   connectorId: number;
   transactionId?: number;
@@ -103,14 +104,14 @@ export interface OCPP15MeterValueValue {
   $value: string;
 }
 
-export interface OCPPMeterValues {
-  transactionId?: number;
+export interface OCPPMeterValuesRequest {
   connectorId: number;
-  meterValue: OCPPMeterValue[];
+  transactionId?: number;
+  meterValue: OCPPMeterValue | OCPPMeterValue[];
 }
 
-export interface OCPPMeterValuesExtended extends OCPPMeterValues {
-  values: OCPPMeterValue[];
+export interface OCPPMeterValuesRequestExtended extends OCPPMeterValuesRequest {
+  values: OCPPMeterValue | OCPPMeterValue[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -290,7 +291,7 @@ export enum OCPPAuthorizationStatus {
   BLOCKED = 'Blocked',
   EXPIRED = 'Expired',
   INVALID = 'Invalid',
-  CONCURENT_TX = 'ConcurrentTx'
+  CONCURRENT_TX = 'ConcurrentTx'
 }
 
 export interface OCPPDiagnosticsStatusNotificationRequest {
@@ -356,8 +357,8 @@ export interface OCPPStartTransactionRequestExtended extends OCPPStartTransactio
 }
 
 export interface OCPPStartTransactionResponse {
-  status: OCPPAuthorizationStatus;
   transactionId: number;
+  idTagInfo: OCPPIdTagInfo;
 }
 
 export interface OCPPDataTransferRequest {

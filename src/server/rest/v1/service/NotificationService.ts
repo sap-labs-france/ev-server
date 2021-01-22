@@ -6,7 +6,6 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { EndUserErrorNotification } from '../../../../types/UserNotifications';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import NotificationSecurity from './security/NotificationSecurity';
 import NotificationStorage from '../../../../storage/mongodb/NotificationStorage';
@@ -19,28 +18,35 @@ const MODULE_NAME = 'NotificationService';
 
 export default class NotificationService {
   static async handleGetNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      // Filter
-      const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query);
-      // Get the Notification
-      const notifications = await NotificationStorage.getNotifications(req.user.tenantID, {
-        'userID': filteredRequest.UserID,
-        'dateFrom': filteredRequest.DateFrom,
-        'channel': filteredRequest.Channel
-      }, {
-        limit: filteredRequest.Limit,
-        skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort
-      });
-      // Filter
-      NotificationSecurity.filterNotificationsResponse(notifications, req.user);
-      // Return
-      res.json(notifications);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Filter
+    const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query);
+    // Check User
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'data' ];
     }
+    // Check Charging Station
+    let chargingStationProject: string[] = [];
+    if (Authorizations.canListChargingStations(req.user)) {
+      chargingStationProject = [ 'chargeBoxID' ];
+    }
+    // Get the Notification
+    const notifications = await NotificationStorage.getNotifications(req.user.tenantID, {
+      'userID': filteredRequest.UserID,
+      'dateFrom': filteredRequest.DateFrom,
+      'channel': filteredRequest.Channel
+    }, {
+      limit: filteredRequest.Limit,
+      skip: filteredRequest.Skip,
+      sort: filteredRequest.Sort
+    },
+    [
+      'id', 'timestamp', 'channel', 'sourceId', 'sourceDescr', 'chargeBoxID',
+      ...userProject, ...chargingStationProject
+    ]);
+    // Return
+    res.json(notifications);
+    next();
   }
 
   static async handleEndUserReportError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -56,7 +62,7 @@ export default class NotificationService {
     // Filter
     const filteredRequest = NotificationSecurity.filterEndUserReportErrorRequest(req.body);
     // Check if Notification is valid
-    Utils.checkIfEndUserErrorNotificationValid(filteredRequest, req);
+    UtilsService.checkIfEndUserErrorNotificationValid(filteredRequest, req);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,

@@ -53,6 +53,7 @@ export interface HttpTagsRequest extends HttpDatabaseRequest {
   Search: string;
   UserID?: string;
   Issuer?: boolean;
+  Active?: boolean;
 }
 
 export interface HttpLoginRequest {

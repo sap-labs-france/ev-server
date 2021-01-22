@@ -1,24 +1,24 @@
+import { WSClientOptions, WebSocketCloseEventStatusCode } from '../../types/WebSocket';
+
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
-import { WSClientOptions } from '../../types/WebSocket';
 import WebSocket from 'ws';
 import axiosRetry from 'axios-retry';
 
 const MODULE_NAME = 'WSClient';
 
 export default class WSClient {
-  public onopen: Function;
-  public onerror: Function;
-  public onclose: Function;
-  public onmessage: Function;
-  public onmaximum: Function;
-  public onreconnect: Function;
-  public readyState: number;
+  public onopen: (...args: any[]) => void;
+  public onerror: (...args: any[]) => void;
+  public onclose: (...args: any[]) => void;
+  public onmessage: (...args: any[]) => void;
+  public onmaximum: (err: Error) => void;
+  public onreconnect: (err: Error) => void;
   private url: string;
   private options: WSClientOptions;
-  private callbacks: { [key: string]: Function };
+  private callbacks: { [key: string]: (...args: any[]) => void };
   private dbLogging: boolean;
   private autoReconnectRetryCount: number;
   private autoReconnectMaxRetries: number;
@@ -30,12 +30,12 @@ export default class WSClient {
     this.url = url;
     this.options = options || {} as WSClientOptions;
     this.callbacks = {
-      onopen: () => { },
-      onerror: () => { },
-      onclose: () => { },
-      onmessage: () => { },
-      onreconnect: () => { },
-      onmaximum: () => { }
+      'onopen': () => { },
+      'onerror': () => { },
+      'onclose': () => { },
+      'onmessage': () => { },
+      'onreconnect': () => { },
+      'onmaximum': () => { }
     };
     this.dbLogging = dbLogging;
     this.autoReconnectRetryCount = 0;
@@ -53,7 +53,7 @@ export default class WSClient {
     this.ws.on('error', this.onError.bind(this));
     // Handle Socket close
     this.ws.on('close', this.onClose.bind(this));
-    // A new WS have just been created, reinstantiate the saved callbacks on it
+    // A new WS have just been created, re-instantiate the saved callbacks on it
     this.reinstantiateCbs();
   }
 
@@ -130,7 +130,7 @@ export default class WSClient {
   }
 
   public isConnectionOpen(): boolean {
-    return this.ws.readyState === WebSocket.OPEN;
+    return this.ws?.readyState === WebSocket.OPEN;
   }
 
   private reconnect(error: Error): void {
@@ -139,33 +139,33 @@ export default class WSClient {
       this.autoReconnectRetryCount++;
       Utils.sleep(axiosRetry.exponentialDelay(this.autoReconnectRetryCount)).catch(() => { });
       setTimeout(() => {
+        // Informational message
         if (this.dbLogging) {
-          // Informational message
           Logging.logInfo({
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'reconnect',
             action: ServerAction.WS_CLIENT_INFO,
-            message: `Re-connection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`
+            message: `Reconnection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`
           });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`Re-connection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.log(`WSClient reconnection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`);
         }
         this.onreconnect(error);
         this.open();
       }, this.autoReconnectTimeout);
     } else if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED || this.autoReconnectMaxRetries !== Constants.WS_RECONNECT_UNLIMITED) {
+      // Informational message
       if (this.dbLogging) {
-        // Informational message
         Logging.logInfo({
           tenantID: this.logTenantID,
           module: MODULE_NAME, method: 'reconnect',
           action: ServerAction.WS_CLIENT_INFO,
-          message: `Re-connection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`
+          message: `Reconnection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`
         });
       } else {
         // eslint-disable-next-line no-console
-        console.log(`Re-connection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`);
+        (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.log(`WSClient reconnection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`);
       }
       this.onmaximum(error);
     }
@@ -176,71 +176,81 @@ export default class WSClient {
   }
 
   private reinstantiateCbs() {
-    ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
-      if ('' + this.callbacks[method] !== '' + (() => { })) {
+    for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
+      if (this.callbacks[method].toString() !== (() => { }).toString()) {
         this.ws[method] = this.callbacks[method];
       }
-    });
+    }
   }
 
-  private onError(error) {
-    switch (error) {
+  private onError(error: Error) {
+    switch (error.toString()) {
       case 'ECONNREFUSED':
+        // Error message
         if (this.dbLogging) {
-          // Error message
           Logging.logError({
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'onError',
             action: ServerAction.WS_CLIENT_ERROR,
-            message: `Connection refused to '${this.url}': ${error}`
+            message: `Connection refused to '${this.url}': ${error}`,
+            detailedMessages: { error }
           });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`Connection refused to '${this.url}':`, error);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(`WSClient connection refused to '${this.url}':`, error);
         }
-        this.reconnect(error);
+        // pragma this.reconnect(error);
         break;
       default:
+        // Error message
         if (this.dbLogging) {
-          if (Utils.isProductionEnv()) {
-            // Error message
-            Logging.logError({
-              tenantID: this.logTenantID,
-              module: MODULE_NAME, method: 'onError',
-              action: ServerAction.WS_CLIENT_ERROR,
-              message: `Connection error to '${this.url}': ${error}`
-            });
-          }
+          Logging.logError({
+            tenantID: this.logTenantID,
+            module: MODULE_NAME, method: 'onError',
+            action: ServerAction.WS_CLIENT_ERROR,
+            message: `Connection error to '${this.url}': ${error}`,
+            detailedMessages: { error }
+          });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`Connection error to '${this.url}':`, error);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(`WSClient connection error to '${this.url}':`, error);
         }
         break;
     }
   }
 
-  private onClose(error) {
-    switch (error) {
-      case 1000: // Normal close
-      case 1005:
+  private onClose(code: number, reason: string) {
+    switch (code) {
+      case WebSocketCloseEventStatusCode.CLOSE_NORMAL: // Normal close
+      case WebSocketCloseEventStatusCode.CLOSE_NO_STATUS:
+        // Informational message
+        if (this.dbLogging) {
+          Logging.logInfo({
+            tenantID: this.logTenantID,
+            module: MODULE_NAME, method: 'onClose',
+            action: ServerAction.WS_CLIENT_INFO,
+            message: `Connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+          });
+        } else {
+          // eslint-disable-next-line no-console
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.log(`WSClient connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
+        }
         this.autoReconnectRetryCount = 0;
         break;
       default: // Abnormal close
+        // Error message
         if (this.dbLogging) {
-          if (Utils.isProductionEnv()) {
-            // Error message
-            Logging.logError({
-              tenantID: this.logTenantID,
-              module: MODULE_NAME, method: 'onClose',
-              action: ServerAction.WS_CLIENT_ERROR,
-              message: `Connection closing error to '${this.url}': ${error}`
-            });
-          }
+          Logging.logError({
+            tenantID: this.logTenantID,
+            module: MODULE_NAME, method: 'onClose',
+            action: ServerAction.WS_CLIENT_ERROR,
+            message: `Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+          });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`Connection closing error to '${this.url}':`, error);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
         }
-        this.reconnect(error);
+        this.reconnect(new Error(`Connection has been closed abnormally, Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`));
         break;
     }
   }
@@ -250,48 +260,41 @@ export default class WSClient {
  * Add the `onopen`, `onerror`, `onclose`, `onmessage`, `onreconnect`
  * and `onmaximum` attributes.
  */
-['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
+for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
   Object.defineProperty(WSClient.prototype, method, {
     configurable: true,
     enumerable: true,
-    get(): Function {
+    get(): (...args: any[]) => void {
       return this.ws[method];
     },
-    set(callback: Function): void {
+    set(callback: (...args: any[]) => void): void {
       // Save the callback in an object attribute
       this.callbacks[method] = callback;
       this.ws[method] = callback;
     }
   });
-});
-['onreconnect', 'onmaximum'].forEach((method) => {
+}
+for (const method of ['onreconnect', 'onmaximum']) {
   Object.defineProperty(WSClient.prototype, method, {
     configurable: true,
     enumerable: true,
-    get(): Function {
+    get(): (...args: any[]) => void {
       return this.callbacks[method];
     },
-    set(callback: Function): void {
+    set(callback: (...args: any[]) => void): void {
       this.callbacks[method] = callback;
     }
   });
-});
+}
 
 /**
  * Add some ws properties
  */
-[
-  'binaryType',
-  'bufferedAmount',
-  'extensions',
-  'protocol',
-  'readyState'
-].forEach((property) => {
+for (const property of ['binaryType', 'bufferedAmount', 'extensions', 'protocol', 'readyState']) {
   Object.defineProperty(WSClient.prototype, property, {
     enumerable: true,
     get() {
       return this.ws[property];
     }
   });
-});
-
+}

@@ -1,7 +1,9 @@
+import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatus, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
+
 import ChargingStationConfiguration from '../../../../types/configuration/ChargingStationConfiguration';
 import Logging from '../../../../utils/Logging';
+import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPService from '../../services/OCPPService';
-import { OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import global from '../../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonChargingStationService';
@@ -16,93 +18,93 @@ export default class JsonChargingStationService {
     this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
   }
 
-  public async handleBootNotification(headers, payload): Promise<any> {
+  public async handleBootNotification(headers: OCPPHeader, payload: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
     // Forward
-    const result = await this.handle('BootNotification', headers, payload);
+    const result: OCPPBootNotificationResponse = await this.handle('BootNotification', headers, payload);
     // Return the response
     return {
-      'currentTime': result.currentTime,
-      'status': result.status,
-      'interval': result.heartbeatInterval
+      currentTime: result.currentTime,
+      status: result.status,
+      interval: result.interval
     };
   }
 
-  public async handleHeartbeat(headers, payload): Promise<any> {
+  public async handleHeartbeat(headers: OCPPHeader, payload: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
     // Forward
-    const result = await this.handle('Heartbeat', headers, payload);
+    const result: OCPPHeartbeatResponse = await this.handle('Heartbeat', headers, payload);
     // Return the response
     return {
-      'currentTime': result.currentTime
+      currentTime: result.currentTime
     };
   }
 
-  public async handleStatusNotification(headers, payload): Promise<any> {
+  public async handleStatusNotification(headers: OCPPHeader, payload: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
     // Forward
     await this.handle('StatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
-  public async handleMeterValues(headers, payload): Promise<any> {
+  public async handleMeterValues(headers: OCPPHeader, payload: OCPPMeterValuesRequest): Promise<OCPPMeterValuesResponse> {
     // Forward
     await this.handle('MeterValues', headers, payload);
     // Return the response
     return {};
   }
 
-  public async handleAuthorize(headers, payload): Promise<any> {
+  public async handleAuthorize(headers: OCPPHeader, payload: OCPPAuthorizeRequest): Promise<OCPPAuthorizeResponse> {
     // Forward
-    const result = await this.handle('Authorize', headers, payload);
+    const result: OCPPAuthorizeResponse = await this.handle('Authorize', headers, payload);
     // Return the response
     return {
-      'idTagInfo': {
-        'status': result.status
+      idTagInfo: {
+        status: result.idTagInfo.status
       }
     };
   }
 
-  public async handleDiagnosticsStatusNotification(headers, payload): Promise<any> {
+  public async handleDiagnosticsStatusNotification(headers: OCPPHeader, payload: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
     // Forward
     await this.handle('DiagnosticsStatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
-  public async handleFirmwareStatusNotification(headers, payload): Promise<any> {
+  public async handleFirmwareStatusNotification(headers: OCPPHeader, payload: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
     // Forward
     await this.handle('FirmwareStatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
-  public async handleStartTransaction(headers, payload): Promise<any> {
+  public async handleStartTransaction(headers: OCPPHeader, payload: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
     // Forward
-    const result = await this.handle('StartTransaction', headers, payload);
+    const result: OCPPStartTransactionResponse = await this.handle('StartTransaction', headers, payload);
     // Return the response
     return {
-      'transactionId': result.transactionId,
-      'idTagInfo': {
-        'status': result.status
+      transactionId: result.transactionId,
+      idTagInfo: {
+        status: result.idTagInfo.status
       }
     };
   }
 
-  public async handleDataTransfer(headers, payload): Promise<any> {
+  public async handleDataTransfer(headers: OCPPHeader, payload: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
     // Forward
-    const result = await this.handle('DataTransfer', headers, payload);
+    const result: OCPPDataTransferResponse = await this.handle('DataTransfer', headers, payload);
     // Return the response
     return {
-      'status': result.status
+      status: result.status
     };
   }
 
-  public async handleStopTransaction(headers, payload): Promise<any> {
+  public async handleStopTransaction(headers: OCPPHeader, payload: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
     // Forward
-    const result = await this.handle('StopTransaction', headers, payload);
+    const result: OCPPStopTransactionResponse = await this.handle('StopTransaction', headers, payload);
     // Return the response
     return {
-      'idTagInfo': {
-        'status': result.status
+      idTagInfo: {
+        status: result.idTagInfo.status
       }
     };
   }
@@ -117,4 +119,3 @@ export default class JsonChargingStationService {
     }
   }
 }
-
