@@ -355,18 +355,15 @@ export default class OICPMapping {
     } else {
       address = siteArea.site.address;
     }
-    const oicpAddress: OICPAddressIso19773 = {} as OICPAddressIso19773;
-    oicpAddress.Country = OICPMapping.convertCountry2CountryCode(address.country, countryID); // OICP expects Alpha-3 county code.
-    oicpAddress.City = address.city;
-    oicpAddress.Street = `${address.address1} ${address.address2}`;
-    oicpAddress.PostalCode = address.postalCode;
-    oicpAddress.HouseNum = ''; // No separate house number in internal address type. Mandatory field
-    oicpAddress.Floor; // Optional
-    oicpAddress.Region = address.region; // Optional
-    oicpAddress.ParkingFacility; // Optional
-    oicpAddress.ParkingSpot; // Optional
-    oicpAddress.Timezone = Utils.getTimezone(address.coordinates); // Optional
-    return oicpAddress;
+    return {
+      Country: OICPMapping.convertCountry2CountryCode(address.country, countryID), // OICP expects Alpha-3 county code.
+      City: address.city,
+      Street: `${address.address1} ${address.address2}`,
+      PostalCode: address.postalCode,
+      HouseNum: '', // No separate house number in internal address type. Mandatory field
+      Region: address.region,
+      Timezone: Utils.getTimezone(address.coordinates) // Optional
+    };
   }
 
   // The CountryCodeType allows for Alpha-3 country codes. For Alpha-3 (three-letter) country codes as defined in ISO 3166-1. Example: FRA France
