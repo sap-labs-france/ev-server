@@ -8,6 +8,7 @@ import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
 import { OICPEvseID } from '../../types/oicp/OICPEvse';
 import { OICPSession } from '../../types/oicp/OICPSession';
+import RoamingUtils from '../../utils/RoamingUtils';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
@@ -61,45 +62,9 @@ export default class OICPUtils {
     return response;
   }
 
-  /**
-   * Build evse_id from charging station
-   * @param {*} countryCode the code of the CPO
-   * @param {*} partyId the partyId of the CPO
-   * @param {*} chargingStation the charging station used to build the evse ID
-   * @param {*} connector the connector used to build the evse id
-   */
-  public static buildEvseID(countryCode: string, partyId: string, chargingStation: ChargingStation, connector?: Connector): string {
-    let evseID = `${countryCode}*${partyId}*E${chargingStation.id}`;
-    if (!connector) {
-      for (const _connector of chargingStation.connectors) {
-        if (_connector) {
-          connector = _connector;
-          break;
-        }
-      }
-    }
-    evseID = `${evseID}*${connector.connectorId}`;
-    return evseID.replace(/[\W_]+/g, '*').toUpperCase();
-  }
-
-  public static breakUpEvseID(evseID: OICPEvseID): { countryCode: string, partyId: string, connectorId: string } {
-    // Problem: it is not save to derive the chargingStationId from evseID because all characters that are not alphanumeric and underscores are replaced with '*'
-    // also: evseId is set to upper case
-    // see function buildEvseID()
-    const evseIDComponents = evseID.split('*');
-    const countryCode = evseIDComponents[0];
-    const partyId = evseIDComponents[1];
-    const connectorId = evseIDComponents[evseIDComponents.length - 1];
-    return {
-      countryCode: countryCode,
-      partyId: partyId,
-      connectorId: connectorId
-    };
-  }
-
   public static async getChargingStationConnectorFromEvseID(tenant: Tenant, evseID: OICPEvseID): Promise<{ chargingStation: ChargingStation, connector: Connector }> {
     // It is not save to derive charging station id from evseID
-    const evseIDComponents = this.breakUpEvseID(evseID);
+    const evseIDComponents = RoamingUtils.getEvseIdComponents(evseID);
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
       issuer: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -108,7 +73,7 @@ export default class OICPUtils {
     if (chargingStations && chargingStations.result) {
       for (const cs of chargingStations.result) {
         cs.connectors.forEach((conn) => {
-          if (evseID === this.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, cs, conn)) {
+          if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, cs, conn)) {
             chargingStation = cs;
             connector = conn;
           }

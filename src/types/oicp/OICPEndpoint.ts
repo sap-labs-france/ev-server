@@ -21,6 +21,4 @@ export default interface OICPEndpoint extends CreatedUpdatedProps {
     chargeBoxIDsInFailure?: string[];
     chargeBoxIDsInSuccess?: string[];
   };
-
 }
-

@@ -137,7 +137,7 @@ export default abstract class OICPClient {
     });
   }
 
-  private getPrivateKeyFromDB(action: ServerAction): string {
+  private getPrivateKey(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -153,7 +153,7 @@ export default abstract class OICPClient {
     return Cypher.decrypt(this.settings[this.role].key);
   }
 
-  private getClientCertificateFromDB(action: ServerAction): string {
+  private getClientCertificate(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -179,8 +179,8 @@ export default abstract class OICPClient {
   }
 
   private getHttpsAgent(action: ServerAction): https.Agent {
-    const publicCert = this.getClientCertificateFromDB(action);
-    const privateKey = this.getPrivateKeyFromDB(action);
+    const publicCert = this.getClientCertificate(action);
+    const privateKey = this.getPrivateKey(action);
     const httpsAgent = new https.Agent({
       rejectUnauthorized: false,
       cert: publicCert,

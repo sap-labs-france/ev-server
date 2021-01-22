@@ -480,7 +480,7 @@ export default class CpoOICPClient extends OICPClient {
    * Push EVSE
    */
   public async pushEvseData(evses: OICPEvseDataRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
-    let pushEvseDataResponse: OICPAcknowledgment = {} as OICPAcknowledgment;
+    let pushEvseDataResponse: OICPAcknowledgment;
     let requestError: any;
     // Check for input parameter
     if (!evses) {
@@ -512,10 +512,10 @@ export default class CpoOICPClient extends OICPClient {
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! pushEvseData: ', response); // Will be removed
-      pushEvseDataResponse = response.data as OICPAcknowledgment;
+      pushEvseDataResponse = response.data;
     } catch (error) {
       console.log('Error! pushEvseData: ',error.message); // Will be removed
-      pushEvseDataResponse = error.response?.data as OICPAcknowledgment;
+      pushEvseDataResponse = error.response?.data;
       requestError = error;
     }
     if (!pushEvseDataResponse?.Result || pushEvseDataResponse?.Result !== true) {
@@ -538,7 +538,7 @@ export default class CpoOICPClient extends OICPClient {
    * Push EVSE Status
    */
   public async pushEvseStatus(evseStatuses: OICPEvseStatusRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
-    let pushEvseStatusResponse: OICPAcknowledgment = {} as OICPAcknowledgment;
+    let pushEvseStatusResponse: OICPAcknowledgment;
     let requestError: any;
     // Check for input parameter
     if (!evseStatuses) {
@@ -570,10 +570,10 @@ export default class CpoOICPClient extends OICPClient {
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! pushEvseStatus: ', response); // Will be removed
-      pushEvseStatusResponse = response.data as OICPAcknowledgment;
+      pushEvseStatusResponse = response.data;
     } catch (error) {
       console.log('Error! pushEvseStatus: ', error.response); // Will be removed
-      pushEvseStatusResponse = error.response?.data as OICPAcknowledgment;
+      pushEvseStatusResponse = error.response?.data;
       requestError = error;
     }
     if (!pushEvseStatusResponse?.Result || pushEvseStatusResponse?.Result !== true) {
@@ -596,7 +596,7 @@ export default class CpoOICPClient extends OICPClient {
    * ERoaming Authorize Start
    */
   public async authorizeStart(tagID: string, transactionId?: number): Promise<OICPAuthorizeStartCpoReceive> {
-    let authorizeResponse = {} as OICPAuthorizeStartCpoReceive;
+    let authorizeResponse: OICPAuthorizeStartCpoReceive;
     let requestError: any;
     if (!tagID) {
       throw new BackendError({
@@ -631,10 +631,10 @@ export default class CpoOICPClient extends OICPClient {
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! authorizeStart: ', response); // Will be removed
-      authorizeResponse = response.data as OICPAuthorizeStartCpoReceive;
+      authorizeResponse = response.data;
     } catch (error) {
       console.log('Error! authorizeStart: ', error.response); // Will be removed
-      authorizeResponse = error.response?.data as OICPAuthorizeStartCpoReceive;
+      authorizeResponse = error.response?.data;
       requestError = error;
     }
     if (requestError) {
@@ -677,7 +677,7 @@ export default class CpoOICPClient extends OICPClient {
    */
   public async authorizeStop(transaction: Transaction): Promise<OICPAuthorizeStopCpoReceive> {
     const user = transaction.user;
-    let authorizeResponse = {} as OICPAuthorizeStopCpoReceive;
+    let authorizeResponse: OICPAuthorizeStopCpoReceive;
     let requestError: any;
     // Check for input parameter
     if (!transaction.oicpData.session) {
@@ -713,10 +713,10 @@ export default class CpoOICPClient extends OICPClient {
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! authorizeStop: ', response); // Will be removed
-      authorizeResponse = response.data as OICPAuthorizeStopCpoReceive;
+      authorizeResponse = response.data;
     } catch (error) {
       console.log('Error! authorizeStop: ', error.response); // Will be removed
-      authorizeResponse = error.response?.data as OICPAuthorizeStopCpoReceive;
+      authorizeResponse = error.response?.data;
       requestError = error;
     }
     if (requestError) {
@@ -761,7 +761,7 @@ export default class CpoOICPClient extends OICPClient {
    * ERoaming Push Charge Detail Record
    */
   public async pushCdr(transaction: Transaction): Promise<OICPAcknowledgment> {
-    let pushCdrResponse = {} as OICPAcknowledgment;
+    let pushCdrResponse: OICPAcknowledgment;
     let requestError: any;
     if (!transaction.oicpData) {
       throw new BackendError({
@@ -827,10 +827,10 @@ export default class CpoOICPClient extends OICPClient {
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! pushCdr: ', response); // Will be removed
-      pushCdrResponse = response.data as OICPAcknowledgment;
+      pushCdrResponse = response.data;
     } catch (error) {
       console.log('Error! pushCdr: ', error); // Will be removed
-      pushCdrResponse = error.response?.data as OICPAcknowledgment;
+      pushCdrResponse = error.response?.data;
       requestError = error;
     }
     if (!pushCdrResponse?.Result || pushCdrResponse?.Result !== true) {
@@ -864,7 +864,7 @@ export default class CpoOICPClient extends OICPClient {
    * Send Charging Notification Start
    */
   public async sendChargingNotificationStart(transaction: Transaction): Promise<OICPAcknowledgment> {
-    let notificationStartResponse: OICPAcknowledgment = {} as OICPAcknowledgment;
+    let notificationStartResponse: OICPAcknowledgment;
     let requestError: any;
     // Check for input parameter
     if (!transaction.oicpData) {
@@ -915,10 +915,10 @@ export default class CpoOICPClient extends OICPClient {
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! sendChargingNotificationStart: ', response); // Will be removed
-      notificationStartResponse = response.data as OICPAcknowledgment;
+      notificationStartResponse = response.data;
     } catch (error) {
       console.log('Error! sendChargingNotificationStart: ', error.response); // Will be removed
-      notificationStartResponse = error.response?.data as OICPAcknowledgment;
+      notificationStartResponse = error.response?.data;
       requestError = error;
     }
     if (!notificationStartResponse?.Result || notificationStartResponse?.Result !== true) {
@@ -944,7 +944,7 @@ export default class CpoOICPClient extends OICPClient {
    */
   public async sendChargingNotificationProgress(transaction: Transaction): Promise<OICPAcknowledgment> {
     if (this.checkProgressUpdateInterval(transaction)) {
-      let notificationProgressResponse: OICPAcknowledgment = {} as OICPAcknowledgment;
+      let notificationProgressResponse: OICPAcknowledgment;
       let requestError: any;
       // Check for input parameter
       if (!transaction.oicpData) {
@@ -998,10 +998,10 @@ export default class CpoOICPClient extends OICPClient {
       try {
         const response = await this.axiosInstance.post(fullUrl, payload);
         console.log('Success! sendChargingNotificationProgress: ', response); // Will be removed
-        notificationProgressResponse = response.data as OICPAcknowledgment;
+        notificationProgressResponse = response.data;
       } catch (error) {
         console.log('Error! sendChargingNotificationProgress: ', error.response); // Will be removed
-        notificationProgressResponse = error.response?.data as OICPAcknowledgment;
+        notificationProgressResponse = error.response?.data;
         requestError = error;
       }
       transaction.oicpData.session.last_progress_notification = new Date();
@@ -1028,7 +1028,7 @@ export default class CpoOICPClient extends OICPClient {
    * Send Charging Notification End
    */
   public async sendChargingNotificationEnd(transaction: Transaction): Promise<OICPAcknowledgment> {
-    let notificationEndResponse: OICPAcknowledgment = {} as OICPAcknowledgment;
+    let notificationEndResponse: OICPAcknowledgment;
     let requestError: any;
     // Check for input parameter
     if (!transaction.oicpData) {
@@ -1093,10 +1093,10 @@ export default class CpoOICPClient extends OICPClient {
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! sendChargingNotificationEnd: ', response); // Will be removed
-      notificationEndResponse = response.data as OICPAcknowledgment;
+      notificationEndResponse = response.data;
     } catch (error) {
       console.log('Error! sendChargingNotificationEnd: ', error.response); // Will be removed
-      notificationEndResponse = error.response?.data as OICPAcknowledgment;
+      notificationEndResponse = error.response?.data;
       requestError = error;
     }
     if (!notificationEndResponse?.Result || notificationEndResponse?.Result !== true) {
@@ -1121,7 +1121,7 @@ export default class CpoOICPClient extends OICPClient {
    * Send Charging Notification Error
    */
   public async sendChargingNotificationError(transaction: Transaction, error: OICPErrorClass, errorAdditionalInfo?: string): Promise<OICPAcknowledgment> {
-    let notificationErrorResponse: OICPAcknowledgment = {} as OICPAcknowledgment;
+    let notificationErrorResponse: OICPAcknowledgment;
     let requestError: any;
     // Check for input parameter
     if (!transaction.oicpData) {
@@ -1169,10 +1169,10 @@ export default class CpoOICPClient extends OICPClient {
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! sendChargingNotificationError: ', response); // Will be removed
-      notificationErrorResponse = response.data as OICPAcknowledgment;
+      notificationErrorResponse = response.data;
     } catch (error) {
       console.log('Error! sendChargingNotificationError: ', error.response); // Will be removed
-      notificationErrorResponse = error.response?.data as OICPAcknowledgment;
+      notificationErrorResponse = error.response?.data;
       requestError = error;
     }
     if (!notificationErrorResponse?.Result || notificationErrorResponse?.Result !== true) {
@@ -1194,7 +1194,7 @@ export default class CpoOICPClient extends OICPClient {
   }
 
   // Get ChargeBoxIds with new status notifications
-  public async getChargeBoxIDsWithNewStatusNotifications(): Promise<string[]> {
+  private async getChargeBoxIDsWithNewStatusNotifications(): Promise<string[]> {
     // Get last job
     const lastPatchJobOn = this.oicpEndpoint.lastPatchJobOn ? this.oicpEndpoint.lastPatchJobOn : new Date();
     // Build params
@@ -1237,7 +1237,7 @@ export default class CpoOICPClient extends OICPClient {
   /**
    * POST to EVSE Endpoint without EVSEs
    */
-  public async pingEvseEndpoint() {
+  private async pingEvseEndpoint() {
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OICP_PUSH_EVSE_DATA,

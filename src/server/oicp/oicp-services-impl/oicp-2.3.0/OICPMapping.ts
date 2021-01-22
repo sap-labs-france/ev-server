@@ -8,7 +8,7 @@ import Constants from '../../../../utils/Constants';
 import Countries from 'i18n-iso-countries';
 import CountryLanguage from 'country-language';
 import { DataResult } from '../../../../types/DataResult';
-import OICPUtils from '../../OICPUtils';
+import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -72,7 +72,7 @@ export default class OICPMapping {
     } else {
       accessible = OICPAccessibility.RestrictedAccess;
     }
-    const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    const evseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
     const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;
     evse.deltaType; // Optional
     evse.lastUpdate; // Optional
@@ -139,7 +139,7 @@ export default class OICPMapping {
    * @return Array of OICP EVSE Statuses
    */
   static convertConnector2EvseStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
-    const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    const evseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
     const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
     evseStatus.EvseID = evseID;
     evseStatus.EvseStatus = OICPMapping.convertStatus2OICPEvseStatus(connector.status);
@@ -459,7 +459,7 @@ export default class OICPMapping {
    * @param {*} status
    */
   static convertConnectorStatus2OICPEvseStatusRecord(connector: Connector, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OICPEvseStatusRecord {
-    const evseID = OICPUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    const evseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
     return {
       EvseID: evseID,
       EvseStatus: OICPMapping.convertStatus2OICPEvseStatus(connector.status)

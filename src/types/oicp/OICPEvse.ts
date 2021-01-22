@@ -280,6 +280,12 @@ export interface OICPCalibrationLawVerification {
   SignedMeteringValuesVerificationInstruction?: string, // Additional information (e.g. instruction on how to use the transparency software). Field Length = 400
 }
 
+export interface EvseIdComponents {
+  countryCode: string;
+  partyId: string;
+  connectorId: string;
+}
+
 export type OICPCountryCode = string; // The CountryCodeType allows for Alpha-3 country codes only as of OICP 2.2 and OICP 2.3. For Alpha-3 (three-letter) country codes as defined in ISO 3166-1. Examples: AUT Austria, DEU, Germany, FRA France
 export type OICPTimezone = string; // [U][T][C][+,-][0-9][0-9][:][0-9][0-9] The expression validates a string as a Time zone with UTC offset. Examples: UTC+01:00, UTC-05:00
 export type OICPEvseID = string; // A string that MUST be valid with respect to the following regular expression: ISO | DIN. ^(([A-Za-z]{2}\*?[A-Za-z0-9]{3}\*?E[A-Za-z0-9\*]{1,30})|(\+?[0-9]{1,3}\*[0-9]{3}\*[0-9\*]{1,32}))$ Examples ISO: “DE*AB7*E840*6487”, “DEAB7E8406487” Example DIN: “+49*810*000*438”
