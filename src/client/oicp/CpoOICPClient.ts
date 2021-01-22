@@ -1170,10 +1170,10 @@ export default class CpoOICPClient extends OICPClient {
       const response = await this.axiosInstance.post(fullUrl, payload);
       console.log('Success! sendChargingNotificationError: ', response); // Will be removed
       notificationErrorResponse = response.data;
-    } catch (errors) {
-      console.log('Error! sendChargingNotificationError: ', errors.response); // Will be removed
-      notificationErrorResponse = errors.response?.data;
-      requestError = errors;
+    } catch (err) {
+      console.log('Error! sendChargingNotificationError: ', err.response); // Will be removed
+      notificationErrorResponse = err.response?.data;
+      requestError = err;
     }
     if (!notificationErrorResponse?.Result || notificationErrorResponse?.Result !== true) {
       Logging.logError({
