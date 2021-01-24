@@ -8,7 +8,7 @@ export default class EVBOXChargingStationVendorIntegration extends ChargingStati
     super(chargingStation);
   }
 
-  // EV-BOX use cA as unit for static limitation
+  // EV-BOX use dA as unit for static limitation
   public async setStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
     chargePoint?: ChargePoint, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
     return super.setStaticPowerLimitation(tenantID, chargingStation, chargePoint, maxAmps, 10);
