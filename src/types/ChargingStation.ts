@@ -286,6 +286,7 @@ export enum ChargerVendor {
   BENDER = 'Bender GmbH Co. KG',
   EBEE = 'Ebee',
   EVBOX = 'EV-BOX',
+  INNOGY = 'innogy',
   IES = 'IES',
   WALLBOX_CHARGERS = 'Wall Box Chargers',
   SCHNEIDER = 'Schneider Electric',
