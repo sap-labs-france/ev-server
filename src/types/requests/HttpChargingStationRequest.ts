@@ -43,7 +43,6 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   ErrorType?: string;
   LocCoordinates?: number[];
   LocMaxDistanceMeters?: number;
-  ConnectorID?: string;
 }
 
 export interface HttpChargingStationParamsUpdateRequest {

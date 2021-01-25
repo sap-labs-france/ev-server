@@ -146,7 +146,7 @@ export default class ChargingStationStorage {
       search?: string; chargingStationIDs?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number; connectorIDs?: number[];
+      locCoordinates?: number[]; locMaxDistanceMeters?: number;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
@@ -213,23 +213,6 @@ export default class ChargingStationStorage {
     aggregation.push({
       $match: filters
     });
-    // Connector ID
-    if (!Utils.isEmptyArray(params.connectorIDs)) {
-      filters['connectors.connectorId'] = { $in: params.connectorIDs };
-      aggregation.push({
-        '$addFields': {
-          'connectors': {
-            '$filter': {
-              input: '$connectors',
-              as: 'connector',
-              cond: {
-                $in: ['$$connector.connectorId', params.connectorIDs]
-              }
-            }
-          }
-        }
-      });
-    }
     // Connector Status
     if (params.connectorStatuses) {
       filters['connectors.status'] = { $in: params.connectorStatuses };

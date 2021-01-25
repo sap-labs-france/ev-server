@@ -257,7 +257,7 @@ export default class TransactionStorage {
   public static async getTransactions(tenantID: string,
     params: {
       transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
-      chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorId?: number; startDateTime?: Date;
+      chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
       ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
       ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean;
@@ -334,8 +334,10 @@ export default class TransactionStorage {
       filters.tagID = { $in: params.tagIDs };
     }
     // Connector
-    if (params.connectorId) {
-      filters.connectorId = Utils.convertToInt(params.connectorId);
+    if (!Utils.isEmptyArray(params.connectorIDs)) {
+      filters.connectorId = {
+        $in: params.connectorIDs.map((connectorID) => Utils.convertToObjectID(connectorID))
+      };
     }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
@@ -774,7 +776,7 @@ export default class TransactionStorage {
     params: {
       search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
       siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
-      withChargeBoxes?: boolean; errorType?: TransactionInErrorType[];
+      withChargeBoxes?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
     }, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionsInError');
@@ -824,6 +826,12 @@ export default class TransactionStorage {
     if (params.siteIDs) {
       match.siteID = {
         $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
+      };
+    }
+    // Connectors
+    if (!Utils.isEmptyArray(params.connectorIDs)) {
+      match.connectorId = {
+        $in: params.connectorIDs.map((connectorID) => Utils.convertToObjectID(connectorID))
       };
     }
     // Create Aggregation
