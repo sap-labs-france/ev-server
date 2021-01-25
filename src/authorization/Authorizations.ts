@@ -1,10 +1,10 @@
 import { Action, AuthorizationContext, Entity } from '../types/Authorization';
+import ChargingStation, { Connector } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import BackendError from '../exception/BackendError';
-import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
@@ -865,8 +865,10 @@ export default class Authorizations {
             message: 'OCPI component requires at least one CPO endpoint to authorize users'
           });
         }
+        // Transaction can be nullified to assess the authorization at a higher level than connectors, default connector ID value to 1 then
+        const transactionConnector: Connector = transaction?.connectorId ? Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
         // Keep the Auth ID
-        user.authorizationID = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation, Utils.getConnectorFromID(chargingStation, transaction.connectorId));
+        user.authorizationID = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation, transactionConnector);
       }
     }
     return user;
