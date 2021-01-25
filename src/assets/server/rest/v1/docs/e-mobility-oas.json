@@ -443,7 +443,9 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["text"],
+                  "required": [
+                    "text"
+                  ],
                   "properties": {
                     "text": {
                       "type": "string",
@@ -575,7 +577,11 @@
             "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
-                "required": ["email", "tenant", "captcha"],
+                "required": [
+                  "email",
+                  "tenant",
+                  "captcha"
+                ],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -739,181 +745,181 @@
             "content": {
               "application/json": {
                 "example": {
-                    "chargeBoxSerialNumber": "EV.2S22P44R3N164750700100350246E2",
-                    "chargePointModel": "MONOBLOCK",
-                    "chargePointSerialNumber": "3N163730715E2S1B7551700014",
-                    "chargePointVendor": "Schneider Electric",
-                    "connectors": [
-                        {
-                            "connectorId": 1,
-                            "currentInstantWatts": 0,
-                            "currentStateOfCharge": 0,
-                            "currentTotalInactivitySecs": 0,
-                            "currentTotalConsumptionWh": 0,
-                            "currentTransactionDate": null,
-                            "currentTagID": null,
-                            "status": "Available",
-                            "errorCode": "NoError",
-                            "info": "",
-                            "vendorErrorCode": "",
-                            "power": 22080,
-                            "type": "T2",
-                            "voltage": 0,
-                            "amperage": 96,
-                            "amperageLimit": 96,
-                            "currentTransactionID": 0,
-                            "userID": null,
-                            "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
-                            "currentInactivityStatus": "I",
-                            "numberOfConnectedPhase": null,
-                            "currentType": null,
-                            "chargePointID": 1,
-                            "phaseAssignmentToGrid": null
-                        },
-                        {
-                            "connectorId": 2,
-                            "currentInstantWatts": 0,
-                            "currentStateOfCharge": 0,
-                            "currentTotalInactivitySecs": 0,
-                            "currentTotalConsumptionWh": 0,
-                            "currentTransactionDate": null,
-                            "currentTagID": null,
-                            "status": "Available",
-                            "errorCode": "NoError",
-                            "info": "",
-                            "vendorErrorCode": "",
-                            "power": 22080,
-                            "type": "T2",
-                            "voltage": 0,
-                            "amperage": 96,
-                            "amperageLimit": 96,
-                            "currentTransactionID": 0,
-                            "userID": null,
-                            "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
-                            "currentInactivityStatus": "I",
-                            "numberOfConnectedPhase": null,
-                            "currentType": null,
-                            "chargePointID": 1,
-                            "phaseAssignmentToGrid": null
-                        }
-                    ],
-                    "endpoint": "http://192.168.0.114:8080/",
-                    "firmwareVersion": "3.3.0.12",
-                    "lastReboot": "2020-12-08T09:06:14.948Z",
-                    "ocppVersion": "1.5",
-                    "siteAreaID": "5abebb1b4bae1457eb565e98",
-                    "chargingStationURL": "wss://sap-ev-chargebox-json-server-prod.cfapps.eu10.hana.ondemand.com",
-                    "maximumPower": 44160,
-                    "ocppProtocol": "soap",
-                    "powerLimitUnit": "A",
-                    "createdOn": "2019-03-20T07:41:57.583Z",
-                    "currentIPAddress": "37.71.38.83, 10.0.136.8",
-                    "coordinates": [
-                        7.01643370298905,
-                        43.6120451027249
-                    ],
-                    "capabilities": {
-                        "supportStaticLimitation": true,
-                        "supportChargingProfiles": true,
-                        "supportRemoteStartStopTransaction": true,
-                        "supportUnlockConnector": true,
-                        "supportReservation": false,
-                        "supportCreditCard": false,
-                        "supportRFIDCard": false
+                  "chargeBoxSerialNumber": "EV.2S22P44R3N164750700100350246E2",
+                  "chargePointModel": "MONOBLOCK",
+                  "chargePointSerialNumber": "3N163730715E2S1B7551700014",
+                  "chargePointVendor": "Schneider Electric",
+                  "connectors": [
+                    {
+                      "connectorId": 1,
+                      "currentInstantWatts": 0,
+                      "currentStateOfCharge": 0,
+                      "currentTotalInactivitySecs": 0,
+                      "currentTotalConsumptionWh": 0,
+                      "currentTransactionDate": null,
+                      "currentTagID": null,
+                      "status": "Available",
+                      "errorCode": "NoError",
+                      "info": "",
+                      "vendorErrorCode": "",
+                      "power": 22080,
+                      "type": "T2",
+                      "voltage": 0,
+                      "amperage": 96,
+                      "amperageLimit": 96,
+                      "currentTransactionID": 0,
+                      "userID": null,
+                      "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
+                      "currentInactivityStatus": "I",
+                      "numberOfConnectedPhase": null,
+                      "currentType": null,
+                      "chargePointID": 1,
+                      "phaseAssignmentToGrid": null
                     },
-                    "ocppStandardParameters": [
-                        {
-                            "key": "AllowOfflineTxForUnknownId",
-                            "value": "true"
-                        },
-                        {
-                            "key": "AuthorizationCacheEnabled",
-                            "value": "false"
-                        },
-                        {
-                            "key": "StopTransactionOnInvalidId",
-                            "value": "true"
-                        }
-                    ],
-                    "ocppVendorParameters": [
-                        {
-                            "key": "authenticationmanager",
-                            "value": "2"
-                        },
-                        {
-                            "key": "ocppconnecttimeout",
-                            "value": "60"
-                        },
-                        {
-                            "key": "clockaligneddatainterval",
-                            "value": "0"
-                        },
-                        {
-                            "key": "metervaluessampleddata",
-                            "value": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3"
-                        },
-                        {
-                            "key": "metervaluesampleinterval",
-                            "value": "60"
-                        },
-                        {
-                            "key": "emsetting",
-                            "value": "3"
-                        },
-                        {
-                            "key": "enableevdetection",
-                            "value": "true"
-                        },
-                        {
-                            "key": "useautotimemanagment",
-                            "value": "true"
-                        },
-                        {
-                            "key": "timeservername",
-                            "value": "pool.ntp.org"
-                        },
-                        {
-                            "key": "websocketpinginterval",
-                            "value": "30"
-                        }
-                    ],
-                    "issuer": true,
-                    "chargePoints": [
-                        {
-                            "chargePointID": 1,
-                            "currentType": "AC",
-                            "voltage": null,
-                            "amperage": 192,
-                            "numberOfConnectedPhase": 3,
-                            "cannotChargeInParallel": false,
-                            "sharePowerToAllConnectors": false,
-                            "excludeFromPowerLimitation": false,
-                            "ocppParamForPowerLimitation": "maxintensitysocket",
-                            "power": 44160,
-                            "efficiency": null,
-                            "connectorIDs": [
-                                1,
-                                2
-                            ]
-                        }
-                    ],
-                    "excludeFromSmartCharging": false,
-                    "voltage": 230,
-                    "public": false,
-                    "forceInactive": false,
-                    "lastSeen": "2020-12-20T22:34:37.468Z",
-                    "inactive": true,
-                    "siteArea": {
-                        "name": "Mougins - South",
-                        "siteID": "5abeba8d4bae1457eb565e5b",
-                        "smartCharging": true,
-                        "id": "5abebb1b4bae1457eb565e98",
-                        "site": {
-                            "name": "SAP Labs Mougins",
-                            "id": "5abeba8d4bae1457eb565e5b"
-                        }
+                    {
+                      "connectorId": 2,
+                      "currentInstantWatts": 0,
+                      "currentStateOfCharge": 0,
+                      "currentTotalInactivitySecs": 0,
+                      "currentTotalConsumptionWh": 0,
+                      "currentTransactionDate": null,
+                      "currentTagID": null,
+                      "status": "Available",
+                      "errorCode": "NoError",
+                      "info": "",
+                      "vendorErrorCode": "",
+                      "power": 22080,
+                      "type": "T2",
+                      "voltage": 0,
+                      "amperage": 96,
+                      "amperageLimit": 96,
+                      "currentTransactionID": 0,
+                      "userID": null,
+                      "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
+                      "currentInactivityStatus": "I",
+                      "numberOfConnectedPhase": null,
+                      "currentType": null,
+                      "chargePointID": 1,
+                      "phaseAssignmentToGrid": null
+                    }
+                  ],
+                  "endpoint": "http://192.168.0.114:8080/",
+                  "firmwareVersion": "3.3.0.12",
+                  "lastReboot": "2020-12-08T09:06:14.948Z",
+                  "ocppVersion": "1.5",
+                  "siteAreaID": "5abebb1b4bae1457eb565e98",
+                  "chargingStationURL": "wss://sap-ev-chargebox-json-server-prod.cfapps.eu10.hana.ondemand.com",
+                  "maximumPower": 44160,
+                  "ocppProtocol": "soap",
+                  "powerLimitUnit": "A",
+                  "createdOn": "2019-03-20T07:41:57.583Z",
+                  "currentIPAddress": "37.71.38.83, 10.0.136.8",
+                  "coordinates": [
+                    7.01643370298905,
+                    43.6120451027249
+                  ],
+                  "capabilities": {
+                    "supportStaticLimitation": true,
+                    "supportChargingProfiles": true,
+                    "supportRemoteStartStopTransaction": true,
+                    "supportUnlockConnector": true,
+                    "supportReservation": false,
+                    "supportCreditCard": false,
+                    "supportRFIDCard": false
+                  },
+                  "ocppStandardParameters": [
+                    {
+                      "key": "AllowOfflineTxForUnknownId",
+                      "value": "true"
                     },
-                    "id": "SAP-Mougins-03"
+                    {
+                      "key": "AuthorizationCacheEnabled",
+                      "value": "false"
+                    },
+                    {
+                      "key": "StopTransactionOnInvalidId",
+                      "value": "true"
+                    }
+                  ],
+                  "ocppVendorParameters": [
+                    {
+                      "key": "authenticationmanager",
+                      "value": "2"
+                    },
+                    {
+                      "key": "ocppconnecttimeout",
+                      "value": "60"
+                    },
+                    {
+                      "key": "clockaligneddatainterval",
+                      "value": "0"
+                    },
+                    {
+                      "key": "metervaluessampleddata",
+                      "value": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3"
+                    },
+                    {
+                      "key": "metervaluesampleinterval",
+                      "value": "60"
+                    },
+                    {
+                      "key": "emsetting",
+                      "value": "3"
+                    },
+                    {
+                      "key": "enableevdetection",
+                      "value": "true"
+                    },
+                    {
+                      "key": "useautotimemanagment",
+                      "value": "true"
+                    },
+                    {
+                      "key": "timeservername",
+                      "value": "pool.ntp.org"
+                    },
+                    {
+                      "key": "websocketpinginterval",
+                      "value": "30"
+                    }
+                  ],
+                  "issuer": true,
+                  "chargePoints": [
+                    {
+                      "chargePointID": 1,
+                      "currentType": "AC",
+                      "voltage": null,
+                      "amperage": 192,
+                      "numberOfConnectedPhase": 3,
+                      "cannotChargeInParallel": false,
+                      "sharePowerToAllConnectors": false,
+                      "excludeFromPowerLimitation": false,
+                      "ocppParamForPowerLimitation": "maxintensitysocket",
+                      "power": 44160,
+                      "efficiency": null,
+                      "connectorIDs": [
+                        1,
+                        2
+                      ]
+                    }
+                  ],
+                  "excludeFromSmartCharging": false,
+                  "voltage": 230,
+                  "public": false,
+                  "forceInactive": false,
+                  "lastSeen": "2020-12-20T22:34:37.468Z",
+                  "inactive": true,
+                  "siteArea": {
+                    "name": "Mougins - South",
+                    "siteID": "5abeba8d4bae1457eb565e5b",
+                    "smartCharging": true,
+                    "id": "5abebb1b4bae1457eb565e98",
+                    "site": {
+                      "name": "SAP Labs Mougins",
+                      "id": "5abeba8d4bae1457eb565e5b"
+                    }
+                  },
+                  "id": "SAP-Mougins-03"
                 }
               }
             }
@@ -955,181 +961,181 @@
             "content": {
               "application/json": {
                 "example": {
-                    "chargeBoxSerialNumber": "EV.2S22P44R3N164750700100350246E2",
-                    "chargePointModel": "MONOBLOCK",
-                    "chargePointSerialNumber": "3N163730715E2S1B7551700014",
-                    "chargePointVendor": "Schneider Electric",
-                    "connectors": [
-                        {
-                            "connectorId": 1,
-                            "currentInstantWatts": 0,
-                            "currentStateOfCharge": 0,
-                            "currentTotalInactivitySecs": 0,
-                            "currentTotalConsumptionWh": 0,
-                            "currentTransactionDate": null,
-                            "currentTagID": null,
-                            "status": "Available",
-                            "errorCode": "NoError",
-                            "info": "",
-                            "vendorErrorCode": "",
-                            "power": 22080,
-                            "type": "T2",
-                            "voltage": 0,
-                            "amperage": 96,
-                            "amperageLimit": 96,
-                            "currentTransactionID": 0,
-                            "userID": null,
-                            "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
-                            "currentInactivityStatus": "I",
-                            "numberOfConnectedPhase": null,
-                            "currentType": null,
-                            "chargePointID": 1,
-                            "phaseAssignmentToGrid": null
-                        },
-                        {
-                            "connectorId": 2,
-                            "currentInstantWatts": 0,
-                            "currentStateOfCharge": 0,
-                            "currentTotalInactivitySecs": 0,
-                            "currentTotalConsumptionWh": 0,
-                            "currentTransactionDate": null,
-                            "currentTagID": null,
-                            "status": "Available",
-                            "errorCode": "NoError",
-                            "info": "",
-                            "vendorErrorCode": "",
-                            "power": 22080,
-                            "type": "T2",
-                            "voltage": 0,
-                            "amperage": 96,
-                            "amperageLimit": 96,
-                            "currentTransactionID": 0,
-                            "userID": null,
-                            "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
-                            "currentInactivityStatus": "I",
-                            "numberOfConnectedPhase": null,
-                            "currentType": null,
-                            "chargePointID": 1,
-                            "phaseAssignmentToGrid": null
-                        }
-                    ],
-                    "endpoint": "http://192.168.0.114:8080/",
-                    "firmwareVersion": "3.3.0.12",
-                    "lastReboot": "2020-12-08T09:06:14.948Z",
-                    "ocppVersion": "1.5",
-                    "siteAreaID": "5abebb1b4bae1457eb565e98",
-                    "chargingStationURL": "wss://sap-ev-chargebox-json-server-prod.cfapps.eu10.hana.ondemand.com",
-                    "maximumPower": 44160,
-                    "ocppProtocol": "soap",
-                    "powerLimitUnit": "A",
-                    "createdOn": "2019-03-20T07:41:57.583Z",
-                    "currentIPAddress": "37.71.38.83, 10.0.136.8",
-                    "coordinates": [
-                        7.01643370298905,
-                        43.6120451027249
-                    ],
-                    "capabilities": {
-                        "supportStaticLimitation": true,
-                        "supportChargingProfiles": true,
-                        "supportRemoteStartStopTransaction": true,
-                        "supportUnlockConnector": true,
-                        "supportReservation": false,
-                        "supportCreditCard": false,
-                        "supportRFIDCard": false
+                  "chargeBoxSerialNumber": "EV.2S22P44R3N164750700100350246E2",
+                  "chargePointModel": "MONOBLOCK",
+                  "chargePointSerialNumber": "3N163730715E2S1B7551700014",
+                  "chargePointVendor": "Schneider Electric",
+                  "connectors": [
+                    {
+                      "connectorId": 1,
+                      "currentInstantWatts": 0,
+                      "currentStateOfCharge": 0,
+                      "currentTotalInactivitySecs": 0,
+                      "currentTotalConsumptionWh": 0,
+                      "currentTransactionDate": null,
+                      "currentTagID": null,
+                      "status": "Available",
+                      "errorCode": "NoError",
+                      "info": "",
+                      "vendorErrorCode": "",
+                      "power": 22080,
+                      "type": "T2",
+                      "voltage": 0,
+                      "amperage": 96,
+                      "amperageLimit": 96,
+                      "currentTransactionID": 0,
+                      "userID": null,
+                      "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
+                      "currentInactivityStatus": "I",
+                      "numberOfConnectedPhase": null,
+                      "currentType": null,
+                      "chargePointID": 1,
+                      "phaseAssignmentToGrid": null
                     },
-                    "ocppStandardParameters": [
-                        {
-                            "key": "AllowOfflineTxForUnknownId",
-                            "value": "true"
-                        },
-                        {
-                            "key": "AuthorizationCacheEnabled",
-                            "value": "false"
-                        },
-                        {
-                            "key": "StopTransactionOnInvalidId",
-                            "value": "true"
-                        }
-                    ],
-                    "ocppVendorParameters": [
-                        {
-                            "key": "authenticationmanager",
-                            "value": "2"
-                        },
-                        {
-                            "key": "ocppconnecttimeout",
-                            "value": "60"
-                        },
-                        {
-                            "key": "clockaligneddatainterval",
-                            "value": "0"
-                        },
-                        {
-                            "key": "metervaluessampleddata",
-                            "value": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3"
-                        },
-                        {
-                            "key": "metervaluesampleinterval",
-                            "value": "60"
-                        },
-                        {
-                            "key": "emsetting",
-                            "value": "3"
-                        },
-                        {
-                            "key": "enableevdetection",
-                            "value": "true"
-                        },
-                        {
-                            "key": "useautotimemanagment",
-                            "value": "true"
-                        },
-                        {
-                            "key": "timeservername",
-                            "value": "pool.ntp.org"
-                        },
-                        {
-                            "key": "websocketpinginterval",
-                            "value": "30"
-                        }
-                    ],
-                    "issuer": true,
-                    "chargePoints": [
-                        {
-                            "chargePointID": 1,
-                            "currentType": "AC",
-                            "voltage": null,
-                            "amperage": 192,
-                            "numberOfConnectedPhase": 3,
-                            "cannotChargeInParallel": false,
-                            "sharePowerToAllConnectors": false,
-                            "excludeFromPowerLimitation": false,
-                            "ocppParamForPowerLimitation": "maxintensitysocket",
-                            "power": 44160,
-                            "efficiency": null,
-                            "connectorIDs": [
-                                1,
-                                2
-                            ]
-                        }
-                    ],
-                    "excludeFromSmartCharging": false,
-                    "voltage": 230,
-                    "public": false,
-                    "forceInactive": false,
-                    "lastSeen": "2020-12-20T22:34:37.468Z",
-                    "inactive": true,
-                    "siteArea": {
-                        "name": "Mougins - South",
-                        "siteID": "5abeba8d4bae1457eb565e5b",
-                        "smartCharging": true,
-                        "id": "5abebb1b4bae1457eb565e98",
-                        "site": {
-                            "name": "SAP Labs Mougins",
-                            "id": "5abeba8d4bae1457eb565e5b"
-                        }
+                    {
+                      "connectorId": 2,
+                      "currentInstantWatts": 0,
+                      "currentStateOfCharge": 0,
+                      "currentTotalInactivitySecs": 0,
+                      "currentTotalConsumptionWh": 0,
+                      "currentTransactionDate": null,
+                      "currentTagID": null,
+                      "status": "Available",
+                      "errorCode": "NoError",
+                      "info": "",
+                      "vendorErrorCode": "",
+                      "power": 22080,
+                      "type": "T2",
+                      "voltage": 0,
+                      "amperage": 96,
+                      "amperageLimit": 96,
+                      "currentTransactionID": 0,
+                      "userID": null,
+                      "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
+                      "currentInactivityStatus": "I",
+                      "numberOfConnectedPhase": null,
+                      "currentType": null,
+                      "chargePointID": 1,
+                      "phaseAssignmentToGrid": null
+                    }
+                  ],
+                  "endpoint": "http://192.168.0.114:8080/",
+                  "firmwareVersion": "3.3.0.12",
+                  "lastReboot": "2020-12-08T09:06:14.948Z",
+                  "ocppVersion": "1.5",
+                  "siteAreaID": "5abebb1b4bae1457eb565e98",
+                  "chargingStationURL": "wss://sap-ev-chargebox-json-server-prod.cfapps.eu10.hana.ondemand.com",
+                  "maximumPower": 44160,
+                  "ocppProtocol": "soap",
+                  "powerLimitUnit": "A",
+                  "createdOn": "2019-03-20T07:41:57.583Z",
+                  "currentIPAddress": "37.71.38.83, 10.0.136.8",
+                  "coordinates": [
+                    7.01643370298905,
+                    43.6120451027249
+                  ],
+                  "capabilities": {
+                    "supportStaticLimitation": true,
+                    "supportChargingProfiles": true,
+                    "supportRemoteStartStopTransaction": true,
+                    "supportUnlockConnector": true,
+                    "supportReservation": false,
+                    "supportCreditCard": false,
+                    "supportRFIDCard": false
+                  },
+                  "ocppStandardParameters": [
+                    {
+                      "key": "AllowOfflineTxForUnknownId",
+                      "value": "true"
                     },
-                    "id": "SAP-Mougins-03"
+                    {
+                      "key": "AuthorizationCacheEnabled",
+                      "value": "false"
+                    },
+                    {
+                      "key": "StopTransactionOnInvalidId",
+                      "value": "true"
+                    }
+                  ],
+                  "ocppVendorParameters": [
+                    {
+                      "key": "authenticationmanager",
+                      "value": "2"
+                    },
+                    {
+                      "key": "ocppconnecttimeout",
+                      "value": "60"
+                    },
+                    {
+                      "key": "clockaligneddatainterval",
+                      "value": "0"
+                    },
+                    {
+                      "key": "metervaluessampleddata",
+                      "value": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3"
+                    },
+                    {
+                      "key": "metervaluesampleinterval",
+                      "value": "60"
+                    },
+                    {
+                      "key": "emsetting",
+                      "value": "3"
+                    },
+                    {
+                      "key": "enableevdetection",
+                      "value": "true"
+                    },
+                    {
+                      "key": "useautotimemanagment",
+                      "value": "true"
+                    },
+                    {
+                      "key": "timeservername",
+                      "value": "pool.ntp.org"
+                    },
+                    {
+                      "key": "websocketpinginterval",
+                      "value": "30"
+                    }
+                  ],
+                  "issuer": true,
+                  "chargePoints": [
+                    {
+                      "chargePointID": 1,
+                      "currentType": "AC",
+                      "voltage": null,
+                      "amperage": 192,
+                      "numberOfConnectedPhase": 3,
+                      "cannotChargeInParallel": false,
+                      "sharePowerToAllConnectors": false,
+                      "excludeFromPowerLimitation": false,
+                      "ocppParamForPowerLimitation": "maxintensitysocket",
+                      "power": 44160,
+                      "efficiency": null,
+                      "connectorIDs": [
+                        1,
+                        2
+                      ]
+                    }
+                  ],
+                  "excludeFromSmartCharging": false,
+                  "voltage": 230,
+                  "public": false,
+                  "forceInactive": false,
+                  "lastSeen": "2020-12-20T22:34:37.468Z",
+                  "inactive": true,
+                  "siteArea": {
+                    "name": "Mougins - South",
+                    "siteID": "5abeba8d4bae1457eb565e5b",
+                    "smartCharging": true,
+                    "id": "5abebb1b4bae1457eb565e98",
+                    "site": {
+                      "name": "SAP Labs Mougins",
+                      "id": "5abeba8d4bae1457eb565e5b"
+                    }
+                  },
+                  "id": "SAP-Mougins-03"
                 }
               }
             }
@@ -1206,7 +1212,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["chargeBoxID", "type"],
+                "required": [
+                  "chargeBoxID",
+                  "type"
+                ],
                 "properties": {
                   "chargeBoxID": {
                     "type": "string"
@@ -1222,18 +1231,18 @@
                   "value": {
                     "chargeBoxID": "SAP-Mougins-03",
                     "type": "Soft"
-                    }
-                  },
-                  "hardReset": {
-                    "summary": "Hard Reset",
-                    "value": {
-                      "chargeBoxID": "SAP-Mougins-03",
-                      "type": "Hard"
-                      }
-                    }
+                  }
+                },
+                "hardReset": {
+                  "summary": "Hard Reset",
+                  "value": {
+                    "chargeBoxID": "SAP-Mougins-03",
+                    "type": "Hard"
+                  }
                 }
               }
             }
+          }
         },
         "tags": [
           "Charging Stations"
@@ -1348,13 +1357,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["configurationKey"],
+                  "required": [
+                    "configurationKey"
+                  ],
                   "properties": {
                     "configurationKey": {
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["key", "readonly"],
+                        "required": [
+                          "key",
+                          "readonly"
+                        ],
                         "properties": {
                           "key": {
                             "type": "string"
@@ -1438,7 +1452,9 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["status"],
+                  "required": [
+                    "status"
+                  ],
                   "properties": {
                     "status": {
                       "type": "string"
@@ -1517,7 +1533,9 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["status"],
+                  "required": [
+                    "status"
+                  ],
                   "properties": {
                     "status": {
                       "type": "string"
@@ -1591,7 +1609,9 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["status"],
+                  "required": [
+                    "status"
+                  ],
                   "properties": {
                     "status": {
                       "type": "string"
@@ -1631,7 +1651,7 @@
       }
     },
     "/api/chargingstations/{id}/connectors/{connectorId}/qrcode": {
-      "get": {
+      "post": {
         "security": [
           {
             "bearerAuth": []
@@ -1668,7 +1688,9 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["image"],
+                  "required": [
+                    "image"
+                  ],
                   "properties": {
                     "image": {
                       "type": "string",
@@ -1718,7 +1740,9 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["status"],
+                  "required": [
+                    "status"
+                  ],
                   "properties": {
                     "status": {
                       "type": "string"
@@ -1727,19 +1751,22 @@
                       "type": "number"
                     },
                     "scheduleStart": {
-                      "type": "object",
-                      "description": "Date"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "chargingSchedule": {
                       "type": "object",
-                      "required": ["chargingRateUnit", "chargingSchedulePeriod"],
+                      "required": [
+                        "chargingRateUnit",
+                        "chargingSchedulePeriod"
+                      ],
                       "properties": {
                         "duration": {
                           "type": "number"
                         },
                         "startSchedule": {
-                          "type": "object",
-                          "description": "Date"
+                          "type": "string",
+                          "format": "date-time"
                         },
                         "chargingRateUnit": {
                           "type": "string"
@@ -1748,7 +1775,10 @@
                           "type": "array",
                           "items": {
                             "type": "object",
-                            "required": ["startPeriod", "limit"],
+                            "required": [
+                              "startPeriod",
+                              "limit"
+                            ],
                             "properties": {
                               "startPeriod": {
                                 "type": "number"
@@ -1777,6 +1807,334 @@
           },
           "585": {
             "description": "Feature not supported"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/diagnostics": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Station diagnostics",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          },
+          {
+            "in": "path",
+            "name": "location",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "retries",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "path",
+            "name": "retryInterval",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "path",
+            "name": "startTime",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stopTime",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return charging station diagnostic filename",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "fileName"
+                  ],
+                  "properties": {
+                    "fileName": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/firmware": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update Charging Station firmware",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "location", "retrieveDate"],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "location": {
+                    "type": "string"
+                  },
+                  "retries": {
+                    "type": "number"
+                  },
+                  "retrieveDate": {
+                    "type": "string",
+                    "format": "date-time",
+                  },
+                  "retryInterval": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Firmware updated"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/availability": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update Charging Station availability",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "location", "retrieveDate"],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "connectorId": {
+                    "type": "number"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              },
+              "examples": {
+                "operative": {
+                  "summary": "Operative",
+                  "value": {
+                    "id": "SAP-Mougins-03",
+                    "connectorId": 0,
+                    "type": "Operative"
+                  }
+                },
+                "inoperative": {
+                  "summary": "Inoperative",
+                  "value": {
+                    "id": "SAP-Mougins-03",
+                    "connectorId": 0,
+                    "type": "Inoperative"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return command success status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  },
+                  "scheduled": {
+                    "summary": "Scheduled",
+                    "value": {
+                      "status": "Scheduled"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/qrcode": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update Charging Station availability",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "location", "retrieveDate"],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "connectorId": {
+                    "type": "number"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              },
+              "examples": {
+                "operative": {
+                  "summary": "Operative",
+                  "value": {
+                    "id": "SAP-Mougins-03",
+                    "connectorId": 0,
+                    "type": "Operative"
+                  }
+                },
+                "inoperative": {
+                  "summary": "Inoperative",
+                  "value": {
+                    "id": "SAP-Mougins-03",
+                    "connectorId": 0,
+                    "type": "Inoperative"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return command success status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  },
+                  "scheduled": {
+                    "summary": "Scheduled",
+                    "value": {
+                      "status": "Scheduled"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
           }
         }
       }

@@ -103,7 +103,7 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationGenerateQRCode(): void {
-    this.router.get(`/${ServerAction.REST_CHARGING_STATIONS_GENERATE_QRCODE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.post(`/${ServerAction.REST_CHARGING_STATIONS_GENERATE_QRCODE}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleGenerateQrCodeForConnector.bind(this), ServerAction.REST_CHARGING_STATIONS_GENERATE_QRCODE, req, res, next);
     });
   }

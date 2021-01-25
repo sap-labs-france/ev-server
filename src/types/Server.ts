@@ -410,7 +410,7 @@ export enum ServerAction {
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:name',
   REST_CHARGING_STATIONS_FIRMWARE = 'chargingstations/:id/firmware',
   REST_CHARGING_STATIONS_AVAILABILITY = 'chargingstations/:id/availabilty',
-  REST_CHARGING_STATIONS_DOWNLOAD_QR_CODE = 'chargingstations/:id/qrcode',
+  REST_CHARGING_STATIONS_DOWNLOAD_QR_CODE = 'chargingstations/:id/connectors/:connectorId/qrcode',
   REST_CHARGING_STATIONS_OCPP_PARAMETERS = 'chargingstations/:id/ocppparameters',
   REST_CHARGING_STATIONS_OCPP_PARAMETERS_EXPORT = 'chargingstations/:id/ocppparameters/export',
   REST_CHARGING_STATIONS_PARAMETERS = 'chargingstations/:id/parameters',
