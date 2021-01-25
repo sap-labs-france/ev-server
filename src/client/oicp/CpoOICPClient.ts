@@ -635,7 +635,8 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (requestError) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
         message: `'authorizeStart' Error: '${authorizeResponse?.StatusCode?.AdditionalInfo ? authorizeResponse?.StatusCode?.AdditionalInfo : authorizeResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
         module: MODULE_NAME, method: 'authorizeStart',
@@ -648,7 +649,8 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
         module: MODULE_NAME, method: 'authorizeStart',
         message: `User with Authorization '${tagID}' cannot ${TransactionAction.START} Transaction thought OICP protocol due to missing Authorization`,

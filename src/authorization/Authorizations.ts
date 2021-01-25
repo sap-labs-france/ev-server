@@ -13,6 +13,7 @@ import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../types/ocpi/OCPIRole';
+import { OICPAuthorizationStatus } from '../types/oicp/OICPAuthentication';
 import OICPClientFactory from '../client/oicp/OICPClientFactory';
 import { OICPDefaultTagId } from '../types/oicp/OICPIdentification';
 import { OICPRole } from '../types/oicp/OICPRole';
@@ -776,11 +777,10 @@ export default class Authorizations {
       // Check OICP User
       // OICP Active?
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-        // OICP user
-        const virtualOICPUser = await UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
-
+        // OICP user?
+        // Check if user has remote authorization
         if (tagID === OICPDefaultTagId.RemoteIdentification) {
-          return virtualOICPUser;
+          return await UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
         }
         const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
         if (!oicpClient) {
@@ -791,9 +791,11 @@ export default class Authorizations {
             message: 'OICP component requires at least one CPO endpoint to start a Session'
           });
         }
+        // Check if user is OICP roaming user and authorized
         // Call Hubject
         const response = await oicpClient.authorizeStart(tagID);
-        if (response.SessionID) {
+        if (response.AuthorizationStatus === OICPAuthorizationStatus.Authorized) {
+          const virtualOICPUser = await UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
           virtualOICPUser.authorizationID = response.SessionID;
           return virtualOICPUser;
         }

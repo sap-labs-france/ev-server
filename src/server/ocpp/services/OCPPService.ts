@@ -480,6 +480,15 @@ export default class OCPPService {
       // Check
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
         authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
+      if (!user) {
+        throw new BackendError({
+          user: user,
+          action: ServerAction.AUTHORIZE,
+          module: MODULE_NAME,
+          method: 'handleAuthorize',
+          message: 'Missing Authorization'
+        });
+      }
       // Roaming User
       if (user && !user.issuer && user.authorizationID) {
         if (chargingStation.public) {
