@@ -157,7 +157,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return result;
   }
 
-  public async authorizeToken(token: OCPIToken, chargingStation: ChargingStation): Promise<string> {
+  public async authorizeToken(token: OCPIToken, chargingStation: ChargingStation, connector: Connector): Promise<string> {
     if (chargingStation.remoteAuthorizations && chargingStation.remoteAuthorizations.length > 0) {
       for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
         if (remoteAuthorization.tagId === token.uid && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
@@ -186,7 +186,8 @@ export default class CpoOCPIClient extends OCPIClient {
     const payload: OCPILocationReference =
     {
       location_id: siteID,
-      evse_uids: OCPIUtils.buildEvseUIDs(chargingStation)
+      // Gireve does not support authorization request on multiple EVSE
+      evse_uids: [OCPIUtils.buildEvseUID(chargingStation, connector)]
     };
     // Log
     Logging.logDebug({
