@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server Error",
+  "subject": "Account Creato con Successo",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Error",
+      "title": "Account Creato",
       "image": {
         "left": {
           "height": 60,
@@ -17,20 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Ciao <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "The primary email server has failed with error <%- SMTPError %>.",
+      "Il tuo account è stato creato con successo.",
       "",
-      "Please check your configuration.",
-      ""
+      "Clicca sul collegamento sottostante per attivarlo."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Attiva il tuo Account",
+      "url": "<%- evseDashboardVerifyEmailURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

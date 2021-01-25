@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server Error",
-  "tenant": "",
+  "subject": "Sincronizzazione dell'auto non riuscita",
+  "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Error",
+      "title": "Sincronizzazione dell'auto non riuscita",
       "image": {
         "left": {
           "height": 60,
@@ -17,11 +17,9 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "The primary email server has failed with error <%- SMTPError %>.",
-      "",
-      "Please check your configuration.",
+      "Impossibile sincronizzare <%- nbrCarsInError %> auto con il fornitore servizi di veicoli elettrici.",
       ""
     ],
     "actions": [{
@@ -29,11 +27,10 @@
       "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }
   }
 }
-

@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server Error",
-  "tenant": "",
+  "subject": "Fatturazione - Sincronizzazione utente non riuscita",
+  "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Error",
+      "title": "Fatturazione - Sincronizzazione utente non riuscita",
       "image": {
         "left": {
           "height": 60,
@@ -17,23 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "The primary email server has failed with error <%- SMTPError %>.",
-      "",
-      "Please check your configuration.",
-      ""
+      "Impossibile sincronizzare <%- nbrUsersInError %> utente(i) con il fornitore di servizi di fatturazione."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Visualizza impostazioni",
+      "url": "<%- evseDashboardBillingURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }
   }
 }
-

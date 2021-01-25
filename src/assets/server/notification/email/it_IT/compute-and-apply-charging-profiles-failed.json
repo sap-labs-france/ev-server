@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server Error",
-  "tenant": "",
+  "subject": "Smart Charging - Applicazione dei profili di ricarica non riuscita",
+  "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Error",
+      "title": "Profili di ricarica non riusciti",
       "image": {
         "left": {
           "height": 60,
@@ -17,23 +17,21 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "The primary email server has failed with error <%- SMTPError %>.",
+      "Applicazione dei profili di ricarica per <strong>'<%- chargeBoxID %>'</strong> è fallita tre volte.",
       "",
-      "Please check your configuration.",
-      ""
+      "La stazione di ricarica è stata esclusa automaticamente dalla gestione della ricarica intelligente."
     ],
-    "actions": [{
+    "action": {
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
-    }],
+    },
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }
   }
 }
-

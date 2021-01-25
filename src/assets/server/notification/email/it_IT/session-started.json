@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server Error",
+  "subject": "Sessione Avviata",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Error",
+      "title": "Sessione Avviata",
       "image": {
         "left": {
           "height": 60,
@@ -17,23 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Ciao <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "The primary email server has failed with error <%- SMTPError %>.",
-      "",
-      "Please check your configuration.",
-      ""
+      "Il tuo veicolo elettrico è collegato correttamente alla stazione di ricarica <strong>'<%- chargeBoxID %>'</strong>, presa <strong>'<%- connectorId %>'</strong>."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Visualizza sessione",
+      "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
-    "footer": {
-    }
+    "footer": {}
   }
 }
 
