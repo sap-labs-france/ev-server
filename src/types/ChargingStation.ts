@@ -286,6 +286,7 @@ export enum ChargerVendor {
   BENDER = 'Bender GmbH Co. KG',
   EBEE = 'Ebee',
   EVBOX = 'EV-BOX',
+  INNOGY = 'innogy',
   IES = 'IES',
   WALLBOX_CHARGERS = 'Wall Box Chargers',
   SCHNEIDER = 'Schneider Electric',
@@ -295,5 +296,6 @@ export enum ChargerVendor {
   LEGRAND = 'Legrand',
   ATESS = 'ATESS',
   MENNEKES = 'MENNEKES',
+  KEBA = 'Keba AG',
   SAP_LABS_FRANCE = 'SAP Labs France Caen',
 }

@@ -350,8 +350,7 @@ export default class UtilsService {
     // const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
     // const numberOfConnectors = filteredRequest.connectorID === 0 ?
     //   (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
-    const maxAmpLimit = Utils.getChargingStationAmperageLimit(
-      chargingStation, chargePoint, filteredRequest.connectorID);
+    const maxAmpLimit = Utils.getChargingStationAmperageLimit(chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       // Check Min
       if (chargingSchedulePeriod.limit < 0) {
