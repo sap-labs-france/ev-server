@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server - Authentication Failed",
+  "subject": "Attivazione Account",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Authentication Error",
+      "title": "Attivazione Account",
       "image": {
         "left": {
           "height": 60,
@@ -17,20 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Ciao <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "The authentication to the primary email server has failed.",
+      "Hai avviato una richiesta per attivare il tuo account.",
       "",
-      "Please check your configuration.",
-      ""
+      "Clicca sul collegamento sottostante per completare l'attivazione."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Attiva il tuo Account",
+      "url": "<%- evseDashboardVerifyEmailURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }
