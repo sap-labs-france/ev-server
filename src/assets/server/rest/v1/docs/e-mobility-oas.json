@@ -2305,46 +2305,10 @@
           "200": {
             "description": "Return Charging Station OCPP Parameters CSV file",
             "content": {
-              "application/json": {
+              "text/csv": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "count": {
-                      "type": "number"
-                    },
-                    "result": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "key": {
-                            "type": "string"
-                          },
-                          "readonly": {
-                            "type": "boolean"
-                          },
-                          "value": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    }
-                  }
-                },
-                "example": {
-                  "count": 2,
-                  "result": [
-                    {
-                      "key": "AllowOfflineTxForUnknownId",
-                      "readonly": false,
-                      "value": "true"
-                    },
-                    {
-                      "key": "allowpluggedcable",
-                      "readonly": true,
-                      "value": "true"
-                    }
-                  ]
+                  "type": "string",
+                  "example": "Charging Station\tName\tValue\tSite Area\tSite\nSAP-Mougins-03\tAllowOfflineTxForUnknownId\ttrue\tMougins - South\tSAP Labs Mougins\nSAP-Mougins-03\tallowpluggedcable\true\tMougins - South\tSAP Labs Mougins"
                 }
               }
             }
