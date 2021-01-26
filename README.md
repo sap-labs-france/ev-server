@@ -219,7 +219,7 @@ JSON (OCPP-J):
   ]
 ```
 
-There can be several central systems with different protocols
+There can be several central systems with different protocols.
 
 ### The Central Service REST Server (CSRS)
 
