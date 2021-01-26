@@ -420,6 +420,7 @@ Here are the default delivered locales:
       "es_MX",
       "de_DE",
       "pt_PT",
+      "it_IT",
     ]
  },
 ```
