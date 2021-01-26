@@ -99,5 +99,4 @@ export interface HttpResendVerificationMailRequest {
 
 export interface HttpEulaRequest {
   Language: string;
-  tenant: string;
 }
