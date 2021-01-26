@@ -1,10 +1,10 @@
 {
-  "subject": "Server di posta elettronica principale: Autenticazione Non Riuscita",
+  "subject": "Server di posta elettronica principale: Non Riuscita",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Errore di autenticazione del server di posta elettronica",
+      "title": "Errore del server di posta elettronica",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Gentile Amministratore,",
       "",
-      "L'autenticazione al server di posta principale non è riuscita.",
+      "The primary email server has failed with error <%- SMTPError %>.",
       "",
       "Controlla la tua configurazione.",
       ""

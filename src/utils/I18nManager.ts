@@ -14,9 +14,10 @@ import i18n from 'i18n-js';
 import moment from 'moment';
 
 export default class I18nManager {
+  private static instances = new Map<string, I18nManager>(); // Tableau avec la cle en locale
   private language: string;
 
-  public constructor(locale: string) {
+  private constructor(locale: string) {
     // Get language
     this.language = Utils.getLanguageFromLocale(locale);
     // Supported languages?
@@ -24,6 +25,15 @@ export default class I18nManager {
       // Default
       this.language = Constants.DEFAULT_LANGUAGE;
     }
+  }
+
+  // Get the already existing instance of I18nManager depending on the locale if it exists otherwise we create it
+  public static getInstanceForLocale(locale: string): I18nManager {
+    if (!I18nManager.instances.has(locale)) {
+      I18nManager.instances.set(locale, new I18nManager(locale));
+    }
+
+    return I18nManager.instances.get(locale);
   }
 
   public static initialize(): void {
