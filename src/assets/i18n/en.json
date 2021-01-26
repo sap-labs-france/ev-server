@@ -1,4 +1,60 @@
 {
+  "billing": {
+    "generatedUser": "Generated user for '{{email}}'",
+    "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})",
+    "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})"
+  },
+  "chargers": {
+    "chargeBoxSN": "Charge Box S/N",
+    "chargePointSN": "Charge Point S/N",
+    "chargingStation": "Charging Station",
+    "connector": "Connector",
+    "firmwareVersion": "Firmware Version",
+    "lastReboot": "Last Reboot",
+    "lastSeen": "Last Seen",
+    "maxPower": "Maximum Power (Watt)",
+    "model": "Model",
+    "numberOfConnectors": "Number of Connectors",
+    "ocppProtocol": "OCPP Protocol",
+    "ocppVersion": "OCPP Version",
+    "powerLimitUnit": "Power Limit Unit",
+    "timezone" : "Charging Station Timezone",
+    "vendor": "Vendor"
+  },
+  "general": {
+    "changedBy": "Changed By",
+    "changedOn": "Changed On",
+    "createdOn": "Created On",
+    "date": "Date",
+    "endDate": "End Date",
+    "endTime": "End Time",
+    "invalidDate": "Invalid Date",
+    "invalidTime": "Invalid Time",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "month": "Month",
+    "name": "Name",
+    "price": "Price",
+    "priceUnit": "Price Unit",
+    "site": "Site",
+    "siteArea": "Site Area",
+    "startDate": "Start Date",
+    "startTime": "Start Time",
+    "time": "Time",
+    "value": "Value",
+    "year": "Year"
+  },
+  "loggings": {
+    "action": "Action",
+    "host": "Host",
+    "level": "Level",
+    "message": "Message",
+    "method": "Method",
+    "module": "Module",
+    "process": "Process",
+    "source": "Source",
+    "type": "Type"
+  },
   "notifications": {
     "sessionNotStarted": {
       "title": "Session Not Started",
@@ -75,20 +131,33 @@
       "body": "A new invoice ({{invoiceNumber}}) is now available"
     },
     "endUserErrorNotification": {
-      "title": "An user reported an error",
+      "title": "A User Reported an Error",
       "body": "'{{userName}}' reported: '{{errorTitle}}' - '{{errorDescription}}' in organization '{{tenantName}}'"
     }
   },
-  "billing": {
-    "generatedUser": "Generated user for '{{email}}'",
-    "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})",
-    "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})"
+  "siteArea": "Site Area",
+  "statistics": {
+    "consumption": "Consumption (kW.h)",
+    "inactivity": "Inactivity (Hours)",
+    "numberOfSessions": "Number of Sessions",
+    "usage": "Usage (Hours)"
   },
   "tags": {
     "virtualBadge": "Virtual Badge"
   },
-  "chargers": {
-    "connector": "Connector"
+  "transactions": {
+    "totalConsumption": "Total Consumption (kW.h)",
+    "totalDuration": "Total Duration (Mins)",
+    "totalInactivity": "Total Inactivity (Mins)"
   },
-  "siteArea": "Site Area"
+  "users": {
+    "email": "Email",
+    "eulaAcceptedOn": "EULA Accepted On",
+    "firstName": "First Name",
+    "id": "ID",
+    "role": "Role",
+    "status": "Status",
+    "user": "User",
+    "userID": "User ID"
+  }
 }
