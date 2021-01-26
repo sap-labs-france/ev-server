@@ -1144,8 +1144,7 @@ export default class OCPPService {
 
   private async notifyStatusNotification(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Faulted?
-    if (statusNotification.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
-        statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
+    if (statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
       // Log
       Logging.logError({
         tenantID: tenantID,
@@ -1488,13 +1487,13 @@ export default class OCPPService {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
       meterValues.values = meterValues.values.filter((meterValue) => {
         // Remove Sample Clock
-        if (meterValue.attribute && meterValue.attribute.context === 'Sample.Clock') {
+        if (meterValue.attribute && meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK) {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'filterMeterValuesOnSpecificChargingStations',
             action: ServerAction.METER_VALUES,
-            message: 'Removed Meter Value with attribute context \'Sample.Clock\'',
+            message: `Removed Meter Value with attribute context '${OCPPReadingContext.SAMPLE_CLOCK}'`,
             detailedMessages: { meterValue }
           });
           return false;

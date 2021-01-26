@@ -1,6 +1,6 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -20,12 +20,15 @@ import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
 import UserToken from '../types/UserToken';
+import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import cfenv from 'cfenv';
 import crypto from 'crypto';
 import fs from 'fs';
 import http from 'http';
 import moment from 'moment';
+import os from 'os';
 import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
@@ -197,7 +200,7 @@ export default class Utils {
     return uuid();
   }
 
-  static generateTagID(name: string, firstName: string): string {
+  public static generateTagID(name: string, firstName: string): string {
     let tagID = '';
     if (name && name.length > 0) {
       tagID = name[0].toUpperCase();
@@ -222,6 +225,11 @@ export default class Utils {
 
   public static isUndefined(obj: any): boolean {
     return typeof obj === 'undefined';
+  }
+
+  public static isNullOrUndefined(obj: any): boolean {
+    // eslint-disable-next-line no-eq-null, eqeqeq
+    return obj == null;
   }
 
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
@@ -321,6 +329,8 @@ export default class Utils {
       return 'de_DE';
     } else if (language === 'pt') {
       return 'pt_PT';
+    } else if (language === 'it') {
+      return 'it_IT';
     }
     return Constants.DEFAULT_LOCALE;
   }
@@ -334,6 +344,26 @@ export default class Utils {
       case ConnectorCurrentLimitSource.STATIC_LIMITATION:
         return 'Static Limitation';
     }
+  }
+
+  public static getWebSocketCloseEventStatusString(code: number): string {
+    if (code >= 0 && code <= 999) {
+      return '(Unused)';
+    } else if (code >= 1016) {
+      if (code <= 1999) {
+        return '(For WebSocket standard)';
+      } else if (code <= 2999) {
+        return '(For WebSocket extensions)';
+      } else if (code <= 3999) {
+        return '(For libraries and frameworks)';
+      } else if (code <= 4999) {
+        return '(For applications)';
+      }
+    }
+    if (!Utils.isUndefined(WebSocketCloseEventStatusString[code])) {
+      return WebSocketCloseEventStatusString[code];
+    }
+    return '(Unknown)';
   }
 
   public static convertToBoolean(value: any): boolean {
@@ -739,7 +769,7 @@ export default class Utils {
     return Math.round(totalAmps / numberOfConnectedPhases);
   }
 
-  public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
+  public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
     let amperageLimit = 0;
     if (chargingStation) {
       if (connectorId > 0) {
@@ -888,22 +918,41 @@ export default class Utils {
 
   public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
     let ocppUrl: string;
-    const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
-    switch (ocppProtocol) {
-      case OCPPProtocol.JSON:
-        ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
-        if (token) {
-          ocppUrl += `/${token}`;
-        }
-        return ocppUrl;
-      case OCPPProtocol.SOAP:
-      default:
-        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
-        if (token) {
-          ocppUrl += `%26Token=${token}`;
-        }
-        return ocppUrl;
+    if (Configuration.getJsonEndpointConfig().baseUrl && ocppProtocol === OCPPProtocol.JSON) {
+      ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
+      if (token) {
+        ocppUrl += `/${token}`;
+      }
+    } else if (Configuration.getWSDLEndpointConfig()?.baseUrl && ocppProtocol === OCPPProtocol.SOAP) {
+      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
+      if (token) {
+        ocppUrl += `%26Token=${token}`;
+      }
     }
+    return ocppUrl;
+  }
+
+  public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
+    let ocppUrl: string;
+    if (Configuration.getJsonEndpointConfig().baseSecureUrl && ocppProtocol === OCPPProtocol.JSON) {
+      ocppUrl = `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
+      if (token) {
+        ocppUrl += `/${token}`;
+      }
+    } else if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl && ocppProtocol === OCPPProtocol.SOAP) {
+      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
+      if (token) {
+        ocppUrl += `%26Token=${token}`;
+      }
+    }
+    return ocppUrl;
+  }
+
+  public static getOCPPServerVersionURLPath(ocppVersion: OCPPVersion): string {
+    if (!Utils.isUndefined(OCPPVersionURLPath[ocppVersion])) {
+      return OCPPVersionURLPath[ocppVersion];
+    }
+    return 'UNKNOWN';
   }
 
   public static buildEvseTagURL(tenantSubdomain: string, tag: Tag): string {
@@ -1292,5 +1341,9 @@ export default class Utils {
 
   public static isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
+  }
+
+  public static getHostname(): string {
+    return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 }

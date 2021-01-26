@@ -35,7 +35,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 const MODULE_NAME = 'TransactionService';
 
@@ -534,7 +534,7 @@ export default class TransactionService {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
         req.user.tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT, [
           // TODO: To remove the 'date' when new version of Mobile App will be released (> V1.3.22)
-          'date', 'startedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'date', 'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
           'stateOfCharge', 'limitWatts', 'limitAmps',
           'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
           'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
@@ -848,7 +848,7 @@ export default class TransactionService {
     let csv = '';
     // Header
     if (writeHeader) {
-      csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}Start Time${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}End Time${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+      csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Charging station timezone${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}Start Time${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}End Time${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
     }
     // Content
     for (const transaction of transactions) {
@@ -857,10 +857,11 @@ export default class TransactionService {
       csv += `${transaction.connectorId}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.user ? Cypher.hash(transaction.user.id) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.user ? Utils.buildUserFullName(transaction.user, false) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${moment(transaction.timestamp).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      csv += `${moment(transaction.timestamp).format('HH:mm:ss')}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${moment(transaction.stop.timestamp).format('YYYY-MM-DD')}` : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${moment(transaction.stop.timestamp).format('HH:mm:ss')}` : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.timezone || 'N/A (UTC by default)'}` + Constants.CSV_SEPARATOR;
+      csv += `${(transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
+      csv += `${(transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss')}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? `${(transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD')}` : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? `${(transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss')}` : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
@@ -938,10 +939,9 @@ export default class TransactionService {
     // Delete All Transactions
     result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
     // Log
-    // Log
     Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,
-      MODULE_NAME, 'synchronizeCarCatalogs', result,
+      MODULE_NAME, 'deleteTransactions', result,
       '{{inSuccess}} transaction(s) were successfully deleted',
       '{{inError}} transaction(s) failed to be deleted',
       '{{inSuccess}} transaction(s) were successfully deleted and {{inError}} failed to be deleted',

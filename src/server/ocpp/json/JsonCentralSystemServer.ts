@@ -8,8 +8,11 @@ import Constants from '../../../utils/Constants';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
 import Logging from '../../../utils/Logging';
+import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
+import Utils from '../../../utils/Utils';
 import WSServer from './WSServer';
+import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 import global from '../../../types/GlobalType';
 import http from 'http';
 
@@ -96,7 +99,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private createWSServer() {
     const verifyClient = (info) => {
       // Check the URI
-      if (info.req.url.startsWith('/OCPP16')) {
+      if (info.req.url.startsWith(`/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`)) {
         return true;
       }
       if (info.req.url.startsWith('/REST')) {
@@ -149,7 +152,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.initialize();
           // Add
           this.addRestConnection(wsConnection);
-        } else if (req.url.startsWith('/OCPP16')) {
+        } else if (req.url.startsWith(`/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`)) {
           // Create a Json WebSocket connection object
           const wsConnection = new JsonWSConnection(ws, req, this.chargingStationConfig, this);
           // Init
@@ -164,7 +167,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         Logging.logException(
           error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
-        ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
+        ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
       }
     });
     // Keep alive WebSocket connection

@@ -19,6 +19,10 @@ export default class TagSecurity {
     return filteredRequest;
   }
 
+  public static filterTagRequestByIDs(request: any): string[] {
+    return request.tagsIDs.map(sanitize);
+  }
+
   public static filterTagUpdateRequest(request: any, loggedUser: UserToken): Partial<Tag> {
     return TagSecurity.filterTagRequest(request, loggedUser);
   }

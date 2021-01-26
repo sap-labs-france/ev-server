@@ -32,7 +32,7 @@ export interface Configuration {
   CentralSystems: CentralSystemConfiguration[];
   CentralSystemRestService: CentralSystemRestServiceConfiguration;
   CentralSystemFrontEnd: CentralSystemFrontEndConfiguration;
-  WSDLEndpoint: WSDLEndpointConfiguration;
+  WSDLEndpoint?: WSDLEndpointConfiguration;
   JsonEndpoint: JsonEndpointConfiguration;
   OCPIEndpoint: OCPIEndpointConfiguration;
   WSClient: WSClientConfiguration;
