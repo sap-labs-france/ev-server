@@ -13,11 +13,11 @@ import https from 'https';
 const MODULE_NAME = 'WSServer';
 
 export default class WSServer extends WebSocket.Server {
+  private static hasWebSocketSecure: boolean;
   private port: number;
   private hostname: string;
   private serverName: string;
   private httpServer: http.Server;
-  private hasWebSocketSecure: boolean;
 
   public constructor(port: number, hostname: string, serverName: string, httpServer: http.Server,
     verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = ():
@@ -32,7 +32,7 @@ export default class WSServer extends WebSocket.Server {
     this.hostname = hostname;
     this.serverName = serverName;
     this.httpServer = httpServer;
-    this.hasWebSocketSecure = false;
+    WSServer.hasWebSocketSecure = false;
   }
 
   public static createHttpServer(serverConfig: CentralSystemServerConfiguration): http.Server {
@@ -40,6 +40,7 @@ export default class WSServer extends WebSocket.Server {
     let httpServer: http.Server;
     // Secured protocol?
     if (serverConfig.protocol === 'wss') {
+      WSServer.hasWebSocketSecure = true;
       // Create the options
       const options: https.ServerOptions = {};
       // Set the keys
@@ -86,7 +87,7 @@ export default class WSServer extends WebSocket.Server {
     // Start listening
     this.httpServer.listen(this.port, this.hostname, (): void => {
       // Log
-      const logMsg = `${this.serverName} Json ${MODULE_NAME} listening on '${this.hasWebSocketSecure ? 'wss' : 'ws'}://${(this.httpServer.address() as AddressInfo).address}:${(this.httpServer.address() as AddressInfo).port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
+      const logMsg = `${this.serverName} Json ${MODULE_NAME} listening on '${WSServer.hasWebSocketSecure ? 'wss' : 'ws'}://${(this.httpServer.address() as AddressInfo).address}:${(this.httpServer.address() as AddressInfo).port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
