@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server - Authentication Failed",
+  "subject": "OCPI - Aggiornamento degli stati della stazione di ricarica non riuscito",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Authentication Error",
+      "title": "Aggiornamento degli stati della stazione di ricarica non riuscito",
       "image": {
         "left": {
           "height": 60,
@@ -17,11 +17,11 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "The authentication to the primary email server has failed.",
+      "Il trasferimento degli stati della stazione di ricarica non è riuscito nella posizione <strong>'<%- location %>'</strong>.",
       "",
-      "Please check your configuration.",
+      "Verifica i log.",
       ""
     ],
     "actions": [{
@@ -29,8 +29,8 @@
       "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }

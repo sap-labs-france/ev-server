@@ -459,13 +459,13 @@ export default class ChargingStationService {
     // Check ConnectorID
     UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Get the Charging Station`
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found ChargingStation ?
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Found Connector ?
-    UtilsService.assertObjectExists(action, chargingStation.connectors.find((connector) => connector.connectorId === filteredRequest.ConnectorID),
-      `Connector '${filteredRequest.ConnectorID}' does not exist`,
+    UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.ConnectorID),
+      `Connector ID '${filteredRequest.ConnectorID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     const chargingStationQRCode: ChargingStationQRCode = {
       chargingStationID: filteredRequest.ChargeBoxID,
@@ -1227,9 +1227,8 @@ export default class ChargingStationService {
     }
     // Check authorization for each connectors
     for (let index = 0; index < chargingStation.connectors.length; index++) {
-      const foundConnector = chargingStation.connectors.find(
-        (connector) => connector.connectorId === index + 1);
-      if (foundConnector.currentTransactionID > 0) {
+      const foundConnector = Utils.getConnectorFromID(chargingStation, index + 1);
+      if (foundConnector?.currentTransactionID > 0) {
         const transaction = await TransactionStorage.getTransaction(user.tenantID, foundConnector.currentTransactionID);
         results.push({
           'isStartAuthorized': false,
