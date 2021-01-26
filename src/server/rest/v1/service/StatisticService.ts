@@ -7,6 +7,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
+import I18nManager from '../../../../utils/I18nManager';
 import { ServerAction } from '../../../../types/Server';
 import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
@@ -473,36 +474,38 @@ export default class StatisticService {
   static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string): string {
     let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false);
+    const i18nManager = I18nManager.getInstanceForLocale(loggedUser.locale);
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }
     let csv: string;
     if (dataCategory === 'C') {
-      csv = 'Charging Station' + Constants.CSV_SEPARATOR;
+      csv = i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
     } else {
-      csv = 'User' + Constants.CSV_SEPARATOR;
+      csv = i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
     }
     if (year && year !== '0') {
-      csv += 'Year' + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.year') + Constants.CSV_SEPARATOR;
       if (dataScope && dataScope === 'month') {
-        csv += 'Month' + Constants.CSV_SEPARATOR;
+        csv += i18nManager.translate('general.month') + Constants.CSV_SEPARATOR;
       }
     }
     switch (dataType) {
       case 'Consumption':
-        csv += 'Consumption (kW.h)\r\n';
+        csv += i18nManager.translate('statistics.consumption') + '\r\n';
         break;
       case 'Usage':
-        csv += 'Usage (Hours)\r\n';
+        csv += i18nManager.translate('statistics.usage') + '\r\n';
         break;
       case 'Inactivity':
-        csv += 'Inactivity (Hours)\r\n';
+        csv += i18nManager.translate('statistics.inactivity') + '\r\n';
         break;
       case 'Transactions':
-        csv += 'Number of Sessions\r\n';
+        csv += i18nManager.translate('statistics.numberOfSessions') + '\r\n';
         break;
       case 'Pricing':
-        csv += 'Price' + Constants.CSV_SEPARATOR + 'Price Unit\r\n';
+        csv += i18nManager.translate('general.price') + Constants.CSV_SEPARATOR;
+        csv += i18nManager.translate('general.priceUnit') + '\r\n';
         break;
       default:
         return csv;
@@ -640,17 +643,16 @@ export default class StatisticService {
       // Now build the export file
       let number: number;
       for (transaction of transactions) {
-        csv += (dataCategory === 'C') ? `${transaction._id.chargeBox}` + Constants.CSV_SEPARATOR :
-          `${Utils.buildUserFullName(transaction.user, false)}` + Constants.CSV_SEPARATOR;
-        csv += (year && year !== '0') ? `${year}` + Constants.CSV_SEPARATOR : '';
-        csv += (transaction._id.month > 0) ? `${transaction._id.month}` + Constants.CSV_SEPARATOR : '';
+        csv += (dataCategory === 'C') ? transaction._id.chargeBox + Constants.CSV_SEPARATOR : Utils.buildUserFullName(transaction.user, false) + Constants.CSV_SEPARATOR;
+        csv += (year && year !== '0') ? year + Constants.CSV_SEPARATOR : '';
+        csv += (transaction._id.month > 0) ? transaction._id.month + Constants.CSV_SEPARATOR : '';
         number = Utils.truncTo(transaction.total, 2);
         // Use raw numbers - it makes no sense to format numbers here,
         // anyway only locale 'en-US' is supported here as could be seen by:
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
         if (dataType === 'Pricing') {
           if (transaction._id.unit) {
-            csv += number.toString() + Constants.CSV_SEPARATOR + `${transaction._id.unit}` + '\r\n';
+            csv += number.toString() + Constants.CSV_SEPARATOR + transaction._id.unit + '\r\n';
           } else {
             csv += number.toString() + Constants.CSV_SEPARATOR + ' ' + '\r\n';
           }
