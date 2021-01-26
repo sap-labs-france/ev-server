@@ -7,6 +7,7 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import Constants from '../../../../utils/Constants';
 import { DataResult } from '../../../../types/DataResult';
 import { HTTPAuthError } from '../../../../types/HTTPError';
+import I18nManager from '../../../../utils/I18nManager';
 import { Log } from '../../../../types/Log';
 import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
@@ -56,23 +57,34 @@ export default class LoggingService {
 
   private static convertToCSV(req: Request, loggings: Log[], writeHeader = true): string {
     let csv = '';
+    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = `Date${Constants.CSV_SEPARATOR}Time${Constants.CSV_SEPARATOR}Level${Constants.CSV_SEPARATOR}Type${Constants.CSV_SEPARATOR}Action${Constants.CSV_SEPARATOR}Message${Constants.CSV_SEPARATOR}Method${Constants.CSV_SEPARATOR}Module${Constants.CSV_SEPARATOR}Source${Constants.CSV_SEPARATOR}Host${Constants.CSV_SEPARATOR}Process\r\n`;
+      csv = i18nManager.translate('general.date') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.time') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('loggings.level') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('loggings.type') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('loggings.action') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('loggings.message') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('loggings.method') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('loggings.module') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('loggings.source') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('loggings.host') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('loggings.process') + '\r\n';
     }
     // Content
     for (const log of loggings) {
-      csv += `${moment(log.timestamp).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      csv += `${moment(log.timestamp).format('HH:mm:ss')}` + Constants.CSV_SEPARATOR;
-      csv += `${log.level}` + Constants.CSV_SEPARATOR;
-      csv += `${log.type}` + Constants.CSV_SEPARATOR;
-      csv += `${log.action}` + Constants.CSV_SEPARATOR;
-      csv += `${log.message}` + Constants.CSV_SEPARATOR;
-      csv += `${log.method}` + Constants.CSV_SEPARATOR;
-      csv += `${log.module}` + Constants.CSV_SEPARATOR;
-      csv += `${log.source}` + Constants.CSV_SEPARATOR;
-      csv += `${log.host}` + Constants.CSV_SEPARATOR;
-      csv += `${log.process}\r\n`;
+      csv += moment(log.timestamp).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
+      csv += moment(log.timestamp).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
+      csv += log.level + Constants.CSV_SEPARATOR;
+      csv += log.type + Constants.CSV_SEPARATOR;
+      csv += log.action + Constants.CSV_SEPARATOR;
+      csv += log.message + Constants.CSV_SEPARATOR;
+      csv += log.method + Constants.CSV_SEPARATOR;
+      csv += log.module + Constants.CSV_SEPARATOR;
+      csv += log.source + Constants.CSV_SEPARATOR;
+      csv += log.host + Constants.CSV_SEPARATOR;
+      csv += log.process + '\r\n';
     }
     return csv;
   }
@@ -129,7 +141,7 @@ export default class LoggingService {
       onlyRecordCount: filteredRequest.OnlyRecordCount
     }, [
       'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
-      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages'
+      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
     ]);
     return loggings;
   }
