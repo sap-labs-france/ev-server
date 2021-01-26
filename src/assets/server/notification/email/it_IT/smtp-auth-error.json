@@ -1,0 +1,39 @@
+{
+  "subject": "Server di posta elettronica principale: Autenticazione Non Riuscita",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Errore di autenticazione del server di posta elettronica",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Gentile Amministratore,",
+      "",
+      "L'autenticazione al server di posta principale non è riuscita.",
+      "",
+      "Controlla la tua configurazione.",
+      ""
+    ],
+    "actions": [{
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    }],
+    "afterActionLines": [
+      "Cordiali Saluti,",
+      "Amministratori EV."
+    ],
+    "footer": {
+    }
+  }
+}
+

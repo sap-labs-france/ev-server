@@ -329,6 +329,8 @@ export default class Utils {
       return 'de_DE';
     } else if (language === 'pt') {
       return 'pt_PT';
+    } else if (language === 'it') {
+      return 'it_IT';
     }
     return Constants.DEFAULT_LOCALE;
   }
@@ -767,7 +769,7 @@ export default class Utils {
     return Math.round(totalAmps / numberOfConnectedPhases);
   }
 
-  public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
+  public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
     let amperageLimit = 0;
     if (chargingStation) {
       if (connectorId > 0) {

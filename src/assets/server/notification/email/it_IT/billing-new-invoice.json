@@ -1,0 +1,38 @@
+{
+  "subject": "Fatturazione - Nuova fattura",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Fatturazione - Nuova fattura",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Gentile <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "È disponibile una nuova fattura: <%- invoice.number %>."
+    ],
+    "actions": [{
+      "title": "Consultare",
+      "url": "<%- evseDashboardInvoiceURL %>"
+    }, {
+      "title": "Download",
+      "url": "<%- invoiceDownloadUrl %>"
+    }],
+    "afterActionLines": [
+      "Cordiali Saluti,",
+      "Amministratori EV."
+    ],
+    "footer": {
+    }
+  }
+}
