@@ -519,7 +519,7 @@ export default class TransactionService {
     }
     // Check Dates
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime &&
-        moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
+      moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -533,7 +533,7 @@ export default class TransactionService {
     if (filteredRequest.LoadAllConsumptions) {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
         req.user.tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT, [
-          // TODO: To remove the 'date' when new version of Mobile App will be released (> V1.3.22)
+        // TODO: To remove the 'date' when new version of Mobile App will be released (> V1.3.22)
           'date', 'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
           'stateOfCharge', 'limitWatts', 'limitAmps',
           'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
@@ -545,7 +545,7 @@ export default class TransactionService {
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(
         req.user.tenantID, { transactionId: transaction.id }, [
-          // TODO: To remove the 'consumptions.date' when new version of Mobile App will be released (> V1.3.22)
+        // TODO: To remove the 'consumptions.date' when new version of Mobile App will be released (> V1.3.22)
           'consumptions.date', 'consumptions.startedAt', 'consumptions.cumulatedConsumptionWh', 'consumptions.cumulatedConsumptionAmps', 'consumptions.cumulatedAmount',
           'consumptions.stateOfCharge', 'consumptions.limitWatts', 'consumptions.limitAmps', 'consumptions.startedAt', 'consumptions.endedAt',
           'consumptions.instantVoltsDC', 'consumptions.instantVolts', 'consumptions.instantVoltsL1', 'consumptions.instantVoltsL2', 'consumptions.instantVoltsL3',
@@ -682,7 +682,7 @@ export default class TransactionService {
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID' ];
+      userProject = ['userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'];
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
@@ -706,7 +706,7 @@ export default class TransactionService {
       sort: filteredRequest.Sort,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    [ 'id', ...userProject ]);
+    ['id', ...userProject]);
     // Return
     res.json(reports);
     next();
@@ -792,50 +792,20 @@ export default class TransactionService {
     const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
-    // For only charging station in e-Mobility (not the ones from the roaming)
-    filter.issuer = true;
-    if (filteredRequest.ChargeBoxID) {
-      filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
-    }
-    if (filteredRequest.UserID) {
-      filter.userIDs = filteredRequest.UserID.split('|');
-    }
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
-      if (filteredRequest.SiteAreaID) {
-        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-      }
-      filter.siteIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
-    }
-    // Date
-    if (filteredRequest.StartDateTime) {
-      filter.startDateTime = filteredRequest.StartDateTime;
-    }
-    if (filteredRequest.EndDateTime) {
-      filter.endDateTime = filteredRequest.EndDateTime;
-    }
-    if (filteredRequest.ErrorType) {
-      filter.errorType = filteredRequest.ErrorType.split('|');
-    } else {
-      const types = [
-        TransactionInErrorType.LONG_INACTIVITY,
-        TransactionInErrorType.NEGATIVE_ACTIVITY,
-        TransactionInErrorType.NEGATIVE_DURATION,
-        // TransactionInErrorType.OVER_CONSUMPTION,
-        TransactionInErrorType.INVALID_START_DATE,
-        TransactionInErrorType.NO_CONSUMPTION,
-        TransactionInErrorType.MISSING_USER
-      ];
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
-        types.push(TransactionInErrorType.MISSING_PRICE);
-      }
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-        types.push(TransactionInErrorType.NO_BILLING_DATA);
-      }
-      filter.errorType = types;
-    }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-      { ...filter, search: filteredRequest.Search }, [
+      {
+        ...filter, search: filteredRequest.Search,
+        issuer: true,
+        errorType: filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : UtilsService.getTransactionInErrorTypes(req.user),
+        endDateTime: filteredRequest.EndDateTime,
+        startDateTime: filteredRequest.StartDateTime,
+        chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
+        siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
+      }, [
         'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
         'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
       ]);
@@ -905,7 +875,7 @@ export default class TransactionService {
           action: action,
           detailedMessages: { transaction }
         });
-      // Billed
+        // Billed
       } else if (billingImpl && transaction.billingData && transaction.billingData.invoiceID) {
         result.inError++;
         Logging.logError({
@@ -916,7 +886,7 @@ export default class TransactionService {
           action: action,
           detailedMessages: { transaction }
         });
-      // Transaction in progress
+        // Transaction in progress
       } else if (!transaction.stop) {
         if (!transaction.chargeBox) {
           transactionsIDsToDelete.push(transactionID);
@@ -931,7 +901,7 @@ export default class TransactionService {
           // To Delete
           transactionsIDsToDelete.push(transactionID);
         }
-      // Ok
+        // Ok
       } else {
         transactionsIDsToDelete.push(transactionID);
       }
@@ -1011,7 +981,7 @@ export default class TransactionService {
         statistics: filteredRequest.Statistics ? filteredRequest.Statistics : null,
         search: filteredRequest.Search ? filteredRequest.Search : null,
         reportIDs: filteredRequest.ReportIDs ? filteredRequest.ReportIDs.split('|') : null,
-        connectorId: filteredRequest.ConnectorId ? filteredRequest.ConnectorId : null,
+        connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
         inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },

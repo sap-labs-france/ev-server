@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server - Authentication Failed",
-  "tenant": "",
+  "subject": "Fatturazione - Sincronizzazione fatture non riuscita",
+  "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Authentication Error",
+      "title": "Fatturazione - Sincronizzazione fatture non riuscita",
       "image": {
         "left": {
           "height": 60,
@@ -17,23 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "The authentication to the primary email server has failed.",
-      "",
-      "Please check your configuration.",
-      ""
+      "Impossibile sincronizzare <%- nbrInvoicesInError %> fatture con il fornitore di servizi di fatturazione."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Visualizza impostazioni",
+      "url": "<%- evseDashboardBillingURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }
   }
 }
-

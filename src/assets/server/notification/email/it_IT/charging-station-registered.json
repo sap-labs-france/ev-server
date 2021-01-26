@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server - Authentication Failed",
+  "subject": "'<%- chargeBoxID %>' appena Collegata",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Authentication Error",
+      "title": "Stazione di ricarica collegata",
       "image": {
         "left": {
           "height": 60,
@@ -17,23 +17,19 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "The authentication to the primary email server has failed.",
-      "",
-      "Please check your configuration.",
-      ""
+      "La Stazione di Ricarica <strong>'<%- chargeBoxID %>'</strong> si è appena collegata al server centrale."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "View <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }
   }
 }
-

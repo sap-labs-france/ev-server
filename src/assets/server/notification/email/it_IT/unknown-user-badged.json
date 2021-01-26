@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server - Authentication Failed",
+  "subject": "'<%- chargeBoxID %>' - Badge utente sconosciuto",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Authentication Error",
+      "title": "Badge utente sconosciuto",
       "image": {
         "left": {
           "height": 60,
@@ -17,20 +17,17 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Gentile Amministratore,",
       "",
-      "The authentication to the primary email server has failed.",
-      "",
-      "Please check your configuration.",
-      ""
+      "Un utente sconosciuto ha appena usato un badge su <strong>'<%- chargeBoxID %>'</strong> con ID Badge <strong>'<%- badgeID %>'</strong>."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Modifica Badge",
+      "url": "<%- evseDashboardTagURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
-      "EV Admins."
+      "Cordiali Saluti,",
+      "Amministratori EV."
     ],
     "footer": {
     }
