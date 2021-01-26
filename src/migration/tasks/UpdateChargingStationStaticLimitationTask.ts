@@ -51,8 +51,7 @@ export default class UpdateChargingStationStaticLimitationTask extends Migration
             const amperageChargePointMax = Utils.getChargingStationAmperage(chargingStation, chargePoint);
             try {
               // Call the limitation
-              const result = await chargingStationVendor.setStaticPowerLimitation(tenant.id, chargingStation,
-                chargePoint, amperageChargePointMax);
+              const result = await chargingStationVendor.setStaticPowerLimitation(tenant.id, chargingStation, chargePoint, amperageChargePointMax);
               if (result.status === OCPPConfigurationStatus.ACCEPTED || result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
                 chargePointUpdated = true;
                 updated++;
