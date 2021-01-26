@@ -183,7 +183,7 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationTransactions(): void {
-    this.router.put(`/${ServerAction.REST_CHARGING_STATIONS_TRANSACTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerAction.REST_CHARGING_STATIONS_TRANSACTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TransactionService.handleGetChargingStationTransactions.bind(this), ServerAction.REST_CHARGING_STATIONS_TRANSACTIONS, req, res, next);
     });
   }

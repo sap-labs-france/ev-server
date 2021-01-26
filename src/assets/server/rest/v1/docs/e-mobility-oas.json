@@ -78,13 +78,7 @@
         ],
         "parameters": [
           {
-            "in": "query",
-            "name": "Search",
-            "description": "Search on common Tenant's fields",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/Search"
           },
           {
             "in": "query",
@@ -636,11 +630,7 @@
             }
           },
           {
-            "in": "query",
-            "name": "Search",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/Search"
           },
           {
             "in": "query",
@@ -1871,7 +1861,7 @@
             "$ref": "#/components/responses/500BackendError"
           },
           "585": {
-            "description": "Feature not supported"
+            "$ref": "#/components/responses/NotSupportedError"
           }
         }
       }
@@ -2321,6 +2311,308 @@
           }
         }
       }
+    },
+    "/api/chargingstations/parameters": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update Charging Station parameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "SAP-Mougins-03"
+                  },
+                  "maximumPower": {
+                    "type": "string"
+                  },
+                  "excludeFromSmartCharging": {
+                    "type": "string"
+                  },
+                  "forceInactive": {
+                    "type": "boolean"
+                  },
+                  "public": {
+                    "type": "boolean"
+                  },
+                  "siteAreaID": {
+                    "type": "string",
+                    "example": "5abebb014bae1457eb565e85"
+                  },
+                  "coordinates": {
+                    "$ref": "#/components/schemas/Address/properties/coordinates"
+                  },
+                  "connectors": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Connector"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated Charging Station parameters with success"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "539": {
+            "description": "Site area is single phased."
+          }
+        }
+      }
+    },
+    "/api/chargingstations/power/limit": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Limit Charging Station power",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "chargeBoxID",
+                  "chargePointID",
+                  "ampLimitValue",
+                  "forceUpdateChargingPlan"
+                ],
+                "properties": {
+                  "chargeBoxID": {
+                    "type": "string",
+                    "example": "SAP-Mougins-03"
+                  },
+                  "chargePointID": {
+                    "type": "string"
+                  },
+                  "ampLimitValue": {
+                    "type": "number"
+                  },
+                  "forceUpdateChargingPlan": {
+                    "type": "boolean",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated Charging Station power limit with success"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "556": {
+            "description": "Cannot set the limit power to the given value"
+          },
+          "585": {
+            "$ref": "#/components/responses/NotSupportedError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/transactions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Station transactions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Issuer",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ChargeBoxID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "StartDateTime",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "EndDateTime",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "TagID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteAreaID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Search",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/parameters/Search"
+            }
+          },
+          {
+            "in": "query",
+            "name": "InactivityStatus",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "RefundStatus",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "MinimalPrice",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Statistics",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "UserID",
+            "required": false,
+            "description": "Pipe separated IDs",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ReportIDs",
+            "required": false,
+            "description": "Pipe separated IDs",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Skip",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/parameters/Skip"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Limit",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/parameters/Limit"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SortFields",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/parameters/SortFields"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Charging Station transactions list"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2340,6 +2632,9 @@
       },
       "NoBadgeError": {
         "description": "User doesn't have any badge"
+      },
+      "NotSupportedError": {
+        "description": "Feature not supported"
       }
     },
     "schemas": {
@@ -2711,6 +3006,50 @@
             }
           }
         }
+      },
+      "Connector": {
+        "type": "object",
+        "properties": {
+          "connectorId": {
+            "type": "number",
+            "example": 1
+          },
+          "power": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string"
+          },
+          "voltage": {
+            "type": "number"
+          },
+          "amperage": {
+            "type": "number"
+          },
+          "currentType": {
+            "type": "string"
+          },
+          "numberOfConnectedPhase": {
+            "type": "number"
+          },
+          "phaseAssignmentToGrid": {
+            "type": "object",
+            "properties": {
+              "csPhaseL1": {
+                "type": "string",
+                "example": "L1"
+              },
+              "csPhaseL2": {
+                "type": "string",
+                "example": "L2"
+              },
+              "csPhaseL3": {
+                "type": "string",
+                "example": "L3"
+              }
+            }
+          }
+        }
       }
     },
     "parameters": {
@@ -2739,6 +3078,15 @@
         "name": "SortFields",
         "description": "Sorted fields",
         "example": "id",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Search": {
+        "in": "query",
+        "name": "Search",
+        "description": "Search",
         "required": false,
         "schema": {
           "type": "string"
