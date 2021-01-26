@@ -147,7 +147,7 @@ describe('Authentication Service (tenant utall)', function() {
     });
 
     it('Should be possible to retrieve tenant EULA', async () => {
-      const response = await CentralServerService.defaultInstance.authenticationApi.getTenantEula('');
+      const response = await CentralServerService.defaultInstance.authenticationApi.getEula('');
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('text');

@@ -570,7 +570,7 @@ export default class AuthService {
       });
     }
     // Get it
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, filteredRequest.Language);
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(Constants.DEFAULT_TENANT, filteredRequest.Language);
     res.json(endUserLicenseAgreement);
     next();
   }

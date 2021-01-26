@@ -106,8 +106,7 @@ export default class AuthenticationApi {
     return response;
   }
 
-  public async getTenantEula(tenant = '', language?: string) {
-    const data = { tenant, language };
+  public async getEula(language?: string) {
     // Send
     const response = await this._baseApi.send({
       method: 'GET',
@@ -115,7 +114,7 @@ export default class AuthenticationApi {
       headers: {
         'Content-Type': 'application/json'
       },
-      data: data
+      data: { language }
     });
     return response;
   }

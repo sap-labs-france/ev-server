@@ -450,16 +450,6 @@
         "parameters": [
           {
             "in": "query",
-            "name": "Tenant",
-            "description": "Tenant's subdomain",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "slf"
-            }
-          },
-          {
-            "in": "query",
             "name": "Language",
             "description": "Browser language",
             "schema": {

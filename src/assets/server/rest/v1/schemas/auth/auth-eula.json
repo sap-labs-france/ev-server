@@ -4,9 +4,6 @@
   "properties": {
     "Language": {
       "$ref": "common.json#/definitions/language"
-    },
-    "Tenant": {
-      "$ref": "common.json#/definitions/subdomain"
     }
   }
 }
