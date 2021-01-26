@@ -208,7 +208,7 @@ SOAP (OCPP-S):
 ```
 
 JSON (OCPP-J):
-``
+```
   "CentralSystems": [
     {
       "implementation": "json",
