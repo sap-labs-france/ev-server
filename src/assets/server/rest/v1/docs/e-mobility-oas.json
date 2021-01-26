@@ -2200,7 +2200,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/occp-parameters": {
+    "/api/chargingstations/{id}/ocpp-parameters": {
       "get": {
         "security": [
           {
@@ -2210,11 +2210,12 @@
         "description": "Get Charging Station OCPP Parameters",
         "parameters": [
           {
-            "in": "query",
+            "in": "path",
             "required": true,
-            "name": "ChargeBoxID",
+            "name": "id",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "SAP-Mougins-03"
             }
           }
         ],
@@ -2223,42 +2224,127 @@
         ],
         "responses": {
           "200": {
-            "description": "Return command success status",
+            "description": "Return Charging Station OCPP Parameters",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
+                    "count": {
+                      "type": "number"
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "readonly": {
+                            "type": "boolean"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     }
                   }
                 },
-                "examples": {
-                  "accepted": {
-                    "summary": "Accepted",
-                    "value": {
-                      "status": "Accepted"
+                "example": {
+                  "count": 2,
+                  "result": [
+                    {
+                      "key": "AllowOfflineTxForUnknownId",
+                      "readonly": false,
+                      "value": "true"
+                    },
+                    {
+                      "key": "allowpluggedcable",
+                      "readonly": true,
+                      "value": "true"
                     }
-                  },
-                  "rejected": {
-                    "summary": "Rejected",
-                    "value": {
-                      "status": "Rejected"
-                    }
-                  },
-                  "rebootRequired": {
-                    "summary": "Reboot required",
-                    "value": {
-                      "status": "RebootRequired"
-                    }
-                  },
-                  "NotSupported": {
-                    "summary": "NotSupported",
-                    "value": {
-                      "status": "NotSupported"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/ocpp-parameters/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export Charging Station OCPP Parameters as CSV file",
+        "parameters": [
+          {
+            "in": "path",
+            "required": true,
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "example": "SAP-Mougins-03"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Charging Station OCPP Parameters CSV file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "readonly": {
+                            "type": "boolean"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     }
                   }
+                },
+                "example": {
+                  "count": 2,
+                  "result": [
+                    {
+                      "key": "AllowOfflineTxForUnknownId",
+                      "readonly": false,
+                      "value": "true"
+                    },
+                    {
+                      "key": "allowpluggedcable",
+                      "readonly": true,
+                      "value": "true"
+                    }
+                  ]
                 }
               }
             }

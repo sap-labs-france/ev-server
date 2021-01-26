@@ -28,7 +28,7 @@ export default class SchemaValidator {
     this.ajv = ajvSanitizer(new Ajv(config), extraSanitizers);
     this.ajv.addSchema(this._commonSchema);
     this.ajv.addSchema(this._tenantComponentSchema);
-    this.ajv.addSchema(this._chargingStationSchema);
+    // This.ajv.addSchema(this._chargingStationSchema);
   }
 
   public validate(schema: boolean|Record<string, unknown>, content: any): void {
