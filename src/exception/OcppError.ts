@@ -3,6 +3,9 @@
  * Attributes name are part of the OCPP specification
  */
 export default class OCPPError extends Error {
+  public code: string;
+  public details?: any;
+
   public constructor(readonly params: {
     source: string;
     module: string;
@@ -12,6 +15,8 @@ export default class OCPPError extends Error {
     details?: any;
   }) {
     super(params.message);
+    this.code = params.code;
+    this.details = params.details;
 
     Object.setPrototypeOf(this, OCPPError.prototype); // For instanceof
 

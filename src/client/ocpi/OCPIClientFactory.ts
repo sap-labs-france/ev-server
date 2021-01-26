@@ -4,7 +4,6 @@ import CpoOCPIClient from './CpoOCPIClient';
 import EmspOCPIClient from './EmspOCPIClient';
 import Logging from '../../utils/Logging';
 import OCPIChargingStationClient from './OCPIChargingStationClient';
-import OCPIClient from './OCPIClient';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';

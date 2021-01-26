@@ -15,6 +15,7 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
+import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -35,7 +36,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 const MODULE_NAME = 'TransactionService';
 
@@ -519,7 +520,7 @@ export default class TransactionService {
     }
     // Check Dates
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime &&
-        moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
+      moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -533,8 +534,8 @@ export default class TransactionService {
     if (filteredRequest.LoadAllConsumptions) {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
         req.user.tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT, [
-          // TODO: To remove the 'date' when new version of Mobile App will be released (> V1.3.22)
-          'date', 'startedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+        // TODO: To remove the 'date' when new version of Mobile App will be released (> V1.3.22)
+          'date', 'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
           'stateOfCharge', 'limitWatts', 'limitAmps',
           'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
           'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
@@ -545,7 +546,7 @@ export default class TransactionService {
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(
         req.user.tenantID, { transactionId: transaction.id }, [
-          // TODO: To remove the 'consumptions.date' when new version of Mobile App will be released (> V1.3.22)
+        // TODO: To remove the 'consumptions.date' when new version of Mobile App will be released (> V1.3.22)
           'consumptions.date', 'consumptions.startedAt', 'consumptions.cumulatedConsumptionWh', 'consumptions.cumulatedConsumptionAmps', 'consumptions.cumulatedAmount',
           'consumptions.stateOfCharge', 'consumptions.limitWatts', 'consumptions.limitAmps', 'consumptions.startedAt', 'consumptions.endedAt',
           'consumptions.instantVoltsDC', 'consumptions.instantVolts', 'consumptions.instantVoltsL1', 'consumptions.instantVoltsL2', 'consumptions.instantVoltsL3',
@@ -682,7 +683,7 @@ export default class TransactionService {
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID' ];
+      userProject = ['userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'];
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
@@ -706,7 +707,7 @@ export default class TransactionService {
       sort: filteredRequest.Sort,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    [ 'id', ...userProject ]);
+    ['id', ...userProject]);
     // Return
     res.json(reports);
     next();
@@ -792,50 +793,20 @@ export default class TransactionService {
     const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
-    // For only charging station in e-Mobility (not the ones from the roaming)
-    filter.issuer = true;
-    if (filteredRequest.ChargeBoxID) {
-      filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
-    }
-    if (filteredRequest.UserID) {
-      filter.userIDs = filteredRequest.UserID.split('|');
-    }
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
-      if (filteredRequest.SiteAreaID) {
-        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-      }
-      filter.siteIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
-    }
-    // Date
-    if (filteredRequest.StartDateTime) {
-      filter.startDateTime = filteredRequest.StartDateTime;
-    }
-    if (filteredRequest.EndDateTime) {
-      filter.endDateTime = filteredRequest.EndDateTime;
-    }
-    if (filteredRequest.ErrorType) {
-      filter.errorType = filteredRequest.ErrorType.split('|');
-    } else {
-      const types = [
-        TransactionInErrorType.LONG_INACTIVITY,
-        TransactionInErrorType.NEGATIVE_ACTIVITY,
-        TransactionInErrorType.NEGATIVE_DURATION,
-        // TransactionInErrorType.OVER_CONSUMPTION,
-        TransactionInErrorType.INVALID_START_DATE,
-        TransactionInErrorType.NO_CONSUMPTION,
-        TransactionInErrorType.MISSING_USER
-      ];
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
-        types.push(TransactionInErrorType.MISSING_PRICE);
-      }
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-        types.push(TransactionInErrorType.NO_BILLING_DATA);
-      }
-      filter.errorType = types;
-    }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-      { ...filter, search: filteredRequest.Search }, [
+      {
+        ...filter, search: filteredRequest.Search,
+        issuer: true,
+        errorType: filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : UtilsService.getTransactionInErrorTypes(req.user),
+        endDateTime: filteredRequest.EndDateTime,
+        startDateTime: filteredRequest.StartDateTime,
+        chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
+        siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
+      }, [
         'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
         'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
       ]);
@@ -846,26 +817,42 @@ export default class TransactionService {
 
   public static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
     let csv = '';
+    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}Start Time${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}End Time${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+      csv = i18nManager.translate('users.id') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.connector') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('users.userID') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.timezone') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.startDate') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.startTime') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.endDate') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.endTime') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('transactions.totalConsumption') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('transactions.totalDuration') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('transactions.totalInactivity') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.price') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.priceUnit') + '\r\n';
     }
     // Content
     for (const transaction of transactions) {
-      csv += `${transaction.id}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.chargeBoxID}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.connectorId}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.user ? Cypher.hash(transaction.user.id) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.user ? Utils.buildUserFullName(transaction.user, false) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${moment(transaction.timestamp).format('YYYY-MM-DD')}` + Constants.CSV_SEPARATOR;
-      csv += `${moment(transaction.timestamp).format('HH:mm:ss')}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${moment(transaction.stop.timestamp).format('YYYY-MM-DD')}` : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${moment(transaction.stop.timestamp).format('HH:mm:ss')}` : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? Utils.truncTo(transaction.stop.price, 2) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
+      csv += transaction.id + Constants.CSV_SEPARATOR;
+      csv += transaction.chargeBoxID + Constants.CSV_SEPARATOR;
+      csv += transaction.connectorId + Constants.CSV_SEPARATOR;
+      csv += (transaction.user ? Cypher.hash(transaction.user.id) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.user ? Utils.buildUserFullName(transaction.user, false) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.timezone || 'N/A (UTC by default)') + Constants.CSV_SEPARATOR;
+      csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
+      csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD') : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss') : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? Utils.truncTo(transaction.stop.price, 2) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? transaction.stop.priceUnit : '') + '\r\n';
     }
     return csv;
   }
@@ -904,7 +891,7 @@ export default class TransactionService {
           action: action,
           detailedMessages: { transaction }
         });
-      // Billed
+        // Billed
       } else if (billingImpl && transaction.billingData && transaction.billingData.invoiceID) {
         result.inError++;
         Logging.logError({
@@ -915,7 +902,7 @@ export default class TransactionService {
           action: action,
           detailedMessages: { transaction }
         });
-      // Transaction in progress
+        // Transaction in progress
       } else if (!transaction.stop) {
         if (!transaction.chargeBox) {
           transactionsIDsToDelete.push(transactionID);
@@ -930,7 +917,7 @@ export default class TransactionService {
           // To Delete
           transactionsIDsToDelete.push(transactionID);
         }
-      // Ok
+        // Ok
       } else {
         transactionsIDsToDelete.push(transactionID);
       }
@@ -938,10 +925,9 @@ export default class TransactionService {
     // Delete All Transactions
     result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
     // Log
-    // Log
     Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,
-      MODULE_NAME, 'synchronizeCarCatalogs', result,
+      MODULE_NAME, 'deleteTransactions', result,
       '{{inSuccess}} transaction(s) were successfully deleted',
       '{{inError}} transaction(s) failed to be deleted',
       '{{inSuccess}} transaction(s) were successfully deleted and {{inError}} failed to be deleted',
@@ -1011,7 +997,7 @@ export default class TransactionService {
         statistics: filteredRequest.Statistics ? filteredRequest.Statistics : null,
         search: filteredRequest.Search ? filteredRequest.Search : null,
         reportIDs: filteredRequest.ReportIDs ? filteredRequest.ReportIDs.split('|') : null,
-        connectorId: filteredRequest.ConnectorId ? filteredRequest.ConnectorId : null,
+        connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
         inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },

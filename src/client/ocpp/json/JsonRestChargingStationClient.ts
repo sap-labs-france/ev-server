@@ -1,6 +1,6 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { MessageType, WSClientOptions } from '../../../types/WebSocket';
-import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPStatus, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPIncomingRequest, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
@@ -8,13 +8,14 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
+import { WSClientOptions } from '../../../types/WebSocket';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
 export default class JsonRestChargingStationClient extends ChargingStationClient {
   private serverURL: string;
   private chargingStation: ChargingStation;
-  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown>) => void; reject?: (error: Record<string, unknown>) => void; command: ServerAction } };
+  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: ServerAction } };
   private wsConnection: WSClient;
   private tenantID: string;
 
@@ -95,6 +96,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       module: MODULE_NAME, method: 'onOpen',
       message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
     });
+
     // Create Promise
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return await new Promise((resolve, reject) => {
@@ -131,30 +133,27 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         resolve();
       };
       // Closed
-      this.wsConnection.onclose = () => {
-        if (Utils.isProductionEnv()) {
-          // Log
-          Logging.logInfo({
-            tenantID: this.tenantID,
-            source: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
-            module: MODULE_NAME, method: 'onClose',
-            message: `Connection closed from '${this.serverURL}'`
-          });
-        }
+      this.wsConnection.onclose = (code: number) => {
+        // Log
+        Logging.logInfo({
+          tenantID: this.tenantID,
+          source: this.chargingStation.id,
+          action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
+          module: MODULE_NAME, method: 'onClose',
+          message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+        });
       };
       // Handle Error Message
       this.wsConnection.onerror = (error: Error) => {
-        if (Utils.isProductionEnv()) {
-          // Log
-          Logging.logException(
-            error,
-            ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
-            this.chargingStation.id,
-            MODULE_NAME, 'onError',
-            this.tenantID
-          );
-        }
+        // Log
+        Logging.logError({
+          tenantID: this.tenantID,
+          source: this.chargingStation.id,
+          action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
+          module: MODULE_NAME, method: 'onError',
+          message: `Connection error to '${this.serverURL}: ${error.toString()}`,
+          detailedMessages: { error }
+        });
         // Terminate WS in error
         this.terminateConnection();
       };
@@ -162,37 +161,38 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       this.wsConnection.onmessage = (message) => {
         try {
           // Parse the message
-          const messageJson = JSON.parse(message.data);
+          const [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
           // Check if this corresponds to a request
-          if (this.requests[messageJson[1]]) {
+          if (this.requests[messageId]) {
             // Check message type
-            if (messageJson[0] === MessageType.CALL_ERROR_MESSAGE) {
+            if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
               // Error message
               Logging.logError({
                 tenantID: this.tenantID,
                 source: this.chargingStation.id,
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
                 module: MODULE_NAME, method: 'onMessage',
-                message: `${messageJson[3]}`,
-                detailedMessages: { messageJson }
+                message: `${commandPayload.toString()}`,
+                detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
               });
               // Resolve with error message
-              this.requests[messageJson[1]].reject({ status: 'Rejected', error: messageJson });
+              this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, commandName, commandPayload, errorDetails] });
             } else {
               // Respond to the request
-              this.requests[messageJson[1]].resolve(messageJson[2]);
+              this.requests[messageId].resolve(commandName);
             }
             // Close WS
             this.closeConnection();
           } else {
             // Error message
+            // eslint-disable-next-line no-lonely-if
             Logging.logError({
               tenantID: this.tenantID,
               source: this.chargingStation.id,
               action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
               module: MODULE_NAME, method: 'onMessage',
               message: 'Received unknown message',
-              detailedMessages: { messageJson }
+              detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
             });
           }
         } catch (error) {
@@ -202,7 +202,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             ServerAction.WS_REST_CLIENT_MESSAGE,
             this.chargingStation.id,
             MODULE_NAME, 'onMessage',
-            this.tenantID);
+            this.tenantID
+          );
         }
       };
     });
@@ -224,7 +225,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     this.wsConnection = null;
   }
 
-  private async sendMessage(request): Promise<any> {
+  private async sendMessage(request: OCPPOutgoingRequest): Promise<any> {
     // Return a promise
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     const promise = await new Promise(async (resolve, reject) => {
@@ -244,8 +245,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return promise;
   }
 
-  private buildRequest(command, params = {}) {
+  private buildRequest(command, params = {}): OCPPOutgoingRequest {
     // Build the request
-    return [MessageType.CALL_MESSAGE, Utils.generateUUID(), command, params];
+    return [OCPPMessageType.CALL_MESSAGE, Utils.generateUUID(), command, params] as OCPPOutgoingRequest;
   }
 }
