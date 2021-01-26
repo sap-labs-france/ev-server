@@ -49,22 +49,6 @@ export default class TransactionSecurity {
     };
   }
 
-  public static filterTransactionsActiveRequest(request: any): HttpTransactionsRequest {
-    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
-    if (request.Issuer) {
-      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
-    }
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
-    filteredRequest.ConnectorId = sanitize(request.ConnectorId);
-    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
-    filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.SiteID = sanitize(request.SiteID);
-    filteredRequest.UserID = request.UserID ? sanitize(request.UserID) : null;
-    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
-    UtilsSecurity.filterSort(request, filteredRequest);
-    return filteredRequest;
-  }
-
   public static filterTransactionsRequest(request: any): HttpTransactionsRequest {
     const filteredRequest = {} as HttpTransactionsRequest;
     // Handle picture
@@ -81,6 +65,7 @@ export default class TransactionSecurity {
     filteredRequest.InactivityStatus = sanitize(request.InactivityStatus);
     filteredRequest.RefundStatus = sanitize(request.RefundStatus);
     filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
+    filteredRequest.ConnectorID = sanitize(request.ConnectorID);
     if (request.Statistics) {
       filteredRequest.Statistics = sanitize(request.Statistics);
     }
@@ -105,6 +90,7 @@ export default class TransactionSecurity {
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
+    filteredRequest.ConnectorID = sanitize(request.ConnectorID);
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
@@ -122,18 +108,6 @@ export default class TransactionSecurity {
     if (Utils.objectHasProperty(request, 'LoadAllConsumptions')) {
       filteredRequest.LoadAllConsumptions = Utils.convertToBoolean(sanitize(request.LoadAllConsumptions));
     }
-    return filteredRequest;
-  }
-
-  public static filterChargingStationTransactionsRequest(request: any): HttpTransactionsRequest {
-    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
-    // Set
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
-    filteredRequest.ConnectorId = sanitize(request.ConnectorId);
-    filteredRequest.StartDateTime = sanitize(request.StartDateTime);
-    filteredRequest.EndDateTime = sanitize(request.EndDateTime);
-    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
-    UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 }
