@@ -1,0 +1,94 @@
+{
+  "notifications": {
+    "sessionNotStarted": {
+      "title": "Sessione non avviata",
+      "body": "Ti sei registrato sulla stazione di ricarica '{{chargeBoxID}}' ma nessuna sessione è stata avviata"
+    },
+    "sessionStarted": {
+      "title": "Sessione Avviata",
+      "body": "La tua sessione nella stazione di ricarica '{{chargeBoxID}}', presa '{{connectorId}}' è stata avviata con successo nell'organizzazione '{{tenantName}}'"
+    },
+    "ocpiPatchChargingStationsStatusesError": {
+      "title": "Stati Invio in Roaming",
+      "body": "Il trasferimento alla piattaforma di roaming degli stati della stazione di ricarica è fallito nella posizione '{{location}}' nell'organizzazione '{{tenantName}}', controlla i log"
+    },
+    "smtpAuthError": {
+      "title": "Errore Server Email",
+      "body": "L'autenticazione sul server di posta primario è fallita nell'organizzazione '{{tenantName}}', controlla la configurazione"
+    },
+    "optimalChargeReached": {
+      "title": "Carica Ottimale Raggiunta",
+      "body": "Il tuo veicolo elettrico, connesso a '{{chargeBoxID}}', presa '{{connectorId}}', ha raggiunto la sua carica ottimale (85%) nell'organizzazione '{{tenantName}}'"
+    },
+    "endOfCharge": {
+      "title": "Carica Terminata",
+      "body": "Il tuo veicolo elettrico, connesso alla stazione di ricarica '{{chargeBoxID}}', presa '{{connectorId}}', ha appena finito di caricare nell'organizzazione '{{tenantName}}'"
+    },
+    "endOfSession": {
+      "title": "Sessione Terminata",
+      "body": "La tua sessione sulla stazione di ricarica '{{chargeBoxID}}', presa '{{connectorId}}' è terminata nell'organizzazione '{{tenantName}}'"
+    },
+    "chargingStationStatusError": {
+      "title": "Stazione di Ricarica in Errore",
+      "body": "Si è verificato un errore in '{{chargeBoxID}}', presa '{{connectorId}}' dell'organizzazione '{{tenantName}}': {{error}}"
+    },
+    "unknownUserBadged": {
+      "title": "Utente Sconosciuto",
+      "body": "Un utente sconosciuto si è registrato su '{{chargeBoxID}}' con il badge ID '{{badgeID}}' nell'organizzazione '{{tenantName}}'"
+    },
+    "chargingStationRegistered": {
+      "title": "Stazione di Ricarica Connessa",
+      "body": "La stazione di ricarica '{{chargeBoxID}}' si è appena connessa al server centrale nell'organizzazione '{{tenantName}}'"
+    },
+    "userAccountStatusChanged": {
+      "title": "Account {{status}}",
+      "activated": "attivato",
+      "suspended": "sospeso",
+      "body": "Il tuo account è stato {{status}} da un amministratore nell'organizzazione '{{tenantName}}'"
+    },
+    "userAccountInactivity": {
+      "title": "Account Utente",
+      "body": "Il tuo account è inattivo da {{lastLogin}} nell'organizzazione '{{tenantName}}'. Per motivi di conformità, tieni presente che gli account inattivi vecchi di 6 mesi verranno eliminati"
+    },
+    "preparingSessionNotStarted": {
+      "title": "Sessione Non Avviata",
+      "body": "Sessione non avviata nella stazione di ricarica '{{chargeBoxID}}', presa '{{connectorId}}' nell'organizzazione '{{tenantName}}'"
+    },
+    "offlineChargingStation": {
+      "title": "Stazioni di Ricarica Offline",
+      "body": "Le seguenti stazioni di ricarica sono offline nell'organizzazione '{{tenantName}}': {{chargeBoxIDs}}"
+    },
+    "billingUserSynchronizationFailed": {
+      "title": "Sincronizzazione Utente Fallita",
+      "body": "Impossibile sincronizzare {{nbrUsersInError}} utenti con il fornitore di servizi di fatturazione nell'organizzazione '{{tenantName}}'"
+    },
+    "billingInvoiceSynchronizationFailed": {
+      "title": "Sincronizzazione Fattura Fallita",
+      "body": "Impossibile sincronizzare {{nbrInvoicesInError}} fatture con il fornitore di servizi di fatturazione nell'organizzazione '{{tenantName}}'"
+    },
+    "computeAndApplyChargingProfilesFailed": {
+      "title": "Profili di ricarica falliti",
+      "body": "Impossibile impostare i profili di ricarica per '{{chargeBoxID}}' sull'area del sito '{{siteAreaName}}' nell'organizzazione '{{tenantName}}'"
+    },
+    "billingNewInvoice": {
+      "title": "Nuova fattura",
+      "body": "Una nuova fattura ({{invoiceNumber}}) è ora disponibile"
+    },
+    "endUserErrorNotification": {
+      "title": "Un utente ha riportato un errore",
+      "body": "'{{userName}}' ha riportato: '{{errorTitle}}' - '{{errorDescription}}' nell'organizzazione '{{tenantName}}'"
+    }
+  },
+  "billing": {
+    "generatedUser": "Utenza generata per '{{email}}'",
+    "chargingStopSiteArea": "Caricando {{totalConsumption}} kWh a {{siteArea}} (finito a {{time}})",
+    "chargingStopChargeBox": "Caricando {{totalConsumption}} kWh alla stazione di ricarica {{chargeBox}} (finito a  {{time}})"
+  },
+  "tags": {
+    "virtualBadge": "Virtual Badge"
+  },
+  "chargers": {
+    "connector": "Presa"
+  },
+  "siteArea": "Site Area"
+}
