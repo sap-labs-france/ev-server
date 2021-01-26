@@ -792,51 +792,18 @@ export default class TransactionService {
     const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
-    // For only charging station in e-Mobility (not the ones from the roaming)
-    filter.issuer = true;
-    if (filteredRequest.ChargeBoxID) {
-      filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
-    }
-    if (filteredRequest.UserID) {
-      filter.userIDs = filteredRequest.UserID.split('|');
-    }
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
-      if (filteredRequest.SiteAreaID) {
-        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-      }
-      filter.siteIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
-    }
-    // Date
-    if (filteredRequest.StartDateTime) {
-      filter.startDateTime = filteredRequest.StartDateTime;
-    }
-    if (filteredRequest.EndDateTime) {
-      filter.endDateTime = filteredRequest.EndDateTime;
-    }
-    if (filteredRequest.ErrorType) {
-      filter.errorType = filteredRequest.ErrorType.split('|');
-    } else {
-      const types = [
-        TransactionInErrorType.LONG_INACTIVITY,
-        TransactionInErrorType.NEGATIVE_ACTIVITY,
-        TransactionInErrorType.NEGATIVE_DURATION,
-        // TransactionInErrorType.OVER_CONSUMPTION,
-        TransactionInErrorType.INVALID_START_DATE,
-        TransactionInErrorType.NO_CONSUMPTION,
-        TransactionInErrorType.MISSING_USER
-      ];
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
-        types.push(TransactionInErrorType.MISSING_PRICE);
-      }
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-        types.push(TransactionInErrorType.NO_BILLING_DATA);
-      }
-      filter.errorType = types;
-    }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
       {
         ...filter, search: filteredRequest.Search,
+        issuer: true,
+        errorType: filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : UtilsService.getTransactionInErrorTypes(req.user),
+        endDateTime: filteredRequest.EndDateTime,
+        startDateTime: filteredRequest.StartDateTime,
+        chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
+        siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
       }, [
         'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
