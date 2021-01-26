@@ -193,8 +193,9 @@ Move this configuration file into the **src** directory.
 
 #### Listen to the Charging Stations
 
-Set the protocol, host and the port which you want the server to listen to (only OCPP SOAP implementation is supported):
+Set the protocol, host and the port which you want the server to listen to:
 
+SOAP (OCPP-S):
 ```
   "CentralSystems": [
     {
@@ -205,8 +206,20 @@ Set the protocol, host and the port which you want the server to listen to (only
     }
   ]
 ```
-There can be several central systems with different protocols but today only http protocol is supported, thus there is no possibility to encrypt the communication between the server and the charging stations for the time being.
 
+JSON (OCPP-J):
+```
+  "CentralSystems": [
+    {
+      "implementation": "json",
+      "protocol": "ws",
+      "host": "localhost",
+      "port": 8010
+    }
+  ]
+```
+
+There can be several central systems with different protocols.
 
 ### The Central Service REST Server (CSRS)
 
@@ -297,9 +310,8 @@ Edit the following info:
 
 ```
   "Email": {
-    "from": "evse.adm.noreply@gmail.com",
-    "bcc": "",
     "smtp": {
+      "from": "evse.adm.noreply@gmail.com",
       "host": "smtp.gmail.com",
       "port": 465,
       "secure": true,
@@ -420,6 +432,7 @@ Here are the default delivered locales:
       "es_MX",
       "de_DE",
       "pt_PT",
+      "it_IT",
     ]
  },
 ```
