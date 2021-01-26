@@ -3,8 +3,8 @@
  * Attributes name are part of the OCPP specification
  */
 export default class OCPPError extends Error {
-  code: string;
-  details?: any;
+  public code: string;
+  public details?: any;
 
   public constructor(readonly params: {
     source: string;
