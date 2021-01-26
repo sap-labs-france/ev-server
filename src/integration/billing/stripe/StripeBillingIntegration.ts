@@ -453,7 +453,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const chargeBox = transaction.chargeBox;
     // Create or update invoice in Stripe
     let description = '';
-    const i18nManager = new I18nManager(transaction.user.locale);
+    const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
     const totalConsumptionkWh = Math.round(transaction.stop.totalConsumptionWh / 100) / 10;
     const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
     if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
@@ -645,7 +645,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     const fullName = Utils.buildUserFullName(user, false, false);
     const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
-    const i18nManager = new I18nManager(user.locale);
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     const description = i18nManager.translate('billing.generatedUser', { email: user.email });
     let customer;
     if (user.billingData && user.billingData.customerID) {
