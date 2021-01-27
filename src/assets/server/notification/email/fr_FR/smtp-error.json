@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "Le serveur d'email principal a échoué avec l'erreur <%- SMTPError %>.",
+      "Le serveur d'email principal a échoué avec l'erreur <%- JSON.stringify(SMTPError) %>.",
       "",
       "Merci de vérifier votre configuration.",
       ""

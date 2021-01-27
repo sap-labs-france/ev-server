@@ -14,7 +14,7 @@ import i18n from 'i18n-js';
 import moment from 'moment';
 
 export default class I18nManager {
-  private static instances = new Map<string, I18nManager>(); // Tableau avec la cle en locale
+  private static instances = new Map<string, I18nManager>();
   private language: string;
 
   private constructor(locale: string) {

@@ -135,18 +135,31 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('end-user-error-notification', data, user, tenant, severity);
   }
 
-  private async sendEmail(email: EmailNotificationMessage, data, tenant: Tenant, user: User, severity: NotificationSeverity, useBackup = false): Promise<void> {
-    // Create the message
-    const messageToSend = new Message({
-      from: !this.emailConfig.disableBackup && this.emailConfigHasBackup && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
-      to: email.to,
-      cc: email.cc,
-      bcc: email.bccNeeded && email.bcc ? email.bcc : '',
-      subject: email.subject,
-      attachment: [
-        { data: email.html, alternative: true }
-      ]
-    });
+  private async sendEmail(email: EmailNotificationMessage, data: any, tenant: Tenant, user: User, severity: NotificationSeverity, useBackup = false): Promise<void> {
+    // Email configuration sanity checks
+    if (Utils.isUndefined(this.emailConfig.smtp)) {
+      // No suitable SMTP server configuration found to send the email
+      Logging.logError({
+        tenantID: tenant.id,
+        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'sendEmail',
+        message: 'No suitable SMTP server configuration found to send email',
+        actionOnUser: user
+      });
+      return;
+    } else if (this.emailConfig.disableBackup && !this.emailConfigHasBackup && useBackup) {
+      // No suitable SMTP backup server configuration found or activated to send the email
+      Logging.logError({
+        tenantID: tenant.id,
+        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'sendEmail',
+        message: 'No suitable SMTP backup server configuration found or activated to send email',
+        actionOnUser: user
+      });
+      return;
+    }
     // Switch SMTP server if necessary
     if (!useBackup && this.backupInUse) {
       this.client = new SMTPClient({
@@ -169,6 +182,17 @@ export default class EMailNotificationTask implements NotificationTask {
       });
       this.backupInUse = useBackup;
     }
+    // Create the message
+    const messageToSend = new Message({
+      from: !this.emailConfig.disableBackup && this.emailConfigHasBackup && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
+      to: email.to,
+      cc: email.cc,
+      bcc: email.bccNeeded && email.bcc ? email.bcc : '',
+      subject: email.subject,
+      attachment: [
+        { data: email.html, alternative: true }
+      ]
+    });
     try {
       // Send the message
       const messageSent: Message = await this.client.sendAsync(messageToSend);
@@ -219,25 +243,28 @@ export default class EMailNotificationTask implements NotificationTask {
       // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
       // eslint-disable-next-line no-empty
       } catch (err) { }
+      let sendSmtpError = true;
       if (error instanceof SMTPError) {
         const err: SMTPError = error;
-        // Notify on SMTP error
         switch (err.smtp) {
           case 510:
           case 511:
+            sendSmtpError = false;
             break;
-          default:
-            // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
-            await NotificationHandler.sendSmtpError(
-              tenant.id,
-              {
-                SMTPError: err,
-                evseDashboardURL: data.evseDashboardURL
-              }
-            );
-            if (!this.emailConfig.disableBackup && this.emailConfigHasBackup && !useBackup) {
-              await this.sendEmail(email, data, tenant, user, severity, true);
-            }
+        }
+      }
+      // Notify on SMTP error
+      if (sendSmtpError) {
+        // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
+        await NotificationHandler.sendSmtpError(
+          tenant.id,
+          {
+            SMTPError: error,
+            evseDashboardURL: data.evseDashboardURL
+          }
+        );
+        if (!this.emailConfig.disableBackup && this.emailConfigHasBackup && !useBackup) {
+          await this.sendEmail(email, data, tenant, user, severity, true);
         }
       }
     }

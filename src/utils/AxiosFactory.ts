@@ -8,7 +8,7 @@ import { StatusCodes } from 'http-status-codes';
 const MODULE_NAME = 'AxiosFactory';
 
 export default class AxiosFactory {
-  private static axiosInstances: Map<string, AxiosInstance> = new Map();
+  private static axiosInstances: Map<string, AxiosInstance> = new Map<string, AxiosInstance>();
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() { }

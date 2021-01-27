@@ -281,7 +281,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18nManager.translate('notifications.smtpError.title');
     const body = i18nManager.translate('notifications.smtpError.body', { tenantName: tenant.name });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SMTP_ERROR, title, body, user, null, severity);
+    // TODO: Remove the cast to deprecated SmtpAuthError user notification type and SMTP_ERROR once mobile app version <= 1.3.35 is no more used
+    return this.sendRemotePushNotificationToUser(tenant, 'SmtpAuthError' as UserNotificationType, title, body, user, null, severity);
   }
 
   public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {

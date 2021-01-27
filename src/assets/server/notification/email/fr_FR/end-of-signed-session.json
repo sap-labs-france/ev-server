@@ -12,8 +12,8 @@
       { "label": "Compteur initial", "value": "<%- meterStart %> kWh" },
       { "label": "Compteur final", "value": "<%- meterStop %> kWh" },
       { "label": "Consommation", "value": "<%- totalConsumption %> kWh" },
-      { "label": "Coût", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informative)" },
-      { "label": "Contrat par", "value":"LOCAL (informative)" }
+      { "label": "Coût", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informatif)" },
+      { "label": "Contrat par", "value":"LOCAL (informatif)" }
     ],
     "xmlContent": "<%- xmlContent %>"
   }

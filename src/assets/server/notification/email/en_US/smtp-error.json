@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "The primary email server has failed with error <%- SMTPError %>.",
+      "The primary email server has failed with error <%- JSON.stringify(SMTPError) %>.",
       "",
       "Please check your configuration.",
       ""
