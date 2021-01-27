@@ -416,7 +416,7 @@ export enum ServerAction {
   REST_CHARGING_STATIONS_PARAMETERS = 'chargingstations/parameters',
   REST_CHARGING_STATIONS_POWER_LIMIT = 'chargingstations/power/limit',
   REST_CHARGING_STATIONS_TRANSACTIONS = 'chargingstations/:id/transactions',
-  REST_CHARGING_STATIONS_IN_ERROR = 'chargingstations/inerror',
+  REST_CHARGING_STATIONS_IN_ERROR = 'chargingstations/in-error',
   REST_CHARGING_STATIONS_EXPORT = 'chargingstations/export',
   REST_CHARGING_PROFILE = 'chargingstations/:id/profile',
   REST_PING = 'ping',

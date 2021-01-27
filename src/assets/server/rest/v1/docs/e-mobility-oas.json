@@ -2452,6 +2452,7 @@
           {
             "in": "path",
             "name": "id",
+            "required": true,
             "schema": {
               "type": "string",
               "example": "SAP-Mougins-03"
@@ -2613,7 +2614,273 @@
           }
         }
       }
+    },
+    "/api/chargingstations/in-error": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Station in error",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "Issuer",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "in": "query",
+            "name": "WithNoSiteArea",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "WithNoSite",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteAreaID",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ConnectorStatus",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ConnectorType",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ChargeBoxID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "IncludeDeleted",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ErrorType",
+            "schema": {
+              "type": "string",
+              "enum": ["missing_settings", "connection_broken", "missing_site_area", "connection_error"]
+            }
+          },
+          {
+            "in": "query",
+            "name": "LocLongitude",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "LocLatitude",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "LocMaxDistanceMeters",
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Charging Stations in error list"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export Charging Stations as CSV file",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "Issuer",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "in": "query",
+            "name": "WithNoSiteArea",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "WithSite",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteAreaID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ConnectorStatus",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ConnectorType",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ChargeBoxID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "IncludeDeleted",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ErrorType",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "LocLongitude",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "LocLatitude",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "LocMaxDistanceMeters",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Charging Station CSV file",
+            "content": {
+              "text/csv": {
+                "example": "Name\tCreated On\tNumber of Connectors\tSite Area\tLatitude\tLongitude\tCharge Point S/N\tModel\tCharge Box S/N\tVendor\tFirmware\tVersion\tOCPP Version\tOCPP Protocol\tLast Seen\tLast Reboot\tMaximum Power (Watt)\tPower Limit\tUnit\nSAP-Caen-01\t06/19/2020 4:30 PM\t2\tCaen - Parking\t49.20079707133\t-0.390899731877199\t3N194850142F2S1B7551700017\tMONOBLOCK\tEV.2S22P44R3N16473070040026543210\tSchneider Electric\t3.3.0.12\t1.6\tjson\t12/20/2020 11:34 PM\t12/09/2020 7:00 PM\t44160\tA"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
     }
+
   },
   "components": {
     "securitySchemes": {

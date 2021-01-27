@@ -34,14 +34,14 @@ export default class UtilsSecurity {
     if (request.SortFields) {
       // Sanitize
       request.SortFields = sanitize(request.SortFields);
-      request.SortFields = request.SortFields.split('|');
+      const sortFields = request.SortFields.split('|');
       // Array?
-      if (request.SortFields.length > 0) {
+      if (sortFields.length > 0) {
         // Init
         filteredRequest.Sort = {};
         // Build
-        for (let i = 0; i < request.SortFields.length; i++) {
-          let sortField: string = request.SortFields[i];
+        for (let i = 0; i < sortFields.length; i++) {
+          let sortField: string = sortFields[i];
           const order = sortField.startsWith('-') ? -1 : 1;
           // Remove ordering prefix
           sortField = sortField.startsWith('-') ? sortField.substr(1) : sortField;

@@ -14,6 +14,8 @@ export default class ChargingStationRouter {
   }
 
   public buildRoutes(): express.Router {
+    this.buildRouteChargingStationsInError();
+    this.buildRouteChargingStationsExport();
     this.buildRouteChargingStations();
     this.buildRouteChargingStation();
     this.buildRouteChargingStationDelete();
@@ -37,8 +39,6 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationUpdateParameters();
     this.buildRouteChargingStationLimitPower();
     this.buildRouteChargingStationTransactions();
-    this.buildRouteChargingStationsInError();
-    this.buildRouteChargingStationsExport();
     this.buildRouteChargingStationDownloadFirmware();
     this.buildRouteChargingStationCheckSmartCharging();
     this.buildRouteChargingStationProfile();
