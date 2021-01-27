@@ -1846,6 +1846,9 @@
                               }
                             }
                           }
+                        },
+                        "minChargeRate": {
+                          "type": "number"
                         }
                       }
                     }
@@ -2879,8 +2882,169 @@
           }
         }
       }
+    },
+    "/api/chargingstations/{id}/firmware/{filename}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Station firmware",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "filename",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Charging Station firmware file",
+            "content": {
+              "application/octet-stream": {}
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "description": "Firmware not found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/smartcharging/checkconnection": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Check smart charging connection",
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/profiles": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Stations profiles",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "in": "query",
+            "name": "ChargeBoxID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ConnectorID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "WithChargingStation",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "WithSiteArea",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return profiles list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChargingProfile"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
     }
-
   },
   "components": {
     "securitySchemes": {
@@ -3131,7 +3295,7 @@
         "format": "date-time",
         "example": "2020-07-22T17:02:42.036Z"
       },
-      "Charging Station": {
+      "ChargingStation": {
         "type": "object",
         "properties": {
           "id": {
@@ -3315,6 +3479,108 @@
                 "example": "L3"
               }
             }
+          }
+        }
+      },
+      "ChargingProfile": {
+        "type": "object",
+        "required": ["chargingStationID", "chargePointID", "profile"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "chargingStationID": {
+            "type": "string"
+          },
+          "chargingStation": {
+            "$ref": "#/components/schemas/ChargingStation"
+          },
+          "chargePointID": {
+            "type": "number"
+          },
+          "connectorID": {
+            "type": "number"
+          },
+          "profile": {
+            "type": "object",
+            "required": ["chargingProfileId", "stackLevel", "chargingProfilePurpose", "chargingProfileKind", "chargingSchedule"],
+            "properties": {
+              "chargingProfileId": {
+                "type": "number"
+              },
+              "transactionId": {
+                "type": "number"
+              },
+              "stackLevel": {
+                "type": "number"
+              },
+              "chargingProfilePurpose": {
+                "type": "string",
+                "enum": ["ChargePointMaxProfile", "TxDefaultProfile", "TxProfile"]
+              },
+              "chargingProfileKind": {
+                "type": "string",
+                "enum": ["Absolute", "Recurring", "Relative"]
+              },
+              "recurrencyKind": {
+                "type": "string",
+                "enum": ["Daily", "Weekly"]
+              },
+              "validFrom": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "validTo": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "chargingSchedule": {
+                "$ref": "#/components/schemas/chargingSchedule"
+              }
+            }
+          }
+        }
+      },
+      "chargingSchedule": {
+        "type": "object",
+        "required": [
+          "chargingRateUnit",
+          "chargingSchedulePeriod"
+        ],
+        "properties": {
+          "duration": {
+            "type": "number"
+          },
+          "startSchedule": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "chargingRateUnit": {
+            "type": "string"
+          },
+          "chargingSchedulePeriod": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "startPeriod",
+                "limit"
+              ],
+              "properties": {
+                "startPeriod": {
+                  "type": "number"
+                },
+                "limit": {
+                  "type": "number"
+                },
+                "numberPhases": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "minChargeRate": {
+            "type": "number"
           }
         }
       }
