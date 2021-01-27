@@ -101,6 +101,7 @@ class RequestMapper {
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
           [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
           [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
+          [ServerAction.USERS_IMPORT]: UserService.import.bind(this),
         });
         break;
 

@@ -17,10 +17,12 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
+import JSONStream from 'JSONStream';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -101,6 +103,21 @@ export default class UserService {
     // Return
     res.json({ tag, car });
     next();
+  }
+
+  public static async import(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+
+    const stream = Readable.from(req); // Rows, ANYTHING, doc
+
+    stream.on('data', function(body) {
+      console.log(
+        body.toString());
+      // UserStorage.saveImportedUser(req.user.tenantID, JSON.parse(body.toString().substring(body.indexOf('['), body.indexOf(']') + 1)));
+    });
+
+    console.log(req.body);
+
+    res.send('success');
   }
 
   public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

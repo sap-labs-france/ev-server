@@ -270,6 +270,12 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
+  public static saveImportedUser(tenantID: string, usersToSave): void {
+    void global.database.getCollection<any>(tenantID, 'userImport2').insertMany(
+      usersToSave);
+    console.log('saved:', usersToSave);
+  }
+
   public static async saveUserPassword(tenantID: string, userID: string,
     params: {
       password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
