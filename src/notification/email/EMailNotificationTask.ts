@@ -148,7 +148,7 @@ export default class EMailNotificationTask implements NotificationTask {
         actionOnUser: user
       });
       return;
-    } else if (this.emailConfig.disableBackup && !this.emailConfigHasBackup && useBackup) {
+    } else if ((this.emailConfig.disableBackup || !this.emailConfigHasBackup) && useBackup) {
       // No suitable SMTP backup server configuration found or activated to send the email
       Logging.logError({
         tenantID: tenant.id,
