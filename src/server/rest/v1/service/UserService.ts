@@ -109,13 +109,11 @@ export default class UserService {
 
     const stream = Readable.from(req); // Rows, ANYTHING, doc
 
-    stream.on('data', function(body) {
+    stream.on('data', function(data) {
       console.log(
-        body.toString());
+        data.toString());
       // UserStorage.saveImportedUser(req.user.tenantID, JSON.parse(body.toString().substring(body.indexOf('['), body.indexOf(']') + 1)));
     });
-
-    console.log(req.body);
 
     res.send('success');
   }
