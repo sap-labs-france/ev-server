@@ -151,9 +151,9 @@ export default abstract class WSConnection {
   }
 
   public async onMessage(messageEvent: MessageEvent): Promise<void> {
-    let [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = [0, '', '' as ServerAction, '', ''];
-    let responseCallback: (payload?) => void;
-    let rejectCallback: (reason?: string | OCPPError) => void;
+    let [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = [0, '', '' as ServerAction, '', {}];
+    let responseCallback: (payload?: Record<string, unknown> | string) => void;
+    let rejectCallback: (reason?: OCPPError) => void;
     try {
       // Parse the message
       [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.toString()) as OCPPIncomingRequest;
@@ -201,7 +201,7 @@ export default abstract class WSConnection {
             module: MODULE_NAME,
             method: 'onMessage',
             action: commandName,
-            message: `Error occurred '${commandName}' with message content '${commandPayload}'`,
+            message: `Error occurred '${commandName}' with message content '${JSON.stringify(commandPayload)}'`,
             detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
           });
           if (!this.requests[messageId]) {
@@ -231,7 +231,7 @@ export default abstract class WSConnection {
             module: MODULE_NAME,
             method: 'onMessage',
             code: commandName,
-            message: commandPayload,
+            message: commandPayload.toString(),
             details: { errorDetails }
           }));
           break;
@@ -270,21 +270,12 @@ export default abstract class WSConnection {
     return this.clientIP;
   }
 
-  public async sendError(messageId: string, err: Error | OCPPError): Promise<unknown> {
-    // Check exception type: only OCPP error are accepted
-    const error = (err instanceof OCPPError ? err : new OCPPError({
-      source: this.getChargingStationID(),
-      module: MODULE_NAME,
-      method: 'sendError',
-      code: OCPPErrorType.INTERNAL_ERROR,
-      message: err.message,
-      details: { err }
-    }));
+  public async sendError(messageId: string, error: OCPPError): Promise<unknown> {
     // Send error
     return this.sendMessage(messageId, error, OCPPMessageType.CALL_ERROR_MESSAGE);
   }
 
-  public async sendMessage(messageId: string, commandParams: any, messageType: OCPPMessageType = OCPPMessageType.CALL_RESULT_MESSAGE, commandName?: Command | ServerAction): Promise<unknown> {
+  public async sendMessage(messageId: string, commandParams: Record<string, unknown> | OCPPError, messageType: OCPPMessageType = OCPPMessageType.CALL_RESULT_MESSAGE, commandName?: Command | ServerAction): Promise<unknown> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     // Send a message through WSConnection
@@ -293,7 +284,7 @@ export default abstract class WSConnection {
     return await new Promise((resolve, reject) => {
       let messageToSend: string;
       // Function that will receive the request's response
-      function responseCallback(payload): void {
+      function responseCallback(payload: Record<string, unknown> | string): void {
         // Send the response
         resolve(payload);
       }
@@ -392,7 +383,7 @@ export default abstract class WSConnection {
     return this.wsConnection?.readyState;
   }
 
-  public abstract handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void>;
+  public abstract handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void>;
 
   public abstract onError(errorEvent: ErrorEvent): void;
 
