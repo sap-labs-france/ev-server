@@ -99,5 +99,5 @@ export interface HttpIsAuthorizedRequest {
 }
 
 export interface HttpChargingStationGetFirmwareRequest {
-  FileName: string;
+  ID: string;
 }

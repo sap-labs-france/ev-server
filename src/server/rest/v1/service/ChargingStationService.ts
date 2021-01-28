@@ -472,7 +472,7 @@ export default class ChargingStationService {
       connectorID: filteredRequest.ConnectorID,
       endpoint: Utils.getChargingStationEndpoint(),
       tenantName: req.user.tenantName,
-      tenantSubDomain: req.tenant.subdomain
+      tenantSubDomain: req.user.tenantSubdomain
     };
     // Generate
     const generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString('base64'));
@@ -952,7 +952,7 @@ export default class ChargingStationService {
   public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
-    if (!filteredRequest.FileName) {
+    if (!filteredRequest.ID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -962,10 +962,10 @@ export default class ChargingStationService {
       });
     }
     // Open a download stream and pipe it in the response
-    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.FileName);
+    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.ID);
     // Set headers
     res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.FileName);
+    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.ID);
     // Write chunks
     bucketStream.on('data', (chunk) => {
       res.write(chunk);
@@ -975,7 +975,7 @@ export default class ChargingStationService {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: action,
-        message: `Firmware '${filteredRequest.FileName}' has not been found!`,
+        message: `Firmware '${filteredRequest.ID}' has not been found!`,
         module: MODULE_NAME, method: 'handleGetFirmware',
         detailedMessages: { error: error.message, stack: error.stack },
       });
@@ -986,15 +986,18 @@ export default class ChargingStationService {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: action,
-        message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
+        message: `Firmware '${filteredRequest.ID}' has been downloaded with success`,
         module: MODULE_NAME, method: 'handleGetFirmware',
       });
       res.end();
     });
   }
 
-  public static async handleAction(action: ServerAction, command: Command, req: Request, res: Response, next: NextFunction) {
+  public static async handleAction(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
+    // const command = action.substr(ServerAction.REST_CHARGING_STATIONS.length) as Command;
+    const command = action.slice(15) as Command;
+
     const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest({ ...req.query, ...req.body });
     UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleAction', req.user);

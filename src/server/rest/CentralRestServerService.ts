@@ -38,10 +38,8 @@ class RequestMapper {
       case 'POST':
         this.registerOneActionManyPaths(
           async (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
-            // Keep the action (remove ChargingStation)
-            const command = action.slice(15) as Command;
             // Delegate
-            await ChargingStationService.handleAction(action, command, req, res, next);
+            await ChargingStationService.handleAction(action, req, res, next);
           },
           ServerAction.CHARGING_STATION_CLEAR_CACHE,
           ServerAction.CHARGING_STATION_GET_CONFIGURATION,

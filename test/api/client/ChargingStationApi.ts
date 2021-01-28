@@ -13,27 +13,27 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.readById(id, '/client/api/ChargingStation');
+    return super.readById(id, `/v1/api/chargingstations/${id}`);
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/ChargingStations');
+    return super.readAll(params, paging, ordering, '/v1/api/chargingstations');
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/ChargingStationsInError');
+    return super.readAll(params, paging, ordering, '/v1/api/chargingstations/in-error');
   }
 
   public async update(data) {
-    return super.update(data, '/client/api/ChargingStationUpdateParams');
+    return super.update(data, '/v1/api/chargingstations/parameters');
   }
 
   public async delete(id) {
-    return super.delete(id, '/client/api/ChargingStationDelete');
+    return super.delete(id, '/v1/api/chargingstations');
   }
 
   public async readConfiguration(chargeBoxID) {
-    return super.read({ ChargeBoxID: chargeBoxID }, '/client/api/ChargingStationOcppParameters');
+    return super.read({}, `/v1/api/chargingstations/${chargeBoxID}/configuration`);
   }
 
   public async readConsumptionStatistics(year) {
@@ -45,7 +45,7 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async readAllTransactions(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/ChargingStationTransactions');
+    return super.readAll(params, paging, ordering, `/v1/api/chargingstations/${params.id}/transactions`);
   }
 
   public async readAllYears(params) {
@@ -53,11 +53,11 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async updateParams(data) {
-    return super.update(data, '/client/api/ChargingStationUpdateParams');
+    return super.update(data, '/v1/api/chargingstations/parameters');
   }
 
   public async remoteStartTransaction(data) {
-    return super.create(data, '/client/api/ChargingStationRemoteStartTransaction');
+    return super.create(data, '/v1/api/chargingstations/remote/start');
   }
 
   public async checkConnector(chargingStation, connectorId, connectorData) {

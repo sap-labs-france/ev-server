@@ -635,6 +635,7 @@
           {
             "in": "query",
             "name": "WithNoSiteArea",
+            "example": true,
             "schema": {
               "type": "boolean"
             }
@@ -689,11 +690,7 @@
             }
           },
           {
-            "in": "query",
-            "name": "ErrorType",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ErrorType"
           },
           {
             "in": "query",
@@ -706,7 +703,7 @@
             "in": "query",
             "name": "LocLatitude",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -731,7 +728,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Charging Stations list",
+            "description": "Return Charging Stations list",
             "content": {
               "application/json": {
                 "example": {
@@ -1195,45 +1192,18 @@
               "type": "string",
               "example": "SAP-Mougins-03"
             }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "chargeBoxID",
-                  "type"
-                ],
-                "properties": {
-                  "chargeBoxID": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  }
-                }
-              },
-              "examples": {
-                "softReset": {
-                  "summary": "Soft Reset",
-                  "value": {
-                    "chargeBoxID": "SAP-Mougins-03",
-                    "type": "Soft"
-                  }
-                },
-                "hardReset": {
-                  "summary": "Hard Reset",
-                  "value": {
-                    "chargeBoxID": "SAP-Mougins-03",
-                    "type": "Hard"
-                  }
-                }
-              }
+          },
+          {
+            "in": "path",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["Soft", "Hard"],
+              "example": "Soft"
             }
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1395,7 +1365,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/remote/start": {
+    "/api/chargingstations/remote/start": {
       "post": {
         "security": [
           {
@@ -1403,25 +1373,19 @@
           }
         ],
         "description": "Start a remote transaction",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
+                  "chargeBoxID": {
+                    "type": "string"
+                  },
                   "connectorId": {
-                    "type": "number"
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
                   },
                   "tagID": {
                     "type": "string",
@@ -1480,7 +1444,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/remote/stop": {
+    "/api/chargingstations/remote/stop": {
       "post": {
         "security": [
           {
@@ -1488,23 +1452,15 @@
           }
         ],
         "description": "Stop a remote transaction",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
+                  "chargeBoxID": {
+                    "type": "string"
+                  },
                   "transactionId": {
                     "type": "string"
                   }
@@ -1653,13 +1609,7 @@
             }
           },
           {
-            "in": "path",
-            "name": "connectorId",
-            "required": true,
-            "schema": {
-              "type": "number",
-              "example": "0"
-            }
+            "$ref": "#/components/parameters/ConnectorID"
           }
         ],
         "tags": [
@@ -1712,14 +1662,7 @@
             }
           },
           {
-            "in": "path",
-            "name": "connectorId",
-            "required": true,
-            "schema": {
-              "type": "number",
-              "format": "integer",
-              "example": "0"
-            }
+            "$ref": "#/components/parameters/ConnectorID"
           },
           {
             "in": "path",
@@ -2110,7 +2053,7 @@
         }
       }
     },
-    "/api/chargingstations/occp-parameters": {
+    "/api/chargingstations/ocpp-parameters": {
       "post": {
         "security": [
           {
@@ -2129,10 +2072,12 @@
                 ],
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "SAP-Mougins-03"
                   },
                   "forceUpdateOCPPParamsFromTemplate": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                   }
                 }
               }
@@ -2334,10 +2279,10 @@
                     "example": "SAP-Mougins-03"
                   },
                   "maximumPower": {
-                    "type": "string"
+                    "type": "number"
                   },
                   "excludeFromSmartCharging": {
-                    "type": "string"
+                    "type": "boolean"
                   },
                   "forceInactive": {
                     "type": "boolean"
@@ -2694,12 +2639,7 @@
             }
           },
           {
-            "in": "query",
-            "name": "ErrorType",
-            "schema": {
-              "type": "string",
-              "enum": ["missing_settings", "connection_broken", "missing_site_area", "connection_error"]
-            }
+            "$ref": "#/components/parameters/ErrorType"
           },
           {
             "in": "query",
@@ -2825,11 +2765,7 @@
             }
           },
           {
-            "in": "query",
-            "name": "ErrorType",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ErrorType"
           },
           {
             "in": "query",
@@ -2851,15 +2787,6 @@
             "schema": {
               "type": "number"
             }
-          },
-          {
-            "$ref": "#/components/parameters/Limit"
-          },
-          {
-            "$ref": "#/components/parameters/Skip"
-          },
-          {
-            "$ref": "#/components/parameters/SortFields"
           }
         ],
         "tags": [
@@ -2897,7 +2824,8 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "SAP-Mougins-03"
             }
           },
           {
@@ -3041,6 +2969,113 @@
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a Charging Station profile",
+        "tags": [
+          "Charging Stations"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "chargingStationID": {
+                    "type": "string",
+                    "example": "SAP-Mougins-03"
+                  },
+                  "connectorID": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                  },
+                  "chargePointID": {
+                    "type": "string"
+                  },
+                  "profile": {
+                    "$ref": "#/components/schemas/ChargingProfile"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Charging station profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "585": {
+            "$ref": "#/components/responses/NotSupportedError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/profiles/{id}": {
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a Charging Station profile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging Station deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "537": {
+            "description": "Error occured while clearing Charging Profile"
           }
         }
       }
@@ -3535,13 +3570,13 @@
                 "format": "date-time"
               },
               "chargingSchedule": {
-                "$ref": "#/components/schemas/chargingSchedule"
+                "$ref": "#/components/schemas/ChargingSchedule"
               }
             }
           }
         }
       },
-      "chargingSchedule": {
+      "ChargingSchedule": {
         "type": "object",
         "required": [
           "chargingRateUnit",
@@ -3623,6 +3658,24 @@
         "required": false,
         "schema": {
           "type": "string"
+        }
+      },
+      "ErrorType": {
+        "in": "query",
+        "name": "ErrorType",
+        "schema": {
+          "type": "string",
+          "enum": ["missing_settings", "connection_broken", "missing_site_area", "connection_error"]
+        }
+      },
+      "ConnectorID": {
+        "in": "path",
+        "name": "connectorId",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "example": 1
         }
       }
     }
