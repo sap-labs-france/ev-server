@@ -934,8 +934,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           }
         ],
@@ -1148,8 +1147,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           }
         ],
@@ -1189,8 +1187,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           },
           {
@@ -1234,8 +1231,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           }
         ],
@@ -1295,8 +1291,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-033"
+              "type": "string"
             }
           },
           {
@@ -1531,8 +1526,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           },
           {
@@ -1604,8 +1598,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           },
           {
@@ -1657,8 +1650,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           },
           {
@@ -1723,8 +1715,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           }
         ],
@@ -1826,8 +1817,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           },
           {
@@ -2072,8 +2062,7 @@
                 ],
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": "SAP-Mougins-03"
+                    "type": "string"
                   },
                   "forceUpdateOCPPParamsFromTemplate": {
                     "type": "boolean",
@@ -2152,8 +2141,7 @@
             "required": true,
             "name": "id",
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           }
         ],
@@ -2231,8 +2219,7 @@
             "required": true,
             "name": "id",
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           }
         ],
@@ -2275,8 +2262,7 @@
                 "type": "object",
                 "properties": {
                   "id": {
-                    "type": "string",
-                    "example": "SAP-Mougins-03"
+                    "type": "string"
                   },
                   "maximumPower": {
                     "type": "number"
@@ -2348,8 +2334,7 @@
                 ],
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": "SAP-Mougins-03"
+                    "type": "string"
                   },
                   "chargePointID": {
                     "type": "string"
@@ -2402,8 +2387,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           },
           {
@@ -2824,8 +2808,7 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "example": "SAP-Mougins-03"
+              "type": "string"
             }
           },
           {
@@ -2992,8 +2975,7 @@
                     "type": "string"
                   },
                   "chargingStationID": {
-                    "type": "string",
-                    "example": "SAP-Mougins-03"
+                    "type": "string"
                   },
                   "connectorID": {
                     "type": "integer",
