@@ -67,15 +67,15 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     // Convert data
     if (data.power && data.energy) {
       switch (asset.assetType) {
-        case AssetType.CO:
+        case AssetType.CONSUMPTION:
           consumption.currentInstantWatts = data.power.average;
           consumption.currentConsumptionWh = data.energy.sum;
           break;
-        case AssetType.PR:
+        case AssetType.PRODUCTION:
           consumption.currentInstantWatts = data.power.average * -1;
           consumption.currentConsumptionWh = data.energy.sum * -1;
           break;
-        case AssetType.CO_PR:
+        case AssetType.CONSUMPTION_AND_PRODUCTION:
           consumption.currentInstantWatts = data.power.charge.average - data.power.discharge.average;
           consumption.currentConsumptionWh = data.energy.charge.sum - data.energy.discharge.sum;
           break;

@@ -71,7 +71,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       value: newConsumptionWh,
       timestamp: new Date()
     };
-    const energyDirection = asset.assetType === AssetType.PR ? -1 : 1;
+    const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
     // Amperage
     consumption.currentInstantAmpsL1 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L1) * energyDirection;
     consumption.currentInstantAmpsL2 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L2) * energyDirection;
