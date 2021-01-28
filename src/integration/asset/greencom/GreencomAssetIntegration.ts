@@ -95,7 +95,6 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     return consumption;
   }
 
-
   private async connect(): Promise<string> {
     // Check if connection is initialized
     this.checkConnectionIsProvided();
