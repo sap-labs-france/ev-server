@@ -2,7 +2,6 @@ import BackendError from '../exception/BackendError';
 import Constants from './Constants';
 import { CryptoSetting } from '../types/Setting';
 import SettingStorage from '../storage/mongodb/SettingStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import Utils from './Utils';
 import _ from 'lodash';
 import crypto from 'crypto';
