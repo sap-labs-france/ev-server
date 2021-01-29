@@ -711,7 +711,7 @@ export default class Logging {
   }
 
   private static anonymizeSensitiveData(message: any) {
-    if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
+    if (!message || typeof message === 'number' || Utils.isBooleanValue(message) || typeof message === 'function') {
       // eslint-disable-next-line no-useless-return
       return;
     } else if (typeof message === 'string') {

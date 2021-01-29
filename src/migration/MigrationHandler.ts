@@ -7,6 +7,7 @@ import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusIn
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
 import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
+import AddRegisteredPropertyToChargingStation from './tasks/AddRegisteredPropertyToChargingStations';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsumptionsTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
@@ -101,6 +102,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new SetDefaultTagToUserTask());
         currentMigrationTasks.push(new DeleteChargingStationPropertiesTask());
         currentMigrationTasks.push(new FixedConsumptionRoundedPriceTask());
+        currentMigrationTasks.push(new AddRegisteredPropertyToChargingStation());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

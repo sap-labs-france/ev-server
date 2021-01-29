@@ -3,6 +3,7 @@ import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
+import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -89,7 +90,7 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      source: this.getChargingStationID() ? this.getChargingStationID() : '',
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
       message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
@@ -101,7 +102,7 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      source: this.getChargingStationID() ? this.getChargingStationID() : '',
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
       message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
@@ -162,9 +163,13 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   private async updateChargingStationLastSeen(): Promise<void> {
-    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
-      lastSeen: new Date()
-    });
+    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
+    if (!chargingStation.deleted && chargingStation.registered) {
+      await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(),
+        {
+          lastSeen: new Date()
+        });
+    }
   }
 }
 

@@ -87,7 +87,7 @@ export default class OCPPService {
       bootNotification.lastSeen = bootNotification.lastReboot;
       bootNotification.timestamp = bootNotification.lastReboot;
       // Get the charging station
-      let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
+      let chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
         if (!headers.token) {
           throw new BackendError({
@@ -120,6 +120,7 @@ export default class OCPPService {
           chargingStation[key] = bootNotification[key];
         }
         // Update props
+        chargingStation.registered = true;
         chargingStation.createdOn = new Date();
         chargingStation.issuer = true;
         chargingStation.powerLimitUnit = ChargingRateUnitType.AMPERE;
@@ -142,6 +143,7 @@ export default class OCPPService {
           (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
             chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
           // Not the same Charging Station!
+          await ChargingStationStorage.saveChargingStationRegistrationStatus(headers.tenantID, headers.chargeBoxIdentity, { registered: false });
           throw new BackendError({
             source: chargingStation.id,
             action: ServerAction.BOOT_NOTIFICATION,
@@ -161,6 +163,7 @@ export default class OCPPService {
         chargingStation.lastReboot = bootNotification.lastReboot;
         // Back again
         chargingStation.deleted = false;
+        chargingStation.registered = true;
       }
       chargingStation.ocppVersion = headers.ocppVersion;
       chargingStation.ocppProtocol = headers.ocppProtocol;
@@ -231,7 +234,7 @@ export default class OCPPService {
             action: ServerAction.BOOT_NOTIFICATION,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'handleBootNotification',
-            message: `Cannot set heartbeat interval OCPP Parameters on '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
+            message: `Cannot set heartbeat interval OCPP Parameter on '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
           });
         }
         // Get config and save it

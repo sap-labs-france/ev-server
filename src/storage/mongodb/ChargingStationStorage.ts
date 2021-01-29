@@ -515,7 +515,8 @@ export default class ChargingStationStorage {
       ocppVersion: chargingStationToSave.ocppVersion,
       ocppProtocol: chargingStationToSave.ocppProtocol,
       cfApplicationIDAndInstanceIndex: chargingStationToSave.cfApplicationIDAndInstanceIndex,
-      lastSeen: chargingStationToSave.lastSeen,
+      lastSeen: Utils.convertToDate(chargingStationToSave.lastSeen),
+      registered: Utils.convertToBoolean(chargingStationToSave.registered),
       deleted: Utils.convertToBoolean(chargingStationToSave.deleted),
       lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
       chargingStationURL: chargingStationToSave.chargingStationURL,
@@ -580,6 +581,22 @@ export default class ChargingStationStorage {
       { $set: params });
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationLastSeen', uniqueTimerID, params);
+  }
+
+  public static async saveChargingStationRegistrationStatus(tenantID: string, id: string,
+    params: { registered: boolean }): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationRegistration');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Set data
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      { $set: params },
+      { upsert: true });
+    // Debug
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationRegistration', uniqueTimerID, params);
   }
 
   public static async saveChargingStationFirmwareStatus(tenantID: string, id: string, firmwareUpdateStatus: OCPPFirmwareStatus): Promise<void> {

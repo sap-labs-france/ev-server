@@ -1603,6 +1603,15 @@ export default class OCPPUtils {
         message: 'Charging Station is deleted'
       });
     }
+    // Registered?
+    if (chargingStation.registered) {
+      throw new BackendError({
+        source: chargeBoxIdentity,
+        module: MODULE_NAME,
+        method: 'checkAndGetChargingStation',
+        message: 'Charging Station is not registered'
+      });
+    }
     return chargingStation;
   }
 
