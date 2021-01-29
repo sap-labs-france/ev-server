@@ -25,8 +25,8 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationConnectorRequest(request: any): HttpChargingStationConnectorRequest {
     return {
-      ChargeBoxID: sanitize(request.ChargeBoxID),
-      ConnectorID: Utils.convertToInt(sanitize(request.ConnectorID)),
+      chargeBoxID: sanitize(request.chargeBoxID),
+      connectorID: Utils.convertToInt(sanitize(request.connectorID)),
     };
   }
 

@@ -21,6 +21,8 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationDownloadFirmware();
     this.buildRouteChargingStationDeleteProfile();
     this.buildRouteChargingStationUpdateProfile();
+    this.buildRouteChargingStationChangeAvailability();
+    this.buildRouteChargingStationTransactions();
     this.buildRouteChargingStations();
     this.buildRouteChargingStation();
     this.buildRouteChargingStationDelete();
@@ -34,13 +36,11 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationCompositeSchedule();
     this.buildRouteChargingStationDiagnostics();
     this.buildRouteChargingStationUpdateFirmware();
-    this.buildRouteChargingStationChangeAvailability();
     this.buildRouteChargingStationDownloadQRCode();
     this.buildRouteChargingStationOCPPParameters();
     this.buildRouteChargingStationExportOCPPParameters();
     this.buildRouteChargingStationUpdateParameters();
     this.buildRouteChargingStationLimitPower();
-    this.buildRouteChargingStationTransactions();
     this.buildRouteChargingStationCheckSmartCharging();
     return this.router;
   }
@@ -104,10 +104,8 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationGenerateQRCode(): void {
-    this.router.post(`/${ServerAction.REST_CHARGING_STATIONS_GENERATE_QRCODE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ChargeBoxID = req.params.id;
-      req.query.ConnectorID = req.params.connectorId;
-      await RouterUtils.handleServerAction(ChargingStationService.handleGenerateQrCodeForConnector.bind(this), ServerAction.REST_CHARGING_STATIONS_GENERATE_QRCODE, req, res, next);
+    this.router.post(`/${ServerAction.REST_CHARGING_STATIONS_QRCODE_GENERATE}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleGenerateQrCodeForConnector.bind(this), ServerAction.REST_CHARGING_STATIONS_QRCODE_GENERATE, req, res, next);
     });
   }
 
@@ -120,6 +118,7 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationDiagnostics(): void {
     this.router.get(`/${ServerAction.REST_CHARGING_STATIONS_DIAGNOSTICS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.chargeBoxID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.REST_CHARGING_STATIONS_DIAGNOSTICS, req, res, next);
     });
   }
@@ -137,10 +136,10 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationDownloadQRCode(): void {
-    this.router.get(`/${ServerAction.REST_CHARGING_STATIONS_DOWNLOAD_QR_CODE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerAction.REST_CHARGING_STATIONS_QRCODE_DOWNLOAD}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ChargeBoxID = req.params.id;
       req.query.ConnectorID = req.params.connectorId;
-      await RouterUtils.handleServerAction(ChargingStationService.handleDownloadQrCodesPdf.bind(this), ServerAction.REST_CHARGING_STATIONS_DOWNLOAD_QR_CODE, req, res, next);
+      await RouterUtils.handleServerAction(ChargingStationService.handleDownloadQrCodesPdf.bind(this), ServerAction.REST_CHARGING_STATIONS_QRCODE_DOWNLOAD, req, res, next);
     });
   }
 
@@ -178,6 +177,7 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationTransactions(): void {
     this.router.get(`/${ServerAction.REST_CHARGING_STATIONS_TRANSACTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ChargeBoxID = req.params.id;
       await RouterUtils.handleServerAction(TransactionService.handleGetChargingStationTransactions.bind(this), ServerAction.REST_CHARGING_STATIONS_TRANSACTIONS, req, res, next);
     });
   }
@@ -195,9 +195,9 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationDownloadFirmware(): void {
-    this.router.get(`/${ServerAction.REST_CHARGING_STATIONS_FIRMWARE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.firmwareId;
-      await RouterUtils.handleServerAction(ChargingStationService.handleGetFirmware.bind(this), ServerAction.REST_CHARGING_STATIONS_FIRMWARE, req, res, next);
+    this.router.get(`/${ServerAction.REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(ChargingStationService.handleGetFirmware.bind(this), ServerAction.REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE, req, res, next);
     });
   }
 

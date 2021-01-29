@@ -443,7 +443,7 @@ export default class ChargingStationService {
 
   public static async handleGenerateQrCodeForConnector(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationConnectorRequest(req.query);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationConnectorRequest(req.body);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -451,25 +451,25 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGenerateQrCodeForConnector',
-        value: filteredRequest.ChargeBoxID
+        value: filteredRequest.chargeBoxID
       });
     }
     // Check ChargeBoxID
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Check ConnectorID
-    UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.connectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Get the Charging Station`
-    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Found ChargingStation ?
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Found Connector ?
-    UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.ConnectorID),
-      `Connector ID '${filteredRequest.ConnectorID}' does not exist`,
+    UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.connectorID),
+      `Connector ID '${filteredRequest.connectorID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     const chargingStationQRCode: ChargingStationQRCode = {
-      chargingStationID: filteredRequest.ChargeBoxID,
-      connectorID: filteredRequest.ConnectorID,
+      chargingStationID: filteredRequest.chargeBoxID,
+      connectorID: filteredRequest.connectorID,
       endpoint: Utils.getChargingStationEndpoint(),
       tenantName: req.user.tenantName,
       tenantSubDomain: req.user.tenantSubdomain
@@ -906,7 +906,6 @@ export default class ChargingStationService {
     );
     // Return
     res.json(chargingStations);
-    next();
   }
 
   public static async handleGetStatusNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
@@ -1144,7 +1143,7 @@ export default class ChargingStationService {
         });
       }
       // Execute it
-      result = await this.handleChargingStationCommand(
+      result = await ChargingStationService.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
     }
     // Return
@@ -1415,8 +1414,8 @@ export default class ChargingStationService {
             chargingStationID: chargingStation.id,
             connectorID: connector.connectorId,
             endpoint: Utils.getChargingStationEndpoint(),
-            tenantName: req.tenant.name,
-            tenantSubDomain: req.tenant.subdomain
+            tenantName: req.user.tenantName,
+            tenantSubDomain: req.user.tenantSubdomain
           };
           // Generated QR-Code
           const qrCodeImage = await Utils.generateQrCode(

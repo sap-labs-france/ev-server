@@ -71,8 +71,8 @@ export interface HttpChargingStationRequest {
 }
 
 export interface HttpChargingStationConnectorRequest {
-  ChargeBoxID: string;
-  ConnectorID: number;
+  chargeBoxID: string;
+  connectorID: number;
 }
 
 export interface HttpChargingStationOcppParametersRequest {

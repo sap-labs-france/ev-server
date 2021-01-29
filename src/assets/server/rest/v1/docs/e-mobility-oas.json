@@ -1512,7 +1512,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/unlock": {
+    "/api/chargingstations/connectors/unlock": {
       "post": {
         "security": [
           {
@@ -1520,25 +1520,25 @@
           }
         ],
         "description": "Unlock a connector",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "connectorId",
-            "required": true,
-            "schema": {
-              "type": "number",
-              "example": "0"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargeBoxID": {
+                    "type": "string"
+                  },
+                  "connectorID": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                  }
+                }
+              }
             }
           }
-        ],
+        },
         "tags": [
           "Charging Stations"
         ],
@@ -1584,7 +1584,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode": {
+    "/api/chargingstations/connectors/qrcode": {
       "post": {
         "security": [
           {
@@ -1592,19 +1592,25 @@
           }
         ],
         "description": "Generate connector's QRCode",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargeBoxID": {
+                    "type": "string"
+                  },
+                  "connectorID": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                  }
+                }
+              }
             }
-          },
-          {
-            "$ref": "#/components/parameters/ConnectorID"
           }
-        ],
+        },
         "tags": [
           "Charging Stations"
         ],
@@ -1636,7 +1642,9 @@
             "$ref": "#/components/responses/500BackendError"
           }
         }
-      },
+      }
+    },
+    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode": {
       "get": {
         "security": [
           {
@@ -1907,7 +1915,7 @@
                   "retrieveDate"
                 ],
                 "properties": {
-                  "id": {
+                  "chargeBoxID": {
                     "type": "string"
                   },
                   "location": {
@@ -1963,7 +1971,7 @@
                   "retrieveDate"
                 ],
                 "properties": {
-                  "id": {
+                  "chargeBoxID": {
                     "type": "string"
                   },
                   "connectorId": {
@@ -2547,7 +2555,7 @@
         }
       }
     },
-    "/api/chargingstations/in-error": {
+    "/api/chargingstations/status/in-error": {
       "get": {
         "security": [
           {
@@ -2794,7 +2802,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/firmware/{filename}": {
+    "/api/chargingstations/firmware/{id}": {
       "get": {
         "security": [
           {
@@ -2806,14 +2814,7 @@
           {
             "in": "path",
             "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "filename",
+            "description": "Firmware ID",
             "required": true,
             "schema": {
               "type": "string"
@@ -2865,7 +2866,7 @@
         }
       }
     },
-    "/api/chargingstations/profiles": {
+    "/api/chargingstations/smartcharging/profiles": {
       "get": {
         "security": [
           {
@@ -3025,7 +3026,7 @@
         }
       }
     },
-    "/api/chargingstations/profiles/{id}": {
+    "/api/chargingstations/smartcharging/profiles/{id}": {
       "delete": {
         "security": [
           {
