@@ -42,7 +42,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
       } else if (setting.content.type === PricingSettingsType.CONVERGENT_CHARGING) {
         setting.sensitiveData = ['content.convergentCharging.password'];
         if (setting.content.convergentCharging.password) {
-          setting.content.convergentCharging.password = Cypher.encrypt(setting.content.convergentCharging.password, tenant.id);
+          setting.content.convergentCharging.password = await Cypher.encrypt(setting.content.convergentCharging.password, tenant.id);
         } else {
           setting.content.convergentCharging.password = '';
         }
