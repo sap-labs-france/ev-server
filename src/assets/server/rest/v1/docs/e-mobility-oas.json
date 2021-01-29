@@ -2,16 +2,16 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "description": "Localhost - Development",
-      "url": "http://localhost:8080/v1"
-    },
-    {
       "description": "SCP - Production system",
       "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
     },
     {
       "description": "SCP - Quality system",
       "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
+    },
+    {
+      "description": "Localhost - Development",
+      "url": "http://localhost:8080/v1"
     }
   ],
   "info": {
@@ -623,94 +623,51 @@
         "description": "Retrieve a list of Charging Stations",
         "parameters": [
           {
-            "in": "query",
-            "name": "Issuer",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/Issuer"
           },
           {
             "$ref": "#/components/parameters/Search"
           },
           {
-            "in": "query",
-            "name": "WithNoSiteArea",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "in": "query",
-            "name": "SiteID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteID"
           },
           {
-            "in": "query",
-            "name": "WithSite",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/WithSite"
           },
           {
-            "in": "query",
-            "name": "SiteAreaID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteAreaID"
           },
           {
-            "in": "query",
-            "name": "ConnectorStatus",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ConnectorStatus"
           },
           {
-            "in": "query",
-            "name": "ConnectorType",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ConnectorType"
           },
           {
             "in": "query",
             "name": "ChargeBoxID",
+            "description": "Charging station ID",
             "schema": {
               "type": "string"
             }
           },
           {
-            "in": "query",
-            "name": "IncludeDeleted",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/IncludeDeleted"
           },
           {
             "$ref": "#/components/parameters/ErrorType"
           },
           {
-            "in": "query",
-            "name": "LocLongitude",
-            "schema": {
-              "type": "number"
-            }
+            "$ref": "#/components/parameters/LocLongitude"
           },
           {
-            "in": "query",
-            "name": "LocLatitude",
-            "schema": {
-              "type": "number"
-            }
+            "$ref": "#/components/parameters/LocLatitude"
           },
           {
-            "in": "query",
-            "name": "LocMaxDistanceMeters",
-            "schema": {
-              "type": "number"
-            }
+            "$ref": "#/components/parameters/LocMaxDistanceMeters"
           },
           {
             "$ref": "#/components/parameters/Limit"
@@ -929,12 +886,7 @@
         "description": "Retrieve a Charging Station",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           }
         ],
         "tags": [
@@ -1142,12 +1094,7 @@
         "description": "Delete a Charging Station",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           }
         ],
         "tags": [
@@ -1182,20 +1129,19 @@
         "description": "Reset a Charging Station",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "type",
             "required": true,
+            "description": "Reset type",
             "schema": {
               "type": "string",
-              "enum": ["Soft", "Hard"],
+              "enum": [
+                "Soft",
+                "Hard"
+              ],
               "example": "Soft"
             }
           }
@@ -1226,12 +1172,7 @@
         "description": "Clear a Charging Station cache",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           }
         ],
         "tags": [
@@ -1286,16 +1227,12 @@
         "description": "Get a Charging Station configuration",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
             "in": "query",
             "name": "key",
+            "description": "Configuration key",
             "schema": {
               "type": "string"
             }
@@ -1653,31 +1590,16 @@
         "description": "Download connector QRCode as PDF",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
             "$ref": "#/components/parameters/ConnectorID"
           },
           {
-            "in": "path",
-            "name": "SiteAreaID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteAreaID"
           },
           {
-            "in": "path",
-            "name": "SiteID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteID"
           }
         ],
         "tags": [
@@ -1718,12 +1640,7 @@
         "description": "Get Charging Station composite schedule",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           }
         ],
         "tags": [
@@ -1820,47 +1737,49 @@
         "description": "Get Charging Station diagnostics",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
             "in": "path",
             "name": "location",
             "required": true,
+            "description": "Location",
             "schema": {
               "type": "string"
             }
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "retries",
+            "description": "Number of retries",
             "schema": {
-              "type": "number"
+              "type": "integer"
             }
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "retryInterval",
+            "description": "Retry interval",
             "schema": {
               "type": "number"
             }
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "startTime",
+            "description": "Start time",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "date-time"
             }
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "stopTime",
+            "description": "Stop time",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -2145,12 +2064,7 @@
         "description": "Get Charging Station OCPP Parameters",
         "parameters": [
           {
-            "in": "path",
-            "required": true,
-            "name": "id",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           }
         ],
         "tags": [
@@ -2223,12 +2137,7 @@
         "description": "Export Charging Station OCPP Parameters as CSV file",
         "parameters": [
           {
-            "in": "path",
-            "required": true,
-            "name": "id",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           }
         ],
         "tags": [
@@ -2391,33 +2300,16 @@
         "description": "Get Charging Station transactions",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
-            "in": "query",
-            "name": "Issuer",
-            "required": false,
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "in": "query",
-            "name": "ChargeBoxID",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/Issuer"
           },
           {
             "in": "query",
             "name": "StartDateTime",
             "required": false,
+            "description": "Start date time",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -2427,47 +2319,35 @@
             "in": "query",
             "name": "EndDateTime",
             "required": false,
+            "description": "End date time",
             "schema": {
               "type": "string",
               "format": "date-time"
             }
           },
           {
-            "in": "query",
-            "name": "SiteID",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteID"
           },
           {
             "in": "query",
             "name": "TagID",
+            "description": "Tag ID",
             "required": false,
             "schema": {
               "type": "string"
             }
           },
           {
-            "in": "query",
-            "name": "SiteAreaID",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteAreaID"
           },
           {
-            "in": "query",
-            "name": "Search",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/parameters/Search"
-            }
+            "$ref": "#/components/parameters/Search"
           },
           {
             "in": "query",
             "name": "InactivityStatus",
             "required": false,
+            "description": "Inactivity status",
             "schema": {
               "type": "string"
             }
@@ -2476,6 +2356,7 @@
             "in": "query",
             "name": "RefundStatus",
             "required": false,
+            "description": "Refund status",
             "schema": {
               "type": "string"
             }
@@ -2484,6 +2365,7 @@
             "in": "query",
             "name": "MinimalPrice",
             "required": false,
+            "description": "Minimal price",
             "schema": {
               "type": "number"
             }
@@ -2492,6 +2374,7 @@
             "in": "query",
             "name": "Statistics",
             "required": false,
+            "description": "Statistics",
             "schema": {
               "type": "string"
             }
@@ -2500,7 +2383,7 @@
             "in": "query",
             "name": "UserID",
             "required": false,
-            "description": "Pipe separated IDs",
+            "description": "Pipe separated User IDs",
             "schema": {
               "type": "string"
             }
@@ -2509,34 +2392,19 @@
             "in": "query",
             "name": "ReportIDs",
             "required": false,
-            "description": "Pipe separated IDs",
+            "description": "Pipe separated Report IDs",
             "schema": {
               "type": "string"
             }
           },
           {
-            "in": "query",
-            "name": "Skip",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/parameters/Skip"
-            }
+            "$ref": "#/components/parameters/Skip"
           },
           {
-            "in": "query",
-            "name": "Limit",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/parameters/Limit"
-            }
+            "$ref": "#/components/parameters/Limit"
           },
           {
-            "in": "query",
-            "name": "SortFields",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/parameters/SortFields"
-            }
+            "$ref": "#/components/parameters/SortFields"
           }
         ],
         "tags": [
@@ -2565,95 +2433,56 @@
         "description": "Get Charging Station in error",
         "parameters": [
           {
-            "in": "query",
-            "name": "Issuer",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/Issuer"
           },
           {
             "$ref": "#/components/parameters/Search"
           },
           {
-            "in": "query",
-            "name": "WithNoSiteArea",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "in": "query",
-            "name": "SiteID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteID"
           },
           {
             "in": "query",
             "name": "WithNoSite",
+            "description": "With no site",
             "schema": {
               "type": "boolean"
             }
           },
           {
-            "in": "query",
-            "name": "SiteAreaID",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/SiteAreaID"
           },
           {
-            "in": "query",
-            "name": "ConnectorStatus",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ConnectorStatus"
           },
           {
-            "in": "query",
-            "name": "ConnectorType",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ConnectorType"
           },
           {
             "in": "query",
             "name": "ChargeBoxID",
+            "description": "Charging Sation ID",
             "schema": {
               "type": "string"
             }
           },
           {
-            "in": "query",
-            "name": "IncludeDeleted",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/IncludeDeleted"
           },
           {
             "$ref": "#/components/parameters/ErrorType"
           },
           {
-            "in": "query",
-            "name": "LocLongitude",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/LocLongitude"
           },
           {
-            "in": "query",
-            "name": "LocLatitude",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/LocLatitude"
           },
           {
-            "in": "query",
-            "name": "LocMaxDistanceMeters",
-            "schema": {
-              "type": "number",
-              "minimum": 0
-            }
+            "$ref": "#/components/parameters/LocMaxDistanceMeters"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -2691,94 +2520,51 @@
         "description": "Export Charging Stations as CSV file",
         "parameters": [
           {
-            "in": "query",
-            "name": "Issuer",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/Issuer"
           },
           {
             "$ref": "#/components/parameters/Search"
           },
           {
-            "in": "query",
-            "name": "WithNoSiteArea",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "in": "query",
-            "name": "SiteID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteID"
           },
           {
-            "in": "query",
-            "name": "WithSite",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/WithSite"
           },
           {
-            "in": "query",
-            "name": "SiteAreaID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteAreaID"
           },
           {
-            "in": "query",
-            "name": "ConnectorStatus",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ConnectorStatus"
           },
           {
-            "in": "query",
-            "name": "ConnectorType",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ConnectorType"
           },
           {
             "in": "query",
             "name": "ChargeBoxID",
+            "description": "Charging Station ID",
             "schema": {
               "type": "string"
             }
           },
           {
-            "in": "query",
-            "name": "IncludeDeleted",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/IncludeDeleted"
           },
           {
             "$ref": "#/components/parameters/ErrorType"
           },
           {
-            "in": "query",
-            "name": "LocLongitude",
-            "schema": {
-              "type": "number"
-            }
+            "$ref": "#/components/parameters/LocLongitude"
           },
           {
-            "in": "query",
-            "name": "LocLatitude",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/LocLatitude"
           },
           {
-            "in": "query",
-            "name": "LocMaxDistanceMeters",
-            "schema": {
-              "type": "number"
-            }
+            "$ref": "#/components/parameters/LocMaxDistanceMeters"
           }
         ],
         "tags": [
@@ -2856,6 +2642,7 @@
         ],
         "responses": {
           "200": {
+            "description": "Samrt Charging is enabled"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -2881,20 +2668,18 @@
           {
             "in": "query",
             "name": "ChargeBoxID",
+            "description": "Charging Station ID",
             "schema": {
               "type": "string"
             }
           },
           {
-            "in": "query",
-            "name": "ConnectorID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ConnectorID"
           },
           {
             "in": "query",
             "name": "WithChargingStation",
+            "description": "With Charging Station attribute",
             "schema": {
               "type": "boolean"
             }
@@ -2902,16 +2687,13 @@
           {
             "in": "query",
             "name": "WithSiteArea",
+            "description": "With Site Area",
             "schema": {
               "type": "boolean"
             }
           },
           {
-            "in": "query",
-            "name": "SiteID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SiteID"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -3036,12 +2818,7 @@
         "description": "Delete a Charging Station profile",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           }
         ],
         "tags": [
@@ -3502,7 +3279,11 @@
       },
       "ChargingProfile": {
         "type": "object",
-        "required": ["chargingStationID", "chargePointID", "profile"],
+        "required": [
+          "chargingStationID",
+          "chargePointID",
+          "profile"
+        ],
         "properties": {
           "id": {
             "type": "string"
@@ -3521,7 +3302,13 @@
           },
           "profile": {
             "type": "object",
-            "required": ["chargingProfileId", "stackLevel", "chargingProfilePurpose", "chargingProfileKind", "chargingSchedule"],
+            "required": [
+              "chargingProfileId",
+              "stackLevel",
+              "chargingProfilePurpose",
+              "chargingProfileKind",
+              "chargingSchedule"
+            ],
             "properties": {
               "chargingProfileId": {
                 "type": "number"
@@ -3534,15 +3321,26 @@
               },
               "chargingProfilePurpose": {
                 "type": "string",
-                "enum": ["ChargePointMaxProfile", "TxDefaultProfile", "TxProfile"]
+                "enum": [
+                  "ChargePointMaxProfile",
+                  "TxDefaultProfile",
+                  "TxProfile"
+                ]
               },
               "chargingProfileKind": {
                 "type": "string",
-                "enum": ["Absolute", "Recurring", "Relative"]
+                "enum": [
+                  "Absolute",
+                  "Recurring",
+                  "Relative"
+                ]
               },
               "recurrencyKind": {
                 "type": "string",
-                "enum": ["Daily", "Weekly"]
+                "enum": [
+                  "Daily",
+                  "Weekly"
+                ]
               },
               "validFrom": {
                 "type": "string",
@@ -3646,19 +3444,123 @@
       "ErrorType": {
         "in": "query",
         "name": "ErrorType",
+        "description": "Error type",
         "schema": {
           "type": "string",
-          "enum": ["missing_settings", "connection_broken", "missing_site_area", "connection_error"]
+          "enum": [
+            "missing_settings",
+            "connection_broken",
+            "missing_site_area",
+            "connection_error"
+          ]
+        }
+      },
+      "ChargingStationID": {
+        "in": "path",
+        "name": "id",
+        "description": "Charging station ID",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       },
       "ConnectorID": {
         "in": "path",
         "name": "connectorId",
         "required": true,
+        "description": "Connector ID",
         "schema": {
           "type": "integer",
           "minimum": 1,
           "example": 1
+        }
+      },
+      "SiteID": {
+        "in": "query",
+        "name": "SiteID",
+        "description": "Site ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SiteAreaID": {
+        "in": "query",
+        "name": "SiteAreaID",
+        "description": "Site Area ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Issuer": {
+        "in": "query",
+        "name": "Issuer",
+        "description": "Current organization",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "IncludeDeleted": {
+        "in": "query",
+        "name": "IncludeDeleted",
+        "description": "Include deleted charging stations",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "ConnectorStatus": {
+        "in": "query",
+        "name": "ConnectorStatus",
+        "description": "Connector status",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ConnectorType": {
+        "in": "query",
+        "name": "ConnectorType",
+        "description": "Connector type",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "LocLongitude": {
+        "in": "query",
+        "name": "LocLongitude",
+        "description": "Longitude location",
+        "schema": {
+          "type": "number"
+        }
+      },
+      "LocLatitude": {
+        "in": "query",
+        "name": "LocLatitude",
+        "description": "Latitude location",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "LocMaxDistanceMeters": {
+        "in": "query",
+        "name": "LocMaxDistanceMeters",
+        "description": "Maximum range from location in meters",
+        "schema": {
+          "type": "number"
+        }
+      },
+      "WithNoSiteArea": {
+        "in": "query",
+        "name": "WithNoSiteArea",
+        "description": "With no Site Area",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithSite": {
+        "in": "query",
+        "name": "WithSite",
+        "description": "With site attribute",
+        "schema": {
+          "type": "boolean"
         }
       }
     }

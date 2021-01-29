@@ -399,6 +399,7 @@ export enum ServerRoute {
   REST_MAIL_RESEND = 'mail/resend',
 
   REST_CHARGING_STATIONS = 'chargingstations',
+  REST_CHARGING_STATION = 'chargingstations/:id',
   REST_CHARGING_STATIONS_RESET = 'chargingstations/:id/reset',
   REST_CHARGING_STATIONS_CACHE_CLEAR = 'chargingstations/:id/cache/clear',
   REST_CHARGING_STATIONS_CONFIGURATION = 'chargingstations/:id/configuration',

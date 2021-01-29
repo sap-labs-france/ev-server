@@ -994,7 +994,6 @@ export default class ChargingStationService {
 
   public static async handleAction(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    // const command = action.substr(ServerAction.REST_CHARGING_STATIONS.length) as Command;
     const command = action.slice(15) as Command;
 
     const filteredRequest: HttpChargingStationCommandRequest =
