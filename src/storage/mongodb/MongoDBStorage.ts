@@ -153,6 +153,9 @@ export default class MongoDBStorage {
     // Charging Stations
     await this.handleIndexesInCollection(tenantID, 'chargingstations', [
       { fields: { coordinates: '2dsphere' } },
+      { fields: { issuer: 1 } },
+      { fields: { registered: 1 } },
+      { fields: { deleted: 1 } },
     ]);
     Logging.logDebug({
       tenantID: tenantID,

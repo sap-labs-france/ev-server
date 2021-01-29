@@ -133,7 +133,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-    params: { includeDeleted?: boolean } = {}, projectFields?: string[]): Promise<ChargingStation> {
+    params: { includeDeleted?: boolean, issuer?: boolean; registered?: boolean } = {}, projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       chargingStationIDs: [id],
       withSite: true, ...params
@@ -145,7 +145,7 @@ export default class ChargingStationStorage {
     params: {
       search?: string; chargingStationIDs?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
-      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
+      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean; registered?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
@@ -200,6 +200,10 @@ export default class ChargingStationStorage {
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
       filters.issuer = params.issuer;
+    }
+    // Registration status
+    if (params.registered) {
+      filters.registered = params.registered;
     }
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
