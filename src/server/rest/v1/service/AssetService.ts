@@ -176,7 +176,7 @@ export default class AssetService {
       });
     }
     // Retrieve consumption
-    const consumption = await assetImpl.retrieveConsumption(asset);
+    const consumption = await assetImpl.retrieveConsumption(asset, true);
     // Assign
     asset.lastConsumption = consumption.lastConsumption;
     asset.currentConsumptionWh = consumption.currentConsumptionWh;
@@ -387,8 +387,8 @@ export default class AssetService {
       name: filteredRequest.name,
       siteAreaID: filteredRequest.siteAreaID,
       assetType: filteredRequest.assetType,
-      fluctuation: filteredRequest.fluctuation,
-      fallbackValue: filteredRequest.fallbackValue,
+      fluctuationPercent: filteredRequest.fluctuationPercent,
+      staticValueWatt: filteredRequest.staticValueWatt,
       coordinates: filteredRequest.coordinates,
       image: filteredRequest.image,
       dynamicAsset: filteredRequest.dynamicAsset,
@@ -446,8 +446,8 @@ export default class AssetService {
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
     asset.assetType = filteredRequest.assetType;
-    asset.fluctuation = filteredRequest.fluctuation;
-    asset.fallbackValue = filteredRequest.fallbackValue;
+    asset.fluctuationPercent = filteredRequest.fluctuationPercent;
+    asset.staticValueWatt = filteredRequest.staticValueWatt;
     asset.coordinates = filteredRequest.coordinates;
     asset.image = filteredRequest.image;
     asset.dynamicAsset = filteredRequest.dynamicAsset;
