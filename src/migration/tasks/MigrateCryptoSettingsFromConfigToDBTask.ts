@@ -19,7 +19,7 @@ export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTa
 
   public async migrateTenant(tenant: Tenant): Promise<void> {
     // Crypto Key from config file
-    const configCryptoKey: string = Configuration.getCryptoConfig().key;
+    const configCryptoKey = Configuration.getCryptoConfig().key;
     // Crypto Key Properties from config file
     const configCryptoKeyProperties = Utils.parseConfigCryptoAlgorithm(Configuration.getCryptoConfig().algorithm);
     // Crypto Key Setting from db
