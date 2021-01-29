@@ -635,7 +635,6 @@
           {
             "in": "query",
             "name": "WithNoSiteArea",
-            "example": true,
             "schema": {
               "type": "boolean"
             }
@@ -906,7 +905,7 @@
                       "id": "5abeba8d4bae1457eb565e5b"
                     }
                   },
-                  "id": "SAP-Mougins-03"
+                  "id": "65465898"
                 }
               }
             }
@@ -1121,7 +1120,7 @@
                       "id": "5abeba8d4bae1457eb565e5b"
                     }
                   },
-                  "id": "SAP-Mougins-03"
+                  "id": "65465898"
                 }
               }
             }
@@ -1896,7 +1895,7 @@
         }
       }
     },
-    "/api/chargingstations/firmware": {
+    "/api/chargingstations/general/firmware": {
       "put": {
         "security": [
           {
@@ -1952,7 +1951,7 @@
         }
       }
     },
-    "/api/chargingstations/availability": {
+    "/api/chargingstations/general/availability": {
       "put": {
         "security": [
           {
@@ -1966,7 +1965,7 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "id",
+                  "chargeBoxID",
                   "location",
                   "retrieveDate"
                 ],
@@ -1975,7 +1974,8 @@
                     "type": "string"
                   },
                   "connectorId": {
-                    "type": "number"
+                    "type": "integer",
+                    "minimum": 1
                   },
                   "type": {
                     "type": "string"
@@ -1986,16 +1986,16 @@
                 "operative": {
                   "summary": "Operative",
                   "value": {
-                    "id": "SAP-Mougins-03",
-                    "connectorId": 0,
+                    "chargeBoxID": "SAP-Mougins-03",
+                    "connectorId": 1,
                     "type": "Operative"
                   }
                 },
                 "inoperative": {
                   "summary": "Inoperative",
                   "value": {
-                    "id": "SAP-Mougins-03",
-                    "connectorId": 0,
+                    "chargeBoxID": "SAP-Mougins-03",
+                    "connectorId": 1,
                     "type": "Inoperative"
                   }
                 }
@@ -2051,7 +2051,7 @@
         }
       }
     },
-    "/api/chargingstations/ocpp-parameters": {
+    "/api/chargingstations/ocpp/parameters": {
       "post": {
         "security": [
           {
@@ -2135,7 +2135,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp-parameters": {
+    "/api/chargingstations/{id}/ocpp/parameters": {
       "get": {
         "security": [
           {
@@ -2213,7 +2213,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp-parameters/export": {
+    "/api/chargingstations/{id}/ocpp/parameters/export": {
       "get": {
         "security": [
           {
@@ -2255,7 +2255,7 @@
         }
       }
     },
-    "/api/chargingstations/parameters": {
+    "/api/chargingstations/general/parameters": {
       "put": {
         "security": [
           {
@@ -2681,7 +2681,7 @@
         }
       }
     },
-    "/api/chargingstations/export": {
+    "/api/chargingstations/action/export": {
       "get": {
         "security": [
           {

@@ -384,8 +384,10 @@ export enum ServerAction {
 
   HTTP_REQUEST = 'HttpRequest',
   HTTP_RESPONSE = 'HttpResponse',
-  HTTP_ERROR = 'HttpError',
+  HTTP_ERROR = 'HttpError'
+}
 
+export enum ServerRoute {
   // RESTful API
   REST_SIGNIN = 'signin',
   REST_SIGNON = 'signon',
@@ -409,12 +411,12 @@ export enum ServerAction {
   REST_CHARGING_STATIONS_COMPOSITE_SCHEDULE = 'chargingstations/:id/compositeschedule',
   REST_CHARGING_STATIONS_DIAGNOSTICS = 'chargingstations/:id/diagnostics',
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:id',
-  REST_CHARGING_STATIONS_FIRMWARE = 'chargingstations/firmware',
-  REST_CHARGING_STATIONS_AVAILABILITY = 'chargingstations/availability',
-  REST_CHARGING_STATIONS_OCPP_PARAMETERS = 'chargingstations/ocpp-parameters',
-  REST_CHARGING_STATION_OCPP_PARAMETERS = 'chargingstations/:id/ocpp-parameters',
-  REST_CHARGING_STATIONS_OCPP_PARAMETERS_EXPORT = 'chargingstations/:id/ocpp-parameters/export',
-  REST_CHARGING_STATIONS_PARAMETERS = 'chargingstations/parameters',
+  REST_CHARGING_STATIONS_FIRMWARE = 'chargingstations/general/firmware',
+  REST_CHARGING_STATIONS_AVAILABILITY = 'chargingstations/general/availability',
+  REST_CHARGING_STATIONS_OCPP_PARAMETERS = 'chargingstations/ocpp/parameters',
+  REST_CHARGING_STATION_OCPP_PARAMETERS = 'chargingstations/:id/ocpp/parameters',
+  REST_CHARGING_STATIONS_OCPP_PARAMETERS_EXPORT = 'chargingstations/:id/ocpp/parameters/export',
+  REST_CHARGING_STATIONS_PARAMETERS = 'chargingstations/general/parameters',
   REST_CHARGING_STATIONS_POWER_LIMIT = 'chargingstations/power/limit',
   REST_CHARGING_STATIONS_TRANSACTIONS = 'chargingstations/:id/transactions',
   REST_CHARGING_STATIONS_IN_ERROR = 'chargingstations/status/in-error',

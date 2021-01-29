@@ -1,4 +1,4 @@
-import { ServerAction } from '../../../src/types/Server';
+import { ServerRoute } from '../../../src/types/Server';
 
 export default class AuthenticationApi {
   private _baseApi: any;
@@ -24,7 +24,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerAction.REST_SIGNIN,
+      url: '/v1/auth/' + ServerRoute.REST_SIGNIN,
       'axios-retry': {
         retries: 0
       },
@@ -43,7 +43,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerAction.REST_SIGNON,
+      url: '/v1/auth/' + ServerRoute.REST_SIGNON,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -61,7 +61,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerAction.REST_PASSWORD_RESET,
+      url: '/v1/auth/' + ServerRoute.REST_PASSWORD_RESET,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -79,7 +79,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerAction.REST_MAIL_RESEND,
+      url: '/v1/auth/' + ServerRoute.REST_MAIL_RESEND,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -97,7 +97,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'GET',
-      url: '/v1/auth/' + ServerAction.REST_MAIL_CHECK,
+      url: '/v1/auth/' + ServerRoute.REST_MAIL_CHECK,
       headers: {
         'Content-Type': 'application/json'
       },
