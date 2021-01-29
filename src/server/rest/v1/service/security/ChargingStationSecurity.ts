@@ -244,10 +244,6 @@ export default class ChargingStationSecurity {
       if (Utils.objectHasProperty(request.args, 'retrieveDate')) {
         filteredRequest.args.retrieveDate = sanitize(request.args.retrieveDate);
       }
-      // TODO check to remove
-      if (Utils.objectHasProperty(request.args, 'retryInterval')) {
-        filteredRequest.args.retryInterval = sanitize(request.args.retryInterval);
-      }
       if (Utils.objectHasProperty(request.args, 'transactionId')) {
         filteredRequest.args.transactionId = sanitize(request.args.transactionId);
       }
