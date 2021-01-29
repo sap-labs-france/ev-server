@@ -211,6 +211,9 @@ export default class SettingService {
     setting.lastChangedOn = new Date();
 
     if (settingUpdate.identifier === TenantComponents.CRYPTO) {
+      if (Cypher.hash(settingUpdate.content.crypto.key) !== Cypher.hash(setting.content.crypto.key)) {
+        settingUpdate.content.crypto.migrationToBeDone = true;
+      }
       settingUpdate.content.crypto.formerKey = setting.content.crypto.key;
     }
 

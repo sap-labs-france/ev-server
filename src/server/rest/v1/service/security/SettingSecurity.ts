@@ -199,8 +199,7 @@ export default class SettingSecurity {
               blockCypher: sanitize(request.content.crypto.formerKeyProperties?.blockCypher),
               blockSize: sanitize(request.content.crypto.formerKeyProperties?.blockSize),
               operationMode: sanitize(request.content.crypto.formerKeyProperties?.operationMode)
-            },
-            migrationToBeDone: sanitize(request.content.crypto.migrationToBeDone)
+            }
           };
           break;
       }
