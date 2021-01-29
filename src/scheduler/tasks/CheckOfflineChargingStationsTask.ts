@@ -26,6 +26,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
         const offlineSince = moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').toDate();
         const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
           issuer: true,
+          registered: true,
           offlineSince
         }, Constants.DB_PARAMS_MAX_LIMIT);
         if (chargingStations.count > 0) {
