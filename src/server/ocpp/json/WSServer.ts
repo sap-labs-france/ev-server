@@ -48,14 +48,14 @@ export default class WSServer extends WebSocket.Server {
       options.cert = fs.readFileSync(serverConfig['ssl-cert']);
       // Https server
       httpServer = https.createServer(options, (req, res) => {
-        res.writeHead(StatusCodes.OK);
-        res.end('No support\n');
+        res.writeHead(StatusCodes.BAD_REQUEST);
+        res.end('Unsupported request\n');
       });
     } else {
       // Http server
       httpServer = http.createServer((req, res) => {
-        res.writeHead(StatusCodes.OK);
-        res.end('No support\n');
+        res.writeHead(StatusCodes.BAD_REQUEST);
+        res.end('Unsupported request\n');
       });
     }
     return httpServer;
