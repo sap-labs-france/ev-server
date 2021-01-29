@@ -1,4 +1,4 @@
-import { CryptoKeyProperties, CryptoSettingsType, KeySetting } from '../../types/Setting';
+import { CryptoKeyProperties, CryptoKeySetting, CryptoSettingsType } from '../../types/Setting';
 
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
@@ -12,7 +12,6 @@ import Utils from '../../utils/Utils';
 export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTask {
   public async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
-
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
@@ -22,7 +21,7 @@ export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTa
     // Crypto Key from config file
     const configCryptoKey: string = Configuration.getCryptoConfig().key;
     // Crypto Key Properties from config file
-    const configCryptoKeyProperties: CryptoKeyProperties = Utils.parseConfigCryptoAlgorithm(Configuration.getCryptoConfig().algorithm);
+    const configCryptoKeyProperties = Utils.parseConfigCryptoAlgorithm(Configuration.getCryptoConfig().algorithm);
     // Crypto Key Setting from db
     const keySettings = await SettingStorage.getCryptoSettings(tenant.id);
     // If no Crypto Key Setting exist, initialize them with Crypto Key from config file
@@ -35,7 +34,7 @@ export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTa
           key: configCryptoKey,
           keyProperties: configCryptoKeyProperties,
         }
-      } as KeySetting;
+      } as CryptoKeySetting;
       await SettingStorage.saveCryptoSettings(tenant.id, keySettingToSave);
     }
   }

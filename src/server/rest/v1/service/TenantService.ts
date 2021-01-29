@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { CryptoSettingsType, KeySetting, SettingDB, SettingDBContent } from '../../../../types/Setting';
+import { CryptoKeySetting, CryptoSettingsType, SettingDB, SettingDBContent } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantLogo } from '../../../../types/Tenant';
@@ -180,7 +180,7 @@ export default class TenantService {
           key: Utils.generateKey(),
           keyProperties: Utils.getDefaultKeyProperties()
         }
-      } as KeySetting;
+      } as CryptoKeySetting;
       // Save Crypto Key Settings
       await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
     }

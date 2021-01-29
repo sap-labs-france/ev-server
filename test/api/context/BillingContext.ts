@@ -85,7 +85,7 @@ export default class BillingContext {
     const tenantBillingSettings = await SettingStorage.getBillingSettings(this.tenantContext.getTenant().id);
     tenantBillingSettings.stripe = stripeSettings;
     tenantBillingSettings.sensitiveData = ['content.stripe.secretKey'];
-    tenantBillingSettings.stripe.secretKey = await Cypher.encrypt(stripeSettings.secretKey, this.tenantContext.getTenant().id);
+    tenantBillingSettings.stripe.secretKey = await Cypher.encrypt(this.tenantContext.getTenant().id, stripeSettings.secretKey);
     await SettingStorage.saveBillingSettings(this.tenantContext.getTenant().id, tenantBillingSettings);
   }
 }

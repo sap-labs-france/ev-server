@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoSetting, CryptoSettingsType, KeySetting, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -304,7 +304,7 @@ export default class SettingStorage {
     }
   }
 
-  public static async saveCryptoSettings(tenantID: string, cryptoSettingToSave: KeySetting): Promise<void> {
+  public static async saveCryptoSettings(tenantID: string, cryptoSettingToSave: CryptoKeySetting): Promise<void> {
     // Build internal structure
     const settingsToSave = {
       id: cryptoSettingToSave.id,
@@ -318,7 +318,7 @@ export default class SettingStorage {
     await this.saveSettings(tenantID, settingsToSave);
   }
 
-  public static async getCryptoSettings(tenantID: string): Promise<KeySetting> {
+  public static async getCryptoSettings(tenantID: string): Promise<CryptoKeySetting> {
     // Get the Crypto Key settings
     const settings = await SettingStorage.getSettings(tenantID,
       { identifier: TenantComponents.CRYPTO },
@@ -343,7 +343,7 @@ export default class SettingStorage {
         identifier: settings.result[0].identifier,
         type: CryptoSettingsType.CRYPTO,
         crypto: cryptoSetting
-      } as KeySetting;
+      } as CryptoKeySetting;
       return keySetting;
     }
   }

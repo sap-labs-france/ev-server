@@ -116,7 +116,7 @@ export default class SettingService {
     // Filter
     const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
     // Process the sensitive data if any
-    await Cypher.encryptSensitiveDataInJSON(filteredRequest, req.user.tenantID);
+    await Cypher.encryptSensitiveDataInJSON(req.user.tenantID, filteredRequest);
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
@@ -177,14 +177,14 @@ export default class SettingService {
             const hashedValueInDB = Cypher.hash(valueInDb);
             if (valueInRequest !== hashedValueInDB) {
               // Yes: Encrypt
-              _.set(settingUpdate, property, await Cypher.encrypt(valueInRequest, req.user.tenantID));
+              _.set(settingUpdate, property, await Cypher.encrypt(req.user.tenantID, valueInRequest));
             } else {
               // No: Put back the encrypted value
               _.set(settingUpdate, property, valueInDb);
             }
           } else {
             // Value in db is empty then encrypt
-            _.set(settingUpdate, property, await Cypher.encrypt(valueInRequest, req.user.tenantID));
+            _.set(settingUpdate, property, await Cypher.encrypt(req.user.tenantID, valueInRequest));
           }
         }
       }
