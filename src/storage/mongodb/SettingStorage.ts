@@ -311,12 +311,6 @@ export default class SettingStorage {
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings.count > 0) {
       const cryptoSetting = {
-        formerKey: settings.result[0].content.crypto.formerKey && settings.result[0].content.crypto.formerKey,
-        formerKeyProperties: {
-          blockCypher: settings.result[0].content.crypto.formerKeyProperties && settings.result[0].content.crypto.formerKeyProperties?.blockCypher,
-          blockSize: settings.result[0].content.crypto.formerKeyProperties && settings.result[0].content.crypto.formerKeyProperties?.blockSize,
-          operationMode: settings.result[0].content.crypto.formerKeyProperties && settings.result[0].content.crypto.formerKeyProperties?.operationMode,
-        },
         key: settings.result[0].content.crypto.key,
         keyProperties: {
           blockCypher: settings.result[0].content.crypto.keyProperties.blockCypher,
@@ -324,13 +318,20 @@ export default class SettingStorage {
           operationMode: settings.result[0].content.crypto.keyProperties.operationMode,
         }
       } as CryptoSetting;
-      const keySetting = {
+      if (settings.result[0].content.crypto.formerKey) {
+        cryptoSetting.formerKey = settings.result[0].content.crypto.formerKey;
+        cryptoSetting.formerKeyProperties = {
+          blockCypher: settings.result[0].content.crypto.formerKeyProperties?.blockCypher,
+          blockSize: settings.result[0].content.crypto.formerKeyProperties?.blockSize,
+          operationMode: settings.result[0].content.crypto.formerKeyProperties?.operationMode,
+        };
+      }
+      return {
         id: settings.result[0].id,
-        identifier: settings.result[0].identifier,
+        identifier: TenantComponents.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: cryptoSetting
-      } as CryptoKeySetting;
-      return keySetting;
+      };
     }
   }
 
