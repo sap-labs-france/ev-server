@@ -1,6 +1,7 @@
+import { CryptoKeySetting, CryptoSetting, SettingDB } from '../types/Setting';
+
 import BackendError from '../exception/BackendError';
 import Constants from './Constants';
-import { CryptoSetting } from '../types/Setting';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import Utils from './Utils';
 import _ from 'lodash';
@@ -145,5 +146,19 @@ export default class Cypher {
       });
     }
     return cryptoSettings.crypto;
+  }
+
+  public static async saveCryptoSetting(tenantID: string, cryptoSettingToSave: CryptoKeySetting): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      id: cryptoSettingToSave.id,
+      identifier: 'crypto',
+      lastChangedOn: new Date(),
+      content: {
+        crypto: cryptoSettingToSave.crypto
+      },
+    } as SettingDB;
+    // Save
+    await SettingStorage.saveSettings(tenantID, settingsToSave);
   }
 }

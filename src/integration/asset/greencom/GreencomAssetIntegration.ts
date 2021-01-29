@@ -118,6 +118,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
   }
 
   private async getAuthentication(): Promise<{grant_type: string; client_id: string; client_secret: string;}> {
+    console.log(JSON.stringify(this.connection.greencomConnection));
     return {
       'grant_type': 'client_credentials',
       'client_id': this.connection.greencomConnection.clientId,

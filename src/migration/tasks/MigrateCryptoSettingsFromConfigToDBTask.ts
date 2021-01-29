@@ -1,7 +1,8 @@
-import { CryptoKeyProperties, CryptoKeySetting, CryptoSettingsType } from '../../types/Setting';
+import { CryptoKeySetting, CryptoSettingsType } from '../../types/Setting';
 
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import MigrationTask from '../MigrationTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
@@ -35,7 +36,7 @@ export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTa
           keyProperties: configCryptoKeyProperties,
         }
       } as CryptoKeySetting;
-      await SettingStorage.saveCryptoSettings(tenant.id, keySettingToSave);
+      await Cypher.saveCryptoSetting(tenant.id, keySettingToSave);
     }
   }
 

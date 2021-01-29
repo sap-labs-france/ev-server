@@ -304,20 +304,6 @@ export default class SettingStorage {
     }
   }
 
-  public static async saveCryptoSettings(tenantID: string, cryptoSettingToSave: CryptoKeySetting): Promise<void> {
-    // Build internal structure
-    const settingsToSave = {
-      id: cryptoSettingToSave.id,
-      identifier: 'crypto',
-      lastChangedOn: new Date(),
-      content: {
-        crypto: cryptoSettingToSave.crypto
-      },
-    } as SettingDB;
-    // Save
-    await this.saveSettings(tenantID, settingsToSave);
-  }
-
   public static async getCryptoSettings(tenantID: string): Promise<CryptoKeySetting> {
     // Get the Crypto Key settings
     const settings = await SettingStorage.getSettings(tenantID,

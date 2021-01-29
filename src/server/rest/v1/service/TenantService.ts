@@ -9,6 +9,7 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import Cypher from '../../../../utils/Cypher';
 import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -182,7 +183,7 @@ export default class TenantService {
         }
       } as CryptoKeySetting;
       // Save Crypto Key Settings
-      await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
+      await Cypher.saveCryptoSetting(tenantID, keySettingToSave);
     }
   }
 
