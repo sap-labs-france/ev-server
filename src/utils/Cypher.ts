@@ -140,7 +140,7 @@ export default class Cypher {
     }
   }
 
-  // This method will be reused in a Scheduler task that resumes migation
+  // This method will be reused in a Scheduler task that resumes migration
   public static async handleCryptoSettingsChange(tenantID: string): Promise<void> {
     const createDatabaseLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE, 'migrate-settings-sensitive-data');
     if (await LockingManager.acquire(createDatabaseLock)) {
@@ -182,7 +182,6 @@ export default class Cypher {
   }
 
   public static async migrateSettings(tenantID: string, cryptoSetting: CryptoSetting): Promise<void> {
-
     const settingsToMigrate = await Cypher.getSettingsWithSensitiveData(tenantID);
     // If tenant has settings with sensitive data, migrate them
     if (!Utils.isEmptyArray(settingsToMigrate)) {
@@ -190,7 +189,7 @@ export default class Cypher {
       for (const setting of settingsToMigrate) {
         if (!setting.formerSensitiveData && Utils.isEmptyArray(setting.formerSensitiveData)) {
           delete setting.formerSensitiveData;
-          // Save former senitive data in setting
+          // Save former sensitive data in setting
           const formerSensitiveData = Cypher.prepareFormerSenitiveData(setting);
           formerSensitiveData.push(Cypher.hash(cryptoSetting.formerKey));
           setting.formerSensitiveData = formerSensitiveData;
