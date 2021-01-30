@@ -13,7 +13,7 @@ export default class UtilsSecurity {
       // Sanitize
       value = sanitize(value);
       // Check the type
-      if (Utils.isBooleanValue(value)) {
+      if (Utils.isBoolean(value)) {
         // Already a boolean
         result = value;
       } else {

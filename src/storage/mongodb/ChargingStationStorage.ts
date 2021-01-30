@@ -198,7 +198,7 @@ export default class ChargingStationStorage {
       filters.lastSeen = { $lte: params.offlineSince };
     }
     // Issuer
-    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Registration status

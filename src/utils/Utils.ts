@@ -192,7 +192,7 @@ export default class Utils {
     return _.has(obj, key);
   }
 
-  public static isBooleanValue(obj: any): boolean {
+  public static isBoolean(obj: any): boolean {
     return typeof obj === 'boolean';
   }
 
@@ -371,7 +371,7 @@ export default class Utils {
     // Check boolean
     if (value) {
       // Check the type
-      if (Utils.isBooleanValue(value)) {
+      if (Utils.isBoolean(value)) {
         // Already a boolean
         result = value;
       } else {
