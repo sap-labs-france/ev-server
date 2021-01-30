@@ -72,7 +72,6 @@ export default class SettingService {
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
-
     // If Crypto Settings, hash key
     if (setting.identifier === 'crypto') {
       setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
@@ -102,13 +101,11 @@ export default class SettingService {
     for (const setting of settings.result) {
       // Hash sensitive data before being sent to the front end
       Cypher.hashSensitiveDataInJSON(setting);
-
       // If Crypto Settings, hash key
       if (setting.identifier === 'crypto') {
         setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
       }
     }
-
     // Return
     res.json(settings);
     next();
@@ -170,8 +167,6 @@ export default class SettingService {
         user: req.user
       });
     }
-
-
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
     UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingUpdate.id}' does not exist`,
