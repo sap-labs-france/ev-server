@@ -104,7 +104,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new DeleteChargingStationPropertiesTask());
         currentMigrationTasks.push(new FixedConsumptionRoundedPriceTask());
         currentMigrationTasks.push(new MigrateCryptoSettingsFromConfigToDBTask());
-    currentMigrationTasks.push(new AddRegisteredPropertyToChargingStation());    
+        currentMigrationTasks.push(new AddRegisteredPropertyToChargingStation());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
