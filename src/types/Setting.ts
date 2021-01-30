@@ -224,11 +224,13 @@ export interface AssetConnectionSetting {
   url: string;
   timestamp: Date;
   type: AssetConnectionType;
-  connection?: AssetSchneiderConnectionType;
+  schneiderConnection?: AssetSchneiderConnectionType;
+  greencomConnection?: AssetGreencomConnectionType;
 }
 
 export enum AssetConnectionType {
   SCHNEIDER = 'schneider',
+  GREENCOM = 'greencom'
 }
 
 export interface AssetUserPasswordConnectionType {
@@ -244,7 +246,7 @@ export enum CryptoSettingsType {
   CRYPTO = 'crypto'
 }
 
-export interface KeySetting extends Setting {
+export interface CryptoKeySetting extends Setting {
   identifier: TenantComponents.CRYPTO;
   type: CryptoSettingsType;
   crypto: CryptoSetting;
@@ -261,4 +263,8 @@ export interface CryptoSetting {
   keyProperties: CryptoKeyProperties;
   formerKey?: string;
   formerKeyProperties?: CryptoKeyProperties;
+}
+export interface AssetGreencomConnectionType {
+  clientId: string;
+  clientSecret: string;
 }

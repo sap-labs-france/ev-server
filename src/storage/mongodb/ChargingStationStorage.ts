@@ -429,7 +429,7 @@ export default class ChargingStationStorage {
     if (!Utils.isEmptyArray(params.errorType)) {
       // Check allowed
       if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION)
-          && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
+        && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
