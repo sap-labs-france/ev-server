@@ -21,7 +21,7 @@ export interface SettingLink {
 }
 
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType | CryptoSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -31,6 +31,7 @@ export interface SettingDBContent {
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
   asset?: AssetSetting;
+  crypto?: CryptoSetting;
 }
 
 export enum PricingSettingsType {
@@ -223,11 +224,13 @@ export interface AssetConnectionSetting {
   url: string;
   timestamp: Date;
   type: AssetConnectionType;
-  connection?: AssetSchneiderConnectionType;
+  schneiderConnection?: AssetSchneiderConnectionType;
+  greencomConnection?: AssetGreencomConnectionType;
 }
 
 export enum AssetConnectionType {
   SCHNEIDER = 'schneider',
+  GREENCOM = 'greencom'
 }
 
 export interface AssetUserPasswordConnectionType {
@@ -237,4 +240,31 @@ export interface AssetUserPasswordConnectionType {
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
+}
+
+export enum CryptoSettingsType {
+  CRYPTO = 'crypto'
+}
+
+export interface CryptoKeySetting extends Setting {
+  identifier: TenantComponents.CRYPTO;
+  type: CryptoSettingsType;
+  crypto: CryptoSetting;
+}
+
+export interface CryptoKeyProperties {
+  blockCypher: string;
+  blockSize: number;
+  operationMode: string;
+}
+
+export interface CryptoSetting {
+  key: string;
+  keyProperties: CryptoKeyProperties;
+  formerKey?: string;
+  formerKeyProperties?: CryptoKeyProperties;
+}
+export interface AssetGreencomConnectionType {
+  clientId: string;
+  clientSecret: string;
 }

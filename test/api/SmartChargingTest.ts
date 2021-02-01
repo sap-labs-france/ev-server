@@ -6,6 +6,7 @@ import chai, { assert, expect } from 'chai';
 import CentralServerService from './client/CentralServerService';
 import { ChargingProfile } from '../types/ChargingProfile';
 import ChargingStationContext from './context/ChargingStationContext';
+import ChargingStationStorage from '../../src/storage/mongodb/ChargingStationStorage';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -47,7 +48,7 @@ class TestData {
   public static async setSmartChargingValidCredentials(testData): Promise<void> {
     const sapSmartChargingSettings = TestData.getSmartChargingSettings();
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
-    sapSmartChargingSettings.password = Cypher.encrypt(sapSmartChargingSettings.password);
+    sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant().id, sapSmartChargingSettings.password);
     aCBufferFactor = 1 + sapSmartChargingSettings.limitBufferAC / 100,
     dCBufferFactor = 1 + sapSmartChargingSettings.limitBufferDC / 100,
     smartChargingIntegration = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);
@@ -365,15 +366,15 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 43
+            'limit': 43.130
           },
           {
             'startPeriod': 900,
-            'limit': 43
+            'limit': 43.130
           },
           {
             'startPeriod': 1800,
-            'limit': 43
+            'limit': 43.130
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -393,15 +394,15 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 43
+            'limit': 43.130
           },
           {
             'startPeriod': 900,
-            'limit': 43
+            'limit': 43.130
           },
           {
             'startPeriod': 1800,
-            'limit': 43
+            'limit': 43.130
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[2], transaction2);
@@ -422,14 +423,16 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
 
-      it('Test for sticky limit - 1 three phased and 2 single phased cars charging with lower site area limit and one car on a single phased station', async () => {
+
+      it('Test for sticky limit - 1 three phased and 2 single phased cars charging and one car on a single phased station', async () => {
+        testData.siteAreaContext.getSiteArea().maximumPower = 100000;
         await testData.chargingStationContext.stopTransaction(transaction.id, testData.userContext.tags[0].id, 180, new Date());
         const transactionStartResponse = await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction = transactionResponse.data;
         // Send meter values for all stations
-        await TestData.sendMeterValue(230, 13, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: true, csPhase3: true });
-        await TestData.sendMeterValue(230, 24, transaction1, testData.chargingStationContext, { csPhase1: false, csPhase2: false, csPhase3: true });
+        await TestData.sendMeterValue(230, 24, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: true, csPhase3: true });
+        await TestData.sendMeterValue(230, 13, transaction1, testData.chargingStationContext, { csPhase1: false, csPhase2: false, csPhase3: true });
         await TestData.sendMeterValue(230, 20, transaction2, testData.chargingStationContext1, { csPhase1: true, csPhase2: false, csPhase3: false });
 
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
@@ -438,126 +441,137 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(13 * 3 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(13 * 3 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(13 * 3 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
           }
         ]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[0]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 3)
           }
         ]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[1]);
         TestData.validateChargingProfile(chargingProfiles[2], transaction2);
         expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           }
         ]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[2]);
       });
 
-      it('Test for sticky limit with different buffer value - 1 three phased and 2 single phased cars charging with lower site area limit and one car on a single phased station', async () => {
+
+      it('Test for sticky limit with different buffer value - 1 three phased and 2 single phased cars charging and one car on a single phased station', async () => {
         const chargingProfiles = await smartChargingIntegrationWithDifferentBufferValues.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         // Charging Profiles should have limits according the sent meter values + buffer
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(13 * 3 * 1.05, 0)
+            'limit': Utils.roundTo(24 * 3 * 1.05, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(13 * 3 * 1.05, 0)
+            'limit': Utils.roundTo(24 * 3 * 1.05, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(13 * 3 * 1.05, 0)
+            'limit': Utils.roundTo(24 * 3 * 1.05, 3)
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(24 * 3 * 1.05, 0)
+            'limit': Utils.roundTo(13 * 3 * 1.05, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(24 * 3 * 1.05, 0)
+            'limit': Utils.roundTo(13 * 3 * 1.05, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(24 * 3 * 1.05, 0)
+            'limit': Utils.roundTo(13 * 3 * 1.05, 3)
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[2], transaction2);
         expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(20 * 1.05, 0)
+            'limit': Utils.roundTo(20 * 1.05, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(20 * 1.05, 0)
+            'limit': Utils.roundTo(20 * 1.05, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(20 * 1.05, 0)
+            'limit': Utils.roundTo(20 * 1.05, 3)
           }
         ]);
       });
 
-      it('Test for sticky limit disabled - 1 three phased and 2 single phased cars charging with lower site area limit and one car on a single phased station', async () => {
+      it('Test for sticky limit disabled - 1 three phased and 2 single phased cars and one car on a single phased station', async () => {
+        await TestData.sendMeterValue(230, 16, transaction, testData.chargingStationContext, { csPhase1: false, csPhase2: true, csPhase3: false });
         const chargingProfiles = await smartChargingIntegrationWithoutStickyLimit.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         // Charging Profiles should have limits according the sent meter values + buffer
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
-        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
-          {
-            'startPeriod': 0,
-            'limit': 43
-          },
-          {
-            'startPeriod': 900,
-            'limit': 43
-          },
-          {
-            'startPeriod': 1800,
-            'limit': 43
-          }
-        ]);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
         TestData.validateChargingProfile(chargingProfiles[2], transaction2);
         expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
 
-      it('Test for sticky limit - 1 three phased and 2 single phased cars charging with lower site area limit and one car on a single phased station with no consumption on two cars', async () => {
+      it('Test for sticky limit - check if cars are able to go up again, when using the buffer', async () => {
+        // Send meter values for all stations
+        await TestData.sendMeterValue(230, 25, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: true, csPhase3: true });
+        await TestData.sendMeterValue(230, 14, transaction1, testData.chargingStationContext, { csPhase1: false, csPhase2: false, csPhase3: true });
+        await TestData.sendMeterValue(230, 21, transaction2, testData.chargingStationContext1, { csPhase1: true, csPhase2: false, csPhase3: false });
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        // Charging Profiles should have limits according the sent meter values (+ buffer)
+        TestData.validateChargingProfile(chargingProfiles[0], transaction);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+        TestData.validateChargingProfile(chargingProfiles[2], transaction2);
+        expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[0].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[1].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[2].chargingStationID);
+      });
+
+      it('Test for sticky limit - 1 three phased and 2 single phased cars charging and one car on a single phased station with no consumption on two cars', async () => {
         // Send meter values for all stations
         await TestData.sendMeterValue(230, 0, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: true, csPhase3: true });
+        await TestData.sendMeterValue(230, 24, transaction1, testData.chargingStationContext, { csPhase1: false, csPhase2: false, csPhase3: true });
         await TestData.sendMeterValue(230, 0, transaction2, testData.chargingStationContext1, { csPhase1: true, csPhase2: false, csPhase3: false });
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         // Charging Profiles should have limits according the sent meter values (+ buffer)
@@ -567,15 +581,15 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(24 * 3 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[2], transaction2);
@@ -634,32 +648,34 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(16 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(16 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(16 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(16 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(16 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(16 * aCBufferFactor, 3)
           }
         ]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[0]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           }
         ]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[1]);
       });
 
       it('Test for sticky limit with different buffer value - two cars charging with lower site area limit', async () => {
@@ -668,30 +684,30 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(16 * 1.05, 0)
+            'limit': Utils.roundTo(16 * 1.05, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(16 * 1.05, 0)
+            'limit': Utils.roundTo(16 * 1.05, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(16 * 1.05, 0)
+            'limit': Utils.roundTo(16 * 1.05, 3)
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(20 * 1.05, 0)
+            'limit': Utils.roundTo(20 * 1.05, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(20 * 1.05, 0)
+            'limit': Utils.roundTo(20 * 1.05, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(20 * 1.05, 0)
+            'limit': Utils.roundTo(20 * 1.05, 3)
           }
         ]);
       });
@@ -702,7 +718,23 @@ describe('Smart Charging Service', function() {
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
-      it('Test for sticky limit - two cars charging with lower site area limit and no consumption on one car', async () => {
+
+      it('Test for sticky limit - check if cars are able to go up again, when using the buffer', async () => {
+        testData.siteAreaContext.getSiteArea().maximumPower = 100000;
+        // Send meter values for all stations
+        await TestData.sendMeterValue(230, 17, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: false, csPhase3:false });
+        await TestData.sendMeterValue(230, 21, transaction1, testData.chargingStationContext, { csPhase1: true, csPhase2: false, csPhase3:false });
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        // Charging Profiles should have limits according the sent meter values (+ buffer)
+        TestData.validateChargingProfile(chargingProfiles[0], transaction);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[0].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[1].chargingStationID);
+      });
+
+      it('Test for sticky limit - two cars charging with no consumption on one car', async () => {
         await TestData.sendMeterValue(230, 0, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: false, csPhase3:false });
         await TestData.sendMeterValue(230, 20, transaction1, testData.chargingStationContext, { csPhase1: true, csPhase2: false, csPhase3:false });
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
@@ -712,15 +744,15 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(20 * aCBufferFactor, 0)
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           }
         ]);
       });
@@ -808,15 +840,15 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 84
+            'limit': 86.043
           },
           {
             'startPeriod': 900,
-            'limit': 84
+            'limit': 86.043
           },
           {
             'startPeriod': 1800,
-            'limit': 84
+            'limit': 86.043
           },
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -844,32 +876,34 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(40000 / 230 / 3 * dCBufferFactor, 0) * 3
+            'limit': Utils.roundTo(40000 / 230 / 3 * dCBufferFactor, 3) * 3
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(40000 / 230 / 3 * dCBufferFactor, 0) * 3
+            'limit': Utils.roundTo(40000 / 230 / 3 * dCBufferFactor, 3) * 3
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(40000 / 230 / 3 * dCBufferFactor, 0) * 3
+            'limit': Utils.roundTo(40000 / 230 / 3 * dCBufferFactor, 3) * 3
           },
         ]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[0]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(30000 / 230 / 3 * dCBufferFactor, 0) * 3
+            'limit': Utils.roundTo(30000 / 230 / 3 * dCBufferFactor, 3) * 3
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(30000 / 230 / 3 * dCBufferFactor, 0) * 3
+            'limit': Utils.roundTo(30000 / 230 / 3 * dCBufferFactor, 3) * 3
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(30000 / 230 / 3 * dCBufferFactor, 0) * 3
+            'limit': Utils.roundTo(30000 / 230 / 3 * dCBufferFactor, 3) * 3
           }
         ]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[1]);
       });
 
       it('Test for sticky limit with different buffer value- two cars charging with lower site area limit', async () => {
@@ -878,30 +912,30 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(40000 / 230 / 3 * 1.1, 0) * 3
+            'limit': Utils.roundTo(40000 / 230 * 1.1, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(40000 / 230 / 3 * 1.1, 0) * 3
+            'limit': Utils.roundTo(40000 / 230 * 1.1, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(40000 / 230 / 3 * 1.1, 0) * 3
+            'limit': Utils.roundTo(40000 / 230 * 1.1, 3)
           },
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.truncTo(30000 / 230 / 3 * 1.1, 0) * 3
+            'limit': Utils.roundTo(30000 / 230 * 1.1, 3)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.truncTo(30000 / 230 / 3 * 1.1, 0) * 3
+            'limit': Utils.roundTo(30000 / 230 * 1.1, 3)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.truncTo(30000 / 230 / 3 * 1.1, 0) * 3
+            'limit': Utils.roundTo(30000 / 230 * 1.1, 3)
           }
         ]);
       });
@@ -912,15 +946,15 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 84
+            'limit': 86.043
           },
           {
             'startPeriod': 900,
-            'limit': 84
+            'limit': 86.043
           },
           {
             'startPeriod': 1800,
-            'limit': 84
+            'limit': 86.043
           },
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -938,6 +972,46 @@ describe('Smart Charging Service', function() {
             'limit': 327
           }
         ]);
+      });
+      it('Test for sticky limit - check if cars are able to go up again, when using the buffer', async () => {
+        testData.siteAreaContext.getSiteArea().maximumPower = 200000;
+        // Send meter values for all stations
+        await TestData.sendMeterValue(400, 110, transaction, testData.chargingStationContext);
+        await TestData.sendMeterValue(400, 80, transaction1, testData.chargingStationContext);
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        // Charging Profiles should have limits according the sent meter values (+ buffer)
+        TestData.validateChargingProfile(chargingProfiles[0], transaction);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': 327
+          },
+          {
+            'startPeriod': 900,
+            'limit': 327
+          },
+          {
+            'startPeriod': 1800,
+            'limit': 327
+          },
+        ]);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': 327
+          },
+          {
+            'startPeriod': 900,
+            'limit': 327
+          },
+          {
+            'startPeriod': 1800,
+            'limit': 327
+          },
+        ]);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[0].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[1].chargingStationID);
       });
     });
   });

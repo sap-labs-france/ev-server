@@ -1,7 +1,7 @@
 import Asset, { AssetType, SchneiderProperty } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+import Consumption, { AbstractCurrentConsumption } from '../../../types/Consumption';
 
-import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -57,8 +57,8 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
         detailedMessages: { request, token, error: error.message, stack: error.stack, asset }
       });
     }
-    return null;
   }
+
 
   private filterConsumptionRequest(asset: Asset, data: any[]): AbstractCurrentConsumption {
     const consumption = {} as AbstractCurrentConsumption;
@@ -71,9 +71,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       value: newConsumptionWh,
       timestamp: new Date()
     };
-
-    const energyDirection = asset.assetType === AssetType.PR ? -1 : 1;
-
+    const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
     // Amperage
     consumption.currentInstantAmpsL1 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L1) * energyDirection;
     consumption.currentInstantAmpsL2 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L2) * energyDirection;
@@ -105,7 +103,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get credential params
-    const credentials = this.getCredentialURLParams();
+    const credentials = await this.getCredentialURLParams();
     // Send credentials to get the token
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.url}/GetToken`,
@@ -123,11 +121,11 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     return response.data.access_token;
   }
 
-  private getCredentialURLParams(): URLSearchParams {
+  private async getCredentialURLParams(): Promise<URLSearchParams> {
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
-    params.append('username', this.connection.connection.user);
-    params.append('password', Cypher.decrypt(this.connection.connection.password));
+    params.append('username', this.connection.schneiderConnection.user);
+    params.append('password', await Cypher.decrypt(this.tenantID, this.connection.schneiderConnection.password));
     return params;
   }
 
