@@ -1,4 +1,4 @@
-import { CryptoSetting, SettingDB } from '../types/Setting';
+import { CryptoKeySetting, CryptoSetting, SettingDB } from '../types/Setting';
 
 import BackendError from '../exception/BackendError';
 import Constants from './Constants';
@@ -14,7 +14,7 @@ const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
 
-  public static async encrypt(data: string, tenantID: string, former = false): Promise<string> {
+  public static async encrypt(tenantID: string, data: string, former = false): Promise<string> {
     const iv = crypto.randomBytes(IV_LENGTH);
     const cryptoSetting = await Cypher.getCryptoSetting(tenantID);
     const algo = former ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
@@ -25,7 +25,7 @@ export default class Cypher {
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
   }
 
-  public static async decrypt(data: string, tenantID: string, former = false): Promise<string> {
+  public static async decrypt(tenantID: string, data: string, former = false): Promise<string> {
     const dataParts = data.split(':');
     const iv = Buffer.from(dataParts.shift(), 'hex');
     const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
@@ -42,7 +42,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static async encryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string, former = false): Promise<void> {
+  public static async encryptSensitiveDataInJSON(tenantID: string, obj: Record<string, any>, former = false): Promise<void> {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -67,7 +67,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, await Cypher.encrypt(value, tenantID, former));
+            _.set(obj, property, await Cypher.encrypt(tenantID, value, former));
           }
         }
       }
@@ -76,37 +76,38 @@ export default class Cypher {
     }
   }
 
-  public static async decryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string, former = false): Promise<void> {
-    if (typeof obj !== 'object') {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'decryptSensitiveDataInJSON',
-        message: `The parameter ${obj} is not an object`
-      });
-    }
-    if ('sensitiveData' in obj) {
-      // Check that sensitive data is an array
-      if (!Array.isArray(obj.sensitiveData)) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'decryptSensitiveDataInJSON',
-          message: 'The property \'sensitiveData\' is not an array'
-        });
-      }
-      for (const property of obj.sensitiveData as string[]) {
-        // Check that the property does exist otherwise skip to the next property
-        if (_.has(obj, property)) {
-          const value = _.get(obj, property);
-          // If the value is undefined, null or empty then do nothing and skip to the next property
-          if (value && value.length > 0) {
-            _.set(obj, property, await Cypher.decrypt(value, tenantID, former));
-          }
-        }
-      }
-    }
-  }
+  // Not used!!!
+  // public static async decryptSensitiveDataInJSON(tenantID: string, obj: Record<string, any>): Promise<void> {
+  //   if (typeof obj !== 'object') {
+  //     throw new BackendError({
+  //       source: Constants.CENTRAL_SERVER,
+  //       module: MODULE_NAME,
+  //       method: 'decryptSensitiveDataInJSON',
+  //       message: `The parameter ${obj} is not an object`
+  //     });
+  //   }
+  //   if ('sensitiveData' in obj) {
+  //     // Check that sensitive data is an array
+  //     if (!Array.isArray(obj.sensitiveData)) {
+  //       throw new BackendError({
+  //         source: Constants.CENTRAL_SERVER,
+  //         module: MODULE_NAME,
+  //         method: 'decryptSensitiveDataInJSON',
+  //         message: 'The property \'sensitiveData\' is not an array'
+  //       });
+  //     }
+  //     for (const property of obj.sensitiveData as string[]) {
+  //       // Check that the property does exist otherwise skip to the next property
+  //       if (_.has(obj, property)) {
+  //         const value = _.get(obj, property);
+  //         // If the value is undefined, null or empty then do nothing and skip to the next property
+  //         if (value && value.length > 0) {
+  //           _.set(obj, property, await Cypher.decrypt(tenantID, value));
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
   public static hashSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
@@ -219,16 +220,30 @@ export default class Cypher {
   }
 
   private static async getCryptoSetting(tenantID: string): Promise<CryptoSetting> {
-    const cryptoSettings = (await SettingStorage.getCryptoSettings(tenantID)).crypto;
-    if (!cryptoSettings) {
+    const cryptoSettings = await SettingStorage.getCryptoSettings(tenantID);
+    if (!cryptoSettings || !cryptoSettings.crypto) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCryptoSetting',
-        message: `Tenant with ID: ${tenantID}) does not have crypto settings.`
+        message: `Tenant ID '${tenantID}' does not have crypto settings.`
       });
     }
-    return cryptoSettings;
+    return cryptoSettings.crypto;
+  }
+
+  public static async saveCryptoSetting(tenantID: string, cryptoSettingToSave: CryptoKeySetting): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      id: cryptoSettingToSave.id,
+      identifier: 'crypto',
+      lastChangedOn: new Date(),
+      content: {
+        crypto: cryptoSettingToSave.crypto
+      },
+    } as SettingDB;
+    // Save
+    await SettingStorage.saveSettings(tenantID, settingsToSave);
   }
 
   private static prepareFormerSenitiveData(setting: SettingDB): string[] {
