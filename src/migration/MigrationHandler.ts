@@ -25,6 +25,7 @@ import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
 import LogicallyDeleteTagsOfDeletedUsersTask from './tasks/LogicallyDeleteTagsOfDeletedUsersTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
+import MigrateCryptoSettingsFromConfigToDBTask from './tasks/MigrateCryptoSettingsFromConfigToDBTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
@@ -101,6 +102,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new SetDefaultTagToUserTask());
         currentMigrationTasks.push(new DeleteChargingStationPropertiesTask());
         currentMigrationTasks.push(new FixedConsumptionRoundedPriceTask());
+        currentMigrationTasks.push(new MigrateCryptoSettingsFromConfigToDBTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
