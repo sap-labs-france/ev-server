@@ -693,7 +693,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   private async initializeStripe() {
     this.settings.currency = this.stripeSettings.currency;
     if (this.settings.secretKey) {
-      this.settings.secretKey = await Cypher.decrypt(this.stripeSettings.secretKey, this.tenantID);
+      this.settings.secretKey = await Cypher.decrypt(this.tenantID, this.stripeSettings.secretKey);
     }
     // Currently the public key is not encrypted
     this.stripe = new Stripe(this.settings.secretKey);

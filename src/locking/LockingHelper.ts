@@ -62,8 +62,8 @@ export default class LockingHelper {
     return lock;
   }
 
-  public static async createOCPIPullEmspTokensLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
-    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'pull-emsp-tokens');
+  public static async createOCPIPullEmspTokensLock(tenantID: string, ocpiEndpoint: OCPIEndpoint, partial: boolean): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, `pull-emsp-tokens${partial ? '-partial' : ''}`);
   }
 
   public static async createOCPICheckCpoCdrsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {

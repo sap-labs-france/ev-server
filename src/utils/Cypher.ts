@@ -1,11 +1,10 @@
-import { CryptoSetting, SettingDB } from '../types/Setting';
+import { CryptoKeySetting, CryptoSetting, SettingDB } from '../types/Setting';
 
 import BackendError from '../exception/BackendError';
 import Constants from './Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import SettingStorage from '../storage/mongodb/SettingStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import Utils from './Utils';
 import _ from 'lodash';
 import crypto from 'crypto';
@@ -15,24 +14,24 @@ const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
 
-  public static async encrypt(data: string, tenantID: string, former = false): Promise<string> {
+  public static async encrypt(tenantID: string, data: string, useFormerKey = false): Promise<string> {
     const iv = crypto.randomBytes(IV_LENGTH);
     const cryptoSetting = await Cypher.getCryptoSetting(tenantID);
-    const algo = former ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
-    const key = former ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
+    const algo = useFormerKey ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
+    const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
     const cipher = crypto.createCipheriv(algo, key, iv);
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
   }
 
-  public static async decrypt(data: string, tenantID: string, former = false): Promise<string> {
+  public static async decrypt(tenantID: string, data: string, useFormerKey = false): Promise<string> {
     const dataParts = data.split(':');
     const iv = Buffer.from(dataParts.shift(), 'hex');
     const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
     const cryptoSetting = await Cypher.getCryptoSetting(tenantID);
-    const algo = former ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
-    const key = former ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
+    const algo = useFormerKey ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
+    const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
     const decipher = crypto.createDecipheriv(algo, key , iv);
     let decrypted = decipher.update(encryptedData);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
@@ -43,7 +42,7 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static async encryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string, former = false): Promise<void> {
+  public static async encryptSensitiveDataInJSON(tenantID: string, obj: Record<string, any>, useFormerKey = false): Promise<void> {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -68,7 +67,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, await Cypher.encrypt(value, tenantID, former));
+            _.set(obj, property, await Cypher.encrypt(tenantID, value, useFormerKey));
           }
         }
       }
@@ -77,7 +76,7 @@ export default class Cypher {
     }
   }
 
-  public static async decryptSensitiveDataInJSON(obj: Record<string, any>, tenantID: string, former = false): Promise<void> {
+  public static async decryptSensitiveDataInJSON(tenantID: string, obj: Record<string, any>, useFormerKey = false): Promise<void> {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -102,7 +101,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, await Cypher.decrypt(value, tenantID, former));
+            _.set(obj, property, await Cypher.decrypt(tenantID, value, useFormerKey));
           }
         }
       }
@@ -150,7 +149,7 @@ export default class Cypher {
         await Cypher.cleanupFormerSensitiveData(tenantID);
         const keySettings = await SettingStorage.getCryptoSettings(tenantID);
         keySettings.crypto.migrationToBeDone = false;
-        await SettingStorage.saveCryptoSettings(tenantID, keySettings);
+        await Cypher.saveCryptoSetting(tenantID, keySettings);
       } catch (err) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -192,12 +191,12 @@ export default class Cypher {
         if (!setting.formerSensitiveData && Utils.isEmptyArray(setting.formerSensitiveData)) {
           // Save former senitive data in setting
           const formerSensitiveData = Cypher.prepareFormerSenitiveData(setting);
-          formerSensitiveData['formerKeyHash'] = Cypher.hash(cryptoSetting.formerKey);
+          formerSensitiveData.push(Cypher.hash(cryptoSetting.formerKey));
           setting.formerSensitiveData = formerSensitiveData;
           // Decrypt sensitive data with former key and key properties
-          await Cypher.decryptSensitiveDataInJSON(setting, tenantID, true);
+          await Cypher.decryptSensitiveDataInJSON(tenantID,setting, true);
           // Encrypt sensitive data with new key and key properties
-          await Cypher.encryptSensitiveDataInJSON(setting, tenantID);
+          await Cypher.encryptSensitiveDataInJSON(tenantID, setting);
           // Save setting with sensitive data encrypted with new key
           await SettingStorage.saveSettings(tenantID, setting);
         }
@@ -219,17 +218,31 @@ export default class Cypher {
     }
   }
 
+  public static async saveCryptoSetting(tenantID: string, cryptoSettingToSave: CryptoKeySetting): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      id: cryptoSettingToSave.id,
+      identifier: 'crypto',
+      lastChangedOn: new Date(),
+      content: {
+        crypto: cryptoSettingToSave.crypto
+      },
+    } as SettingDB;
+    // Save
+    await SettingStorage.saveSettings(tenantID, settingsToSave);
+  }
+
   private static async getCryptoSetting(tenantID: string): Promise<CryptoSetting> {
-    const cryptoSettings = (await SettingStorage.getCryptoSettings(tenantID)).crypto;
-    if (!cryptoSettings) {
+    const cryptoSettings = await SettingStorage.getCryptoSettings(tenantID);
+    if (!cryptoSettings || !cryptoSettings.crypto) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCryptoSetting',
-        message: `Tenant with ID: ${tenantID}) does not have crypto settings.`
+        message: `Tenant ID '${tenantID}' does not have crypto settings.`
       });
     }
-    return cryptoSettings;
+    return cryptoSettings.crypto;
   }
 
   private static prepareFormerSenitiveData(setting: SettingDB): string[] {
@@ -240,7 +253,7 @@ export default class Cypher {
         const value: string = _.get(setting, property);
         // If the value is undefined, null or empty then do nothing and skip to the next property
         if (value && value.length > 0) {
-          formerSensitiveData[`${property}`] = value;
+          formerSensitiveData.push(value);
         }
       }
     }

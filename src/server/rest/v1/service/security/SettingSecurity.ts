@@ -169,17 +169,19 @@ export default class SettingSecurity {
               url: sanitize(connection.url),
               type: sanitize(connection.type),
               timestamp: new Date(),
-              connection: {
-                user: sanitize(connection.connection.user),
-                password: sanitize(connection.connection.password)
-              }
             };
             // Check type
             switch (connection.type) {
               case AssetConnectionType.SCHNEIDER:
-                sanitizedConnection.connection = {
-                  user: sanitize(connection.connection.user),
-                  password: sanitize(connection.connection.password),
+                sanitizedConnection.schneiderConnection = {
+                  user: sanitize(connection.schneiderConnection.user),
+                  password: sanitize(connection.schneiderConnection.password),
+                };
+                break;
+              case AssetConnectionType.GREENCOM:
+                sanitizedConnection.greencomConnection = {
+                  clientId: sanitize(connection.greencomConnection.clientId),
+                  clientSecret: sanitize(connection.greencomConnection.clientSecret),
                 };
                 break;
             }
@@ -199,8 +201,7 @@ export default class SettingSecurity {
               blockCypher: sanitize(request.content.crypto.formerKeyProperties?.blockCypher),
               blockSize: sanitize(request.content.crypto.formerKeyProperties?.blockSize),
               operationMode: sanitize(request.content.crypto.formerKeyProperties?.operationMode)
-            },
-            migrationToBeDone: sanitize(request.content.crypto.migrationToBeDone)
+            }
           };
           break;
       }

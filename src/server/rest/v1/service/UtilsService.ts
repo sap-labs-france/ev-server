@@ -546,7 +546,7 @@ export default class UtilsService {
         user: req.user.id
       });
     }
-    if (!(typeof asset.fallbackValue === 'number')) {
+    if (!(typeof asset.staticValueWatt === 'number')) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
