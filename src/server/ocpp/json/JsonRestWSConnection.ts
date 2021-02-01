@@ -72,7 +72,7 @@ export default class JsonRestWSConnection extends WSConnection {
         source: this.getChargingStationID(),
         module: MODULE_NAME,
         method: 'handleRequest',
-        message: `Charging Station '${this.getChargingStationID()}' not found`,
+        message: 'Charging Station not found',
         action: commandName
       });
     }
@@ -83,7 +83,7 @@ export default class JsonRestWSConnection extends WSConnection {
         source: this.getChargingStationID(),
         module: MODULE_NAME,
         method: 'handleRequest',
-        message: `Charging Station '${this.getChargingStationID()}' is not connected to the backend`,
+        message: 'Charging Station is not connected to the backend',
         action: commandName
       });
     }
