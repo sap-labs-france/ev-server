@@ -1,6 +1,6 @@
 import { AssetConnectionSetting, AssetSetting } from '../../types/Setting';
+import Consumption, { AbstractCurrentConsumption } from '../../types/Consumption';
 
-import { AbstractCurrentConsumption } from '../../types/Consumption';
 import Asset from '../../types/Asset';
 
 export default abstract class AssetIntegration<T extends AssetSetting> {
@@ -16,5 +16,6 @@ export default abstract class AssetIntegration<T extends AssetSetting> {
 
   abstract checkConnection(): Promise<void>;
 
-  abstract retrieveConsumption(asset: Asset): Promise<AbstractCurrentConsumption>;
+  abstract retrieveConsumption(asset: Asset, manualCall?: boolean): Promise<AbstractCurrentConsumption>;
+
 }

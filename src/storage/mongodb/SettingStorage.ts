@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoSetting, CryptoSettingsType, KeySetting, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -313,33 +313,13 @@ export default class SettingStorage {
     }
   }
 
-  public static async saveCryptoSettings(tenantID: string, cryptoSettingToSave: KeySetting): Promise<void> {
-    // Build internal structure
-    const settingsToSave = {
-      id: cryptoSettingToSave.id,
-      identifier: 'crypto',
-      lastChangedOn: new Date(),
-      content: {
-        crypto: cryptoSettingToSave.crypto
-      },
-    } as SettingDB;
-    // Save
-    await this.saveSettings(tenantID, settingsToSave);
-  }
-
-  public static async getCryptoSettings(tenantID: string): Promise<KeySetting> {
+  public static async getCryptoSettings(tenantID: string): Promise<CryptoKeySetting> {
     // Get the Crypto Key settings
     const settings = await SettingStorage.getSettings(tenantID,
       { identifier: TenantComponents.CRYPTO },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings.count > 0) {
       const cryptoSetting = {
-        formerKey: settings.result[0].content.crypto.formerKey,
-        formerKeyProperties: {
-          blockCypher: settings.result[0].content.crypto.formerKeyProperties?.blockCypher,
-          blockSize: settings.result[0].content.crypto.formerKeyProperties?.blockSize,
-          operationMode: settings.result[0].content.crypto.formerKeyProperties?.operationMode,
-        },
         key: settings.result[0].content.crypto.key,
         keyProperties: {
           blockCypher: settings.result[0].content.crypto.keyProperties.blockCypher,
@@ -348,13 +328,20 @@ export default class SettingStorage {
         },
         migrationToBeDone: settings.result[0].content.crypto.migrationToBeDone
       } as CryptoSetting;
-      const keySetting = {
+      if (settings.result[0].content.crypto.formerKey) {
+        cryptoSetting.formerKey = settings.result[0].content.crypto.formerKey;
+        cryptoSetting.formerKeyProperties = {
+          blockCypher: settings.result[0].content.crypto.formerKeyProperties?.blockCypher,
+          blockSize: settings.result[0].content.crypto.formerKeyProperties?.blockSize,
+          operationMode: settings.result[0].content.crypto.formerKeyProperties?.operationMode,
+        };
+      }
+      return {
         id: settings.result[0].id,
-        identifier: settings.result[0].identifier,
+        identifier: TenantComponents.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: cryptoSetting
-      } as KeySetting;
-      return keySetting;
+      };
     }
   }
 
