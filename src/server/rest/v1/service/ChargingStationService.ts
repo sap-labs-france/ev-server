@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRemoteStartStopStatus, OCPPStatus } from '../../../../types/ocpp/OCPPClient';
+import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRemoteStartStopStatus, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -1595,7 +1595,7 @@ export default class ChargingStationService {
       // Ok?
       if (result) {
         // OCPP Command with status
-        if (Utils.objectHasProperty(result, 'status') && result.status !== OCPPStatus.ACCEPTED) {
+        if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
           Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
