@@ -128,5 +128,10 @@ describe('Setting tests', function() {
       update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting);
       expect(update.status).to.equal(200);
     });
+    it('Check that retrieving crypto settings filtered by identifier returns one result', async () => {
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+      expect(read.status).to.equal(200);
+      expect(read.data.count).to.equal(1);
+    });
   });
 });

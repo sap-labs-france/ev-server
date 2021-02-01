@@ -72,6 +72,10 @@ export default class SettingService {
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
+    // If Crypto Settings, hash key
+    if (setting.identifier === 'crypto') {
+      setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+    }
     // Return
     res.json(setting);
     next();
@@ -97,6 +101,10 @@ export default class SettingService {
     for (const setting of settings.result) {
       // Hash sensitive data before being sent to the front end
       Cypher.hashSensitiveDataInJSON(setting);
+      // If Crypto Settings, hash key
+      if (setting.identifier === 'crypto') {
+        setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+      }
     }
     // Return
     res.json(settings);
@@ -116,7 +124,7 @@ export default class SettingService {
     // Filter
     const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
     // Process the sensitive data if any
-    Cypher.encryptSensitiveDataInJSON(filteredRequest);
+    await Cypher.encryptSensitiveDataInJSON(req.user.tenantID, filteredRequest);
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
@@ -149,6 +157,16 @@ export default class SettingService {
         value: settingUpdate.id
       });
     }
+    if (settingUpdate.identifier === 'crypto') {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+        message: 'No support for Crypto Setting change yet.',
+        module: MODULE_NAME,
+        method: 'handleUpdateSetting',
+        user: req.user
+      });
+    }
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
     UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingUpdate.id}' does not exist`,
@@ -177,14 +195,14 @@ export default class SettingService {
             const hashedValueInDB = Cypher.hash(valueInDb);
             if (valueInRequest !== hashedValueInDB) {
               // Yes: Encrypt
-              _.set(settingUpdate, property, Cypher.encrypt(valueInRequest));
+              _.set(settingUpdate, property, await Cypher.encrypt(req.user.tenantID, valueInRequest));
             } else {
               // No: Put back the encrypted value
               _.set(settingUpdate, property, valueInDb);
             }
           } else {
             // Value in db is empty then encrypt
-            _.set(settingUpdate, property, Cypher.encrypt(valueInRequest));
+            _.set(settingUpdate, property, await Cypher.encrypt(req.user.tenantID, valueInRequest));
           }
         }
       }

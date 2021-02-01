@@ -99,7 +99,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get Authentication
-    const credentials = this.getAuthentication();
+    const credentials = await this.getAuthentication();
     // Send credentials to get the token
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.url}/authentication-api/tokens`,
@@ -117,11 +117,12 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     return response.data.access_token;
   }
 
-  private getAuthentication(): any {
+  private async getAuthentication(): Promise<{grant_type: string; client_id: string; client_secret: string;}> {
+    console.log(JSON.stringify(this.connection.greencomConnection));
     return {
       'grant_type': 'client_credentials',
       'client_id': this.connection.greencomConnection.clientId,
-      'client_secret': Cypher.decrypt(this.connection.greencomConnection.clientSecret)
+      'client_secret': await Cypher.decrypt(this.tenantID, this.connection.greencomConnection.clientSecret)
     };
   }
 
