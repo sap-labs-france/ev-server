@@ -25,4 +25,4 @@
 [submodule "src/assets/configs-scp"]
 	path = src/assets/configs-scp
 	url = git@github.wdf.sap.corp:E-Mobility/ev-scp-config.git
-  branch = master-qa
+       branch = master-qa
