@@ -260,7 +260,7 @@ export default class AuthService {
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newUser.id, UserStatus.PENDING);
     // Get the i18n translation class
-    const i18nManager = new I18nManager(newUser.locale);
+    const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomIntSafe().toString(),
       active: true,

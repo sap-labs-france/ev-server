@@ -821,7 +821,7 @@ export default class ChargingStationService {
         siteName: chargingStation.siteArea.site.name,
         siteAreaName: chargingStation.siteArea.name,
         chargingStationName: chargingStation.id
-      }, writeHeader);
+      }, req.user.locale, writeHeader);
       // Send OCPP Params
       res.write(dataToExport);
       writeHeader = false;
@@ -1269,10 +1269,10 @@ export default class ChargingStationService {
         // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
         'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
         'ocppVersion', 'ocppProtocol', 'lastSeen', 'lastHeartBeat', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'maximumPower',
-        'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'maximumPower', 'powerLimitUnit',
+        'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
-        'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints',
+        'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
         ...userProject
       ];
     } else {
@@ -1308,53 +1308,80 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static convertOCPPParamsToCSV(ocppParams: OCPPParams, writeHeader = true): string {
+  private static convertOCPPParamsToCSV(ocppParams: OCPPParams, userLocale: string, writeHeader = true): string {
     let csv = '';
+    const i18nManager = I18nManager.getInstanceForLocale(userLocale);
     // Header
     if (writeHeader) {
-      csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
+      csv = i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.value') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.siteArea') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.site') + '\r\n';
     }
     // Content
     for (const param of ocppParams.params) {
-      csv += `${ocppParams.chargingStationName}` + Constants.CSV_SEPARATOR;
-      csv += `${param.key}` + Constants.CSV_SEPARATOR;
-      csv += `${Utils.replaceSpecialCharsInCSVValueParam(param.value)}` + Constants.CSV_SEPARATOR;
-      csv += `${ocppParams.siteAreaName}` + Constants.CSV_SEPARATOR;
-      csv += `${ocppParams.siteName}\r\n`;
+      csv += ocppParams.chargingStationName + Constants.CSV_SEPARATOR;
+      csv += param.key + Constants.CSV_SEPARATOR;
+      csv += Utils.replaceSpecialCharsInCSVValueParam(param.value) + Constants.CSV_SEPARATOR;
+      csv += ocppParams.siteAreaName + Constants.CSV_SEPARATOR;
+      csv += ocppParams.siteName + '\r\n';
     }
     return csv;
   }
 
   private static convertToCSV(req: Request, chargingStations: ChargingStation[], writeHeader = true): string {
     let csv = '';
-    const i18nManager = new I18nManager(req.user.locale);
+
+    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Seen${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+      csv = i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.createdOn') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.numberOfConnectors') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.siteArea') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.latitude') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('general.longitude') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.chargePointSN') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.model') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.chargeBoxSN') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.vendor') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.firmwareVersion') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.ocppVersion') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.ocppProtocol') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.lastSeen') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.lastReboot') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.maxPower') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('chargers.powerLimitUnit') + '\r\n';
     }
     // Content
     for (const chargingStation of chargingStations) {
-      csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
-      csv += `${i18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${i18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.connectors ? chargingStation.connectors.length : '0'}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation?.siteArea?.name ? chargingStation.siteArea.name : ''}` + Constants.CSV_SEPARATOR;
-      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
-        csv += `${chargingStation.coordinates[1]}` + Constants.CSV_SEPARATOR;
-        csv += `${chargingStation.coordinates[0]}` + Constants.CSV_SEPARATOR;
+      csv += chargingStation.id + Constants.CSV_SEPARATOR;
+      if (chargingStation.createdOn) {
+        csv += i18nManager.formatDateTime(chargingStation.createdOn, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.createdOn, 'LT') + Constants.CSV_SEPARATOR;
       } else {
-        csv += `''${Constants.CSV_SEPARATOR}''`;
+        csv += i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime') + Constants.CSV_SEPARATOR;
       }
-      csv += `${chargingStation.chargePointSerialNumber}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.chargePointModel}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.chargeBoxSerialNumber}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.chargePointVendor}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.firmwareVersion}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.ocppVersion}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.ocppProtocol}` + Constants.CSV_SEPARATOR;
-      csv += `${i18nManager.formatDateTime(chargingStation.lastSeen, 'L')} ${i18nManager.formatDateTime(chargingStation.lastSeen, 'LT')}` + Constants.CSV_SEPARATOR;
-      csv += `${i18nManager.formatDateTime(chargingStation.lastReboot, 'L')} ${i18nManager.formatDateTime(chargingStation.lastReboot, 'LT')}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.maximumPower}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.powerLimitUnit}\r\n`;
+      csv += (chargingStation.connectors ? chargingStation.connectors.length : '0') + Constants.CSV_SEPARATOR;
+      csv += (chargingStation?.siteArea?.name ? chargingStation.siteArea.name : '') + Constants.CSV_SEPARATOR;
+      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
+        csv += chargingStation.coordinates[1] + Constants.CSV_SEPARATOR;
+        csv += chargingStation.coordinates[0] + Constants.CSV_SEPARATOR;
+      } else {
+        csv += '' + Constants.CSV_SEPARATOR;
+        csv += '' + Constants.CSV_SEPARATOR;
+      }
+      csv += chargingStation.chargePointSerialNumber + Constants.CSV_SEPARATOR;
+      csv += chargingStation.chargePointModel + Constants.CSV_SEPARATOR;
+      csv += chargingStation.chargeBoxSerialNumber + Constants.CSV_SEPARATOR;
+      csv += chargingStation.chargePointVendor + Constants.CSV_SEPARATOR;
+      csv += chargingStation.firmwareVersion + Constants.CSV_SEPARATOR;
+      csv += chargingStation.ocppVersion + Constants.CSV_SEPARATOR;
+      csv += chargingStation.ocppProtocol + Constants.CSV_SEPARATOR;
+      csv += i18nManager.formatDateTime(chargingStation.lastSeen, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastSeen, 'LT') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT') + Constants.CSV_SEPARATOR;
+      csv += chargingStation.maximumPower + Constants.CSV_SEPARATOR;
+      csv += chargingStation.powerLimitUnit + '\r\n';
     }
     return csv;
   }
@@ -1366,7 +1393,7 @@ export default class ChargingStationService {
   }
 
   private static async convertQrCodeToPDF(req: Request, pdfDocument: PDFKit.PDFDocument, chargingStations: ChargingStation[]): Promise<void> {
-    const i18nManager = new I18nManager(req.user.locale);
+    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Check for Connector ID
     let connectorID = null;
     if (req.query.ConnectorID) {

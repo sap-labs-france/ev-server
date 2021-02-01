@@ -103,8 +103,8 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.OCPI, RoamingSettingsType.GIREVE);
+      expect(settings.data.count).to.equal(2);
+      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.OCPI, RoamingSettingsType.GIREVE);
     });
 
     it('Pricing/Simple : Check that the setting has been created in the tenant after activation', async function() {
@@ -132,8 +132,8 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
+      expect(settings.data.count).to.equal(2);
+      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
     });
 
     it('Billing : Check that the setting has been created in the tenant after activation', async function() {
@@ -183,9 +183,9 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(2);
+      expect(settings.data.count).to.equal(3);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.BILLING, BillingSettingsType.STRIPE);
-      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
+      expect(settings.data.result[2]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
     });
 
     it('Refund : Check that the setting has been created in the tenant after activation', async function() {
@@ -234,9 +234,9 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(2);
-      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
-      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.REFUND, RefundSettingsType.CONCUR);
+      expect(settings.data.count).to.equal(3);
+      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
+      expect(settings.data.result[2]).to.be.validatedSetting(TenantComponents.REFUND, RefundSettingsType.CONCUR);
     });
 
     it('SmartCharging : Check that the setting has been created in the tenant after activation', async function() {
@@ -284,8 +284,8 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('smartCharging', 'sapSmartCharging');
+      expect(settings.data.count).to.equal(2);
+      expect(settings.data.result[1]).to.be.validatedSetting('smartCharging', 'sapSmartCharging');
     });
 
     it('Pricing/Convergent : Check that the setting has been created in the tenant after activation', async function() {
@@ -312,8 +312,8 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.CONVERGENT_CHARGING);
+      expect(settings.data.count).to.equal(2);
+      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.CONVERGENT_CHARGING);
     });
 
     it('Analytics : Check that the setting has been created in the tenant after activation', async function() {
@@ -341,7 +341,7 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(1);
+      expect(settings.data.count).to.equal(2);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.ANALYTICS, AnalyticsSettingsType.SAC);
     });
 
@@ -390,7 +390,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.data.count).to.equal(1);
+      expect(settings.data.count).to.equal(2);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.ASSET, null);
     });
   });
