@@ -17,4 +17,8 @@ export default class RegistrationTokenApi extends CrudApi {
   public async create(data = {}) {
     return await super.create(data, '/client/api/RegistrationTokenCreate');
   }
+
+  public async update(data) {
+    return super.update(data, 'client/api/RegistrationTokenUpdate');
+  }
 }

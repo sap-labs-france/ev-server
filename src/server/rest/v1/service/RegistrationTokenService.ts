@@ -89,10 +89,12 @@ export default class RegistrationTokenService {
     UtilsService.assertObjectExists(action, registrationToken, `Token ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
-      // Check Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
-        MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
+      // Check Site Area if it's provided
+      if (filteredRequest.siteAreaID) {
+        const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+        UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
+          MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
+      }
     }
     // Check Auth
     if (!Authorizations.canUpdateRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
