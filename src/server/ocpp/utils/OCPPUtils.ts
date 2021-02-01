@@ -1604,7 +1604,7 @@ export default class OCPPUtils {
       });
     }
     // Registered?
-    if (chargingStation.registered) {
+    if (!chargingStation.registered) {
       throw new BackendError({
         source: chargeBoxIdentity,
         module: MODULE_NAME,
