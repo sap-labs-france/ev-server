@@ -20,23 +20,42 @@ import rfc2047 from 'rfc2047';
 const MODULE_NAME = 'EMailNotificationTask';
 
 export default class EMailNotificationTask implements NotificationTask {
-  private client: SMTPClient;
-  private backupInUse: boolean;
+  private static instance: EMailNotificationTask;
   private emailConfig: EmailConfiguration = Configuration.getEmailConfig();
-  private emailConfigHasBackup: boolean;
+  private SMTPMainClientInstance: SMTPClient;
+  private SMTPBackupClientInstance: SMTPClient;
+  private backupInUse: boolean;
 
-  constructor() {
-    // Connect to the SMTP server
-    this.client = new SMTPClient({
-      user: this.emailConfig.smtp.user,
-      password: this.emailConfig.smtp.password,
-      host: this.emailConfig.smtp.host,
-      port: this.emailConfig.smtp.port,
-      tls: this.emailConfig.smtp.requireTLS,
-      ssl: this.emailConfig.smtp.secure
-    });
+  private constructor() {
+    // Connect to the SMTP servers
+    if (!Utils.isUndefined(this.emailConfig.smtp)) {
+      this.SMTPMainClientInstance = new SMTPClient({
+        user: this.emailConfig.smtp.user,
+        password: this.emailConfig.smtp.password,
+        host: this.emailConfig.smtp.host,
+        port: this.emailConfig.smtp.port,
+        tls: this.emailConfig.smtp.requireTLS,
+        ssl: this.emailConfig.smtp.secure
+      });
+    }
+    if (!this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup)) {
+      this.SMTPBackupClientInstance = new SMTPClient({
+        user: this.emailConfig.smtpBackup.user,
+        password: this.emailConfig.smtpBackup.password,
+        host: this.emailConfig.smtpBackup.host,
+        port: this.emailConfig.smtpBackup.port,
+        tls: this.emailConfig.smtpBackup.requireTLS,
+        ssl: this.emailConfig.smtpBackup.secure
+      });
+    }
     this.backupInUse = false;
-    this.emailConfigHasBackup = !Utils.isUndefined(this.emailConfig.smtpBackup);
+  }
+
+  public static getInstance(): EMailNotificationTask {
+    if (!this.instance) {
+      this.instance = new EMailNotificationTask();
+    }
+    return this.instance;
   }
 
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -137,54 +156,27 @@ export default class EMailNotificationTask implements NotificationTask {
 
   private async sendEmail(email: EmailNotificationMessage, data: any, tenant: Tenant, user: User, severity: NotificationSeverity, useBackup = false): Promise<void> {
     // Email configuration sanity checks
-    if (Utils.isUndefined(this.emailConfig.smtp)) {
-      // No suitable SMTP server configuration found to send the email
+    if (!this.SMTPMainClientInstance) {
+      // No suitable main SMTP server configuration found to send the email
       Logging.logError({
         tenantID: tenant.id,
         source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
-        message: 'No suitable SMTP server configuration found to send email',
-        actionOnUser: user
-      });
-      return;
-    } else if ((this.emailConfig.disableBackup || !this.emailConfigHasBackup) && useBackup) {
-      // No suitable SMTP backup server configuration found or activated to send the email
-      Logging.logError({
-        tenantID: tenant.id,
-        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
-        action: ServerAction.EMAIL_NOTIFICATION,
-        module: MODULE_NAME, method: 'sendEmail',
-        message: 'No suitable SMTP backup server configuration found or activated to send email',
+        message: 'No suitable main SMTP server configuration found to send email',
         actionOnUser: user
       });
       return;
     }
-    // Switch SMTP server if necessary
+    // Toggle boolean attribute to switch SMTP server when necessary
     if (!useBackup && this.backupInUse) {
-      this.client = new SMTPClient({
-        user: this.emailConfig.smtp.user,
-        password: this.emailConfig.smtp.password,
-        host: this.emailConfig.smtp.host,
-        port: this.emailConfig.smtp.port,
-        tls: this.emailConfig.smtp.requireTLS,
-        ssl: this.emailConfig.smtp.secure
-      });
       this.backupInUse = useBackup;
-    } else if (!this.emailConfig.disableBackup && this.emailConfigHasBackup && useBackup && !this.backupInUse) {
-      this.client = new SMTPClient({
-        user: this.emailConfig.smtpBackup.user,
-        password: this.emailConfig.smtpBackup.password,
-        host: this.emailConfig.smtpBackup.host,
-        port: this.emailConfig.smtpBackup.port,
-        tls: this.emailConfig.smtpBackup.requireTLS,
-        ssl: this.emailConfig.smtpBackup.secure
-      });
+    } else if (this.SMTPBackupClientInstance && useBackup && !this.backupInUse) {
       this.backupInUse = useBackup;
     }
     // Create the message
     const messageToSend = new Message({
-      from: !this.emailConfig.disableBackup && this.emailConfigHasBackup && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
+      from: this.SMTPBackupClientInstance && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
       to: email.to,
       cc: email.cc,
       bcc: email.bccNeeded && email.bcc ? email.bcc : '',
@@ -195,7 +187,7 @@ export default class EMailNotificationTask implements NotificationTask {
     });
     try {
       // Send the message
-      const messageSent: Message = await this.client.sendAsync(messageToSend);
+      const messageSent: Message = await this.getSMTPClient().sendAsync(messageToSend);
       // Email sent successfully
       Logging.logDebug({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
@@ -263,8 +255,18 @@ export default class EMailNotificationTask implements NotificationTask {
             evseDashboardURL: data.evseDashboardURL
           }
         );
-        if (!this.emailConfig.disableBackup && this.emailConfigHasBackup && !useBackup) {
+        if (this.SMTPBackupClientInstance && !useBackup) {
           await this.sendEmail(email, data, tenant, user, severity, true);
+        } else {
+          // No suitable backup SMTP server configuration found or activated to send the email
+          Logging.logError({
+            tenantID: tenant.id,
+            source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+            action: ServerAction.EMAIL_NOTIFICATION,
+            module: MODULE_NAME, method: 'sendEmail',
+            message: 'No suitable backup SMTP server configuration found or activated to send email after an error on the main SMTP server',
+            actionOnUser: user
+          });
         }
       }
     }
@@ -402,5 +404,12 @@ export default class EMailNotificationTask implements NotificationTask {
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
+  }
+
+  private getSMTPClient(): SMTPClient {
+    if (this.backupInUse) {
+      return this.SMTPBackupClientInstance;
+    }
+    return this.SMTPMainClientInstance;
   }
 }

@@ -21,50 +21,15 @@ export default class NotificationHandler {
   private static notificationSources: NotificationSource[] = [
     {
       channel: 'email',
-      notificationTask: new EMailNotificationTask(),
+      notificationTask: EMailNotificationTask.getInstance(),
       enabled: NotificationHandler.notificationConfig.Email ? NotificationHandler.notificationConfig.Email.enabled : false
     },
     {
       channel: 'remote-push-notification',
-      notificationTask: new RemotePushNotificationTask(),
+      notificationTask: RemotePushNotificationTask.getInstance(),
       enabled: NotificationHandler.notificationConfig.RemotePushNotification ? NotificationHandler.notificationConfig.RemotePushNotification.enabled : false
     }
   ];
-
-  static async saveNotification(tenantID: string, channel: string, notificationID: string, sourceDescr: ServerAction,
-    extraParams: { user?: User, chargingStation?: ChargingStation, notificationData?: any } = {}): Promise<void> {
-    // Save it
-    await NotificationStorage.saveNotification(tenantID, {
-      timestamp: new Date(),
-      channel: channel,
-      sourceId: notificationID ? notificationID : new Date().toISOString(),
-      sourceDescr: sourceDescr,
-      userID: (extraParams.user ? extraParams.user.id : null),
-      chargeBoxID: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
-      data: extraParams.notificationData
-    });
-    // Success
-    if (extraParams.user) {
-      // User
-      Logging.logDebug({
-        tenantID: tenantID,
-        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
-        module: MODULE_NAME, method: 'saveNotification',
-        action: sourceDescr,
-        actionOnUser: extraParams.user,
-        message: `User is being notified (${channel})`
-      });
-    } else {
-      // Admin
-      Logging.logDebug({
-        tenantID: tenantID,
-        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
-        module: MODULE_NAME, method: 'saveNotification',
-        action: sourceDescr,
-        message: `Admin users are being notified (${channel})`
-      });
-    }
-  }
 
   static async getAdminUsers(tenantID: string, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
@@ -961,6 +926,41 @@ export default class NotificationHandler {
           }
         }
       }
+    }
+  }
+
+  private static async saveNotification(tenantID: string, channel: string, notificationID: string, sourceDescr: ServerAction,
+    extraParams: { user?: User, chargingStation?: ChargingStation, notificationData?: any } = {}): Promise<void> {
+    // Save it
+    await NotificationStorage.saveNotification(tenantID, {
+      timestamp: new Date(),
+      channel: channel,
+      sourceId: notificationID ? notificationID : new Date().toISOString(),
+      sourceDescr: sourceDescr,
+      userID: (extraParams.user ? extraParams.user.id : null),
+      chargeBoxID: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
+      data: extraParams.notificationData
+    });
+    // Success
+    if (extraParams.user) {
+      // User
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
+        module: MODULE_NAME, method: 'saveNotification',
+        action: sourceDescr,
+        actionOnUser: extraParams.user,
+        message: `User is being notified (${channel})`
+      });
+    } else {
+      // Admin
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
+        module: MODULE_NAME, method: 'saveNotification',
+        action: sourceDescr,
+        message: `Admin users are being notified (${channel})`
+      });
     }
   }
 }
