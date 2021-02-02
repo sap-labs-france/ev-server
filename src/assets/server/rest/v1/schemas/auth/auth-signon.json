@@ -1,0 +1,48 @@
+{
+  "title": "Sign On",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "common.json#/definitions/email"
+    },
+    "name": {
+      "$ref": "common.json#/definitions/name"
+    },
+    "firstName": {
+      "$ref": "common.json#/definitions/firstName"
+    },
+    "passwords": {
+      "type": "object",
+      "properties": {
+        "password": {
+          "$ref": "common.json#/definitions/password"
+        },
+        "repeatPassword": {
+          "$ref": "common.json#/definitions/password"
+        }
+      }
+    },
+    "acceptEula": {
+      "$ref": "common.json#/definitions/acceptEula"
+    },
+    "tenant": {
+      "$ref": "common.json#/definitions/subdomain"
+    },
+    "captcha": {
+      "$ref": "common.json#/definitions/captcha"
+    },
+    "locale": {
+      "type": "string",
+      "sanitize": "mongo",
+      "maxLength": 5
+    }
+  },
+  "required": [
+    "email",
+    "name",
+    "firstName",
+    "passwords",
+    "acceptEula",
+    "captcha"
+  ]
+}
