@@ -143,7 +143,6 @@ export default class OCPPService {
           (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
             chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
           // Not the same Charging Station!
-          await ChargingStationStorage.saveChargingStationRegistrationStatus(headers.tenantID, headers.chargeBoxIdentity, { registered: false });
           throw new BackendError({
             source: chargingStation.id,
             action: ServerAction.BOOT_NOTIFICATION,
@@ -261,6 +260,11 @@ export default class OCPPService {
         error.params.source = headers.chargeBoxIdentity;
       }
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
+      const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
+      // Flag charging station as not registered if in the DB
+      if (chargingStation) {
+        await ChargingStationStorage.saveChargingStationRegistrationStatus(headers.tenantID, headers.chargeBoxIdentity, { registered: false });
+      }
       // Reject
       return {
         status: RegistrationStatus.REJECTED,
