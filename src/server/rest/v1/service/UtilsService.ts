@@ -555,8 +555,8 @@ export default class UtilsService {
         user: req.user.id
       });
     }
-    if (asset.fluctuationPercent) {
-      if (0 > asset.fluctuationPercent || 100 < asset.fluctuationPercent || !(typeof asset.fluctuationPercent === 'number')) {
+    if (Utils.objectHasProperty(asset, 'fluctuationPercent')) {
+      if (!(typeof asset.fluctuationPercent === 'number') || asset.fluctuationPercent < 0 || asset.fluctuationPercent > 100) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
