@@ -558,17 +558,6 @@ export default class AuthService {
   public static async handleGetEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = AuthValidator.getInstance().validateAuthEula(req.query);
-    // Get Tenant
-    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    if (!tenantID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: MODULE_NAME, method: 'handleGetEndUserLicenseAgreement',
-        action: action
-      });
-    }
     // Get it
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(Constants.DEFAULT_TENANT, filteredRequest.Language);
     res.json(endUserLicenseAgreement);
