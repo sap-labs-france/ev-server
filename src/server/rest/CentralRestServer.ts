@@ -5,7 +5,6 @@ import SingleChangeNotification, { NotificationData } from '../../types/SingleCh
 import express, { NextFunction, Request, Response } from 'express';
 
 import AuthService from './v1/service/AuthService';
-import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
 import ChangeNotification from '../../types/ChangeNotification';
@@ -47,8 +46,6 @@ export default class CentralRestServer {
     this.expressApplication.use(AuthService.initialize());
     // Routers
     this.expressApplication.use('/v1', new GlobalRouter().buildRoutes());
-    // Auth services
-    this.expressApplication.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
     // Secured API
     this.expressApplication.all('/client/api/:action', AuthService.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
     // Util API
@@ -91,7 +88,8 @@ export default class CentralRestServer {
       return done(null, false, 'SocketIO client is trying to connect without a token');
     }));
     // Handle Socket IO connection
-    CentralRestServer.socketIOServer.on('connect', (socket: Socket) => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    CentralRestServer.socketIOServer.on('connect', async (socket: Socket): Promise<void> => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'startSocketIO',
@@ -117,7 +115,7 @@ export default class CentralRestServer {
         });
         // Join Tenant Room
         try {
-          void socket.join(userToken.tenantID);
+          await socket.join(userToken.tenantID);
           CentralRestServer.centralSystemRestConfig.debug && console.log(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`);
           Logging.logDebug({
             tenantID: userToken.tenantID,
