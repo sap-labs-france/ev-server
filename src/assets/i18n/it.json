@@ -68,9 +68,9 @@
       "title": "Stati Invio in Roaming",
       "body": "Il trasferimento alla piattaforma di roaming degli stati della stazione di ricarica è fallito nella posizione '{{location}}' nell'organizzazione '{{tenantName}}', controlla i log"
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Errore Server Email",
-      "body": "L'autenticazione sul server di posta primario è fallita nell'organizzazione '{{tenantName}}', controlla la configurazione"
+      "body": "Errore del server di posta elettronica principale nell'organizzazione '{{tenantName}}', controlla la configurazione"
     },
     "optimalChargeReached": {
       "title": "Carica Ottimale Raggiunta",
