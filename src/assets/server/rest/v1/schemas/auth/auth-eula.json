@@ -1,0 +1,9 @@
+{
+  "title": "Eula Request",
+  "type": "object",
+  "properties": {
+    "Language": {
+      "$ref": "common.json#/definitions/language"
+    }
+  }
+}
