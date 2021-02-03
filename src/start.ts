@@ -130,7 +130,6 @@ export default class Bootstrap {
         // Init the Scheduler
         // -------------------------------------------------------------------------
         SchedulerManager.init();
-
         // Locks remain in storage if server crashes
         // Delete acquired database locks with same hostname
         await LockingManager.cleanupLocks(Configuration.isCloudFoundry() || Utils.isDevelopmentEnv());
@@ -236,7 +235,6 @@ export default class Bootstrap {
           await this.centralRestServer.startSocketIO();
         }
       }
-
       // -------------------------------------------------------------------------
       // Listen to DB changes
       // -------------------------------------------------------------------------
@@ -245,7 +243,6 @@ export default class Bootstrap {
         Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
       }
       await Bootstrap.storageNotification.start();
-
       // -------------------------------------------------------------------------
       // Central Server (Charging Stations)
       // -------------------------------------------------------------------------
@@ -275,7 +272,6 @@ export default class Bootstrap {
           }
         }
       }
-
       // -------------------------------------------------------------------------
       // OCPI Server
       // -------------------------------------------------------------------------
@@ -285,7 +281,6 @@ export default class Bootstrap {
         // Start server instance
         await Bootstrap.ocpiServer.start();
       }
-
       // -------------------------------------------------------------------------
       // OICP Server
       // -------------------------------------------------------------------------
@@ -295,7 +290,6 @@ export default class Bootstrap {
         // Start server instance
         await Bootstrap.oicpServer.start();
       }
-
       // -------------------------------------------------------------------------
       // OData Server
       // -------------------------------------------------------------------------
