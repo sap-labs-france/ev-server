@@ -99,6 +99,7 @@ export interface RoamingIdentifier {
   countryCode: string;
   partyID: string;
 }
+
 export interface OcpiIdentifier extends RoamingIdentifier {
 }
 
