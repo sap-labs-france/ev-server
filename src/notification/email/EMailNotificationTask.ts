@@ -38,16 +38,6 @@ export default class EMailNotificationTask implements NotificationTask {
         ssl: this.emailConfig.smtp.secure
       });
     }
-    if (!this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup)) {
-      this.SMTPBackupClientInstance = new SMTPClient({
-        user: this.emailConfig.smtpBackup.user,
-        password: this.emailConfig.smtpBackup.password,
-        host: this.emailConfig.smtpBackup.host,
-        port: this.emailConfig.smtpBackup.port,
-        tls: this.emailConfig.smtpBackup.requireTLS,
-        ssl: this.emailConfig.smtpBackup.secure
-      });
-    }
     this.backupInUse = false;
   }
 
@@ -171,12 +161,12 @@ export default class EMailNotificationTask implements NotificationTask {
     // Toggle boolean attribute to switch SMTP server when necessary
     if (!useBackup && this.backupInUse) {
       this.backupInUse = useBackup;
-    } else if (this.SMTPBackupClientInstance && useBackup && !this.backupInUse) {
+    } else if (this.getSMTPBackupClientInstance() && useBackup && !this.backupInUse) {
       this.backupInUse = useBackup;
     }
     // Create the message
     const messageToSend = new Message({
-      from: this.SMTPBackupClientInstance && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
+      from: this.getSMTPBackupClientInstance() && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
       to: email.to,
       cc: email.cc,
       bcc: email.bccNeeded && email.bcc ? email.bcc : '',
@@ -239,6 +229,7 @@ export default class EMailNotificationTask implements NotificationTask {
       if (error instanceof SMTPError) {
         const err: SMTPError = error;
         switch (err.smtp) {
+          // TODO: Add a fitting data structure to types to cope with SMTP returned codes
           case 510:
           case 511:
             sendSmtpError = false;
@@ -255,7 +246,7 @@ export default class EMailNotificationTask implements NotificationTask {
             evseDashboardURL: data.evseDashboardURL
           }
         );
-        if (this.SMTPBackupClientInstance && !useBackup) {
+        if (this.getSMTPBackupClientInstance() && !useBackup) {
           await this.sendEmail(email, data, tenant, user, severity, true);
         } else {
           // No suitable backup SMTP server configuration found or activated to send the email
@@ -408,8 +399,22 @@ export default class EMailNotificationTask implements NotificationTask {
 
   private getSMTPClient(): SMTPClient {
     if (this.backupInUse) {
-      return this.SMTPBackupClientInstance;
+      return this.getSMTPBackupClientInstance();
     }
     return this.SMTPMainClientInstance;
+  }
+
+  private getSMTPBackupClientInstance(): SMTPClient {
+    if (!this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup && !this.SMTPBackupClientInstance)) {
+      this.SMTPBackupClientInstance = new SMTPClient({
+        user: this.emailConfig.smtpBackup.user,
+        password: this.emailConfig.smtpBackup.password,
+        host: this.emailConfig.smtpBackup.host,
+        port: this.emailConfig.smtpBackup.port,
+        tls: this.emailConfig.smtpBackup.requireTLS,
+        ssl: this.emailConfig.smtpBackup.secure
+      });
+    }
+    return this.SMTPBackupClientInstance;
   }
 }
