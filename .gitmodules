@@ -22,3 +22,7 @@
 	path = src/assets/configs-ci
 	url = git@github.com:LucasBrazi06/ev-ci.git
 	branch = master
+[submodule "src/assets/ev-scp-config"]
+	path = src/assets/ev-scp-config
+	url = git@github.com:LucasBrazi06/ev-scp-config.git
+	branch = master-qa
