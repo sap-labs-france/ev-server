@@ -768,15 +768,12 @@ export default class Authorizations {
     }
     // Get Tag
     let tag: Tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
-
     if (!tag || !tag?.active) {
       // Check OICP User
-      // OICP Active?
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-        // OICP user?
         // Check if user has remote authorization
         if (tagID === OICPDefaultTagId.RemoteIdentification) {
-          return await UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
+          return UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
         }
         const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
         if (!oicpClient) {
@@ -797,7 +794,6 @@ export default class Authorizations {
         }
       }
     }
-
     if (!tag) {
       // Create the tag as inactive
       tag = {
