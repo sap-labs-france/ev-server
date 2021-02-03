@@ -747,15 +747,10 @@ export default class Authorizations {
           message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
         });
       }
-      // Access Control Enabled?
+      // Access Control is disabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
-        let user = await UserStorage.getUserByTagId(tenantID, tagID);
-        if (!user && Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-          // In case of OICP, use virtual user if there is no user in the db
-          user = await UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
-        }
-        return user;
+        return UserStorage.getUserByTagId(tenantID, tagID);
       }
       // Site -----------------------------------------------------
       chargingStation.siteArea.site = chargingStation.siteArea.site ?
