@@ -37,7 +37,7 @@ export default class RenameSMTPAuthErrorTask extends MigrationTask {
       {
         sourceDescr: {
           $exists: true,
-          $eq: 'NotifyAuthentificationErrorEmailServer'
+          $eq: 'AuthentificationErrorEmailServer'
         }
       },
       { $set: { sourceDescr: 'EmailServerError' } }

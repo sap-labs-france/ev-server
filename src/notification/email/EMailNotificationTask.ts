@@ -161,12 +161,12 @@ export default class EMailNotificationTask implements NotificationTask {
     // Toggle boolean attribute to switch SMTP server when necessary
     if (!useBackup && this.backupInUse) {
       this.backupInUse = useBackup;
-    } else if (this.getSMTPBackupClientInstance() && useBackup && !this.backupInUse) {
+    } else if (!this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup) && useBackup && !this.backupInUse) {
       this.backupInUse = useBackup;
     }
     // Create the message
     const messageToSend = new Message({
-      from: this.getSMTPBackupClientInstance() && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
+      from: !this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup) && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
       to: email.to,
       cc: email.cc,
       bcc: email.bccNeeded && email.bcc ? email.bcc : '',
@@ -246,7 +246,7 @@ export default class EMailNotificationTask implements NotificationTask {
             evseDashboardURL: data.evseDashboardURL
           }
         );
-        if (this.getSMTPBackupClientInstance() && !useBackup) {
+        if (!this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup) && !useBackup) {
           await this.sendEmail(email, data, tenant, user, severity, true);
         } else {
           // No suitable backup SMTP server configuration found or activated to send the email
