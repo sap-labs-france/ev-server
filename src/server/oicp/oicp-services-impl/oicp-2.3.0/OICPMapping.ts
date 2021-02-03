@@ -33,7 +33,6 @@ export default class OICPMapping {
   public static getEvseByConnectorId(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connectorId: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
     // Loop through connectors and send one evse per connector
     const connector = chargingStation.connectors.find((conn) => (conn !== null) && (conn.connectorId === connectorId));
-
     if (connector) {
       return OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options);
     }
