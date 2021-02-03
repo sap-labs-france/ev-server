@@ -99,7 +99,8 @@ export interface RoamingIdentifier {
   countryCode: string;
   partyID: string;
 }
-export type OcpiIdentifier = RoamingIdentifier;
+export interface OcpiIdentifier extends RoamingIdentifier {
+}
 
 // Should be renamed. Certificate and Key are bundled with OperatorID / ProviderID at this moment.
 // Because the roles CPO and EMSP probably need different certificates to call the Hubject Backend
