@@ -1,14 +1,15 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { CryptoKeySetting, CryptoSettingsType, SettingDB, SettingDBContent } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { SettingDB, SettingDBContent } from '../../../../types/Setting';
 import Tenant, { TenantLogo } from '../../../../types/Tenant';
-import User, { UserRole, UserStatus } from '../../../../types/User';
+import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import Cypher from '../../../../utils/Cypher';
 import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -18,7 +19,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
-import TagStorage from '../../../../storage/mongodb/TagStorage';
+import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidation';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -165,6 +166,28 @@ export default class TenantService {
     next();
   }
 
+  public static async createInitialSettingsForTenant(tenantID: string): Promise<void> {
+    await this.createInitialCryptoSetting(tenantID);
+  }
+
+  public static async createInitialCryptoSetting(tenantID: string): Promise<void> {
+    // Check for settings in db
+    const keySettings = await SettingStorage.getCryptoSettings(tenantID);
+    // Generate Crypto Key Settings
+    if (!keySettings) {
+      const keySettingToSave = {
+        identifier: TenantComponents.CRYPTO,
+        type: CryptoSettingsType.CRYPTO,
+        crypto: {
+          key: Utils.generateKey(),
+          keyProperties: Utils.getDefaultKeyProperties()
+        }
+      } as CryptoKeySetting;
+      // Save Crypto Key Settings
+      await Cypher.saveCryptoSetting(tenantID, keySettingToSave);
+    }
+  }
+
   public static async handleCreateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
     const filteredRequest = TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
@@ -214,6 +237,8 @@ export default class TenantService {
     if (await LockingManager.acquire(createDatabaseLock)) {
       try {
         await TenantStorage.createTenantDB(filteredRequest.id);
+        // Create initial settings for tenant
+        await TenantService.createInitialSettingsForTenant(filteredRequest.id);
       } finally {
         // Release the database creation Lock
         await LockingManager.release(createDatabaseLock);

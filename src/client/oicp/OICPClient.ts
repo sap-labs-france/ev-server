@@ -26,6 +26,7 @@ export default abstract class OICPClient {
   protected role: string;
   protected settings: OicpSetting;
   private oicpConfig: OICPServiceConfiguration;
+  private axiosConfig: AxiosRequestConfig;
 
   protected constructor(tenant: Tenant, settings: OicpSetting, oicpEndpoint: OICPEndpoint, role: string) {
     if (role !== OICPRole.CPO && role !== OICPRole.EMSP) {
@@ -39,7 +40,10 @@ export default abstract class OICPClient {
     this.oicpEndpoint = oicpEndpoint;
     this.role = role.toLowerCase();
     this.oicpConfig = Configuration.getOICPServiceConfig();
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) }, true); // FIXME: set noInterceptors = true to avoid 'Converting circular structure to JSON' Error
+    void (async () => {
+      this.axiosConfig = await this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
+      this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.axiosConfig }, true); // FIXME: set noInterceptors = true to avoid 'Converting circular structure to JSON' Error
+    })();
   }
 
   public getLocalCountryCode(action: ServerAction): string {
@@ -128,7 +132,7 @@ export default abstract class OICPClient {
     });
   }
 
-  private getPrivateKey(action: ServerAction): string {
+  private async getPrivateKey(action: ServerAction): Promise<string> {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -141,10 +145,10 @@ export default abstract class OICPClient {
         module: MODULE_NAME, method: 'getPrivateKey',
       });
     }
-    return Cypher.decrypt(this.settings[this.role].key);
+    return await Cypher.decrypt(this.tenant.id, this.settings[this.role].key);
   }
 
-  private getClientCertificate(action: ServerAction): string {
+  private async getClientCertificate(action: ServerAction): Promise<string> {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OICP Settings are missing for role ${this.role}`,
@@ -157,21 +161,21 @@ export default abstract class OICPClient {
         module: MODULE_NAME, method: 'getClientCertificate',
       });
     }
-    return Cypher.decrypt(this.settings[this.role].cert);
+    return await Cypher.decrypt(this.tenant.id, this.settings[this.role].cert);
   }
 
-  private getAxiosConfig(action: ServerAction): AxiosRequestConfig {
+  private async getAxiosConfig(action: ServerAction): Promise<AxiosRequestConfig> {
     const axiosConfig: AxiosRequestConfig = {} as AxiosRequestConfig;
-    axiosConfig.httpsAgent = this.getHttpsAgent(action);
+    axiosConfig.httpsAgent = await this.getHttpsAgent(action);
     axiosConfig.headers = {
       'Content-Type': 'application/json'
     };
     return axiosConfig;
   }
 
-  private getHttpsAgent(action: ServerAction): https.Agent {
-    const publicCert = this.getClientCertificate(action);
-    const privateKey = this.getPrivateKey(action);
+  private async getHttpsAgent(action: ServerAction): Promise<https.Agent> {
+    const publicCert = await this.getClientCertificate(action);
+    const privateKey = await this.getPrivateKey(action);
     const httpsAgent = new https.Agent({
       rejectUnauthorized: false,
       cert: publicCert,

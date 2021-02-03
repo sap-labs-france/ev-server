@@ -91,6 +91,7 @@ export default abstract class WSConnection {
     }
     Logging.logDebug({
       tenantID: this.tenantID,
+      source: this.chargingStationID,
       action: action,
       module: MODULE_NAME, method: 'constructor',
       message: logMsg,

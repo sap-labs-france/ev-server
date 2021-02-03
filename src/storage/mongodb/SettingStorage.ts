@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -320,6 +320,37 @@ export default class SettingStorage {
         };
       }
       return billingSettings;
+    }
+  }
+
+  public static async getCryptoSettings(tenantID: string): Promise<CryptoKeySetting> {
+    // Get the Crypto Key settings
+    const settings = await SettingStorage.getSettings(tenantID,
+      { identifier: TenantComponents.CRYPTO },
+      Constants.DB_PARAMS_MAX_LIMIT);
+    if (settings.count > 0) {
+      const cryptoSetting = {
+        key: settings.result[0].content.crypto.key,
+        keyProperties: {
+          blockCypher: settings.result[0].content.crypto.keyProperties.blockCypher,
+          blockSize: settings.result[0].content.crypto.keyProperties.blockSize,
+          operationMode: settings.result[0].content.crypto.keyProperties.operationMode,
+        }
+      } as CryptoSetting;
+      if (settings.result[0].content.crypto.formerKey) {
+        cryptoSetting.formerKey = settings.result[0].content.crypto.formerKey;
+        cryptoSetting.formerKeyProperties = {
+          blockCypher: settings.result[0].content.crypto.formerKeyProperties?.blockCypher,
+          blockSize: settings.result[0].content.crypto.formerKeyProperties?.blockSize,
+          operationMode: settings.result[0].content.crypto.formerKeyProperties?.operationMode,
+        };
+      }
+      return {
+        id: settings.result[0].id,
+        identifier: TenantComponents.CRYPTO,
+        type: CryptoSettingsType.CRYPTO,
+        crypto: cryptoSetting
+      };
     }
   }
 

@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
@@ -329,6 +329,8 @@ export default class Utils {
       return 'de_DE';
     } else if (language === 'pt') {
       return 'pt_PT';
+    } else if (language === 'it') {
+      return 'it_IT';
     }
     return Constants.DEFAULT_LOCALE;
   }
@@ -774,7 +776,7 @@ export default class Utils {
     return Math.round(totalAmps / numberOfConnectedPhases);
   }
 
-  public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
+  public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
     let amperageLimit = 0;
     if (chargingStation) {
       if (connectorId > 0) {
@@ -1357,6 +1359,32 @@ export default class Utils {
 
   public static isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
+  }
+
+  public static parseConfigCryptoAlgorithm(algo: string): CryptoKeyProperties {
+    const [blockCypher, blockSize, operationMode] = algo.split('-');
+    return {
+      blockCypher: blockCypher,
+      blockSize: Utils.convertToInt(blockSize),
+      operationMode: operationMode
+    };
+  }
+
+  public static buildAlgorithm(properties: CryptoKeyProperties): string {
+    return `${properties.blockCypher}-${properties.blockSize}-${properties.operationMode}`;
+  }
+
+  public static generateKey(): string {
+    // TODO change 16 to 32 and test on Mac
+    return crypto.randomBytes(16).toString('hex');
+  }
+
+  public static getDefaultKeyProperties(): CryptoKeyProperties {
+    return {
+      blockCypher: 'aes',
+      blockSize: 256,
+      operationMode: 'ctr'
+    };
   }
 
   public static getHostname(): string {

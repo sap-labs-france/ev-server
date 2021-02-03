@@ -1,15 +1,71 @@
 {
+  "billing": {
+    "generatedUser": "Utilisateur généré pour '{{email}}'",
+    "chargingStopSiteArea": "Consommation de {{totalConsumption}} kWh sur la zone {{siteArea}} (terminé à {{time}})",
+    "chargingStopChargeBox": "Consommation de {{totalConsumption}} kWh à la borne {{chargeBox}} (terminé à {{time}})"
+  },
+  "chargers": {
+    "chargeBoxSN": "Numéro de série de la borne",
+    "chargePointSN": "Numéro de série point de charge",
+    "chargingStation": "Borne",
+    "connector": "Connecteur",
+    "firmwareVersion": "Version du firmware",
+    "lastReboot": "Dernier redémarrage",
+    "lastSeen": "Dernière connexion",
+    "maxPower": "Puissance maximum (Watt)",
+    "model": "Modèle",
+    "numberOfConnectors": "Nombre de connecteurs",
+    "ocppProtocol": "Protocol OCPP",
+    "ocppVersion": "Version OCPP",
+    "powerLimitUnit": "Unité de limite de puissance",
+    "timezone" : "Fuseau horaire de la borne",
+    "vendor": "Vendeur"
+  },
+  "general": {
+    "changedBy": "Changé par",
+    "changedOn": "Changé le",
+    "createdOn": "Créé le",
+    "date": "Date",
+    "endDate": "Date de fin",
+    "endTime": "Heure de fin",
+    "invalidDate": "Date invalide",
+    "invalidTime": "Heure invalide",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "month": "Mois",
+    "name": "Nom",
+    "price": "Prix",
+    "priceUnit": "Unité de prix",
+    "site": "Site",
+    "siteArea": "Zone",
+    "startDate": "Date de début",
+    "startTime": "Heure de début",
+    "time": "Heure",
+    "value": "Valeur",
+    "year": "Année"
+  },
+  "loggings": {
+    "action": "Action",
+    "host": "Hôte",
+    "level": "Niveau",
+    "message": "Message",
+    "method": "Méthode",
+    "module": "Module",
+    "process": "Processus",
+    "source": "Source",
+    "type": "Type"
+  },
   "notifications": {
     "sessionNotStarted": {
-      "title": "Session Non Démarrée",
+      "title": "Session non démarrée",
       "body": "Vous avez badgé sur la borne '{{chargeBoxID}}', mais aucune session n'a été démarrée"
     },
     "sessionStarted": {
-      "title": "Session Démarrée",
+      "title": "Session démarrée",
       "body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a été démarrée avec succès dans l'organisation '{{tenantName}}'"
     },
     "ocpiPatchChargingStationsStatusesError": {
-      "title": "Itinérance Envoie des Statuts",
+      "title": "Itinérance envoie des statuts",
       "body": "La mise à jour des statuts vers le site d'itinérance des bornes a échoué sur le site '{{location}}' dans l'organisation '{{tenantName}}', vérifier les logs"
     },
     "oicpPatchChargingStationsStatusesError": {
@@ -21,32 +77,32 @@
       "body": "The transfer to the OICP roaming platform of the charging station's EVSE Data has failed in organization '{{tenantName}}', check the logs"
     },
     "smtpAuthError": {
-      "title": "Erreur Serveur Email",
+      "title": "Erreur serveur email",
       "body": "L'authentification du serveur d'email principal a échoué dans l'organisation '{{tenantName}}', vérifier la configuration"
     },
     "optimalChargeReached": {
-      "title": "Charge Optimale Atteinte",
+      "title": "Charge optimale atteinte",
       "body": "Votre véhicule électrique, qui est connecté sur '{{chargeBoxID}}', connecteur '{{connectorId}}', a atteint sa charge optimale (85%) dans l'organisation '{{tenantName}}'"
     },
     "endOfCharge": {
-      "title": "Charge Terminée",
+      "title": "Charge terminée",
       "body": "Votre véhicule électrique, qui est connecté sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a terminé sa charge dans l'organisation '{{tenantName}}'"
     },
     "endOfSession": {
-      "title": "Session Terminée",
+      "title": "Session terminée",
       "body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' est terminée dans l'organisation '{{tenantName}}'"
     },
     "chargingStationStatusError": {
-      "title": "Borne en Erreur",
+      "title": "Borne en erreur",
       "body": "Une erreur est survenue sur '{{chargeBoxID}}', connecteur '{{connectorId}}' dans l'organisation '{{tenantName}}': {{error}}"
     },
     "unknownUserBadged": {
-      "title": "Utilisateur Inconnu",
+      "title": "Utilisateur inconnu",
       "body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeID}}' dans l'organisation '{{tenantName}}'"
     },
     "chargingStationRegistered": {
-      "title": "Connection Borne",
-      "body": "La borne '{{chargeBoxID}}' vient de se connecter au le serveur central dans l'organisation '{{tenantName}}'"
+      "title": "Connection borne",
+      "body": "La borne '{{chargeBoxID}}' vient de se connecter au serveur central dans l'organisation '{{tenantName}}'"
     },
     "userAccountStatusChanged": {
       "title": "Compte {{status}}",
@@ -55,27 +111,27 @@
       "body": "Votre compte a été {{status}} par un administrateur dans l'organisation '{{tenantName}}'"
     },
     "userAccountInactivity": {
-      "title": "Compte Utilisateur",
+      "title": "Compte utilisateur",
       "body": "Votre compte est inactif depuis le {{lastLogin}} dans l'organisation '{{tenantName}}'. Pour des raisons légales, les comptes inactifs depuis plus de 6 mois doivent être supprimés"
     },
     "preparingSessionNotStarted": {
-      "title": "Session Non Démarrée",
+      "title": "Session non démarrée",
       "body": "Session non démarrée sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' dans l'organisation '{{tenantName}}'"
     },
     "offlineChargingStation": {
-      "title": "Bornes Hors Ligne",
+      "title": "Bornes hors ligne",
       "body": "Les bornes suivantes sont hors ligne dans l'organisation '{{tenantName}}': {{chargeBoxIDs}}"
     },
     "billingUserSynchronizationFailed": {
-      "title": "Synchro Utilisateurs",
-      "body": "Impossible de synchronizer {{nbrUsersInError}} utilisateur(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
+      "title": "Synchro utilisateurs",
+      "body": "Impossible de synchroniser {{nbrUsersInError}} utilisateur(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     },
     "billingInvoiceSynchronizationFailed": {
-      "title": "Synchro Factures",
-      "body": "Impossible de synchronizer {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
+      "title": "Synchro factures",
+      "body": "Impossible de synchroniser {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
-      "title": "Profils de Charge",
+      "title": "Profils de charge",
       "body": "Impossible d'appliquer les profils de charge sur '{{chargeBoxID}}' de la zone '{{siteAreaName}}' dans l'organization '{{tenantName}}'"
     },
     "billingNewInvoice": {
@@ -87,16 +143,29 @@
       "body": "'{{userName}}' a reporté: '{{errorTitle}}' - '{{errorDescription}}' dans l'organisation '{{tenantName}}'"
     }
   },
-  "billing": {
-    "generatedUser": "Utilisateur généré pour '{{email}}'",
-    "chargingStopSiteArea": "Charging Station {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
-    "chargingStopChargeBox": "Charging Station {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
+  "siteArea": "Zone",
+  "statistics": {
+    "consumption": "Consommation (kW.h)",
+    "inactivity": "Inactivité (Heures)",
+    "numberOfSessions": "Nombre de sessions",
+    "usage": "Utilisation (Heures)"
   },
   "tags": {
-    "virtualBadge": "Badge Virtuel"
+    "virtualBadge": "Badge virtuel"
   },
-  "chargers": {
-    "connector": "Connecteur"
+  "transactions": {
+    "totalConsumption": "Consommation totale (kW.h)",
+    "totalDuration": "Durée totale (Mins)",
+    "totalInactivity": "Inactivité totale (Mins)"
   },
-  "siteArea": "Zone"
+  "users": {
+    "email": "Email",
+    "eulaAcceptedOn": "CGU acceptées le",
+    "firstName": "Prénom",
+    "id": "Identifiant",
+    "role": "Rôle",
+    "status": "Statut",
+    "user": "Utilisateur",
+    "userID": "Identifiant utilisateur"
+  }
 }

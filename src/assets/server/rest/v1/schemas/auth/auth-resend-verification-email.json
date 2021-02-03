@@ -1,0 +1,20 @@
+{
+  "title": "Resend verification Email",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "common.json#/definitions/email"
+    },
+    "tenant": {
+      "$ref": "common.json#/definitions/subdomain"
+    },
+    "captcha": {
+      "$ref": "common.json#/definitions/captcha"
+    }
+  },
+  "required": [
+    "email",
+    "tenant",
+    "captcha"
+  ]
+}

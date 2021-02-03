@@ -205,18 +205,18 @@ export default class OICPUtils {
     // Encrypt key and certificate if not already encrypted
     // CPO
     if (oicpSetting.cpo.key && roamingSettings.oicp.cpo?.key !== oicpSetting.cpo.key) {
-      oicpSetting.cpo.key = sanitize(Cypher.encrypt(oicpSetting.cpo.key));
+      oicpSetting.cpo.key = await sanitize(Cypher.encrypt(tenantID, oicpSetting.cpo.key));
     }
     if (oicpSetting.cpo.cert && roamingSettings.oicp.cpo?.cert !== oicpSetting.cpo.cert) {
-      oicpSetting.cpo.cert = sanitize(Cypher.encrypt(oicpSetting.cpo.cert));
+      oicpSetting.cpo.cert = await sanitize(Cypher.encrypt(tenantID, oicpSetting.cpo.cert));
     }
 
     // EMSP
     if (oicpSetting.emsp.key && roamingSettings.oicp.emsp?.key !== oicpSetting.emsp.key) {
-      oicpSetting.emsp.key = sanitize(Cypher.encrypt(oicpSetting.emsp.key));
+      oicpSetting.emsp.key = await sanitize(Cypher.encrypt(tenantID, oicpSetting.emsp.key));
     }
     if (oicpSetting.emsp.cert && roamingSettings.oicp.emsp?.cert !== oicpSetting.emsp.cert) {
-      oicpSetting.emsp.cert = sanitize(Cypher.encrypt(oicpSetting.emsp.cert));
+      oicpSetting.emsp.cert = await sanitize(Cypher.encrypt(tenantID, oicpSetting.emsp.cert));
     }
   }
 

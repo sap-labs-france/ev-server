@@ -1,10 +1,10 @@
 import { Action, AuthorizationContext, Entity } from '../types/Authorization';
+import ChargingStation, { Connector } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import BackendError from '../exception/BackendError';
-import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
@@ -25,6 +25,7 @@ import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
+import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
@@ -49,7 +50,7 @@ export default class Authorizations {
   }
 
   public static canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation): boolean {
-    let context;
+    let context: AuthorizationContext;
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       if (!chargingStation || !chargingStation.siteArea || !chargingStation.siteArea.site) {
         return false;
@@ -231,7 +232,7 @@ export default class Authorizations {
     if (!transaction) {
       return false;
     }
-    const context = {
+    const context: AuthorizationContext = {
       user: transaction.userID,
       owner: loggedUser.id,
       tagIDs: loggedUser.tagIDs,
@@ -721,7 +722,7 @@ export default class Authorizations {
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
     transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
     // Get the Organization component
-    const tenant = await TenantStorage.getTenant(tenantID);
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
     // Org component enabled?
     if (isOrgCompActive) {
@@ -771,7 +772,7 @@ export default class Authorizations {
       }
     }
     // Get Tag
-    let tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
+    let tag: Tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
 
     if (!tag || !tag?.active) {
       // Check OICP User
@@ -811,7 +812,7 @@ export default class Authorizations {
         active: false,
         createdOn: new Date(),
         default: false
-      } as Tag;
+      };
       // Save
       await TagStorage.saveTag(tenantID, tag);
       // Notify (Async)
@@ -876,7 +877,7 @@ export default class Authorizations {
       // Build the JWT Token
       const userToken = await Authorizations.buildUserToken(tenantID, user, [tag]);
       // Authorized?
-      const context = {
+      const context: AuthorizationContext = {
         user: transaction ? transaction.userID : null,
         tagIDs: userToken.tagIDs,
         tagID: transaction ? transaction.tagID : null,
@@ -936,8 +937,10 @@ export default class Authorizations {
             message: 'OCPI component requires at least one CPO endpoint to authorize users'
           });
         }
+        // Transaction can be nullified to assess the authorization at a higher level than connectors, default connector ID value to 1 then
+        const transactionConnector: Connector = transaction?.connectorId ? Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
         // Keep the Auth ID
-        user.authorizationID = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation);
+        user.authorizationID = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation, transactionConnector);
       }
     }
     return user;

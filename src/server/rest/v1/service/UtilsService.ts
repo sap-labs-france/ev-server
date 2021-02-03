@@ -23,6 +23,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tag from '../../../../types/Tag';
 import TenantComponents from '../../../../types/TenantComponents';
+import { TransactionInErrorType } from '../../../../types/InError';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import countries from 'i18n-iso-countries';
@@ -42,6 +43,26 @@ export default class UtilsService {
       Logging.logActionExceptionMessageAndSendResponse(
         action, new Error(`The Action '${action}' does not exist`), req, res, next);
     }
+  }
+
+  public static getTransactionInErrorTypes(user: UserToken): TransactionInErrorType[] {
+    // For only charging station in e-Mobility (not the ones from the roaming)
+    const allTypes = [
+      TransactionInErrorType.LONG_INACTIVITY,
+      TransactionInErrorType.NEGATIVE_ACTIVITY,
+      TransactionInErrorType.NEGATIVE_DURATION,
+      // TransactionInErrorType.OVER_CONSUMPTION, // To much time consuming + to check if calculation is right
+      TransactionInErrorType.INVALID_START_DATE,
+      TransactionInErrorType.NO_CONSUMPTION,
+      TransactionInErrorType.MISSING_USER
+    ];
+    if (Utils.isComponentActiveFromToken(user, TenantComponents.PRICING)) {
+      allTypes.push(TransactionInErrorType.MISSING_PRICE);
+    }
+    if (Utils.isComponentActiveFromToken(user, TenantComponents.BILLING)) {
+      allTypes.push(TransactionInErrorType.NO_BILLING_DATA);
+    }
+    return allTypes;
   }
 
   public static assertIdIsProvided(action: ServerAction, id: string|number, module: string, method: string, userToken: UserToken): void {
@@ -393,8 +414,7 @@ export default class UtilsService {
     // const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
     // const numberOfConnectors = filteredRequest.connectorID === 0 ?
     //   (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
-    const maxAmpLimit = Utils.getChargingStationAmperageLimit(
-      chargingStation, chargePoint, filteredRequest.connectorID);
+    const maxAmpLimit = Utils.getChargingStationAmperageLimit(chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       // Check Min
       if (chargingSchedulePeriod.limit < 0) {
@@ -569,7 +589,7 @@ export default class UtilsService {
         user: req.user.id
       });
     }
-    if (!(typeof asset.fallbackValue === 'number')) {
+    if (!(typeof asset.staticValueWatt === 'number')) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -577,6 +597,17 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkIfAssetValid',
         user: req.user.id
       });
+    }
+    if (Utils.objectHasProperty(asset, 'fluctuationPercent')) {
+      if (!(typeof asset.fluctuationPercent === 'number') || asset.fluctuationPercent < 0 || asset.fluctuationPercent > 100) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Fluctuation percentage should be between 0 and 100',
+          module: MODULE_NAME, method: 'checkIfAssetValid',
+          user: req.user.id
+        });
+      }
     }
     if (asset.dynamicAsset) {
       if (!asset.connectionID) {

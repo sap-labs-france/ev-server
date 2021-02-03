@@ -9,8 +9,8 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   siteAreaID: string;
   siteArea?: SiteArea;
   assetType: AssetType;
-  fluctuation: number;
-  fallbackValue: number;
+  fluctuationPercent: number;
+  staticValueWatt: number;
   coordinates: number[];
   issuer: boolean;
   image?: string;
@@ -21,9 +21,9 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
 }
 
 export enum AssetType {
-  CO = 'CO',
-  PR = 'PR',
-  CO_PR = 'CO-PR',
+  CONSUMPTION = 'CO',
+  PRODUCTION = 'PR',
+  CONSUMPTION_AND_PRODUCTION = 'CO-PR',
 }
 
 export enum SchneiderProperty {

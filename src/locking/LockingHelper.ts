@@ -71,16 +71,8 @@ export default class LockingHelper {
     return lock;
   }
 
-  public static async createOICPPushCpoCdrLock(tenantID: string, transactionID: number): Promise<Lock|null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `push-cdr-${transactionID}`);
-    if (!(await LockingManager.acquire(lock))) {
-      return null;
-    }
-    return lock;
-  }
-
-  public static async createOCPIPullEmspTokensLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
-    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'pull-emsp-tokens');
+  public static async createOCPIPullEmspTokensLock(tenantID: string, ocpiEndpoint: OCPIEndpoint, partial: boolean): Promise<Lock|null> {
+    return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, `pull-emsp-tokens${partial ? '-partial' : ''}`);
   }
 
   public static async createOCPICheckCpoCdrsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock|null> {
@@ -117,5 +109,13 @@ export default class LockingHelper {
 
   public static async createOICPPatchCpoEvseStatusesLock(tenantID: string, oicpEndpoint: OICPEndpoint): Promise<Lock|null> {
     return LockingHelper.createOICPEndpointActionLock(tenantID, oicpEndpoint, 'patch-cpo-evse-statuses');
+  }
+
+  public static async createOICPPushCpoCdrLock(tenantID: string, transactionID: number): Promise<Lock|null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `push-cdr-${transactionID}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
   }
 }

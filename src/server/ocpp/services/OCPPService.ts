@@ -1461,7 +1461,7 @@ export default class OCPPService {
   private async notifyEndOfCharge(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     if (transaction.user) {
       // Get the i18n lib
-      const i18nManager = new I18nManager(transaction.user.locale);
+      const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       const tenant = await TenantStorage.getTenant(tenantID);
       // Notify (Async)
       NotificationHandler.sendEndOfCharge(
@@ -1486,7 +1486,7 @@ export default class OCPPService {
   private async notifyOptimalChargeReached(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     if (transaction.user) {
       // Get the i18n lib
-      const i18nManager = new I18nManager(transaction.user.locale);
+      const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       const tenant = await TenantStorage.getTenant(tenantID);
       // Notification Before End Of Charge (Async)
       NotificationHandler.sendOptimalChargeReached(
@@ -1542,7 +1542,7 @@ export default class OCPPService {
 
   // Build Inactivity
   private transactionInactivityToString(transaction: Transaction, user: User, i18nHourShort = 'h') {
-    const i18nManager = new I18nManager(user ? user.locale : Constants.DEFAULT_LANGUAGE);
+    const i18nManager = I18nManager.getInstanceForLocale(user ? user.locale : Constants.DEFAULT_LANGUAGE);
     // Get total
     const totalInactivitySecs = transaction.stop.totalInactivitySecs;
     // None?
@@ -1782,7 +1782,7 @@ export default class OCPPService {
     // User provided?
     if (user) {
       // Get the i18n lib
-      const i18nManager = new I18nManager(user.locale);
+      const i18nManager = I18nManager.getInstanceForLocale(user.locale);
       const tenant = await TenantStorage.getTenant(tenantID);
       // Send Notification (Async)
       NotificationHandler.sendEndOfSession(
