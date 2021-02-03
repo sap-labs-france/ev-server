@@ -91,7 +91,7 @@ export default class AuthenticationApi {
   public async verifyEmail(email, verificationToken, tenant = '') {
     const data = {
       Email: email,
-      tenant: tenant,
+      Tenant: tenant,
       VerificationToken: verificationToken
     };
     // Send
@@ -102,6 +102,19 @@ export default class AuthenticationApi {
         'Content-Type': 'application/json'
       },
       data: data
+    });
+    return response;
+  }
+
+  public async getEula(language?: string) {
+    // Send
+    const response = await this._baseApi.send({
+      method: 'GET',
+      url: '/v1/auth/' + ServerAction.REST_END_USER_LICENSE_AGREEMENT,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: { language }
     });
     return response;
   }

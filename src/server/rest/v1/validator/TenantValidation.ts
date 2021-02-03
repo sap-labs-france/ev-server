@@ -3,29 +3,29 @@ import { HttpTenantLogoRequest, HttpTenantsRequest } from '../../../../types/req
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
+import Schema from './Schema';
 import SchemaValidator from './SchemaValidator';
 import Tenant from '../../../../types/Tenant';
-import UtilsService from '../service/UtilsService';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class TenantValidator extends SchemaValidator {
   private static _instance: TenantValidator | undefined;
-  private _tenantCreateReqSuperAdmin: any;
-  private _tenantUpdateReqSuperAdmin: any;
-  private _tenantDeleteReqSuperAdmin: any;
-  private _tenantGetLogoReqSuperAdmin: any;
-  private _tenantGetReqSuperAdmin: any;
-  private _tenantsGetReqSuperAdmin: any;
+  private tenantCreateReqSuperAdmin: Schema;
+  private tenantUpdateReqSuperAdmin: Schema;
+  private tenantDeleteReqSuperAdmin: Schema;
+  private tenantGetLogoReqSuperAdmin: Schema;
+  private tenantGetReqSuperAdmin: Schema;
+  private tenantsGetReqSuperAdmin: Schema;
 
   private constructor() {
     super('TenantValidator');
-    this._tenantCreateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create-req-super-admin.json`, 'utf8'));
-    this._tenantUpdateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update-req-super-admin.json`, 'utf8'));
-    this._tenantDeleteReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete-req-super-admin.json`, 'utf8'));
-    this._tenantGetReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get-req-super-admin.json`, 'utf8'));
-    this._tenantsGetReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenants-get-req-super-admin.json`, 'utf8'));
-    this._tenantGetLogoReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get-logo-req-super-admin.json`, 'utf8'));
+    this.tenantCreateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create-req-super-admin.json`, 'utf8'));
+    this.tenantUpdateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update-req-super-admin.json`, 'utf8'));
+    this.tenantDeleteReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete-req-super-admin.json`, 'utf8'));
+    this.tenantGetReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get-req-super-admin.json`, 'utf8'));
+    this.tenantsGetReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenants-get-req-super-admin.json`, 'utf8'));
+    this.tenantGetLogoReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get-logo-req-super-admin.json`, 'utf8'));
   }
 
   public static getInstance(): TenantValidator {
@@ -37,7 +37,7 @@ export default class TenantValidator extends SchemaValidator {
 
   public validateTenantCreateRequestSuperAdmin(tenant: Tenant): Tenant {
     // Validate schema
-    this.validate(this._tenantCreateReqSuperAdmin, tenant);
+    this.validate(this.tenantCreateReqSuperAdmin, tenant);
     // Validate deps between components
     this.validateComponentDependencies(tenant);
     return tenant;
@@ -45,7 +45,7 @@ export default class TenantValidator extends SchemaValidator {
 
   public validateTenantUpdateRequestSuperAdmin(tenant: Tenant): Tenant {
     // Validate schema
-    this.validate(this._tenantUpdateReqSuperAdmin, tenant);
+    this.validate(this.tenantUpdateReqSuperAdmin, tenant);
     // Validate deps between components
     this.validateComponentDependencies(tenant);
     return tenant;
@@ -53,25 +53,25 @@ export default class TenantValidator extends SchemaValidator {
 
   public validateTenantDeleteRequestSuperAdmin(data: any): string {
     // Validate schema
-    this.validate(this._tenantDeleteReqSuperAdmin, data);
+    this.validate(this.tenantDeleteReqSuperAdmin, data);
     return data.ID;
   }
 
   public validateGetLogoReqSuperAdmin(data: any): HttpTenantLogoRequest {
     // Validate schema
-    this.validate(this._tenantGetLogoReqSuperAdmin, data);
+    this.validate(this.tenantGetLogoReqSuperAdmin, data);
     return data;
   }
 
   public validateTenantGetReqSuperAdmin(data: any): string {
     // Validate schema
-    this.validate(this._tenantGetReqSuperAdmin, data);
+    this.validate(this.tenantGetReqSuperAdmin, data);
     return data.ID;
   }
 
   public validateTenantsGetReqSuperAdmin(data: any): HttpTenantsRequest {
     // Validate schema
-    this.validate(this._tenantsGetReqSuperAdmin, data);
+    this.validate(this.tenantsGetReqSuperAdmin, data);
     return data;
   }
 
