@@ -14,7 +14,6 @@ import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
-import OICPUtils from '../../../oicp/OICPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -190,7 +189,7 @@ export default class TenantService {
 
   public static async handleCreateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
+    const filteredRequest = await TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -292,7 +291,7 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
+    const filteredRequest = await TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
@@ -353,8 +352,6 @@ export default class TenantService {
   }
 
   private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
-    // Check if OICP component is activated or deactivated and create/activate/deactivate virtual user (and Badges) accordingly
-    await OICPUtils.checkOICPComponent(tenant);
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
