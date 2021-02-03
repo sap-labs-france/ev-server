@@ -142,6 +142,9 @@ export default class SettingService {
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
+    if (settingUpdate.content.oicp?.cpo?.cert) {
+      await OICPUtils.encryptCertificates(req.user.tenantID, settingUpdate.content.oicp);
+    }
     UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {

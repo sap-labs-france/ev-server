@@ -123,16 +123,16 @@ export default class SettingSecurity {
             settings.content.oicp.cpo = {
               countryCode: sanitize(request.content.oicp.cpo.countryCode),
               partyID: sanitize(request.content.oicp.cpo.partyID),
-              key: '',
-              cert:''
+              key: sanitize(request.content.oicp.cpo.key),
+              cert:sanitize(request.content.oicp.cpo.cert)
             };
           }
           if (request.content.oicp.emsp) {
             settings.content.oicp.emsp = {
               countryCode: sanitize(request.content.oicp.emsp.countryCode),
               partyID: sanitize(request.content.oicp.emsp.partyID),
-              key: '',
-              cert:''
+              key: sanitize(request.content.oicp.emsp.key),
+              cert:sanitize(request.content.oicp.emsp.cert)
             };
           }
           if (request.content.oicp.currency) {
