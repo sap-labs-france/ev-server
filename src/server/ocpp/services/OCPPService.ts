@@ -87,7 +87,7 @@ export default class OCPPService {
       bootNotification.lastSeen = bootNotification.lastReboot;
       bootNotification.timestamp = bootNotification.lastReboot;
       // Get the charging station
-      let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
+      let chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
         if (!headers.token) {
           throw new BackendError({
@@ -142,6 +142,7 @@ export default class OCPPService {
           (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
             chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
           // Not the same Charging Station!
+          // FIXME: valid charging stations in DB with modified parameters cannot be registered again without direct access to the DB
           throw new BackendError({
             source: chargingStation.id,
             action: ServerAction.BOOT_NOTIFICATION,
@@ -231,7 +232,7 @@ export default class OCPPService {
             action: ServerAction.BOOT_NOTIFICATION,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'handleBootNotification',
-            message: `Cannot set heartbeat interval OCPP Parameters on '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
+            message: `Cannot set heartbeat interval OCPP Parameter on '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
           });
         }
         // Get config and save it
@@ -258,6 +259,7 @@ export default class OCPPService {
         error.params.source = headers.chargeBoxIdentity;
       }
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
+      // FIXME: charging stations in DB with rejected boot notification are still seen as online and usable. OCPP spec is clear on how to handle such case: close websocket, no messages of any kind sent or received, ...
       // Reject
       return {
         status: RegistrationStatus.REJECTED,

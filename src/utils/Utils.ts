@@ -188,12 +188,12 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
-  public static objectHasProperty(object: any, key: string): boolean {
-    return _.has(object, key);
+  public static objectHasProperty(obj: any, key: string): boolean {
+    return _.has(obj, key);
   }
 
-  public static isBooleanValue(value: boolean): boolean {
-    return _.isBoolean(value);
+  public static isBoolean(obj: any): boolean {
+    return typeof obj === 'boolean';
   }
 
   public static generateUUID(): string {
@@ -371,7 +371,7 @@ export default class Utils {
     // Check boolean
     if (value) {
       // Check the type
-      if (typeof value === 'boolean') {
+      if (Utils.isBoolean(value)) {
         // Already a boolean
         result = value;
       } else {

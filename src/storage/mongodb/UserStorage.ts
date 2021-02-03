@@ -493,7 +493,7 @@ export default class UserStorage {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     // Issuer
-    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Exclude Users
