@@ -17,7 +17,7 @@ export default class I18nManager {
   private static instances = new Map<string, I18nManager>(); // Tableau avec la cle en locale
   private language: string;
 
-  constructor(locale: string) {
+  private constructor(locale: string) {
     // Get language
     this.language = Utils.getLanguageFromLocale(locale);
     // Supported languages?
