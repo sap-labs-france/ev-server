@@ -139,7 +139,8 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    if (connector.status !== ChargePointStatus.AVAILABLE) {
+    if (connector.status !== ChargePointStatus.AVAILABLE &&
+        connector.status !== ChargePointStatus.PREPARING) {
       Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
