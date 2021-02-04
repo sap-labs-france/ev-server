@@ -1,13 +1,14 @@
 import WebSocket, { AddressInfo } from 'ws';
+import http, { IncomingMessage, ServerResponse } from 'http';
 
 import CentralSystemServerConfiguration from '../../../types/configuration/CentralSystemServer';
+import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import cluster from 'cluster';
 import fs from 'fs';
-import http from 'http';
 import https from 'https';
 
 const MODULE_NAME = 'WSServer';
@@ -47,18 +48,22 @@ export default class WSServer extends WebSocket.Server {
       options.key = fs.readFileSync(serverConfig['ssl-key']);
       options.cert = fs.readFileSync(serverConfig['ssl-cert']);
       // Https server
-      httpServer = https.createServer(options, (req, res) => {
-        res.writeHead(StatusCodes.BAD_REQUEST);
-        res.end('Unsupported request\n');
-      });
+      httpServer = https.createServer(options, WSServer.httpServerRequestListener.bind(this));
     } else {
       // Http server
-      httpServer = http.createServer((req, res) => {
-        res.writeHead(StatusCodes.BAD_REQUEST);
-        res.end('Unsupported request\n');
-      });
+      httpServer = http.createServer(WSServer.httpServerRequestListener.bind(this));
     }
     return httpServer;
+  }
+
+  private static httpServerRequestListener(req: IncomingMessage, res: ServerResponse): void {
+    if (Configuration.getHealthCheckConfig().enabled && req.url === '/health-check') {
+      res.writeHead(StatusCodes.OK);
+      res.end();
+    } else {
+      res.writeHead(StatusCodes.BAD_REQUEST);
+      res.end('Unsupported request\n');
+    }
   }
 
   public broadcastToClients(message: any): void {
