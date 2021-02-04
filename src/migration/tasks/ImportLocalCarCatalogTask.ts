@@ -234,7 +234,7 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '4.4';
+    return '1.0';
   }
 
   isAsynchronous(): boolean {
