@@ -724,6 +724,7 @@ export default class Logging {
         Logging.anonymizeSensitiveData(item);
       }
     } else if (typeof message === 'object') {
+      message = Utils.cloneObject(message);
       for (const key of Object.keys(message)) {
         // String?
         if (typeof message[key] === 'string') {
