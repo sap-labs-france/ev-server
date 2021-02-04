@@ -85,7 +85,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     const localToken = await TagStorage.getTag(tenant.id, startSession.token.uid, { withUser: true });
     if (!localToken || !localToken.active || !localToken.ocpiToken || !localToken.ocpiToken.valid) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
         message: `Start Transaction with Token ID '${startSession.token.uid}' is invalid`,
@@ -113,7 +113,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       }
     }
     if (!chargingStation) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
         message: `Charging Station with Charging Station ID '${startSession.evse_uid}' not found`,
@@ -122,7 +122,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (!connector) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
@@ -132,7 +132,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (!chargingStation.issuer || !chargingStation.public) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
@@ -143,7 +143,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     if (connector.status !== ChargePointStatus.AVAILABLE &&
         connector.status !== ChargePointStatus.PREPARING) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
         source: chargingStation.id,
@@ -159,7 +159,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       (authorization) => authorization.connectorId === connector.connectorId);
     if (existingAuthorization) {
       if (OCPIUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
-        Logging.logDebug({
+        Logging.logError({
           tenantID: tenant.id,
           source: chargingStation.id,
           action: ServerAction.OCPI_START_SESSION,
@@ -207,7 +207,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     const transaction = await TransactionStorage.getOCPITransaction(tenant.id, stopSession.session_id);
     if (!transaction) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
         message: `Transaction with OCPI Transaction ID '${stopSession.session_id}' does not exists`,
@@ -216,7 +216,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (!transaction.issuer) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         source: transaction.chargeBoxID,
         action: ServerAction.OCPI_STOP_SESSION,
@@ -226,7 +226,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (transaction.stop) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
         source: transaction.chargeBoxID,
@@ -237,7 +237,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
     if (!chargingStation) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         source: transaction.chargeBoxID,
         action: ServerAction.OCPI_STOP_SESSION,
