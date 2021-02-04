@@ -408,10 +408,6 @@ export default class Authorizations {
     });
   }
 
-  public static canListRegistrationToken(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.LIST);
-  }
-
   public static canListRegistrationTokens(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.TOKENS, Action.LIST);
   }

@@ -48,12 +48,12 @@ export default class TenantContext {
   }
 
   async initialize(tokenID: string = null, siteAreaID: string = null) {
-    // If (!tokenID) {
-    //   tokenID = await this.createRegistrationToken(siteAreaID);
-    // }
-    // // FIXME: define helpers to build the URL
-    // this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}/${tokenID}`, this.ocppRequestHandler);
-    // this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}%26Token=${tokenID}`);
+    if (!tokenID) {
+      tokenID = await this.createRegistrationToken(siteAreaID);
+    }
+    // FIXME: define helpers to build the URL
+    this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}/${tokenID}`, this.ocppRequestHandler);
+    this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}%26Token=${tokenID}`);
   }
 
   getTenant() {
