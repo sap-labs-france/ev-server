@@ -162,9 +162,13 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   private async updateChargingStationLastSeen(): Promise<void> {
-    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
-      lastSeen: new Date()
-    });
+    const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID(), { issuer: true });
+    if (chargingStation) {
+      await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(),
+        {
+          lastSeen: new Date()
+        });
+    }
   }
 }
 
