@@ -147,7 +147,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
         source: chargingStation.id,
-        message: `Charging Station ID '${startSession.evse_uid}' is not available`,
+        message: `Charging Station ID '${startSession.evse_uid}' is not available (status '${connector.status}')`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -269,10 +269,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
   }
 
   private validateStopSession(stopSession: OCPIStopSession): boolean {
-    if (!stopSession
-      || !stopSession.response_url
-      || !stopSession.session_id
-    ) {
+    if (!stopSession ||
+        !stopSession.response_url ||
+        !stopSession.session_id) {
       return false;
     }
     return true;
