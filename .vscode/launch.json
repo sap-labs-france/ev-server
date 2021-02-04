@@ -11,7 +11,8 @@
       "port": 9229,
       "protocol": "inspector",
       "timeout": 30000,
-      "stopOnEntry": false
+      "stopOnEntry": false,
+      "sourceMaps": true
     },
     {
       "type": "node",
@@ -24,7 +25,11 @@
         "start:dev:debug"
       ],
       "port": 9229,
-      "stopOnEntry": true
+      "stopOnEntry": true,
+      "skipFiles": [
+        "node_modules/**/*.js",
+        "<node_internals>/**/*.js"
+      ]
     },
     {
       "name": "Debug ev-server Nodemon",
@@ -42,6 +47,25 @@
         "!**/node_modules/**"
       ],
       "stopOnEntry": true
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Tests",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Program",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/src/yourNodeIndex.js"
     }
   ]
 }

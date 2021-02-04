@@ -21,4 +21,8 @@ export default class RegistrationTokenApi extends CrudApi {
   public async update(data) {
     return super.update(data, 'client/api/RegistrationTokenUpdate');
   }
+
+  public async delete(id) {
+    return super.delete(id, '/client/api/RegistrationTokenDelete');
+  }
 }

@@ -139,10 +139,11 @@ export default class RegistrationTokenStorage {
     };
   }
 
-  static async getRegistrationToken(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<RegistrationToken> {
+  static async getRegistrationToken(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
+    projectFields?: string[]): Promise<RegistrationToken> {
     const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(tenantID, {
       tokenIDs: [id]
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return registrationTokensMDB.count === 1 ? registrationTokensMDB.result[0] : null;
   }
 

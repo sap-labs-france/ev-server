@@ -39,6 +39,7 @@ export enum ServerAction {
   CHECK_SMART_CHARGING_CONNECTION = 'CheckSmartChargingConnection',
   TRIGGER_SMART_CHARGING = 'TriggerSmartCharging',
 
+  REGISTRATION_TOKEN = 'RegistrationToken',
   REGISTRATION_TOKENS = 'RegistrationTokens',
   REGISTRATION_TOKEN_DELETE = 'RegistrationTokenDelete',
   REGISTRATION_TOKEN_REVOKE = 'RegistrationTokenRevoke',

@@ -23,6 +23,7 @@ export default class RegistrationTokenSecurity {
 
   public static filterRegistrationTokenRequest(request: any): Partial<RegistrationToken> {
     return {
+      id: sanitize(request.ID),
       description: sanitize(request.description),
       siteAreaID: sanitize(request.siteAreaID),
       expirationDate: sanitize(request.expirationDate)
