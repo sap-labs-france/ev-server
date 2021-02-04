@@ -1,0 +1,21 @@
+{
+  "title": "Verify email",
+  "type": "object",
+  "properties": {
+    "Email": {
+      "$ref": "common.json#/definitions/email"
+    },
+    "Tenant": {
+      "$ref": "common.json#/definitions/subdomain"
+    },
+    "VerificationToken": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "Email",
+    "Tenant",
+    "VerificationToken"
+  ]
+}
