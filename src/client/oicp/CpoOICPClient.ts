@@ -661,16 +661,16 @@ export default class CpoOICPClient extends OICPClient {
           response: authorizeResponse
         }
       });
+    } else {
+      // Log
+      Logging.logInfo({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_AUTHORIZE_START,
+        message: `User with Authorization '${tagID}' authorized thought OICP protocol`,
+        module: MODULE_NAME, method: 'authorizeStart',
+        detailedMessages: { authorizeResponse }
+      });
     }
-    // Log
-    Logging.logInfo({
-      tenantID: this.tenant.id,
-      action: ServerAction.OICP_AUTHORIZE_START,
-      message: `User with Authorization '${tagID}' authorized thought OICP protocol`,
-      module: MODULE_NAME, method: 'authorizeStart',
-      detailedMessages: { authorizeResponse }
-    });
-
     return authorizeResponse;
   }
 

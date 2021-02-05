@@ -787,7 +787,7 @@ export default class Authorizations {
         // Check if user is OICP roaming user and authorized
         // Call Hubject
         const response = await oicpClient.authorizeStart(tagID);
-        if (response.AuthorizationStatus === OICPAuthorizationStatus.Authorized) {
+        if (response?.AuthorizationStatus === OICPAuthorizationStatus.Authorized) {
           const virtualOICPUser = await UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
           virtualOICPUser.authorizationID = response.SessionID;
           return virtualOICPUser;
