@@ -32,7 +32,7 @@ export default class Constants {
   public static readonly EXPORT_RECORD_MAX_COUNT = 100000;
 
   public static readonly DEFAULT_TENANT = 'default';
-  public static readonly DEFAULT_TENANT_OBJECT= Object.freeze({
+  public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({
     id: Constants.DEFAULT_TENANT,
     name: Constants.DEFAULT_TENANT
   } as Tenant);
@@ -91,7 +91,7 @@ export default class Constants {
   public static readonly REGEX_VALIDATION_LONGITUDE = /^-?([1]?[0-7][0-9]|[1]?[0-8][0]|[1-9]?[0-9])\.{0,1}[0-9]*$/;
   public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
 
-  public static readonly SENSITIVE_DATA = Object.freeze(['password', 'repeatPassword', 'captcha', 'email']);
+  public static readonly SENSITIVE_DATA = Object.freeze(['name', 'firstName', 'password', 'repeatPassword', 'captcha', 'email', 'coordinates', 'latitude', 'longitude']);
 
   public static readonly MONGO_USER_MASK = Object.freeze({
     '_id': 0,
