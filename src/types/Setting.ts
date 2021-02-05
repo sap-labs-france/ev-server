@@ -247,7 +247,7 @@ export enum CryptoSettingsType {
   CRYPTO = 'crypto'
 }
 
-export interface CryptoKeySetting extends Setting {
+export interface CryptoSettings extends Setting {
   identifier: TenantComponents.CRYPTO;
   type: CryptoSettingsType;
   crypto: CryptoSetting;

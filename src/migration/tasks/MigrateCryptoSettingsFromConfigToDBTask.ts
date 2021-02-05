@@ -1,4 +1,4 @@
-import { CryptoKeySetting, CryptoSettingsType } from '../../types/Setting';
+import { CryptoSettings, CryptoSettingsType } from '../../types/Setting';
 
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
@@ -35,7 +35,7 @@ export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTa
           key: configCryptoKey,
           keyProperties: configCryptoKeyProperties,
         }
-      } as CryptoKeySetting;
+      } as CryptoSettings;
       await Cypher.saveCryptoSetting(tenant.id, keySettingToSave);
     }
   }
