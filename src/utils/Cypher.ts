@@ -188,11 +188,10 @@ export default class Cypher {
     if (!Utils.isEmptyArray(settingsToMigrate)) {
       // Migrate
       for (const setting of settingsToMigrate) {
-        if (!setting.formerSensitiveData && Utils.isEmptyArray(setting.formerSensitiveData)) {
+        if (!setting.backupSensitiveData && Utils.isEmptyArray(setting.backupSensitiveData)) {
           // Save former senitive data in setting
-          constbackupSensitiveData = Cypher.prepareFormerSenitiveData(setting);
-         backupSensitiveData.push(Cypher.hash(cryptoSetting.formerKey));
-          setting.formerSensitiveData =backupSensitiveData;
+          const backupSensitiveData = Cypher.prepareFormerSenitiveData(setting);
+          setting.backupSensitiveData = backupSensitiveData;
           // Decrypt sensitive data with former key and key properties
           await Cypher.decryptSensitiveDataInJSON(tenantID,setting, true);
           // Encrypt sensitive data with new key and key properties
@@ -210,8 +209,8 @@ export default class Cypher {
     if (!Utils.isEmptyArray(settingsToCleanup)) {
       // Cleanup
       for (const setting of settingsToCleanup) {
-        if (setting.formerSensitiveData) {
-          delete setting.formerSensitiveData;
+        if (setting.backupSensitiveData) {
+          delete setting.backupSensitiveData;
           await SettingStorage.saveSettings(tenantID, setting);
         }
       }
@@ -246,17 +245,17 @@ export default class Cypher {
   }
 
   private static prepareFormerSenitiveData(setting: SettingDB): string[] {
-    constbackupSensitiveData: string[] = [];
+    const backupSensitiveData: string[] = [];
     for (const property of setting.sensitiveData) {
     // Check that the property does exist otherwise skip to the next property
       if (_.has(setting, property)) {
         const value: string = _.get(setting, property);
         // If the value is undefined, null or empty then do nothing and skip to the next property
         if (value && value.length > 0) {
-         backupSensitiveData.push(value);
+          backupSensitiveData[property] = value;
         }
       }
     }
-    returnbackupSensitiveData;
+    return backupSensitiveData;
   }
 }
