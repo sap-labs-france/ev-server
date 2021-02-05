@@ -339,19 +339,35 @@ export default class Logging {
         console.warn('====================================');
       }
     }
-    Logging.logSecurityDebug({
-      tenantID: tenantID,
-      action: ServerAction.HTTP_RESPONSE,
-      message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
-      module: MODULE_NAME, method: 'interceptor',
-      detailedMessages: {
-        status: response.status,
-        statusText: response.statusText,
-        request: Utils.cloneObject(response.config),
-        headers: Utils.cloneObject(response.headers),
-        response: Utils.cloneObject(response.data)
-      }
-    });
+    try {
+      Logging.logSecurityDebug({
+        tenantID: tenantID,
+        action: ServerAction.HTTP_RESPONSE,
+        message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+        module: MODULE_NAME, method: 'interceptor',
+        detailedMessages: {
+          status: response.status,
+          statusText: response.statusText,
+          request: Utils.cloneObject(response.config),
+          headers: Utils.cloneObject(response.headers),
+          response: Utils.cloneObject(response.data)
+        }
+      });
+    } catch (error) {
+      // FIXME
+      // Error Message: Converting circular structure to JSON
+      // Temporary FIX: Utils.cloneObject() removed
+      Logging.logSecurityDebug({
+        tenantID: tenantID,
+        action: ServerAction.HTTP_RESPONSE,
+        message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+        module: MODULE_NAME, method: 'interceptor',
+        detailedMessages: {
+          status: response.status,
+          statusText: response.statusText
+        }
+      });
+    }
   }
 
   public static logAxiosError(tenantID: string, error: AxiosError): void {

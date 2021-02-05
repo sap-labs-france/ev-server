@@ -14,7 +14,7 @@ export default class AxiosFactory {
   private constructor() { }
 
   // All could have been done at 'axios' level normally!
-  public static getAxiosInstance(tenantID: string, instanceConfiguration?: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig }, noInterceptors = false): AxiosInstance {
+  public static getAxiosInstance(tenantID: string, instanceConfiguration?: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig }): AxiosInstance {
     if (!instanceConfiguration) {
       instanceConfiguration = {};
     }
@@ -33,29 +33,28 @@ export default class AxiosFactory {
 
       // FIXME
       // Error Message: Converting circular structure to JSON
-      // Temporary FIX: Add no inceptors
-      if (!noInterceptors) {
-        // Add a Request interceptor
-        axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
-          Logging.logAxiosRequest(tenantID, request);
-          return request;
-        }, async (error: AxiosError) => {
-          Logging.logAxiosError(tenantID, error);
-          return Promise.reject(error);
-        });
+      // Temporary FIX: Utils.cloneObject() removed
 
-        // FIXME
-        // Error Message: Converting circular structure to JSON
+      // Add a Request interceptor
+      axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
+        Logging.logAxiosRequest(tenantID, request);
+        return request;
+      }, async (error: AxiosError) => {
+        Logging.logAxiosError(tenantID, error);
+        return Promise.reject(error);
+      });
 
-        // Add a Response interceptor
-        axiosInstance.interceptors.response.use((response: AxiosResponse) => {
-          Logging.logAxiosResponse(tenantID, response);
-          return response;
-        }, async (error: AxiosError) => {
-          Logging.logAxiosError(tenantID, error);
-          return Promise.reject(error);
-        });
-      }
+      // FIXME
+      // Error Message: Converting circular structure to JSON
+
+      // Add a Response interceptor
+      axiosInstance.interceptors.response.use((response: AxiosResponse) => {
+        Logging.logAxiosResponse(tenantID, response);
+        return response;
+      }, async (error: AxiosError) => {
+        Logging.logAxiosError(tenantID, error);
+        return Promise.reject(error);
+      });
       // Add
       this.axiosInstances.set(tenantID, axiosInstance);
     }
