@@ -32,14 +32,7 @@
             "type": "object"
         },
         "OICPProductID": {
-            "enum": [
-                "<CustomProductID>",
-                "AC1",
-                "AC3",
-                "DC",
-                "Standard Price"
-            ],
-            "type": "string"
+              "type": "string"
         },
         "OICPQRCodeIdentification": {
             "properties": {
