@@ -221,6 +221,7 @@ export default class SettingService {
           settingUpdate.content.crypto.migrationToBeDone = true;
         }
         settingUpdate.content.crypto.formerKey = setting.content.crypto.key;
+        settingUpdate.content.crypto.formerKeyProperties = setting.content.crypto.keyProperties;
       }
     }
     // Update Setting

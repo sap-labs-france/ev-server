@@ -161,20 +161,6 @@ export default class Cypher {
     }
   }
 
-  public static async cleanupFormerSensitiveData(tenantID: string): Promise<void> {
-    const settingsToCleanup = await Cypher.getSettingsWithSensitiveData(tenantID);
-    // If tenant has settings with sensitive data, clean them
-    if (!Utils.isEmptyArray(settingsToCleanup)) {
-      // Cleanup
-      for (const setting of settingsToCleanup) {
-        if (setting.backupSensitiveData) {
-          delete setting.backupSensitiveData;
-          await SettingStorage.saveSettings(tenantID, setting);
-        }
-      }
-    }
-  }
-
   public static async saveCryptoSetting(tenantID: string, cryptoSettingToSave: CryptoSettings): Promise<void> {
     // Build internal structure
     const settingsToSave = {
@@ -223,9 +209,9 @@ export default class Cypher {
         // Migration already done?
         if (Utils.isEmptyArray(settingToMigrate.backupSensitiveData)) {
           // Save former senitive data in setting
-          const formerSensitiveData = Cypher.prepareBackupSensitiveData(settingToMigrate);
-          formerSensitiveData.push(Cypher.hash(cryptoSetting.formerKey));
-          settingToMigrate.backupSensitiveData = formerSensitiveData;
+          const backupSensitiveData = Cypher.prepareBackupSensitiveData(settingToMigrate);
+          backupSensitiveData.push(Cypher.hash(cryptoSetting.formerKey));
+          settingToMigrate.backupSensitiveData = backupSensitiveData;
           // Decrypt sensitive data with former key and key properties
           await Cypher.decryptSensitiveDataInJSON(tenantID, settingToMigrate, true, cryptoSetting);
           // Encrypt sensitive data with new key and key properties
@@ -259,7 +245,7 @@ export default class Cypher {
     if (!Utils.isEmptyArray(settingsToCleanup)) {
       // Cleanup
       for (const setting of settingsToCleanup) {
-        if (Utils.objectHasProperty(setting, 'formerSensitiveData')) {
+        if (Utils.objectHasProperty(setting, 'backupSensitiveData')) {
           delete setting.backupSensitiveData;
           await SettingStorage.saveSettings(tenantID, setting);
         }
