@@ -297,7 +297,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   public async sendOICPPatchChargingStationsStatusesError(data: OICPPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
-    const i18nManager = new I18nManager(user.locale);
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
     const title = i18nManager.translate('notifications.oicpPatchChargingStationsStatusesError.title');
     const body = i18nManager.translate('notifications.oicpPatchChargingStationsStatusesError.body',
@@ -308,7 +308,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   public async sendOICPPatchChargingStationsError(data: OICPPatchChargingStationsErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
-    const i18nManager = new I18nManager(user.locale);
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
     const title = i18nManager.translate('notifications.oicpPatchChargingStationsError.title');
     const body = i18nManager.translate('notifications.oicpPatchChargingStationsError.body',

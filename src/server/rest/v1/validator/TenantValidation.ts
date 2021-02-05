@@ -3,9 +3,13 @@ import { HttpTenantLogoRequest, HttpTenantsRequest } from '../../../../types/req
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
+import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
+import { OICPRole } from '../../../../types/oicp/OICPRole';
+import OICPUtils from '../../../oicp/OICPUtils';
 import Schema from './Schema';
 import SchemaValidator from './SchemaValidator';
 import Tenant from '../../../../types/Tenant';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -35,19 +39,19 @@ export default class TenantValidator extends SchemaValidator {
     return TenantValidator._instance;
   }
 
-  public validateTenantCreateRequestSuperAdmin(tenant: Tenant): Tenant {
+  public async validateTenantCreateRequestSuperAdmin(tenant: Tenant): Promise<Tenant> {
     // Validate schema
     this.validate(this.tenantCreateReqSuperAdmin, tenant);
     // Validate deps between components
-    this.validateComponentDependencies(tenant);
+    await this.validateComponentDependencies(tenant);
     return tenant;
   }
 
-  public validateTenantUpdateRequestSuperAdmin(tenant: Tenant): Tenant {
+  public async validateTenantUpdateRequestSuperAdmin(tenant: Tenant): Promise<Tenant> {
     // Validate schema
     this.validate(this.tenantUpdateReqSuperAdmin, tenant);
     // Validate deps between components
-    this.validateComponentDependencies(tenant);
+    await this.validateComponentDependencies(tenant);
     return tenant;
   }
 
@@ -75,7 +79,7 @@ export default class TenantValidator extends SchemaValidator {
     return data;
   }
 
-  private validateComponentDependencies(tenant: Tenant) {
+  private async validateComponentDependencies(tenant: Tenant): Promise<void> {
     if (tenant.components) {
       // Smart Charging active: Organization must be active
       if (tenant.components.smartCharging && tenant.components.organization &&
@@ -116,6 +120,29 @@ export default class TenantValidator extends SchemaValidator {
           message: 'Pricing must be active to use the Refund component',
           module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
         });
+      }
+      // OICP
+      if (tenant.components.oicp) {
+        const checkOICPComponent = tenant.components.oicp;
+        // Virtual user needed for unknown roaming user
+        const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+        // Activate or deactivate virtual user depending on the oicp component status
+        if (checkOICPComponent.active) {
+          // Create OICP user
+          if (!virtualOICPUser) {
+            await OICPUtils.createOICPVirtualUser(tenant.id);
+          }
+        } else {
+          // Clean up user
+          if (virtualOICPUser) {
+            await UserStorage.deleteUser(tenant.id, virtualOICPUser.id);
+          }
+          // Delete Endpoints if component is inactive
+          const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+          oicpEndpoints.result.forEach(async (oicpEndpoint) => {
+            await OICPEndpointStorage.deleteOicpEndpoint(tenant.id, oicpEndpoint.id);
+          });
+        }
       }
     }
   }

@@ -414,12 +414,12 @@ export default class OCPPService {
             transaction.numberOfMeterValues >= 1) {
             transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
           }
-          // Indicator needed to decide if transaction is handled with either Gireve or Hubject.
+          // Handle OCPI
           if (transaction.ocpiData?.session) {
-            // Handle OCPI
             await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
-          } else if (transaction.oicpData?.session.id) {
-            // Handle OICP
+          }
+          // Handle OICP
+          if (transaction.oicpData?.session.id) {
             await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
           }
           // Save Transaction
@@ -480,15 +480,6 @@ export default class OCPPService {
       // Check
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
         authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
-      if (!user) {
-        throw new BackendError({
-          user: user,
-          action: ServerAction.AUTHORIZE,
-          module: MODULE_NAME,
-          method: 'handleAuthorize',
-          message: 'Missing Authorization'
-        });
-      }
       // Roaming User
       if (user && !user.issuer && user.authorizationID) {
         if (chargingStation.public) {
@@ -500,7 +491,7 @@ export default class OCPPService {
             action: ServerAction.AUTHORIZE,
             module: MODULE_NAME,
             method: 'handleAuthorize',
-            message: 'Roaming user cannot authorize on private charging station'
+            message: 'Cannot authorize a roaming user on a private charging station'
           });
         }
       }
@@ -1086,12 +1077,11 @@ export default class OCPPService {
         await this.updateOCPIConnectorStatus(tenant, chargingStation, foundConnector);
       }
     }
-
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
     if (statusNotification.status === ChargePointStatus.CHARGING ||
-      statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
+        statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
         await this.triggerSmartCharging(tenantID, chargingStation);
