@@ -143,32 +143,30 @@ export default class Cypher {
   // This method will be reused in a Scheduler task that resumes migation
   public static async handleCryptoSettingsChange(tenantID: string): Promise<void> {
     const createDatabaseLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE, 'migrate-settings-sensitive-data');
-    try {
-      if (await LockingManager.acquire(createDatabaseLock)) {
-        try {
-          await Cypher.migrate(tenantID);
-          await Cypher.cleanupFormerSensitiveData(tenantID);
-          const keySettings = await SettingStorage.getCryptoSettings(tenantID);
-          keySettings.crypto.migrationToBeDone = false;
-          await Cypher.saveCryptoSetting(tenantID, keySettings);
-        } catch (err) {
-          throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
-            module: MODULE_NAME,
-            method: 'handleCryptoSettingsChange',
-            message: `Sensitive Data migration for tenant with ID: ${tenantID} failed.`
-          });
-        } finally {
-          // Release the database Lock
-          await LockingManager.release(createDatabaseLock);
-        }
+    if (await LockingManager.acquire(createDatabaseLock)) {
+      try {
+        await Cypher.migrate(tenantID);
+        await Cypher.cleanupFormerSensitiveData(tenantID);
+        const keySettings = await SettingStorage.getCryptoSettings(tenantID);
+        keySettings.crypto.migrationToBeDone = false;
+        await Cypher.saveCryptoSetting(tenantID, keySettings);
+      } catch (err) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'handleCryptoSettingsChange',
+          message: `Sensitive Data migration for tenant with ID: ${tenantID} failed.`
+        });
+      } finally {
+        // Release the database Lock
+        await LockingManager.release(createDatabaseLock);
       }
-    } catch (err) {
+    } else {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'handleCryptoSettingsChange',
-        message: `Sensitive Data migration in progress for tenant with ID: ${tenantID}.`
+        message: `Sensitive Data migration is in progress for tenant with ID: ${tenantID}.`
       });
     }
   }
