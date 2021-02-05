@@ -277,10 +277,8 @@ export default class RegistrationTokenService {
         'siteAreaID', 'siteArea.name',
         ...userProject
       ]);
-
     UtilsService.assertObjectExists(action, registrationToken, `Token with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleGetRegistrationToken', req.user);
-
     // Build OCPP URLs
     registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
@@ -288,7 +286,6 @@ export default class RegistrationTokenService {
     registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
-
     // Ok
     res.json(registrationToken);
     next();
