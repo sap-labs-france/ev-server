@@ -189,17 +189,17 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
             images: [],
             videos: car.Videos,
           };
-          for (let imageURL of carCatalog.imageURLs) {
-            imageURL = `${global.appRoot}/assets/cars/img/${imageURL}`;
-            const image = fs.readFileSync(imageURL);
-            const contentType = await FileType.fromFile(imageURL);
+          for (const imageURL of carCatalog.imageURLs) {
+            const imageURLPath = `${global.appRoot}/assets/cars/img/${imageURL}`;
+            const image = fs.readFileSync(imageURLPath);
+            const contentType = await FileType.fromFile(imageURLPath);
             const base64Image = Buffer.from(image).toString('base64');
             const encodedImage = 'data:' + contentType.mime + ';base64,' + base64Image;
             carCatalog.images.push(encodedImage);
           }
-          const imageURL = `${global.appRoot}/assets/cars/img/${carCatalog.imageURLs[0]}`;
-          const base64ThumbImage = (await sharp(imageURL).resize(200, 150).toBuffer()).toString('base64');
-          const contentType = await FileType.fromFile(imageURL);
+          const imageURLPath = `${global.appRoot}/assets/cars/img/${carCatalog.imageURLs[0]}`;
+          const base64ThumbImage = (await sharp(imageURLPath).resize(200, 150).toBuffer()).toString('base64');
+          const contentType = await FileType.fromFile(imageURLPath);
           carCatalog.image = 'data:' + contentType.mime + ';base64,' + base64ThumbImage;
           await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs').deleteOne({
             _id: carCatalog.id
@@ -208,7 +208,8 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
             carID: carCatalog.id
           });
           carCatalog.createdOn = new Date();
-          carCatalog.lastChangedOn = new Date();
+          carCatalog.lastChangedOn = carCatalog.createdOn;
+          // Save
           await CarStorage.saveCarCatalog(carCatalog, true);
           created++;
         }
@@ -228,7 +229,7 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${created} Car(s) catalog created in the default tenant`
+        message: `${created} local Car(s) catalog created in the default tenant`
       });
     }
   }
