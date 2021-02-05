@@ -193,13 +193,13 @@ export default class SettingSecurity {
             key: sanitize(request.content.crypto.key),
             keyProperties: {
               blockCypher: sanitize(request.content.crypto.keyProperties?.blockCypher),
-              blockSize: sanitize(request.content.crypto.keyProperties?.blockSize),
+              blockSize: Utils.convertToInt(sanitize(request.content.crypto.keyProperties?.blockSize)),
               operationMode: sanitize(request.content.crypto.keyProperties?.operationMode)
             },
             formerKey: sanitize(request.content.crypto.formerKey),
             formerKeyProperties: {
               blockCypher: sanitize(request.content.crypto.formerKeyProperties?.blockCypher),
-              blockSize: sanitize(request.content.crypto.formerKeyProperties?.blockSize),
+              blockSize: Utils.convertToInt(sanitize(request.content.crypto.keyProperties?.blockSize)),
               operationMode: sanitize(request.content.crypto.formerKeyProperties?.operationMode)
             }
           };
