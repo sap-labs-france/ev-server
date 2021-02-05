@@ -40,10 +40,7 @@ export default abstract class OICPClient {
     this.oicpEndpoint = oicpEndpoint;
     this.role = role.toLowerCase();
     this.oicpConfig = Configuration.getOICPServiceConfig();
-    void (async () => {
-      this.axiosConfig = await this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
-      this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.axiosConfig }, true); // FIXME: set noInterceptors = true to avoid 'Converting circular structure to JSON' Error
-    })();
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) }, true); // FIXME: set noInterceptors = true to avoid 'Converting circular structure to JSON' Error
   }
 
   public getLocalCountryCode(action: ServerAction): string {
@@ -132,6 +129,18 @@ export default abstract class OICPClient {
     });
   }
 
+  protected async getHttpsAgent(action: ServerAction): Promise<https.Agent> {
+    const publicCert = await this.getClientCertificate(action);
+    const privateKey = await this.getPrivateKey(action);
+    const httpsAgent = new https.Agent({
+      rejectUnauthorized: false,
+      cert: publicCert,
+      key: privateKey,
+      passphrase: ''
+    });
+    return httpsAgent;
+  }
+
   private async getPrivateKey(action: ServerAction): Promise<string> {
     if (!this.settings[this.role]) {
       throw new BackendError({
@@ -164,25 +173,13 @@ export default abstract class OICPClient {
     return await Cypher.decrypt(this.tenant.id, this.settings[this.role].cert);
   }
 
-  private async getAxiosConfig(action: ServerAction): Promise<AxiosRequestConfig> {
+  private getAxiosConfig(action: ServerAction): AxiosRequestConfig {
     const axiosConfig: AxiosRequestConfig = {} as AxiosRequestConfig;
-    axiosConfig.httpsAgent = await this.getHttpsAgent(action);
+    // AxiosConfig.httpsAgent = await this.getHttpsAgent(action);
     axiosConfig.headers = {
       'Content-Type': 'application/json'
     };
     return axiosConfig;
-  }
-
-  private async getHttpsAgent(action: ServerAction): Promise<https.Agent> {
-    const publicCert = await this.getClientCertificate(action);
-    const privateKey = await this.getPrivateKey(action);
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false,
-      cert: publicCert,
-      key: privateKey,
-      passphrase: ''
-    });
-    return httpsAgent;
   }
 
   public abstract ping();

@@ -477,6 +477,7 @@ export default class CpoOICPClient extends OICPClient {
    * Push EVSE
    */
   public async pushEvseData(evses: OICPEvseDataRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
+    this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
     let pushEvseDataResponse: OICPAcknowledgment;
     let requestError: any;
     // Check for input parameter
@@ -535,6 +536,7 @@ export default class CpoOICPClient extends OICPClient {
    * Push EVSE Status
    */
   public async pushEvseStatus(evseStatuses: OICPEvseStatusRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
+    this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
     let pushEvseStatusResponse: OICPAcknowledgment;
     let requestError: any;
     // Check for input parameter
@@ -593,6 +595,7 @@ export default class CpoOICPClient extends OICPClient {
    * ERoaming Authorize Start
    */
   public async authorizeStart(tagID: string, transactionId?: number): Promise<OICPAuthorizeStartCpoReceive> {
+    this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
     let authorizeResponse: OICPAuthorizeStartCpoReceive;
     let requestError: any;
     if (!tagID) {
