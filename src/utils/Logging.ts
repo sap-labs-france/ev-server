@@ -352,15 +352,15 @@ export default class Logging {
     Logging.logSecurityError({
       tenantID: tenantID,
       action: ServerAction.HTTP_ERROR,
-      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response?.status} '${error.config.url}' - ${error.message}`,
+      message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
       module: MODULE_NAME, method: 'interceptor',
       detailedMessages: {
-        url: error.config.url,
+        url: error.config?.url,
         status: error.response?.status,
         statusText: error.response?.statusText,
         message: error.message,
         response: error.response?.data,
-        axiosError: error.toJSON(),
+        axiosError: Utils.objectHasProperty(error, 'toJSON') ? error.toJSON() : null,
       }
     });
   }
