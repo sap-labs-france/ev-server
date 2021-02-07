@@ -42,6 +42,7 @@ export default class CarStorage {
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
+        { '_id': Utils.convertToInt(params.search) },
         { 'vehicleModel': { $regex: searchRegex, $options: 'i' } },
         { 'vehicleMake': { $regex: searchRegex, $options: 'i' } },
         { 'vehicleModelVersion': { $regex: searchRegex, $options: 'i' } },
