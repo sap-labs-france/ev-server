@@ -5,7 +5,7 @@ export interface Setting {
   id?: string;
   identifier: TenantComponents;
   sensitiveData?: string[];
-  backupSensitiveData?: string[];
+  backupSensitiveData?: Record<string, any>;
   category?: 'business' | 'technical';
 }
 

@@ -207,11 +207,9 @@ export default class Cypher {
       // Migrate
       for (const settingToMigrate of settingsToMigrate) {
         // Migration already done?
-        if (Utils.isEmptyArray(settingToMigrate.backupSensitiveData)) {
+        if (Utils.isEmptyJSon(settingToMigrate.backupSensitiveData)) {
           // Save former senitive data in setting
-          const backupSensitiveData = Cypher.prepareBackupSensitiveData(settingToMigrate);
-          backupSensitiveData.push(Cypher.hash(cryptoSetting.formerKey));
-          settingToMigrate.backupSensitiveData = backupSensitiveData;
+          settingToMigrate.backupSensitiveData = Cypher.prepareBackupSensitiveData(settingToMigrate);
           // Decrypt sensitive data with former key and key properties
           await Cypher.decryptSensitiveDataInJSON(tenantID, settingToMigrate, true, cryptoSetting);
           // Encrypt sensitive data with new key and key properties
@@ -223,8 +221,8 @@ export default class Cypher {
     }
   }
 
-  private static prepareBackupSensitiveData(setting: SettingDB): string[] {
-    const backupSensitiveData: string[] = [];
+  private static prepareBackupSensitiveData(setting: SettingDB): Record<string, any> {
+    const backupSensitiveData: Record<string, any> = {};
     for (const property of setting.sensitiveData) {
     // Check that the property does exist otherwise skip to the next property
       if (Utils.objectHasProperty(setting, property)) {
