@@ -680,7 +680,7 @@ export default class Logging {
     // Process
     log.process = log.process ? log.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master');
     // Anonymize message
-    Logging.anonymizeSensitiveData(log.detailedMessages);
+    log.detailedMessages = Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check
     if (log.detailedMessages) {
       // Array?
@@ -710,7 +710,7 @@ export default class Logging {
     }
   }
 
-  private static anonymizeSensitiveData(message: any) {
+  private static anonymizeSensitiveData(message: any): Promise<any> {
     if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
       // eslint-disable-next-line no-useless-return
       return;
@@ -720,8 +720,8 @@ export default class Logging {
         message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
       }
     } else if (Array.isArray(message)) {
-      for (const item of message) {
-        Logging.anonymizeSensitiveData(item);
+      for (let item of message) {
+        item = Logging.anonymizeSensitiveData(item);
       }
     } else if (typeof message === 'object') {
       message = Utils.cloneObject(message);
@@ -749,7 +749,7 @@ export default class Logging {
             message[key] = dataParts.join('&');
           }
         } else {
-          Logging.anonymizeSensitiveData(message[key]);
+          message[key] = Logging.anonymizeSensitiveData(message[key]);
         }
       }
     } else {
@@ -764,6 +764,7 @@ export default class Logging {
         detailedMessages: { message: message }
       });
     }
+    return message;
   }
 
   // Console Log
