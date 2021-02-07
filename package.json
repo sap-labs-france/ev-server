@@ -97,7 +97,6 @@
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "body-parser-xml": "^2.0.0",
-    "bufferutil": "^4.0.2",
     "cf-nodejs-logging-support": "^6.5.3",
     "cfenv": "^1.2.3",
     "cors": "^2.8.5",
@@ -144,7 +143,6 @@
     "tslib": "^2.0.3",
     "tz-lookup": "^6.1.25",
     "urlencode": "^1.1.0",
-    "utf-8-validate": "^5.0.3",
     "uuid": "^8.3.2",
     "validator": "^13.1.17",
     "ws": "^7.4.2"
