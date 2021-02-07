@@ -56,7 +56,7 @@ export default class SettingStorage {
       identifier: settingToSave.identifier,
       content: settingToSave.content,
       sensitiveData: settingToSave.sensitiveData,
-     backupSensitiveData: settingToSave.backupSensitiveData
+      backupSensitiveData: settingToSave.backupSensitiveData
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
@@ -258,7 +258,7 @@ export default class SettingStorage {
       id: billingSettingsToSave.id,
       identifier: billingSettingsToSave.identifier,
       sensitiveData: billingSettingsToSave.sensitiveData,
-     backupSensitiveData: billingSettingsToSave.backupSensitiveData,
+      backupSensitiveData: billingSettingsToSave.backupSensitiveData,
       lastChangedOn: new Date(),
       content: {
         stripe: billingSettingsToSave.stripe
