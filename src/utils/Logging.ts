@@ -720,9 +720,11 @@ export default class Logging {
         message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
       }
     } else if (Array.isArray(message)) {
-      for (let item of message) {
-        item = Logging.anonymizeSensitiveData(item);
+      const items = [];
+      for (const item of message) {
+        items.push(Logging.anonymizeSensitiveData(item))
       }
+      message = items;
     } else if (typeof message === 'object') {
       message = Utils.cloneObject(message);
       for (const key of Object.keys(message)) {
