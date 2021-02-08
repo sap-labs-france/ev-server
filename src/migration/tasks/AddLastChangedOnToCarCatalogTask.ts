@@ -35,7 +35,7 @@ export default class AddLastChangedOnToCarCatalogTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.2';
+    return '1.0';
   }
 
   isAsynchronous(): boolean {
