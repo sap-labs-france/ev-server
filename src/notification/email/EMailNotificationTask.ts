@@ -20,12 +20,11 @@ import rfc2047 from 'rfc2047';
 const MODULE_NAME = 'EMailNotificationTask';
 
 export default class EMailNotificationTask implements NotificationTask {
-  private static instance: EMailNotificationTask;
   private emailConfig: EmailConfiguration = Configuration.getEmailConfig();
   private smtpMainClientInstance: SMTPClient;
   private smtpBackupClientInstance: SMTPClient;
 
-  private constructor() {
+  public constructor() {
     // Connect to the SMTP servers
     if (!Utils.isUndefined(this.emailConfig.smtp)) {
       this.smtpMainClientInstance = new SMTPClient({
@@ -37,13 +36,16 @@ export default class EMailNotificationTask implements NotificationTask {
         ssl: this.emailConfig.smtp.secure
       });
     }
-  }
-
-  public static getInstance(): EMailNotificationTask {
-    if (!this.instance) {
-      this.instance = new EMailNotificationTask();
+    if (!this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup)) {
+      this.smtpBackupClientInstance = new SMTPClient({
+        user: this.emailConfig.smtpBackup.user,
+        password: this.emailConfig.smtpBackup.password,
+        host: this.emailConfig.smtpBackup.host,
+        port: this.emailConfig.smtpBackup.port,
+        tls: this.emailConfig.smtpBackup.requireTLS,
+        ssl: this.emailConfig.smtpBackup.secure
+      });
     }
-    return this.instance;
   }
 
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -142,7 +144,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('end-user-error-notification', data, user, tenant, severity);
   }
 
-  private async sendEmail(email: EmailNotificationMessage, data: any, tenant: Tenant, user: User, severity: NotificationSeverity, useBackup = false): Promise<void> {
+  private async sendEmail(email: EmailNotificationMessage, data: any, tenant: Tenant, user: User, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
     // Email configuration sanity checks
     if (!this.smtpMainClientInstance) {
       // No suitable main SMTP server configuration found to send the email
@@ -156,7 +158,7 @@ export default class EMailNotificationTask implements NotificationTask {
       });
       return;
     }
-    if (!this.getSMTPBackupClientInstance() && useBackup) {
+    if (useSmtpClientBackup && !this.smtpBackupClientInstance) {
     // No suitable backup SMTP server configuration found or activated to send the email
       Logging.logError({
         tenantID: tenant.id,
@@ -170,7 +172,8 @@ export default class EMailNotificationTask implements NotificationTask {
     }
     // Create the message
     const messageToSend = new Message({
-      from: !this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup) && useBackup ? this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
+      from: !this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup) && useSmtpClientBackup ?
+        this.emailConfig.smtpBackup.from : this.emailConfig.smtp.from,
       to: email.to,
       cc: email.cc,
       bcc: email.bccNeeded && email.bcc ? email.bcc : '',
@@ -180,8 +183,10 @@ export default class EMailNotificationTask implements NotificationTask {
       ]
     });
     try {
+      // Get the SMTP client
+      const smtpClient = this.getSMTPClient(useSmtpClientBackup);
       // Send the message
-      const messageSent: Message = await this.getSMTPClient(useBackup).sendAsync(messageToSend);
+      const messageSent: Message = await smtpClient.sendAsync(messageToSend);
       // Email sent successfully
       Logging.logDebug({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
@@ -219,11 +224,9 @@ export default class EMailNotificationTask implements NotificationTask {
                 to: rfc2047.decode(messageToSend.header.to.toString()),
                 subject: rfc2047.decode(messageToSend.header.subject)
               },
-            }, {
-              error: error.stack
-            }, {
-              content: email.html
-            }
+            }, 
+            { error: error.stack },
+            { content: email.html }
           ]
         });
       // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
@@ -250,7 +253,7 @@ export default class EMailNotificationTask implements NotificationTask {
             evseDashboardURL: data.evseDashboardURL
           }
         );
-        if (!useBackup) {
+        if (!useSmtpClientBackup) {
           await this.sendEmail(email, data, tenant, user, severity, true);
         }
       }
@@ -391,24 +394,10 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private getSMTPClient(useBackup: boolean): SMTPClient {
-    if (useBackup) {
-      return this.getSMTPBackupClientInstance();
+  private getSMTPClient(useSmtpClientBackup: boolean): SMTPClient {
+    if (useSmtpClientBackup) {
+      return this.smtpBackupClientInstance;
     }
     return this.smtpMainClientInstance;
-  }
-
-  private getSMTPBackupClientInstance(): SMTPClient {
-    if (!this.emailConfig.disableBackup && !Utils.isUndefined(this.emailConfig.smtpBackup) && !this.smtpBackupClientInstance) {
-      this.smtpBackupClientInstance = new SMTPClient({
-        user: this.emailConfig.smtpBackup.user,
-        password: this.emailConfig.smtpBackup.password,
-        host: this.emailConfig.smtpBackup.host,
-        port: this.emailConfig.smtpBackup.port,
-        tls: this.emailConfig.smtpBackup.requireTLS,
-        ssl: this.emailConfig.smtpBackup.secure
-      });
-    }
-    return this.smtpBackupClientInstance;
   }
 }
