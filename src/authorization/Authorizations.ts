@@ -329,6 +329,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.CREATE);
   }
 
+  public static canImportUser(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IMPORT);
+  }
+
   public static canUpdateUser(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.UPDATE,
       { user: userID, owner: loggedUser.id });

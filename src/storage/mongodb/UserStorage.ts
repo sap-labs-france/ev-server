@@ -273,7 +273,7 @@ export default class UserStorage {
   public static async saveImportedUser(tenantID: string, usersToSave): Promise<void> {
     await global.database.getCollection<any>(tenantID, 'userImport3').insertOne(
       usersToSave);
-    // Console.log('saved:', usersToSave);
+    console.log('saved:', usersToSave);
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,

@@ -96,6 +96,7 @@
     "cfenv": "^1.2.3",
     "cors": "^2.8.5",
     "country-language": "^0.1.7",
+    "csvtojson": "^2.0.10",
     "ejs": "^3.1.5",
     "emailjs": "^3.3.0",
     "event-stream": "^4.0.1",
