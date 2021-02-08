@@ -111,7 +111,9 @@ export default class CarStorage {
               if: { $gt: ['$image', null] }, then: {
                 $concat: [
                   `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
-                  { $toString: '$_id' }
+                  { $toString: '$_id' },
+                  '&LastChangedOn=',
+                  { $toString: '$lastChangedOn' }
                 ]
               }, else: null
             }
@@ -713,7 +715,9 @@ export default class CarStorage {
             if: { $gt: ['$carCatalog.image', null] }, then: {
               $concat: [
                 `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
-                '$carCatalog.id'
+                '$carCatalog.id',
+                '&LastChangedOn=',
+                { $toString: '$carCatalog.lastChangedOn' }
               ]
             }, else: null
           }
