@@ -114,6 +114,8 @@ export enum Action {
   REFUND_TRANSACTION = 'RefundTransaction',
   SYNCHRONIZE_BILLING_USERS = 'SynchronizeBillingUsers',
   SYNCHRONIZE_BILLING_USER = 'SynchronizeBillingUser',
+  BILLING_ATTACH_PAYMENT_METHOD = 'BillingAttachPaymentMethod',
+  BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   CHECK_CONNECTION = 'CheckConnection',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
   PING = 'Ping',

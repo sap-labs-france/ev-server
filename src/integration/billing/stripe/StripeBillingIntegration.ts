@@ -1,6 +1,6 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
-import Stripe, { IResourceObject } from 'stripe';
+import Stripe, { IResourceObject, customers, invoices, paymentMethods, setupIntents } from 'stripe';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -11,6 +11,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
@@ -66,7 +67,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
         action: ServerAction.CHECK_CONNECTION,
-        message: `Error occurred when connecting to Stripe: ${error.message}`,
+        message: `Error occurred when connecting to Stripe: ${error.message as string}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
@@ -380,8 +381,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       invoice.status = BillingInvoiceStatus.OPEN;
       invoice.downloadable = true;
       await BillingStorage.saveInvoice(this.tenantID, invoice);
-      const invoicedocument = await this.downloadInvoiceDocument(invoice);
-      await BillingStorage.saveInvoiceDocument(this.tenantID, invoicedocument);
+      const invoiceDocument = await this.downloadInvoiceDocument(invoice);
+      await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
       return stripeInvoice.invoice_pdf;
     } catch (error) {
       throw new BackendError({
@@ -392,6 +393,106 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         action: ServerAction.BILLING_SEND_INVOICE
       });
     }
+  }
+
+  public handleBillingEvent(req: Request): boolean {
+    let event: { data, type: string };
+    if (process.env.STRIPE_WEBHOOK_SECRET) { // ##CR - to be clarified - where this secret key should come from
+      // Retrieve the event by verifying the signature using the raw body and secret.
+      const signature = req.headers['stripe-signature'];
+      try {
+        event = this.stripe.webhooks.constructEvent(
+          req.body, // Req.rawBody,
+          signature,
+          process.env.STRIPE_WEBHOOK_SECRET
+        );
+      } catch (err) {
+        console.log('⚠️  Webhook signature verification failed.');
+        // Return res.sendStatus(400);
+        return false; // ##CR - this is stupid
+      }
+    } else {
+      // Webhook signing is recommended, but if the secret is not known
+      // we can retrieve the event data directly from the request body.
+      event = {
+        data:req.body.data,
+        type: req.body.type
+      };
+    }
+    if (event.type === 'payment_intent.succeeded') {
+      // The payment was complete
+      // Fulfill any orders, e-mail receipts, etc
+      console.log('💰 Payment succeeded with payment method ' + event.data.object.payment_method);
+    } else if (event.type === 'payment_intent.payment_failed') {
+      // The payment failed to go through due to decline or authentication request
+      const error = event.data.object.last_payment_error.message;
+      console.log('❌ Payment failed with error: ' + error);
+    } else if (event.type === 'payment_method.attached') {
+      // A new payment method was attached to a customer
+      console.log('💳 Attached ' + event.data.object.id + ' to customer');
+    } else {
+      console.log(`❌ unexpected event : ${event.type}`);
+    }
+    return true;
+  }
+
+  public async chargeInvoice(invoice: BillingInvoice): Promise<unknown> {
+    await this.checkConnection();
+
+    // Fetch the invoice from stripe (do NOT TRUST the local copy)
+    let stripeInvoice : invoices.IInvoice = await this.stripe.invoices.retrieve(invoice.invoiceID);
+    // Check the current invoice status
+    if (stripeInvoice.status === 'paid') {
+      return {
+        // TODO - Handle inconsistencies - Operation failed - unexpected status
+        invoiceStatus: stripeInvoice.status
+      };
+    }
+    // Finalize the invoice (if necessary)
+    if (stripeInvoice.status === 'draft') {
+      stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
+    }
+    // Once finalized, the invoice is in the "open" state!
+    if (stripeInvoice.status === 'open') {
+      // Set the payment options
+      // TODO - default payment is used by default - is this ok?
+      const paymentOptions : invoices.IInvoicePayOptions = {
+      };
+      const operationResult:invoices.IInvoice = await this.stripe.invoices.pay(invoice.invoiceID, paymentOptions);
+      return operationResult;
+    }
+    // TODO - Handle inconsistencies - Operation failed - unexpected status
+    return {
+      // ##CR - to be clarified
+      invoiceStatus: stripeInvoice.status
+    };
+  }
+
+  public async attachPaymentMethod(user: User, paymentMethodId:string): Promise<unknown> {
+    // Check Stripe
+    await this.checkConnection();
+    // Check billing data consistency
+    if (!user.billingData || !user.billingData.customerID) {
+      throw new BackendError({
+        message: 'User is not yet known in Stripe',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'attachPaymentMethod',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    // Attach payment method to stripe customer
+    const customerID = user.billingData.customerID;
+    const operationResult: paymentMethods.IPaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
+      customer: customerID
+    });
+    // Set this payment method as the default
+    await this.stripe.customers.update(customerID, {
+      invoice_settings: {
+        default_payment_method: paymentMethodId,
+      }
+    });
+    return operationResult;
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
@@ -659,7 +760,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
     }
     // Update user data
-    const userDataToUpdate: any = {};
+    const userDataToUpdate: customers.ICustomerUpdateOptions = {};
     if (customer.description !== description) {
       userDataToUpdate.description = description;
     }

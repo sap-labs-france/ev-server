@@ -18,6 +18,10 @@ export interface HttpCreateTransactionInvoiceRequest {
   transactionID?: string;
 }
 
+export interface HttpChargeInvoiceRequest {
+  invoiceID?: string;
+}
+
 export interface HttpUserMobileTokenRequest {
   id: string;
   mobileToken: string;

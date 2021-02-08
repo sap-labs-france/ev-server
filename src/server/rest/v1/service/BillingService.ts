@@ -110,7 +110,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire lock',
+        message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
         action: action,
         user: req.user
@@ -163,7 +163,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire lock',
+        message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
         action: action,
         user: req.user
@@ -215,7 +215,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire lock',
+        message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
         action: action,
         user: req.user
@@ -234,7 +234,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire lock',
+        message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
         action: action,
         user: req.user
@@ -369,7 +369,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire lock',
+        message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUserInvoices',
         action: action,
         user: req.user
@@ -426,7 +426,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot aquire lock',
+        message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
         action: action,
         user: req.user
@@ -492,7 +492,38 @@ export default class BillingService {
     next();
   }
 
-  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleBillingAttachPaymentMethod(action: ServerAction, req: Request, res: Response): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.BILLING_ATTACH_PAYMENT_METHOD, Entity.BILLING, MODULE_NAME, 'handleBillingAttachPaymentMethod');
+    // Filter
+    // TODO - const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleBillingAttachPaymentMethod',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get user
+    const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
+    UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
+      MODULE_NAME, 'handleAttachPaymentMethod', req.user);
+    // Invoke the billing implementation
+    const paymentMethodId: string = req.body.paymentMethodId;
+    const operationResult = await billingImpl.attachPaymentMethod(user, paymentMethodId);
+    if (operationResult) {
+      console.log(operationResult);
+    }
+    res.json(operationResult);
+  }
+
+  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
@@ -550,5 +581,81 @@ export default class BillingService {
         });
       });
     }
+  }
+
+  public static async handleBillingChargeInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.BILLING_CHARGE_INVOICE, Entity.BILLING, MODULE_NAME, 'handleBillingChargeInvoice');
+    // Filter
+    const filteredRequest = BillingSecurity.filterChargeInvoiceRequest(req.body);
+    // Get the Invoice
+    const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.invoiceID);
+    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.invoiceID}' does not exist`,
+      MODULE_NAME, 'handleDownloadInvoice', req.user);
+    // Check Auth
+    // if (!Authorizations.canChargeInvoice(req.user, invoice.userID)) {
+    //   throw new AppAuthError({
+    //     errorCode: HTTPAuthError.ERROR,
+    //     user: req.user,
+    //     entity: Entity.INVOICE, action: Action.CHARGE_INVOICE,
+    //     module: MODULE_NAME, method: 'handleBillingChargeInvoice',
+    //   });
+    // }
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleBillingChargeInvoice',
+        action: action,
+        user: req.user
+      });
+    }
+    // Invoke the billing implementation (stripe)
+    const billingInvoice = await billingImpl.getInvoice(invoice.invoiceID);
+    const operationResult = await billingImpl.chargeInvoice(billingInvoice);
+    if (operationResult) {
+      console.log(operationResult);
+    }
+    res.json(operationResult);
+  }
+
+  public static async handleBillingWebHook(action: ServerAction, req: Request, res: Response): Promise<void> {
+    // Check if component is active
+    // ?? How to do it in this context
+    // Filter
+    const filteredRequest = BillingSecurity.filterBillingWebHookRequest(req.query);
+    // Check Auth
+    // How to check it - no JWT!
+    // Retrieve Tenant ID from the URL Query Parameters
+    if (!filteredRequest.tenantID) {
+
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Unexpected situation - TenantID is not set',
+        module: MODULE_NAME, method: 'handleBillingWebHook',
+        action: action,
+        // User: req.user
+      });
+    }
+    const billingImpl = await BillingFactory.getBillingImpl(filteredRequest.tenantID);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleBillingWebHook',
+        action: action,
+        // User: req.user
+      });
+    }
+    // ##CR - don't wait for the result!!!
+    const done = billingImpl.handleBillingEvent(req);
+    // Return a response to acknowledge receipt of the event
+    res.json({ received: done });
   }
 }

@@ -1,4 +1,4 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -7,6 +7,7 @@ import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
+import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -18,6 +19,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingIntegration';
 
 export default abstract class BillingIntegration<T extends BillingSetting> {
+
   protected readonly tenantID: string; // Assuming UUID or other string format ID
   protected settings: T;
 
@@ -517,9 +519,16 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<BillingInvoiceItem>;
 
+  // eslint-disable-next-line max-len
   abstract createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
 
   abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
+
+  // ##CR - TO BE CLARIFIED - clarify the return type!
+  abstract attachPaymentMethod(user: User, paymentMethodId: string): Promise<unknown>;
+  abstract chargeInvoice(invoice: BillingInvoice): Promise<unknown>;
+  abstract handleBillingEvent(req: Request): boolean;
+
 }

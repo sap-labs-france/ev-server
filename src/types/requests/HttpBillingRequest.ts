@@ -12,3 +12,7 @@ export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
   EndDateTime?: Date;
   Search?: string;
 }
+
+export interface HttpBillingWebHookRequest {
+  tenantID?: string
+}
