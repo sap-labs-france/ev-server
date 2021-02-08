@@ -5,7 +5,7 @@ export interface Setting {
   id?: string;
   identifier: TenantComponents;
   sensitiveData?: string[];
-  formerSensitiveData?: string[];
+  backupSensitiveData?: Record<string, any>;
   category?: 'business' | 'technical';
 }
 
@@ -247,7 +247,7 @@ export enum CryptoSettingsType {
   CRYPTO = 'crypto'
 }
 
-export interface CryptoKeySetting extends Setting {
+export interface CryptoSettings extends Setting {
   identifier: TenantComponents.CRYPTO;
   type: CryptoSettingsType;
   crypto: CryptoSetting;

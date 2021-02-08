@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -56,7 +56,7 @@ export default class SettingStorage {
       identifier: settingToSave.identifier,
       content: settingToSave.content,
       sensitiveData: settingToSave.sensitiveData,
-      formerSensitiveData: settingToSave.formerSensitiveData
+      backupSensitiveData: settingToSave.backupSensitiveData
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
@@ -83,7 +83,7 @@ export default class SettingStorage {
       // ID
       ocpiSettings.id = settings.result[0].id;
       ocpiSettings.sensitiveData = settings.result[0].sensitiveData;
-      ocpiSettings.formerSensitiveData = settings.result[0].formerSensitiveData;
+      ocpiSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
       // OCPI
       if (config.ocpi) {
         ocpiSettings.ocpi = config.ocpi;
@@ -104,7 +104,7 @@ export default class SettingStorage {
       const config = settings.result[0].content;
       analyticsSettings.id = settings.result[0].id;
       analyticsSettings.sensitiveData = settings.result[0].sensitiveData;
-      analyticsSettings.formerSensitiveData = settings.result[0].formerSensitiveData;
+      analyticsSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
       // SAP Analytics
       if (config.sac) {
         analyticsSettings.type = AnalyticsSettingsType.SAC;
@@ -129,7 +129,7 @@ export default class SettingStorage {
       const config = settings.result[0].content;
       assetSettings.id = settings.result[0].id;
       assetSettings.sensitiveData = settings.result[0].sensitiveData;
-      assetSettings.formerSensitiveData = settings.result[0].formerSensitiveData;
+      assetSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
       // Asset
       if (config.asset) {
         assetSettings.type = AssetSettingsType.ASSET;
@@ -152,7 +152,7 @@ export default class SettingStorage {
       const config = settings.result[0].content;
       refundSettings.id = settings.result[0].id;
       refundSettings.sensitiveData = settings.result[0].sensitiveData;
-      refundSettings.formerSensitiveData = settings.result[0].formerSensitiveData;
+      refundSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
       if (config.concur) {
         refundSettings.type = RefundSettingsType.CONCUR;
         refundSettings.concur = {
@@ -185,7 +185,7 @@ export default class SettingStorage {
       // ID
       pricingSettings.id = settings.result[0].id;
       pricingSettings.sensitiveData = settings.result[0].sensitiveData;
-      pricingSettings.formerSensitiveData = settings.result[0].formerSensitiveData;
+      pricingSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
       // Simple price
       if (config.simple) {
         pricingSettings.type = PricingSettingsType.SIMPLE;
@@ -223,7 +223,7 @@ export default class SettingStorage {
       // ID
       smartChargingSettings.id = settings.result[0].id;
       smartChargingSettings.sensitiveData = settings.result[0].sensitiveData;
-      smartChargingSettings.formerSensitiveData = settings.result[0].formerSensitiveData;
+      smartChargingSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
       // SAP Smart Charging
       if (config.sapSmartCharging) {
         smartChargingSettings.type = SmartChargingSettingsType.SAP_SMART_CHARGING;
@@ -258,7 +258,7 @@ export default class SettingStorage {
       id: billingSettingsToSave.id,
       identifier: billingSettingsToSave.identifier,
       sensitiveData: billingSettingsToSave.sensitiveData,
-      formerSensitiveData: billingSettingsToSave.formerSensitiveData,
+      backupSensitiveData: billingSettingsToSave.backupSensitiveData,
       lastChangedOn: new Date(),
       content: {
         stripe: billingSettingsToSave.stripe
@@ -279,7 +279,7 @@ export default class SettingStorage {
       const config = settings.result[0].content;
       billingSettings.id = settings.result[0].id;
       billingSettings.sensitiveData = settings.result[0].sensitiveData;
-      billingSettings.formerSensitiveData = settings.result[0].formerSensitiveData;
+      billingSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
       // Currency
       const pricingSettings = await SettingStorage.getPricingSettings(tenantID);
       let currency = 'EUR';
@@ -313,7 +313,7 @@ export default class SettingStorage {
     }
   }
 
-  public static async getCryptoSettings(tenantID: string): Promise<CryptoKeySetting> {
+  public static async getCryptoSettings(tenantID: string): Promise<CryptoSettings> {
     // Get the Crypto Key settings
     const settings = await SettingStorage.getSettings(tenantID,
       { identifier: TenantComponents.CRYPTO },

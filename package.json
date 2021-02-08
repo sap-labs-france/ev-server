@@ -73,7 +73,7 @@
     "mochatest:ocpp": "cross-env TS_NODE_FILES=true mocha test/**/OCPP*Test.ts",
     "mochatest:authentication": "cross-env TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts",
     "mochatest:createContext": "cross-env TS_NODE_FILES=true mocha test/**/ContextBuilderRunner.ts",
-    "mochatest:encryption": "cross-env TS_NODE_FILES=true mocha test/**/EncryptionSettingTest.ts",
+    "mochatest:crypto": "cross-env TS_NODE_FILES=true mocha test/**/EncryptionSettingTest.ts",
     "mochatest:filter": "cross-env TS_NODE_FILES=true mocha test/**/FilterTest.ts",
     "mochatest:tenantsetting": "cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts",
     "mochatest:billing": "cross-env TS_NODE_FILES=true mocha test/**/BillingTest.ts",

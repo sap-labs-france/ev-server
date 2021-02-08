@@ -205,19 +205,30 @@ export default class SettingService {
     // Update timestamp
     setting.lastChangedBy = { 'id': req.user.id };
     setting.lastChangedOn = new Date();
-
     if (settingUpdate.identifier === TenantComponents.CRYPTO) {
-      if (Cypher.hash(settingUpdate.content.crypto.key) !== Cypher.hash(setting.content.crypto.key)) {
-        settingUpdate.content.crypto.migrationToBeDone = true;
+      if (setting.content.crypto.migrationToBeDone) {
+        // If migration in progress, throw error
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.MIGRATION_IN_PROGRESS,
+          message: 'Sensitive Data Migration is in progress',
+          module: MODULE_NAME,
+          method: 'handleUpdateSetting',
+          user: req.user
+        });
+      } else {
+        if (Cypher.hash(settingUpdate.content.crypto.key) !== Cypher.hash(setting.content.crypto.key)) {
+          settingUpdate.content.crypto.migrationToBeDone = true;
+        }
+        settingUpdate.content.crypto.formerKey = setting.content.crypto.key;
+        settingUpdate.content.crypto.formerKeyProperties = setting.content.crypto.keyProperties;
       }
-      settingUpdate.content.crypto.formerKey = setting.content.crypto.key;
     }
-
     // Update Setting
     settingUpdate.id = await SettingStorage.saveSettings(req.user.tenantID, settingUpdate);
     // Crypto Setting handling
     if (settingUpdate.identifier === TenantComponents.CRYPTO) {
-      if (settingUpdate.content.crypto.migrationToBeDone === true) {
+      if (settingUpdate.content.crypto.migrationToBeDone) {
         await Cypher.handleCryptoSettingsChange(req.user.tenantID);
       }
     }
