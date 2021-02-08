@@ -45,15 +45,16 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_PULL_SESSIONS,
-            message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the ocpiendpoint.`
           });
           return;
-        } else if (!ocpiEndpoint.backgroundPatchJob) {
+        }
+        if (!ocpiEndpoint.backgroundPatchJob) {
           Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_PULL_SESSIONS,
-            message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
           return;
         }
@@ -61,7 +62,7 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PULL_SESSIONS,
-          message: `The get sessions process for endpoint ${ocpiEndpoint.name} is being processed`
+          message: `The get sessions process for endpoint '${ocpiEndpoint.name}' is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
@@ -71,7 +72,7 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PULL_SESSIONS,
-          message: `The get sessions process for endpoint ${ocpiEndpoint.name} is completed`,
+          message: `The get sessions process for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {

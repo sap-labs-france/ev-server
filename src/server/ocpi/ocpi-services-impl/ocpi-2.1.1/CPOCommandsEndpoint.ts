@@ -85,7 +85,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     const localToken = await TagStorage.getTag(tenant.id, startSession.token.uid, { withUser: true });
     if (!localToken || !localToken.active || !localToken.ocpiToken || !localToken.ocpiToken.valid) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
         message: `Start Transaction with Token ID '${startSession.token.uid}' is invalid`,
@@ -113,7 +113,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       }
     }
     if (!chargingStation) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
         message: `Charging Station with Charging Station ID '${startSession.evse_uid}' not found`,
@@ -122,28 +122,32 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (!connector) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
+        source: chargingStation.id,
         message: `Connector for Charging Station ID '${startSession.evse_uid}' not found`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (!chargingStation.issuer || !chargingStation.public) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
+        source: chargingStation.id,
         message: `Charging Station ID '${startSession.evse_uid}' cannot be used in with OCPI`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    if (connector.status !== ChargePointStatus.AVAILABLE) {
-      Logging.logDebug({
+    if (connector.status !== ChargePointStatus.AVAILABLE &&
+        connector.status !== ChargePointStatus.PREPARING) {
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
-        message: `Charging Station ID '${startSession.evse_uid}' is not available`,
+        source: chargingStation.id,
+        message: `Charging Station ID '${startSession.evse_uid}' is not available (status '${connector.status}')`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -155,7 +159,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       (authorization) => authorization.connectorId === connector.connectorId);
     if (existingAuthorization) {
       if (OCPIUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
-        Logging.logDebug({
+        Logging.logError({
           tenantID: tenant.id,
           source: chargingStation.id,
           action: ServerAction.OCPI_START_SESSION,
@@ -203,7 +207,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     const transaction = await TransactionStorage.getOCPITransaction(tenant.id, stopSession.session_id);
     if (!transaction) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
         message: `Transaction with OCPI Transaction ID '${stopSession.session_id}' does not exists`,
@@ -212,8 +216,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (!transaction.issuer) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
+        source: transaction.chargeBoxID,
         action: ServerAction.OCPI_STOP_SESSION,
         message: `Transaction with OCPI Transaction ID '${stopSession.session_id}' has been issued locally`,
         module: MODULE_NAME, method: 'remoteStopSession'
@@ -221,9 +226,10 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (transaction.stop) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
+        source: transaction.chargeBoxID,
         message: `Transaction with OCPI Transaction ID '${stopSession.session_id}' is already stopped`,
         module: MODULE_NAME, method: 'remoteStopSession'
       });
@@ -231,7 +237,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
     if (!chargingStation) {
-      Logging.logDebug({
+      Logging.logError({
         tenantID: tenant.id,
         source: transaction.chargeBoxID,
         action: ServerAction.OCPI_STOP_SESSION,
@@ -263,10 +269,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
   }
 
   private validateStopSession(stopSession: OCPIStopSession): boolean {
-    if (!stopSession
-      || !stopSession.response_url
-      || !stopSession.session_id
-    ) {
+    if (!stopSession ||
+        !stopSession.response_url ||
+        !stopSession.session_id) {
       return false;
     }
     return true;

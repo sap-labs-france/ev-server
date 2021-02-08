@@ -352,15 +352,15 @@ export default class Logging {
     Logging.logSecurityError({
       tenantID: tenantID,
       action: ServerAction.HTTP_ERROR,
-      message: `Axios HTTP Error >> ${error.config.method.toLocaleUpperCase()}/${error.response?.status} '${error.config.url}' - ${error.message}`,
+      message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
       module: MODULE_NAME, method: 'interceptor',
       detailedMessages: {
-        url: error.config.url,
+        url: error.config?.url,
         status: error.response?.status,
         statusText: error.response?.statusText,
         message: error.message,
         response: error.response?.data,
-        axiosError: error.toJSON(),
+        axiosError: Utils.objectHasProperty(error, 'toJSON') ? error.toJSON() : null,
       }
     });
   }
@@ -680,7 +680,7 @@ export default class Logging {
     // Process
     log.process = log.process ? log.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master');
     // Anonymize message
-    Logging.anonymizeSensitiveData(log.detailedMessages);
+    log.detailedMessages = Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check
     if (log.detailedMessages) {
       // Array?
@@ -710,7 +710,7 @@ export default class Logging {
     }
   }
 
-  private static anonymizeSensitiveData(message: any) {
+  private static anonymizeSensitiveData(message: any): Promise<any> {
     if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
       // eslint-disable-next-line no-useless-return
       return;
@@ -720,10 +720,13 @@ export default class Logging {
         message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
       }
     } else if (Array.isArray(message)) {
+      const items = [];
       for (const item of message) {
-        Logging.anonymizeSensitiveData(item);
+        items.push(Logging.anonymizeSensitiveData(item))
       }
+      message = items;
     } else if (typeof message === 'object') {
+      message = Utils.cloneObject(message);
       for (const key of Object.keys(message)) {
         // String?
         if (typeof message[key] === 'string') {
@@ -748,7 +751,7 @@ export default class Logging {
             message[key] = dataParts.join('&');
           }
         } else {
-          Logging.anonymizeSensitiveData(message[key]);
+          message[key] = Logging.anonymizeSensitiveData(message[key]);
         }
       }
     } else {
@@ -763,6 +766,7 @@ export default class Logging {
         detailedMessages: { message: message }
       });
     }
+    return message;
   }
 
   // Console Log
