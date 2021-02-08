@@ -18,12 +18,10 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
-import JSONStream from 'JSONStream';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
-import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -38,15 +36,9 @@ import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import csvStream from 'csv-stream';
 import csvToJson from 'csvtojson/v2';
 import fs from 'fs';
-import { inspect } from 'util';
 import moment from 'moment';
-import os from 'os';
-import path from 'path';
-import { resolve } from 'bluebird';
-import through from 'through';
 
 const MODULE_NAME = 'UserService';
 
@@ -867,77 +859,6 @@ export default class UserService {
       await UserStorage.saveImportedUser(req.user.tenantID, json);
       resolve();
     }));
-
-
-    // Const cStream = new csvStream()
-    // const busboy = new Busboy({ headers: req.headers });
-    // const jStream = JSONStream.parse('users.*');
-
-    // busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-    //   file.pipe(cStream);
-    // });
-
-    // cStream.on('data', async function(data) {
-    //   await UserStorage.saveImportedUser(req.user.tenantID, data);
-    // });
-
-    // jStream.on('data', async function(data) {
-    //   await UserStorage.saveImportedUser(req.user.tenantID, data);
-    // });
-
-    // busboy.on('finish', function() {
-    //   res.end('That\'s all folks!');
-    // });
-
-    // csvToJson().fromStream(req).subscribe(async (json) => new Promise((resolve, reject) => {
-    //   console.log(json);
-    // }).then());
-
-    // req.pipe(busboy);
-
-    // res.json('uploading');
-    // next();
-
-
-    // Return req.pipe(busboy);
-
-    // JStream.on(function(data) {
-    //   console.log('received:', data);
-    // });
-
-    // busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-    //   console.log('File [' + fieldname + ']: filename: ' + filename + ', encoding: ' + encoding + ', mimetype: ' + mimetype);
-    //   file.on('data', function(data) {
-    //     console.log('File [' + fieldname + '] got ' + data.length + ' bytes');
-    //     console.log(data);
-    //   });
-    //   file.on('end', function() {
-    //     console.log('File [' + fieldname + '] Finished');
-    //   });
-    // });
-    // busboy.on('field', function(fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
-    //   console.log('Field [' + fieldname + ']: value: ' + val);
-    // });
-    // busboy.on('finish', function() {
-    //   console.log('Done parsing form!');
-    //   res.end();
-    // });
-
-
-    // Upload(req, res, function(err) {
-    //   if (err) {
-    //     res.redirect(req.headers.referer + '/error.html');
-    //     return;
-    //   }
-
-    //   if (!req) {
-    //     res.redirect(req.headers.referer + '/error.html');
-
-    //   } else {
-    //     // Implement your own logic if needed. Like moving the file, renaming the file, etc.
-    //     res.redirect(req.headers.referer);
-    //   }
-    // }).single('test');
 
   }
 
