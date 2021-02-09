@@ -6,6 +6,7 @@ import AddDescriptionToTagsTask from './tasks/AddDescriptionToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
+import AddLastChangedOnToCarCatalogTask from './tasks/AddLastChangedOnToCarCatalogTask';
 import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsumptionsTask';
@@ -105,6 +106,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new FixedConsumptionRoundedPriceTask());
         currentMigrationTasks.push(new MigrateCryptoSettingsFromConfigToDBTask());
         currentMigrationTasks.push(new ImportLocalCarCatalogTask());
+        currentMigrationTasks.push(new AddLastChangedOnToCarCatalogTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
