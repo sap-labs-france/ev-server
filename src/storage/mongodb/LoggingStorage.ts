@@ -58,7 +58,7 @@ export default class LoggingStorage {
     return result.result;
   }
 
-  public static async saveLog(tenantID: string, logToSave: Log): Promise<void> {
+  public static async saveLog(tenantID: string, logToSave: Log): Promise<string> {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Set
@@ -80,6 +80,7 @@ export default class LoggingStorage {
     // Insert
     if (global.database) {
       await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
+      return logMDB._id.toHexString();
     }
   }
 

@@ -71,55 +71,55 @@ export default class Logging {
   }
 
   // Log Debug
-  public static logDebug(log: Log): void {
+  public static async logDebug(log: Log): Promise<string> {
     log.level = LogLevel.DEBUG;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    Logging._log(log);
+    return Logging._log(log);
   }
 
   // Log Security Debug
-  public static logSecurityDebug(log: Log): void {
+  public static async logSecurityDebug(log: Log): Promise<string> {
     log.type = LogType.SECURITY;
-    Logging.logDebug(log);
+    return Logging.logDebug(log);
   }
 
   // Log Info
-  public static logInfo(log: Log): void {
+  public static async logInfo(log: Log): Promise<string> {
     log.level = LogLevel.INFO;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    Logging._log(log);
+    return Logging._log(log);
   }
 
   // Log Security Info
-  public static logSecurityInfo(log: Log): void {
+  public static async logSecurityInfo(log: Log): Promise<string> {
     log.type = LogType.SECURITY;
-    Logging.logInfo(log);
+    return Logging.logInfo(log);
   }
 
   // Log Warning
-  public static logWarning(log: Log): void {
+  public static async logWarning(log: Log): Promise<string> {
     log.level = LogLevel.WARNING;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    Logging._log(log);
+    return Logging._log(log);
   }
 
   // Log Security Warning
-  public static logSecurityWarning(log: Log): void {
+  public static async logSecurityWarning(log: Log): Promise<string> {
     log.type = LogType.SECURITY;
-    Logging.logWarning(log);
+    return Logging.logWarning(log);
   }
 
   // Log Error
-  public static logError(log: Log): void {
+  public static async logError(log: Log): Promise<string> {
     log.level = LogLevel.ERROR;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    Logging._log(log);
+    return Logging._log(log);
   }
 
   // Log Security Error
-  public static logSecurityError(log: Log): void {
+  public static async logSecurityError(log: Log): Promise<string> {
     log.type = LogType.SECURITY;
-    Logging.logError(log);
+    return Logging.logError(log);
   }
 
   public static async logExpressRequest(tenantID: string, decodedToken, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -583,7 +583,7 @@ export default class Logging {
   }
 
   // Log
-  private static async _log(log: Log): Promise<void> {
+  private static async _log(log: Log): Promise<string> {
     let moduleConfig = null;
     const loggingConfig = Logging.getConfiguration();
     // Default Log Level
@@ -702,12 +702,14 @@ export default class Logging {
       log.tenantID = Constants.DEFAULT_TENANT;
     }
     // Log
-    await LoggingStorage.saveLog(log.tenantID, log);
+    const logID = await LoggingStorage.saveLog(log.tenantID, log);
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app
       CFLog.logMessage(Logging.getCFLogLevel(log.level), log.message);
     }
+
+    return logID;
   }
 
   private static anonymizeSensitiveData(message: any): Promise<any> {
@@ -722,7 +724,7 @@ export default class Logging {
     } else if (Array.isArray(message)) {
       const items = [];
       for (const item of message) {
-        items.push(Logging.anonymizeSensitiveData(item))
+        items.push(Logging.anonymizeSensitiveData(item));
       }
       message = items;
     } else if (typeof message === 'object') {
@@ -732,7 +734,7 @@ export default class Logging {
         if (typeof message[key] === 'string') {
           for (const sensitiveData of Constants.SENSITIVE_DATA) {
             if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
-              // Anonymize
+            // Anonymize
               message[key] = Constants.ANONYMIZED_VALUE;
             }
           }
