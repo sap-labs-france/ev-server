@@ -91,6 +91,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS_CARS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USERS_CARS, action: Action.ASSIGN, attributes: ['*'] },
       { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
+      { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
     ]
   },
   basic: {
@@ -116,10 +118,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.SITE, action: Action.READ, attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
-      },
+      { resource: Entity.SITE, action: Action.READ, attributes: ['*'] },
       { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'],
@@ -258,10 +257,9 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     grants: [
       { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USER, action: [Action.READ], attributes: ['*'] },
-      {
-        resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
-      },
+      { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.USERS_SITES, action: Action.UNASSIGN, attributes: ['*'] },
+      { resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }

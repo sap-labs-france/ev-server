@@ -41,6 +41,7 @@ export default interface User extends CreatedUpdatedProps {
 
 export interface UserSite {
   user: User;
+  userID?: string;
   siteID: string;
   siteAdmin: boolean;
   siteOwner: boolean;

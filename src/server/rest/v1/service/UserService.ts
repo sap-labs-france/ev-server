@@ -7,6 +7,7 @@ import User, { UserStatus } from '../../../../types/User';
 import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import { Car } from '../../../../types/Car';
@@ -106,6 +107,26 @@ export default class UserService {
   public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
+    // Check auth
+    if (action === ServerAction.ADD_SITES_TO_USER) {
+      if (!Authorizations.canAssignUsersSites(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.ASSIGN, entity: Entity.USERS_SITES,
+          module: MODULE_NAME, method: 'handleAssignSitesToUser'
+        });
+      }
+    } else {
+      if (!Authorizations.canUnassignUsersSites(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.UNASSIGN, entity: Entity.USERS_SITES,
+          module: MODULE_NAME, method: 'handleAssignSitesToUser'
+        });
+      }
+    }
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
     if (!filteredRequest.userID) {
@@ -659,13 +680,15 @@ export default class UserService {
         value: userID
       });
     }
+    // Get authorization filters
+    const authorizationFilters = await AuthorizationService.getUserAuthorizationFilters(req.user, req.tenant);
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, userID,
-      { withImage: true },
-      [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'deleted', 'plateID',
-        'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
-      ]
+      {
+        withImage: true,
+        ...authorizationFilters.filters
+      },
+      authorizationFilters.project
     );
     UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
@@ -1110,11 +1133,11 @@ export default class UserService {
 
   private static async getUsers(req: Request): Promise<DataResult<User>> {
     // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
+    if (!Authorizations.canListUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.USERS,
+        action: Action.LIST, entity: Entity.USERS_SITES,
         module: MODULE_NAME, method: 'getUsers'
       });
     }
@@ -1129,6 +1152,9 @@ export default class UserService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
     }
+    // Get authorization filters
+    const authorizationFilters = await AuthorizationService.getUsersAuthorizationFilters(
+      filteredRequest, req.user, req.tenant);
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
@@ -1141,6 +1167,7 @@ export default class UserService {
         excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
         includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
         notAssignedToCarID: filteredRequest.NotAssignedToCarID,
+        ...authorizationFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -1148,11 +1175,7 @@ export default class UserService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
-        'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-        'billingData.customerID', 'billingData.lastChangedOn'
-      ]
+      authorizationFilters.project
     );
     return users;
   }

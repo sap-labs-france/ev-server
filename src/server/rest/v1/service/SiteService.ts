@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
@@ -179,15 +180,7 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
-    if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleAssignUsersToSite',
-        value: filteredRequest.siteID
-      });
-    }
+    // Check
     UtilsService.assertIdIsProvided(action, filteredRequest.siteID, MODULE_NAME, 'handleAssignUsersToSite', req.user);
     if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
       throw new AppError({
@@ -198,6 +191,9 @@ export default class SiteService {
         user: req.user
       });
     }
+    // Check auth
+    await AuthorizationService.checkAndAssignSiteUsersAuthorizationFilters(
+      action, filteredRequest, req.user, req.tenant);
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     UtilsService.assertObjectExists(action, site, `Site '${filteredRequest.siteID}' does not exist`,
@@ -212,34 +208,6 @@ export default class SiteService {
         user: req.user,
         action: action
       });
-    }
-    // Get Users
-    for (const userID of filteredRequest.userIDs) {
-      // Check the user
-      const user = await UserStorage.getUser(req.user.tenantID, userID);
-      UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
-        MODULE_NAME, 'handleAssignUsersToSite', req.user);
-      // Auth
-      if (!Authorizations.canReadUser(req.user, userID)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.READ, entity: Entity.USER,
-          module: MODULE_NAME, method: 'handleAssignUsersToSite',
-          value: userID
-        });
-      }
-      // OCPI User
-      if (!user.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'User not issued by the organization',
-          module: MODULE_NAME, method: 'handleAssignUsersToSite',
-          user: req.user, actionOnUser: user,
-          action: action
-        });
-      }
     }
     // Save
     if (action === ServerAction.ADD_USERS_TO_SITE) {
@@ -266,7 +234,6 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
     // Check Mandatory fields
     if (!filteredRequest.SiteID) {
-      // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -275,25 +242,23 @@ export default class SiteService {
         user: req.user
       });
     }
+    // Check auth
+    const authorizationFilters = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(
+      filteredRequest, req.user, req.tenant);
+    if (!authorizationFilters.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.SiteID);
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.SiteID}' does not exist`,
       MODULE_NAME, 'handleGetUsersFromSite', req.user);
-    // Check auth
-    if (!Authorizations.canUpdateSite(req.user, filteredRequest.SiteID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleGetUsersFromSite',
-        value: site.id
-      });
-    }
     // Get users
     const users = await SiteStorage.getSiteUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteID: filteredRequest.SiteID
+        siteIDs: [ filteredRequest.SiteID ],
+        ...authorizationFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -301,7 +266,7 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [ 'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID' ]
+      authorizationFilters.project
     );
     res.json(users);
     next();
@@ -363,19 +328,17 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSite', req.user);
     // Check auth
-    if (!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.READ, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleGetSite',
-        value: filteredRequest.ID
-      });
-    }
+    const authorizationFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      filteredRequest.ID, req.user, req.tenant);
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID,
-      { withCompany: filteredRequest.WithCompany, withImage: true },
-      [ 'id', 'name', 'issuer', 'image', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'public' ]);
+      {
+        withCompany: filteredRequest.WithCompany,
+        withImage: true,
+        ...authorizationFilters.filters
+      },
+      authorizationFilters.project
+    );
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSite', req.user);
     // Return
@@ -387,21 +350,14 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITES, MODULE_NAME, 'handleGetSites');
-    // Check auth
-    if (!Authorizations.canListSites(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.LIST, entity: Entity.SITES,
-        module: MODULE_NAME, method: 'handleGetSites'
-      });
-    }
     // Filter
     const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
-    // Check User
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
+    // Check auth
+    const authorizationFilters = await AuthorizationService.checkAndGetSitesAuthorizationFilters(
+      filteredRequest, req.user, req.tenant);
+    if (!authorizationFilters.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
     }
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
@@ -416,6 +372,7 @@ export default class SiteService {
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
+        ...authorizationFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -423,11 +380,7 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [
-        'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-        'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-        ...userProject
-      ]
+      authorizationFilters.project
     );
     res.json(sites);
     next();

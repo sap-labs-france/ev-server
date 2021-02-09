@@ -24,6 +24,11 @@ export interface AuthorizationDefinition {
     $extend?: any;
   };
 }
+export interface AuthorizationFilter {
+  filters: Record<string, any>;
+  project: string[];
+  authorized?: boolean;
+}
 
 export interface Grant {
   resource: Entity;
@@ -51,6 +56,7 @@ export enum Entity {
   REPORT = 'Report',
   USER = 'User',
   USERS = 'Users',
+  USERS_SITES = 'UsersSites',
   LOGGINGS = 'Loggings',
   LOGGING = 'Logging',
   PRICING = 'Pricing',
@@ -93,6 +99,7 @@ export enum Action {
   LIST = 'List',
   RESET = 'Reset',
   ASSIGN = 'Assign',
+  UNASSIGN = 'Unassign',
   CLEAR_CACHE = 'ClearCache',
   SYNCHRONIZE = 'Synchronize',
   GET_CONFIGURATION = 'GetConfiguration',

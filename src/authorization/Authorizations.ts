@@ -296,6 +296,18 @@ export default class Authorizations {
 
   }
 
+  public static canAssignUsersSites(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.ASSIGN);
+  }
+
+  public static canUnassignUsersSites(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.UNASSIGN);
+  }
+
+  public static canListUsersSites(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.LIST);
+  }
+
   public static canListUsers(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.LIST);
   }
@@ -343,9 +355,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SITES, Action.LIST);
   }
 
-  public static canReadSite(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.READ,
-      { site: siteID, sites: loggedUser.sites });
+  public static canReadSite(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.READ);
   }
 
   public static canCreateSite(loggedUser: UserToken): boolean {

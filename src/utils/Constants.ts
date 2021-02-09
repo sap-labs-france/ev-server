@@ -21,6 +21,7 @@ export default class Constants {
   public static readonly DB_RECORD_COUNT_CEIL = 500;
   public static readonly DB_RECORD_COUNT_NO_LIMIT = Number.MAX_SAFE_INTEGER;
   public static readonly DB_UNDETERMINED_NBR_OF_RECORDS = -1;
+  public static readonly DB_EMPTY_DATA_RESULT = Object.freeze({ count: 0, result: [] });
 
   public static readonly DB_PARAMS_MAX_LIMIT: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, sort: null });
   public static readonly DB_PARAMS_SINGLE_RECORD: DbParams = Object.freeze({ limit: 1, skip: 0, sort: null });
