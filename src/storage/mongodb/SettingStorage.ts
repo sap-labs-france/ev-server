@@ -51,20 +51,12 @@ export default class SettingStorage {
       settingFilter._id = new ObjectID();
     }
     // Properties to save
-    const settingMDB = (() => {
-      if (settingToSave.identifier === 'accountActivation') {
-        return {
-          _id: settingFilter._id,
-          doNotActivateByDefault: settingToSave.doNotActivateByDefault,
-        };
-      }
-      return {
-        _id: settingFilter._id,
-        identifier: settingToSave.identifier,
-        content: settingToSave.content,
-        sensitiveData: settingToSave.sensitiveData
-      };
-    })();
+    const settingMDB = {
+      _id: settingFilter._id,
+      identifier: settingToSave.identifier,
+      content: settingToSave.content,
+      sensitiveData: settingToSave.sensitiveData
+    };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
     await global.database.getCollection<SettingDB>(tenantID, 'settings').findOneAndUpdate(

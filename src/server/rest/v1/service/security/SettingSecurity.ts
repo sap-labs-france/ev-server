@@ -1,7 +1,6 @@
 import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
-import TenantComponents from '../../../../../types/TenantComponents';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -190,10 +189,6 @@ export default class SettingSecurity {
           }
           break;
       }
-    }
-    if (request.identifier === TenantComponents.ACCOUNT_ACTIVATION) {
-    // If (request.identifier.toString() === 'accountActivation') {
-      settings.doNotActivateByDefault = request.doNotActivateByDefault;
     }
     return settings;
   }

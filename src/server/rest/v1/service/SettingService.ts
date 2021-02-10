@@ -173,7 +173,7 @@ export default class SettingService {
       MODULE_NAME, 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values
-    if (settingUpdate.sensitiveData && settingUpdate.sensitiveData.length > 0) {
+    if (settingUpdate.sensitiveData) {
       if (!Array.isArray(settingUpdate.sensitiveData)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -210,8 +210,8 @@ export default class SettingService {
       settingUpdate.sensitiveData = [];
     }
     // Update timestamp
-    settingUpdate.lastChangedBy = { 'id': req.user.id };
-    settingUpdate.lastChangedOn = new Date();
+    setting.lastChangedBy = { 'id': req.user.id };
+    setting.lastChangedOn = new Date();
     // Update Setting
     settingUpdate.id = await SettingStorage.saveSettings(req.user.tenantID, settingUpdate);
     // Log

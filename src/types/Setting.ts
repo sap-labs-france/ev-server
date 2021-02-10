@@ -6,7 +6,6 @@ export interface Setting {
   identifier: TenantComponents;
   sensitiveData?: string[];
   category?: 'business' | 'technical';
-  doNotActivateByDefault?: boolean;
 }
 
 export interface SettingDB extends CreatedUpdatedProps, Setting {
