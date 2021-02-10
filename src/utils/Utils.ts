@@ -1036,6 +1036,9 @@ export default class Utils {
   }
 
   public static cloneObject<T>(object: T): T {
+    if (Utils.isNullOrUndefined(object)) {
+      return object;
+    }
     return JSON.parse(JSON.stringify(object)) as T;
   }
 
