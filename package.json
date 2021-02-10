@@ -82,6 +82,7 @@
     "mochatest:locking": "cross-env TS_NODE_FILES=true mocha test/**/LockingTest.ts",
     "mochatest:firmwareUpdateStatus": "cross-env TS_NODE_FILES=true mocha test/**/FirmwareUpdateStatusTest.ts",
     "mochatest:smartCharging": "cross-env TS_NODE_FILES=true mocha test/**/SmartChargingTest.ts",
+    "mochatest:security": "cross-env TS_NODE_FILES=true mocha test/**/SecurityTest.ts",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check",
     "import-sort": "npx import-sort-cli --write 'src/**/*.ts{,x}' 'test/**/*.ts{,x}' 'build/types/**/*.ts{,x}'",
