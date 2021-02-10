@@ -21,6 +21,7 @@ export interface AbstractCurrentConsumption {
   currentInstantAmpsL2?: number;
   currentInstantAmpsL3?: number;
   currentInstantAmpsDC?: number;
+  currentStateOfCharge?: number;
 }
 
 export interface AbstractConsumption {

@@ -70,6 +70,7 @@ export default class AssetStorage {
       currentInstantWattsL1: Utils.convertToFloat(assetToSave.currentInstantWattsL1),
       currentInstantWattsL2: Utils.convertToFloat(assetToSave.currentInstantWattsL2),
       currentInstantWattsL3: Utils.convertToFloat(assetToSave.currentInstantWattsL3),
+      currentStateOfCharge: Utils.convertToFloat(assetToSave.currentStateOfCharge),
     };
     if (assetToSave.lastConsumption) {
       assetMDB.lastConsumption = {

@@ -49,6 +49,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                 cumulatedConsumptionAmps: Math.floor(assetConsumption.currentConsumptionWh / asset.siteArea.voltage),
                 instantAmps: assetConsumption.currentInstantAmps,
                 instantWatts: assetConsumption.currentInstantWatts,
+                stateOfCharge: assetConsumption.currentStateOfCharge,
               };
               // Set Consumption to Asset
               this.assignAssetConsumption(asset, assetConsumption);
@@ -87,5 +88,6 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
     asset.currentInstantWattsL1 = consumption.currentInstantWattsL1;
     asset.currentInstantWattsL2 = consumption.currentInstantWattsL2;
     asset.currentInstantWattsL3 = consumption.currentInstantWattsL3;
+    asset.currentStateOfCharge = consumption.currentStateOfCharge;
   }
 }

@@ -78,6 +78,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
         case AssetType.CONSUMPTION_AND_PRODUCTION:
           consumption.currentInstantWatts = data.power.charge.average - data.power.discharge.average;
           consumption.currentConsumptionWh = data.energy.charge.sum - data.energy.discharge.sum;
+          consumption.currentStateOfCharge = data.percent?.soc?.current;
           break;
       }
     }
