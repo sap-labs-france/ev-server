@@ -16,8 +16,6 @@ import { OICPStatusCode } from '../../../../types/oicp/OICPStatusCode';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../../types/TenantComponents';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'OICPEndpointService';

@@ -909,7 +909,7 @@ export default class OCPPService {
         await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       }
       // Handle OICP
-      if (transaction.oicpData?.session) {
+      if (transaction.oicpData?.session?.id) {
         await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       }
       // Save the transaction
