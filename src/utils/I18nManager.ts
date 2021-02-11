@@ -2,6 +2,7 @@
 import 'moment/locale/fr';
 import 'moment/locale/de';
 import 'moment/locale/es';
+import 'moment/locale/it';
 import 'moment/locale/en-gb';
 import 'moment/locale/pt-br';
 

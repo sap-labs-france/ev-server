@@ -20,12 +20,11 @@ import rfc2047 from 'rfc2047';
 const MODULE_NAME = 'EMailNotificationTask';
 
 export default class EMailNotificationTask implements NotificationTask {
-  private static instance: EMailNotificationTask;
   private emailConfig: EmailConfiguration = Configuration.getEmailConfig();
   private smtpMainClientInstance: SMTPClient;
   private smtpBackupClientInstance: SMTPClient;
 
-  private constructor() {
+  public constructor() {
     // Connect to the SMTP servers
     if (!Utils.isUndefined(this.emailConfig.smtp)) {
       this.smtpMainClientInstance = new SMTPClient({
@@ -37,13 +36,6 @@ export default class EMailNotificationTask implements NotificationTask {
         ssl: this.emailConfig.smtp.secure
       });
     }
-  }
-
-  public static getInstance(): EMailNotificationTask {
-    if (!this.instance) {
-      this.instance = new EMailNotificationTask();
-    }
-    return this.instance;
   }
 
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {

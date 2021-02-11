@@ -22,6 +22,7 @@ export default abstract class CarIntegration {
         if (!internalCar) {
           // New Car: Create it
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
+          externalCar.lastChangedOn = new Date();
           externalCar.createdOn = new Date();
           // Get image
           externalCar.image = await this.getCarCatalogThumb(externalCar);

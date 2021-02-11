@@ -14,11 +14,10 @@ import admin from 'firebase-admin';
 const MODULE_NAME = 'RemotePushNotificationTask';
 
 export default class RemotePushNotificationTask implements NotificationTask {
-  private static instance: RemotePushNotificationTask;
   private firebaseConfig = Configuration.getFirebaseConfig();
   private initialized = false;
 
-  private constructor() {
+  public constructor() {
     // Init
     if (this.firebaseConfig?.type?.length > 0) {
       try {
@@ -42,13 +41,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
         });
       }
     }
-  }
-
-  public static getInstance(): RemotePushNotificationTask {
-    if (!this.instance) {
-      this.instance = new RemotePushNotificationTask();
-    }
-    return this.instance;
   }
 
   public async sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {

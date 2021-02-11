@@ -21,12 +21,12 @@ export default class NotificationHandler {
   private static notificationSources: NotificationSource[] = [
     {
       channel: 'email',
-      notificationTask: EMailNotificationTask.getInstance(),
+      notificationTask: new EMailNotificationTask(),
       enabled: NotificationHandler.notificationConfig.Email ? NotificationHandler.notificationConfig.Email.enabled : false
     },
     {
       channel: 'remote-push-notification',
-      notificationTask: RemotePushNotificationTask.getInstance(),
+      notificationTask: new RemotePushNotificationTask,
       enabled: NotificationHandler.notificationConfig.RemotePushNotification ? NotificationHandler.notificationConfig.RemotePushNotification.enabled : false
     }
   ];
