@@ -260,7 +260,7 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useBackup = false): Promise<void> {
+  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
     try {
       // Check locale
       if (!user.locale || !Constants.SUPPORTED_LOCALES.includes(user.locale)) {
@@ -380,7 +380,7 @@ export default class EMailNotificationTask implements NotificationTask {
         subject: subject,
         text: html,
         html: html
-      }, data, tenant, user, severity, useBackup);
+      }, data, tenant, user, severity, useSmtpClientBackup);
     } catch (error) {
       Logging.logError({
         tenantID: tenant.id,
