@@ -26,7 +26,7 @@ export default class NotificationHandler {
     },
     {
       channel: 'remote-push-notification',
-      notificationTask: new RemotePushNotificationTask,
+      notificationTask: new RemotePushNotificationTask(),
       enabled: NotificationHandler.notificationConfig.RemotePushNotification ? NotificationHandler.notificationConfig.RemotePushNotification.enabled : false
     }
   ];
