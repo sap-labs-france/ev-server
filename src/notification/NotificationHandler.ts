@@ -846,7 +846,7 @@ export default class NotificationHandler {
                   tenantID, notificationSource.channel, null, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED, { chargingStation: chargingStation });
                 // Send
                 for (const adminUser of adminUsers) {
-                // Enabled?
+                  // Enabled?
                   if (adminUser.notificationsActive && adminUser.notifications.sendComputeAndApplyChargingProfilesFailed) {
                     await notificationSource.notificationTask.sendComputeAndApplyChargingProfilesFailed(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
