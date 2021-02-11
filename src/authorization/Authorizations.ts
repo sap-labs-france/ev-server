@@ -771,8 +771,8 @@ export default class Authorizations {
     if (!tag || !tag?.active) {
       // Check OICP User
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-        // Check if user has remote authorization
-        if (tagID === OICPDefaultTagId.RemoteIdentification) {
+        // Check if user has remote authorization or the session is already running
+        if (tagID === OICPDefaultTagId.RemoteIdentification || transaction?.oicpData?.session?.id) {
           return UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
         }
         const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
