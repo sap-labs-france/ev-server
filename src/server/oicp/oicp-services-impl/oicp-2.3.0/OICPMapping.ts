@@ -4,10 +4,10 @@ import { OICPAccessibility, OICPAddressIso19773, OICPAuthenticationMode, OICPCal
 import Address from '../../../../types/Address';
 import BackendError from '../../../../exception/BackendError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import Countries from 'i18n-iso-countries';
 import CountryLanguage from 'country-language';
-import { DataResult } from '../../../../types/DataResult';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -54,26 +54,35 @@ export default class OICPMapping {
   }
 
   /**
-   * Get evses from SiteArea
+   * Get All Charging Stations from given Tenant
    * @param {Tenant} tenant
-   * @param {SiteArea} siteArea
-   * @param options
-   * @return Array of OICP EVSES
    */
-  static async getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseDataRecord[]> {
-    // Build evses array
+  public static async getAllChargingStations(tenant: Tenant, limit: number, skip: number): Promise<ChargingStation[]> {
+    // Result
+    const chargingStations: ChargingStation[] = [];
+    // Get all sites
+    const sites = await SiteStorage.getSites(tenant.id, { issuer: true, onlyPublicSite: true }, { limit, skip });
+    // Get Charging Stations from Sites
+    for (const site of sites.result) {
+      chargingStations.push(...await OICPMapping.getAllChargingStationsFromSite(tenant, site));
+    }
+    // Return Charging Stations
+    return chargingStations;
+  }
+
+  public static async convertChargingStationsToEVSEs(tenant: Tenant, chargingStations: ChargingStation[], options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseDataRecord[]> {
     const evses: OICPEvseDataRecord[] = [];
     // Convert charging stations to evse(s)
-    for (const chargingStation of siteArea.chargingStations) {
+    for (const chargingStation of chargingStations) {
       if (chargingStation.issuer && chargingStation.public) {
         if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
           for (const chargePoint of chargingStation.chargePoints) {
             // OICP does not support multiple connectors in one EVSE object
             // It is not possible to flag if connectors of charge points can charge in parallel or not
-            evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant,siteArea, chargingStation, chargePoint, options));
+            evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation.siteArea, chargingStation, chargePoint, options));
           }
         } else {
-          evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, siteArea, chargingStation, null, options));
+          evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation.siteArea, chargingStation, null, options));
         }
       }
     }
@@ -81,42 +90,40 @@ export default class OICPMapping {
     return evses;
   }
 
-  /**
-   * Get All OICP Evses from given tenant
-   * @param {Tenant} tenant
-   */
-  public static async getAllEvses(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OICPEvseDataRecord>> {
-    // Result
-    const oicpEvsesResult: DataResult<OICPEvseDataRecord> = { count: 0, result: [] };
-    // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id, { issuer: true, onlyPublicSite: true }, { limit, skip });
-    // Convert Sites to Evses
-    for (const site of sites.result) {
-      oicpEvsesResult.result.push(...await OICPMapping.getEvsesFromSite(tenant, site, options));
+  public static async convertChargingStationsToEvseStatuses(tenant: Tenant, chargingStations: ChargingStation[], options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseStatusRecord[]> {
+    const evseStatuses: OICPEvseStatusRecord[] = [];
+    // Convert charging stations to evse status(es)
+    for (const chargingStation of chargingStations) {
+      if (chargingStation.issuer && chargingStation.public) {
+        if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
+          for (const chargePoint of chargingStation.chargePoints) {
+            // OICP does not support multiple connectors in one EVSE object
+            // It is not possible to flag if connectors of charge points can charge in parallel or not
+            evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, chargePoint, options));
+          }
+        } else {
+          evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, null, options));
+        }
+      }
     }
-    // Set count
-    oicpEvsesResult.count = oicpEvsesResult.result.length;
-    // Return EVSEs
-    return oicpEvsesResult;
+    // Return evse status(es)
+    return evseStatuses;
   }
 
   /**
-   * Get All OICP Evse Statuses from given tenant
+   * Get evses from SiteArea
    * @param {Tenant} tenant
+   * @param {SiteArea} siteArea
+   * @param options
+   * @return Array of charging stations
    */
-  public static async getAllEvseStatuses(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OICPEvseStatusRecord>> {
-    // Result
-    const oicpEvsesResult: DataResult<OICPEvseStatusRecord> = { count: 0, result: [] };
-    // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id, { issuer: true, onlyPublicSite: true }, { limit, skip });
-    // Convert Sites to Evses
-    for (const site of sites.result) {
-      oicpEvsesResult.result.push(...await OICPMapping.getEvseStatusesFromSite(tenant, site, options));
-    }
-    // Set count
-    oicpEvsesResult.count = oicpEvsesResult.result.length;
-    // Return EVSE Stauses
-    return oicpEvsesResult;
+  private static async getAllChargingStationsFromSiteArea(tenant: Tenant, siteArea: SiteArea): Promise<ChargingStation[]> {
+    // Get Charging Stations
+    // TODO: Add parameter to select only public charging stations
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
+      { siteAreaIDs: [siteArea.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
+    // Return charging Stations
+    return chargingStations.result;
   }
 
   /**
@@ -293,73 +300,19 @@ export default class OICPMapping {
   }
 
   /**
-   * Get EVSE Statuses from SiteArea
-   * @param {Tenant} tenant
-   * @param {SiteArea} siteArea
-   * @param options
-   * @return Array of OICP EVSE Statuses
-   */
-  private static async getEvseStatusesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseStatusRecord[]> {
-    // Build evses array
-    const evseStatuses: OICPEvseStatusRecord[] = [];
-    // Convert charging stations to evse status(es)
-    for (const chargingStation of siteArea.chargingStations) {
-      if (chargingStation.issuer && chargingStation.public) {
-        if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
-          for (const chargePoint of chargingStation.chargePoints) {
-            // OICP does not support multiple connectors in one EVSE object
-            // It is not possible to flag if connectors of charge points can charge in parallel or not
-            evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, chargePoint, options));
-          }
-        } else {
-          evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, null, options));
-        }
-      }
-    }
-    // Return evses
-    return evseStatuses;
-  }
-
-  /**
-   * Get evse statuses from Site
+   * Get charging stations from Site
    * @param {Tenant} tenant
    * @param {Site} site
    * @param options
-   * @return Array of OICP EVSE Statuses
+   * @return Array of charging stations
    */
-  private static async getEvseStatusesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseStatusRecord[]> {
-    // Build evses array
-    const evseStatuses: OICPEvseStatusRecord[] = [];
+  private static async getAllChargingStationsFromSite(tenant: Tenant, site: Site): Promise<ChargingStation[]> {
+    // Build charging station array
+    const chargingStations: ChargingStation[] = [];
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
       {
-        withOnlyChargingStations: true,
-        withChargingStations: true,
-        siteIDs: [site.id],
-        issuer: true
-      },
-      Constants.DB_PARAMS_MAX_LIMIT);
-    for (const siteArea of siteAreas.result) {
-      // Get charging station statuses from SiteArea
-      evseStatuses.push(...await OICPMapping.getEvseStatusesFromSiteaArea(tenant, siteArea, options));
-    }
-    // Return evse statuses
-    return evseStatuses;
-  }
-
-  /**
-   * Get evses from Site
-   * @param {Tenant} tenant
-   * @param {Site} site
-   * @param options
-   * @return Array of OICP EVSEs
-   */
-  private static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseDataRecord[]> {
-    // Build evses array
-    const evses = [];
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
-      {
-        withOnlyChargingStations: true,
-        withChargingStations: true,
+        withOnlyChargingStations: false,
+        withChargingStations: false,
         withSite: true,
         siteIDs: [site.id],
         issuer: true
@@ -367,10 +320,10 @@ export default class OICPMapping {
       Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       // Get charging stations from SiteArea
-      evses.push(...await OICPMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
+      chargingStations.push(...await OICPMapping.getAllChargingStationsFromSiteArea(tenant, siteArea));
     }
-    // Return evses
-    return evses;
+    // Return charging stations
+    return chargingStations;
   }
 
   /**

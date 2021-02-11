@@ -16,6 +16,7 @@ import NotificationHandler from '../../notification/NotificationHandler';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
 import { OICPAuthorizationStatus } from '../../types/oicp/OICPAuthentication';
+import { OICPBatchSize } from '../../types/oicp/OICPGeneral';
 import { OICPChargeDetailRecord } from '../../types/oicp/OICPChargeDetailRecord';
 import OICPClient from './OICPClient';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
@@ -37,6 +38,7 @@ import _ from 'lodash';
 const MODULE_NAME = 'CpoOICPClient';
 
 export default class CpoOICPClient extends OICPClient {
+
 
   constructor(tenant: Tenant, settings: OicpSetting, oicpEndpoint: OICPEndpoint) {
     super(tenant, settings, oicpEndpoint, OICPRole.CPO);
@@ -229,15 +231,17 @@ export default class CpoOICPClient extends OICPClient {
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
-    // Get all EVSEs from tenant
-    const evses = await OICPMapping.getAllEvses(this.tenant, 0, 0, options);
+    // Get all charging stations from tenant
+    const chargingStations = await OICPMapping.getAllChargingStations(this.tenant, 0, 0);
+    // Convert (public) charging stations to OICP EVSEs
+    const evses = await OICPMapping.convertChargingStationsToEVSEs(this.tenant, chargingStations, options);
     let evsesToProcess: OICPEvseDataRecord[] = [];
     let chargeBoxIDsToProcessFromInput = [];
     // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
     //    - EVSEs (ChargingStations) in error from previous push
     //    - EVSEs (ChargingStations) with status notification from latest pushDate
     if (processAllEVSEs) {
-      evsesToProcess = evses.result;
+      evsesToProcess = evses;
       chargeBoxIDsToProcessFromInput = evsesToProcess.map((evse) => evse.ChargingStationID);
     } else {
       let chargeBoxIDsToProcess = [];
@@ -248,7 +252,7 @@ export default class CpoOICPClient extends OICPClient {
       // Remove duplicates
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
       // Loop through EVSE
-      for (const evse of evses.result) {
+      for (const evse of evses) {
         if (evse) {
           // Check if Charging Station should be processed
           if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.ChargingStationID)) {
@@ -262,18 +266,30 @@ export default class CpoOICPClient extends OICPClient {
     }
     // Only one post request to Hubject for multiple EVSEs
     result.total = evsesToProcess.length;
+    if (evsesToProcess.length > OICPBatchSize.EVSE_DATA) {
+      // Incase of multiple batches:
+      // delete all EVSEs on Hubject by overwriting with empty array
+      // set action type to insert to avoid overwriting each batch with a full load request
+      await this.pushEvseData([], OICPActionType.FULL_LOAD);
+      actionType = OICPActionType.INSERT;
+    }
     if (evsesToProcess) {
       // Process it if not empty
-      try {
-        await this.pushEvseData(evsesToProcess, actionType);
-        result.success = result.total;
-      } catch (error) {
-        result.failure = result.total;
-        result.objectIDsInFailure.push(...chargeBoxIDsToProcessFromInput);
-        result.logs.push(
-          `Failed to update the EVSEs from tenant '${this.tenant.id}': ${String(error.message)}`
-        );
-      }
+      do {
+        // Send EVSEs in batches to avoid maxBodyLength limit of request.
+        const evseBatch = evsesToProcess.splice(0, OICPBatchSize.EVSE_DATA);
+        const evseIDBatch = chargeBoxIDsToProcessFromInput.splice(0, OICPBatchSize.EVSE_DATA);
+        try {
+          await this.pushEvseData(evseBatch, actionType);
+          result.success += evseBatch.length;
+        } catch (error) {
+          result.failure += evseBatch.length;
+          result.objectIDsInFailure.push(...evseIDBatch);
+          result.logs.push(
+            `Failed to update the EVSEs from tenant '${this.tenant.id}': ${String(error.message)}`
+          );
+        }
+      } while (!Utils.isEmptyArray(evsesToProcess));
       if (result.failure > 0) {
         // Send notification to admins
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -346,15 +362,17 @@ export default class CpoOICPClient extends OICPClient {
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
-    // Get all EVSE Statuses from tenant
-    const evseStatuses = await OICPMapping.getAllEvseStatuses(this.tenant, 0, 0, options);
+    // Get all charging stations from tenant
+    const chargingStations = await OICPMapping.getAllChargingStations(this.tenant, 0, 0);
+    // Convert (public) charging stations to OICP EVSE Statuses
+    const evseStatuses = await OICPMapping.convertChargingStationsToEvseStatuses(this.tenant, chargingStations, options);
     let evseStatusesToProcess: OICPEvseStatusRecord[] = [];
     let chargeBoxIDsToProcessFromInput = [];
     // Check if all EVSE Statuses should be processed - in case of delta send - process only following EVSEs:
     //    - EVSEs (ChargingStations) in error from previous push
     //    - EVSEs (ChargingStations) with status notification from latest pushDate
     if (processAllEVSEs) {
-      evseStatusesToProcess = evseStatuses.result;
+      evseStatusesToProcess = evseStatuses;
       chargeBoxIDsToProcessFromInput = evseStatusesToProcess.map((evseStatus) => evseStatus.ChargingStationID);
     } else {
       let chargeBoxIDsToProcess = [];
@@ -365,7 +383,7 @@ export default class CpoOICPClient extends OICPClient {
       // Remove duplicates
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
       // Loop through EVSE statuses
-      for (const evseStatus of evseStatuses.result) {
+      for (const evseStatus of evseStatuses) {
         if (evseStatus) {
           // Check if Charging Station should be processed
           if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evseStatus.ChargingStationID)) {
@@ -576,7 +594,8 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (!pushEvseStatusResponse?.Result || pushEvseStatusResponse?.Result !== true) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_EVSE_STATUSES,
         message: `'pushEvseStatus' Error: '${pushEvseStatusResponse?.StatusCode?.AdditionalInfo ? pushEvseStatusResponse?.StatusCode?.AdditionalInfo : pushEvseStatusResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
         module: MODULE_NAME, method: 'pushEvseStatus',
@@ -722,7 +741,8 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (requestError) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenant.id,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         message: `'authorizeStop' Error: '${authorizeResponse?.StatusCode?.AdditionalInfo ? authorizeResponse?.StatusCode?.AdditionalInfo : authorizeResponse?.StatusCode?.Description}' '${String(requestError?.message)}'`,
@@ -736,7 +756,8 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenant.id,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         module: MODULE_NAME, method: 'authorizeStop',
@@ -808,7 +829,9 @@ export default class CpoOICPClient extends OICPClient {
     cdr.SessionEnd = transaction.oicpData.session.end_datetime;
     cdr.MeterValueStart = Utils.convertWattHourToKiloWattHour(transaction.meterStart, 3); // Optional
     cdr.MeterValueEnd = Utils.convertWattHourToKiloWattHour(transaction.stop.meterStop, 3); // Optional
-    cdr.MeterValueInBetween = { meterValues: transaction.oicpData.session.meterValueInBetween.map((wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, 3)) }; // Optional
+    if (!Utils.isEmptyArray(transaction.oicpData.session.meterValueInBetween)) {
+      cdr.MeterValueInBetween = { meterValues: transaction.oicpData.session.meterValueInBetween.map((wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, 3)) }; // Optional
+    }
     cdr.ConsumedEnergy = Utils.convertWattHourToKiloWattHour(transaction.stop.totalConsumptionWh, 3); // In kW.h
     cdr.SignedMeteringValues; // Optional
     cdr.CalibrationLawVerificationInfo; // Optional
@@ -924,7 +947,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (!notificationStartResponse?.Result || notificationStartResponse?.Result !== true) {
-      Logging.logError({
+      Logging.logWarning({
         tenantID: this.tenant.id,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
@@ -1008,7 +1031,7 @@ export default class CpoOICPClient extends OICPClient {
       }
       transaction.oicpData.session.last_progress_notification = new Date();
       if (!notificationProgressResponse?.Result || notificationProgressResponse?.Result !== true) {
-        Logging.logError({
+        Logging.logWarning({
           tenantID: this.tenant.id,
           user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
@@ -1102,7 +1125,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (!notificationEndResponse?.Result || notificationEndResponse?.Result !== true) {
-      Logging.logError({
+      Logging.logWarning({
         tenantID: this.tenant.id,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
@@ -1178,7 +1201,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = err;
     }
     if (!notificationErrorResponse?.Result || notificationErrorResponse?.Result !== true) {
-      Logging.logError({
+      Logging.logWarning({
         tenantID: this.tenant.id,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
