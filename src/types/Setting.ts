@@ -269,3 +269,6 @@ export interface AssetGreencomConnectionType {
   clientId: string;
   clientSecret: string;
 }
+export interface AccountActivationSetting extends Setting {
+  doNotActivateByDefault: boolean;
+}

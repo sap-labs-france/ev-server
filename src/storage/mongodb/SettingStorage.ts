@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { AccountActivationSetting, AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -55,6 +55,7 @@ export default class SettingStorage {
       if (settingToSave.identifier === 'accountActivation') {
         return {
           _id: settingFilter._id,
+          identifier: settingToSave.identifier,
           doNotActivateByDefault: settingToSave.doNotActivateByDefault,
         };
       }
@@ -341,6 +342,19 @@ export default class SettingStorage {
         crypto: cryptoSetting
       };
     }
+  }
+
+  public static async getAccountActivationSettings(tenantID: string): Promise<AccountActivationSetting> {
+    // Get the account activation settings
+    const settings = await SettingStorage.getSettings(tenantID,
+      { identifier: TenantComponents.ACCOUNT_ACTIVATION },
+      Constants.DB_PARAMS_MAX_LIMIT);
+    const accountActivationSettings = {} as AccountActivationSetting;
+    if (settings && settings.count > 0 && settings.result[0]) {
+      accountActivationSettings.identifier = settings.result[0].identifier,
+      accountActivationSettings.doNotActivateByDefault = settings.result[0].doNotActivateByDefault;
+    }
+    return accountActivationSettings;
   }
 
   public static async getSettings(tenantID: string,

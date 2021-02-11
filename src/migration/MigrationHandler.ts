@@ -26,6 +26,7 @@ import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
 import LogicallyDeleteTagsOfDeletedUsersTask from './tasks/LogicallyDeleteTagsOfDeletedUsersTask';
+import MigrateAccountActivationSettingsFromConfigToDBTask from './tasks/MigrateAccountActivationSettingsFromConfigToDBTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateCryptoSettingsFromConfigToDBTask from './tasks/MigrateCryptoSettingsFromConfigToDBTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
@@ -107,6 +108,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new MigrateCryptoSettingsFromConfigToDBTask());
         currentMigrationTasks.push(new ImportLocalCarCatalogTask());
         currentMigrationTasks.push(new AddLastChangedOnToCarCatalogTask());
+        currentMigrationTasks.push(new MigrateAccountActivationSettingsFromConfigToDBTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
