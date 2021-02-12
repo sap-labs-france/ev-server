@@ -21,42 +21,34 @@ let initialTenant: Tenant;
 function checkSensitiveDataIsObfuscated(message): boolean {
   const bCheck = true;
 
-  // If (typeof message === 'string') { // Check string -  I don't know how to check this scenario
-  // for (const sensitiveData of Constants.SENSITIVE_DATA) {
-  // Check anonimized string
-
-  // Anonymize
-  // message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
-  // }
-  // } else
-
-  if (Array.isArray(message)) { // In case of an array, check every item
+  if (typeof message === 'string') { // In case of a string - check that all of it is anonymized
+    expect(message).to.equal(Constants.ANONYMIZED_VALUE);
+  } else if (Array.isArray(message)) { // In case of an array, check every item
     for (const item of message) {
       checkSensitiveDataIsObfuscated(item);
     }
   } else if (typeof message === 'object') { // In case of object, check every field
     for (const key of Object.keys(message)) {
-      if (typeof message[key] === 'string') { // If the field value is a string, we directly if it is anonymized
+      if (typeof message[key] === 'string') { // If the field value is a string, check directly if it is anonymized
         for (const sensitiveData of Constants.SENSITIVE_DATA) {
           if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
             expect(message[key]).to.equal(Constants.ANONYMIZED_VALUE);
           }
         }
 
-        const dataParts: string[] = message[key].split('&'); // Check for query string
+        const dataParts: string[] = message[key].split('&'); // If the value is a query string, check its parts
         if (dataParts.length > 1) {
           for (let i = 0; i < dataParts.length; i++) {
             const dataPart = dataParts[i];
             for (const sensitiveData of Constants.SENSITIVE_DATA) {
               if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
                 expect(dataPart.substring(sensitiveData.length + 1, dataPart.length)).to.equal(Constants.ANONYMIZED_VALUE);
-                // BCheck = dataPart.substring(sensitiveData.length + 1, dataPart.length) === Constants.ANONYMIZED_VALUE;
               }
             }
           }
         }
       } else {
-        checkSensitiveDataIsObfuscated(message[key]); // Otherwise we apply the method to the field value
+        checkSensitiveDataIsObfuscated(message[key]); // If the field is something else (string or array), we call the method again
       }
     }
   }
@@ -90,8 +82,23 @@ describe('Security tests', function() {
     expect(res.status).to.equal(200);
   });
 
-
   describe('Success cases (tenant utall)', () => {
+    it('Check that sensitive data string is anonymized', async () => {
+      const logId = await Logging.logDebug({
+        source: 'test',
+        tenantID: testData.credentials.tenantId,
+        action: ServerAction.HTTP_REQUEST,
+        message: 'Just a test',
+        module: 'test',
+        method: 'test',
+        detailedMessages: 'password=MyDummyPass'
+      });
+
+      const read = await testData.centralService.logsApi.readById(logId);
+      expect(read.status).to.equal(200);
+
+      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+    });
     it('Check that sensitive data is anonymized in object with string fields', async () => {
       const logId = await Logging.logDebug({
         source: 'test',
