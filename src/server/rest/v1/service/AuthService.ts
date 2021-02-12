@@ -653,8 +653,8 @@ export default class AuthService {
         message: 'Wrong Verification Token'
       });
     }
-    const accountActivationSetting = await SettingStorage.getSettingByIdentifier(tenantID, UserSettingsType.USER);
-    const userStatus = accountActivationSetting.content.accountActivation.doNotActivateByDefault ? UserStatus.INACTIVE : UserStatus.ACTIVE;
+    const userSetting = await SettingStorage.getSettingByIdentifier(tenantID, UserSettingsType.USER);
+    const userStatus = userSetting.content.accountActivation.doNotActivateByDefault ? UserStatus.INACTIVE : UserStatus.ACTIVE;
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, userStatus);
     // For integration with billing

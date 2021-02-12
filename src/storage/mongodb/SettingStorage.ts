@@ -336,7 +336,7 @@ export default class SettingStorage {
   }
 
   public static async getUserSettings(tenantID: string): Promise<UserSetting> {
-    // Get the account activation settings
+    // Get the user settings
     const settings = await SettingStorage.getSettings(tenantID,
       { identifier: UserSettingsType.USER },
       Constants.DB_PARAMS_MAX_LIMIT);
