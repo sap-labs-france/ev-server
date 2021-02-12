@@ -10,6 +10,5 @@ enum TenantComponents {
   SMART_CHARGING = 'smartCharging',
   CAR = 'car',
   CRYPTO = 'crypto',
-  ACCOUNT_ACTIVATION = 'accountActivation'
 }
 export default TenantComponents;

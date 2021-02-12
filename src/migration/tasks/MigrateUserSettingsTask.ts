@@ -1,14 +1,13 @@
-import { AccountActivationSetting, CryptoKeySetting, CryptoSettingsType, SettingDB } from '../../types/Setting';
+import { UserSetting, UserSettingsContentType, UserSettingsType } from '../../types/Setting';
 
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
-export default class MigrateAccountActivationSettingsFromConfigToDBTask extends MigrationTask {
+export default class MigrateUserSettingsTask extends MigrationTask {
   public async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
@@ -17,15 +16,20 @@ export default class MigrateAccountActivationSettingsFromConfigToDBTask extends 
   }
 
   public async migrateTenant(tenant: Tenant): Promise<void> {
-    const accountActivationSetting = await SettingStorage.getAccountActivationSettings(tenant.id);
-    // If no account activation setting exists, initialize it
-    if (Utils.isEmptyObject(accountActivationSetting)) {
-      // Create new account activation setting in tenant
+    const userSetting = await SettingStorage.getUserSettings(tenant.id);
+    // If no user setting exists, initialize it
+    if (Utils.isEmptyObject(userSetting)) {
+      // Create new user setting with account activation param
       const settingsToSave = {
-        identifier: TenantComponents.ACCOUNT_ACTIVATION,
+        identifier: UserSettingsType.USER,
+        content: {
+          type: UserSettingsContentType.ACCOUNT_ACTIVATION,
+          accountActivation: {
+            doNotActivateByDefault: false
+          }
+        },
         createdOn: new Date(),
-        doNotActivateByDefault: false
-      } as AccountActivationSetting;
+      } as UserSetting;
 
       await SettingStorage.saveSettings(tenant.id, settingsToSave);
     }
@@ -36,6 +40,6 @@ export default class MigrateAccountActivationSettingsFromConfigToDBTask extends 
   }
 
   public getName(): string {
-    return 'MigrateAccountActivationSettingsFromConfig';
+    return 'MigrateUserSettings';
   }
 }

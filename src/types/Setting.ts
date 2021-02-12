@@ -3,10 +3,9 @@ import TenantComponents from './TenantComponents';
 
 export interface Setting {
   id?: string;
-  identifier: TenantComponents;
+  identifier: TenantComponents | UserSettingsType;
   sensitiveData?: string[];
   category?: 'business' | 'technical';
-  doNotActivateByDefault?: boolean;
 }
 
 export interface SettingDB extends CreatedUpdatedProps, Setting {
@@ -22,7 +21,7 @@ export interface SettingLink {
 }
 
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType | CryptoSettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType | CryptoSettingsType | UserSettingsContentType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -33,6 +32,7 @@ export interface SettingDBContent {
   sapSmartCharging?: SapSmartChargingSetting;
   asset?: AssetSetting;
   crypto?: CryptoSetting;
+  accountActivation?: AccountActivationSetting;
 }
 
 export enum PricingSettingsType {
@@ -269,6 +269,19 @@ export interface AssetGreencomConnectionType {
   clientId: string;
   clientSecret: string;
 }
-export interface AccountActivationSetting extends Setting {
+
+export enum UserSettingsType {
+  USER = 'user'
+}
+
+export enum UserSettingsContentType {
+  ACCOUNT_ACTIVATION = 'accountActivation',
+}
+
+export interface UserSetting extends Setting {
+  identifier: UserSettingsType.USER;
+  accountActivation?: AccountActivationSetting;
+}
+export interface AccountActivationSetting {
   doNotActivateByDefault: boolean;
 }

@@ -1,7 +1,6 @@
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType, UserSettingsContentType } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
-import TenantComponents from '../../../../../types/TenantComponents';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -189,11 +188,13 @@ export default class SettingSecurity {
             settings.content.asset.connections.push(sanitizedConnection);
           }
           break;
+        case UserSettingsContentType.ACCOUNT_ACTIVATION:
+          settings.content.accountActivation =
+          {
+            doNotActivateByDefault: request.content.accountActivation.doNotActivateByDefault
+          };
+          break;
       }
-    }
-    if (request.identifier === TenantComponents.ACCOUNT_ACTIVATION) {
-    // If (request.identifier.toString() === 'accountActivation') {
-      settings.doNotActivateByDefault = request.doNotActivateByDefault;
     }
     return settings;
   }

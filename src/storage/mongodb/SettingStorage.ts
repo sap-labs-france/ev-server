@@ -1,4 +1,4 @@
-import { AccountActivationSetting, AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, UserSetting, UserSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -51,21 +51,12 @@ export default class SettingStorage {
       settingFilter._id = new ObjectID();
     }
     // Properties to save
-    const settingMDB = (() => {
-      if (settingToSave.identifier === 'accountActivation') {
-        return {
-          _id: settingFilter._id,
-          identifier: settingToSave.identifier,
-          doNotActivateByDefault: settingToSave.doNotActivateByDefault,
-        };
-      }
-      return {
-        _id: settingFilter._id,
-        identifier: settingToSave.identifier,
-        content: settingToSave.content,
-        sensitiveData: settingToSave.sensitiveData
-      };
-    })();
+    const settingMDB = {
+      _id: settingFilter._id,
+      identifier: settingToSave.identifier,
+      content: settingToSave.content,
+      sensitiveData: settingToSave.sensitiveData
+    };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
     await global.database.getCollection<SettingDB>(tenantID, 'settings').findOneAndUpdate(
@@ -344,17 +335,16 @@ export default class SettingStorage {
     }
   }
 
-  public static async getAccountActivationSettings(tenantID: string): Promise<AccountActivationSetting> {
+  public static async getUserSettings(tenantID: string): Promise<UserSetting> {
     // Get the account activation settings
     const settings = await SettingStorage.getSettings(tenantID,
-      { identifier: TenantComponents.ACCOUNT_ACTIVATION },
+      { identifier: UserSettingsType.USER },
       Constants.DB_PARAMS_MAX_LIMIT);
-    const accountActivationSettings = {} as AccountActivationSetting;
+    const userSettings = {} as UserSetting;
     if (settings && settings.count > 0 && settings.result[0]) {
-      accountActivationSettings.identifier = settings.result[0].identifier,
-      accountActivationSettings.doNotActivateByDefault = settings.result[0].doNotActivateByDefault;
+      userSettings.id = settings.result[0].id;
     }
-    return accountActivationSettings;
+    return userSettings;
   }
 
   public static async getSettings(tenantID: string,

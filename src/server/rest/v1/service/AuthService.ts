@@ -21,6 +21,7 @@ import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
+import { UserSettingsType } from '../../../../types/Setting';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -652,8 +653,8 @@ export default class AuthService {
         message: 'Wrong Verification Token'
       });
     }
-    const accountActivationSetting = await SettingStorage.getSettingByIdentifier(tenantID, 'accountActivation');
-    const userStatus = accountActivationSetting.doNotActivateByDefault ? UserStatus.INACTIVE : UserStatus.ACTIVE;
+    const accountActivationSetting = await SettingStorage.getSettingByIdentifier(tenantID, UserSettingsType.USER);
+    const userStatus = accountActivationSetting.content.accountActivation.doNotActivateByDefault ? UserStatus.INACTIVE : UserStatus.ACTIVE;
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, userStatus);
     // For integration with billing
