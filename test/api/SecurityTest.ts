@@ -92,7 +92,7 @@ describe('Security tests', function() {
 
 
   describe('Success cases (tenant utall)', () => {
-    it.only('Check that sensitive data is anonymized in object with string fields', async () => {
+    it('Check that sensitive data is anonymized in object with string fields', async () => {
       const logId = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
@@ -125,7 +125,7 @@ describe('Security tests', function() {
       const bDataObfuscated = checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
       expect(bDataObfuscated).to.equal(true);
     });
-    it.only('Check that sensitive data is anonymized in object with query string fields', async () => {
+    it('Check that sensitive data is anonymized in object with query string fields', async () => {
       const logId = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
@@ -144,7 +144,7 @@ describe('Security tests', function() {
 
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
-    it.only('Check that sensitive data is anonymized in array with objects', async () => {
+    it('Check that sensitive data is anonymized in array with objects', async () => {
       const logId = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
