@@ -69,6 +69,10 @@ export default class MongoDBStorage {
       { fields: { email: 1 }, options: { unique: true } },
       { fields: { 'address.coordinates': '2dsphere' } },
     ]);
+    // Users Import
+    await this.handleIndexesInCollection(tenantID, 'usersImport', [
+      { fields: { email: 1 }, options: { unique: true } }
+    ]);
     await this.handleIndexesInCollection(tenantID, 'eulas');
     // Assets
     await this.handleIndexesInCollection(tenantID, 'assets', [

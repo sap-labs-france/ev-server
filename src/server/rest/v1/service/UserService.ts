@@ -18,6 +18,7 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
+import JSONStream from 'JSONStream';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
@@ -821,12 +822,9 @@ export default class UserService {
     next();
   }
 
-  public static async import(action: ServerAction, req: Request, res: Response, next: NextFunction) {
-
-    const busboy = new Busboy({ headers: req.headers });
-
+  public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canCreateUser(req.user)) {
+    if (!Authorizations.canImportUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -834,32 +832,81 @@ export default class UserService {
         module: MODULE_NAME, method: 'handleImportUser'
       });
     }
-
+    const busboy = new Busboy({ headers: req.headers });
     req.pipe(busboy);
-
-    const converter = csvToJson({
-      trim:true,
-      delimiter:['\t'],
-      quote: 'off'
-    });
-
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-      file.pipe(converter);
-      file.on('end', function() {
-        console.log('File [' + fieldname + '] Finished');
-      });
+      if (mimetype === 'text/csv') {
+        const converter = csvToJson({
+          trim: true,
+          delimiter: ['\t'],
+          quote: 'off'
+        });
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        converter.subscribe(async function(user) {
+          try {
+            const newUploadedUser = {
+              name: user.Name,
+              firstName: user.First_Name,
+              email: user.Email,
+              role: user.Role,
+              importedBy: req.user.id
+            };
+            return await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
+          } catch (error) {
+            Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleUpdloadUsersFile',
+              action: action,
+              message: 'User cannot be imported',
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
+        });
+        file.pipe(converter);
+      } else if (mimetype === 'application/json') {
+        const parser = JSONStream.parse('users.*');
+        parser.on('data', async function(user) {
+          try {
+            const newUploadedUser = {
+              name: user.Name,
+              firstName: user.First_Name,
+              email: user.Email,
+              role: user.Role,
+              importedBy: req.user.id
+            };
+            await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
+          } catch (error) {
+            Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleUpdloadUsersFile',
+              action: action,
+              message: 'User cannot be imported',
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
+        });
+        file.pipe(parser);
+      } else {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.INVALID_FILE_FORMAT,
+          message: 'Invalid file format',
+          module: MODULE_NAME, method: 'handleUploadUsersFile',
+          user: req.user,
+          action: action
+        });
+      }
     });
     busboy.on('finish', function() {
-      console.log('Done parsing form!');
-      res.send('success');
+      Logging.logInfo({
+        tenantID: req.user.tenantID,
+        action: action,
+        module: MODULE_NAME, method: 'handleUploadUsersFile',
+        user: req.user,
+        message: 'File successfully uploaded',
+      });
       res.end();
     });
-
-    converter.subscribe(async (json) => new Promise(async (resolve,reject) => {
-      await UserStorage.saveImportedUser(req.user.tenantID, json);
-      resolve();
-    }));
-
   }
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
