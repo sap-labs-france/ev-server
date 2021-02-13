@@ -129,7 +129,7 @@ export default class UserStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Read DB
-    const userImageMDB: { _id: string; image: string } = await global.database.getCollection(tenantID, 'userimages')
+    const userImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'userimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getUserImage', uniqueTimerID, userImageMDB);
@@ -148,7 +148,7 @@ export default class UserStorage {
       // At least one Site
       if (siteIDs && siteIDs.length > 0) {
         // Create the lis
-        await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+        await global.database.getCollection<User>(tenantID, 'siteusers').deleteMany({
           'userID': Utils.convertToObjectID(userID),
           'siteID': { $in: siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
         });
@@ -176,7 +176,7 @@ export default class UserStorage {
         });
       }
       // Execute
-      await global.database.getCollection<any>(tenantID, 'siteusers').insertMany(siteUsersMDB);
+      await global.database.getCollection<User>(tenantID, 'siteusers').insertMany(siteUsersMDB);
     }
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'addSitesToUser', uniqueTimerID, siteIDs);
