@@ -711,7 +711,7 @@ export default class Logging {
     }
   }
 
-  private static anonymizeSensitiveData(message: any) {
+  private static anonymizeSensitiveData(message: any): void {
     if (!message || typeof message === 'number' || Utils.isBoolean(message) || typeof message === 'function') {
       // eslint-disable-next-line no-useless-return
       return;
