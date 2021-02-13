@@ -3,7 +3,6 @@ import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
