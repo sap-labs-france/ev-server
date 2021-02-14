@@ -6,15 +6,13 @@
   "configurations": [
     {
       "name": "Debug Mocha Tests",
-      "type": "node",
+      "type": "pwa-node",
       "request": "attach",
       "port": 9229,
-      "protocol": "inspector",
       "timeout": 30000,
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "stopOnEntry": false
     },
     {
       "name": "Debug ev-server",
