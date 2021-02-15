@@ -721,6 +721,9 @@ export default class Logging {
       for (const sensitiveData of Constants.SENSITIVE_DATA) {
         // Anonymize
         message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
+        // Should be
+        // message=message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE); //in order to anonymize the FULL string
+        // OR we can use the approach for QUERY STRING from lines  744-755
       }
     } else if (Array.isArray(message)) {
       for (const item of message) {
