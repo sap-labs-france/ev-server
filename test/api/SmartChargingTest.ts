@@ -1,8 +1,10 @@
+import Asset, { AssetType } from '../../src/types/Asset';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import { SapSmartChargingSetting, SettingDB, SmartChargingSetting, SmartChargingSettingsType } from '../../src/types/Setting';
 import Transaction, { CSPhasesUsed } from '../types/Transaction';
 import chai, { assert, expect } from 'chai';
 
+import AssetStorage from '../../src//storage/mongodb/AssetStorage';
 import CentralServerService from './client/CentralServerService';
 import { ChargingProfile } from '../types/ChargingProfile';
 import ChargingStationContext from './context/ChargingStationContext';
@@ -44,11 +46,12 @@ class TestData {
   public createdUsers = [];
   public isForcedSynchro: boolean;
   public pending = false;
+  public newAsset: Asset;
 
   public static async setSmartChargingValidCredentials(testData): Promise<void> {
     const sapSmartChargingSettings = TestData.getSmartChargingSettings();
-    await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
     sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant().id, sapSmartChargingSettings.password);
+    await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
     aCBufferFactor = 1 + sapSmartChargingSettings.limitBufferAC / 100,
     dCBufferFactor = 1 + sapSmartChargingSettings.limitBufferDC / 100,
     smartChargingIntegration = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);
@@ -1046,6 +1049,126 @@ describe('Smart Charging Service', function() {
       const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea(),
         [testData.chargingStationContext.getChargingStation().id]);
       expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
+    });
+  });
+
+  describe('Test for Asset management', () => {
+    before(async () => {
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.newAsset = {
+        id: '601d381a8bcb0639a4bfaca2',
+        name :  'Building',
+        siteAreaID :  testData.siteAreaContext.getSiteArea().id as string,
+        assetType :  AssetType.CONSUMPTION,
+        fluctuationPercent : 10,
+        staticValueWatt : 100000,
+        connectionID :  null,
+        dynamicAsset : true,
+        issuer: true,
+        currentInstantWatts: 70000,
+        values: [],
+        coordinates: [],
+        lastConsumption: {
+          timestamp: new Date()
+        }
+      } as Asset;
+      // Create Assets
+      await AssetStorage.saveAsset(testData.tenantContext.getTenant().id, testData.newAsset);
+    });
+
+    after(async () => {
+      chargingStationConnector1Available.timestamp = new Date().toISOString();
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Available);
+
+      // Reset modifications on siteArea
+      testData.siteAreaContext.getSiteArea().smartCharging = false;
+      testData.siteAreaContext.getSiteArea().maximumPower = 200000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+
+      await AssetStorage.deleteAsset(testData.tenantContext.getTenant().id, testData.newAsset.id);
+    });
+
+
+    it('Check if charging station is limited with consumption from building', async () => {
+      testData.siteAreaContext.getSiteArea().maximumPower = 100000;
+      testData.siteAreaContext.getSiteArea().smartCharging = true;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+      chargingStationConnector1Charging.timestamp = new Date().toISOString();
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
+      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        {
+          'startPeriod': 0,
+          'limit': 86.957
+        },
+        {
+          'startPeriod': 900,
+          'limit': 86.957
+        },
+        {
+          'startPeriod': 1800,
+          'limit': 86.957
+        },
+      ]);
+    });
+
+    it('Check if charging station is limited with consumption from building', async () => {
+      testData.newAsset.lastConsumption = { timestamp: new Date('2021-02-05T14:16:19.001Z'), value: 0 };
+      testData.siteAreaContext.getSiteArea().maximumPower = 120000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      await AssetStorage.saveAsset(testData.tenantContext.getTenant().id, testData.newAsset);
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+      chargingStationConnector1Charging.timestamp = new Date().toISOString();
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
+      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        {
+          'startPeriod': 0,
+          'limit': 86.957
+        },
+        {
+          'startPeriod': 900,
+          'limit': 86.957
+        },
+        {
+          'startPeriod': 1800,
+          'limit': 86.957
+        },
+      ]);
+    });
+
+    it('Check if solar panel production is added to capacity', async () => {
+      testData.siteAreaContext.getSiteArea().maximumPower = 1;
+      testData.siteAreaContext.getSiteArea().smartCharging = true;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      testData.newAsset.name = 'Solar Panel';
+      testData.newAsset.currentInstantWatts = -44999;
+      testData.newAsset.staticValueWatt = 50000,
+      testData.newAsset.fluctuationPercent = 50;
+      testData.newAsset.assetType = AssetType.PRODUCTION;
+      testData.newAsset.lastConsumption = { timestamp: new Date(), value: 0 };
+      await AssetStorage.saveAsset(testData.tenantContext.getTenant().id, testData.newAsset);
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        {
+          'startPeriod': 0,
+          'limit': 86.957
+        },
+        {
+          'startPeriod': 900,
+          'limit': 86.957
+        },
+        {
+          'startPeriod': 1800,
+          'limit': 86.957
+        },
+      ]);
+
     });
   });
 });

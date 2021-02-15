@@ -680,7 +680,8 @@ export default class Logging {
     // Process
     log.process = log.process ? log.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master');
     // Anonymize message
-    log.detailedMessages = Logging.anonymizeSensitiveData(log.detailedMessages);
+    log.detailedMessages = Utils.cloneObject(log.detailedMessages);
+    Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check
     if (log.detailedMessages) {
       // Array?
@@ -710,7 +711,7 @@ export default class Logging {
     }
   }
 
-  private static anonymizeSensitiveData(message: any): Promise<any> {
+  private static anonymizeSensitiveData(message: any): void {
     if (!message || typeof message === 'number' || typeof message === 'boolean' || typeof message === 'function') {
       // eslint-disable-next-line no-useless-return
       return;
@@ -720,13 +721,10 @@ export default class Logging {
         message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
       }
     } else if (Array.isArray(message)) {
-      const items = [];
       for (const item of message) {
-        items.push(Logging.anonymizeSensitiveData(item))
+        Logging.anonymizeSensitiveData(item);
       }
-      message = items;
     } else if (typeof message === 'object') {
-      message = Utils.cloneObject(message);
       for (const key of Object.keys(message)) {
         // String?
         if (typeof message[key] === 'string') {
@@ -751,7 +749,7 @@ export default class Logging {
             message[key] = dataParts.join('&');
           }
         } else {
-          message[key] = Logging.anonymizeSensitiveData(message[key]);
+          Logging.anonymizeSensitiveData(message[key]);
         }
       }
     } else {
@@ -766,7 +764,6 @@ export default class Logging {
         detailedMessages: { message: message }
       });
     }
-    return message;
   }
 
   // Console Log
