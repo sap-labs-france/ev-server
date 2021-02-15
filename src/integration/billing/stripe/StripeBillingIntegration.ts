@@ -438,7 +438,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async chargeInvoice(invoice: BillingInvoice): Promise<unknown> {
     await this.checkConnection();
-
     // Fetch the invoice from stripe (do NOT TRUST the local copy)
     let stripeInvoice : invoices.IInvoice = await this.stripe.invoices.retrieve(invoice.invoiceID);
     // Check the current invoice status
