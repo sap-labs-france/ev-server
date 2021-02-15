@@ -298,4 +298,5 @@ export enum ChargerVendor {
   MENNEKES = 'MENNEKES',
   KEBA = 'Keba AG',
   SAP_LABS_FRANCE = 'SAP Labs France Caen',
+  CIRCONTROL = 'CIRCONTROL',
 }

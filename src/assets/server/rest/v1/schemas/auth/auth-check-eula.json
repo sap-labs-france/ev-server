@@ -1,0 +1,16 @@
+{
+  "title": "Check Eula",
+  "type": "object",
+  "properties": {
+    "Email": {
+      "$ref": "common.json#/definitions/email"
+    },
+    "Tenant": {
+      "$ref": "common.json#/definitions/subdomain"
+    }
+  },
+  "required": [
+    "Email",
+    "Tenant"
+  ]
+}

@@ -37,7 +37,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
 
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIGetTokensTaskConfig): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullEmspTokensLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPIPullEmspTokensLock(tenant.id, ocpiEndpoint, config.partial);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
@@ -46,7 +46,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_PULL_TOKENS,
-            message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the ocpiendpoint.`
           });
           return;
         }
@@ -55,7 +55,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_PULL_TOKENS,
-            message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
           return;
         }
@@ -63,7 +63,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PULL_TOKENS,
-          message: `The get tokens process for endpoint ${ocpiEndpoint.name} is being processed`
+          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
@@ -73,7 +73,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PULL_TOKENS,
-          message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed`,
+          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {

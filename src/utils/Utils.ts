@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
@@ -188,12 +188,12 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
-  public static objectHasProperty(object: any, key: string): boolean {
-    return _.has(object, key);
+  public static objectHasProperty(obj: any, key: string): boolean {
+    return _.has(obj, key);
   }
 
-  public static isBooleanValue(value: boolean): boolean {
-    return _.isBoolean(value);
+  public static isBoolean(obj: any): boolean {
+    return typeof obj === 'boolean';
   }
 
   public static generateUUID(): string {
@@ -371,7 +371,7 @@ export default class Utils {
     // Check boolean
     if (value) {
       // Check the type
-      if (typeof value === 'boolean') {
+      if (Utils.isBoolean(value)) {
         // Already a boolean
         result = value;
       } else {
@@ -1036,6 +1036,9 @@ export default class Utils {
   }
 
   public static cloneObject<T>(object: T): T {
+    if (Utils.isNullOrUndefined(object)) {
+      return object;
+    }
     return JSON.parse(JSON.stringify(object)) as T;
   }
 
@@ -1341,6 +1344,32 @@ export default class Utils {
 
   public static isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
+  }
+
+  public static parseConfigCryptoAlgorithm(algo: string): CryptoKeyProperties {
+    const [blockCypher, blockSize, operationMode] = algo.split('-');
+    return {
+      blockCypher: blockCypher,
+      blockSize: Utils.convertToInt(blockSize),
+      operationMode: operationMode
+    };
+  }
+
+  public static buildAlgorithm(properties: CryptoKeyProperties): string {
+    return `${properties.blockCypher}-${properties.blockSize}-${properties.operationMode}`;
+  }
+
+  public static generateKey(): string {
+    // TODO change 16 to 32 and test on Mac
+    return crypto.randomBytes(16).toString('hex');
+  }
+
+  public static getDefaultKeyProperties(): CryptoKeyProperties {
+    return {
+      blockCypher: 'aes',
+      blockSize: 256,
+      operationMode: 'ctr'
+    };
   }
 
   public static getHostname(): string {
