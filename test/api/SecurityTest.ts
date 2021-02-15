@@ -21,7 +21,7 @@ let initialTenant: Tenant;
 function checkSensitiveDataIsObfuscated(message): boolean {
   const bCheck = true;
 
-  if (typeof message === 'string') { // In case of a string - check that all of it is anonymized
+  if (typeof message === 'string') { // In case of a string - check that all the string is anonymized
     expect(message).to.equal(Constants.ANONYMIZED_VALUE);
   } else if (Array.isArray(message)) { // In case of an array, check every item
     for (const item of message) {
@@ -29,14 +29,14 @@ function checkSensitiveDataIsObfuscated(message): boolean {
     }
   } else if (typeof message === 'object') { // In case of object, check every field
     for (const key of Object.keys(message)) {
-      if (typeof message[key] === 'string') { // If the field value is a string, check directly if it is anonymized
+      if (typeof message[key] === 'string') { // If the field value is a string and the key is part of sensitive data, check if the value is anonymized
         for (const sensitiveData of Constants.SENSITIVE_DATA) {
           if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
             expect(message[key]).to.equal(Constants.ANONYMIZED_VALUE);
           }
         }
 
-        const dataParts: string[] = message[key].split('&'); // If the value is a query string, check its parts
+        const dataParts: string[] = message[key].split('&'); // If the value is a query string, check if its parts contain sensitive data and if it is anonymized
         if (dataParts.length > 1) {
           for (let i = 0; i < dataParts.length; i++) {
             const dataPart = dataParts[i];
@@ -48,7 +48,7 @@ function checkSensitiveDataIsObfuscated(message): boolean {
           }
         }
       } else {
-        checkSensitiveDataIsObfuscated(message[key]); // If the field is something else (string or array), we call the method again
+        checkSensitiveDataIsObfuscated(message[key]); // If the field is something else, we call the method again
       }
     }
   }
@@ -83,7 +83,7 @@ describe('Security tests', function() {
   });
 
   describe('Success cases (tenant utall)', () => {
-    it('Check that sensitive data string is anonymized', async () => {
+    it('Check that sensitive data string is anonymized', async () => { // Will fail
       const logId = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
@@ -132,7 +132,7 @@ describe('Security tests', function() {
       const bDataObfuscated = checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
       expect(bDataObfuscated).to.equal(true);
     });
-    it('Check that sensitive data is anonymized in object with query string fields', async () => {
+    it('Check that sensitive data is anonymized in object with query string fields', async () => { // Passes because query strings are treated correctly in object fields
       const logId = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
@@ -142,7 +142,8 @@ describe('Security tests', function() {
         method: 'test',
         detailedMessages: {
           'message1': 'name=test&firstName=testtest',
-          'message2': 'text that is ok'
+          'message2': 'text that is ok',
+          'password': 'password=testtesttest'
         }
       });
 
@@ -151,7 +152,7 @@ describe('Security tests', function() {
 
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
-    it('Check that sensitive data is anonymized in array with objects', async () => {
+    it('Check that sensitive data is anonymized in array with strings', async () => { // Will fail
       const logId = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
@@ -160,25 +161,63 @@ describe('Security tests', function() {
         module: 'test',
         method: 'test',
         detailedMessages: [
-          { 'name':'test' },
-          { 'firstName':'test', },
-          {
-            'password':'test',
-            'repeatPassword':'test'
-          },
-          { 'captcha':'test' },
-          { 'email':'test' },
-          { 'coordinates':'test' },
-          { 'latitude':'test' },
-          { 'longitude':'test' },
-          { 'Authorization':'test' },
-          { 'client_id':'test' },
-          { 'client_secret':'test' },
-          {
-            'refresh_token':'test',
-            'localToken':'test',
-            'token':'test'
-          }]
+          'name=test',
+          'firstName=test',
+          'password=test&repeatPassword=test',
+          'captcha=test',
+          'email=test',
+          'coordinates=test',
+          'latitude=test&longitude=test',
+          'Authorization=test&client_id=test&client_secret=test&refresh_token=test&localToken=test&token=test'
+        ]
+      });
+
+      const read = await testData.centralService.logsApi.readById(logId);
+      expect(read.status).to.equal(200);
+
+      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+    });
+    it('Check that everything goes well if detailed message is boolean', async () => { // Will fail
+      const logId = await Logging.logDebug({
+        source: 'test',
+        tenantID: testData.credentials.tenantId,
+        action: ServerAction.HTTP_REQUEST,
+        message: 'Just a test',
+        module: 'test',
+        method: 'test',
+        detailedMessages: true // Is this a valid usecase?
+      });
+
+      const read = await testData.centralService.logsApi.readById(logId);
+      expect(read.status).to.equal(200);
+
+      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+    });
+    it('Check that everything goes well if detailed message is number', async () => { // Will fail
+      const logId = await Logging.logDebug({
+        source: 'test',
+        tenantID: testData.credentials.tenantId,
+        action: ServerAction.HTTP_REQUEST,
+        message: 'Just a test',
+        module: 'test',
+        method: 'test',
+        detailedMessages: 123 // Is this a valid usecase?
+      });
+
+      const read = await testData.centralService.logsApi.readById(logId);
+      expect(read.status).to.equal(200);
+
+      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+    });
+    it('Check that everything goes well if detailed message is object with sensitive data field number', async () => { // Should fail, but doesn't
+      const logId = await Logging.logDebug({
+        source: 'test',
+        tenantID: testData.credentials.tenantId,
+        action: ServerAction.HTTP_REQUEST,
+        message: 'Just a test',
+        module: 'test',
+        method: 'test',
+        detailedMessages: { password: 123 } // Is this a valid usecase?
       });
 
       const read = await testData.centralService.logsApi.readById(logId);
