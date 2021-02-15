@@ -65,7 +65,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
   private filterConsumptionRequest(asset: Asset, data: any): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
     // Check if result is array of consumptions (happens when no consumption was received over some time)
-    if (Array.isArray(data.power.data) || Array.isArray(data.power.charge.data)) {
+    if (Array.isArray(data.power?.data) || Array.isArray(data.power?.charge?.data)) {
       switch (asset.assetType) {
         case AssetType.CONSUMPTION:
           for (let i = 0; i < data.energy.data.length; i++) {
