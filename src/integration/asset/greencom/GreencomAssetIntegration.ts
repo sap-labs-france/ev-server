@@ -1,7 +1,7 @@
 import Asset, { AssetType } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
-import Consumption, { AbstractCurrentConsumption } from '../../../types/Consumption';
 
+import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -27,7 +27,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     await this.connect();
   }
 
-  public async retrieveConsumption(asset: Asset, manualCall?: boolean): Promise<AbstractCurrentConsumption> {
+  public async retrieveConsumption(asset: Asset, manualCall?: boolean): Promise<AbstractCurrentConsumption[]> {
     // Set new Token
     const token = await this.connect();
     const request = manualCall ?
@@ -62,10 +62,64 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     }
   }
 
-  private filterConsumptionRequest(asset: Asset, data: any): AbstractCurrentConsumption {
-    const consumption = {} as AbstractCurrentConsumption;
-    // Convert data
-    if (data.power && data.energy) {
+  private filterConsumptionRequest(asset: Asset, data: any): AbstractCurrentConsumption[] {
+    const consumptions: AbstractCurrentConsumption[] = [];
+    // Check if result is array of consumptions (happens when no consumption was received over some time)
+    if (Array.isArray(data.power.data) || Array.isArray(data.power.charge.data)) {
+      switch (asset.assetType) {
+        case AssetType.CONSUMPTION:
+          for (let i = 0; i < data.energy.data.length; i++) {
+            const consumption = {
+              currentConsumptionWh: data.energy.data[i].value,
+              lastConsumption: {
+                // Timestamp in array is always start date of the one minute interval
+                timestamp: moment(data.energy.data[i].timestamp).add(1, 'minutes').toDate(),
+                value: data.energy.data[i].value
+              },
+              currentInstantWatts: data.power.data[i].value,
+            } as AbstractCurrentConsumption;
+            if (asset.siteArea?.voltage) {
+              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+            }
+            consumptions.push(consumption);
+          }
+          break;
+        case AssetType.PRODUCTION:
+          for (let i = 0; i < data.energy.data.length; i++) {
+            const consumption = {
+              currentConsumptionWh: data.energy.data[i].value * -1,
+              lastConsumption: {
+                timestamp: moment(data.energy.data[i].timestamp).add(1, 'minutes').toDate(),
+                value: data.energy.data[i].value
+              },
+              currentInstantWatts: data.power.data[i].value * -1,
+            } as AbstractCurrentConsumption;
+            if (asset.siteArea?.voltage) {
+              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+            }
+            consumptions.push(consumption);
+          }
+          break;
+        case AssetType.CONSUMPTION_AND_PRODUCTION:
+          for (let i = 0; i < data.energy.charge.data.length; i++) {
+            const consumption = {
+              currentConsumptionWh: data.energy.charge.data[i].value - data.energy.discharge.data[i].value,
+              lastConsumption:{
+                timestamp: moment(data.energy.charge.data[i].timestamp).add(1, 'minutes').toDate(),
+                value: data.energy.charge.data[i].value - data.energy.discharge.data[i].value,
+              },
+              currentInstantWatts: data.power.charge.data[i].value - data.power.discharge.data[i].value,
+              currentStateOfCharge: data.percent?.soc?.data[i].value,
+            } as AbstractCurrentConsumption;
+            if (asset.siteArea?.voltage) {
+              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+            }
+            consumptions.push(consumption);
+          }
+          break;
+      }
+    } else if (data.power && data.energy) {
+      const consumption = {} as AbstractCurrentConsumption;
       switch (asset.assetType) {
         case AssetType.CONSUMPTION:
           consumption.currentInstantWatts = data.power.average;
@@ -81,19 +135,18 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
           consumption.currentStateOfCharge = data.percent?.soc?.current;
           break;
       }
+      // Check if site area provided and set amp value
+      if (asset.siteArea?.voltage) {
+        consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+      }
+      // Set last consumption
+      consumption.lastConsumption = {
+        value: consumption.currentConsumptionWh,
+        timestamp: new Date()
+      };
+      consumptions.push(consumption);
     }
-    // Check if site area provided and set amp value
-    if (asset.siteArea?.voltage) {
-      consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
-    }
-
-    // Set last consumption
-    consumption.lastConsumption = {
-      value: consumption.currentConsumptionWh,
-      timestamp: new Date()
-    };
-
-    return consumption;
+    return consumptions;
   }
 
   private async connect(): Promise<string> {

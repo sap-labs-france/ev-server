@@ -26,7 +26,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     await this.connect();
   }
 
-  public async retrieveConsumption(asset: Asset): Promise<AbstractCurrentConsumption> {
+  public async retrieveConsumption(asset: Asset): Promise<AbstractCurrentConsumption[]> {
     // Set new Token
     const token = await this.connect();
     const request = `${this.connection.url}/${asset.meterID}`;
@@ -60,7 +60,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
   }
 
 
-  private filterConsumptionRequest(asset: Asset, data: any[]): AbstractCurrentConsumption {
+  private filterConsumptionRequest(asset: Asset, data: any[]): AbstractCurrentConsumption[] {
     const consumption = {} as AbstractCurrentConsumption;
     // Convert data value to number and get consumption
     const newConsumptionWh = this.getPropertyValue(data, SchneiderProperty.ENERGY_ACTIVE) * 1000;
@@ -87,7 +87,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     consumption.currentInstantWattsL1 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L1) * 1000 * energyDirection;
     consumption.currentInstantWattsL2 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L2) * 1000 * energyDirection;
     consumption.currentInstantWattsL3 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L3) * 1000 * energyDirection;
-    return consumption;
+    return [consumption];
   }
 
   private getPropertyValue(data: any[], propertyName: string): number {

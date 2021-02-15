@@ -39,26 +39,38 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
             const assetImpl = await AssetFactory.getAssetImpl(tenant.id, asset.connectionID);
             if (assetImpl) {
               // Retrieve Consumption
-              const assetConsumption = await assetImpl.retrieveConsumption(asset);
-              // Create Consumption to save
-              const consumption: Consumption = {
-                startedAt: asset.lastConsumption.timestamp,
-                endedAt: new Date(),
-                assetID: asset.id,
-                cumulatedConsumptionWh: assetConsumption.currentConsumptionWh,
-                cumulatedConsumptionAmps: Math.floor(assetConsumption.currentConsumptionWh / asset.siteArea.voltage),
-                instantAmps: assetConsumption.currentInstantAmps,
-                instantWatts: assetConsumption.currentInstantWatts,
-                stateOfCharge: assetConsumption.currentStateOfCharge,
+              const assetConsumptions = await assetImpl.retrieveConsumption(asset);
+              // Create helper for site area limit
+              const siteAreaLimitConsumption: Consumption = {
+                startedAt: assetConsumptions[0].lastConsumption.timestamp,
+                cumulatedConsumptionWh: assetConsumptions[0].currentConsumptionWh,
+                cumulatedConsumptionAmps: Math.floor(assetConsumptions[0].currentConsumptionWh / asset.siteArea.voltage),
               };
-              // Set Consumption to Asset
-              this.assignAssetConsumption(asset, assetConsumption);
+              await OCPPUtils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, siteAreaLimitConsumption);
+              // Create Consumptions
+              for (const consumption of assetConsumptions) {
+                // Create Consumption to save
+                const consumptionToSave: Consumption = {
+                  startedAt: asset.lastConsumption.timestamp,
+                  endedAt: consumption.lastConsumption.timestamp,
+                  assetID: asset.id,
+                  cumulatedConsumptionWh: consumption.currentConsumptionWh,
+                  cumulatedConsumptionAmps: Math.floor(consumption.currentConsumptionWh / asset.siteArea.voltage),
+                  instantAmps: consumption.currentInstantAmps,
+                  instantWatts: consumption.currentInstantWatts,
+                  stateOfCharge: consumption.currentStateOfCharge,
+                  limitSiteAreaWatts: siteAreaLimitConsumption.limitSiteAreaWatts,
+                  limitSiteAreaAmps: siteAreaLimitConsumption.limitSiteAreaAmps,
+                  limitSiteAreaSource: siteAreaLimitConsumption.limitSiteAreaSource,
+                  smartChargingActive: siteAreaLimitConsumption.smartChargingActive,
+                };
+                // Save Consumption
+                await ConsumptionStorage.saveConsumption(tenant.id, consumptionToSave);
+                // Set Consumption to Asset
+                this.assignAssetConsumption(asset, consumption);
+              }
               // Save Asset
               await AssetStorage.saveAsset(tenant.id, asset);
-              // Add limits
-              await OCPPUtils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, consumption);
-              // Save Consumption
-              await ConsumptionStorage.saveConsumption(tenant.id, consumption);
             }
           } catch (error) {
             // Log error
