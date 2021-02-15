@@ -1,10 +1,10 @@
 {
-  "subject": "Erreur d'Authentification sur le Serveur d'Email Principal",
+  "subject": "Error del servidor de correo electrónico",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Erreur Authentification Serveur Email",
+      "title": "Error del servidor de correo electrónico",
       "image": {
         "left": {
           "height": 60,
@@ -17,11 +17,11 @@
       }
     },
     "beforeActionLines": [
-      "Cher Administrateur,",
+      "Estimado administrador,",
       "",
-      "L'authentification sur le serveur d'email principal a échoué.",
+      "The primary email server has failed with error <%- JSON.stringify(SMTPError) %>.",
       "",
-      "Merci de vérifier votre configuration.",
+      "Por favor verifique su configuración.",
       ""
     ],
     "actions": [{
@@ -29,7 +29,7 @@
       "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
-      "Cordialement,",
+      "Atentamente,",
       "EV Admins."
     ],
     "footer": {

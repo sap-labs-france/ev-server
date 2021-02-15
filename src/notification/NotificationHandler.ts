@@ -1,5 +1,5 @@
 import User, { UserRole } from '../types/User';
-import UserNotifications, { BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -30,41 +30,6 @@ export default class NotificationHandler {
       enabled: NotificationHandler.notificationConfig.RemotePushNotification ? NotificationHandler.notificationConfig.RemotePushNotification.enabled : false
     }
   ];
-
-  static async saveNotification(tenantID: string, channel: string, notificationID: string, sourceDescr: ServerAction,
-    extraParams: { user?: User, chargingStation?: ChargingStation, notificationData?: any } = {}): Promise<void> {
-    // Save it
-    await NotificationStorage.saveNotification(tenantID, {
-      timestamp: new Date(),
-      channel: channel,
-      sourceId: notificationID ? notificationID : new Date().toISOString(),
-      sourceDescr: sourceDescr,
-      userID: (extraParams.user ? extraParams.user.id : null),
-      chargeBoxID: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
-      data: extraParams.notificationData
-    });
-    // Success
-    if (extraParams.user) {
-      // User
-      Logging.logDebug({
-        tenantID: tenantID,
-        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
-        module: MODULE_NAME, method: 'saveNotification',
-        action: sourceDescr,
-        actionOnUser: extraParams.user,
-        message: `User is being notified (${channel})`
-      });
-    } else {
-      // Admin
-      Logging.logDebug({
-        tenantID: tenantID,
-        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
-        module: MODULE_NAME, method: 'saveNotification',
-        action: sourceDescr,
-        message: `Admin users are being notified (${channel})`
-      });
-    }
-  }
 
   static async getAdminUsers(tenantID: string, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
@@ -507,8 +472,8 @@ export default class NotificationHandler {
                     user,
                     chargingStation,
                     notificationData: {
-                      'transactionId': sourceData.transactionId,
-                      'connectorId': sourceData.connectorId
+                      transactionId: sourceData.transactionId,
+                      connectorId: sourceData.connectorId
                     }
                   }
                 );
@@ -525,12 +490,12 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendSmtpAuthError(tenantID: string, sourceData: SmtpAuthErrorNotification): Promise<void> {
+  static async sendSmtpError(tenantID: string, sourceData: SmtpErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
       // Enrich with admins
-      const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendSmtpAuthError');
+      const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendSmtpError');
       if (adminUsers && adminUsers.length > 0) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
@@ -539,23 +504,23 @@ export default class NotificationHandler {
             try {
               // Check notification
               const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-                tenantID, notificationSource.channel, ServerAction.AUTH_EMAIL_ERROR,
+                tenantID, notificationSource.channel, ServerAction.EMAIL_SERVER_ERROR,
                 null, null, { intervalMins: 60 });
               if (!hasBeenNotified) {
                 // Email enabled?
                 if (NotificationHandler.notificationConfig.Email.enabled) {
                   // Save
                   await NotificationHandler.saveNotification(
-                    tenantID, notificationSource.channel, null, ServerAction.AUTH_EMAIL_ERROR);
+                    tenantID, notificationSource.channel, null, ServerAction.EMAIL_SERVER_ERROR, { notificationData: { SMTPError: sourceData.SMTPError } });
                   // Send
                   for (const adminUser of adminUsers) {
-                    await notificationSource.notificationTask.sendSmtpAuthError(
+                    await notificationSource.notificationTask.sendSmtpError(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
               }
             } catch (error) {
-              Logging.logActionExceptionMessage(tenantID, ServerAction.AUTH_EMAIL_ERROR, error);
+              Logging.logActionExceptionMessage(tenantID, ServerAction.EMAIL_SERVER_ERROR, error);
             }
           }
         }
@@ -961,6 +926,41 @@ export default class NotificationHandler {
           }
         }
       }
+    }
+  }
+
+  private static async saveNotification(tenantID: string, channel: string, notificationID: string, sourceDescr: ServerAction,
+    extraParams: { user?: User, chargingStation?: ChargingStation, notificationData?: any } = {}): Promise<void> {
+    // Save it
+    await NotificationStorage.saveNotification(tenantID, {
+      timestamp: new Date(),
+      channel: channel,
+      sourceId: notificationID ? notificationID : new Date().toISOString(),
+      sourceDescr: sourceDescr,
+      userID: (extraParams.user ? extraParams.user.id : null),
+      chargeBoxID: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
+      data: extraParams.notificationData
+    });
+    // Success
+    if (extraParams.user) {
+      // User
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
+        module: MODULE_NAME, method: 'saveNotification',
+        action: sourceDescr,
+        actionOnUser: extraParams.user,
+        message: `User is being notified (${channel})`
+      });
+    } else {
+      // Admin
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
+        module: MODULE_NAME, method: 'saveNotification',
+        action: sourceDescr,
+        message: `Admin users are being notified (${channel})`
+      });
     }
   }
 }

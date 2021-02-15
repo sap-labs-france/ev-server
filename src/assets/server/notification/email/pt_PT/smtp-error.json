@@ -1,10 +1,10 @@
 {
-  "subject": "Error de autenticación del servidor de correo electrónico principal",
+  "subject": "Erro do servidor de e-mail primário",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Error de autenticación del servidor de correo electrónico",
+      "title": "Erro do servidor de e-mail primário",
       "image": {
         "left": {
           "height": 60,
@@ -17,11 +17,11 @@
       }
     },
     "beforeActionLines": [
-      "Estimado administrador,",
+      "Caro Administrador,",
       "",
-      "La autenticación del servidor de correo electrónico principal falló ",
+      "The primary email server has failed with error <%- JSON.stringify(SMTPError) %>.",
       "",
-      "Por favor verifique su configuración.",
+      "Verifique sua configuração.",
       ""
     ],
     "actions": [{
@@ -29,7 +29,7 @@
       "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
-      "Atentamente,",
+      "Com os melhores cumprimentos,",
       "EV Admins."
     ],
     "footer": {
