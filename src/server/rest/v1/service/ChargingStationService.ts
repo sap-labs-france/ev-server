@@ -949,7 +949,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
     if (!filteredRequest.FileName) {
@@ -993,7 +993,7 @@ export default class ChargingStationService {
     });
   }
 
-  public static async handleAction(action: ServerAction, command: Command, req: Request, res: Response, next: NextFunction) {
+  public static async handleAction(action: ServerAction, command: Command, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);

@@ -135,10 +135,10 @@ export default class TagStorage {
         filters.default = true;
       }
     }
-    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
     }
-    if (Utils.objectHasProperty(params, 'active') && Utils.isBooleanValue(params.active)) {
+    if (Utils.objectHasProperty(params, 'active') && Utils.isBoolean(params.active)) {
       filters.active = params.active;
     }
     if (params.dateFrom && moment(params.dateFrom).isValid()) {
