@@ -18,9 +18,7 @@ import global from '../../src/types/GlobalType';
 const testData: TestData = new TestData();
 let initialTenant: Tenant;
 
-function checkSensitiveDataIsObfuscated(message): boolean {
-  const bCheck = true;
-
+function checkSensitiveDataIsObfuscated(message:any): void {
   if (typeof message === 'string') { // In case of a string - check that all the string is anonymized
     expect(message).to.equal(Constants.ANONYMIZED_VALUE);
   } else if (Array.isArray(message)) { // In case of an array, check every item
@@ -52,8 +50,6 @@ function checkSensitiveDataIsObfuscated(message): boolean {
       }
     }
   }
-
-  return bCheck;
 }
 
 
@@ -84,7 +80,7 @@ describe('Security tests', function() {
 
   describe('Success cases (tenant utall)', () => {
     it('Check that sensitive data string is anonymized', async () => { // Will fail
-      const logId = await Logging.logDebug({
+      const logId:string = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -100,7 +96,7 @@ describe('Security tests', function() {
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data is anonymized in object with string fields', async () => {
-      const logId = await Logging.logDebug({
+      const logId:string = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -129,11 +125,10 @@ describe('Security tests', function() {
       const read = await testData.centralService.logsApi.readById(logId);
       expect(read.status).to.equal(200);
 
-      const bDataObfuscated = checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-      expect(bDataObfuscated).to.equal(true);
+      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data is anonymized in object with query string fields', async () => { // Passes because query strings are treated correctly in object fields
-      const logId = await Logging.logDebug({
+      const logId:string = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -153,7 +148,7 @@ describe('Security tests', function() {
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data is anonymized in array with strings', async () => { // Will fail
-      const logId = await Logging.logDebug({
+      const logId:string = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -178,7 +173,7 @@ describe('Security tests', function() {
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that everything goes well if detailed message is boolean', async () => { // Will fail
-      const logId = await Logging.logDebug({
+      const logId:string = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -194,7 +189,7 @@ describe('Security tests', function() {
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that everything goes well if detailed message is number', async () => { // Will fail
-      const logId = await Logging.logDebug({
+      const logId:string = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -210,7 +205,7 @@ describe('Security tests', function() {
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that everything goes well if detailed message is object with sensitive data field number', async () => { // Should fail, but doesn't
-      const logId = await Logging.logDebug({
+      const logId:string = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
