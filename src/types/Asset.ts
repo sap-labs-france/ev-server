@@ -18,6 +18,7 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   connectionID?: string;
   meterID?: string;
   values: Consumption[],
+  excludeFromSmartCharging?: boolean,
 }
 
 export enum AssetType {

@@ -63,6 +63,7 @@ export default class AssetSecurity {
     filteredRequest.name = sanitize(request.name),
     filteredRequest.siteAreaID = sanitize(request.siteAreaID),
     filteredRequest.assetType = sanitize(request.assetType),
+    filteredRequest.excludeFromSmartCharging = sanitize(request.excludeFromSmartCharging);
     filteredRequest.fluctuationPercent = sanitize(request.fluctuationPercent),
     filteredRequest.staticValueWatt = sanitize(request.staticValueWatt),
     filteredRequest.image = request.image;

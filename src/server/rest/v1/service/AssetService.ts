@@ -387,6 +387,7 @@ export default class AssetService {
       name: filteredRequest.name,
       siteAreaID: filteredRequest.siteAreaID,
       assetType: filteredRequest.assetType,
+      excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
       fluctuationPercent: filteredRequest.fluctuationPercent,
       staticValueWatt: filteredRequest.staticValueWatt,
       coordinates: filteredRequest.coordinates,
@@ -446,6 +447,7 @@ export default class AssetService {
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
     asset.assetType = filteredRequest.assetType;
+    asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     asset.fluctuationPercent = filteredRequest.fluctuationPercent;
     asset.staticValueWatt = filteredRequest.staticValueWatt;
     asset.coordinates = filteredRequest.coordinates;
