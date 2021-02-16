@@ -1055,8 +1055,7 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   },
                   "args": {
                     "type": "object",
@@ -1070,9 +1069,15 @@
                         ],
                         "example": "Soft"
                       }
-                    }
+                    },
+                    "required": [
+                      "type"
+                    ]
                   }
-                }
+                },
+                "required": [
+                  "args"
+                ]
               }
             }
           }
@@ -1108,8 +1113,7 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   }
                 }
               }
@@ -1173,8 +1177,7 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   },
                   "args": {
                     "type": "object",
@@ -1268,8 +1271,7 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   },
                   "carID": {
                     "type": "string",
@@ -1278,20 +1280,26 @@
                   "args": {
                     "type": "object",
                     "properties": {
+                      "tagID": {
+                        "type": "string",
+                        "description": "Required. The identifier that Charge Point must use to start a transaction.",
+                        "example": "123456"
+                      },
                       "connectorId": {
                         "type": "integer",
                         "description": "Optional. Number of the connector on which to start the transaction. connectorId SHALL be > 0",
                         "minimum": 1,
                         "example": 1
-                      },
-                      "tagID": {
-                        "type": "string",
-                        "description": "Required. The identifier that Charge Point must use to start a transaction.",
-                        "example": "123456"
                       }
-                    }
+                    },
+                    "required": [
+                      "tagID"
+                    ]
                   }
-                }
+                },
+                "required": [
+                  "args"
+                ]
               }
             }
           }
@@ -1359,8 +1367,7 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   },
                   "args": {
                     "type": "object",
@@ -1370,9 +1377,15 @@
                         "description": "Required. The identifier of the transaction which Charge Point is requested to stop.",
                         "example": 12345
                       }
-                    }
+                    },
+                    "required": [
+                      "transactionId"
+                    ]
                   }
-                }
+                },
+                "required": [
+                  "args"
+                ]
               }
             }
           }
@@ -1440,21 +1453,26 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   },
                   "args": {
                     "type": "object",
                     "properties": {
-                      "connectorID": {
+                      "connectorId": {
                         "type": "integer",
                         "description": "Required. This contains the identifier of the connector to be unlocked.",
                         "minimum": 1,
                         "example": 1
                       }
-                    }
+                    },
+                    "required": [
+                      "connectorId"
+                    ]
                   }
-                }
+                },
+                "required": [
+                  "args"
+                ]
               }
             }
           }
@@ -1519,8 +1537,7 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   },
                   "args": {
                     "type": "object",
@@ -1657,8 +1674,7 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   },
                   "args": {
                     "type": "object",
@@ -1749,8 +1765,7 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   },
                   "args": {
                     "type": "object",
@@ -1760,16 +1775,16 @@
                         "description": "Required. This contains a string containing a URI pointing to a location from which to retrieve the firmware.",
                         "example": ""
                       },
+                      "retrieveDate": {
+                        "type": "string",
+                        "description": "Required. This contains the date and time after which the Charge Point is allowed to retrieve the (new) firmware.",
+                        "format": "date-time"
+                      },
                       "retries": {
                         "type": "integer",
                         "minimum": 1,
                         "description": "Optional. This specifies how many times Charge Point must try to download the firmware before giving up. If this field is not present, it is left to Charge Point to decide how many times it wants to retry.",
                         "example": 1
-                      },
-                      "retrieveDate": {
-                        "type": "string",
-                        "description": "Required. This contains the date and time after which the Charge Point is allowed to retrieve the (new) firmware.",
-                        "format": "date-time"
                       },
                       "retryInterval": {
                         "type": "integer",
@@ -1822,8 +1837,7 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
+                    "$ref": "#/components/schemas/ocppChargeBoxID"
                   },
                   "args": {
                     "type": "object",
@@ -2892,6 +2906,11 @@
       }
     },
     "schemas": {
+      "ocppChargeBoxID": {
+        "type": "string",
+        "description": "The Charging Station ID",
+        "example": ""
+      },
       "Tenant": {
         "type": "object",
         "required": [
