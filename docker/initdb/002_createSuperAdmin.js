@@ -42,7 +42,7 @@ db.getCollection('default.users').insert({
     sendChargingStationStatusError: false,
     sendChargingStationRegistered: false,
     sendOcpiPatchStatusError: false,
-    sendSmtpAuthError: false,
+    sendSmtpError: false,
     sendOfflineChargingStations: false
   },
   phone: null,

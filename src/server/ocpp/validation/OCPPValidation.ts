@@ -12,7 +12,7 @@ import global from '../../../types/GlobalType';
 const MODULE_NAME = 'OCPPValidation';
 
 export default class OCPPValidation extends SchemaValidator {
-  private static instance: OCPPValidation|null = null;
+  private static instance: OCPPValidation | null = null;
 
   private _bootNotificationRequest: any;
   private _authorizeRequest: any;
