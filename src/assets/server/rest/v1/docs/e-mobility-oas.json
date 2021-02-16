@@ -1729,28 +1729,35 @@
                     "properties": {
                       "location": {
                         "type": "string",
+                        "description": "Required. This contains a string containing a URI pointing to a location from which to retrieve the firmware.",
                         "example": ""
                       },
                       "retries": {
                         "type": "integer",
                         "minimum": 1,
+                        "description": "Optional. This specifies how many times Charge Point must try to download the firmware before giving up. If this field is not present, it is left to Charge Point to decide how many times it wants to retry.",
                         "example": 1
                       },
                       "retrieveDate": {
                         "type": "string",
+                        "description": "Required. This contains the date and time after which the Charge Point is allowed to retrieve the (new) firmware.",
                         "format": "date-time"
                       },
                       "retryInterval": {
                         "type": "integer",
+                        "description": "Optional. The interval in seconds after which a retry may be attempted. If this field is not present, it is left to Charge Point to decide how long to wait between attempts.",
                         "minimum": 1,
                         "example": 5
                       }
-                    }
+                    },
+                    "required": [
+                      "location",
+                      "retrieveDate"
+                    ]
                   }
                 },
                 "required": [
-                  "location",
-                  "retrieveDate"
+                  "args"
                 ]
               }
             }
@@ -1772,8 +1779,8 @@
         }
       }
     },
-    "/api/chargingstations/general/availability": {
-      "put": {
+    "/api/chargingstations/availability/change": {
+      "post": {
         "security": [
           {
             "bearerAuth": []
@@ -1785,41 +1792,39 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "chargeBoxID",
-                  "location",
-                  "retrieveDate"
-                ],
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                   },
-                  "connectorId": {
-                    "type": "integer",
-                    "minimum": 1
-                  },
-                  "type": {
-                    "type": "string"
-                  }
-                }
-              },
-              "examples": {
-                "operative": {
-                  "summary": "Operative",
-                  "value": {
-                    "chargeBoxID": "SAP-Mougins-03",
-                    "connectorId": 1,
-                    "type": "Operative"
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "connectorId": {
+                        "type": "integer",
+                        "description": "Required. The id of the connector for which availability needs to change. Id '0' (zero) is used if the availability of the Charge Point and all its connectors needs to change.",
+                        "minimum": 0,
+                        "example": 1
+                      },
+                      "type": {
+                        "type": "string",
+                        "example": "Operative",
+                        "description": "Required. This contains the type of availability change that the Charge Point should perform.",
+                        "enum": [
+                          "Inoperative",
+                          "Operative"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "connectorId",
+                      "type"
+                    ]
                   }
                 },
-                "inoperative": {
-                  "summary": "Inoperative",
-                  "value": {
-                    "chargeBoxID": "SAP-Mougins-03",
-                    "connectorId": 1,
-                    "type": "Inoperative"
-                  }
-                }
+                "required": [
+                  "args"
+                ]
               }
             }
           }

@@ -119,7 +119,7 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationChangeAvailability(): void {
-    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_AVAILABILITY}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_CHANGE_AVAILABILITY}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_CHANGE_AVAILABILITY, req, res, next);
     });
   }

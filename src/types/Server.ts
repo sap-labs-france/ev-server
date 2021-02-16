@@ -410,7 +410,7 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_GET_COMPOSITE_SCHEDULE = 'chargingstations/compositeschedule',
   REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'chargingstations/diagnostics',
   REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'chargingstations/firmware/update',
-  REST_CHARGING_STATIONS_AVAILABILITY = 'chargingstations/general/availability',
+  REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'chargingstations/availability/change',
   
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:id',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',
