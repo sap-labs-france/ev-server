@@ -716,6 +716,166 @@
             "content": {
               "application/json": {
                 "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "chargeBoxSerialNumber": "####",
+                      "chargePointModel": "####",
+                      "chargePointSerialNumber": "####",
+                      "chargePointVendor": "####",
+                      "connectors": [
+                        {
+                          "connectorId": 1,
+                          "currentInstantWatts": 0,
+                          "currentStateOfCharge": 0,
+                          "currentTotalInactivitySecs": 0,
+                          "currentTotalConsumptionWh": 0,
+                          "currentTransactionDate": null,
+                          "currentTagID": null,
+                          "status": "Available",
+                          "errorCode": "NoError",
+                          "info": "",
+                          "vendorErrorCode": "",
+                          "power": 22080,
+                          "type": "T2",
+                          "voltage": 0,
+                          "amperage": 96,
+                          "amperageLimit": 96,
+                          "currentTransactionID": 0,
+                          "userID": null,
+                          "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
+                          "currentInactivityStatus": "I",
+                          "numberOfConnectedPhase": null,
+                          "currentType": null,
+                          "chargePointID": 1,
+                          "phaseAssignmentToGrid": null
+                        },
+                        {
+                          "connectorId": 2,
+                          "currentInstantWatts": 0,
+                          "currentStateOfCharge": 0,
+                          "currentTotalInactivitySecs": 0,
+                          "currentTotalConsumptionWh": 0,
+                          "currentTransactionDate": null,
+                          "currentTagID": null,
+                          "status": "Available",
+                          "errorCode": "NoError",
+                          "info": "",
+                          "vendorErrorCode": "",
+                          "power": 22080,
+                          "type": "T2",
+                          "voltage": 0,
+                          "amperage": 96,
+                          "amperageLimit": 96,
+                          "currentTransactionID": 0,
+                          "userID": null,
+                          "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
+                          "currentInactivityStatus": "I",
+                          "numberOfConnectedPhase": null,
+                          "currentType": null,
+                          "chargePointID": 1,
+                          "phaseAssignmentToGrid": null
+                        }
+                      ],
+                      "endpoint": "####",
+                      "firmwareVersion": "3",
+                      "lastReboot": "2020-12-08T09:06:14.948Z",
+                      "ocppVersion": "1.5",
+                      "siteAreaID": "####",
+                      "chargingStationURL": "wss://####",
+                      "maximumPower": 44160,
+                      "ocppProtocol": "soap",
+                      "powerLimitUnit": "A",
+                      "createdOn": "2019-03-20T07:41:57.583Z",
+                      "currentIPAddress": "####",
+                      "coordinates": [
+                        7,
+                        43
+                      ],
+                      "capabilities": {
+                        "supportStaticLimitation": true,
+                        "supportChargingProfiles": true,
+                        "supportRemoteStartStopTransaction": true,
+                        "supportUnlockConnector": true,
+                        "supportReservation": false,
+                        "supportCreditCard": false,
+                        "supportRFIDCard": false
+                      },
+                      "issuer": true,
+                      "chargePoints": [
+                        {
+                          "chargePointID": 1,
+                          "currentType": "AC",
+                          "voltage": null,
+                          "amperage": 192,
+                          "numberOfConnectedPhase": 3,
+                          "cannotChargeInParallel": false,
+                          "sharePowerToAllConnectors": false,
+                          "excludeFromPowerLimitation": false,
+                          "ocppParamForPowerLimitation": "maxintensitysocket",
+                          "power": 44160,
+                          "efficiency": null,
+                          "connectorIDs": [
+                            1,
+                            2
+                          ]
+                        }
+                      ],
+                      "excludeFromSmartCharging": false,
+                      "voltage": 230,
+                      "public": false,
+                      "forceInactive": false,
+                      "lastSeen": "2020-12-20T22:34:37.468Z",
+                      "inactive": true,
+                      "siteArea": {
+                        "name": "####",
+                        "siteID": "####",
+                        "smartCharging": true,
+                        "id": "####",
+                        "site": {
+                          "name": "####",
+                          "id": "####"
+                        }
+                      },
+                      "id": "####"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging Station",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "####",
                   "chargeBoxSerialNumber": "####",
                   "chargePointModel": "####",
                   "chargePointSerialNumber": "####",
@@ -833,218 +993,7 @@
                       "name": "####",
                       "id": "####"
                     }
-                  },
-                  "id": "####"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "500": {
-            "$ref": "#/components/responses/500BackendError"
-          }
-        }
-      }
-    },
-    "/api/chargingstations/{id}": {
-      "get": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "description": "Retrieve a Charging Station",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/chargingStationID"
-          }
-        ],
-        "tags": [
-          "Charging Stations"
-        ],
-        "responses": {
-          "200": {
-            "description": "Charging Station",
-            "content": {
-              "application/json": {
-                "example": {
-                  "chargeBoxSerialNumber": "EV.2S22P44R3N164750700100350246E2",
-                  "chargePointModel": "MONOBLOCK",
-                  "chargePointSerialNumber": "3N163730715E2S1B7551700014",
-                  "chargePointVendor": "Schneider Electric",
-                  "connectors": [
-                    {
-                      "connectorId": 1,
-                      "currentInstantWatts": 0,
-                      "currentStateOfCharge": 0,
-                      "currentTotalInactivitySecs": 0,
-                      "currentTotalConsumptionWh": 0,
-                      "currentTransactionDate": null,
-                      "currentTagID": null,
-                      "status": "Available",
-                      "errorCode": "NoError",
-                      "info": "",
-                      "vendorErrorCode": "",
-                      "power": 22080,
-                      "type": "T2",
-                      "voltage": 0,
-                      "amperage": 96,
-                      "amperageLimit": 96,
-                      "currentTransactionID": 0,
-                      "userID": null,
-                      "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
-                      "currentInactivityStatus": "I",
-                      "numberOfConnectedPhase": null,
-                      "currentType": null,
-                      "chargePointID": 1,
-                      "phaseAssignmentToGrid": null
-                    },
-                    {
-                      "connectorId": 2,
-                      "currentInstantWatts": 0,
-                      "currentStateOfCharge": 0,
-                      "currentTotalInactivitySecs": 0,
-                      "currentTotalConsumptionWh": 0,
-                      "currentTransactionDate": null,
-                      "currentTagID": null,
-                      "status": "Available",
-                      "errorCode": "NoError",
-                      "info": "",
-                      "vendorErrorCode": "",
-                      "power": 22080,
-                      "type": "T2",
-                      "voltage": 0,
-                      "amperage": 96,
-                      "amperageLimit": 96,
-                      "currentTransactionID": 0,
-                      "userID": null,
-                      "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
-                      "currentInactivityStatus": "I",
-                      "numberOfConnectedPhase": null,
-                      "currentType": null,
-                      "chargePointID": 1,
-                      "phaseAssignmentToGrid": null
-                    }
-                  ],
-                  "endpoint": "http://192.168.0.114:8080/",
-                  "firmwareVersion": "3.3.0.12",
-                  "lastReboot": "2020-12-08T09:06:14.948Z",
-                  "ocppVersion": "1.5",
-                  "siteAreaID": "5abebb1b4bae1457eb565e98",
-                  "chargingStationURL": "wss://sap-ev-chargebox-json-server-prod.cfapps.eu10.hana.ondemand.com",
-                  "maximumPower": 44160,
-                  "ocppProtocol": "soap",
-                  "powerLimitUnit": "A",
-                  "createdOn": "2019-03-20T07:41:57.583Z",
-                  "currentIPAddress": "37.71.38.83, 10.0.136.8",
-                  "coordinates": [
-                    7.01643370298905,
-                    43.6120451027249
-                  ],
-                  "capabilities": {
-                    "supportStaticLimitation": true,
-                    "supportChargingProfiles": true,
-                    "supportRemoteStartStopTransaction": true,
-                    "supportUnlockConnector": true,
-                    "supportReservation": false,
-                    "supportCreditCard": false,
-                    "supportRFIDCard": false
-                  },
-                  "ocppStandardParameters": [
-                    {
-                      "key": "AllowOfflineTxForUnknownId",
-                      "value": "true"
-                    },
-                    {
-                      "key": "AuthorizationCacheEnabled",
-                      "value": "false"
-                    },
-                    {
-                      "key": "StopTransactionOnInvalidId",
-                      "value": "true"
-                    }
-                  ],
-                  "ocppVendorParameters": [
-                    {
-                      "key": "authenticationmanager",
-                      "value": "2"
-                    },
-                    {
-                      "key": "ocppconnecttimeout",
-                      "value": "60"
-                    },
-                    {
-                      "key": "clockaligneddatainterval",
-                      "value": "0"
-                    },
-                    {
-                      "key": "metervaluessampleddata",
-                      "value": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3"
-                    },
-                    {
-                      "key": "metervaluesampleinterval",
-                      "value": "60"
-                    },
-                    {
-                      "key": "emsetting",
-                      "value": "3"
-                    },
-                    {
-                      "key": "enableevdetection",
-                      "value": "true"
-                    },
-                    {
-                      "key": "useautotimemanagment",
-                      "value": "true"
-                    },
-                    {
-                      "key": "timeservername",
-                      "value": "pool.ntp.org"
-                    },
-                    {
-                      "key": "websocketpinginterval",
-                      "value": "30"
-                    }
-                  ],
-                  "issuer": true,
-                  "chargePoints": [
-                    {
-                      "chargePointID": 1,
-                      "currentType": "AC",
-                      "voltage": null,
-                      "amperage": 192,
-                      "numberOfConnectedPhase": 3,
-                      "cannotChargeInParallel": false,
-                      "sharePowerToAllConnectors": false,
-                      "excludeFromPowerLimitation": false,
-                      "ocppParamForPowerLimitation": "maxintensitysocket",
-                      "power": 44160,
-                      "efficiency": null,
-                      "connectorIDs": [
-                        1,
-                        2
-                      ]
-                    }
-                  ],
-                  "excludeFromSmartCharging": false,
-                  "voltage": 230,
-                  "public": false,
-                  "forceInactive": false,
-                  "lastSeen": "2020-12-20T22:34:37.468Z",
-                  "inactive": true,
-                  "siteArea": {
-                    "name": "Mougins - South",
-                    "siteID": "5abeba8d4bae1457eb565e5b",
-                    "smartCharging": true,
-                    "id": "5abebb1b4bae1457eb565e98",
-                    "site": {
-                      "name": "SAP Labs Mougins",
-                      "id": "5abeba8d4bae1457eb565e5b"
-                    }
-                  },
-                  "id": "65465898"
+                  }
                 }
               }
             }
@@ -1091,33 +1040,42 @@
         }
       }
     },
-    "/api/chargingstations/{id}/reset": {
-      "get": {
+    "/api/chargingstations/reset": {
+      "post": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
         "description": "Reset a Charging Station",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/chargingStationID"
-          },
-          {
-            "in": "query",
-            "name": "type",
-            "required": true,
-            "description": "Reset type",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "Soft",
-                "Hard"
-              ],
-              "example": "Soft"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargeBoxID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "Soft",
+                          "Hard"
+                        ],
+                        "example": "Soft"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
-        ],
+        },
         "tags": [
           "Charging Stations"
         ],
@@ -1134,19 +1092,29 @@
         }
       }
     },
-    "/api/chargingstations/{id}/cache/clear": {
-      "get": {
+    "/api/chargingstations/cache/clear": {
+      "post": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
         "description": "Clear a Charging Station cache",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/chargingStationID"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargeBoxID": {
+                    "type": "string",
+                    "example": ""
+                  }
+                }
+              }
+            }
           }
-        ],
+        },
         "tags": [
           "Charging Stations"
         ],
@@ -1189,27 +1157,42 @@
         }
       }
     },
-    "/api/chargingstations/{id}/configuration": {
-      "get": {
+    "/api/chargingstations/configuration/retrieve": {
+      "post": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Get a Charging Station configuration",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/chargingStationID"
-          },
-          {
-            "in": "query",
-            "name": "key",
-            "description": "Configuration key",
-            "schema": {
-              "type": "string"
+        "description": "Get the Charging Station's configuration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargeBoxID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "example": []
+                      }
+                    }
+                  }
+                },
+                "required": ["chargeBoxID"]
+              }
             }
           }
-        ],
+        },
         "tags": [
           "Charging Stations"
         ],
@@ -1283,16 +1266,26 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string"
-                  },
-                  "connectorId": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "example": 1
-                  },
-                  "tagID": {
                     "type": "string",
-                    "example": "DEMODEMO"
+                    "example": ""
+                  },
+                  "carID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "connectorId": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "example": 1
+                      },
+                      "tagID": {
+                        "type": "string",
+                        "example": "DEMODEMO"
+                      }
+                    }
                   }
                 }
               }
@@ -1362,10 +1355,16 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                   },
-                  "transactionId": {
-                    "type": "string"
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "transactionId": {
+                        "type": "number"
+                      }
+                    }
                   }
                 }
               }
@@ -1435,12 +1434,18 @@
                 "type": "object",
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                   },
-                  "connectorID": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "example": 1
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "connectorID": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "example": 1
+                      }
+                    }
                   }
                 }
               }

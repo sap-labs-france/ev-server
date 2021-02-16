@@ -400,9 +400,9 @@ export enum ServerRoute {
 
   REST_CHARGING_STATIONS = 'chargingstations',
   REST_CHARGING_STATION = 'chargingstations/:id',
-  REST_CHARGING_STATIONS_RESET = 'chargingstations/:id/reset',
-  REST_CHARGING_STATIONS_CACHE_CLEAR = 'chargingstations/:id/cache/clear',
-  REST_CHARGING_STATIONS_CONFIGURATION = 'chargingstations/:id/configuration',
+  REST_CHARGING_STATIONS_RESET = 'chargingstations/reset',
+  REST_CHARGING_STATIONS_CACHE_CLEAR = 'chargingstations/cache/clear',
+  REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION = 'chargingstations/configuration/retrieve',
   REST_CHARGING_STATIONS_REMOTE_START = 'chargingstations/remote/start',
   REST_CHARGING_STATIONS_REMOTE_STOP = 'chargingstations/remote/stop',
   REST_CHARGING_STATIONS_UNLOCK_CONNECTOR = 'chargingstations/connectors/unlock',

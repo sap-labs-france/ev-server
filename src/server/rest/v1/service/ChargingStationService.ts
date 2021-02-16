@@ -994,8 +994,7 @@ export default class ChargingStationService {
   public static async handleAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const command = action.slice(15) as Command;
-    const filteredRequest: HttpChargingStationCommandRequest =
-      ChargingStationSecurity.filterChargingStationActionRequest({ ...req.query, ...req.body });
+    const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
@@ -1023,7 +1022,7 @@ export default class ChargingStationService {
       // Add connector ID
       filteredRequest.args.connectorId = transaction.connectorId;
       // Check Tag ID
-      if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
+      if (Utils.isEmptyArray(req.user.tagIDs)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_NO_BADGE_ERROR,
@@ -1046,7 +1045,7 @@ export default class ChargingStationService {
       // Save Transaction
       await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
       // Ok: Execute it
-      result = await this.handleChargingStationCommand(
+      result = await ChargingStationService.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
       // Remote Start Transaction
     } else if (command === Command.REMOTE_START_TRANSACTION) {
@@ -1076,7 +1075,7 @@ export default class ChargingStationService {
         });
       }
       // Ok: Execute it
-      result = await this.handleChargingStationCommand(
+      result = await ChargingStationService.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
       // Save Car ID
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {

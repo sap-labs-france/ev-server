@@ -186,8 +186,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationActionRequest(request: any): HttpChargingStationCommandRequest {
-    const filteredRequest: HttpChargingStationCommandRequest = {} as HttpChargingStationCommandRequest;
-    // Check
+    const filteredRequest = {} as HttpChargingStationCommandRequest;
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
     if (Utils.objectHasProperty(request, 'carID')) {
       filteredRequest.carID = sanitize(request.carID);

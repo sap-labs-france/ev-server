@@ -27,7 +27,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationDelete();
     this.buildRouteChargingStationReset();
     this.buildRouteChargingStationClearCache();
-    this.buildRouteChargingStationConfiguration();
+    this.buildRouteChargingStationRetrieveConfiguration();
     this.buildRouteChargingStationRemoteStart();
     this.buildRouteChargingStationRemoteStop();
     this.buildRouteChargingStationUnlockConnector();
@@ -65,29 +65,25 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationReset(): void {
-    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_RESET}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.chargeBoxID = req.params.id;
+    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_RESET}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_RESET, req, res, next);
     });
   }
 
   protected buildRouteChargingStationClearCache(): void {
-    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_CACHE_CLEAR}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.chargeBoxID = req.params.id;
+    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_CACHE_CLEAR}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_CLEAR_CACHE, req, res, next);
     });
   }
 
-  protected buildRouteChargingStationConfiguration(): void {
-    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_CONFIGURATION}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.chargeBoxID = req.params.id;
+  protected buildRouteChargingStationRetrieveConfiguration(): void {
+    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_GET_CONFIGURATION, req, res, next);
     });
   }
 
   protected buildRouteChargingStationRemoteStart(): void {
     this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_REMOTE_START}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.chargeBoxID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, req, res, next);
     });
   }
