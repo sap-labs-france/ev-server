@@ -18,7 +18,7 @@
     "ocppProtocol": "OCPP Protocol",
     "ocppVersion": "OCPP Version",
     "powerLimitUnit": "Power Limit Unit",
-    "timezone" : "Charging Station Timezone",
+    "timezone": "Charging Station Timezone",
     "vendor": "Vendor"
   },
   "general": {
@@ -68,9 +68,9 @@
       "title": "Enviando informações",
       "body": "O envio de informações para a plataforma de carregamento '{{location}}' falhou, por favor veririfcar a informação no '{{tenantName}}'"
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Error no servidor de Email",
-      "body": "A autenticação no servidor de email falhou por favor verificar a configuração do  '{{tenantName}}'"
+      "body": "A servidor de email falhou por favor verificar a configuração do '{{tenantName}}'"
     },
     "optimalChargeReached": {
       "title": "Carga Ideal alcançada",

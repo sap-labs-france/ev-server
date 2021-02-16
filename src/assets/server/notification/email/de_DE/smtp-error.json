@@ -1,10 +1,10 @@
 {
-  "subject": "Primary Email Server - Authentication Failed",
+  "subject": "Primärer E-Mail-Server fehlgeschlagen",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Authentication Error",
+      "title": "Primärer E-Mail Server fehlgeschlagen",
       "image": {
         "left": {
           "height": 60,
@@ -17,11 +17,11 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Sehr geehrter Administrator,",
       "",
-      "The authentication to the primary email server has failed.",
+      "The primary email server has failed with error <%- JSON.stringify(SMTPError) %>.",
       "",
-      "Please check your configuration.",
+      "Bitte überprüfen Sie Ihre Konfiguration.",
       ""
     ],
     "actions": [{
@@ -29,11 +29,9 @@
       "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
-    "footer": {
-    }
+    "footer": {}
   }
 }
-

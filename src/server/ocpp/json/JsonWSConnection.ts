@@ -89,7 +89,7 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      source: this.getChargingStationID() ? this.getChargingStationID() : '',
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
       message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
@@ -101,7 +101,7 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      source: this.getChargingStationID() ? this.getChargingStationID() : '',
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
       message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
