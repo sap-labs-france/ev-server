@@ -1174,7 +1174,5 @@ describe('Smart Charging Service', function() {
       const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
       expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
     });
-
-
   });
 });
