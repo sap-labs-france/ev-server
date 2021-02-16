@@ -400,6 +400,7 @@ export enum ServerRoute {
 
   REST_CHARGING_STATIONS = 'chargingstations',
   REST_CHARGING_STATION = 'chargingstations/:id',
+
   REST_CHARGING_STATIONS_RESET = 'chargingstations/reset',
   REST_CHARGING_STATIONS_CACHE_CLEAR = 'chargingstations/cache/clear',
   REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION = 'chargingstations/configuration/retrieve',
@@ -407,21 +408,25 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_REMOTE_STOP = 'chargingstations/remote/stop',
   REST_CHARGING_STATIONS_UNLOCK_CONNECTOR = 'chargingstations/connectors/unlock',
   REST_CHARGING_STATIONS_COMPOSITE_SCHEDULE = 'chargingstations/compositeschedule',
-  REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',
-  REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'chargingstations/:id/connectors/:connectorId/qrcode/download',
-  REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'chargingstations/smartcharging/checkconnection',
-  REST_CHARGING_STATIONS_DIAGNOSTICS = 'chargingstations/:id/diagnostics',
-  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:id',
+  REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'chargingstations/diagnostics',
   REST_CHARGING_STATIONS_FIRMWARE = 'chargingstations/general/firmware',
   REST_CHARGING_STATIONS_AVAILABILITY = 'chargingstations/general/availability',
+  
+  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:id',
+  REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',
+  REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'chargingstations/:id/connectors/:connectorId/qrcode/download',
+
+  
   REST_CHARGING_STATIONS_OCPP_PARAMETERS = 'chargingstations/ocpp/parameters',
-  REST_CHARGING_STATION_OCPP_PARAMETERS = 'chargingstations/:id/ocpp/parameters',
   REST_CHARGING_STATIONS_OCPP_PARAMETERS_EXPORT = 'chargingstations/:id/ocpp/parameters/export',
+  REST_CHARGING_STATION_OCPP_PARAMETERS = 'chargingstations/:id/ocpp/parameters',
   REST_CHARGING_STATIONS_PARAMETERS = 'chargingstations/general/parameters',
   REST_CHARGING_STATIONS_POWER_LIMIT = 'chargingstations/power/limit',
   REST_CHARGING_STATIONS_TRANSACTIONS = 'chargingstations/:id/transactions',
   REST_CHARGING_STATIONS_IN_ERROR = 'chargingstations/status/in-error',
   REST_CHARGING_STATIONS_EXPORT = 'chargingstations/action/export',
+
+  REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'chargingstations/smartcharging/checkconnection',
   REST_CHARGING_PROFILES = 'chargingstations/smartcharging/profiles',
   REST_CHARGING_PROFILE = 'chargingstations/smartcharging/profiles/:id',
 
