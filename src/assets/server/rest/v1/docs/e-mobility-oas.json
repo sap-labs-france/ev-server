@@ -2,16 +2,16 @@
   "openapi": "3.0.3",
   "servers": [
     {
+      "description": "Localhost - Development",
+      "url": "http://localhost:8080/v1"
+    },
+    {
       "description": "SCP - Production system",
       "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
     },
     {
       "description": "SCP - Quality system",
       "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
-    },
-    {
-      "description": "Localhost - Development",
-      "url": "http://localhost:8080/v1"
     }
   ],
   "info": {
@@ -914,7 +914,7 @@
         "description": "Retrieve a Charging Station",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           }
         ],
         "tags": [
@@ -1122,7 +1122,7 @@
         "description": "Delete a Charging Station",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           }
         ],
         "tags": [
@@ -1157,7 +1157,7 @@
         "description": "Reset a Charging Station",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           },
           {
             "in": "query",
@@ -1200,7 +1200,7 @@
         "description": "Clear a Charging Station cache",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           }
         ],
         "tags": [
@@ -1255,7 +1255,7 @@
         "description": "Get a Charging Station configuration",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           },
           {
             "in": "query",
@@ -1618,10 +1618,10 @@
         "description": "Download connector QRCode as PDF",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           },
           {
-            "$ref": "#/components/parameters/ConnectorID"
+            "$ref": "#/components/parameters/connectorID"
           },
           {
             "$ref": "#/components/parameters/SiteAreaID"
@@ -1668,7 +1668,7 @@
         "description": "Get Charging Station composite schedule",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           }
         ],
         "tags": [
@@ -1765,7 +1765,7 @@
         "description": "Get Charging Station diagnostics",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           },
           {
             "in": "path",
@@ -2092,7 +2092,7 @@
         "description": "Get Charging Station OCPP Parameters",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           }
         ],
         "tags": [
@@ -2165,7 +2165,7 @@
         "description": "Export Charging Station OCPP Parameters as CSV file",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           }
         ],
         "tags": [
@@ -2328,7 +2328,7 @@
         "description": "Get Charging Station transactions",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           },
           {
             "$ref": "#/components/parameters/Issuer"
@@ -2702,7 +2702,7 @@
             }
           },
           {
-            "$ref": "#/components/parameters/ConnectorID"
+            "$ref": "#/components/parameters/connectorID"
           },
           {
             "in": "query",
@@ -2846,7 +2846,7 @@
         "description": "Delete a Charging Station profile",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/chargingStationID"
           }
         ],
         "tags": [
@@ -3484,6 +3484,15 @@
         }
       },
       "ChargingStationID": {
+        "in": "query",
+        "name": "ChargingStationID",
+        "description": "Charging Station ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "chargingStationID": {
         "in": "path",
         "name": "id",
         "description": "Charging station ID",
@@ -3492,7 +3501,7 @@
           "type": "string"
         }
       },
-      "ConnectorID": {
+      "connectorID": {
         "in": "path",
         "name": "connectorId",
         "required": true,
