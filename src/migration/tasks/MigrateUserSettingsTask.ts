@@ -23,9 +23,9 @@ export default class MigrateUserSettingsTask extends MigrationTask {
       const settingsToSave = {
         identifier: UserSettingsType.USER,
         content: {
-          type: UserSettingsContentType.ACCOUNT_ACTIVATION,
-          accountActivation: {
-            doNotActivateByDefault: false
+          type: UserSettingsContentType.USER,
+          user: {
+            manualAccountActivation: false
           }
         },
         createdOn: new Date(),

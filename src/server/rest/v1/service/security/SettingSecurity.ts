@@ -188,10 +188,10 @@ export default class SettingSecurity {
             settings.content.asset.connections.push(sanitizedConnection);
           }
           break;
-        case UserSettingsContentType.ACCOUNT_ACTIVATION:
-          settings.content.accountActivation =
+        case UserSettingsContentType.USER:
+          settings.content.user =
           {
-            doNotActivateByDefault: request.content.accountActivation.doNotActivateByDefault
+            manualAccountActivation: request.content.user.manualAccountActivation
           };
           break;
       }

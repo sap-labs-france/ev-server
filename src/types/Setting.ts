@@ -32,7 +32,7 @@ export interface SettingDBContent {
   sapSmartCharging?: SapSmartChargingSetting;
   asset?: AssetSetting;
   crypto?: CryptoSetting;
-  accountActivation?: AccountActivationSetting;
+  user?: UserSettings;
 }
 
 export enum PricingSettingsType {
@@ -275,13 +275,13 @@ export enum UserSettingsType {
 }
 
 export enum UserSettingsContentType {
-  ACCOUNT_ACTIVATION = 'accountActivation',
+  USER = 'user',
 }
 
 export interface UserSetting extends Setting {
   identifier: UserSettingsType.USER;
-  accountActivation?: AccountActivationSetting;
+  user?: UserSettings;
 }
-export interface AccountActivationSetting {
-  doNotActivateByDefault: boolean;
+export interface UserSettings {
+  manualAccountActivation: boolean;
 }
