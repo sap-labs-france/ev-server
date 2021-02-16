@@ -109,7 +109,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       (authorization) => authorization.connectorId === connector.connectorId);
     if (existingAuthorization) {
       // Check if authorization is from same user or different user
-      if (existingAuthorization.oicpIdentification.RemoteIdentification.EvcoID !== authorizeRemoteStart.Identification.RemoteIdentification.EvcoID) {
+      if (existingAuthorization?.oicpIdentification?.RemoteIdentification?.EvcoID !== authorizeRemoteStart.Identification?.RemoteIdentification?.EvcoID) {
         // Check if authorization of different user is valid
         if (OICPUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
           // Current remote authorization fails due to valid remote authorization of different user
