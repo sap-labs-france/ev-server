@@ -258,13 +258,14 @@ export default class ChargingStationStorage {
       if (!Utils.isEmptyArray(params.siteAreaIDs)) {
         filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
       }
-      // Site Area
-      DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-        asField: 'siteArea', oneToOneCardinality: true
-      });
       // Check Site ID
       if (!Utils.isEmptyArray(params.siteIDs)) {
+        // TODO: Optimization: Assign SiteID to the charging station object
+        // Site Area
+        DatabaseUtils.pushSiteAreaLookupInAggregation({
+          tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+          asField: 'siteArea', oneToOneCardinality: true
+        });
         // Build filter
         aggregation.push({
           $match: {
@@ -305,8 +306,6 @@ export default class ChargingStationStorage {
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
     }
-    // Always add Connector ID
-    dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
     // Position coordinates
     if (Utils.containsGPSCoordinates(params.locCoordinates)) {
       // Override (can have only one sort)
@@ -328,6 +327,13 @@ export default class ChargingStationStorage {
       tenantID, aggregation: aggregation, localField: 'connectors.userID', foreignField: '_id',
       asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
     }, { sort: dbParams.sort });
+    // Site Area
+    if (Utils.isEmptyArray(params.siteIDs)) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true
+      });
+    }
     // Site
     if (params.withSite && !params.withNoSiteArea) {
       DatabaseUtils.pushSiteLookupInAggregation({
@@ -335,12 +341,6 @@ export default class ChargingStationStorage {
         asField: 'siteArea.site', oneToOneCardinality: true
       });
     }
-    // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
-    aggregation.push({
-      '$addFields': {
-        'lastHeartBeat': '$lastSeen'
-      }
-    });
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert siteID back to string after having queried the site
@@ -351,6 +351,15 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
+    // Reorder connector ID
+    // TODO: To remove the 'if containsGPSCoordinates' when SiteID optimization will be implemented 
+    if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
+      // Always add Connector ID
+      dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    }
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .aggregate(aggregation, {
