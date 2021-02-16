@@ -46,7 +46,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
             tenantID: tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the ocpiendpoint.`
           });
           return;
         }
@@ -55,7 +55,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
             tenantID: tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
           return;
         }
@@ -63,7 +63,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
           tenantID: tenant.id,
           action: ServerAction.OCPI_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          message: `The get Locations process for endpoint ${ocpiEndpoint.name} is being processed`
+          message: `The get Locations process for endpoint '${ocpiEndpoint.name}' is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
@@ -73,7 +73,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
           tenantID: tenant.id,
           action: ServerAction.OCPI_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          message: `The GET Locations process for endpoint ${ocpiEndpoint.name} is completed`,
+          message: `The get Locations process for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {

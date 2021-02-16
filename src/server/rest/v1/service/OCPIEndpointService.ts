@@ -363,7 +363,7 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handlePullTokensEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullEmspTokensLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPIPullEmspTokensLock(tenant.id, ocpiEndpoint, false);
     if (!ocpiLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

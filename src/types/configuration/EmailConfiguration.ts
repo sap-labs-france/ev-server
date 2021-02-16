@@ -1,7 +1,4 @@
 export default interface EmailConfiguration {
-  from: string;
-  admins: string[];
-  bcc: string;
   smtp: {
     from: string;
     host: string;
@@ -11,7 +8,8 @@ export default interface EmailConfiguration {
     user: string;
     password: string;
   };
-  smtpBackup: {
+  disableBackup?: boolean;
+  smtpBackup?: {
     from: string;
     host: string;
     port: number;

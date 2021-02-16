@@ -1,12 +1,15 @@
+import BaseApi from './utils/BaseApi';
+import { ServerAction } from '../../../src/types/Server';
 import { ServerRoute } from '../../../src/types/Server';
+import User from '../../../src/types/User';
 
 export default class AuthenticationApi {
-  private _baseApi: any;
+  private _baseApi: BaseApi;
   public constructor(baseApi) {
     this._baseApi = baseApi;
   }
 
-  public async login(email, password, acceptEula = true, tenant = '') {
+  public async login(email: string, password: string, acceptEula = true, tenant = '') {
     const data: any = {};
     // Allow caller to not pass param for the tests
     if (email) {
@@ -36,10 +39,7 @@ export default class AuthenticationApi {
     return response;
   }
 
-  async registerUser(user, tenant = null) {
-    if (tenant) {
-      user.tenant = tenant;
-    }
+  async registerUser(user: User, tenant = null) {
     // Send
     const response = await this._baseApi.send({
       method: 'POST',
@@ -47,12 +47,15 @@ export default class AuthenticationApi {
       headers: {
         'Content-Type': 'application/json'
       },
-      data: user
+      data: {
+        ...user,
+        tenant
+      }
     });
     return response;
   }
 
-  public async resetUserPassword(email, tenant = '') {
+  public async resetUserPassword(email: string, tenant = '') {
     const data = {
       email: email,
       tenant: tenant,
@@ -70,7 +73,7 @@ export default class AuthenticationApi {
     return response;
   }
 
-  public async resendVerificationEmail(email, tenant = '') {
+  public async resendVerificationEmail(email: string, tenant = '') {
     const data = {
       email: email,
       tenant: tenant,
@@ -88,20 +91,27 @@ export default class AuthenticationApi {
     return response;
   }
 
-  public async verifyEmail(email, verificationToken, tenant = '') {
-    const data = {
-      Email: email,
-      tenant: tenant,
-      VerificationToken: verificationToken
-    };
+  public async verifyEmail(email: string, verificationToken: string, tenant = '') {
     // Send
     const response = await this._baseApi.send({
       method: 'GET',
-      url: '/v1/auth/' + ServerRoute.REST_MAIL_CHECK,
+      url: `/v1/auth/${ServerAction.REST_MAIL_CHECK}?Email=${email}&Tenant=${tenant}&VerificationToken=${verificationToken}`,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return response;
+  }
+
+  public async getEula(language?: string) {
+    // Send
+    const response = await this._baseApi.send({
+      method: 'GET',
+      url: '/v1/auth/' + ServerAction.REST_END_USER_LICENSE_AGREEMENT,
       headers: {
         'Content-Type': 'application/json'
       },
-      data: data
+      data: { language }
     });
     return response;
   }

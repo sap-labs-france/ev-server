@@ -29,21 +29,17 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   private static readonly STRIPE_MAX_LIST = 100;
   private axiosInstance: AxiosInstance;
   private stripe: Stripe;
+  private stripeSettings: StripeBillingSetting;
 
   constructor(tenantId: string, settings: StripeBillingSetting) {
     super(tenantId, settings);
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
-    this.settings.currency = settings.currency;
-    if (this.settings.secretKey) {
-      this.settings.secretKey = Cypher.decrypt(settings.secretKey);
-    }
-    // Currently the public key is not encrypted
-    this.stripe = new Stripe(this.settings.secretKey);
+    this.stripeSettings = settings;
   }
 
   public async checkConnection(): Promise<void> {
-    // Check Stripe
-    this.checkIfStripeIsInitialized();
+    // Initialize Stripe
+    await this.initializeStripe();
     // Check Key
     if (!this.settings.secretKey) {
       throw new BackendError({
@@ -694,14 +690,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     };
   }
 
-  private checkIfStripeIsInitialized() {
+  private async initializeStripe() {
     if (!this.stripe) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'checkIfStripeIsInitialized',
-        action: ServerAction.CHECK_CONNECTION,
-        message: 'No connection to Stripe available'
-      });
+      this.settings.currency = this.stripeSettings.currency;
+      this.settings.secretKey = await Cypher.decrypt(this.tenantID, this.stripeSettings.secretKey);
+      this.stripe = new Stripe(this.settings.secretKey);
     }
   }
 }
