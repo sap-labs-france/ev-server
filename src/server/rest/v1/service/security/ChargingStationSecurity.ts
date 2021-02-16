@@ -89,7 +89,7 @@ export default class ChargingStationSecurity {
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.ConnectorStatus = sanitize(request.ConnectorStatus);
     filteredRequest.ConnectorType = sanitize(request.ConnectorType);
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.ChargingStationID = sanitize(request.ChargingStationID);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
     if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {

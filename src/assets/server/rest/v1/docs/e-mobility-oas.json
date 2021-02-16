@@ -680,12 +680,7 @@
             "$ref": "#/components/parameters/ConnectorType"
           },
           {
-            "in": "query",
-            "name": "ChargeBoxID",
-            "description": "Charging station ID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
             "$ref": "#/components/parameters/IncludeDeleted"
