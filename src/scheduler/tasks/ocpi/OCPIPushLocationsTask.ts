@@ -67,6 +67,9 @@ export default class OCPIPushLocationsTask extends SchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+        // TODO: Investigate if the PushLocationsTask only pushes the EVSE Statuses and not all EVSEs / Locations
+        // CpoOcpiClient has no method sendLocations or pushLocation
+        // sendEVSEStatuses() -> patchEVSEStatus() only contains the EVSE status in the payload and no location
         // Send EVSE statuses
         const sendResult = await ocpiClient.sendEVSEStatuses(!Utils.isUndefined(config.processAllEVSEs) ? config.processAllEVSEs : false);
         Logging.logInfo({
