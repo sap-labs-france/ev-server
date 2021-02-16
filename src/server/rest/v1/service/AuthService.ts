@@ -60,38 +60,7 @@ export default class AuthService {
 
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    let filteredRequest: Partial<HttpLoginRequest>;
-    try {
-      filteredRequest = AuthValidator.getInstance().validateAuthSignIn(req.body);
-    } catch (e) {
-      if (!req.body.email) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'The Email is mandatory',
-          module: MODULE_NAME,
-          method: 'handleLogIn'
-        });
-      }
-      if (!req.body.password) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'The Password is mandatory',
-          module: MODULE_NAME,
-          method: 'handleLogIn'
-        });
-      }
-      if (!req.body.acceptEula) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_EULA_ERROR,
-          message: 'The End-user License Agreement is mandatory',
-          module: MODULE_NAME,
-          method: 'handleLogIn'
-        });
-      }
-    }
+    const filteredRequest = AuthValidator.getInstance().validateAuthSignIn(req.body);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -164,31 +133,8 @@ export default class AuthService {
 
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    let filteredRequest: Partial<HttpRegisterUserRequest>;
-    try {
-      filteredRequest = AuthValidator.getInstance().validateAuthSignOn(req.body);
-    } catch (e) {
-      // Check EULA
-      if (!req.body.acceptEula) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_EULA_ERROR,
-          message: 'The End-user License Agreement is mandatory',
-          module: MODULE_NAME,
-          method: 'handleRegisterUser'
-        });
-      }
-      // Check
-      if (!req.body.captcha) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'The captcha is mandatory',
-          module: MODULE_NAME,
-          method: 'handleRegisterUser'
-        });
-      }
-    }
+    const filteredRequest = AuthValidator.getInstance().validateAuthSignOn(req.body);
+    // Override
     filteredRequest.status = UserStatus.PENDING;
     if (!filteredRequest.locale) {
       filteredRequest.locale = Constants.DEFAULT_LOCALE;
@@ -422,8 +368,19 @@ export default class AuthService {
         method: 'handleUserPasswordReset'
       });
     }
+    // Check password
+    if (!Utils.isPasswordValid(filteredRequest.passwords.password)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `Password with reset hash '${filteredRequest.hash}' is not strong enough`,
+        module: MODULE_NAME,
+        user: user,
+        method: 'handleUserPasswordReset'
+      });
+    }
     // Hash it
-    const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.password);
+    const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.passwords.password);
     // Save new password
     await UserStorage.saveUserPassword(tenantID, user.id,
       {
@@ -446,35 +403,13 @@ export default class AuthService {
       message: 'User\'s password has been reset successfully',
       detailedMessages: { params: req.body }
     });
-
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   public static async handleUserPasswordReset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    let filteredRequest: Partial<HttpResetPasswordRequest>;
-    try {
-      filteredRequest = AuthValidator.getInstance().validateAuthResetPassword(req.body);
-    } catch (e) {
-      if (!req.body.email) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'The E-mail is mandatory',
-          module: MODULE_NAME,
-          method: 'handleUserPasswordReset'
-        });
-      } else if (!req.body.captcha && !req.body.hash) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'The Captcha or the Hash is mandatory',
-          module: MODULE_NAME,
-          method: 'handleUserPasswordReset'
-        });
-      }
-    }
+    const filteredRequest = AuthValidator.getInstance().validateAuthResetPassword(req.body);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -488,41 +423,18 @@ export default class AuthService {
       });
     }
     // Check hash
-    if (!filteredRequest.hash) {
-      // Send Confirmation Email for requesting a new password
-      await AuthService.checkAndSendResetPasswordConfirmationEmail(tenantID, filteredRequest, action, req, res, next);
-    } else {
+    if (filteredRequest.hash) {
       // Send the new password
       await AuthService.resetUserPassword(tenantID, filteredRequest, action, req, res, next);
+    } else {
+      // Send Confirmation Email for requesting a new password
+      await AuthService.checkAndSendResetPasswordConfirmationEmail(tenantID, filteredRequest, action, req, res, next);
     }
   }
 
   public static async handleCheckEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    let filteredRequest: Partial<HttpCheckEulaRequest>;
-    try {
-      filteredRequest = AuthValidator.getInstance().validateAuthCheckEula(req.query);
-    } catch (e) {
-      // Check
-      if (!req.body.Tenant) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'The Tenant is mandatory',
-          module: MODULE_NAME,
-          method: 'handleCheckEndUserLicenseAgreement'
-        });
-      }
-      if (!req.body.Email) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'The Email is mandatory',
-          module: MODULE_NAME,
-          method: 'handleCheckEndUserLicenseAgreement'
-        });
-      }
-    }
+    const filteredRequest = AuthValidator.getInstance().validateAuthCheckEula(req.query);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
     if (!tenantID) {
@@ -566,33 +478,7 @@ export default class AuthService {
 
   public static async handleVerifyEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    let filteredRequest;
-    try {
-      filteredRequest = AuthValidator.getInstance().validateAuthVerifyEmail(req.body);
-    } catch (e) {
-      // Check email
-      if (!req.body.Email) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          action: action,
-          module: MODULE_NAME,
-          method: 'handleVerifyEmail',
-          message: 'The email is mandatory'
-        });
-      }
-      // Check verificationToken
-      if (!req.body.VerificationToken) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          action: action,
-          module: MODULE_NAME,
-          method: 'handleVerifyEmail',
-          message: 'Verification token is mandatory'
-        });
-      }
-    }
+    const filteredRequest = AuthValidator.getInstance().validateAuthVerifyEmail(req.query);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
     if (!tenantID) {
@@ -694,34 +580,7 @@ export default class AuthService {
   }
 
   public static async handleResendVerificationEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    let filteredRequest;
-    try {
-      filteredRequest = AuthValidator.getInstance().validateAuthResendVerificationEmail(req.body);
-    } catch (e) {
-      // Check email
-      if (!filteredRequest.email) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'The Email is mandatory',
-          module: MODULE_NAME,
-          method: 'handleResendVerificationEmail',
-          action: action
-        });
-      }
-      // Check captcha
-      if (!filteredRequest.captcha) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'The captcha is mandatory',
-          module: MODULE_NAME,
-          method: 'handleResendVerificationEmail',
-          action: action
-        });
-      }
-    }
+    const filteredRequest = AuthValidator.getInstance().validateAuthResendVerificationEmail(req.body);
     // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
