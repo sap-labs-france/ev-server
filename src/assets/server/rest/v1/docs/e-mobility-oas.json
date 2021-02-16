@@ -716,10 +716,10 @@
             "content": {
               "application/json": {
                 "example": {
-                  "chargeBoxSerialNumber": "EV.2S22P44R3N164750700100350246E2",
-                  "chargePointModel": "MONOBLOCK",
-                  "chargePointSerialNumber": "3N163730715E2S1B7551700014",
-                  "chargePointVendor": "Schneider Electric",
+                  "chargeBoxSerialNumber": "####",
+                  "chargePointModel": "####",
+                  "chargePointSerialNumber": "####",
+                  "chargePointVendor": "####",
                   "connectors": [
                     {
                       "connectorId": 1,
@@ -774,20 +774,20 @@
                       "phaseAssignmentToGrid": null
                     }
                   ],
-                  "endpoint": "http://192.168.0.114:8080/",
-                  "firmwareVersion": "3.3.0.12",
+                  "endpoint": "####",
+                  "firmwareVersion": "3",
                   "lastReboot": "2020-12-08T09:06:14.948Z",
                   "ocppVersion": "1.5",
-                  "siteAreaID": "5abebb1b4bae1457eb565e98",
-                  "chargingStationURL": "wss://sap-ev-chargebox-json-server-prod.cfapps.eu10.hana.ondemand.com",
+                  "siteAreaID": "####",
+                  "chargingStationURL": "wss://####",
                   "maximumPower": 44160,
                   "ocppProtocol": "soap",
                   "powerLimitUnit": "A",
                   "createdOn": "2019-03-20T07:41:57.583Z",
-                  "currentIPAddress": "37.71.38.83, 10.0.136.8",
+                  "currentIPAddress": "####",
                   "coordinates": [
-                    7.01643370298905,
-                    43.6120451027249
+                    7,
+                    43
                   ],
                   "capabilities": {
                     "supportStaticLimitation": true,
@@ -798,62 +798,6 @@
                     "supportCreditCard": false,
                     "supportRFIDCard": false
                   },
-                  "ocppStandardParameters": [
-                    {
-                      "key": "AllowOfflineTxForUnknownId",
-                      "value": "true"
-                    },
-                    {
-                      "key": "AuthorizationCacheEnabled",
-                      "value": "false"
-                    },
-                    {
-                      "key": "StopTransactionOnInvalidId",
-                      "value": "true"
-                    }
-                  ],
-                  "ocppVendorParameters": [
-                    {
-                      "key": "authenticationmanager",
-                      "value": "2"
-                    },
-                    {
-                      "key": "ocppconnecttimeout",
-                      "value": "60"
-                    },
-                    {
-                      "key": "clockaligneddatainterval",
-                      "value": "0"
-                    },
-                    {
-                      "key": "metervaluessampleddata",
-                      "value": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3"
-                    },
-                    {
-                      "key": "metervaluesampleinterval",
-                      "value": "60"
-                    },
-                    {
-                      "key": "emsetting",
-                      "value": "3"
-                    },
-                    {
-                      "key": "enableevdetection",
-                      "value": "true"
-                    },
-                    {
-                      "key": "useautotimemanagment",
-                      "value": "true"
-                    },
-                    {
-                      "key": "timeservername",
-                      "value": "pool.ntp.org"
-                    },
-                    {
-                      "key": "websocketpinginterval",
-                      "value": "30"
-                    }
-                  ],
                   "issuer": true,
                   "chargePoints": [
                     {
@@ -881,16 +825,16 @@
                   "lastSeen": "2020-12-20T22:34:37.468Z",
                   "inactive": true,
                   "siteArea": {
-                    "name": "Mougins - South",
-                    "siteID": "5abeba8d4bae1457eb565e5b",
+                    "name": "####",
+                    "siteID": "####",
                     "smartCharging": true,
-                    "id": "5abebb1b4bae1457eb565e98",
+                    "id": "####",
                     "site": {
-                      "name": "SAP Labs Mougins",
-                      "id": "5abeba8d4bae1457eb565e5b"
+                      "name": "####",
+                      "id": "####"
                     }
                   },
-                  "id": "65465898"
+                  "id": "####"
                 }
               }
             }
