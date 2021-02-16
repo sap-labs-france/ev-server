@@ -33,7 +33,7 @@ const MODULE_NAME = 'SchedulerManager';
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
 
-  public static init() {
+  public static init(): void {
     // Active?
     if (SchedulerManager.schedulerConfig.active) {
       // Log
