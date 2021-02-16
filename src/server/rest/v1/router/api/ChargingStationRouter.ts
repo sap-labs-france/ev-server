@@ -32,7 +32,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationRemoteStop();
     this.buildRouteChargingStationUnlockConnector();
     this.buildRouteChargingStationGenerateQRCode();
-    this.buildRouteChargingStationCompositeSchedule();
+    this.buildRouteChargingStationGetCompositeSchedule();
     this.buildRouteChargingStationGetDiagnostics();
     this.buildRouteChargingStationUpdateFirmware();
     this.buildRouteChargingStationDownloadQRCode();
@@ -100,8 +100,8 @@ export default class ChargingStationRouter {
     });
   }
 
-  protected buildRouteChargingStationCompositeSchedule(): void {
-    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_COMPOSITE_SCHEDULE}`, async (req: Request, res: Response, next: NextFunction) => {
+  protected buildRouteChargingStationGetCompositeSchedule(): void {
+    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_GET_COMPOSITE_SCHEDULE}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE, req, res, next);
     });
   }
@@ -113,7 +113,7 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationUpdateFirmware(): void {
-    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_FIRMWARE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_FIRMWARE_UPDATE}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_UPDATE_FIRMWARE, req, res, next);
     });
   }

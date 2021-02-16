@@ -407,9 +407,9 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_REMOTE_START = 'chargingstations/remote/start',
   REST_CHARGING_STATIONS_REMOTE_STOP = 'chargingstations/remote/stop',
   REST_CHARGING_STATIONS_UNLOCK_CONNECTOR = 'chargingstations/connectors/unlock',
-  REST_CHARGING_STATIONS_COMPOSITE_SCHEDULE = 'chargingstations/compositeschedule',
+  REST_CHARGING_STATIONS_GET_COMPOSITE_SCHEDULE = 'chargingstations/compositeschedule',
   REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'chargingstations/diagnostics',
-  REST_CHARGING_STATIONS_FIRMWARE = 'chargingstations/general/firmware',
+  REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'chargingstations/firmware/update',
   REST_CHARGING_STATIONS_AVAILABILITY = 'chargingstations/general/availability',
   
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:id',

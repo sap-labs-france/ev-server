@@ -1706,8 +1706,8 @@
         }
       }
     },
-    "/api/chargingstations/general/firmware": {
-      "put": {
+    "/api/chargingstations/firmware/update": {
+      "post": {
         "security": [
           {
             "bearerAuth": []
@@ -1719,29 +1719,39 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "id",
-                  "location",
-                  "retrieveDate"
-                ],
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string"
-                  },
-                  "location": {
-                    "type": "string"
-                  },
-                  "retries": {
-                    "type": "number"
-                  },
-                  "retrieveDate": {
                     "type": "string",
-                    "format": "date-time"
+                    "example": ""
                   },
-                  "retryInterval": {
-                    "type": "number"
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "location": {
+                        "type": "string",
+                        "example": ""
+                      },
+                      "retries": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "example": 1
+                      },
+                      "retrieveDate": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "retryInterval": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "example": 5
+                      }
+                    }
                   }
-                }
+                },
+                "required": [
+                  "location",
+                  "retrieveDate"
+                ]
               }
             }
           }
