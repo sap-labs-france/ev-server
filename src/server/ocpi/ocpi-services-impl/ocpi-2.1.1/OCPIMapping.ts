@@ -487,7 +487,7 @@ export default class OCPIMapping {
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
     for (const chargingStation of siteArea.chargingStations) {
-      if (chargingStation.issuer === true && chargingStation.public) {
+      if (Utils.isBoolean(chargingStation.issuer) && chargingStation.issuer && chargingStation.public) {
         if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
           for (const chargePoint of chargingStation.chargePoints) {
             if (chargePoint.cannotChargeInParallel) {

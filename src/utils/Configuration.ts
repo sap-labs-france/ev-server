@@ -219,6 +219,12 @@ export default class Configuration {
 
   // Email config
   public static getEmailConfig(): EmailConfiguration {
+    Configuration.deprecateConfigurationKey('from', 'Email');
+    Configuration.deprecateConfigurationKey('admins', 'Email');
+    Configuration.deprecateConfigurationKey('bcc', 'Email');
+    if (Configuration.isUndefined(Configuration.getConfig().Email.disableBackup)) {
+      Configuration.getConfig().Email.disableBackup = false;
+    }
     // Read conf
     const emailConfig: EmailConfiguration = Configuration.getConfig().Email;
     if (!Configuration.isUndefined(emailConfig) && Configuration.isCloudFoundry()) {
