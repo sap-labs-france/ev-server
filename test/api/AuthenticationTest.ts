@@ -146,6 +146,13 @@ describe('Authentication Service (tenant utall)', function() {
       expect(response.data).to.have.property('status', 'Success');
     });
 
+    it('Should be possible to retrieve tenant EULA', async () => {
+      const response = await CentralServerService.defaultInstance.authenticationApi.getEula('');
+      // Check
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('text');
+    });
+
     // pragma it('Should be logged off when the locale is updated', async () => {
     //   const newUser = await CentralServerService.defaultInstance.createEntity(
     //     CentralServerService.defaultInstance.userApi, UserFactory.build());
@@ -244,7 +251,7 @@ describe('Authentication Service (tenant utall)', function() {
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, false, testData.adminTenant);
       // Check
-      expect(response.status).to.be.eql(520);
+      expect(response.status).to.be.eql(500);
       expect(response.data).to.not.have.property('token');
     });
 
@@ -253,7 +260,7 @@ describe('Authentication Service (tenant utall)', function() {
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, null, testData.adminTenant);
       // Check
-      expect(response.status).to.be.eql(520);
+      expect(response.status).to.be.eql(500);
       expect(response.data).to.not.have.property('token');
     });
 

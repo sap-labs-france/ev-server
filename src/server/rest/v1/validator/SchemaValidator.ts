@@ -13,23 +13,25 @@ const extraSanitizers = {
 
 export default class SchemaValidator {
   private readonly ajv: Ajv.Ajv;
-  private _commonSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/common/common.json`, 'utf8'));
-  private _tenantComponentSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-components.json`, 'utf8'));
+  private commonSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/common/common.json`, 'utf8'));
+  private tenantComponentSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-components.json`, 'utf8'));
 
   constructor(readonly moduleName: string,
-    config: {allErrors: boolean; removeAdditional: boolean|'all'|'failing'|undefined;
-      useDefaults: boolean; coerceTypes: boolean; } = {
+    config: {
+      allErrors: boolean; removeAdditional: boolean | 'all' | 'failing' | undefined;
+      useDefaults: boolean; coerceTypes: boolean;
+    } = {
       allErrors: true,
       removeAdditional: 'all',
       useDefaults: true,
       coerceTypes: true
     }) {
     this.ajv = ajvSanitizer(new Ajv(config), extraSanitizers);
-    this.ajv.addSchema(this._commonSchema);
-    this.ajv.addSchema(this._tenantComponentSchema);
+    this.ajv.addSchema(this.commonSchema);
+    this.ajv.addSchema(this.tenantComponentSchema);
   }
 
-  public validate(schema: boolean|Record<string, unknown>, content: any): void {
+  public validate(schema: boolean | Record<string, unknown>, content: any): void {
     const fnValidate = this.ajv.compile(schema);
     if (!fnValidate(content)) {
       if (!fnValidate.errors) {

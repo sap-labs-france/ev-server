@@ -12,6 +12,12 @@
       "maxLength": 100,
       "sanitize": "mongo"
     },
+    "firstName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "sanitize": "mongo"
+    },
     "email": {
       "type": "string",
       "format": "email",
@@ -19,8 +25,7 @@
     },
     "subdomain": {
       "type": "string",
-      "pattern": "^[a-z0-9]+$",
-      "minLength": 1,
+      "pattern": "^[a-z0-9]*$",
       "maxLength": 20,
       "sanitize": "mongo"
     },
@@ -76,6 +81,22 @@
           "sanitize": "mongo"
         }
       }
+    },
+    "acceptEula": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "password": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "captcha": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "language": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   }
 }
