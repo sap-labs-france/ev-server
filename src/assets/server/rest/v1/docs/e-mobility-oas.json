@@ -1063,6 +1063,7 @@
                     "properties": {
                       "type": {
                         "type": "string",
+                        "description": "Required. This contains the type of reset that the Charge Point should perform.",
                         "enum": [
                           "Soft",
                           "Hard"
@@ -1180,6 +1181,7 @@
                     "properties": {
                       "key": {
                         "type": "array",
+                        "description": "Optional. List of keys for which the configuration value is requested.",
                         "items": {
                           "type": "string"
                         },
@@ -1278,12 +1280,14 @@
                     "properties": {
                       "connectorId": {
                         "type": "integer",
+                        "description": "Optional. Number of the connector on which to start the transaction. connectorId SHALL be > 0",
                         "minimum": 1,
                         "example": 1
                       },
                       "tagID": {
                         "type": "string",
-                        "example": "DEMODEMO"
+                        "description": "Required. The identifier that Charge Point must use to start a transaction.",
+                        "example": "123456"
                       }
                     }
                   }
@@ -1362,7 +1366,9 @@
                     "type": "object",
                     "properties": {
                       "transactionId": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "Required. The identifier of the transaction which Charge Point is requested to stop.",
+                        "example": 12345
                       }
                     }
                   }
@@ -1442,6 +1448,7 @@
                     "properties": {
                       "connectorID": {
                         "type": "integer",
+                        "description": "Required. This contains the identifier of the connector to be unlocked.",
                         "minimum": 1,
                         "example": 1
                       }
@@ -1520,21 +1527,34 @@
                     "properties": {
                       "connectorId": {
                         "type": "integer",
+                        "description": "Required. The ID of the Connector for which the schedule is requested. When ConnectorId=0, the Charge Point will calculate the expected consumption for the grid connection.",
                         "example": 0
-                      },
-                      "chargingRateUnit": {
-                        "type": "string",
-                        "example": "A"
                       },
                       "duration": {
                         "type": "integer",
+                        "description": "Required. Time in seconds. length of requested schedule",
                         "minimum": 1,
                         "example": 36000
+                      },
+                      "chargingRateUnit": {
+                        "type": "string",
+                        "description": "Optional. Can be used to force a power or current profile",
+                        "example": "A",
+                        "enum": [
+                          "W", "A"
+                        ]
                       }
-                    }
+                    },
+                    "required": [
+                      "connectorId",
+                      "duration"
+                    ]
                   }
-                }
-              }
+                },
+                "required": [
+                  "args"
+                ]
+          }
             }
           }
         },
@@ -1645,31 +1665,39 @@
                     "properties": {
                       "location": {
                         "type": "string",
+                        "description": "Required. This contains the location (directory) where the diagnostics file shall be uploaded to.",
                         "example": ""
                       },
                       "retries": {
                         "type": "integer",
+                        "description": "Optional. This specifies how many times Charge Point must try to upload the diagnostics before giving up. If this field is not present, it is left to Charge Point to decide how many times it wants to retry.",
                         "minimum": 1,
                         "example": 1
                       },
                       "retryInterval": {
                         "type": "integer",
+                        "description": "Optional. The interval in seconds after which a retry may be attempted. If this field is not present, it is left to Charge Point to decide how long to wait between attempts.",
                         "minimum": 1,
                         "example": 5
                       },
                       "startTime": {
                         "type": "string",
+                        "description": "Optional. This contains the date and time of the oldest logging information to include in the diagnostics.",
                         "format": "date-time"
                       },
                       "stopTime": {
                         "type": "string",
+                        "description": "Optional. This contains the date and time of the latest logging information to include in the diagnostics.",
                         "format": "date-time"
                       }
-                    }
+                    },
+                    "required": [
+                      "location"
+                    ]
                   }
                 },
                 "required": [
-                  "location"
+                  "args"
                 ]
               }
             }
