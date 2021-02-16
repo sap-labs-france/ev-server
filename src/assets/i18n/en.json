@@ -18,7 +18,7 @@
     "ocppProtocol": "OCPP Protocol",
     "ocppVersion": "OCPP Version",
     "powerLimitUnit": "Power Limit Unit",
-    "timezone" : "Charging Station Timezone",
+    "timezone": "Charging Station Timezone",
     "vendor": "Vendor"
   },
   "general": {
@@ -68,9 +68,9 @@
       "title": "Roaming Send Statuses",
       "body": "The transfer to the roaming platform of the charging station's statuses has failed on location '{{location}}' in organization '{{tenantName}}', check the logs"
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Email Server Error",
-      "body": "The authentication against the primary email server has failed in organization '{{tenantName}}', check the configuration"
+      "body": "The primary email server has failed in organization '{{tenantName}}', check the configuration"
     },
     "optimalChargeReached": {
       "title": "Optimal Charge Reached",

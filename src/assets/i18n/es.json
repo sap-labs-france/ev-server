@@ -18,7 +18,7 @@
     "ocppProtocol": "OCPP Protocol",
     "ocppVersion": "OCPP Version",
     "powerLimitUnit": "Power Limit Unit",
-    "timezone" : "Charging Station Timezone",
+    "timezone": "Charging Station Timezone",
     "vendor": "Vendor"
   },
   "general": {
@@ -68,9 +68,9 @@
       "title": "Estatus de envío de itinerancia",
       "body": "La transferencia a la plataforma de itinerancia de los estatus de la estación de carga ha fallado en la ubicación '{{location}}' en la organización '{{tenantName}}', verifique los registros "
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Error del servidor de correo electrónico",
-      "body": "La autenticación del servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
+      "body": "Del servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
     },
     "optimalChargeReached": {
       "title": "Carga óptima alcanzada",
