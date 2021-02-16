@@ -1497,33 +1497,22 @@
         }
       }
     },
-    "/api/chargingstations/connectors/qrcode": {
-      "post": {
+    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/generate": {
+      "get": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
         "description": "Generate connector's QRCode",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chargeBoxID": {
-                    "type": "string"
-                  },
-                  "connectorID": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "example": 1
-                  }
-                }
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/connectorID"
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1557,7 +1546,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode": {
+    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/download": {
       "get": {
         "security": [
           {
@@ -1571,12 +1560,6 @@
           },
           {
             "$ref": "#/components/parameters/connectorID"
-          },
-          {
-            "$ref": "#/components/parameters/SiteAreaID"
-          },
-          {
-            "$ref": "#/components/parameters/SiteID"
           }
         ],
         "tags": [

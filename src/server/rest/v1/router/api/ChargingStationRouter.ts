@@ -101,8 +101,18 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationGenerateQRCode(): void {
-    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_QRCODE_GENERATE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_QRCODE_GENERATE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ChargingStationID = req.params.id;
+      req.query.ConnectorID = req.params.connectorId;
       await RouterUtils.handleServerAction(ChargingStationService.handleGenerateQrCodeForConnector.bind(this), ServerAction.GENERATE_QR_CODE_FOR_CONNECTOR, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationDownloadQRCode(): void {
+    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_QRCODE_DOWNLOAD}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ChargingStationID = req.params.id;
+      req.query.ConnectorID = req.params.connectorId;
+      await RouterUtils.handleServerAction(ChargingStationService.handleDownloadQrCodesPdf.bind(this), ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF, req, res, next);
     });
   }
 
@@ -129,14 +139,6 @@ export default class ChargingStationRouter {
   protected buildRouteChargingStationChangeAvailability(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_AVAILABILITY}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_CHANGE_AVAILABILITY, req, res, next);
-    });
-  }
-
-  protected buildRouteChargingStationDownloadQRCode(): void {
-    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_QRCODE_DOWNLOAD}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ChargeBoxID = req.params.id;
-      req.query.ConnectorID = req.params.connectorId;
-      await RouterUtils.handleServerAction(ChargingStationService.handleDownloadQrCodesPdf.bind(this), ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF, req, res, next);
     });
   }
 

@@ -25,8 +25,8 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationConnectorRequest(request: any): HttpChargingStationConnectorRequest {
     return {
-      chargeBoxID: sanitize(request.chargeBoxID),
-      connectorID: Utils.convertToInt(sanitize(request.connectorID)),
+      ChargingStationID: sanitize(request.ChargingStationID),
+      ConnectorID: Utils.convertToInt(sanitize(request.ConnectorID)),
     };
   }
 
@@ -62,7 +62,7 @@ export default class ChargingStationSecurity {
 
   public static filterDownloadQrCodesPdfRequest(request: any): HttpDownloadQrCodeRequest {
     return {
-      ChargeBoxID: request.ChargeBoxID ? sanitize(request.ChargeBoxID) : null,
+      ChargingStationID: request.ChargingStationID ? sanitize(request.ChargingStationID) : null,
       ConnectorID: request.ConnectorID ? Utils.convertToInt(sanitize(request.ConnectorID)) : null,
       SiteAreaID: request.SiteAreaID ? sanitize(request.SiteAreaID) : null,
       SiteID: request.SiteID ? sanitize(request.SiteID) : null,

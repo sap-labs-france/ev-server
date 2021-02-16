@@ -443,7 +443,7 @@ export default class ChargingStationService {
 
   public static async handleGenerateQrCodeForConnector(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationConnectorRequest(req.body);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationConnectorRequest(req.query);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -451,25 +451,25 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGenerateQrCodeForConnector',
-        value: filteredRequest.chargeBoxID
+        value: filteredRequest.ChargingStationID
       });
     }
     // Check ChargeBoxID
-    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargingStationID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Check ConnectorID
-    UtilsService.assertIdIsProvided(action, filteredRequest.connectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Get the Charging Station`
-    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
+    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargingStationID);
     // Found ChargingStation ?
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargingStationID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Found Connector ?
-    UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.connectorID),
-      `Connector ID '${filteredRequest.connectorID}' does not exist`,
+    UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.ConnectorID),
+      `Connector ID '${filteredRequest.ConnectorID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     const chargingStationQRCode: ChargingStationQRCode = {
-      chargingStationID: filteredRequest.chargeBoxID,
-      connectorID: filteredRequest.connectorID,
+      chargingStationID: filteredRequest.ChargingStationID,
+      connectorID: filteredRequest.ConnectorID,
       endpoint: Utils.getChargingStationEndpoint(),
       tenantName: req.user.tenantName,
       tenantSubDomain: req.user.tenantSubdomain
@@ -840,7 +840,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterDownloadQrCodesPdfRequest(req.query);
     // Check
-    if (!filteredRequest.SiteID && !filteredRequest.SiteAreaID && !filteredRequest.ChargeBoxID) {
+    if (!filteredRequest.SiteID && !filteredRequest.SiteAreaID && !filteredRequest.ChargingStationID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1384,8 +1384,7 @@ export default class ChargingStationService {
   }
 
   private static async getChargingStationsForQrCode(req: Request): Promise<DataResult<ChargingStation>> {
-    return ChargingStationService.getChargingStations(req,
-      ['id', 'connectors.connectorId', 'siteArea.name']);
+    return ChargingStationService.getChargingStations(req, ['id', 'connectors.connectorId', 'siteArea.name']);
   }
 
   private static async convertQrCodeToPDF(req: Request, pdfDocument: PDFKit.PDFDocument, chargingStations: ChargingStation[]): Promise<void> {

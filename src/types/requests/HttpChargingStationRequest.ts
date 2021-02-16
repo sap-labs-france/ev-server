@@ -23,7 +23,7 @@ export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
 }
 
 export interface HttpDownloadQrCodeRequest {
-  ChargeBoxID?: string;
+  ChargingStationID?: string;
   ConnectorID?: number;
   SiteID?: string;
   SiteAreaID?: string;
@@ -71,8 +71,8 @@ export interface HttpChargingStationRequest {
 }
 
 export interface HttpChargingStationConnectorRequest {
-  chargeBoxID: string;
-  connectorID: number;
+  ChargingStationID: string;
+  ConnectorID: number;
 }
 
 export interface HttpChargingStationOcppParametersRequest {

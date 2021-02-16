@@ -387,8 +387,8 @@ export enum ServerAction {
   HTTP_ERROR = 'HttpError'
 }
 
+// RESTful API
 export enum ServerRoute {
-  // RESTful API
   REST_SIGNIN = 'signin',
   REST_SIGNON = 'signon',
   REST_SIGNOUT = 'signout',
@@ -406,8 +406,8 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_REMOTE_START = 'chargingstations/remote/start',
   REST_CHARGING_STATIONS_REMOTE_STOP = 'chargingstations/remote/stop',
   REST_CHARGING_STATIONS_UNLOCK_CONNECTOR = 'chargingstations/connectors/unlock',
-  REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/connectors/qrcode',
-  REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'chargingstations/:id/connectors/:connectorId/qrcode',
+  REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',
+  REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'chargingstations/:id/connectors/:connectorId/qrcode/download',
   REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'chargingstations/smartcharging/checkconnection',
   REST_CHARGING_STATIONS_COMPOSITE_SCHEDULE = 'chargingstations/:id/compositeschedule',
   REST_CHARGING_STATIONS_DIAGNOSTICS = 'chargingstations/:id/diagnostics',
