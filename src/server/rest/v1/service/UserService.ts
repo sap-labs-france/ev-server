@@ -822,6 +822,7 @@ export default class UserService {
     next();
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canImportUser(req.user)) {
@@ -843,47 +844,13 @@ export default class UserService {
         });
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         converter.subscribe(async function(user) {
-          try {
-            const newUploadedUser = {
-              name: user.Name,
-              firstName: user.First_Name,
-              email: user.Email,
-              role: user.Role,
-              importedBy: req.user.id
-            };
-            return await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
-          } catch (error) {
-            Logging.logError({
-              tenantID: req.user.tenantID,
-              module: MODULE_NAME, method: 'handleUpdloadUsersFile',
-              action: action,
-              message: 'User cannot be imported',
-              detailedMessages: { error: error.message, stack: error.stack }
-            });
-          }
+          await UserService.importUser(action, req, user);
         });
         file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('users.*');
         parser.on('data', async function(user) {
-          try {
-            const newUploadedUser = {
-              name: user.Name,
-              firstName: user.First_Name,
-              email: user.Email,
-              role: user.Role,
-              importedBy: req.user.id
-            };
-            await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
-          } catch (error) {
-            Logging.logError({
-              tenantID: req.user.tenantID,
-              module: MODULE_NAME, method: 'handleUpdloadUsersFile',
-              action: action,
-              message: 'User cannot be imported',
-              detailedMessages: { error: error.message, stack: error.stack }
-            });
-          }
+          await UserService.importUser(action, req, user);
         });
         file.pipe(parser);
       } else {
@@ -906,6 +873,7 @@ export default class UserService {
         message: 'File successfully uploaded',
       });
       res.end();
+      next();
     });
   }
 
@@ -1245,5 +1213,26 @@ export default class UserService {
       ]
     );
     return users;
+  }
+
+  private static async importUser(action: ServerAction, req: Request, user: any): Promise<void> {
+    try {
+      const newUploadedUser = {
+        name: user.Name,
+        firstName: user.First_Name,
+        email: user.Email,
+        role: user.Role,
+        importedBy: req.user.id
+      };
+      await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
+    } catch (error) {
+      Logging.logError({
+        tenantID: req.user.tenantID,
+        module: MODULE_NAME, method: 'handleUpdloadUsersFile',
+        action: action,
+        message: 'User cannot be imported',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
   }
 }
