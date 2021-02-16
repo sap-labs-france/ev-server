@@ -1,4 +1,4 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -346,6 +346,80 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
       billingSettings.stripe.invoicesLastSynchronizedOn = new Date();
       await SettingStorage.saveBillingSettings(this.tenantID, billingSettings);
+    }
+    return actionsDone;
+  }
+
+  public async finalizeInvoices(): Promise<BillingChargeInvoiceAction> {
+    const actionsDone: BillingChargeInvoiceAction = {
+      inSuccess: 0,
+      inError: 0
+    };
+    await this.checkConnection();
+    // Get the draft invoices
+    const draftInvoices = await BillingStorage.getDraftInvoices(this.tenantID);
+    // Let's first finalize the invoices
+    for (const draftInvoice of draftInvoices.result) {
+      // Synchronize user
+      try {
+        await this.finalizeInvoice(draftInvoice);
+        // TODO - update the billing invoice state to reflect the change?
+        Logging.logInfo({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_CHARGE_INVOICE,
+          module: MODULE_NAME, method: 'chargeInvoices',
+          message: `Succesfully finalized invoice '${draftInvoice.id}'`
+        });
+        actionsDone.inSuccess++;
+      } catch (error) {
+        actionsDone.inError++;
+        Logging.logError({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+          module: MODULE_NAME, method: 'chargeInvoices',
+          message: `Failed to finalize invoice '${draftInvoice.id}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+    return actionsDone;
+  }
+
+  public async chargeInvoices(): Promise<BillingChargeInvoiceAction> {
+    const actionsDone: BillingChargeInvoiceAction = {
+      inSuccess: 0,
+      inError: 0
+    };
+    await this.checkConnection();
+
+    const openedInvoices = await BillingStorage.getOpenInvoices(this.tenantID);
+    // Let's now try to pay opened invoices
+    for (const openInvoice of openedInvoices.result) {
+      // Synchronize user
+      try {
+        await this.chargeInvoice(openInvoice);
+        // TODO - update the billing invoice state to reflect the change?
+        Logging.logInfo({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_CHARGE_INVOICE,
+          module: MODULE_NAME, method: 'chargeInvoices',
+          message: `Succesfully charge invoice '${openInvoice.id}'`
+        });
+        actionsDone.inSuccess++;
+      } catch (error) {
+        actionsDone.inError++;
+        Logging.logError({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+          module: MODULE_NAME, method: 'chargeInvoices',
+          message: `Failed to charge invoice '${openInvoice.id}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
     }
     return actionsDone;
   }
