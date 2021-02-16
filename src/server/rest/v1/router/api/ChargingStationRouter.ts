@@ -100,6 +100,12 @@ export default class ChargingStationRouter {
     });
   }
 
+  protected buildRouteChargingStationCompositeSchedule(): void {
+    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_COMPOSITE_SCHEDULE}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE, req, res, next);
+    });
+  }
+
   protected buildRouteChargingStationGenerateQRCode(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_QRCODE_GENERATE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ChargingStationID = req.params.id;
@@ -113,13 +119,6 @@ export default class ChargingStationRouter {
       req.query.ChargingStationID = req.params.id;
       req.query.ConnectorID = req.params.connectorId;
       await RouterUtils.handleServerAction(ChargingStationService.handleDownloadQrCodesPdf.bind(this), ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF, req, res, next);
-    });
-  }
-
-  protected buildRouteChargingStationCompositeSchedule(): void {
-    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_COMPOSITE_SCHEDULE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.chargeBoxID = req.params.id;
-      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE, req, res, next);
     });
   }
 

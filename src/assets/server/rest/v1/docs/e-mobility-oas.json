@@ -1497,6 +1497,131 @@
         }
       }
     },
+    "/api/chargingstations/compositeschedule": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Station composite schedule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargeBoxID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "connectorId": {
+                        "type": "integer",
+                        "example": 0
+                      },
+                      "chargingRateUnit": {
+                        "type": "string",
+                        "example": "A"
+                      },
+                      "duration": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "example": 36000
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return composite schedule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "connectorId": {
+                      "type": "number"
+                    },
+                    "scheduleStart": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "chargingSchedule": {
+                      "type": "object",
+                      "required": [
+                        "chargingRateUnit",
+                        "chargingSchedulePeriod"
+                      ],
+                      "properties": {
+                        "duration": {
+                          "type": "number"
+                        },
+                        "startSchedule": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "chargingRateUnit": {
+                          "type": "string"
+                        },
+                        "chargingSchedulePeriod": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "startPeriod",
+                              "limit"
+                            ],
+                            "properties": {
+                              "startPeriod": {
+                                "type": "number"
+                              },
+                              "limit": {
+                                "type": "number"
+                              },
+                              "numberPhases": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        },
+                        "minChargeRate": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "585": {
+            "$ref": "#/components/responses/NotSupportedError"
+          }
+        }
+      }
+    },
     "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/generate": {
       "get": {
         "security": [
@@ -1586,103 +1711,6 @@
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
-          }
-        }
-      }
-    },
-    "/api/chargingstations/{id}/compositeschedule": {
-      "get": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "description": "Get Charging Station composite schedule",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/chargingStationID"
-          }
-        ],
-        "tags": [
-          "Charging Stations"
-        ],
-        "responses": {
-          "200": {
-            "description": "Return composite schedule",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "status"
-                  ],
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "connectorId": {
-                      "type": "number"
-                    },
-                    "scheduleStart": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "chargingSchedule": {
-                      "type": "object",
-                      "required": [
-                        "chargingRateUnit",
-                        "chargingSchedulePeriod"
-                      ],
-                      "properties": {
-                        "duration": {
-                          "type": "number"
-                        },
-                        "startSchedule": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "chargingRateUnit": {
-                          "type": "string"
-                        },
-                        "chargingSchedulePeriod": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "required": [
-                              "startPeriod",
-                              "limit"
-                            ],
-                            "properties": {
-                              "startPeriod": {
-                                "type": "number"
-                              },
-                              "limit": {
-                                "type": "number"
-                              },
-                              "numberPhases": {
-                                "type": "number"
-                              }
-                            }
-                          }
-                        },
-                        "minChargeRate": {
-                          "type": "number"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "500": {
-            "$ref": "#/components/responses/500BackendError"
-          },
-          "585": {
-            "$ref": "#/components/responses/NotSupportedError"
           }
         }
       }
@@ -3427,7 +3455,7 @@
       "chargingStationID": {
         "in": "path",
         "name": "id",
-        "description": "Charging station ID",
+        "description": "Charging Station ID",
         "required": true,
         "schema": {
           "type": "string"
