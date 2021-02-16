@@ -72,7 +72,7 @@ export default class JsonRestWSConnection extends WSConnection {
         source: this.getChargingStationID(),
         module: MODULE_NAME,
         method: 'handleRequest',
-        message: `'${commandName}' not found`,
+        message: 'Charging Station not found',
         action: commandName
       });
     }

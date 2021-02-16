@@ -24,7 +24,7 @@ const userFactory = Factory.define('user')
     sendChargingStationStatusError: false,
     sendChargingStationRegistered: false,
     sendOcpiPatchStatusError: false,
-    sendSmtpAuthError: false,
+    sendSmtpError: false,
     sendUserAccountInactivity: false,
     sendPreparingSessionNotStarted: false,
     sendOfflineChargingStations: false,
