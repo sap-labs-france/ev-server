@@ -217,7 +217,7 @@ export enum ServerAction {
   UNKNOWN_USER_BADGED = 'UnknownUserBadged',
   TRANSACTION_STARTED = 'TransactionStarted',
   VERIFICATION_EMAIL = 'VerificationEmail',
-  AUTH_EMAIL_ERROR = 'AuthentificationErrorEmailServer',
+  EMAIL_SERVER_ERROR = 'EmailServerError',
   PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
