@@ -1115,18 +1115,6 @@ export default class Utils {
     });
   }
 
-  public static isPasswordStrongEnough(password: string): boolean {
-    const uc = password.match(Constants.PWD_UPPERCASE_RE);
-    const lc = password.match(Constants.PWD_LOWERCASE_RE);
-    const n = password.match(Constants.PWD_NUMBER_RE);
-    const sc = password.match(Constants.PWD_SPECIAL_CHAR_RE);
-    return password.length >= Constants.PWD_MIN_LENGTH &&
-      uc && uc.length >= Constants.PWD_UPPERCASE_MIN_COUNT &&
-      lc && lc.length >= Constants.PWD_LOWERCASE_MIN_COUNT &&
-      n && n.length >= Constants.PWD_NUMBER_MIN_COUNT &&
-      sc && sc.length >= Constants.PWD_SPECIAL_MIN_COUNT;
-  }
-
   public static containsAddressGPSCoordinates(address: Address): boolean {
     // Check if GPS are available
     if (address && Utils.containsGPSCoordinates(address.coordinates)) {
@@ -1150,7 +1138,7 @@ export default class Utils {
   public static generatePassword(): string {
     let password = '';
     const randomLength = Utils.getRandomInt(Constants.PWD_MAX_LENGTH, Constants.PWD_MIN_LENGTH);
-    while (!Utils.isPasswordStrongEnough(password)) {
+    while (!Utils.isPasswordValid(password)) {
       // eslint-disable-next-line no-useless-escape
       password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
     }
