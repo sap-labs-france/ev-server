@@ -2012,90 +2012,6 @@
         }
       }
     },
-    "/api/chargingstations/ocpp/parameters": {
-      "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "description": "Request Charging Station OCPP Parameters",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "chargeBoxID",
-                  "forceUpdateOCPPParamsFromTemplate"
-                ],
-                "properties": {
-                  "chargeBoxID": {
-                    "type": "string"
-                  },
-                  "forceUpdateOCPPParamsFromTemplate": {
-                    "type": "boolean",
-                    "example": false
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Charging Stations"
-        ],
-        "responses": {
-          "200": {
-            "description": "Return command success status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "examples": {
-                  "accepted": {
-                    "summary": "Accepted",
-                    "value": {
-                      "status": "Accepted"
-                    }
-                  },
-                  "rejected": {
-                    "summary": "Rejected",
-                    "value": {
-                      "status": "Rejected"
-                    }
-                  },
-                  "rebootRequired": {
-                    "summary": "Reboot required",
-                    "value": {
-                      "status": "RebootRequired"
-                    }
-                  },
-                  "NotSupported": {
-                    "summary": "Not supported",
-                    "value": {
-                      "status": "NotSupported"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "500": {
-            "$ref": "#/components/responses/500BackendError"
-          }
-        }
-      }
-    },
     "/api/chargingstations/{id}/ocpp/parameters": {
       "get": {
         "security": [
@@ -2156,6 +2072,91 @@
                       "value": "true"
                     }
                   ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/ocpp/parameters": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Request Charging Station OCPP Parameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargeBoxID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "forceUpdateOCPPParamsFromTemplate": {
+                    "type": "boolean",
+                    "example": false
+                  }
+                },
+                "required": [
+                  "chargeBoxID",
+                  "forceUpdateOCPPParamsFromTemplate"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return command success status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  },
+                  "rebootRequired": {
+                    "summary": "Reboot required",
+                    "value": {
+                      "status": "RebootRequired"
+                    }
+                  },
+                  "NotSupported": {
+                    "summary": "Not supported",
+                    "value": {
+                      "status": "NotSupported"
+                    }
+                  }
                 }
               }
             }

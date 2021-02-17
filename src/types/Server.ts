@@ -415,11 +415,10 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:id',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',
   REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'chargingstations/:id/connectors/:connectorId/qrcode/download',
-
   
-  REST_CHARGING_STATIONS_OCPP_PARAMETERS = 'chargingstations/ocpp/parameters',
-  REST_CHARGING_STATIONS_OCPP_PARAMETERS_EXPORT = 'chargingstations/:id/ocpp/parameters/export',
-  REST_CHARGING_STATION_OCPP_PARAMETERS = 'chargingstations/:id/ocpp/parameters',
+  REST_CHARGING_STATION_GET_OCPP_PARAMETERS = 'chargingstations/:id/ocpp/parameters',
+  REST_CHARGING_STATIONS_REQUEST_OCPP_PARAMETERS = 'chargingstations/ocpp/parameters',
+  REST_CHARGING_STATIONS_EXPORT_OCPP_PARAMETERS = 'chargingstations/:id/ocpp/parameters/export',
   REST_CHARGING_STATIONS_PARAMETERS = 'chargingstations/general/parameters',
   REST_CHARGING_STATIONS_POWER_LIMIT = 'chargingstations/power/limit',
   REST_CHARGING_STATIONS_TRANSACTIONS = 'chargingstations/:id/transactions',

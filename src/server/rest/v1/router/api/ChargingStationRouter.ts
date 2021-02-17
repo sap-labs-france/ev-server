@@ -36,7 +36,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationGetDiagnostics();
     this.buildRouteChargingStationUpdateFirmware();
     this.buildRouteChargingStationDownloadQRCode();
-    this.buildRouteChargingStationOCPPParameters();
+    this.buildRouteChargingStationGetOCPPParameters();
     this.buildRouteChargingStationExportOCPPParameters();
     this.buildRouteChargingStationUpdateParameters();
     this.buildRouteChargingStationLimitPower();
@@ -140,22 +140,22 @@ export default class ChargingStationRouter {
     });
   }
 
-  protected buildRouteChargingStationRequestOCPPParameters(): void {
-    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(ChargingStationService.handleRequestChargingStationOcppParameters.bind(this), ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS, req, res, next);
-    });
-  }
-
-  protected buildRouteChargingStationOCPPParameters(): void {
-    this.router.get(`/${ServerRoute.REST_CHARGING_STATION_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
+  protected buildRouteChargingStationGetOCPPParameters(): void {
+    this.router.get(`/${ServerRoute.REST_CHARGING_STATION_GET_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ChargeBoxID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleGetChargingStationOcppParameters.bind(this), ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS, req, res, next);
     });
   }
 
+  protected buildRouteChargingStationRequestOCPPParameters(): void {
+    this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_REQUEST_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleRequestChargingStationOcppParameters.bind(this), ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS, req, res, next);
+    });
+  }
+
   protected buildRouteChargingStationExportOCPPParameters(): void {
-    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_OCPP_PARAMETERS_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ChargeBoxID = req.params.id;
+    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_EXPORT_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ChargingStationID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleExportChargingStationsOCPPParams.bind(this), ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT, req, res, next);
     });
   }

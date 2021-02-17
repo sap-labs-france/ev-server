@@ -151,6 +151,7 @@ export default class ChargingStationStorage {
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
+    let siteAreaLookUpAdded = false;
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
@@ -262,6 +263,7 @@ export default class ChargingStationStorage {
       if (!Utils.isEmptyArray(params.siteIDs)) {
         // TODO: Optimization: Assign SiteID to the charging station object
         // Site Area
+        siteAreaLookUpAdded = true;
         DatabaseUtils.pushSiteAreaLookupInAggregation({
           tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
           asField: 'siteArea', oneToOneCardinality: true
@@ -328,7 +330,7 @@ export default class ChargingStationStorage {
       asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
     }, { sort: dbParams.sort });
     // Site Area
-    if (Utils.isEmptyArray(params.siteIDs)) {
+    if (!siteAreaLookUpAdded) {
       DatabaseUtils.pushSiteAreaLookupInAggregation({
         tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
         asField: 'siteArea', oneToOneCardinality: true
