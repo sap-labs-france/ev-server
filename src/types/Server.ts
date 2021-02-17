@@ -424,7 +424,7 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_POWER_LIMIT = 'chargingstations/power/limit',
   REST_CHARGING_STATIONS_TRANSACTIONS = 'chargingstations/:id/transactions',
   REST_CHARGING_STATIONS_IN_ERROR = 'chargingstations/status/in-error',
-  REST_CHARGING_STATIONS_EXPORT = 'chargingstations/action/export',
+  REST_CHARGING_STATIONS_EXPORT = 'chargingstations/export',
 
   REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'chargingstations/smartcharging/checkconnection',
   REST_CHARGING_PROFILES = 'chargingstations/smartcharging/profiles',
