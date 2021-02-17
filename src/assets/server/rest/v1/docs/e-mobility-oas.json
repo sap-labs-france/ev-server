@@ -1047,7 +1047,7 @@
       }
     },
     "/api/chargingstations/reset": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1105,7 +1105,7 @@
       }
     },
     "/api/chargingstations/cache/clear": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1169,7 +1169,7 @@
       }
     },
     "/api/chargingstations/configuration/retrieve": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1263,7 +1263,7 @@
       }
     },
     "/api/chargingstations/remote/start": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1359,7 +1359,7 @@
       }
     },
     "/api/chargingstations/remote/stop": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1445,7 +1445,7 @@
       }
     },
     "/api/chargingstations/connectors/unlock": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1529,7 +1529,7 @@
       }
     },
     "/api/chargingstations/compositeschedule": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1666,7 +1666,7 @@
       }
     },
     "/api/chargingstations/diagnostics": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1757,7 +1757,7 @@
       }
     },
     "/api/chargingstations/firmware/update": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1829,7 +1829,7 @@
       }
     },
     "/api/chargingstations/availability/change": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
