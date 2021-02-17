@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { NextFunction, Request, Response, json } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import User, { UserStatus } from '../../../../types/User';
 
@@ -842,15 +842,35 @@ export default class UserService {
           delimiter: ['\t'],
           quote: 'off'
         });
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        converter.subscribe(async function(user) {
+        converter.subscribe(async (user) => {
           await UserService.importUser(action, req, user);
+        }, (error) => {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.INVALID_FILE_FORMAT,
+            message: 'Invalid csv file',
+            module: MODULE_NAME, method: 'handleUploadUsersFile',
+            user: req.user,
+            action: action,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
         });
         file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('users.*');
-        parser.on('data', async function(user) {
+        parser.on('data', async (user) => {
           await UserService.importUser(action, req, user);
+        });
+        parser.on('error', function(error) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.INVALID_FILE_FORMAT,
+            message: 'Invalid json file',
+            module: MODULE_NAME, method: 'handleUploadUsersFile',
+            user: req.user,
+            action: action,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
         });
         file.pipe(parser);
       } else {
