@@ -2299,13 +2299,20 @@
                 ],
                 "properties": {
                   "chargeBoxID": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                   },
                   "chargePointID": {
-                    "type": "string"
+                    "type": "string",
+                    "example": 1
+                  },
+                  "connectorId": {
+                    "type": "number",
+                    "example": 0
                   },
                   "ampLimitValue": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 192
                   },
                   "forceUpdateChargingPlan": {
                     "type": "boolean",
