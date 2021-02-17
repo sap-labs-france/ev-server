@@ -2512,56 +2512,16 @@
         "description": "Get Charging Station in error",
         "parameters": [
           {
-            "$ref": "#/components/parameters/Issuer"
-          },
-          {
             "$ref": "#/components/parameters/Search"
-          },
-          {
-            "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
             "$ref": "#/components/parameters/SiteID"
           },
           {
-            "in": "query",
-            "name": "WithNoSite",
-            "description": "With no site",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
             "$ref": "#/components/parameters/SiteAreaID"
           },
           {
-            "$ref": "#/components/parameters/ConnectorStatus"
-          },
-          {
-            "$ref": "#/components/parameters/ConnectorType"
-          },
-          {
-            "in": "query",
-            "name": "ChargeBoxID",
-            "description": "Charging Sation ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "$ref": "#/components/parameters/IncludeDeleted"
-          },
-          {
             "$ref": "#/components/parameters/ErrorType"
-          },
-          {
-            "$ref": "#/components/parameters/LocLongitude"
-          },
-          {
-            "$ref": "#/components/parameters/LocLatitude"
-          },
-          {
-            "$ref": "#/components/parameters/LocMaxDistanceMeters"
           },
           {
             "$ref": "#/components/parameters/Skip"
