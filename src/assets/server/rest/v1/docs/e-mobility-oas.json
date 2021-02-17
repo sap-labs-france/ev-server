@@ -118,6 +118,9 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
           }
         ],
         "tags": [
@@ -705,6 +708,9 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
           }
         ],
         "tags": [
@@ -2358,6 +2364,9 @@
             "$ref": "#/components/parameters/chargingStationID"
           },
           {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
             "$ref": "#/components/parameters/Issuer"
           },
           {
@@ -2367,7 +2376,8 @@
             "description": "Start date time",
             "schema": {
               "type": "string",
-              "format": "date-time"
+              "format": "date-time",
+              "example": "2020-12-31T23:00:00.000Z"
             }
           },
           {
@@ -2381,28 +2391,34 @@
             }
           },
           {
-            "$ref": "#/components/parameters/SiteID"
-          },
-          {
             "in": "query",
             "name": "TagID",
-            "description": "Tag ID",
+            "description": "Pipe separated Tag IDs",
             "required": false,
             "schema": {
               "type": "string"
             }
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "in": "query",
+            "name": "ConnectorID",
+            "description": "Pipe separated Connector IDs",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "$ref": "#/components/parameters/Search"
+            "$ref": "#/components/parameters/SiteID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
           },
           {
             "in": "query",
             "name": "InactivityStatus",
             "required": false,
-            "description": "Inactivity status",
+            "description": "Pipe separated Inactivity Statuses",
             "schema": {
               "type": "string"
             }
@@ -2411,7 +2427,7 @@
             "in": "query",
             "name": "RefundStatus",
             "required": false,
-            "description": "Refund status",
+            "description": "Pipe separated Refund Statuses",
             "schema": {
               "type": "string"
             }
@@ -2429,9 +2445,14 @@
             "in": "query",
             "name": "Statistics",
             "required": false,
-            "description": "Statistics",
+            "description": "Refund or History statistics",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "history",
+              "enum": [
+                "refund",
+                "history"
+              ]
             }
           },
           {
@@ -2460,6 +2481,9 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
           }
         ],
         "tags": [
@@ -2547,6 +2571,9 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
           }
         ],
         "tags": [
@@ -2758,6 +2785,9 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
           }
         ],
         "tags": [
@@ -3547,15 +3577,24 @@
       "SiteID": {
         "in": "query",
         "name": "SiteID",
-        "description": "Site ID",
+        "description": "Pipe separated Site IDs",
         "schema": {
           "type": "string"
+        }
+      },
+      "OnlyRecordCount": {
+        "in": "query",
+        "name": "OnlyRecordCount",
+        "description": "Return only the number of records",
+        "schema": {
+          "type": "boolean",
+          "example": false
         }
       },
       "SiteAreaID": {
         "in": "query",
         "name": "SiteAreaID",
-        "description": "Site Area ID",
+        "description": "Pipe separated Site Area IDs",
         "schema": {
           "type": "string"
         }
