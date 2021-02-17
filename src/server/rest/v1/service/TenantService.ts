@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { CryptoKeySetting, CryptoSettingsType, SettingDB, SettingDBContent } from '../../../../types/Setting';
+import { CryptoKeySetting, CryptoSettingsType, SettingDB, SettingDBContent, UserSetting, UserSettingsContentType, UserSettingsType } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantLogo } from '../../../../types/Tenant';
@@ -167,6 +167,7 @@ export default class TenantService {
 
   public static async createInitialSettingsForTenant(tenantID: string): Promise<void> {
     await this.createInitialCryptoSetting(tenantID);
+    await this.createInitialUserSetting(tenantID);
   }
 
   public static async createInitialCryptoSetting(tenantID: string): Promise<void> {
@@ -184,6 +185,25 @@ export default class TenantService {
       } as CryptoKeySetting;
       // Save Crypto Key Settings
       await Cypher.saveCryptoSetting(tenantID, keySettingToSave);
+    }
+  }
+
+  public static async createInitialUserSetting(tenantID: string): Promise<void> {
+    // Check for settings in db
+    const userSettings = await SettingStorage.getUserSettings(tenantID);
+    if (Utils.isEmptyObject(userSettings)) {
+      // Create new user setting with account activation param
+      const settingsToSave = {
+        identifier: UserSettingsType.USER,
+        content: {
+          type: UserSettingsContentType.USER,
+          user: {
+            manualAccountActivation: false
+          }
+        },
+        createdOn: new Date(),
+      } as UserSetting;
+      await SettingStorage.saveSettings(tenantID, settingsToSave);
     }
   }
 
