@@ -29,21 +29,8 @@ export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
               }
             );
           }
-          // Attempt payment - once a month!
+          // Attempt payment - once a month! - A second task with a dedicated configuration to trigger the payment attempts
           if (taskConfig?.attemptPayment) {
-            // Attempt to finalize invoices with status DRAFT
-            const finalizeActionResults = await billingImpl.finalizeInvoices();
-            if (finalizeActionResults.inError > 0) {
-              // TODO - dedicated notification type is required here!!!
-              await NotificationHandler.sendBillingInvoicesSynchronizationFailed(
-                tenant.id,
-                {
-                  nbrInvoicesInError: finalizeActionResults.inError,
-                  evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-                  evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
-                }
-              );
-            }
             // Attempt to pay invoices with status OPEN
             const chargeActionResults = await billingImpl.chargeInvoices();
             if (chargeActionResults.inError > 0) {

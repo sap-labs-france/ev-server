@@ -350,43 +350,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return actionsDone;
   }
 
-  public async finalizeInvoices(): Promise<BillingChargeInvoiceAction> {
-    const actionsDone: BillingChargeInvoiceAction = {
-      inSuccess: 0,
-      inError: 0
-    };
-    await this.checkConnection();
-    // Get the draft invoices
-    const draftInvoices = await BillingStorage.getDraftInvoices(this.tenantID);
-    // Let's first finalize the invoices
-    for (const draftInvoice of draftInvoices.result) {
-      // Synchronize user
-      try {
-        await this.finalizeInvoice(draftInvoice);
-        // TODO - update the billing invoice state to reflect the change?
-        Logging.logInfo({
-          tenantID: this.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_CHARGE_INVOICE,
-          module: MODULE_NAME, method: 'chargeInvoices',
-          message: `Succesfully finalized invoice '${draftInvoice.id}'`
-        });
-        actionsDone.inSuccess++;
-      } catch (error) {
-        actionsDone.inError++;
-        Logging.logError({
-          tenantID: this.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-          module: MODULE_NAME, method: 'chargeInvoices',
-          message: `Failed to finalize invoice '${draftInvoice.id}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    return actionsDone;
-  }
-
   public async chargeInvoices(): Promise<BillingChargeInvoiceAction> {
     const actionsDone: BillingChargeInvoiceAction = {
       inSuccess: 0,
@@ -394,7 +357,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     };
     await this.checkConnection();
 
-    const openedInvoices = await BillingStorage.getOpenInvoices(this.tenantID);
+    const openedInvoices = await BillingStorage.getInvoicesToPay(this.tenantID);
     // Let's now try to pay opened invoices
     for (const openInvoice of openedInvoices.result) {
       // Synchronize user

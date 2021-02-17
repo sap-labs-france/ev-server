@@ -1,6 +1,6 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
-import Stripe, { IResourceObject, customers, invoices, paymentMethods, setupIntents } from 'stripe';
+import Stripe, { IResourceObject, customers, invoices, paymentMethods } from 'stripe';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
