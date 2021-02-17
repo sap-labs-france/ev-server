@@ -95,7 +95,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'GET',
-      url: `/v1/auth/${ServerAction.REST_MAIL_CHECK}?Email=${email}&Tenant=${tenant}&VerificationToken=${verificationToken}`,
+      url: `/v1/auth/${ServerRoute.REST_MAIL_CHECK}?Email=${email}&Tenant=${tenant}&VerificationToken=${verificationToken}`,
       headers: {
         'Content-Type': 'application/json'
       }
@@ -107,7 +107,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this._baseApi.send({
       method: 'GET',
-      url: '/v1/auth/' + ServerAction.REST_END_USER_LICENSE_AGREEMENT,
+      url: '/v1/auth/' + ServerRoute.REST_END_USER_LICENSE_AGREEMENT,
       headers: {
         'Content-Type': 'application/json'
       },
