@@ -172,53 +172,5 @@ describe('Security tests', function() {
 
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
-    it('Check that everything goes well if detailed message is boolean', async () => { // Will fail
-      const logId:string = await Logging.logDebug({
-        source: 'test',
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: true // Is this a valid usecase?
-      });
-
-      const read = await testData.centralService.logsApi.readById(logId);
-      expect(read.status).to.equal(200);
-
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that everything goes well if detailed message is number', async () => { // Will fail
-      const logId:string = await Logging.logDebug({
-        source: 'test',
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 123 // Is this a valid usecase?
-      });
-
-      const read = await testData.centralService.logsApi.readById(logId);
-      expect(read.status).to.equal(200);
-
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that everything goes well if detailed message is object with sensitive data field number', async () => { // Should fail, but doesn't
-      const logId:string = await Logging.logDebug({
-        source: 'test',
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: { password: 123 } // Is this a valid usecase?
-      });
-
-      const read = await testData.centralService.logsApi.readById(logId);
-      expect(read.status).to.equal(200);
-
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
   });
 });

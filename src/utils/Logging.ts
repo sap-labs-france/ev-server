@@ -735,7 +735,7 @@ export default class Logging {
         if (typeof message[key] === 'string') {
           for (const sensitiveData of Constants.SENSITIVE_DATA) {
             if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
-            // Anonymize
+              // Anonymize
               message[key] = Constants.ANONYMIZED_VALUE;
             }
           }
