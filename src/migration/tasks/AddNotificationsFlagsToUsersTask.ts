@@ -62,7 +62,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
         sendChargingStationStatusError: user.notifications?.sendChargingStationStatusError ? user.notifications.sendChargingStationStatusError : false,
         sendChargingStationRegistered: user.notifications?.sendChargingStationRegistered ? user.notifications.sendChargingStationRegistered : false,
         sendOcpiPatchStatusError: user.notifications?.sendOcpiPatchStatusError ? user.notifications.sendOcpiPatchStatusError : false,
-        sendSmtpAuthError: user.notifications?.sendSmtpAuthError ? user.notifications.sendSmtpAuthError : false,
+        sendSmtpError: user.notifications?.sendSmtpError ? user.notifications.sendSmtpError : false,
         sendOfflineChargingStations: user.notifications?.sendOfflineChargingStations ? user.notifications.sendOfflineChargingStations : false,
         sendBillingSynchronizationFailed: user.notifications?.sendBillingSynchronizationFailed ? user.notifications.sendBillingSynchronizationFailed : false,
         sendCarCatalogSynchronizationFailed: user.notifications?.sendCarCatalogSynchronizationFailed ? user.notifications.sendCarCatalogSynchronizationFailed : false,
