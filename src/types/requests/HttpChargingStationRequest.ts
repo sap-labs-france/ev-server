@@ -15,7 +15,7 @@ export interface HttpChargingStationLimitPowerRequest {
 
 export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
   Search?: string;
-  ChargeBoxID?: string;
+  ChargingStationID?: string;
   ConnectorID?: number;
   WithChargingStation?: boolean;
   WithSiteArea?: boolean;

@@ -426,9 +426,10 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_IN_ERROR = 'chargingstations/status/in-error',
   REST_CHARGING_STATIONS_EXPORT = 'chargingstations/export',
 
-  REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'chargingstations/smartcharging/checkconnection',
-  REST_CHARGING_PROFILES = 'chargingstations/smartcharging/profiles',
-  REST_CHARGING_PROFILE = 'chargingstations/smartcharging/profiles/:id',
+  REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'chargingstations/smartcharging/connection/check',
+  
+  REST_CHARGING_PROFILES = 'chargingprofiles',
+  REST_CHARGING_PROFILE = 'chargingprofiles/:id',
 
   REST_PING = 'ping',
 

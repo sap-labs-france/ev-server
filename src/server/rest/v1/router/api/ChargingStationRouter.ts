@@ -15,11 +15,11 @@ export default class ChargingStationRouter {
   public buildRoutes(): express.Router {
     this.buildRouteChargingStationsInError();
     this.buildRouteChargingStationsExport();
-    this.buildRouteChargingStationProfile();
+    this.buildRouteChargingStationGetChargingProfiles();
     this.buildRouteChargingStationRequestOCPPParameters();
     this.buildRouteChargingStationDownloadFirmware();
-    this.buildRouteChargingStationDeleteProfile();
-    this.buildRouteChargingStationUpdateProfile();
+    this.buildRouteChargingStationDeleteChargingProfile();
+    this.buildRouteChargingStationUpdateChargingProfiles();
     this.buildRouteChargingStationChangeAvailability();
     this.buildRouteChargingStationTransactions();
     this.buildRouteChargingStations();
@@ -204,19 +204,19 @@ export default class ChargingStationRouter {
     });
   }
 
-  protected buildRouteChargingStationProfile(): void {
+  protected buildRouteChargingStationGetChargingProfiles(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_PROFILES}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleGetChargingProfiles.bind(this), ServerAction.CHARGING_PROFILES, req, res, next);
     });
   }
 
-  protected buildRouteChargingStationUpdateProfile(): void {
+  protected buildRouteChargingStationUpdateChargingProfiles(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_PROFILES}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleUpdateChargingProfile.bind(this), ServerAction.CHARGING_PROFILE_UPDATE, req, res, next);
     });
   }
 
-  protected buildRouteChargingStationDeleteProfile(): void {
+  protected buildRouteChargingStationDeleteChargingProfile(): void {
     this.router.delete(`/${ServerRoute.REST_CHARGING_PROFILE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleDeleteChargingProfile.bind(this), ServerAction.CHARGING_PROFILE_DELETE, req, res, next);

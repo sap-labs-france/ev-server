@@ -347,6 +347,9 @@ export default class ChargingStationService {
   public static async handleGetChargingProfiles(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfilesRequest(req.query);
+    console.log('🚀 -------------------------------------');
+    console.log('🚀 ~ filteredRequest', filteredRequest);
+    console.log('🚀 -------------------------------------');
     // Check auth
     if (!Authorizations.canListChargingProfiles(req.user)) {
       throw new AppAuthError({
@@ -358,7 +361,7 @@ export default class ChargingStationService {
     }
     // Profiles of the charging station?
     let profilesProject: string[] = ['profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'];
-    if (filteredRequest.ChargeBoxID) {
+    if (filteredRequest.ChargingStationID) {
       // Enhanced the projection
       profilesProject = ['profile'];
     }
@@ -366,10 +369,10 @@ export default class ChargingStationService {
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
-        withSiteArea: true,
+        withSiteArea: filteredRequest.WithSiteArea,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },

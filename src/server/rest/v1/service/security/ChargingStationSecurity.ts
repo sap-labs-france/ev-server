@@ -33,8 +33,8 @@ export default class ChargingStationSecurity {
   public static filterChargingProfilesRequest(request: any): HttpChargingProfilesRequest {
     const filteredRequest: HttpChargingProfilesRequest = {} as HttpChargingProfilesRequest;
     filteredRequest.Search = sanitize(request.Search),
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
-    filteredRequest.ConnectorID = sanitize(request.ConnectorID);
+    filteredRequest.ChargingStationID = sanitize(request.ChargingStationID);
+    filteredRequest.ConnectorID = Utils.convertToInt(sanitize(request.ConnectorID));
     filteredRequest.WithChargingStation = UtilsSecurity.filterBoolean(request.WithChargingStation);
     filteredRequest.WithSiteArea = UtilsSecurity.filterBoolean(request.WithSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);

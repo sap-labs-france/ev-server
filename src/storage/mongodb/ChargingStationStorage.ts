@@ -770,17 +770,24 @@ export default class ChargingStationStorage {
         asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
       // Site Areas
-      DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
-        asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-      });
-      // Check Site ID
+      if (params.withSiteArea || !Utils.isEmptyArray(params.siteIDs)) {
+        DatabaseUtils.pushSiteAreaLookupInAggregation({
+          tenantID, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
+          asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+        });
+        // Convert
+        DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
+      }
+      // Convert
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
+      // TODO: Optimization: add the Site ID to the Charging Profile
+      // Site ID
       if (!Utils.isEmptyArray(params.siteIDs)) {
         // Build filter
         aggregation.push({
           $match: {
             'chargingStation.siteArea.siteID': {
-              $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+              $in: params.siteIDs
             }
           }
         });
@@ -828,9 +835,6 @@ export default class ChargingStationStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Convert
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

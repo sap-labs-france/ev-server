@@ -2660,7 +2660,7 @@
         }
       }
     },
-    "/api/chargingstations/smartcharging/checkconnection": {
+    "/api/chargingstations/smartcharging/connection/check": {
       "get": {
         "security": [
           {
@@ -2684,43 +2684,40 @@
         }
       }
     },
-    "/api/chargingstations/smartcharging/profiles": {
+    "/api/chargingprofiles": {
       "get": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Get Charging Stations profiles",
+        "description": "Get Charging Profiles",
         "parameters": [
           {
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorID"
+          },
+          {
             "$ref": "#/components/parameters/Search"
-          },
-          {
-            "in": "query",
-            "name": "ChargeBoxID",
-            "description": "Charging Station ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "$ref": "#/components/parameters/connectorID"
           },
           {
             "in": "query",
             "name": "WithChargingStation",
             "description": "With Charging Station attribute",
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "example": false
             }
           },
           {
             "in": "query",
             "name": "WithSiteArea",
-            "description": "With Site Area",
+            "description": "With Site Area attribute",
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "example": false
             }
           },
           {
@@ -2740,7 +2737,7 @@
           }
         ],
         "tags": [
-          "Charging Stations"
+          "Charging Profiles"
         ],
         "responses": {
           "200": {
@@ -2780,32 +2777,13 @@
         ],
         "description": "Update a Charging Station profile",
         "tags": [
-          "Charging Stations"
+          "Charging Profiles"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "chargingStationID": {
-                    "type": "string"
-                  },
-                  "connectorID": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "example": 1
-                  },
-                  "chargePointID": {
-                    "type": "string"
-                  },
-                  "profile": {
-                    "$ref": "#/components/schemas/ChargingProfile"
-                  }
-                }
+                "$ref": "#/components/schemas/ChargingProfile"
               }
             }
           }
@@ -2842,7 +2820,7 @@
         }
       }
     },
-    "/api/chargingstations/smartcharging/profiles/{id}": {
+    "/api/chargingprofiles/{id}": {
       "delete": {
         "security": [
           {
@@ -2852,11 +2830,11 @@
         "description": "Delete a Charging Station profile",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/chargingProfileID"
           }
         ],
         "tags": [
-          "Charging Stations"
+          "Charging Profiles"
         ],
         "responses": {
           "200": {
@@ -3325,41 +3303,42 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "example": ""
           },
           "chargingStationID": {
-            "type": "string"
-          },
-          "chargingStation": {
-            "$ref": "#/components/schemas/ChargingStation"
-          },
-          "chargePointID": {
-            "type": "number"
+            "type": "string",
+            "example": ""
           },
           "connectorID": {
-            "type": "number"
+            "type": "integer",
+            "example": 0
+          },
+          "chargePointID": {
+            "type": "number",
+            "example": 1
           },
           "profile": {
             "type": "object",
-            "required": [
-              "chargingProfileId",
-              "stackLevel",
-              "chargingProfilePurpose",
-              "chargingProfileKind",
-              "chargingSchedule"
-            ],
             "properties": {
               "chargingProfileId": {
-                "type": "number"
+                "type": "number",
+                "description": "Required. Unique identifier for this profile.",
+                "example": 1
               },
               "transactionId": {
-                "type": "number"
+                "type": "number",
+                "description": "Optional. Only valid if ChargingProfilePurpose is set to TxProfile, the transactionId MAY be used to match the profile to a specific transaction."
               },
               "stackLevel": {
-                "type": "number"
+                "type": "number",
+                "description": "Required. Value determining level in hierarchy stack of profiles. Higher values have precedence over lower values. Lowest level is 0.",
+                "example": 3
               },
               "chargingProfilePurpose": {
                 "type": "string",
+                "description": "Required. Defines the purpose of the schedule transferred by this message.",
+                "example": "TxDefaultProfile",
                 "enum": [
                   "ChargePointMaxProfile",
                   "TxDefaultProfile",
@@ -3368,6 +3347,8 @@
               },
               "chargingProfileKind": {
                 "type": "string",
+                "description": "Required. Indicates the kind of schedule.",
+                "example": "Absolute",
                 "enum": [
                   "Absolute",
                   "Recurring",
@@ -3376,6 +3357,8 @@
               },
               "recurrencyKind": {
                 "type": "string",
+                "description": "Optional. Indicates the start point of a recurrence.",
+                "example": "",
                 "enum": [
                   "Daily",
                   "Weekly"
@@ -3383,61 +3366,88 @@
               },
               "validFrom": {
                 "type": "string",
+                "description": "Optional. Point in time at which the profile starts to be valid. If absent, the profile is valid as soon as it is received by the Charge Point.",
+                "example": "",
                 "format": "date-time"
               },
               "validTo": {
                 "type": "string",
+                "description": "Optional. Point in time at which the profile stops to be valid. If absent, the profile is valid until it is replaced by another profile.",
+                "example": "",
                 "format": "date-time"
               },
               "chargingSchedule": {
                 "$ref": "#/components/schemas/ChargingSchedule"
               }
-            }
+            },
+            "required": [
+              "chargingProfileId",
+              "stackLevel",
+              "chargingProfilePurpose",
+              "chargingProfileKind",
+              "chargingSchedule"
+            ]
           }
         }
       },
       "ChargingSchedule": {
         "type": "object",
-        "required": [
-          "chargingRateUnit",
-          "chargingSchedulePeriod"
-        ],
         "properties": {
           "duration": {
-            "type": "number"
+            "type": "number",
+            "description": "Optional. Duration of the charging schedule in seconds. If the duration is left empty, the last period will continue indefinitely or until end of the transaction in case startSchedule is absent."
           },
           "startSchedule": {
             "type": "string",
+            "description": "Optional. Starting point of an absolute schedule. If absent the schedule will be relative to start of charging.",
+            "example": "",
             "format": "date-time"
           },
           "chargingRateUnit": {
-            "type": "string"
+            "type": "string",
+            "description": "Required. The unit of measure Limit is expressed in.",
+            "enum": [
+              "A", "W"
+            ],
+            "example": "A"
           },
           "chargingSchedulePeriod": {
             "type": "array",
+            "description": "Required. List of ChargingSchedulePeriod elements defining maximum power or current usage over time. The startSchedule of the first ChargingSchedulePeriod SHALL always be 0.",
             "items": {
               "type": "object",
+              "properties": {
+                "startPeriod": {
+                  "type": "number",
+                  "description": "Required. Start of the period, in seconds from the start of schedule. The value of StartPeriod also defines the stop time of the previous period.",
+                  "example": 0
+                },
+                "limit": {
+                  "type": "number",
+                  "description": "Required. Charging rate limit during the schedule period, in the applicable chargingRateUnit, for example in Amperes or Watts. Accepts at most one digit fraction (e.g. 8.1).",
+                  "example": 192
+                },
+                "numberPhases": {
+                  "type": "number",
+                  "description": "Optional. The number of phases that can be used for charging. If a number of phases is needed, numberPhases=3 will be assumed unless another number is given.",
+                  "example": 3
+                }
+              },
               "required": [
                 "startPeriod",
                 "limit"
-              ],
-              "properties": {
-                "startPeriod": {
-                  "type": "number"
-                },
-                "limit": {
-                  "type": "number"
-                },
-                "numberPhases": {
-                  "type": "number"
-                }
-              }
+              ]
             }
           },
           "minChargeRate": {
-            "type": "number"
+            "type": "number",
+            "description": "Optional. Minimum charging rate supported by the electric vehicle. The unit of measure is defined by the chargingRateUnit. This parameter is intended to be used by a local smart charging algorithm to optimize the power allocation for in the case a charging process is inefficient at lower charging rates. Accepts at most one digit fraction (e.g. 8.1)"
           }
-        }
+        },
+        "required": [
+          "chargingRateUnit",
+          "chargingSchedulePeriod"
+        ]
       }
     },
     "parameters": {
@@ -3499,6 +3509,24 @@
         "name": "ChargingStationID",
         "description": "Charging Station ID",
         "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ConnectorID": {
+        "in": "query",
+        "name": "ConnectorID",
+        "description": "Connector ID",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      "chargingProfileID": {
+        "in": "path",
+        "name": "id",
+        "description": "Charging Profile ID",
+        "required": true,
         "schema": {
           "type": "string"
         }
