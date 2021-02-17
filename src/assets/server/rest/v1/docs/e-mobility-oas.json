@@ -2207,7 +2207,7 @@
         }
       }
     },
-    "/api/chargingstations/general/parameters": {
+    "/api/chargingstations/parameters": {
       "put": {
         "security": [
           {
@@ -2222,23 +2222,28 @@
                 "type": "object",
                 "properties": {
                   "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                   },
                   "maximumPower": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 50000
                   },
                   "excludeFromSmartCharging": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                   },
                   "forceInactive": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                   },
                   "public": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                   },
                   "siteAreaID": {
                     "type": "string",
-                    "example": "5abebb014bae1457eb565e85"
+                    "example": ""
                   },
                   "coordinates": {
                     "$ref": "#/components/schemas/Address/properties/coordinates"
@@ -3113,8 +3118,8 @@
           "coordinates": {
             "type": "array",
             "example": [
-              43.6121053,
-              7.016958099999999
+              43,
+              7
             ],
             "items": {
               "type": "integer"

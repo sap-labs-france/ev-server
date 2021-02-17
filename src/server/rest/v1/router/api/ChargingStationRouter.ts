@@ -161,7 +161,7 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationUpdateParameters(): void {
-    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_UPDATE_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleUpdateChargingStationParams.bind(this), ServerAction.CHARGING_STATION_UPDATE_PARAMS, req, res, next);
     });
   }
@@ -222,5 +222,4 @@ export default class ChargingStationRouter {
       await RouterUtils.handleServerAction(ChargingStationService.handleDeleteChargingProfile.bind(this), ServerAction.CHARGING_PROFILE_DELETE, req, res, next);
     });
   }
-
 }
