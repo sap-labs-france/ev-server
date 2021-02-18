@@ -13,7 +13,6 @@ import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
 import { ServerAction } from '../../../../types/Server';
 import TenantComponents from '../../../../types/TenantComponents';
-import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';

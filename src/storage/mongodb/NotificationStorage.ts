@@ -12,7 +12,6 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'NotificationStorage';
 
 export default class NotificationStorage {
-
   static async getNotifications(tenantID: string,
     params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string;
       sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },

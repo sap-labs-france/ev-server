@@ -25,15 +25,20 @@ export default class BaseApi {
     let t1 = 0;
     try {
       t0 = performance.now();
-      // Execute with Axios
-      httpResponse = await axiosInstance(httpRequest);
       // Debug
-      if (config.trace_logs) {
-        console.debug('HTTP Request ====================================');
+      if (config.get('trace_logs')) {
+        console.debug('HTTP Request =======================');
         console.debug(httpRequest.baseURL);
         console.debug(httpRequest.url);
         console.debug(httpRequest.method);
         console.debug(httpRequest.data);
+        console.debug('====================================');
+      }
+      // Execute with Axios
+      httpResponse = await axiosInstance(httpRequest);
+      // Debug
+      if (config.get('trace_logs')) {
+        console.debug('HTTP Response ======================');
         console.debug(httpResponse.status);
         console.debug(httpResponse.statusText);
         console.debug(httpResponse.data);
