@@ -60,6 +60,7 @@
     "eslint:fix": "cross-env TIMING=1 eslint --ext .js,.ts --fix build/types src test",
     "autocannon": "autocannon",
     "mochatest": "cross-env TS_NODE_FILES=true nyc mocha test/**/*Test.ts",
+    "mochatest:parallel": "cross-env TS_NODE_FILES=true nyc mocha --parallel test/**/*Test.ts",
     "mochatest:chargingStation": "cross-env TS_NODE_FILES=true mocha test/**/OCPP*Test.ts",
     "mochatest:ocpi": "cross-env TS_NODE_FILES=true mocha test/**/OCPI*Test.ts",
     "mochatest:tenant": "cross-env TS_NODE_FILES=true mocha test/**/*TenantTest.ts",
