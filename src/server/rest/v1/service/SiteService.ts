@@ -437,10 +437,6 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterSiteImageRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
-    // TODO: To remove when new version of Mobile App will be released (> V1.3.22)
-    if (req.user) {
-      filteredRequest.TenantID = req.user.tenantID;
-    }
     // Get the image
     const siteImage = await SiteStorage.getSiteImage(filteredRequest.TenantID, filteredRequest.ID);
     // Return
