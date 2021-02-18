@@ -131,7 +131,7 @@ export enum ServerAction {
   OCPI_PUSH_TOKENS = 'OcpiPushTokens',
   OCPI_PUSH_SESSION = 'OcpiPushSession',
   OCPI_PUSH_SESSIONS = 'OcpiPushSessions',
-  OCPI_PUSH_LOCATIONS = 'OcpiPushLocations',
+  OCPI_PUSH_EVSE_STATUSES = 'OcpiPushEVSEStatuses',
   OCPI_PUSH_CDRS = 'OcpiPushCdrs',
   OCPI_PULL_CDRS = 'OcpiPullCdrs',
   OCPI_PULL_LOCATIONS = 'OcpiPullLocations',
