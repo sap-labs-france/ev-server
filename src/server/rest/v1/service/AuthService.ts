@@ -540,7 +540,7 @@ export default class AuthService {
       });
     }
     const userSetting = await SettingStorage.getSettingByIdentifier(tenantID, TechnicalSettingsType.USER);
-    const userStatus = userSetting.content.user.autoAccountActivation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
+    const userStatus = userSetting.content.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, userStatus);
     // For integration with billing

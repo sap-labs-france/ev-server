@@ -24,7 +24,7 @@ export default class MigrateUserSettingsTask extends MigrationTask {
         content: {
           type: UserSettingsContentType.USER,
           user: {
-            autoAccountActivation: true
+            autoActivateAccountAfterValidation: true
           }
         },
         createdOn: new Date(),

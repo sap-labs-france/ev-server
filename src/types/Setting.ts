@@ -284,5 +284,5 @@ export interface UserSetting extends Setting {
   user?: UserSettings;
 }
 export interface UserSettings {
-  autoAccountActivation: boolean;
+  autoActivateAccountAfterValidation: boolean;
 }

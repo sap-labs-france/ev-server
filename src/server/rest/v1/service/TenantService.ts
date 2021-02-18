@@ -198,7 +198,7 @@ export default class TenantService {
         content: {
           type: UserSettingsContentType.USER,
           user: {
-            autoAccountActivation: true
+            autoActivateAccountAfterValidation: true
           }
         },
         createdOn: new Date(),
