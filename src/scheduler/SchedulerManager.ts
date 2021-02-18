@@ -17,7 +17,7 @@ import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
-import OCPIPushLocationsTask from './tasks/ocpi/OCPIPushLocationsTask';
+import OCPIPushEVSEStatusesTask from './tasks/ocpi/OCPIPushEVSEStatusesTask';
 import SchedulerTask from './SchedulerTask';
 import { ServerAction } from '../types/Server';
 import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
@@ -71,8 +71,8 @@ export default class SchedulerManager {
             // The task runs every five minutes
             schedulerTask = new CheckPreparingSessionNotStartedTask();
             break;
-          case 'OCPIPushLocationsTask':
-            schedulerTask = new OCPIPushLocationsTask();
+          case 'OCPIPushEVSEStatusesTask':
+            schedulerTask = new OCPIPushEVSEStatusesTask();
             break;
           case 'OCPIGetCdrsTask':
             schedulerTask = new OCPIGetCdrsTask();
