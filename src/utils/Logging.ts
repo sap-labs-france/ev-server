@@ -679,11 +679,11 @@ export default class Logging {
     log.host = Utils.getHostname();
     // Process
     log.process = log.process ? log.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master');
-    // Anonymize message
-    log.detailedMessages = Utils.cloneObject(log.detailedMessages);
-    Logging.anonymizeSensitiveData(log.detailedMessages);
     // Check
     if (log.detailedMessages) {
+      // Anonymize message
+      log.detailedMessages = Utils.cloneObject(log.detailedMessages);
+      log.detailedMessages = Logging.anonymizeSensitiveData(log.detailedMessages);
       // Array?
       if (!Array.isArray(log.detailedMessages)) {
         log.detailedMessages = [log.detailedMessages];
@@ -713,62 +713,60 @@ export default class Logging {
     return logID;
   }
 
-  private static anonymizeSensitiveData(message: any): void {
+  private static anonymizeSensitiveData(message: any): any {
     if (!message || typeof message === 'number' || Utils.isBoolean(message) || typeof message === 'function') {
-      // eslint-disable-next-line no-useless-return
-      return;
-    } else if (typeof message === 'string') {
-      for (const sensitiveData of Constants.SENSITIVE_DATA) {
-        // Anonymize
-        message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE);
-        // Should be
-        // message=message.replace(new RegExp(sensitiveData, 'gi'), Constants.ANONYMIZED_VALUE); //in order to anonymize the FULL string
-        // OR we can use the approach for QUERY STRING from lines  744-755
-      }
-    } else if (Array.isArray(message)) {
-      for (const item of message) {
-        Logging.anonymizeSensitiveData(item);
-      }
-    } else if (typeof message === 'object') {
-      for (const key of Object.keys(message)) {
-        // String?
-        if (typeof message[key] === 'string') {
+      return message;
+    } else if (typeof message === 'string') { // If the message is a string
+      // Check if it is a query string
+      const dataParts: string[] = message.split('&');
+      if (dataParts.length > 1) {
+        for (let i = 0; i < dataParts.length; i++) {
+          const dataPart = dataParts[i];
           for (const sensitiveData of Constants.SENSITIVE_DATA) {
-            if (key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()) {
-              // Anonymize
-              message[key] = Constants.ANONYMIZED_VALUE;
+            if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+              // Anonymize each query string part
+              dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
             }
           }
-          // Check query string
-          const dataParts: string[] = message[key].split('&');
-          if (dataParts.length > 1) {
-            for (let i = 0; i < dataParts.length; i++) {
-              const dataPart = dataParts[i];
-              for (const sensitiveData of Constants.SENSITIVE_DATA) {
-                if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
-                  // Anonymize
-                  dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
-                }
-              }
-            }
-            message[key] = dataParts.join('&');
-          }
-        } else {
-          Logging.anonymizeSensitiveData(message[key]);
+        }
+        message = dataParts.join('&');
+        return message;
+      }
+      // If it is a string, but not a query string
+      for (const sensitiveData of Constants.SENSITIVE_DATA) {
+        if (new RegExp(sensitiveData + '[:=](.*)', 'gi').test(message)) { // If it contains sensitive data and it matches the RegExp, Anonymize
+          message = message.substring(0,sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+          return message;
         }
       }
-    } else {
-      // Log
-      Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        type: LogType.SECURITY,
-        module: MODULE_NAME,
-        method: 'anonymizeSensitiveData',
-        action: ServerAction.LOGGING,
-        message: 'No matching object type for log message anonymisation',
-        detailedMessages: { message: message }
-      });
+      return message;
+    } else if (Array.isArray(message)) { // If the message is an array, apply the anonymizeSensitiveData function for each item
+      const anonymizedMessage = [];
+      for (const item of message) {
+        anonymizedMessage.push(Logging.anonymizeSensitiveData(item));
+      }
+      return anonymizedMessage;
+    } else if (typeof message === 'object') { // If the message is an object
+      for (const key of Object.keys(message)) {
+        if (typeof message[key] === 'string' && Constants.SENSITIVE_DATA.filter((sensitiveData) => key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()).length > 0) {
+          // If the key indicates sensitive data and the value is a string, Anonymize the value
+          message[key] = Constants.ANONYMIZED_VALUE;
+        } else { // Otherwise, apply the anonymizeSensitiveData function
+          message[key] = Logging.anonymizeSensitiveData(message[key]);
+        }
+      }
+      return message;
     }
+    // Log
+    Logging.logError({
+      tenantID: Constants.DEFAULT_TENANT,
+      type: LogType.SECURITY,
+      module: MODULE_NAME,
+      method: 'anonymizeSensitiveData',
+      action: ServerAction.LOGGING,
+      message: 'No matching object type for log message anonymisation',
+      detailedMessages: { message: message }
+    });
   }
 
   // Console Log

@@ -80,7 +80,7 @@ export default class LoggingStorage {
     // Insert
     if (global.database) {
       await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
-      return logMDB._id;
+      return logMDB._id.toHexString();
     }
   }
 
