@@ -733,10 +733,10 @@ export default class Logging {
         message = dataParts.join('&');
         return message;
       }
-      // If it is a string, but not a query string
+      // Check if it is a string, but not a query string
       for (const sensitiveData of Constants.SENSITIVE_DATA) {
-        if (new RegExp(sensitiveData + '[:=](.*)', 'gi').test(message)) { // If it contains sensitive data and it matches the RegExp, Anonymize
-          message = message.substring(0,sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+        if (new RegExp(sensitiveData + '(\\s*)[:=,;](\\s*)(.*)', 'gi').test(message)) { // If it contains sensitive data and it matches the RegExp, Anonymize
+          message = message.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
           return message;
         }
       }
