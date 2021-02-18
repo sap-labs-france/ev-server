@@ -13,7 +13,7 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.readById(id, `/v1/api/chargingstations/${id}`);
+    return super.read({}, `/v1/api/chargingstations/${id}`);
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
@@ -21,19 +21,15 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/v1/api/chargingstations/status/in-error');
+    return super.readAll(params, paging, ordering, '/v1/api/chargingstations/in-error');
   }
 
   public async update(data) {
-    return super.update(data, '/v1/api/chargingstations/general/parameters');
+    return super.update(data, '/v1/api/chargingstations/parameters');
   }
 
   public async delete(id) {
     return super.delete(id, '/v1/api/chargingstations');
-  }
-
-  public async readConfiguration(chargeBoxID) {
-    return super.read({}, `/v1/api/chargingstations/${chargeBoxID}/configuration`);
   }
 
   public async readConsumptionStatistics(year) {
@@ -52,12 +48,8 @@ export default class ChargingStationApi extends CrudApi {
     return super.readAll(params, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/TransactionYears');
   }
 
-  public async updateParams(data) {
-    return super.update(data, '/v1/api/chargingstations/general/parameters');
-  }
-
   public async remoteStartTransaction(data) {
-    return super.create(data, '/v1/api/chargingstations/remote/start');
+    return super.update(data, '/v1/api/chargingstations/remote/start');
   }
 
   public async checkConnector(chargingStation, connectorId, connectorData) {

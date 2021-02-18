@@ -2502,7 +2502,7 @@
         }
       }
     },
-    "/api/chargingstations/status/in-error": {
+    "/api/chargingstations/in-error": {
       "get": {
         "security": [
           {
