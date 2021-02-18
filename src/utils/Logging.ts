@@ -14,6 +14,7 @@ import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
+import { ObjectID } from 'mongodb';
 import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
@@ -71,53 +72,53 @@ export default class Logging {
   }
 
   // Log Debug
-  public static async logDebug(log: Log): Promise<string> {
+  public static async logDebug(log: Log): Promise<ObjectID> {
     log.level = LogLevel.DEBUG;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging._log(log);
   }
 
   // Log Security Debug
-  public static async logSecurityDebug(log: Log): Promise<string> {
+  public static async logSecurityDebug(log: Log): Promise<ObjectID> {
     log.type = LogType.SECURITY;
     return Logging.logDebug(log);
   }
 
   // Log Info
-  public static async logInfo(log: Log): Promise<string> {
+  public static async logInfo(log: Log): Promise<ObjectID> {
     log.level = LogLevel.INFO;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging._log(log);
   }
 
   // Log Security Info
-  public static async logSecurityInfo(log: Log): Promise<string> {
+  public static async logSecurityInfo(log: Log): Promise<ObjectID> {
     log.type = LogType.SECURITY;
     return Logging.logInfo(log);
   }
 
   // Log Warning
-  public static async logWarning(log: Log): Promise<string> {
+  public static async logWarning(log: Log): Promise<ObjectID> {
     log.level = LogLevel.WARNING;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging._log(log);
   }
 
   // Log Security Warning
-  public static async logSecurityWarning(log: Log): Promise<string> {
+  public static async logSecurityWarning(log: Log): Promise<ObjectID> {
     log.type = LogType.SECURITY;
     return Logging.logWarning(log);
   }
 
   // Log Error
-  public static async logError(log: Log): Promise<string> {
+  public static async logError(log: Log): Promise<ObjectID> {
     log.level = LogLevel.ERROR;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging._log(log);
   }
 
   // Log Security Error
-  public static async logSecurityError(log: Log): Promise<string> {
+  public static async logSecurityError(log: Log): Promise<ObjectID> {
     log.type = LogType.SECURITY;
     return Logging.logError(log);
   }
@@ -583,7 +584,7 @@ export default class Logging {
   }
 
   // Log
-  private static async _log(log: Log): Promise<string> {
+  private static async _log(log: Log): Promise<ObjectID> {
     let moduleConfig = null;
     const loggingConfig = Logging.getConfiguration();
     // Default Log Level

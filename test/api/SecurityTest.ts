@@ -7,6 +7,7 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import Logging from '../../src/utils/Logging';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
+import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../src/types/Server';
 import Tenant from '../types/Tenant';
 import TestConstants from './client/utils/TestConstants';
@@ -83,7 +84,7 @@ describe('Security tests', function() {
 
   describe('Success cases (tenant utall)', () => {
     it('Check that sensitive data string (containing "=")  is anonymized', async () => { // Will fail
-      const logId:string = await Logging.logDebug({
+      const logId:ObjectID = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -92,12 +93,12 @@ describe('Security tests', function() {
         method: 'test',
         detailedMessages: 'repeatPassword=MyDummyPass'
       });
-      const read = await testData.centralService.logsApi.readById(logId);
+      const read = await testData.centralService.logsApi.readById(logId.toString());
       expect(read.status).to.equal(200);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data string (containing ":") is anonymized', async () => { // Will fail
-      const logId:string = await Logging.logDebug({
+      const logId:ObjectID = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -106,13 +107,12 @@ describe('Security tests', function() {
         method: 'test',
         detailedMessages: 'firstName:MyName'
       });
-
-      const read = await testData.centralService.logsApi.readById(logId);
+      const read = await testData.centralService.logsApi.readById(logId.toString());
       expect(read.status).to.equal(200);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data is anonymized in object with string fields', async () => {
-      const logId:string = await Logging.logDebug({
+      const logId:ObjectID = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -137,13 +137,12 @@ describe('Security tests', function() {
           'token':'test'
         }
       });
-
-      const read = await testData.centralService.logsApi.readById(logId);
+      const read = await testData.centralService.logsApi.readById(logId.toString());
       expect(read.status).to.equal(200);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data is anonymized in object with query string fields', async () => { // Passes because query strings are treated correctly in object fields
-      const logId:string = await Logging.logDebug({
+      const logId:ObjectID = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -156,13 +155,12 @@ describe('Security tests', function() {
           'password': 'password=testtesttest'
         }
       });
-
-      const read = await testData.centralService.logsApi.readById(logId);
+      const read = await testData.centralService.logsApi.readById(logId.toString());
       expect(read.status).to.equal(200);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data is anonymized in array with strings', async () => { // Will fail
-      const logId:string = await Logging.logDebug({
+      const logId:ObjectID = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
@@ -187,7 +185,7 @@ describe('Security tests', function() {
           'token=test'
         ]
       });
-      const read = await testData.centralService.logsApi.readById(logId);
+      const read = await testData.centralService.logsApi.readById(logId.toString());
       expect(read.status).to.equal(200);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
