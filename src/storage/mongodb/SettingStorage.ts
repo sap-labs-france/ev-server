@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, UserSetting, UserSettings, UserSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettingsType, UserSetting } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -336,15 +336,13 @@ export default class SettingStorage {
   }
 
   public static async getUserSettings(tenantID: string): Promise<UserSetting> {
+    let userSetting : UserSetting = null;
     // Get the user settings
-    const settings = await SettingStorage.getSettings(tenantID,
-      { identifier: UserSettingsType.USER },
-      Constants.DB_PARAMS_MAX_LIMIT);
-    const userSettings = {} as UserSetting;
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TechnicalSettingsType.USER }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (settings && settings.count > 0 && settings.result[0]) {
-      userSettings.id = settings.result[0].id;
+      userSetting = settings.result[0] as UserSetting;
     }
-    return userSettings;
+    return userSetting;
   }
 
   public static async getSettings(tenantID: string,

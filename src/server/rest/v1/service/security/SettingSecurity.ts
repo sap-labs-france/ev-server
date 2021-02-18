@@ -189,9 +189,8 @@ export default class SettingSecurity {
           }
           break;
         case UserSettingsContentType.USER:
-          settings.content.user =
-          {
-            manualAccountActivation: request.content.user.manualAccountActivation
+          settings.content.user = {
+            autoAccountActivation: sanitize(request.content.user.autoAccountActivation)
           };
           break;
       }

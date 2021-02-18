@@ -3,7 +3,7 @@ import TenantComponents from './TenantComponents';
 
 export interface Setting {
   id?: string;
-  identifier: TenantComponents | UserSettingsType;
+  identifier: TenantComponents | TechnicalSettingsType;
   sensitiveData?: string[];
   category?: 'business' | 'technical';
 }
@@ -270,8 +270,9 @@ export interface AssetGreencomConnectionType {
   clientSecret: string;
 }
 
-export enum UserSettingsType {
-  USER = 'user'
+export enum TechnicalSettingsType {
+  USER = 'user',
+  // TODO: Ajouter CRYPTO = 'crypto'
 }
 
 export enum UserSettingsContentType {
@@ -279,9 +280,9 @@ export enum UserSettingsContentType {
 }
 
 export interface UserSetting extends Setting {
-  identifier: UserSettingsType.USER;
+  identifier: TechnicalSettingsType.USER;
   user?: UserSettings;
 }
 export interface UserSettings {
-  manualAccountActivation: boolean;
+  autoAccountActivation: boolean;
 }

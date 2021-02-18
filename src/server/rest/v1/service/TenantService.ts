@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { CryptoKeySetting, CryptoSettingsType, SettingDB, SettingDBContent, UserSetting, UserSettingsContentType, UserSettingsType } from '../../../../types/Setting';
+import { CryptoKeySetting, CryptoSettingsType, SettingDB, SettingDBContent, TechnicalSettingsType, UserSetting, UserSettingsContentType } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantLogo } from '../../../../types/Tenant';
@@ -191,14 +191,14 @@ export default class TenantService {
   public static async createInitialUserSetting(tenantID: string): Promise<void> {
     // Check for settings in db
     const userSettings = await SettingStorage.getUserSettings(tenantID);
-    if (Utils.isEmptyObject(userSettings)) {
+    if (!userSettings) {
       // Create new user setting with account activation param
       const settingsToSave = {
-        identifier: UserSettingsType.USER,
+        identifier: TechnicalSettingsType.USER,
         content: {
           type: UserSettingsContentType.USER,
           user: {
-            manualAccountActivation: false
+            autoAccountActivation: true
           }
         },
         createdOn: new Date(),

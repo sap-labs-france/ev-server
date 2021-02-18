@@ -1,11 +1,10 @@
-import { UserSetting, UserSettingsContentType, UserSettingsType } from '../../types/Setting';
+import { TechnicalSettingsType, UserSetting, UserSettingsContentType } from '../../types/Setting';
 
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Utils from '../../utils/Utils';
 
 export default class MigrateUserSettingsTask extends MigrationTask {
   public async migrate(): Promise<void> {
@@ -18,19 +17,18 @@ export default class MigrateUserSettingsTask extends MigrationTask {
   public async migrateTenant(tenant: Tenant): Promise<void> {
     const userSetting = await SettingStorage.getUserSettings(tenant.id);
     // If no user setting exists, initialize it
-    if (Utils.isEmptyObject(userSetting)) {
+    if (!userSetting) {
       // Create new user setting with account activation param
       const settingsToSave = {
-        identifier: UserSettingsType.USER,
+        identifier: TechnicalSettingsType.USER,
         content: {
           type: UserSettingsContentType.USER,
           user: {
-            manualAccountActivation: false
+            autoAccountActivation: true
           }
         },
         createdOn: new Date(),
       } as UserSetting;
-
       await SettingStorage.saveSettings(tenant.id, settingsToSave);
     }
   }
