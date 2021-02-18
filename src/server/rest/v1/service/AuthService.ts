@@ -579,7 +579,7 @@ export default class AuthService {
       detailedMessages: { params: req.query }
     });
     // Ok
-    res.json(userStatus === UserStatus.ACTIVE ? Constants.REST_RESPONSE_SUCCESS : { status: 'Success', userStatus: 'inactive' });
+    res.json(userStatus === UserStatus.ACTIVE ? Constants.REST_RESPONSE_SUCCESS : { status: 'Success', userStatus: UserStatus.INACTIVE });
     next();
   }
 
