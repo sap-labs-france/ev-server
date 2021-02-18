@@ -35,7 +35,7 @@ export default class BillingContext {
     } as StripeBillingSetting;
   }
 
-  public async createTestData() {
+  public async createTestData(): Promise<void> {
     let skip = false;
     const settings = BillingContext.getBillingSettings();
     for (const [key, value] of Object.entries(settings)) {
