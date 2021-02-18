@@ -115,6 +115,17 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'forceInactive')) {
       chargingStation.forceInactive = filteredRequest.forceInactive;
     }
+    if (Utils.objectHasProperty(filteredRequest, 'manualConfiguration')) {
+      // Check manual config
+      if (filteredRequest.manualConfiguration) {
+      // Do not save charge point
+        delete chargingStation.chargePoints;
+        delete chargingStation.templateHashTechnical;
+      } else if (chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) {
+        await OCPPUtils.enrichChargingStationWithTemplate(req.user.tenantID, chargingStation, true);
+      }
+      chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
+    }
     // Existing Connectors
     if (!Utils.isEmptyArray(filteredRequest.connectors)) {
       for (const filteredConnector of filteredRequest.connectors) {
@@ -762,8 +773,8 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ID, {},
       [
         'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
-        'siteArea.site.id', 'siteArea.site.name', 'voltage', 'coordinates', 'forceInactive', 'firmwareUpdateStatus',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.numberOfPhases', 'siteArea.siteID',
+        'siteArea.site.id', 'siteArea.site.name', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
         'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
         'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
         'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'

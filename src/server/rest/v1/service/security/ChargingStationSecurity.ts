@@ -131,6 +131,9 @@ export default class ChargingStationSecurity {
     if (Utils.objectHasProperty(request, 'forceInactive')) {
       filteredRequest.forceInactive = UtilsSecurity.filterBoolean(request.forceInactive);
     }
+    if (Utils.objectHasProperty(request, 'manualConfiguration')) {
+      filteredRequest.manualConfiguration = UtilsSecurity.filterBoolean(request.manualConfiguration);
+    }
     if (Utils.objectHasProperty(request, 'public')) {
       filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
     }

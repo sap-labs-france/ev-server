@@ -36,6 +36,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   deleted: boolean;
   inactive: boolean;
   forceInactive: boolean;
+  manualConfiguration?: boolean;
   lastReboot: Date;
   chargingStationURL: string;
   maximumPower: number;

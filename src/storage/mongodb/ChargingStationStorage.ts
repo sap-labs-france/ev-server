@@ -522,6 +522,7 @@ export default class ChargingStationStorage {
       maximumPower: Utils.convertToInt(chargingStationToSave.maximumPower),
       excludeFromSmartCharging: Utils.convertToBoolean(chargingStationToSave.excludeFromSmartCharging),
       forceInactive: Utils.convertToBoolean(chargingStationToSave.forceInactive),
+      manualConfiguration: Utils.convertToBoolean(chargingStationToSave.manualConfiguration),
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       voltage: Utils.convertToInt(chargingStationToSave.voltage),
       connectors: chargingStationToSave.connectors ? chargingStationToSave.connectors.map(

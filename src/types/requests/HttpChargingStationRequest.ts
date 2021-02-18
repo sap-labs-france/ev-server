@@ -52,6 +52,7 @@ export interface HttpChargingStationParamsUpdateRequest {
   public: boolean;
   excludeFromSmartCharging: boolean;
   forceInactive: boolean;
+  manualConfiguration: boolean;
   siteAreaID: string;
   coordinates: number[];
   connectors: {
