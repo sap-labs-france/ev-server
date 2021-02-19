@@ -220,7 +220,7 @@
         }
       },
       {
-        "name": "OCPIPushLocationsTask",
+        "name": "OCPIPushEVSEStatusesTask",
         "active": false,
         "periodicity": "0 1 * * *",
         "config": {}

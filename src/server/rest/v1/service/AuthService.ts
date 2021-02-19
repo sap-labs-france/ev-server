@@ -755,7 +755,7 @@ export default class AuthService {
       action: action, message: 'User logged in successfully'
     });
     // Set Eula Info on Login Only
-    if (action === ServerAction.REST_SIGNIN) {
+    if (action === ServerAction.LOGIN) {
       // Save EULA
       const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, Utils.getLanguageFromLocale(user.locale));
       await UserStorage.saveUserEULA(tenantID, user.id,
