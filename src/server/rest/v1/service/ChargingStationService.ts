@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, CurrentType, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRemoteStartStopStatus, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
@@ -78,6 +78,8 @@ export default class ChargingStationService {
         value: chargingStation.id
       });
     }
+    // Reboot required?
+    let rebootRequired = false;
     // Update props
     if (filteredRequest.chargingStationURL) {
       chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
@@ -116,13 +118,31 @@ export default class ChargingStationService {
       chargingStation.forceInactive = filteredRequest.forceInactive;
     }
     if (Utils.objectHasProperty(filteredRequest, 'manualConfiguration')) {
-      // Check manual config
-      if (filteredRequest.manualConfiguration) {
-      // Do not save charge point
-        delete chargingStation.chargePoints;
-        delete chargingStation.templateHashTechnical;
-      } else if (chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) {
-        await OCPPUtils.enrichChargingStationWithTemplate(req.user.tenantID, chargingStation, true);
+      if (Utils.getChargingStationCurrentType(chargingStation, null, null) !== CurrentType.DC || !(chargingStation.chargePoints?.length !== 0)) {
+        // Check manual config
+        if (!chargingStation.manualConfiguration && filteredRequest.manualConfiguration) {
+          for (const connector of chargingStation.connectors) {
+            const chargePoint = chargingStation.chargePoints.find((cp) => cp.chargePointID === connector.chargePointID);
+            connector.currentType = Utils.getChargingStationCurrentType(chargingStation, chargePoint);
+            connector.numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint);
+          }
+          // Do not save charge point
+          delete chargingStation.chargePoints;
+          delete chargingStation.templateHashTechnical;
+          rebootRequired = true;
+        } else if (chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) {
+          await OCPPUtils.enrichChargingStationWithTemplate(req.user.tenantID, chargingStation, true);
+          rebootRequired = true;
+        }
+      } else if (filteredRequest.manualConfiguration) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Manual configuration is only possible for AC Charging Stations`,
+          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          user: req.user,
+          action: action
+        });
       }
       chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
     }
@@ -200,6 +220,9 @@ export default class ChargingStationService {
         'chargingStationURL': chargingStation.chargingStationURL
       }
     });
+    if (rebootRequired) {
+      await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
