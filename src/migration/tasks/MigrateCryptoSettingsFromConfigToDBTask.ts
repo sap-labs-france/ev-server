@@ -1,4 +1,4 @@
-import { CryptoKeySetting, CryptoSettingsType } from '../../types/Setting';
+import { CryptoKeySetting, CryptoSettingsType, TechnicalSettings } from '../../types/Setting';
 
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
@@ -29,7 +29,7 @@ export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTa
     if (!keySettings) {
       // Create New Crypto Key in Tenant Settings
       const keySettingToSave = {
-        identifier: TenantComponents.CRYPTO,
+        identifier: TechnicalSettings.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: {
           key: configCryptoKey,

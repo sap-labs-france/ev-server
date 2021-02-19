@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { CryptoKeySetting, CryptoSettingsType, SettingDB, SettingDBContent, TechnicalSettingsType, UserSetting, UserSettingsContentType } from '../../../../types/Setting';
+import { CryptoKeySetting, CryptoSettingsType, SettingDB, SettingDBContent, TechnicalSettings, UserSetting, UserSettingsType } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantLogo } from '../../../../types/Tenant';
@@ -176,7 +176,7 @@ export default class TenantService {
     // Generate Crypto Key Settings
     if (!keySettings) {
       const keySettingToSave = {
-        identifier: TenantComponents.CRYPTO,
+        identifier: TechnicalSettings.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: {
           key: Utils.generateKey(),
@@ -194,9 +194,9 @@ export default class TenantService {
     if (!userSettings) {
       // Create new user setting with account activation param
       const settingsToSave = {
-        identifier: TechnicalSettingsType.USER,
+        identifier: TechnicalSettings.USER,
         content: {
-          type: UserSettingsContentType.USER,
+          type: UserSettingsType.USER,
           user: {
             autoActivateAccountAfterValidation: true
           }

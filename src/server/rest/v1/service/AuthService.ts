@@ -20,7 +20,7 @@ import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import { TechnicalSettingsType } from '../../../../types/Setting';
+import { TechnicalSettings } from '../../../../types/Setting';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -539,7 +539,7 @@ export default class AuthService {
         message: 'Wrong Verification Token'
       });
     }
-    const userSetting = await SettingStorage.getSettingByIdentifier(tenantID, TechnicalSettingsType.USER);
+    const userSetting = await SettingStorage.getSettingByIdentifier(tenantID, TechnicalSettings.USER);
     const userStatus = userSetting.content.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, userStatus);

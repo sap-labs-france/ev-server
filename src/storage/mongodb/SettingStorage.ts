@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettingsType, UserSetting } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSetting } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -307,7 +307,7 @@ export default class SettingStorage {
   public static async getCryptoSettings(tenantID: string): Promise<CryptoKeySetting> {
     // Get the Crypto Key settings
     const settings = await SettingStorage.getSettings(tenantID,
-      { identifier: TenantComponents.CRYPTO },
+      { identifier: TechnicalSettings.CRYPTO },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings.count > 0) {
       const cryptoSetting = {
@@ -328,7 +328,7 @@ export default class SettingStorage {
       }
       return {
         id: settings.result[0].id,
-        identifier: TenantComponents.CRYPTO,
+        identifier: TechnicalSettings.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: cryptoSetting
       };
@@ -338,7 +338,7 @@ export default class SettingStorage {
   public static async getUserSettings(tenantID: string): Promise<UserSetting> {
     let userSetting : UserSetting = null;
     // Get the user settings
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: TechnicalSettingsType.USER }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TechnicalSettings.USER }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (settings && settings.count > 0 && settings.result[0]) {
       userSetting = settings.result[0] as UserSetting;
     }

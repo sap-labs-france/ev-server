@@ -1,9 +1,14 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import TenantComponents from './TenantComponents';
 
+export enum TechnicalSettings {
+  USER = 'user',
+  CRYPTO = 'crypto'
+}
+
 export interface Setting {
   id?: string;
-  identifier: TenantComponents | TechnicalSettingsType;
+  identifier: TenantComponents | TechnicalSettings;
   sensitiveData?: string[];
   category?: 'business' | 'technical';
 }
@@ -21,7 +26,17 @@ export interface SettingLink {
 }
 
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType | CryptoSettingsType | UserSettingsContentType;
+  type:
+    RoamingSettingsType
+    | AnalyticsSettingsType
+    | RefundSettingsType
+    | PricingSettingsType
+    | BillingSettingsType
+    | SmartChargingSettingsType
+    | AssetSettingsType
+    | SmartChargingContentType
+    | CryptoSettingsType
+    | UserSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -248,7 +263,7 @@ export enum CryptoSettingsType {
 }
 
 export interface CryptoKeySetting extends Setting {
-  identifier: TenantComponents.CRYPTO;
+  identifier: TechnicalSettings.CRYPTO;
   type: CryptoSettingsType;
   crypto: CryptoSetting;
 }
@@ -270,19 +285,15 @@ export interface AssetGreencomConnectionType {
   clientSecret: string;
 }
 
-export enum TechnicalSettingsType {
-  USER = 'user',
-  // TODO: Ajouter CRYPTO = 'crypto'
-}
-
-export enum UserSettingsContentType {
+export enum UserSettingsType {
   USER = 'user',
 }
 
 export interface UserSetting extends Setting {
-  identifier: TechnicalSettingsType.USER;
+  identifier: TechnicalSettings.USER;
   user?: UserSettings;
 }
+
 export interface UserSettings {
   autoActivateAccountAfterValidation: boolean;
 }

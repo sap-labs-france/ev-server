@@ -1,4 +1,4 @@
-import { TechnicalSettingsType, UserSetting, UserSettingsContentType } from '../../types/Setting';
+import { TechnicalSettings, UserSetting, UserSettingsType } from '../../types/Setting';
 
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
@@ -20,9 +20,9 @@ export default class MigrateUserSettingsTask extends MigrationTask {
     if (!userSetting) {
       // Create new user setting with account activation param
       const settingsToSave = {
-        identifier: TechnicalSettingsType.USER,
+        identifier: TechnicalSettings.USER,
         content: {
-          type: UserSettingsContentType.USER,
+          type: UserSettingsType.USER,
           user: {
             autoActivateAccountAfterValidation: true
           }
