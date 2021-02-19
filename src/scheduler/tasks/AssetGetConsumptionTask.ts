@@ -15,6 +15,7 @@ import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
+import moment from 'moment';
 
 const MODULE_NAME = 'AssetGetConsumptionTask';
 
@@ -51,7 +52,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
               for (const consumption of assetConsumptions) {
                 // Create Consumption to save
                 const consumptionToSave: Consumption = {
-                  startedAt: asset.lastConsumption.timestamp,
+                  startedAt: asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment(consumption.lastConsumption.timestamp).subtract(1, 'minutes').toDate(),
                   endedAt: consumption.lastConsumption.timestamp,
                   assetID: asset.id,
                   cumulatedConsumptionWh: consumption.currentConsumptionWh,

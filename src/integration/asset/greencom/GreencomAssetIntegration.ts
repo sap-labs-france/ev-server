@@ -32,7 +32,8 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     const token = await this.connect();
     const request = manualCall ?
       `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${moment().subtract(1, 'minutes').toISOString()}&to=${moment().toISOString()}&step=PT1M` :
-      `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${asset.lastConsumption.timestamp.toISOString()}&to=${moment().toISOString()}&step=PT1M`;
+      // Check if it is first consumption for this asset
+      `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${(asset.lastConsumption?.timestamp) ? asset.lastConsumption.timestamp.toISOString() : moment().subtract(1, 'minutes').toISOString()}&to=${moment().toISOString()}&step=PT1M`;
     try {
       // Get consumption
       const response = await this.axiosInstance.get(
