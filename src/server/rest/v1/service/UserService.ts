@@ -842,7 +842,7 @@ export default class UserService {
           delimiter: ['\t'],
           quote: 'off'
         });
-        converter.subscribe(async (user) => {
+        void converter.subscribe(async (user) => {
           await UserService.importUser(action, req, user);
         }, (error) => {
           throw new AppError({
