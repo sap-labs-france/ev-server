@@ -28,7 +28,7 @@ export default class MigrateUserSettingsTask extends MigrationTask {
           }
         },
         createdOn: new Date(),
-      } as UserSetting;
+      };
       await SettingStorage.saveSettings(tenant.id, settingsToSave);
     }
   }
