@@ -352,6 +352,7 @@ export enum ServerAction {
   TAGS_DELETE = 'TagsDelete',
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
+  USERS_IMPORT = 'UsersImport',
 
   NOTIFICATIONS = 'Notifications',
 
