@@ -7,6 +7,7 @@ import User, { UserStatus } from '../../../../types/User';
 import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Busboy from 'busboy';
@@ -109,6 +110,26 @@ export default class UserService {
   public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
+    // Check auth
+    if (action === ServerAction.ADD_SITES_TO_USER) {
+      if (!Authorizations.canAssignUsersSites(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.ASSIGN, entity: Entity.USERS_SITES,
+          module: MODULE_NAME, method: 'handleAssignSitesToUser'
+        });
+      }
+    } else {
+      if (!Authorizations.canUnassignUsersSites(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.UNASSIGN, entity: Entity.USERS_SITES,
+          module: MODULE_NAME, method: 'handleAssignSitesToUser'
+        });
+      }
+    }
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
     if (!filteredRequest.userID) {
@@ -121,7 +142,7 @@ export default class UserService {
         action: action
       });
     }
-    if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
+    if (!filteredRequest.siteIDs || Utils.isEmptyArray(filteredRequest.siteIDs)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -662,13 +683,15 @@ export default class UserService {
         value: userID
       });
     }
+    // Get authorization filters
+    const authorizationFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(req.tenant, req.user);
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, userID,
-      { withImage: true },
-      [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'deleted', 'plateID',
-        'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
-      ]
+      {
+        withImage: true,
+        ...authorizationFilters.filters
+      },
+      authorizationFilters.project
     );
     UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
@@ -734,28 +757,45 @@ export default class UserService {
   public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
+    // Check auth
+    if (!Authorizations.canListUsersSites(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'handleGetSites'
+      });
+    }
     // Filter
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
-    // Get User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
-    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
-      MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.UserID)) {
+    if (!Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.UPDATE, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetSites',
-        value: user.id
+        value: filteredRequest.UserID
       });
+    }
+    // Get User
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
+      MODULE_NAME, 'handleGetSites', req.user);
+    // Check auth
+    const authorizationFilters = await AuthorizationService.checkAndGetUserSitesAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
+    if (!authorizationFilters.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
     }
     // Get users
     const userSites = await UserStorage.getUserSites(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userID: filteredRequest.UserID
+        userID: filteredRequest.UserID,
+        ...authorizationFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -763,7 +803,7 @@ export default class UserService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID']
+      authorizationFilters.project
     );
     // Filter
     userSites.result = userSites.result.map((userSite) => ({
@@ -784,11 +824,11 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
+    if (!Authorizations.canListUsersInErrors(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.USERS,
+        action: Action.IN_ERROR, entity: Entity.USERS,
         module: MODULE_NAME, method: 'handleGetUsersInError'
       });
     }
@@ -799,12 +839,16 @@ export default class UserService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
         Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsersInError');
     }
+    // Get authorization filters
+    const authorizationFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType))
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType)),
+        ...authorizationFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -812,11 +856,10 @@ export default class UserService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort
       },
-      [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
-        'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
-      ]
+      authorizationFilters.project
     );
+    // Add Auth flags
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     res.json(users);
     next();
@@ -1210,6 +1253,9 @@ export default class UserService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
     }
+    // Get authorization filters
+    const authorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
@@ -1222,6 +1268,7 @@ export default class UserService {
         excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
         includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
         notAssignedToCarID: filteredRequest.NotAssignedToCarID,
+        ...authorizationFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -1229,12 +1276,11 @@ export default class UserService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
-        'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-        'billingData.customerID', 'billingData.lastChangedOn'
-      ]
+      authorizationFilters.project
     );
+    // Add Auth flags
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    // Return
     return users;
   }
 

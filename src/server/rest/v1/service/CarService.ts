@@ -447,7 +447,7 @@ export default class CarService {
     // Check User
     let userProject: string[] = [];
     if (Authorizations.canReadUser(req.user, req.user.id)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'carUsers.id',
         'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
       ];
     }
@@ -567,7 +567,7 @@ export default class CarService {
   private static async handleAssignCarUsers(action: ServerAction, tenantID: string, loggedUser: UserToken,
     car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
     // Filter only allowed assignments
-    if (Authorizations.isBasic(loggedUser)) {
+    if (!Authorizations.isAdmin(loggedUser)) {
       usersToDelete = [];
       usersToUpsert = usersToUpsert.filter((userToUpsert) => userToUpsert.user.id === loggedUser.id);
     }
@@ -582,16 +582,17 @@ export default class CarService {
       usersToDeleteMap.set(`${userToDelete.user.id}`, userToDelete);
     }
     usersToDelete = Array.from(usersToDeleteMap.values());
-    // Users to Upsert
-    if (usersToUpsert.length > 0) {
+    // Check Users
+    const usersToCheck = [...usersToUpsert, ...usersToDelete];
+    if (!Utils.isEmptyArray(usersToCheck)) {
       // Get and check users
       const users = await UserStorage.getUsers(tenantID,
-        { userIDs: usersToUpsert.map((userToUpsert) => userToUpsert.user.id) },
+        { userIDs: usersToCheck.map((userToCheck) => userToCheck.user.id) },
         Constants.DB_PARAMS_MAX_LIMIT);
-      for (const userToUpsert of usersToUpsert) {
+      for (const userToCheck of usersToCheck) {
         // Check the user
-        const foundUser = users.result.find((user) => user.id === userToUpsert.user.id);
-        UtilsService.assertObjectExists(action, foundUser, `User '${userToUpsert.user.id}' does not exist`,
+        const foundUser = users.result.find((user) => user.id === userToCheck.user.id);
+        UtilsService.assertObjectExists(action, foundUser, `User '${userToCheck.user.id}' does not exist`,
           MODULE_NAME, 'handleAssignCarUsers', loggedUser);
         // Auth
         if (!Authorizations.canReadUser(loggedUser, foundUser.id)) {
@@ -606,81 +607,45 @@ export default class CarService {
         }
       }
     }
-    // Users to Delete
-    if (usersToDelete.length > 0) {
-      // Get and check users
-      const users = await UserStorage.getUsers(tenantID,
-        { userIDs: usersToDelete.map((userToDelete) => userToDelete.user.id) },
-        Constants.DB_PARAMS_MAX_LIMIT);
-      for (const userToDelete of usersToDelete) {
-        // Check the user
-        const foundUser = users.result.find((user) => user.id === userToDelete.user.id);
-        UtilsService.assertObjectExists(action, foundUser, `User '${userToDelete.user.id}' does not exist`,
-          MODULE_NAME, 'handleAssignCarUsers', loggedUser);
-        // Auth
-        if (!Authorizations.canReadUser(loggedUser, foundUser.id)) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.ERROR,
-            user: loggedUser,
-            actionOnUser: foundUser,
-            action: Action.READ, entity: Entity.USER,
-            module: MODULE_NAME, method: 'handleAssignCarUsers',
-            value: foundUser.id
-          });
-        }
-      }
-    }
     // Users to Upsert
-    if (usersToUpsert.length > 0) {
+    if (!Utils.isEmptyArray(usersToUpsert)) {
       // Read all car users
       const carUsersDB = await CarStorage.getCarUsers(tenantID,
         { carUsersIDs: usersToUpsert.map((userToUpsert) => userToUpsert.id) },
         Constants.DB_PARAMS_MAX_LIMIT);
       const userCarsToInsert: UserCar[] = [];
       // Upsert
-      try {
-        for (const userToUpsert of usersToUpsert) {
-          // Get from DB
-          const foundCarUserDB = carUsersDB.result.find((carUserDB) => carUserDB.id === userToUpsert.id);
-          // Check Default
-          if (userToUpsert.default && (!foundCarUserDB || (userToUpsert.default !== foundCarUserDB.default))) {
-            await CarStorage.clearCarUserDefault(tenantID, userToUpsert.user.id);
-          }
-          // Check Owner
-          if (Authorizations.isAdmin(loggedUser) && userToUpsert.owner && (!foundCarUserDB || (userToUpsert.owner !== foundCarUserDB.owner))) {
-            await CarStorage.clearCarUserOwner(tenantID, userToUpsert.carID);
-          }
-          // Update
-          if (foundCarUserDB) {
-            foundCarUserDB.owner = userToUpsert.owner;
-            foundCarUserDB.default = userToUpsert.default;
-            userToUpsert.lastChangedBy = { 'id': loggedUser.id };
-            userToUpsert.lastChangedOn = new Date();
-            // Save (multi updates one shot does not exist in MongoDB)
-            await CarStorage.saveCarUser(tenantID, foundCarUserDB);
-            // Create
-          } else {
-            userToUpsert.carID = car.id;
-            userToUpsert.createdBy = { 'id': loggedUser.id };
-            userToUpsert.createdOn = new Date();
-            // Create later
-            userCarsToInsert.push(userToUpsert);
-          }
+      for (const userToUpsert of usersToUpsert) {
+        // Get from DB
+        const foundCarUserDB = carUsersDB.result.find((carUserDB) => carUserDB.id === userToUpsert.id);
+        // Check Default
+        if (userToUpsert.default && (!foundCarUserDB || (userToUpsert.default !== foundCarUserDB.default))) {
+          await CarStorage.clearCarUserDefault(tenantID, userToUpsert.user.id);
         }
-        // Insert one shot
-        if (userCarsToInsert.length > 0) {
-          await CarStorage.insertCarUsers(tenantID, userCarsToInsert);
+        // Check Owner
+        if (Authorizations.isAdmin(loggedUser) && userToUpsert.owner && (!foundCarUserDB || (userToUpsert.owner !== foundCarUserDB.owner))) {
+          await CarStorage.clearCarUserOwner(tenantID, userToUpsert.carID);
         }
-      } catch (error) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.CAR_UPDATE,
-          errorCode: HTTPError.GENERAL_ERROR,
-          module: MODULE_NAME, method: 'handleAssignCarUsers',
-          user: loggedUser.id,
-          message: `An error occurred while trying to assign the users to the car ${Utils.buildCarName(car, true)}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
+        // Update
+        if (foundCarUserDB) {
+          foundCarUserDB.owner = userToUpsert.owner;
+          foundCarUserDB.default = userToUpsert.default;
+          userToUpsert.lastChangedBy = { 'id': loggedUser.id };
+          userToUpsert.lastChangedOn = new Date();
+          // Save (multi updates one shot does not exist in MongoDB)
+          await CarStorage.saveCarUser(tenantID, foundCarUserDB);
+          // Create
+        } else {
+          userToUpsert.carID = car.id;
+          userToUpsert.createdBy = { 'id': loggedUser.id };
+          userToUpsert.createdOn = new Date();
+          // Create later
+          userCarsToInsert.push(userToUpsert);
+        }
+      }
+      // Insert one shot
+      if (!Utils.isEmptyArray(userCarsToInsert)) {
+        await CarStorage.insertCarUsers(tenantID, userCarsToInsert);
       }
       // Log
       Logging.logDebug({
@@ -694,20 +659,8 @@ export default class CarService {
     }
     // Users to Delete
     if (usersToDelete.length > 0) {
-      try {
-        // Delete
-        await CarStorage.deleteCarUsers(tenantID, usersToDelete.map((userToDelete) => userToDelete.id));
-      } catch (error) {
-        Logging.logError({
-          tenantID: tenantID,
-          user: loggedUser.id,
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'handleAssignCarUsers',
-          action: ServerAction.CAR_UPDATE,
-          message: `An error occurred while trying to remove all the users from the car ${Utils.buildCarName(car, true)}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
+      // Delete
+      await CarStorage.deleteCarUsers(tenantID, usersToDelete.map((userToDelete) => userToDelete.id));
       // Log
       Logging.logDebug({
         tenantID: tenantID,
