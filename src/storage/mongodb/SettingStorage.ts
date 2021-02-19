@@ -336,7 +336,7 @@ export default class SettingStorage {
   }
 
   public static async getUserSettings(tenantID: string): Promise<UserSetting> {
-    let userSetting : UserSetting = null;
+    let userSetting : UserSetting;
     // Get the user settings
     const settings = await SettingStorage.getSettings(tenantID, { identifier: TechnicalSettings.USER }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (settings && settings.count > 0 && settings.result[0]) {
