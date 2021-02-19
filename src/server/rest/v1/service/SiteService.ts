@@ -178,6 +178,26 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
+    // Check auth
+    if (action === ServerAction.ADD_USERS_TO_SITE) {
+      if (!Authorizations.canAssignUsersSites(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.ASSIGN, entity: Entity.USERS_SITES,
+          module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
+        });
+      }
+    } else {
+      if (!Authorizations.canUnassignUsersSites(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.UNASSIGN, entity: Entity.USERS_SITES,
+          module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
+        });
+      }
+    }
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
     // Check
@@ -193,7 +213,7 @@ export default class SiteService {
     }
     // Check auth
     await AuthorizationService.checkAndAssignSiteUsersAuthorizationFilters(
-      action, filteredRequest, req.user, req.tenant);
+      req.tenant, action, req.user, filteredRequest);
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     UtilsService.assertObjectExists(action, site, `Site '${filteredRequest.siteID}' does not exist`,
@@ -230,6 +250,15 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsersFromSite');
+    // Check auth
+    if (!Authorizations.canListUsersSites(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'handleGetUsers'
+      });
+    }
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
     // Check Mandatory fields
@@ -244,7 +273,7 @@ export default class SiteService {
     }
     // Check auth
     const authorizationFilters = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(
-      filteredRequest, req.user, req.tenant);
+      req.tenant, req.user, filteredRequest);
     if (!authorizationFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -324,12 +353,21 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
+    // Check auth
+    if (!Authorizations.canReadSite(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
+      });
+    }
     // Filter
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSite', req.user);
     // Check auth
     const authorizationFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      filteredRequest.ID, req.user, req.tenant);
+      req.tenant, req.user, filteredRequest.ID);
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID,
       {
@@ -350,11 +388,20 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITES, MODULE_NAME, 'handleGetSites');
+    // Check auth
+    if (!Authorizations.canListSites(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST, entity: Entity.SITES,
+        module: MODULE_NAME, method: 'handleGetSites'
+      });
+    }
     // Filter
     const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
     // Check auth
     const authorizationFilters = await AuthorizationService.checkAndGetSitesAuthorizationFilters(
-      filteredRequest, req.user, req.tenant);
+      req.tenant, req.user, filteredRequest);
     if (!authorizationFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -383,7 +430,7 @@ export default class SiteService {
       authorizationFilters.project
     );
     // Add Auth flags
-    AuthorizationService.addSitesAuthorizations(req.user, sites.result);
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites.result);
     // Return
     res.json(sites);
     next();

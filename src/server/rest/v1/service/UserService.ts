@@ -139,7 +139,7 @@ export default class UserService {
         action: action
       });
     }
-    if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
+    if (!filteredRequest.siteIDs || Utils.isEmptyArray(filteredRequest.siteIDs)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -681,7 +681,7 @@ export default class UserService {
       });
     }
     // Get authorization filters
-    const authorizationFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(req.user, req.tenant);
+    const authorizationFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(req.tenant, req.user);
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, userID,
       {
@@ -754,28 +754,45 @@ export default class UserService {
   public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
+    // Check auth
+    if (!Authorizations.canListUsersSites(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'handleGetSites'
+      });
+    }
     // Filter
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
-    // Get User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
-    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
-      MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.UserID)) {
+    if (!Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.UPDATE, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetSites',
-        value: user.id
+        value: filteredRequest.UserID
       });
+    }
+    // Get User
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
+      MODULE_NAME, 'handleGetSites', req.user);
+    // Check auth
+    const authorizationFilters = await AuthorizationService.checkAndGetUserSitesAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
+    if (!authorizationFilters.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
     }
     // Get users
     const userSites = await UserStorage.getUserSites(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userID: filteredRequest.UserID
+        userID: filteredRequest.UserID,
+        ...authorizationFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -783,7 +800,7 @@ export default class UserService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID']
+      authorizationFilters.project
     );
     // Filter
     userSites.result = userSites.result.map((userSite) => ({
@@ -821,7 +838,7 @@ export default class UserService {
     }
     // Get authorization filters
     const authorizationFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
-      filteredRequest, req.user, req.tenant);
+      req.tenant, req.user, filteredRequest);
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
       {
@@ -839,7 +856,7 @@ export default class UserService {
       authorizationFilters.project
     );
     // Add Auth flags
-    AuthorizationService.addUsersAuthorizations(req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     res.json(users);
     next();
@@ -1136,11 +1153,11 @@ export default class UserService {
 
   private static async getUsers(req: Request): Promise<DataResult<User>> {
     // Check auth
-    if (!Authorizations.canListUsersSites(req.user)) {
+    if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.USERS_SITES,
+        action: Action.LIST, entity: Entity.USERS,
         module: MODULE_NAME, method: 'getUsers'
       });
     }
@@ -1156,8 +1173,8 @@ export default class UserService {
         Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
     }
     // Get authorization filters
-    const authorizationFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
-      filteredRequest, req.user, req.tenant);
+    const authorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
@@ -1181,7 +1198,7 @@ export default class UserService {
       authorizationFilters.project
     );
     // Add Auth flags
-    AuthorizationService.addUsersAuthorizations(req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     return users;
   }
