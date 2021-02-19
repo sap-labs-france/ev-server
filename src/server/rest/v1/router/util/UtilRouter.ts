@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 
-import { ServerAction } from '../../../../../types/Server';
+import { ServerRoute } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 
 export default class UtilRouter {
@@ -16,7 +16,7 @@ export default class UtilRouter {
   }
 
   protected buildRoutePing(): void {
-    this.router.get(`/${ServerAction.REST_PING}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerRoute.REST_PING}`, async (req: Request, res: Response, next: NextFunction) => {
       res.sendStatus(StatusCodes.OK);
     });
   }
