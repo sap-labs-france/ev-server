@@ -845,15 +845,16 @@ export default class UserService {
         void converter.subscribe(async (user) => {
           await UserService.importUser(action, req, user);
         }, (error) => {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.INVALID_FILE_FORMAT,
-            message: 'Invalid csv file',
+          Logging.logError({
+            tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleUploadUsersFile',
-            user: req.user,
             action: action,
+            user: req.user.id,
+            message: 'Invalid csv file',
             detailedMessages: { error: error.message, stack: error.stack }
           });
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
         });
         file.pipe(converter);
       } else if (mimetype === 'application/json') {
@@ -862,26 +863,28 @@ export default class UserService {
           await UserService.importUser(action, req, user);
         });
         parser.on('error', function(error) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.INVALID_FILE_FORMAT,
-            message: 'Invalid json file',
+          Logging.logError({
+            tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleUploadUsersFile',
-            user: req.user,
             action: action,
+            user: req.user.id,
+            message: 'Invalid json file',
             detailedMessages: { error: error.message, stack: error.stack }
           });
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
         });
         file.pipe(parser);
       } else {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.INVALID_FILE_FORMAT,
-          message: 'Invalid file format',
+        Logging.logError({
+          tenantID: req.user.tenantID,
           module: MODULE_NAME, method: 'handleUploadUsersFile',
-          user: req.user,
-          action: action
+          action: action,
+          user: req.user.id,
+          message: 'Invalid file format'
         });
+        res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+        res.end();
       }
     });
     busboy.on('finish', function() {
