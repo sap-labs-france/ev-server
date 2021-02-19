@@ -575,7 +575,9 @@ export default class AuthService {
       tenantID: tenantID,
       user: user, action: action,
       module: MODULE_NAME, method: 'handleVerifyEmail',
-      message: userStatus === UserStatus.ACTIVE ? 'User account has been successfully verified and activated' : 'User account has been successfully verified but needs an admin to activate it',
+      message: userStatus === UserStatus.ACTIVE ?
+        'User account has been successfully verified and activated' :
+        'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
     // Ok

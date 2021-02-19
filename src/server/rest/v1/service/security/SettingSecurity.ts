@@ -190,7 +190,7 @@ export default class SettingSecurity {
           break;
         case UserSettingsType.USER:
           settings.content.user = {
-            autoActivateAccountAfterValidation: sanitize(request.content.user.autoActivateAccountAfterValidation)
+            autoActivateAccountAfterValidation: UtilsSecurity.filterBoolean(request.content.user.autoActivateAccountAfterValidation)
           };
           break;
       }
