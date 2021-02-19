@@ -347,9 +347,6 @@ export default class ChargingStationService {
   public static async handleGetChargingProfiles(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfilesRequest(req.query);
-    console.log('🚀 -------------------------------------');
-    console.log('🚀 ~ filteredRequest', filteredRequest);
-    console.log('🚀 -------------------------------------');
     // Check auth
     if (!Authorizations.canListChargingProfiles(req.user)) {
       throw new AppAuthError({
