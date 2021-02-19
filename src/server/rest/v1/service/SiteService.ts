@@ -382,6 +382,9 @@ export default class SiteService {
       },
       authorizationFilters.project
     );
+    // Add Auth flags
+    AuthorizationService.addSitesAuthorizations(req.user, sites.result);
+    // Return
     res.json(sites);
     next();
   }

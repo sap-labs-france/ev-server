@@ -1,10 +1,11 @@
 import Address from './Address';
+import { AuthorizationActions } from './Authorization';
 import Company from './Company';
 import ConnectorStats from './ConnectorStats';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
 
-export default interface Site extends CreatedUpdatedProps {
+export default interface Site extends CreatedUpdatedProps, AuthorizationActions {
   id: string;
   name: string;
   issuer: boolean;

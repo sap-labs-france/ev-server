@@ -681,7 +681,7 @@ export default class UserService {
       });
     }
     // Get authorization filters
-    const authorizationFilters = await AuthorizationService.getUserAuthorizationFilters(req.user, req.tenant);
+    const authorizationFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(req.user, req.tenant);
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, userID,
       {
@@ -820,7 +820,7 @@ export default class UserService {
         Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsersInError');
     }
     // Get authorization filters
-    const authorizationFilters = await AuthorizationService.getUsersInErrorAuthorizationFilters(
+    const authorizationFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
       filteredRequest, req.user, req.tenant);
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
@@ -838,6 +838,8 @@ export default class UserService {
       },
       authorizationFilters.project
     );
+    // Add Auth flags
+    AuthorizationService.addUsersAuthorizations(req.user, users.result);
     // Return
     res.json(users);
     next();
@@ -1154,7 +1156,7 @@ export default class UserService {
         Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
     }
     // Get authorization filters
-    const authorizationFilters = await AuthorizationService.getUsersAuthorizationFilters(
+    const authorizationFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
       filteredRequest, req.user, req.tenant);
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
@@ -1178,6 +1180,9 @@ export default class UserService {
       },
       authorizationFilters.project
     );
+    // Add Auth flags
+    AuthorizationService.addUsersAuthorizations(req.user, users.result);
+    // Return
     return users;
   }
 }
