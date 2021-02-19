@@ -804,11 +804,11 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
+    if (!Authorizations.canListUsersInErrors(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.USERS,
+        action: Action.IN_ERROR, entity: Entity.USERS,
         module: MODULE_NAME, method: 'handleGetUsersInError'
       });
     }
@@ -819,12 +819,16 @@ export default class UserService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
         Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsersInError');
     }
+    // Get authorization filters
+    const authorizationFilters = await AuthorizationService.getUsersInErrorAuthorizationFilters(
+      filteredRequest, req.user, req.tenant);
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType))
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType)),
+        ...authorizationFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -832,10 +836,7 @@ export default class UserService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.Sort
       },
-      [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
-        'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
-      ]
+      authorizationFilters.project
     );
     // Return
     res.json(users);

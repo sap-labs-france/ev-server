@@ -805,7 +805,7 @@ export default class ChargingStationService {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Action.EXPORT_PARAMS,
+          action: Action.EXPORT,
           entity: Entity.CHARGING_STATION,
           module: MODULE_NAME,
           method: 'handleExportChargingStationsOCPPParams',
@@ -861,11 +861,11 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListChargingStations(req.user)) {
+    if (!Authorizations.canListChargingStationsInError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        action: Action.IN_ERROR, entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME, method: 'handleGetChargingStations'
       });
     }

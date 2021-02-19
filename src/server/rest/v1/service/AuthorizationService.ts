@@ -204,6 +204,19 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
+  public static async getUsersInErrorAuthorizationFilters(filteredRequest: HttpUsersRequest, user: UserToken, tenant: Tenant): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      project: [
+        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
+        'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
+      ]
+    };
+    // Get from users
+    authorizationFilters.filters = await AuthorizationService.getUsersAuthorizationFilters(filteredRequest, user, tenant);
+    return authorizationFilters;
+  }
+
   public static async getUsersAuthorizationFilters(filteredRequest: HttpUsersRequest, user: UserToken, tenant: Tenant): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},

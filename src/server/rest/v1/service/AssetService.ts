@@ -204,11 +204,11 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssetsInError');
     // Check auth
-    if (!Authorizations.canListAssets(req.user)) {
+    if (!Authorizations.canListAssetsInError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.ASSETS,
+        action: Action.IN_ERROR, entity: Entity.ASSETS,
         module: MODULE_NAME, method: 'handleGetAssetsInError'
       });
     }

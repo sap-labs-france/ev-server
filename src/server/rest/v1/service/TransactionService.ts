@@ -783,7 +783,7 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        action: Action.IN_ERROR, entity: Entity.TRANSACTIONS,
         module: MODULE_NAME, method: 'handleGetTransactionsInError'
       });
     }
