@@ -133,6 +133,12 @@
     "endUserErrorNotification": {
       "title": "A User Reported an Error",
       "body": "'{{userName}}' reported: '{{errorTitle}}' - '{{errorDescription}}' in organization '{{tenantName}}'"
+    },
+    "accountVerificationNotification": {
+      "title": "Account verified",
+      "body": "Your account has been verified{{activated}}with success. {{needAdminActivation}}",
+      "activated": " and activated ",
+      "needAdminActivation": "An administrator will check and activate your account."
     }
   },
   "siteArea": "Site Area",

@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
@@ -578,6 +578,16 @@ export default class AuthService {
       message: userStatus === UserStatus.ACTIVE ? 'User account has been successfully verified and activated' : 'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
+    NotificationHandler.sendAccountVerification(
+      tenantID,
+      Utils.generateUUID(),
+      user,
+      {
+        'user': user,
+        'userStatus': userStatus,
+        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.Tenant),
+      }
+    ).catch(() => { });
     // Ok
     res.json({ status: 'Success', userStatus });
     next();

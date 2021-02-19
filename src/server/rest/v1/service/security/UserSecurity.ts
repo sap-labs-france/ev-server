@@ -118,6 +118,7 @@ export default class UserSecurity {
       sendOfflineChargingStations: false,
       sendEndUserErrorNotification: false,
       sendComputeAndApplyChargingProfilesFailed: false,
+      sendAccountVerificationNotification: notifications ? Utils.convertToBoolean(notifications.sendAccountVerificationNotification) : false,
     };
     // Admin Notif only
     if (role === UserRole.ADMIN) {
