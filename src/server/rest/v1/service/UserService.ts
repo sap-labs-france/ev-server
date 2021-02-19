@@ -10,6 +10,7 @@ import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
+import Busboy from 'busboy';
 import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
@@ -18,6 +19,7 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
+import JSONStream from 'JSONStream';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
@@ -36,6 +38,7 @@ import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import csvToJson from 'csvtojson/v2';
 import fs from 'fs';
 import moment from 'moment';
 
@@ -862,6 +865,84 @@ export default class UserService {
     next();
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canImportUser(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.IMPORT, entity: Entity.USERS,
+        module: MODULE_NAME, method: 'handleImportUser'
+      });
+    }
+    const busboy = new Busboy({ headers: req.headers });
+    req.pipe(busboy);
+    busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+      if (mimetype === 'text/csv') {
+        const converter = csvToJson({
+          trim: true,
+          delimiter: ['\t'],
+          quote: 'off'
+        });
+        void converter.subscribe(async (user) => {
+          await UserService.importUser(action, req, user);
+        }, (error) => {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: MODULE_NAME, method: 'handleUploadUsersFile',
+            action: action,
+            user: req.user.id,
+            message: 'Invalid csv file',
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
+        });
+        file.pipe(converter);
+      } else if (mimetype === 'application/json') {
+        const parser = JSONStream.parse('users.*');
+        parser.on('data', async (user) => {
+          await UserService.importUser(action, req, user);
+        });
+        parser.on('error', function(error) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: MODULE_NAME, method: 'handleUploadUsersFile',
+            action: action,
+            user: req.user.id,
+            message: 'Invalid json file',
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
+        });
+        file.pipe(parser);
+      } else {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME, method: 'handleUploadUsersFile',
+          action: action,
+          user: req.user.id,
+          message: 'Invalid file format'
+        });
+        res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+        res.end();
+      }
+    });
+    busboy.on('finish', function() {
+      Logging.logInfo({
+        tenantID: req.user.tenantID,
+        action: action,
+        module: MODULE_NAME, method: 'handleUploadUsersFile',
+        user: req.user,
+        message: 'File successfully uploaded',
+      });
+      res.end();
+      next();
+    });
+  }
+
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateUser(req.user)) {
@@ -1201,5 +1282,26 @@ export default class UserService {
     await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     return users;
+  }
+
+  private static async importUser(action: ServerAction, req: Request, user: any): Promise<void> {
+    try {
+      const newUploadedUser = {
+        name: user.Name,
+        firstName: user.First_Name,
+        email: user.Email,
+        role: user.Role,
+        importedBy: req.user.id
+      };
+      await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
+    } catch (error) {
+      Logging.logError({
+        tenantID: req.user.tenantID,
+        module: MODULE_NAME, method: 'handleUpdloadUsersFile',
+        action: action,
+        message: 'User cannot be imported',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
   }
 }
