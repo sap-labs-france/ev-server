@@ -251,7 +251,7 @@ describe('Authentication Service (tenant utall)', function() {
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, false, testData.adminTenant);
       // Check
-      expect(response.status).to.be.eql(520);
+      expect(response.status).to.be.eql(500);
       expect(response.data).to.not.have.property('token');
     });
 
@@ -260,7 +260,7 @@ describe('Authentication Service (tenant utall)', function() {
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, null, testData.adminTenant);
       // Check
-      expect(response.status).to.be.eql(520);
+      expect(response.status).to.be.eql(500);
       expect(response.data).to.not.have.property('token');
     });
 

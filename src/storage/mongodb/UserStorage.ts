@@ -129,7 +129,7 @@ export default class UserStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Read DB
-    const userImageMDB: { _id: string; image: string } = await global.database.getCollection(tenantID, 'userimages')
+    const userImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'userimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'getUserImage', uniqueTimerID, userImageMDB);
@@ -148,7 +148,7 @@ export default class UserStorage {
       // At least one Site
       if (siteIDs && siteIDs.length > 0) {
         // Create the lis
-        await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+        await global.database.getCollection<User>(tenantID, 'siteusers').deleteMany({
           'userID': Utils.convertToObjectID(userID),
           'siteID': { $in: siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
         });
@@ -176,7 +176,7 @@ export default class UserStorage {
         });
       }
       // Execute
-      await global.database.getCollection<any>(tenantID, 'siteusers').insertMany(siteUsersMDB);
+      await global.database.getCollection<User>(tenantID, 'siteusers').insertMany(siteUsersMDB);
     }
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'addSitesToUser', uniqueTimerID, siteIDs);
@@ -228,7 +228,7 @@ export default class UserStorage {
         sendChargingStationStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationStatusError) : false,
         sendChargingStationRegistered: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationRegistered) : false,
         sendOcpiPatchStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOcpiPatchStatusError) : false,
-        sendSmtpAuthError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSmtpAuthError) : false,
+        sendSmtpError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSmtpError) : false,
         sendUserAccountInactivity: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountInactivity) : false,
         sendPreparingSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendPreparingSessionNotStarted) : false,
         sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
@@ -493,7 +493,7 @@ export default class UserStorage {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     // Issuer
-    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
     }
     // Exclude Users
@@ -886,7 +886,7 @@ export default class UserStorage {
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
-        sendSmtpAuthError: false,
+        sendSmtpError: false,
         sendUserAccountInactivity: false,
         sendPreparingSessionNotStarted: false,
         sendOfflineChargingStations: false,

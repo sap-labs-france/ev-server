@@ -126,9 +126,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: Entity.CHARGING_STATION,
-        action: [Action.READ, Action.UNLOCK_CONNECTOR],
-        attributes: ['*']
+        resource: Entity.CHARGING_STATION, action: [Action.READ], attributes: ['*']
       },
       {
         resource: Entity.CHARGING_STATION,

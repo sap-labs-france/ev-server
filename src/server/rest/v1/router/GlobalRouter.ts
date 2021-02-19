@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 
 import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
+import ChargingStationRouter from './api/ChargingStationRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TenantRouter from './api/TenantRouter';
@@ -29,7 +30,8 @@ export default class GlobalRouter {
 
   protected buildRouteAPI(): void {
     this.router.use('/api', AuthService.authenticate(), [
-      new TenantRouter().buildRoutes()
+      new TenantRouter().buildRoutes(),
+      new ChargingStationRouter().buildRoutes()
     ]);
   }
 

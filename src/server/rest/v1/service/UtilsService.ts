@@ -367,7 +367,7 @@ export default class UtilsService {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile\'s schedule should not exeed 24 hours',
+        message: 'Charging Profile\'s schedule should not exceed 24 hours',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });

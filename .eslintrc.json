@@ -47,8 +47,6 @@
     "@typescript-eslint/no-unsafe-return": "off",
     "@typescript-eslint/member-ordering": "error",
     "@typescript-eslint/await-thenable": "error",
-    "require-await": "off",
-    "@typescript-eslint/require-await": "off",
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/promise-function-async": "error",
     "@typescript-eslint/no-misused-promises": "error",
