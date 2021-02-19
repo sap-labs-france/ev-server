@@ -270,6 +270,22 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
+  public static async saveImportedUser(tenantID: string, userToSave: any): Promise<void> {
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUser');
+    const userMDB = {
+      email: userToSave.email,
+      firstName: userToSave.firstName,
+      name: userToSave.name,
+      role: userToSave.role,
+      importedOn: new Date(),
+      importedBy: Utils.convertToObjectID(userToSave.importedBy)
+    };
+    await global.database.getCollection<any>(tenantID, 'usersImport').insertOne(
+      userMDB);
+    // Debug
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUser', uniqueTimerID, userMDB);
+  }
+
   public static async saveUserPassword(tenantID: string, userID: string,
     params: {
       password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
