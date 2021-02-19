@@ -13,7 +13,7 @@
 [submodule "src/integration/smart-charging/sap-smart-charging"]
 	path = src/integration/smart-charging/sap-smart-charging
 	url = ../../E-Mobility/ev-sap-smart-charging.git
-	branch = master-qa
+	branch = master
 [submodule "src/assets/charging-station-templates"]
 	path = src/assets/charging-station-templates
 	url = ../../E-Mobility/ev-sap-charging-station-templates.git
