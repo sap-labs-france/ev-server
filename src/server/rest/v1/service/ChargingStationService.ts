@@ -381,6 +381,9 @@ export default class ChargingStationService {
   public static async handleGetChargingProfiles(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfilesRequest(req.query);
+    console.log('🚀 -------------------------------------');
+    console.log('🚀 ~ filteredRequest', filteredRequest);
+    console.log('🚀 -------------------------------------');
     // Check auth
     if (!Authorizations.canListChargingProfiles(req.user)) {
       throw new AppAuthError({
@@ -392,7 +395,7 @@ export default class ChargingStationService {
     }
     // Profiles of the charging station?
     let profilesProject: string[] = ['profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'];
-    if (filteredRequest.ChargeBoxID) {
+    if (filteredRequest.ChargingStationID) {
       // Enhanced the projection
       profilesProject = ['profile'];
     }
@@ -400,10 +403,10 @@ export default class ChargingStationService {
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
-        withSiteArea: true,
+        withSiteArea: filteredRequest.WithSiteArea,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
@@ -485,28 +488,28 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGenerateQrCodeForConnector',
-        value: filteredRequest.ChargeBoxID
+        value: filteredRequest.ChargingStationID
       });
     }
     // Check ChargeBoxID
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargingStationID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Check ConnectorID
     UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Get the Charging Station`
-    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargingStationID);
     // Found ChargingStation ?
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargingStationID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Found Connector ?
     UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.ConnectorID),
       `Connector ID '${filteredRequest.ConnectorID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     const chargingStationQRCode: ChargingStationQRCode = {
-      chargingStationID: filteredRequest.ChargeBoxID,
+      chargingStationID: filteredRequest.ChargingStationID,
       connectorID: filteredRequest.ConnectorID,
       endpoint: Utils.getChargingStationEndpoint(),
       tenantName: req.user.tenantName,
-      tenantSubDomain: req.tenant.subdomain
+      tenantSubDomain: req.user.tenantSubdomain
     };
     // Generate
     const generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString('base64'));
@@ -843,7 +846,6 @@ export default class ChargingStationService {
         });
       }
     }
-    const ocppParams: OCPPParams[] = [];
     // Set the attachment name
     res.attachment('exported-ocpp-params.csv');
     let writeHeader = true;
@@ -875,7 +877,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterDownloadQrCodesPdfRequest(req.query);
     // Check
-    if (!filteredRequest.SiteID && !filteredRequest.SiteAreaID && !filteredRequest.ChargeBoxID) {
+    if (!filteredRequest.SiteID && !filteredRequest.SiteAreaID && !filteredRequest.ChargingStationID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -940,7 +942,6 @@ export default class ChargingStationService {
     );
     // Return
     res.json(chargingStations);
-    next();
   }
 
   public static async handleGetStatusNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
@@ -986,7 +987,7 @@ export default class ChargingStationService {
   public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
-    if (!filteredRequest.FileName) {
+    if (!filteredRequest.ID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -996,10 +997,10 @@ export default class ChargingStationService {
       });
     }
     // Open a download stream and pipe it in the response
-    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.FileName);
+    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.ID);
     // Set headers
     res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.FileName);
+    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.ID);
     // Write chunks
     bucketStream.on('data', (chunk) => {
       res.write(chunk);
@@ -1009,7 +1010,7 @@ export default class ChargingStationService {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: action,
-        message: `Firmware '${filteredRequest.FileName}' has not been found!`,
+        message: `Firmware '${filteredRequest.ID}' has not been found!`,
         module: MODULE_NAME, method: 'handleGetFirmware',
         detailedMessages: { error: error.message, stack: error.stack },
       });
@@ -1020,17 +1021,17 @@ export default class ChargingStationService {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: action,
-        message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
+        message: `Firmware '${filteredRequest.ID}' has been downloaded with success`,
         module: MODULE_NAME, method: 'handleGetFirmware',
       });
       res.end();
     });
   }
 
-  public static async handleAction(action: ServerAction, command: Command, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest =
-      ChargingStationSecurity.filterChargingStationActionRequest(req.body);
+    const command = action.slice(15) as Command;
+    const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
@@ -1058,7 +1059,7 @@ export default class ChargingStationService {
       // Add connector ID
       filteredRequest.args.connectorId = transaction.connectorId;
       // Check Tag ID
-      if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
+      if (Utils.isEmptyArray(req.user.tagIDs)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_NO_BADGE_ERROR,
@@ -1081,7 +1082,7 @@ export default class ChargingStationService {
       // Save Transaction
       await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
       // Ok: Execute it
-      result = await this.handleChargingStationCommand(
+      result = await ChargingStationService.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
       // Remote Start Transaction
     } else if (command === Command.REMOTE_START_TRANSACTION) {
@@ -1111,7 +1112,7 @@ export default class ChargingStationService {
         });
       }
       // Ok: Execute it
-      result = await this.handleChargingStationCommand(
+      result = await ChargingStationService.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
       // Save Car ID
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
@@ -1175,7 +1176,7 @@ export default class ChargingStationService {
         });
       }
       // Execute it
-      result = await this.handleChargingStationCommand(
+      result = await ChargingStationService.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
     }
     // Return
@@ -1300,9 +1301,8 @@ export default class ChargingStationService {
     // Project fields
     if (!projectFields) {
       projectFields = [
-        // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
         'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
-        'ocppVersion', 'ocppProtocol', 'lastSeen', 'lastHeartBeat', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
+        'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
         'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'maximumPower', 'powerLimitUnit',
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
@@ -1321,7 +1321,7 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
-        chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorStatuses: filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null,
         connectorTypes: filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null,
         issuer: filteredRequest.Issuer,
@@ -1420,10 +1420,8 @@ export default class ChargingStationService {
     return csv;
   }
 
-
   private static async getChargingStationsForQrCode(req: Request): Promise<DataResult<ChargingStation>> {
-    return ChargingStationService.getChargingStations(req,
-      ['id', 'connectors.connectorId', 'siteArea.name']);
+    return ChargingStationService.getChargingStations(req, ['id', 'connectors.connectorId', 'siteArea.name']);
   }
 
   private static async convertQrCodeToPDF(req: Request, pdfDocument: PDFKit.PDFDocument, chargingStations: ChargingStation[]): Promise<void> {
@@ -1446,8 +1444,8 @@ export default class ChargingStationService {
             chargingStationID: chargingStation.id,
             connectorID: connector.connectorId,
             endpoint: Utils.getChargingStationEndpoint(),
-            tenantName: req.tenant.name,
-            tenantSubDomain: req.tenant.subdomain
+            tenantName: req.user.tenantName,
+            tenantSubDomain: req.user.tenantSubdomain
           };
           // Generated QR-Code
           const qrCodeImage = await Utils.generateQrCode(

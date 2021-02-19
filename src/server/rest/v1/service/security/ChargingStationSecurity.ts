@@ -25,7 +25,7 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationConnectorRequest(request: any): HttpChargingStationConnectorRequest {
     return {
-      ChargeBoxID: sanitize(request.ChargeBoxID),
+      ChargingStationID: sanitize(request.ChargingStationID),
       ConnectorID: Utils.convertToInt(sanitize(request.ConnectorID)),
     };
   }
@@ -33,8 +33,8 @@ export default class ChargingStationSecurity {
   public static filterChargingProfilesRequest(request: any): HttpChargingProfilesRequest {
     const filteredRequest: HttpChargingProfilesRequest = {} as HttpChargingProfilesRequest;
     filteredRequest.Search = sanitize(request.Search),
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
-    filteredRequest.ConnectorID = sanitize(request.ConnectorID);
+    filteredRequest.ChargingStationID = sanitize(request.ChargingStationID);
+    filteredRequest.ConnectorID = Utils.convertToInt(sanitize(request.ConnectorID));
     filteredRequest.WithChargingStation = UtilsSecurity.filterBoolean(request.WithChargingStation);
     filteredRequest.WithSiteArea = UtilsSecurity.filterBoolean(request.WithSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);
@@ -62,7 +62,7 @@ export default class ChargingStationSecurity {
 
   public static filterDownloadQrCodesPdfRequest(request: any): HttpDownloadQrCodeRequest {
     return {
-      ChargeBoxID: request.ChargeBoxID ? sanitize(request.ChargeBoxID) : null,
+      ChargingStationID: request.ChargingStationID ? sanitize(request.ChargingStationID) : null,
       ConnectorID: request.ConnectorID ? Utils.convertToInt(sanitize(request.ConnectorID)) : null,
       SiteAreaID: request.SiteAreaID ? sanitize(request.SiteAreaID) : null,
       SiteID: request.SiteID ? sanitize(request.SiteID) : null,
@@ -89,7 +89,7 @@ export default class ChargingStationSecurity {
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.ConnectorStatus = sanitize(request.ConnectorStatus);
     filteredRequest.ConnectorType = sanitize(request.ConnectorType);
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.ChargingStationID = sanitize(request.ChargingStationID);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
     if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
@@ -189,8 +189,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationActionRequest(request: any): HttpChargingStationCommandRequest {
-    const filteredRequest: HttpChargingStationCommandRequest = {} as HttpChargingStationCommandRequest;
-    // Check
+    const filteredRequest = {} as HttpChargingStationCommandRequest;
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
     if (Utils.objectHasProperty(request, 'carID')) {
       filteredRequest.carID = sanitize(request.carID);
@@ -247,9 +246,6 @@ export default class ChargingStationSecurity {
       if (Utils.objectHasProperty(request.args, 'retrieveDate')) {
         filteredRequest.args.retrieveDate = sanitize(request.args.retrieveDate);
       }
-      if (Utils.objectHasProperty(request.args, 'retryInterval')) {
-        filteredRequest.args.retryInterval = sanitize(request.args.retryInterval);
-      }
       if (Utils.objectHasProperty(request.args, 'transactionId')) {
         filteredRequest.args.transactionId = sanitize(request.args.transactionId);
       }
@@ -282,7 +278,7 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationGetFirmwareRequest(request: any): HttpChargingStationGetFirmwareRequest {
     return {
-      FileName: sanitize(request.FileName),
+      ID: sanitize(request.ID),
     };
   }
 

@@ -697,7 +697,6 @@ export default class OCPPCommonTests {
       if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_15) {
         const instantWatts = this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs);
         expect(value).to.include({
-          'date': transactionCurrentTime.toISOString(),
           'startedAt': transactionCurrentTime.toISOString(),
           'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
             null, this.newTransaction.connectorId, instantWatts),
@@ -713,7 +712,6 @@ export default class OCPPCommonTests {
         }
       } else {
         expect(value).to.include({
-          'date': transactionCurrentTime.toISOString(),
           'startedAt': transactionCurrentTime.toISOString(),
           'instantVolts': checkNewMeterValues ? this.voltageMeterValues[i] : 0,
           'instantVoltsL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
