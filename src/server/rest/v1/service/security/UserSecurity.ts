@@ -25,6 +25,10 @@ export default class UserSecurity {
     return sanitize(request.ID);
   }
 
+  public static filterUserRequestByIDs(request: any): string[] {
+    return request.usersIDs.map(sanitize);
+  }
+
   public static filterUsersRequest(request: any): HttpUsersRequest {
     const filteredRequest = {} as HttpUsersRequest;
     if (request.Issuer) {
