@@ -356,10 +356,23 @@ export default class ChargingStationService {
       });
     }
     // Profiles of the charging station?
-    let profilesProject: string[] = ['profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'];
+    let projectFields: string[] = [
+      'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'
+    ];
     if (filteredRequest.ChargingStationID) {
       // Enhanced the projection
-      profilesProject = ['profile'];
+      projectFields = [
+        'profile'
+      ];
+    }
+    projectFields = [
+      'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
+      'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower',
+      ...projectFields
+    ]
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
     }
     // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
@@ -372,11 +385,8 @@ export default class ChargingStationService {
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
-        'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower',
-        ...profilesProject
-      ]);
+      projectFields
+      );
     // Build the result
     res.json(chargingProfiles);
     next();

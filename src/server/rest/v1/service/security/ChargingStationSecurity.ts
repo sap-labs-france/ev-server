@@ -40,6 +40,7 @@ export default class ChargingStationSecurity {
     filteredRequest.SiteID = sanitize(request.SiteID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 

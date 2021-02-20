@@ -2752,6 +2752,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
