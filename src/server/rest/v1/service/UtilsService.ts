@@ -196,6 +196,14 @@ export default class UtilsService {
     }
   }
 
+  public static httpFilterProjectToMongoDB(httpProjectFields: string): string[] {
+    // Exist?
+    if (httpProjectFields) {
+      // Convert to array
+      return httpProjectFields.split('|');
+    }
+  }
+
   public static assertComponentIsActiveFromToken(userToken: UserToken, component: TenantComponents,
     action: Action, entity: Entity, module: string, method: string): void {
     // Check from token

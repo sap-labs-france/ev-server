@@ -107,8 +107,8 @@ export default class TenantService {
 
   public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const tenantID = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
-    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
+    const filteredRequest = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
@@ -116,15 +116,23 @@ export default class TenantService {
         user: req.user,
         action: Action.READ, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleGetTenant',
-        value: tenantID
+        value: filteredRequest.ID
       });
     }
+    let projectFields = [
+      'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo'
+    ];
+    // Check projection
+    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField))
+    }
     // Get it
-    const tenant = await TenantStorage.getTenant(tenantID,
+    const tenant = await TenantStorage.getTenant(filteredRequest.ID,
       { withLogo: true },
-      [ 'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo']
+      projectFields
     );
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTenant', req.user);
     // Return
     res.json(tenant);
@@ -144,11 +152,16 @@ export default class TenantService {
       });
     }
     // Filter
-    const projectFields = [
+    let projectFields = [
       'id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
     ];
     if (filteredRequest.WithComponents) {
       projectFields.push('components');
+    }
+    // Check projection
+    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField))
     }
     // Get the tenants
     const tenants = await TenantStorage.getTenants(

@@ -3,9 +3,9 @@ export default interface HttpDatabaseRequest {
   Limit?: number;
   OnlyRecordCount?: boolean;
   SortFields: any;
-  ProjectFields?: string[];
+  ProjectFields?: any;
 }
 
 export interface HttpDatabaseProjectRequest {
-  ProjectFields?: string[];
+  ProjectFields?: any;
 }

@@ -1,4 +1,4 @@
-import { HttpTenantLogoRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
+import { HttpTenantLogoRequest, HttpTenantRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
@@ -63,10 +63,10 @@ export default class TenantValidator extends SchemaValidator {
     return data;
   }
 
-  public validateTenantGetReqSuperAdmin(data: any): string {
+  public validateTenantGetReqSuperAdmin(data: any): HttpTenantRequest {
     // Validate schema
     this.validate(this.tenantGetReqSuperAdmin, data);
-    return data.ID;
+    return data;
   }
 
   public validateTenantsGetReqSuperAdmin(data: any): HttpTenantsRequest {

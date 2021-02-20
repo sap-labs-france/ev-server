@@ -970,6 +970,10 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
     // Build
     const extrafilters: any = {};
     if (Utils.objectHasProperty(params, 'completedTransactions')) {
