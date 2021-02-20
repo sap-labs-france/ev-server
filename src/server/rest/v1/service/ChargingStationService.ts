@@ -372,7 +372,7 @@ export default class ChargingStationService {
         withSiteArea: filteredRequest.WithSiteArea,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
         'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower',
@@ -895,7 +895,7 @@ export default class ChargingStationService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
@@ -921,7 +921,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, {},
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Return
     res.json(statusNotifications);
     next();
@@ -941,7 +941,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, {},
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Return
     res.json(bootNotifications);
     next();
@@ -1297,7 +1297,7 @@ export default class ChargingStationService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       projectFields

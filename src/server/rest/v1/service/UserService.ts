@@ -234,9 +234,9 @@ export default class UserService {
 
   public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const id = UserSecurity.filterUserByIDRequest(req.query);
+    const userID = UserSecurity.filterUserByIDRequest(req.query);
     // Check Mandatory fields
-    if (!id) {
+    if (!userID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -247,17 +247,17 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canDeleteUser(req.user, id)) {
+    if (!Authorizations.canDeleteUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.DELETE, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleDeleteUser',
-        value: id
+        value: userID
       });
     }
     // Same user
-    if (id === req.user.id) {
+    if (userID === req.user.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -268,8 +268,8 @@ export default class UserService {
       });
     }
     // Check user
-    const user = await UserStorage.getUser(req.user.tenantID, id);
-    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
+    const user = await UserStorage.getUser(req.user.tenantID, userID);
+    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
     // Get tags
     const tags = (await TagStorage.getTags(req.user.tenantID,
       { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
@@ -335,7 +335,7 @@ export default class UserService {
       }
     }
     const userTransactions = await TransactionStorage.getTransactions(
-      req.user.tenantID, { userIDs: [id] }, Constants.DB_PARAMS_COUNT_ONLY);
+      req.user.tenantID, { userIDs: [userID] }, Constants.DB_PARAMS_COUNT_ONLY);
     // Delete user
     if (userTransactions.count > 0) {
       // Logically
@@ -518,7 +518,7 @@ export default class UserService {
     const lastChangedBy = { id: req.user.id };
     const lastChangedOn = new Date();
     // Clean up request
-    delete filteredRequest.passwords;
+    delete filteredRequest['passwords'];
     // Check User validity
     UtilsService.checkIfUserValid(filteredRequest, user, req);
     // Update user
@@ -671,29 +671,29 @@ export default class UserService {
 
   public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserSecurity.filterUserByIDRequest(req.query);
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUser', req.user);
+    const filteredRequest = UserSecurity.filterUserRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, userID)) {
+    if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.READ, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetUser',
-        value: userID
+        value: filteredRequest.ID
       });
     }
     // Get authorization filters
-    const authorizationFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(req.tenant, req.user);
+    const authorizationFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(req.tenant, req.user, filteredRequest);
     // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, userID,
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID,
       {
         withImage: true,
         ...authorizationFilters.filters
       },
-      authorizationFilters.project
+      authorizationFilters.projectFields
     );
-    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
     // Deleted?
     if (user.deleted) {
@@ -800,10 +800,10 @@ export default class UserService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationFilters.project
+      authorizationFilters.projectFields
     );
     // Filter
     userSites.result = userSites.result.map((userSite) => ({
@@ -854,9 +854,9 @@ export default class UserService {
         limit: filteredRequest.Limit,
         onlyRecordCount: filteredRequest.OnlyRecordCount,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort
+        sort: filteredRequest.SortFields
       },
-      authorizationFilters.project
+      authorizationFilters.projectFields
     );
     // Add Auth flags
     await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
@@ -970,7 +970,7 @@ export default class UserService {
       });
     }
     // Clean request
-    delete filteredRequest.passwords;
+    delete filteredRequest['passwords'];
     // Create
     const newUser: User = {
       ...filteredRequest,
@@ -1273,10 +1273,10 @@ export default class UserService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationFilters.project
+      authorizationFilters.projectFields
     );
     // Add Auth flags
     await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);

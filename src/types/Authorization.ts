@@ -26,7 +26,7 @@ export interface AuthorizationDefinition {
 }
 export interface AuthorizationFilter {
   filters: Record<string, any>;
-  project: string[];
+  projectFields: string[];
   authorized?: boolean;
 }
 

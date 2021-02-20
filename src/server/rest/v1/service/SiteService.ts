@@ -292,10 +292,10 @@ export default class SiteService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationFilters.project
+      authorizationFilters.projectFields
     );
     res.json(users);
     next();
@@ -367,7 +367,7 @@ export default class SiteService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSite', req.user);
     // Check auth
     const authorizationFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      req.tenant, req.user, filteredRequest.ID);
+      req.tenant, req.user, filteredRequest);
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID,
       {
@@ -375,7 +375,7 @@ export default class SiteService {
         withImage: true,
         ...authorizationFilters.filters
       },
-      authorizationFilters.project
+      authorizationFilters.projectFields
     );
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSite', req.user);
@@ -424,10 +424,10 @@ export default class SiteService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationFilters.project
+      authorizationFilters.projectFields
     );
     // Add Auth flags
     await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites.result);

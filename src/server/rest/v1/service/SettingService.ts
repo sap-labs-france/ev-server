@@ -126,7 +126,7 @@ export default class SettingService {
     // Get the all settings identifier
     const settings = await SettingStorage.getSettings(req.user.tenantID,
       { identifier: filteredRequest.Identifier },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Process the sensitive data if any
     for (const setting of settings.result) {
       // Hash sensitive data before being sent to the front end

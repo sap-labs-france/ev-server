@@ -1,6 +1,6 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { HttpSiteAssignUsersRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
-import { HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -19,17 +19,22 @@ const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
   public static async checkAndGetSiteAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, siteID: string): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      project: [
+      projectFields: [
         'id', 'name', 'issuer', 'image', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'public'
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
+    // Check Projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
+    // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // Get Site IDs from Site Admin flag
-      const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, siteID);
+      const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, filteredRequest.ID);
       if (Utils.isEmptyArray(siteIDs)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
@@ -56,29 +61,11 @@ export default class AuthorizationService {
     }
   }
 
-  private static async getSiteAdminOwnerIDs(tenant: Tenant, userToken: UserToken): Promise<{ siteAdminIDs: string[]; siteOwnerIDs: string[]; }> {
-    const siteAdminIDs: string[] = [];
-    const siteOwnerIDs: string[] = [];
-    const userSites = await UserStorage.getUserSites(tenant.id, { userID: userToken.id }, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const userSite of userSites.result) {
-      if (userSite.siteAdmin) {
-        siteAdminIDs.push(userSite.siteID);
-      }
-      if (userSite.siteOwner) {
-        siteOwnerIDs.push(userSite.siteID);
-      }
-    }
-    return {
-      siteAdminIDs,
-      siteOwnerIDs
-    }
-  }
-
   public static async checkAndGetSitesAuthorizationFilters(
       tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      project: [
+      projectFields: [
         'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
         'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
       ],
@@ -86,9 +73,14 @@ export default class AuthorizationService {
     };
     // Add user info
     if (Authorizations.canListUsers(userToken)) {
-      authorizationFilters.project.push(
+      authorizationFilters.projectFields.push(
         'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
     }
+    // Check Projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
+    // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // Get Site IDs from Site Admin flag
       const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
@@ -114,11 +106,16 @@ export default class AuthorizationService {
       tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      project: [
+      projectFields: [
         'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
+    // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // Get Site IDs from Site Admin flag
       const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
@@ -144,11 +141,16 @@ export default class AuthorizationService {
       tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserSitesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      project: [
+      projectFields: [
         'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID'
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
+    // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // Get Site IDs from Site Admin flag
       const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
@@ -167,11 +169,16 @@ export default class AuthorizationService {
       tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      project: [
+      projectFields: [
         'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
+    // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // Get Site IDs from Site Admin flag
       const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
@@ -214,13 +221,20 @@ export default class AuthorizationService {
       tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      project: [
+      projectFields: [
         'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
         'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
       ]
     };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
     // Get from users
-    authorizationFilters.filters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, filteredRequest );
+    const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, filteredRequest );
+    // Override
+    authorizationFilters.authorized = usersAuthorizationFilters.authorized;
+    authorizationFilters.filters = usersAuthorizationFilters.filters;
     return authorizationFilters;
   }
 
@@ -237,13 +251,17 @@ export default class AuthorizationService {
       tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      project: [
+      projectFields: [
         'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
         'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
         'billingData.customerID', 'billingData.lastChangedOn'
       ]
     };
-    // TODO: To replace with Authorization later on (quick fix for customer)
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
+    // Get from users
     if (userToken.role === UserRole.BASIC) {
       // Must be Site Admin as only Basic User with site admin role can access list of users
       const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
@@ -263,16 +281,20 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUserAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      project:       [
+      projectFields:       [
         'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'deleted', 'plateID',
         'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
       ]
     };
-    // TODO: To replace with Authorization later on (quick fix for customer)
-    if (userToken.role === UserRole.BASIC) {
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
       // Must be Site Admin as only Basic User with site admin role can access list of users
       const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
       // Force the filter
@@ -318,5 +340,23 @@ export default class AuthorizationService {
       [ 'id' ]
     );
     return users.result.map((user) => user.id);
+  }
+
+  private static async getSiteAdminOwnerIDs(tenant: Tenant, userToken: UserToken): Promise<{ siteAdminIDs: string[]; siteOwnerIDs: string[]; }> {
+    const siteAdminIDs: string[] = [];
+    const siteOwnerIDs: string[] = [];
+    const userSites = await UserStorage.getUserSites(tenant.id, { userID: userToken.id }, Constants.DB_PARAMS_MAX_LIMIT);
+    for (const userSite of userSites.result) {
+      if (userSite.siteAdmin) {
+        siteAdminIDs.push(userSite.siteID);
+      }
+      if (userSite.siteOwner) {
+        siteOwnerIDs.push(userSite.siteID);
+      }
+    }
+    return {
+      siteAdminIDs,
+      siteOwnerIDs
+    }
   }
 }
