@@ -81,6 +81,36 @@ export default class SettingService {
     next();
   }
 
+  public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+    // Filter
+    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
+    // Check auth
+    if (!Authorizations.canReadSetting(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleGetSettingByIdentifier',
+        value: settingID
+      });
+    }
+    // Get it
+    const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, settingID);
+    UtilsService.assertObjectExists(action, setting, `Setting with Identifier '${settingID}' does not exist`,
+      MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
+    // Process the sensitive data if any
+    // Hash sensitive data before being sent to the front end
+    Cypher.hashSensitiveDataInJSON(setting);
+    // If Crypto Settings, hash key
+    if (setting.identifier === 'crypto') {
+      setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+    }
+    // Return
+    res.json(setting);
+    next();
+  }
+
   public static async handleGetSettings(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
