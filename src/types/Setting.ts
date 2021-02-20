@@ -6,7 +6,7 @@ export enum TechnicalSettings {
   CRYPTO = 'crypto'
 }
 
-export interface Setting {
+export interface Setting extends CreatedUpdatedProps {
   id?: string;
   identifier: TenantComponents | TechnicalSettings;
   sensitiveData?: string[];
@@ -47,7 +47,7 @@ export interface SettingDBContent {
   sapSmartCharging?: SapSmartChargingSetting;
   asset?: AssetSetting;
   crypto?: CryptoSetting;
-  user?: UserSettings;
+  user?: UserSetting;
 }
 
 export enum PricingSettingsType {
@@ -254,6 +254,11 @@ export interface AssetUserPasswordConnectionType {
   password: string;
 }
 
+export interface AssetGreencomConnectionType {
+  clientId: string;
+  clientSecret: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
 }
@@ -262,16 +267,10 @@ export enum CryptoSettingsType {
   CRYPTO = 'crypto'
 }
 
-export interface CryptoKeySetting extends Setting {
+export interface CryptoSettings extends Setting {
   identifier: TechnicalSettings.CRYPTO;
   type: CryptoSettingsType;
   crypto: CryptoSetting;
-}
-
-export interface CryptoKeyProperties {
-  blockCypher: string;
-  blockSize: number;
-  operationMode: string;
 }
 
 export interface CryptoSetting {
@@ -280,20 +279,21 @@ export interface CryptoSetting {
   formerKey?: string;
   formerKeyProperties?: CryptoKeyProperties;
 }
-export interface AssetGreencomConnectionType {
-  clientId: string;
-  clientSecret: string;
+export interface CryptoKeyProperties {
+  blockCypher: string;
+  blockSize: number;
+  operationMode: string;
 }
-
 export enum UserSettingsType {
   USER = 'user',
 }
 
-export interface UserSetting extends Setting {
+export interface UserSettings extends Setting {
   identifier: TechnicalSettings.USER;
-  user?: UserSettings;
+  type: UserSettingsType;
+  user?: UserSetting;
 }
 
-export interface UserSettings {
+export interface UserSetting {
   autoActivateAccountAfterValidation: boolean;
 }

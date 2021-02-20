@@ -1,4 +1,4 @@
-import { TechnicalSettings, UserSetting, UserSettingsType } from '../../types/Setting';
+import { TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
@@ -15,9 +15,9 @@ export default class MigrateUserSettingsTask extends MigrationTask {
   }
 
   public async migrateTenant(tenant: Tenant): Promise<void> {
-    const userSetting = await SettingStorage.getUserSettings(tenant.id);
+    const userSettings = await SettingStorage.getUserSettings(tenant.id);
     // If no user setting exists, initialize it
-    if (!userSetting) {
+    if (!userSettings) {
       // Create new user setting with account activation param
       const settingsToSave = {
         identifier: TechnicalSettings.USER,

@@ -53,7 +53,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.TRANSACTIONS, action: [Action.LIST, Action.EXPORT, Action.IN_ERROR], attributes: ['*'] },
       {
         resource: Entity.TRANSACTION,
-        action: [Action.READ, Action.UPDATE, Action.DELETE],
+        action: [Action.READ, Action.UPDATE, Action.DELETE, Action.REFUND_TRANSACTION],
         attributes: ['*']
       },
       {
