@@ -75,15 +75,7 @@ export default class OICPMapping {
     // Convert charging stations to evse(s)
     for (const chargingStation of chargingStations) {
       if (chargingStation.issuer && chargingStation.public) {
-        if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
-          for (const chargePoint of chargingStation.chargePoints) {
-            // OICP does not support multiple connectors in one EVSE object
-            // It is not possible to flag if connectors of charge points can charge in parallel or not
-            evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation.siteArea, chargingStation, chargePoint, options));
-          }
-        } else {
-          evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation.siteArea, chargingStation, null, options));
-        }
+        evses.push(...OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation.siteArea, chargingStation, options));
       }
     }
     // Return evses
@@ -95,19 +87,33 @@ export default class OICPMapping {
     // Convert charging stations to evse status(es)
     for (const chargingStation of chargingStations) {
       if (chargingStation.issuer && chargingStation.public) {
-        if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
-          for (const chargePoint of chargingStation.chargePoints) {
-            // OICP does not support multiple connectors in one EVSE object
-            // It is not possible to flag if connectors of charge points can charge in parallel or not
-            evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, chargePoint, options));
-          }
-        } else {
-          evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, null, options));
-        }
+        evseStatuses.push(...OICPMapping.convertChargingStation2MultipleEvseStatuses(tenant, chargingStation, options));
       }
     }
     // Return evse status(es)
     return evseStatuses;
+  }
+
+  /**
+   * Convert ChargingStation to Multiple EVSEs
+   * @param {Tenant} tenant
+   * @param {*} chargingStation
+   * @return Array of OICP EVSEs
+   */
+  public static convertChargingStation2MultipleEvses(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord[] {
+    let connectors: Connector[] = [];
+    if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
+      for (const chargePoint of chargingStation.chargePoints) {
+        // OICP does not support multiple connectors in one EVSE object
+        // It is not possible to flag if connectors of charge points can charge in parallel or not
+        connectors.push(...Utils.getConnectorsFromChargePoint(chargingStation, chargePoint));
+      }
+    } else {
+      connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    }
+    const evses = connectors.map((connector) => OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options));
+    // Return all evses
+    return evses;
   }
 
   /**
@@ -327,35 +333,19 @@ export default class OICPMapping {
   }
 
   /**
-   * Convert ChargingStation to Multiple EVSEs
-   * @param {Tenant} tenant
-   * @param {*} chargingStation
-   * @return Array of OICP EVSEs
-   */
-  private static convertChargingStation2MultipleEvses(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, chargePoint: ChargePoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord[] {
-    // Loop through connectors and send one evse per connector
-    let connectors: Connector[];
-    if (chargePoint) {
-      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
-    } else {
-      connectors = chargingStation.connectors.filter((connector) => connector !== null);
-    }
-    const evses = connectors.map((connector) => OICPMapping.convertConnector2Evse(tenant, siteArea, chargingStation, connector, options));
-    // Return all evses
-    return evses;
-  }
-
-  /**
    * Convert ChargingStation to Multiple EVSE Statuses
    * @param {Tenant} tenant
    * @param {*} chargingStation
    * @return Array of OICP EVSE Statuses
    */
-  private static convertChargingStation2MultipleEvseStatuses(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord[] {
-    // Loop through connectors and send one evse per connector
-    let connectors: Connector[];
-    if (chargePoint) {
-      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+  private static convertChargingStation2MultipleEvseStatuses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord[] {
+    let connectors: Connector[] = [];
+    if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
+      for (const chargePoint of chargingStation.chargePoints) {
+        // OICP does not support multiple connectors in one EVSE object
+        // It is not possible to flag if connectors of charge points can charge in parallel or not
+        connectors.push(...Utils.getConnectorsFromChargePoint(chargingStation, chargePoint));
+      }
     } else {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
