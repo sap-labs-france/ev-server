@@ -16,6 +16,7 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import ChargingStationVendorFactory from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../../utils/Constants';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
+import CpoOICPClient from '../../../../client/oicp/CpoOICPClient';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../../utils/I18nManager';
@@ -26,6 +27,9 @@ import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import { OICPActionType } from '../../../../types/oicp/OICPEvseData';
+import OICPClientFactory from '../../../../client/oicp/OICPClientFactory';
+import OICPMapping from '../../../oicp/oicp-services-impl/oicp-2.3.0/OICPMapping';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -86,14 +90,44 @@ export default class ChargingStationService {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
-      if (filteredRequest.public === false && filteredRequest.public !== chargingStation.public) {
-        // Remove charging station from ocpi
-        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      if (filteredRequest.public !== chargingStation.public) {
+        if (filteredRequest.public === false) {
+          // Remove charging station from ocpi
+          if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+            const tenant = await TenantStorage.getTenant(req.user.tenantID);
+            try {
+              const ocpiClient: CpoOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+              if (ocpiClient) {
+                await ocpiClient.removeChargingStation(chargingStation);
+              }
+            } catch (error) {
+              Logging.logError({
+                tenantID: req.user.tenantID,
+                module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+                action: action,
+                user: req.user,
+                message: `Unable to remove charging station ${chargingStation.id} from IOP`,
+                detailedMessages: { error: error.message, stack: error.stack }
+              });
+            }
+          }
+        }
+        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OICP)) {
+          let actionType = OICPActionType.INSERT;
+          if (filteredRequest.public === false) {
+            actionType = OICPActionType.DELETE;
+          }
           const tenant = await TenantStorage.getTenant(req.user.tenantID);
           try {
-            const ocpiClient: CpoOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-            if (ocpiClient) {
-              await ocpiClient.removeChargingStation(chargingStation);
+            const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(tenant, OCPIRole.CPO) as CpoOICPClient;
+            if (oicpClient) {
+              // Define get option
+              const options = {
+                addChargeBoxID: true,
+                countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
+                partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
+              };
+              await oicpClient.pushEvseData(OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation.siteArea, chargingStation, options), actionType);
             }
           } catch (error) {
             Logging.logError({
@@ -101,7 +135,7 @@ export default class ChargingStationService {
               module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
               action: action,
               user: req.user,
-              message: `Unable to remove charging station ${chargingStation.id} from IOP`,
+              message: `Unable to insert or remove charging station ${chargingStation.id} from HBS`,
               detailedMessages: { error: error.message, stack: error.stack }
             });
           }
@@ -716,6 +750,33 @@ export default class ChargingStationService {
         }
       }
     }
+    // Remove charging station from HBS
+    if (chargingStation.public) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OICP)) {
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        try {
+          const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(tenant, OCPIRole.CPO) as CpoOICPClient;
+          if (oicpClient) {
+            // Define get option
+            const options = {
+              addChargeBoxID: true,
+              countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
+              partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
+            };
+            await oicpClient.pushEvseData(OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
+          }
+        } catch (error) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: MODULE_NAME, method: 'handleDeleteChargingStation',
+            action: action,
+            user: req.user,
+            message: `Unable to remove charging station ${chargingStation.id} from HBS`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+        }
+      }
+    }
     // Remove Site Area
     chargingStation.siteArea = null;
     chargingStation.siteAreaID = null;
@@ -731,7 +792,6 @@ export default class ChargingStationService {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
     }
-    // Delete public Charging Station on Hubject backend directly or with the scheduled job?
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
