@@ -35,7 +35,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     switch (req.method) {
       case 'POST':
         // Select action from URL parameters
@@ -53,7 +53,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   /**
    * Remote Start Transaction requested by Hubject
    */
-  async authorizeRemoteStart(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
+  private async authorizeRemoteStart(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     const authorizeRemoteStart = req.body as OICPAuthorizeRemoteStartCpoReceive;
     // Check props
     OICPValidation.getInstance().validateRemoteStart(authorizeRemoteStart);
@@ -153,7 +153,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   /**
    * Remote stop Transaction requested by Hubject
    */
-  async authorizeRemoteStop(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
+  private async authorizeRemoteStop(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     const authorizeRemoteStop = req.body as OICPAuthorizeRemoteStopCpoReceive;
     // Check props
     OICPValidation.getInstance().validateRemoteStop(authorizeRemoteStop);

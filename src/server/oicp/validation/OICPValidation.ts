@@ -10,28 +10,28 @@ export default class OICPValidation extends SchemaValidator {
   private static instance: OICPValidation|null = null;
 
   public validate: any;
-  private _remoteStartRequest: any;
-  private _remoteStopRequest: any;
+  private remoteStartRequest: any;
+  private remoteStopRequest: any;
 
   private constructor() {
     super('OICPValidation');
-    this._remoteStartRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/OICPAuthorizeRemoteStartCpoReceive.json`, 'utf8'));
-    this._remoteStopRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/OICPAuthorizeRemoteStopCpoReceive.json`, 'utf8'));
+    this.remoteStartRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/OICPAuthorizeRemoteStartCpoReceive.json`, 'utf8'));
+    this.remoteStopRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/OICPAuthorizeRemoteStopCpoReceive.json`, 'utf8'));
   }
 
-  static getInstance(): OICPValidation {
+  public static getInstance(): OICPValidation {
     if (!OICPValidation.instance) {
       OICPValidation.instance = new OICPValidation();
     }
     return OICPValidation.instance;
   }
 
-  validateRemoteStart(remoteStart: OICPAuthorizeRemoteStartCpoReceive): void {
-    this.validate(this._remoteStartRequest, remoteStart);
+  public validateRemoteStart(remoteStart: OICPAuthorizeRemoteStartCpoReceive): void {
+    this.validate(this.remoteStartRequest, remoteStart);
   }
 
-  validateRemoteStop(remoteStop: OICPAuthorizeRemoteStopCpoReceive): void {
-    this.validate(this._remoteStopRequest, remoteStop);
+  public validateRemoteStop(remoteStop: OICPAuthorizeRemoteStopCpoReceive): void {
+    this.validate(this.remoteStopRequest, remoteStop);
   }
 
 }

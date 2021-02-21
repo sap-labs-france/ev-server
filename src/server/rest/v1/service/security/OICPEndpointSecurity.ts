@@ -4,24 +4,24 @@ import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class OICPEndpointSecurity {
-  static filterOicpEndpointDeleteRequest(request: any): HttpOICPEndpointsRequest {
+  public static filterOicpEndpointDeleteRequest(request: any): HttpOICPEndpointsRequest {
     const filteredRequest: HttpOICPEndpointsRequest = {} as HttpOICPEndpointsRequest;
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
-  static filterOicpEndpointRequestByID(request: any): string {
+  public static filterOicpEndpointRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  static filterOicpEndpointUpdateRequest(request: any): Partial<OICPEndpoint> {
+  public static filterOicpEndpointUpdateRequest(request: any): Partial<OICPEndpoint> {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOicpEndpointCreateRequest(request: any): Partial<OICPEndpoint> {
+  public static filterOicpEndpointCreateRequest(request: any): Partial<OICPEndpoint> {
     return OICPEndpointSecurity.filterOicpEndpointRequest(request);
   }
 
@@ -34,31 +34,25 @@ export default class OICPEndpointSecurity {
     return filteredRequest;
   }
 
-  static filterOicpEndpointPingRequest(request: any): Partial<OICPEndpoint> {
+  public static filterOicpEndpointPingRequest(request: any): Partial<OICPEndpoint> {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOicpEndpointTriggerJobRequest(request: any): Partial<OICPEndpoint> {
+  public static filterOicpEndpointSendEVSEStatusesRequest(request: any): Partial<OICPEndpoint> {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOicpEndpointSendEVSEStatusesRequest(request: any): Partial<OICPEndpoint> {
+  public static filterOicpEndpointSendEVSEsRequest(request: any): Partial<OICPEndpoint> {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOicpEndpointSendEVSEsRequest(request: any): Partial<OICPEndpoint> {
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRequest(request);
-    filteredRequest.id = sanitize(request.id);
-    return filteredRequest;
-  }
-
-  static filterOicpEndpointRegisterRequest(request: any): Partial<OICPEndpoint> {
+  public static filterOicpEndpointRegisterRequest(request: any): Partial<OICPEndpoint> {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;

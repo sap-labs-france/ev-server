@@ -3,7 +3,6 @@ import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
 import AxiosFactory from '../../utils/AxiosFactory';
 import BackendError from '../../exception/BackendError';
-import Configuration from '../../utils/Configuration';
 import Cypher from '../../utils/Cypher';
 import { HTTPError } from '../../types/HTTPError';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
@@ -11,7 +10,6 @@ import OICPEndpointStorage from '../../storage/mongodb/OICPEndpointStorage';
 import { OICPOperatorID } from '../../types/oicp/OICPEvse';
 import { OICPRegistrationStatus } from '../../types/oicp/OICPRegistrationStatus';
 import { OICPRole } from '../../types/oicp/OICPRole';
-import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfiguration';
 import { OicpSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -25,8 +23,6 @@ export default abstract class OICPClient {
   protected tenant: Tenant;
   protected role: string;
   protected settings: OicpSetting;
-  private oicpConfig: OICPServiceConfiguration;
-  private axiosConfig: AxiosRequestConfig;
 
   protected constructor(tenant: Tenant, settings: OicpSetting, oicpEndpoint: OICPEndpoint, role: string) {
     if (role !== OICPRole.CPO && role !== OICPRole.EMSP) {
@@ -39,7 +35,6 @@ export default abstract class OICPClient {
     this.settings = settings;
     this.oicpEndpoint = oicpEndpoint;
     this.role = role.toLowerCase();
-    this.oicpConfig = Configuration.getOICPServiceConfig();
     this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) }); // FIXME: 'Converting circular structure to JSON' Error
   }
 
