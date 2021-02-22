@@ -138,8 +138,13 @@ export default class RegistrationTokenService {
 
   static async handleDeleteRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
+    UtilsService.assertIdIsProvided(action, tokenID, MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
+    // Get Token
+    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
+    UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist`,
+      MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Check auth
-    if (!Authorizations.canDeleteRegistrationToken(req.user, req.body.siteAreaID)) {
+    if (!Authorizations.canDeleteRegistrationToken(req.user, registrationToken.siteAreaID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -148,11 +153,6 @@ export default class RegistrationTokenService {
         value: tokenID
       });
     }
-    UtilsService.assertIdIsProvided(action, tokenID, MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
-    // Get Token
-    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
-    UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist`,
-      MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Delete
     await RegistrationTokenStorage.deleteRegistrationToken(req.user.tenantID, tokenID);
     // Log
