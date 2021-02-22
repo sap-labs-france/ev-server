@@ -1,8 +1,9 @@
+import { HTTPAuthError, HTTPError } from '../../src/types/HTTPError';
+
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import { HTTPAuthError } from '../../src/types/HTTPError';
 import RegistrationToken from '../types/RegistrationToken';
 import { expect } from 'chai';
 import faker from 'faker';
@@ -168,7 +169,7 @@ describe('Registration token tests', function() {
           testData.newRegistrationToken,
           false
         );
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(HTTPError.GENERAL_ERROR);
       });
     });
   });
