@@ -263,7 +263,7 @@ export default class RegistrationTokenService {
         module: MODULE_NAME, method: 'handleGetRegistrationToken'
       });
     }
-    const filteredRequestId = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
+    const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
     // Check User
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
@@ -271,13 +271,13 @@ export default class RegistrationTokenService {
     }
     // Get the token
     const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID,
-      filteredRequestId,
+      filteredRequest,
       [
         'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
         'siteAreaID', 'siteArea.name',
         ...userProject
       ]);
-    UtilsService.assertObjectExists(action, registrationToken, `Token with ID '${filteredRequestId}' does not exist`,
+    UtilsService.assertObjectExists(action, registrationToken, `Token with ID '${filteredRequest}' does not exist`,
       MODULE_NAME, 'handleGetRegistrationToken', req.user);
     // Build OCPP URLs
     registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
