@@ -701,7 +701,7 @@ export default class TransactionService {
     const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
-      sort: filteredRequest.Sort,
+      sort: filteredRequest.SortFields,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
     ['id', ...userProject]);
@@ -783,7 +783,7 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        action: Action.IN_ERROR, entity: Entity.TRANSACTIONS,
         module: MODULE_NAME, method: 'handleGetTransactionsInError'
       });
     }
@@ -970,6 +970,10 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+    }
     // Build
     const extrafilters: any = {};
     if (Utils.objectHasProperty(params, 'completedTransactions')) {
@@ -997,7 +1001,7 @@ export default class TransactionService {
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
         inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       projectFields
     );
     return transactions;

@@ -183,6 +183,7 @@ class RequestMapper {
           [ServerAction.TRANSACTION_CONSUMPTION]: TransactionService.handleGetTransactionConsumption.bind(this),
           [ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS]: ChargingStationService.handleGetChargingStationOcppParameters.bind(this),
           [ServerAction.CHARGING_STATIONS_IN_ERROR]: ChargingStationService.handleGetChargingStationsInError.bind(this),
+          [ServerAction.SETTING_BY_INDENTIFIER]: SettingService.handleGetSettingByIdentifier.bind(this),
           [ServerAction.SETTINGS]: SettingService.handleGetSettings.bind(this),
           [ServerAction.SETTING]: SettingService.handleGetSetting.bind(this),
           [ServerAction.CHECK_BILLING_CONNECTION]: BillingService.handleCheckBillingConnection.bind(this),

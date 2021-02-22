@@ -103,7 +103,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.data.count).to.equal(2);
+      expect(settings.data.count).to.equal(3);
       expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.OCPI, RoamingSettingsType.GIREVE);
     });
 
@@ -132,7 +132,7 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(2);
+      expect(settings.data.count).to.equal(3);
       expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
     });
 
@@ -183,7 +183,7 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(3);
+      expect(settings.data.count).to.equal(4);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.BILLING, BillingSettingsType.STRIPE);
       expect(settings.data.result[2]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
     });
@@ -234,7 +234,7 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(3);
+      expect(settings.data.count).to.equal(4);
       expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
       expect(settings.data.result[2]).to.be.validatedSetting(TenantComponents.REFUND, RefundSettingsType.CONCUR);
     });
@@ -284,7 +284,7 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(2);
+      expect(settings.data.count).to.equal(3);
       expect(settings.data.result[1]).to.be.validatedSetting('smartCharging', 'sapSmartCharging');
     });
 
@@ -312,7 +312,7 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(2);
+      expect(settings.data.count).to.equal(3);
       expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.CONVERGENT_CHARGING);
     });
 
@@ -341,7 +341,7 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
-      expect(settings.data.count).to.equal(2);
+      expect(settings.data.count).to.equal(3);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.ANALYTICS, AnalyticsSettingsType.SAC);
     });
 
@@ -390,7 +390,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.data.count).to.equal(2);
+      expect(settings.data.count).to.equal(3);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.ASSET, null);
     });
   });

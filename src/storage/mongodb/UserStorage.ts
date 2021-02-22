@@ -107,11 +107,11 @@ export default class UserStorage {
   }
 
   public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withImage?: boolean; } = {}, projectFields?: string[]): Promise<User> {
+    params: { withImage?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID,
       {
         userIDs: [id],
-        withImage: params.withImage,
+        ...params
       }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
@@ -490,19 +490,21 @@ export default class UserStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     const filters: FilterParams = {
-      '$or': DatabaseUtils.getNotDeletedFilter()
+      '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }]
     };
     // Create Aggregation
     const aggregation = [];
     // Filter
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
-      filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
-        { 'firstName': { $regex: searchRegex, $options: 'i' } },
-        { 'email': { $regex: searchRegex, $options: 'i' } },
-        { 'plateID': { $regex: searchRegex, $options: 'i' } }
-      ];
+      filters.$and.push({
+        '$or': [
+          { 'name': { $regex: searchRegex, $options: 'i' } },
+          { 'firstName': { $regex: searchRegex, $options: 'i' } },
+          { 'email': { $regex: searchRegex, $options: 'i' } },
+          { 'plateID': { $regex: searchRegex, $options: 'i' } }
+        ]
+      });
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
@@ -552,12 +554,14 @@ export default class UserStorage {
     }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
-      filters.$or = [
-        { 'billingData': { '$exists': false } },
-        { 'billingData.lastChangedOn': { '$exists': false } },
-        { 'billingData.lastChangedOn': null },
-        { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
-      ];
+      filters.$and.push({
+        '$or': [
+          { 'billingData': { '$exists': false } },
+          { 'billingData.lastChangedOn': { '$exists': false } },
+          { 'billingData.lastChangedOn': null },
+          { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
+        ]
+      });
     }
     // Add filters
     aggregation.push({
@@ -596,7 +600,8 @@ export default class UserStorage {
         aggregation.push({
           $match: { 'siteusers.siteID': { $in: params.siteIDs.map((site) => Utils.convertToObjectID(site)) } }
         });
-      } else if (params.excludeSiteID) {
+      }
+      if (params.excludeSiteID) {
         aggregation.push({
           $match: { 'siteusers.siteID': { $ne: Utils.convertToObjectID(params.excludeSiteID) } }
         });
@@ -675,20 +680,22 @@ export default class UserStorage {
     // Mongodb aggregation creation
     const aggregation = [];
     // Mongodb filter block ($match)
-    const match: any = { '$or': DatabaseUtils.getNotDeletedFilter() };
+    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     match.issuer = true;
     if (params.roles) {
       match.role = { '$in': params.roles };
     }
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
-      match.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
-        { 'firstName': { $regex: searchRegex, $options: 'i' } },
-        { 'tags.id': { $regex: searchRegex, $options: 'i' } },
-        { 'email': { $regex: searchRegex, $options: 'i' } },
-        { 'plateID': { $regex: searchRegex, $options: 'i' } }
-      ];
+      match.$and.push({
+        '$or': [
+          { 'name': { $regex: searchRegex, $options: 'i' } },
+          { 'firstName': { $regex: searchRegex, $options: 'i' } },
+          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
+          { 'email': { $regex: searchRegex, $options: 'i' } },
+          { 'plateID': { $regex: searchRegex, $options: 'i' } }]
+      }
+      );
     }
     aggregation.push({ $match: match });
     // Mongodb Lookup block

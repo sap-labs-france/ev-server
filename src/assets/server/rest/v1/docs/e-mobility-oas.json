@@ -43,32 +43,6 @@
   ],
   "paths": {
     "/api/tenants": {
-      "post": {
-        "description": "Create a Tenant",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Tenant"
-              }
-            }
-          }
-        },
-        "tags": [
-          "Tenant"
-        ],
-        "responses": {
-          "200": {
-            "description": "Tenant is created with success"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "500": {
-            "$ref": "#/components/responses/500BackendError"
-          }
-        }
-      },
       "get": {
         "description": "Retrieve a list of Tenants",
         "security": [
@@ -121,6 +95,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -139,6 +116,32 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a Tenant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tenant"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tenant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenant is created with success"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -166,6 +169,9 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -711,6 +717,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -870,6 +879,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/chargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -2484,6 +2496,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -2534,6 +2549,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -2734,6 +2752,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -3476,6 +3497,16 @@
         "name": "SortFields",
         "description": "Sorted fields",
         "example": "id",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ProjectFields": {
+        "in": "query",
+        "name": "ProjectFields",
+        "description": "Pipe separated projected fields",
+        "example": "",
         "required": false,
         "schema": {
           "type": "string"

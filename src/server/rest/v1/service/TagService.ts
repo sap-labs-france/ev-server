@@ -93,7 +93,7 @@ export default class TagService {
         active: filteredRequest.Active,
         withUser: true,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
         'createdOn', 'lastChangedOn',

@@ -38,7 +38,7 @@ export default class NotificationService {
     }, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
-      sort: filteredRequest.Sort
+      sort: filteredRequest.SortFields
     },
     [
       'id', 'timestamp', 'channel', 'sourceId', 'sourceDescr', 'chargeBoxID',

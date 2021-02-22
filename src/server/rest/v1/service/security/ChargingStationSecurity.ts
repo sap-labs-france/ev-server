@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../../types/ChargingProfile';
-import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../../types/requests/HttpChargingStationRequest';
 
 import { Command } from '../../../../../types/ChargingStation';
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
@@ -19,7 +19,7 @@ export default class ChargingStationSecurity {
     };
   }
 
-  public static filterChargingStationOcppParametersRequest(request: any): HttpChargingStationRequest {
+  public static filterChargingStationOcppParametersRequest(request: any): HttpChargingStationOcppRequest {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
@@ -40,6 +40,7 @@ export default class ChargingStationSecurity {
     filteredRequest.SiteID = sanitize(request.SiteID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 
@@ -56,8 +57,12 @@ export default class ChargingStationSecurity {
     };
   }
 
-  public static filterChargingStationRequest(request: any): HttpByIDRequest {
-    return { ID: sanitize(request.ID) };
+  public static filterChargingStationRequest(request: any): HttpChargingStationRequest {
+    const filteredRequest: HttpChargingStationRequest = {
+      ID: sanitize(request.ID)
+    };
+    UtilsSecurity.filterProject(request, filteredRequest);
+    return filteredRequest;
   }
 
   public static filterDownloadQrCodesPdfRequest(request: any): HttpDownloadQrCodeRequest {
@@ -106,6 +111,7 @@ export default class ChargingStationSecurity {
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 

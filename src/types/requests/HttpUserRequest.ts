@@ -1,8 +1,7 @@
+import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
-import User from '../User';
 
-export interface HttpUserRequest extends Partial<User> {
-  passwords: { password?: string };
+export interface HttpUserRequest extends HttpByIDRequest {
 }
 
 export interface HttpSynchronizeUserRequest {
