@@ -11,6 +11,7 @@ import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
+import TenantComponents from '../../../../types/TenantComponents';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -33,15 +34,19 @@ export default class AuthorizationService {
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get Site IDs from Site Admin flag
-      const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, filteredRequest.ID);
-      if (Utils.isEmptyArray(siteIDs)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: userToken,
-          action: Action.READ, entity: Entity.SITE,
-          module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
-        });
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Site IDs from Site Admin flag
+        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, filteredRequest.ID);
+        if (Utils.isEmptyArray(siteIDs)) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.FORBIDDEN,
+            user: userToken,
+            action: Action.READ, entity: Entity.SITE,
+            module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
+          });
+        }
+      } else {
+        authorizationFilters.authorized = true;
       }
     }
     return authorizationFilters;
@@ -82,20 +87,24 @@ export default class AuthorizationService {
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get Site IDs from Site Admin flag
-      const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(siteIDs)) {
-        // Force the filter
-        authorizationFilters.filters.siteIDs = siteIDs;
-        // Check if filter is provided
-        if (filteredRequest.SiteID) {
-          const filteredSiteIDs = filteredRequest.SiteID.split('|');
-          // Override
-          authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-            (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Site IDs from Site Admin flag
+        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(siteIDs)) {
+          // Force the filter
+          authorizationFilters.filters.siteIDs = siteIDs;
+          // Check if filter is provided
+          if (filteredRequest.SiteID) {
+            const filteredSiteIDs = filteredRequest.SiteID.split('|');
+            // Override
+            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
+              (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
+          }
         }
-      }
-      if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
         authorizationFilters.authorized = true;
       }
     }
@@ -117,20 +126,24 @@ export default class AuthorizationService {
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get Site IDs from Site Admin flag
-      const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(siteIDs)) {
-        // Force the filter
-        authorizationFilters.filters.siteIDs = siteIDs;
-        // Check if filter is provided
-        if (filteredRequest.SiteID) {
-          const filteredSiteIDs = filteredRequest.SiteID.split('|');
-          // Override
-          authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-            (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Site IDs from Site Admin flag
+        const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(siteIDs)) {
+          // Force the filter
+          authorizationFilters.filters.siteIDs = siteIDs;
+          // Check if filter is provided
+          if (filteredRequest.SiteID) {
+            const filteredSiteIDs = filteredRequest.SiteID.split('|');
+            // Override
+            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
+              (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
+          }
         }
-      }
-      if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
         authorizationFilters.authorized = true;
       }
     }
@@ -152,13 +165,17 @@ export default class AuthorizationService {
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get Site IDs from Site Admin flag
-      const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(siteIDs)) {
-        // Force the filter
-        authorizationFilters.filters.siteIDs = siteIDs;
-      }
-      if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Site IDs from Site Admin flag
+        const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(siteIDs)) {
+          // Force the filter
+          authorizationFilters.filters.siteIDs = siteIDs;
+        }
+        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
         authorizationFilters.authorized = true;
       }
     }
@@ -180,38 +197,42 @@ export default class AuthorizationService {
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get Site IDs from Site Admin flag
-      const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-      // Get User IDs from Site Admin flag
-      if (!Utils.isEmptyArray(siteIDs)) {
-        // Check Site ID
-        if (siteIDs.includes(filteredRequest.siteID)) {
-          // Site Authorized, now check users
-          if (!Utils.isEmptyArray(filteredRequest.userIDs)) {
-            let foundInvalidUserID = false;
-            // Get authorized User IDs
-            const userIDs = await AuthorizationService.getAssignedUsersIDs(tenant.id, filteredRequest.siteID);
-            // Check
-            for (const userID of filteredRequest.userIDs) {
-              if (!userIDs.includes(userID)) {
-                foundInvalidUserID = true;
-                break;
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Site IDs from Site Admin flag
+        const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        // Get User IDs from Site Admin flag
+        if (!Utils.isEmptyArray(siteIDs)) {
+          // Check Site ID
+          if (siteIDs.includes(filteredRequest.siteID)) {
+            // Site Authorized, now check users
+            if (!Utils.isEmptyArray(filteredRequest.userIDs)) {
+              let foundInvalidUserID = false;
+              // Get authorized User IDs
+              const userIDs = await AuthorizationService.getAssignedUsersIDs(tenant.id, filteredRequest.siteID);
+              // Check
+              for (const userID of filteredRequest.userIDs) {
+                if (!userIDs.includes(userID)) {
+                  foundInvalidUserID = true;
+                  break;
+                }
               }
-            }
-            if (!foundInvalidUserID) {
-              authorizationFilters.authorized = true;
+              if (!foundInvalidUserID) {
+                authorizationFilters.authorized = true;
+              }
             }
           }
         }
-      }
-      if (!authorizationFilters.authorized) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: userToken,
-          action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-          entity: Entity.USERS_SITES,
-          module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
-        });
+        if (!authorizationFilters.authorized) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.FORBIDDEN,
+            user: userToken,
+            action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
+            entity: Entity.USERS_SITES,
+            module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
+          });
+        }
+      } else {
+        authorizationFilters.authorized = true;
       }
     }
     return authorizationFilters;
@@ -224,7 +245,8 @@ export default class AuthorizationService {
       projectFields: [
         'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
         'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
-      ]
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
@@ -255,7 +277,8 @@ export default class AuthorizationService {
         'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
         'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
         'billingData.customerID', 'billingData.lastChangedOn'
-      ]
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
@@ -263,18 +286,22 @@ export default class AuthorizationService {
     }
     // Get from users
     if (userToken.role === UserRole.BASIC) {
-      // Must be Site Admin as only Basic User with site admin role can access list of users
-      const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-      // Force the filter
-      if (!Utils.isEmptyArray(siteIDs)) {
-        authorizationFilters.filters.siteIDs = siteIDs;
-      }
-      // Check if filter is provided
-      if (filteredRequest.SiteID) {
-        const filteredSiteIDs = filteredRequest.SiteID.split('|');
-        // Override
-        authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-          (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Must be Site Admin as only Basic User with site admin role can access list of users
+        const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        // Force the filter
+        if (!Utils.isEmptyArray(siteIDs)) {
+          authorizationFilters.filters.siteIDs = siteIDs;
+        }
+        // Check if filter is provided
+        if (filteredRequest.SiteID) {
+          const filteredSiteIDs = filteredRequest.SiteID.split('|');
+          // Override
+          authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
+            (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
+        }
+      } else {
+        authorizationFilters.authorized = true;
       }
     }
     return authorizationFilters;
@@ -287,7 +314,8 @@ export default class AuthorizationService {
       projectFields:       [
         'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'deleted', 'plateID',
         'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
-      ]
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
@@ -295,11 +323,15 @@ export default class AuthorizationService {
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Must be Site Admin as only Basic User with site admin role can access list of users
-      const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-      // Force the filter
-      if (!Utils.isEmptyArray(siteIDs)) {
-        authorizationFilters.filters.siteIDs = siteIDs;
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Must be Site Admin as only Basic User with site admin role can access list of users
+        const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        // Force the filter
+        if (!Utils.isEmptyArray(siteIDs)) {
+          authorizationFilters.filters.siteIDs = siteIDs;
+        }
+      } else {
+        authorizationFilters.authorized = true;
       }
     }
     return authorizationFilters;
