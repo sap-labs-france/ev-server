@@ -76,7 +76,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
     if (evseUid) {
       const chargingStationId = OCPIUtils.buildChargingStationId(locationId, evseUid);
-      const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingStationId);
+      const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, Constants.UNKNOWN_STRING_ID, {}, null, chargingStationId);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -218,7 +218,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         module: MODULE_NAME, method: 'updateLocation',
         detailedMessages: location
       });
-      await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStationId);
+      await ChargingStationStorage.deleteChargingStation(tenant.id, Constants.UNKNOWN_STRING_ID, chargingStationId);
     } else {
       Logging.logDebug({
         tenantID: tenant.id,
@@ -234,7 +234,8 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
   }
 
   private async updateConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, ocpiConnector: OCPIConnector) {
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, evseUid);
+    const chargingStationId = OCPIUtils.buildChargingStationId(locationId, evseUid);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, Constants.UNKNOWN_STRING_ID, {}, null, chargingStationId);
     if (!chargingStation) {
       Logging.logError({
         tenantID: tenant.id,

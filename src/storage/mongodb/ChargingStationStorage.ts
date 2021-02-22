@@ -133,9 +133,11 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-    params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[]): Promise<ChargingStation> {
+    params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[],
+    chargeBoxSerialNumber: string = Constants.UNKNOWN_STRING_ID): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
-      chargingStationIDs: [id],
+      chargingStationIDs: id !== Constants.UNKNOWN_STRING_ID ? [id] : [],
+      chargeBoxSerialNumbers: chargeBoxSerialNumber !== Constants.UNKNOWN_STRING_ID ? [chargeBoxSerialNumber] : [],
       withSite: true, ...params
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
@@ -143,7 +145,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStations(tenantID: string,
     params: {
-      search?: string; chargingStationIDs?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
+      search?: string; chargingStationIDs?: string[]; chargeBoxSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number;
@@ -192,6 +194,12 @@ export default class ChargingStationStorage {
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {
       filters._id = {
         $in: params.chargingStationIDs
+      };
+    }
+    // Charging Stations
+    if (!Utils.isEmptyArray(params.chargeBoxSerialNumbers)) {
+      filters.chargeBoxSerialNumber = {
+        $in: params.chargeBoxSerialNumbers
       };
     }
     // Filter on lastSeen
@@ -354,7 +362,7 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID
-    // TODO: To remove the 'if containsGPSCoordinates' when SiteID optimization will be implemented 
+    // TODO: To remove the 'if containsGPSCoordinates' when SiteID optimization will be implemented
     if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
       // Always add Connector ID
       dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
@@ -609,22 +617,28 @@ export default class ChargingStationStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationFirmwareStatus', uniqueTimerID, firmwareUpdateStatus);
   }
 
-  public static async deleteChargingStation(tenantID: string, id: string): Promise<void> {
+  public static async deleteChargingStation(tenantID: string, id: string, chargeBoxSerialNumber?: string): Promise<void> {
+    let filter;
+    if (chargeBoxSerialNumber) {
+      filter = { 'chargeBoxSerialNumber': chargeBoxSerialNumber };
+    } else {
+      filter = { '_id': id };
+    }
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteChargingStation');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Delete Configuration
     await global.database.getCollection<any>(tenantID, 'configurations')
-      .findOneAndDelete({ '_id': id });
+      .findOneAndDelete(filter);
     // Delete Charging Profiles
     await this.deleteChargingProfiles(tenantID, id);
     // Delete Charging Station
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .findOneAndDelete({ '_id': id });
+      .findOneAndDelete(filter);
     // Keep the rest (boot notification, authorize...)
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, filter);
   }
 
   public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string): Promise<string> {
