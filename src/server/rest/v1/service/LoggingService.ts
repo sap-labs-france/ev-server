@@ -136,7 +136,7 @@ export default class LoggingService {
     }, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
-      sort: filteredRequest.Sort,
+      sort: filteredRequest.SortFields,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     }, [
       'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
