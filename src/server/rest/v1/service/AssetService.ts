@@ -75,7 +75,7 @@ export default class AssetService {
       assetID: filteredRequest.AssetID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
-    }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt' ]);
+    }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt', 'stateOfCharge' ]);
     // Assign
     asset.values = consumptions;
     // Return
@@ -176,7 +176,8 @@ export default class AssetService {
       });
     }
     // Retrieve consumption
-    const consumption = await assetImpl.retrieveConsumption(asset, true);
+    const consumptions = await assetImpl.retrieveConsumptions(asset, true);
+    const consumption = consumptions[0];
     // Assign
     asset.lastConsumption = consumption.lastConsumption;
     asset.currentConsumptionWh = consumption.currentConsumptionWh;
@@ -192,6 +193,7 @@ export default class AssetService {
     asset.currentInstantWattsL1 = consumption.currentInstantWattsL1;
     asset.currentInstantWattsL2 = consumption.currentInstantWattsL2;
     asset.currentInstantWattsL3 = consumption.currentInstantWattsL3;
+    asset.currentStateOfCharge = consumption.currentStateOfCharge;
     // Save Asset
     await AssetStorage.saveAsset(req.user.tenantID, asset);
     // Ok
@@ -352,7 +354,7 @@ export default class AssetService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates',
-        'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts'
+        'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
       ]
     );
     res.json(assets);
