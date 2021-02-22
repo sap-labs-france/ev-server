@@ -120,15 +120,13 @@ export default class UserService {
           module: MODULE_NAME, method: 'handleAssignSitesToUser'
         });
       }
-    } else {
-      if (!Authorizations.canUnassignUsersSites(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.UNASSIGN, entity: Entity.USERS_SITES,
-          module: MODULE_NAME, method: 'handleAssignSitesToUser'
-        });
-      }
+    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UNASSIGN, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'handleAssignSitesToUser'
+      });
     }
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
@@ -859,7 +857,7 @@ export default class UserService {
       authorizationFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     res.json(users);
     next();

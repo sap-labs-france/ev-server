@@ -188,15 +188,13 @@ export default class SiteService {
           module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
         });
       }
-    } else {
-      if (!Authorizations.canUnassignUsersSites(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.UNASSIGN, entity: Entity.USERS_SITES,
-          module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
-        });
-      }
+    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UNASSIGN, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
+      });
     }
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);

@@ -19,7 +19,7 @@ const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
   public static async checkAndGetSiteAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -29,7 +29,7 @@ export default class AuthorizationService {
     };
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -46,8 +46,8 @@ export default class AuthorizationService {
     }
     return authorizationFilters;
   }
-  
-  public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: Site[]) {
+
+  public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: Site[]): Promise<void> {
     // Get Site Admins
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
     // Set to user
@@ -62,7 +62,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSitesAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -78,7 +78,7 @@ export default class AuthorizationService {
     }
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -89,9 +89,9 @@ export default class AuthorizationService {
         authorizationFilters.filters.siteIDs = siteIDs;
         // Check if filter is provided
         if (filteredRequest.SiteID) {
-          const siteIDs = filteredRequest.SiteID.split('|');
+          const filteredSiteIDs = filteredRequest.SiteID.split('|');
           // Override
-          authorizationFilters.filters.siteIDs = siteIDs.filter(
+          authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
             (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
         }
       }
@@ -103,7 +103,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteUsersAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -113,7 +113,7 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -124,9 +124,9 @@ export default class AuthorizationService {
         authorizationFilters.filters.siteIDs = siteIDs;
         // Check if filter is provided
         if (filteredRequest.SiteID) {
-          const siteIDs = filteredRequest.SiteID.split('|');
+          const filteredSiteIDs = filteredRequest.SiteID.split('|');
           // Override
-          authorizationFilters.filters.siteIDs = siteIDs.filter(
+          authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
             (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
         }
       }
@@ -138,7 +138,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUserSitesAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserSitesRequest): Promise<AuthorizationFilter> {
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserSitesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -148,7 +148,7 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -166,7 +166,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndAssignSiteUsersAuthorizationFilters(
-      tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
+    tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -176,7 +176,7 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -218,7 +218,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersInErrorAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -228,27 +228,27 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Get from users
-    const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, filteredRequest );
+    const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, filteredRequest);
     // Override
     authorizationFilters.authorized = usersAuthorizationFilters.authorized;
     authorizationFilters.filters = usersAuthorizationFilters.filters;
     return authorizationFilters;
   }
 
-  public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[]) {
+  public static addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[]): void {
     // Enrich
     for (const user of users) {
-      user.canRead = Authorizations.canReadUser(userToken, user.id) 
-      user.canUpdate = Authorizations.canUpdateUser(userToken, user.id) 
-      user.canDelete = Authorizations.canDeleteUser(userToken, user.id) 
+      user.canRead = Authorizations.canReadUser(userToken, user.id);
+      user.canUpdate = Authorizations.canUpdateUser(userToken, user.id);
+      user.canDelete = Authorizations.canDeleteUser(userToken, user.id);
     }
   }
 
   public static async checkAndGetUsersAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -259,7 +259,7 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Get from users
     if (userToken.role === UserRole.BASIC) {
@@ -271,9 +271,9 @@ export default class AuthorizationService {
       }
       // Check if filter is provided
       if (filteredRequest.SiteID) {
-        const siteIDs = filteredRequest.SiteID.split('|');
+        const filteredSiteIDs = filteredRequest.SiteID.split('|');
         // Override
-        authorizationFilters.filters.siteIDs = siteIDs.filter(
+        authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
           (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
       }
     }
@@ -281,7 +281,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUserAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserRequest): Promise<AuthorizationFilter> {
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields:       [
@@ -291,7 +291,7 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -357,6 +357,6 @@ export default class AuthorizationService {
     return {
       siteAdminIDs,
       siteOwnerIDs
-    }
+    };
   }
 }
