@@ -24,24 +24,17 @@ export default class UtilsSecurity {
     return result;
   }
 
-  static filterSort(request, filteredRequest): void {
-    // Deprecated sorting?
-    if (Utils.objectHasProperty(request, 'SortDirs')) {
-      this.filterOldSort(request, filteredRequest);
-      return;
-    }
+  static filterSort(request: any, filteredRequest): void {
     // Exist?
     if (request.SortFields) {
       // Sanitize
       request.SortFields = sanitize(request.SortFields);
-      request.SortFields = request.SortFields.split('|');
-      // Array?
-      if (request.SortFields.length > 0) {
-        // Init
-        filteredRequest.Sort = {};
+      const sortFields = request.SortFields.split('|');
+      if (!Utils.isEmptyArray(sortFields)) {
+        filteredRequest.SortFields = {};
         // Build
-        for (let i = 0; i < request.SortFields.length; i++) {
-          let sortField: string = request.SortFields[i];
+        for (let i = 0; i < sortFields.length; i++) {
+          let sortField: string = sortFields[i];
           const order = sortField.startsWith('-') ? -1 : 1;
           // Remove ordering prefix
           sortField = sortField.startsWith('-') ? sortField.substr(1) : sortField;
@@ -51,45 +44,19 @@ export default class UtilsSecurity {
             sortField = '_id';
           }
           // Set
-          filteredRequest.Sort[sortField] = order;
+          filteredRequest.SortFields[sortField] = order;
         }
       }
     }
   }
 
-  // TODO: To remove in the next mobile deployment > 1.3.22
-  static filterOldSort(request, filteredRequest): void {
-    // Exist?
-    if (request.SortFields) {
-      // Sanitize
-      request.SortFields = sanitize(request.SortFields);
-      request.SortDirs = sanitize(request.SortDirs);
-      // Array?
-      if (Array.isArray(request.SortFields) && request.SortFields.length > 0) {
-        // Init
-        filteredRequest.Sort = {};
-        // Build
-        for (let i = 0; i < request.SortFields.length; i++) {
-          let sortField = request.SortFields[i];
-          // Check field ID
-          if (sortField === 'id') {
-            // In MongoDB it's '_id'
-            sortField = '_id';
-          }
-          // Set
-          filteredRequest.Sort[sortField] = (request.SortDirs[i] === 'asc' ? 1 : -1);
-        }
-      } else {
-        // Init
-        filteredRequest.Sort = {};
-        // Check field ID
-        if (request.SortFields === 'id') {
-          // In MongoDB it's '_id'
-          request.SortFields = '_id';
-        }
-        // Set
-        filteredRequest.Sort[request.SortFields] = (request.SortDirs === 'asc' ? 1 : -1);
-      }
+  public static filterProject(request: any, filteredRequest: any): void {
+    // Count Only?
+    if (Utils.objectHasProperty(request, 'ProjectFields')) {
+      // Clean
+      request.ProjectFields = sanitize(request.ProjectFields);
+      // Convert to array
+      filteredRequest.ProjectFields = request.ProjectFields.split('|');
     }
   }
 

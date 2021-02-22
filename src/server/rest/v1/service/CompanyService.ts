@@ -151,7 +151,7 @@ export default class CompanyService {
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn', ...userProject ]
     );
     // Return

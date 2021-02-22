@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, CryptoSettingsType, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, CryptoSettingsType, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType, UserSettingsType } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
 import Utils from '../../../../../utils/Utils';
@@ -202,6 +202,11 @@ export default class SettingSecurity {
               blockSize: Utils.convertToInt(sanitize(request.content.crypto.keyProperties?.blockSize)),
               operationMode: sanitize(request.content.crypto.formerKeyProperties?.operationMode)
             }
+          };
+          break;
+        case UserSettingsType.USER:
+          settings.content.user = {
+            autoActivateAccountAfterValidation: UtilsSecurity.filterBoolean(request.content.user.autoActivateAccountAfterValidation)
           };
           break;
       }

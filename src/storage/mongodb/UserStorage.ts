@@ -107,11 +107,11 @@ export default class UserStorage {
   }
 
   public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withImage?: boolean; } = {}, projectFields?: string[]): Promise<User> {
+    params: { withImage?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID,
       {
         userIDs: [id],
-        withImage: params.withImage,
+        ...params
       }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
@@ -268,6 +268,22 @@ export default class UserStorage {
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveUser', uniqueTimerID, userMDB);
     return userMDB._id.toHexString();
+  }
+
+  public static async saveImportedUser(tenantID: string, userToSave: any): Promise<void> {
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUser');
+    const userMDB = {
+      email: userToSave.email,
+      firstName: userToSave.firstName,
+      name: userToSave.name,
+      role: userToSave.role,
+      importedOn: new Date(),
+      importedBy: Utils.convertToObjectID(userToSave.importedBy)
+    };
+    await global.database.getCollection<any>(tenantID, 'usersImport').insertOne(
+      userMDB);
+    // Debug
+    Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUser', uniqueTimerID, userMDB);
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
@@ -580,7 +596,8 @@ export default class UserStorage {
         aggregation.push({
           $match: { 'siteusers.siteID': { $in: params.siteIDs.map((site) => Utils.convertToObjectID(site)) } }
         });
-      } else if (params.excludeSiteID) {
+      }
+      if (params.excludeSiteID) {
         aggregation.push({
           $match: { 'siteusers.siteID': { $ne: Utils.convertToObjectID(params.excludeSiteID) } }
         });
