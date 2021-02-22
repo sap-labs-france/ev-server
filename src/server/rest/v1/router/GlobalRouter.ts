@@ -2,11 +2,8 @@ import express, { NextFunction, Request, Response } from 'express';
 
 import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
-<<<<<<< HEAD
 import BillingRouter from './api/BillingRouter';
-=======
 import ChargingStationRouter from './api/ChargingStationRouter';
->>>>>>> origin
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TenantRouter from './api/TenantRouter';
