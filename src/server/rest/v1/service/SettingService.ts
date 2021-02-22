@@ -14,7 +14,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TechnicalSettings } from '../../../../types/Setting';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
 
@@ -235,7 +235,7 @@ export default class SettingService {
     // Update timestamp
     setting.lastChangedBy = { 'id': req.user.id };
     setting.lastChangedOn = new Date();
-    if (settingUpdate.identifier === TenantComponents.CRYPTO) {
+    if (settingUpdate.identifier === TechnicalSettings.CRYPTO) {
       if (setting.content.crypto.migrationToBeDone) {
         // If migration in progress, throw error
         throw new AppError({
@@ -257,7 +257,7 @@ export default class SettingService {
     // Update Setting
     settingUpdate.id = await SettingStorage.saveSettings(req.user.tenantID, settingUpdate);
     // Crypto Setting handling
-    if (settingUpdate.identifier === TenantComponents.CRYPTO) {
+    if (settingUpdate.identifier === TechnicalSettings.CRYPTO) {
       if (settingUpdate.content.crypto.migrationToBeDone) {
         await Cypher.handleCryptoSettingsChange(req.user.tenantID);
       }
