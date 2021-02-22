@@ -280,10 +280,6 @@ export default class ConsumptionStorage {
         transactionId: Utils.convertToInt(params.transactionId)
       }
     });
-    // TODO: To remove when new version of Mobile App will be released (> V1.3.22)
-    aggregation.push({
-      $addFields: { date: '$startedAt' }
-    });
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
@@ -371,10 +367,6 @@ export default class ConsumptionStorage {
     });
     aggregation.push({
       $addFields: { roundedInstantPower: { $round: [{ $divide: ['$instantWatts', 100] }] } }
-    });
-    // TODO: To remove when new version of Mobile App will be released (> V1.3.22)
-    aggregation.push({
-      $addFields: { date: '$startedAt' }
     });
     // Triming excess values
     aggregation.push({
