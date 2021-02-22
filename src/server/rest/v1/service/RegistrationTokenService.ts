@@ -122,6 +122,7 @@ export default class RegistrationTokenService {
     registrationToken.expirationDate = filteredRequest.expirationDate ? filteredRequest.expirationDate : moment().add(1, 'month').toDate();
     registrationToken.lastChangedBy = { id: req.user.id };
     registrationToken.lastChangedOn = new Date();
+    registrationToken.revocationDate = null;
     // Save
     registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
     // Build OCPP URLs
