@@ -211,7 +211,7 @@ export default class UtilsService {
     // Throw
     if (!active) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         entity: entity, action: action,
         module: module, method: method,
         inactiveComponent: component,

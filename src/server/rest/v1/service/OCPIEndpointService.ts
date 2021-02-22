@@ -34,7 +34,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canDeleteOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleDeleteOcpiEndpoint',
@@ -70,7 +70,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canReadOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleGetOcpiEndpoint',
@@ -96,7 +96,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canListOcpiEndpoints(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.OCPI_ENDPOINTS,
         module: MODULE_NAME, method: 'handleGetOcpiEndpoints'
@@ -136,7 +136,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleCreateOcpiEndpoint'
@@ -177,7 +177,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleUpdateOcpiEndpoint',
@@ -213,7 +213,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canPingOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.PING, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handlePingOcpiEndpoint'
@@ -260,7 +260,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handlePullLocationsEndpoint'
@@ -304,7 +304,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handlePullLocationsEndpoint'
@@ -348,7 +348,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handlePullTokensEndpoint'
@@ -392,7 +392,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handlePullCdrsEndpoint'
@@ -436,7 +436,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleCheckCdrsOcpiEndpoint'
@@ -481,7 +481,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleCheckSessionsOcpiEndpoint'
@@ -526,7 +526,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleCheckLocationsEndpoint'
@@ -571,7 +571,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleSendEVSEStatusesOcpiEndpoint'
@@ -616,7 +616,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleSendTokensOcpiEndpoint'
@@ -646,7 +646,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.REGISTER, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint'
@@ -696,7 +696,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.REGISTER, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint'
@@ -746,7 +746,7 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.GENERATE_LOCAL_TOKEN, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint'

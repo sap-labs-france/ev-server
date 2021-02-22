@@ -68,7 +68,7 @@ export default class SiteService {
     }
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -112,7 +112,7 @@ export default class SiteService {
   public static async handleUpdateSiteOwner(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleUpdateSiteOwner'
@@ -182,21 +182,19 @@ export default class SiteService {
     if (action === ServerAction.ADD_USERS_TO_SITE) {
       if (!Authorizations.canAssignUsersSites(req.user)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.ASSIGN, entity: Entity.USERS_SITES,
           module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
         });
       }
-    } else {
-      if (!Authorizations.canUnassignUsersSites(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.UNASSIGN, entity: Entity.USERS_SITES,
-          module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
-        });
-      }
+    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UNASSIGN, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
+      });
     }
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
@@ -253,7 +251,7 @@ export default class SiteService {
     // Check auth
     if (!Authorizations.canListUsersSites(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.USERS_SITES,
         module: MODULE_NAME, method: 'handleGetUsers'
@@ -312,7 +310,7 @@ export default class SiteService {
     // Check
     if (!Authorizations.canDeleteSite(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleDeleteSite',
@@ -356,7 +354,7 @@ export default class SiteService {
     // Check auth
     if (!Authorizations.canReadSite(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.SITE,
         module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
@@ -391,7 +389,7 @@ export default class SiteService {
     // Check auth
     if (!Authorizations.canListSites(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.SITES,
         module: MODULE_NAME, method: 'handleGetSites'
@@ -467,7 +465,7 @@ export default class SiteService {
     // Check auth
     if (!Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleCreateSite'
@@ -523,7 +521,7 @@ export default class SiteService {
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleUpdateSite',

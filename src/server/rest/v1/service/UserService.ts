@@ -51,7 +51,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
@@ -60,7 +60,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadCar(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CAR,
         module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
@@ -70,7 +70,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
@@ -114,21 +114,19 @@ export default class UserService {
     if (action === ServerAction.ADD_SITES_TO_USER) {
       if (!Authorizations.canAssignUsersSites(req.user)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.ASSIGN, entity: Entity.USERS_SITES,
           module: MODULE_NAME, method: 'handleAssignSitesToUser'
         });
       }
-    } else {
-      if (!Authorizations.canUnassignUsersSites(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.UNASSIGN, entity: Entity.USERS_SITES,
-          module: MODULE_NAME, method: 'handleAssignSitesToUser'
-        });
-      }
+    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UNASSIGN, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'handleAssignSitesToUser'
+      });
     }
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
@@ -155,7 +153,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleAssignSitesToUser',
@@ -196,7 +194,7 @@ export default class UserService {
       // Check auth
       if (!Authorizations.canUpdateSite(req.user, siteID)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.UPDATE, entity: Entity.SITE,
           module: MODULE_NAME, method: 'handleAssignSitesToUser',
@@ -249,7 +247,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canDeleteUser(req.user, userID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleDeleteUser',
@@ -463,7 +461,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleUpdateUser',
@@ -624,7 +622,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
@@ -676,7 +674,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetUser',
@@ -717,7 +715,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetUserImage',
@@ -760,7 +758,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canListUsersSites(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.USERS_SITES,
         module: MODULE_NAME, method: 'handleGetSites'
@@ -772,7 +770,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetSites',
@@ -826,7 +824,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canListUsersInErrors(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.IN_ERROR, entity: Entity.USERS,
         module: MODULE_NAME, method: 'handleGetUsersInError'
@@ -859,7 +857,7 @@ export default class UserService {
       authorizationFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     res.json(users);
     next();
@@ -870,7 +868,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canImportUser(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.IMPORT, entity: Entity.USERS,
         module: MODULE_NAME, method: 'handleImportUser'
@@ -947,7 +945,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canCreateUser(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleCreateUser'
@@ -1087,7 +1085,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, id)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleGetUserInvoice',
@@ -1236,7 +1234,7 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.USERS,
         module: MODULE_NAME, method: 'getUsers'
