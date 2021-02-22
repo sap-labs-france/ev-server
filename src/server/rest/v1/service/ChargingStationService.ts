@@ -220,7 +220,7 @@ export default class ChargingStationService {
       }
     });
     if (rebootRequired) {
-      await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
+      // Await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -804,7 +804,7 @@ export default class ChargingStationService {
     let projectFields = [
       'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
       'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
-      'siteArea.site.id', 'siteArea.site.name', 'voltage', 'coordinates', 'forceInactive', 'firmwareUpdateStatus',
+      'siteArea.site.id', 'siteArea.site.name', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
       'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
       'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
       'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
