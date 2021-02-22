@@ -1,8 +1,8 @@
-import { ServerAction, ServerRoute } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import BillingService from '../../service/BillingService';
 import RouterUtils from '../RouterUtils';
+import { ServerAction } from '../../../../../types/Server';
 
 export default class BillingRouter {
   private router: express.Router;
@@ -18,7 +18,7 @@ export default class BillingRouter {
 
   protected buildRouteAttachPaymentMethod(): void {
     this.router.put(`/${ServerAction.BILLING_ATTACH_PAYMENT_METHOD}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(BillingService.handleBillingAttachPaymentMethod.bind(this), ServerRoute.REST_TENANTS, req, res, next);
+      await RouterUtils.handleServerAction(BillingService.handleBillingAttachPaymentMethod.bind(this), ServerAction.BILLING_ATTACH_PAYMENT_METHOD, req, res, next);
     });
   }
 }
