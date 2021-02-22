@@ -40,7 +40,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
             const assetImpl = await AssetFactory.getAssetImpl(tenant.id, asset.connectionID);
             if (assetImpl) {
               // Retrieve Consumption
-              const assetConsumptions = await assetImpl.retrieveConsumption(asset);
+              const assetConsumptions = await assetImpl.retrieveConsumptions(asset);
               // Create helper for site area limit
               const siteAreaLimitConsumption: Consumption = {
                 startedAt: assetConsumptions[0].lastConsumption.timestamp,

@@ -1,7 +1,7 @@
 import Asset, { AssetType, SchneiderProperty } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
-import Consumption, { AbstractCurrentConsumption } from '../../../types/Consumption';
 
+import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -26,7 +26,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     await this.connect();
   }
 
-  public async retrieveConsumption(asset: Asset): Promise<AbstractCurrentConsumption[]> {
+  public async retrieveConsumptions(asset: Asset): Promise<AbstractCurrentConsumption[]> {
     // Set new Token
     const token = await this.connect();
     const request = `${this.connection.url}/${asset.meterID}`;
