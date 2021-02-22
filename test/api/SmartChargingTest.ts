@@ -1140,6 +1140,15 @@ describe('Smart Charging Service', function() {
       ]);
     });
 
+    it('Check if Asset is ignored when excluded', async () => {
+      testData.siteAreaContext.getSiteArea().maximumPower = 22080;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      testData.newAsset.excludeFromSmartCharging = true;
+      await AssetStorage.saveAsset(testData.tenantContext.getTenant().id, testData.newAsset);
+      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+    });
+
     it('Check if solar panel production is added to capacity', async () => {
       testData.siteAreaContext.getSiteArea().maximumPower = 1;
       await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
@@ -1148,6 +1157,7 @@ describe('Smart Charging Service', function() {
       testData.newAsset.staticValueWatt = 50000,
       testData.newAsset.fluctuationPercent = 50;
       testData.newAsset.assetType = AssetType.PRODUCTION;
+      testData.newAsset.excludeFromSmartCharging = false;
       testData.newAsset.lastConsumption = { timestamp: new Date(), value: 0 };
       await AssetStorage.saveAsset(testData.tenantContext.getTenant().id, testData.newAsset);
       const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
@@ -1165,14 +1175,6 @@ describe('Smart Charging Service', function() {
           'limit': 86.957
         },
       ]);
-    });
-    it('Check if Asset is ignored when excluded', async () => {
-      testData.siteAreaContext.getSiteArea().maximumPower = 22080;
-      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
-      testData.newAsset.excludeFromSmartCharging = true;
-      await AssetStorage.saveAsset(testData.tenantContext.getTenant().id, testData.newAsset);
-      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-      expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
     });
   });
 });
