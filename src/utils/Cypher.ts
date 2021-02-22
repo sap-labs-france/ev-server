@@ -1,11 +1,10 @@
-import { CryptoSetting, CryptoSettings, SettingDB } from '../types/Setting';
+import { CryptoSetting, CryptoSettings, SettingDB, TechnicalSettings } from '../types/Setting';
 
 import BackendError from '../exception/BackendError';
 import Constants from './Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import SettingStorage from '../storage/mongodb/SettingStorage';
-import TenantComponents from '../types/TenantComponents';
 import Utils from './Utils';
 import _ from 'lodash';
 import crypto from 'crypto';
@@ -165,7 +164,7 @@ export default class Cypher {
     // Build internal structure
     const settingsToSave = {
       id: cryptoSettingToSave.id,
-      identifier: TenantComponents.CRYPTO,
+      identifier: TechnicalSettings.CRYPTO,
       lastChangedOn: new Date(),
       content: {
         crypto: cryptoSettingToSave.crypto
