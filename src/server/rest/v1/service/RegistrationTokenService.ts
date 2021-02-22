@@ -81,8 +81,11 @@ export default class RegistrationTokenService {
   }
 
   static async handleUpdateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenUpdateRequest(req.body);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
     // Check Auth
-    if (!Authorizations.canUpdateRegistrationToken(req.user, req.body.siteAreaID)) {
+    if (!Authorizations.canUpdateRegistrationToken(req.user, filteredRequest.siteAreaID)) {
       // Not Authorized!
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -91,9 +94,6 @@ export default class RegistrationTokenService {
         module: MODULE_NAME, method: 'handleUpdateRegistrationToken'
       });
     }
-    // Filter
-    const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
     // Get Token
     const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, registrationToken, `Token ID '${filteredRequest.id}' does not exist`,
