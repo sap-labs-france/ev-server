@@ -37,6 +37,6 @@ export interface OCPIGetLocationsTaskConfig extends TaskConfig {
   partial?: boolean;
 }
 
-export interface OCPIPushLocationsTaskConfig extends TaskConfig {
+export interface OCPIPushEVSEStatusesTaskConfig extends TaskConfig {
   processAllEVSEs?: boolean;
 }

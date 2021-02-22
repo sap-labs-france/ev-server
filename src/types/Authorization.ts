@@ -24,6 +24,11 @@ export interface AuthorizationDefinition {
     $extend?: any;
   };
 }
+export interface AuthorizationFilter {
+  filters: Record<string, any>;
+  projectFields: string[];
+  authorized?: boolean;
+}
 
 export interface Grant {
   resource: Entity;
@@ -51,6 +56,7 @@ export enum Entity {
   REPORT = 'Report',
   USER = 'User',
   USERS = 'Users',
+  USERS_SITES = 'UsersSites',
   LOGGINGS = 'Loggings',
   LOGGING = 'Logging',
   PRICING = 'Pricing',
@@ -91,8 +97,10 @@ export enum Action {
   LOGOUT = 'Logout',
   LOGIN = 'Login',
   LIST = 'List',
+  IN_ERROR = 'InError',
   RESET = 'Reset',
   ASSIGN = 'Assign',
+  UNASSIGN = 'Unassign',
   CLEAR_CACHE = 'ClearCache',
   SYNCHRONIZE = 'Synchronize',
   GET_CONFIGURATION = 'GetConfiguration',
@@ -109,7 +117,7 @@ export enum Action {
   CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
   GET_DIAGNOSTICS = 'GetDiagnostics',
   UPDATE_FIRMWARE = 'UpdateFirmware',
-  EXPORT_PARAMS = 'ExportParams',
+  EXPORT = 'Export',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   REFUND_TRANSACTION = 'RefundTransaction',
   SYNCHRONIZE_BILLING_USERS = 'SynchronizeBillingUsers',
@@ -123,6 +131,7 @@ export enum Action {
   REGISTER = 'Register',
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
+  IMPORT = 'Import'
 }
 
 export interface AuthorizationContext {
@@ -139,4 +148,11 @@ export interface AuthorizationContext {
   companies?: string[];
   asset?: string;
   assets?: string[];
+}
+
+export interface AuthorizationActions {
+  canRead?: boolean;
+  canCreate?: boolean;
+  canUpdate?: boolean;
+  canDelete?: boolean;
 }

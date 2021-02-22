@@ -41,6 +41,14 @@
       "type": "string",
       "sanitize": "mongo"
     },
+    "projectFields": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "skip": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
     "logo": {
       "type": "string",
       "sanitize": "mongo"
