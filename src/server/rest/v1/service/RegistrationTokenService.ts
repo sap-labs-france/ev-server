@@ -186,6 +186,16 @@ export default class RegistrationTokenService {
         value: tokenID
       });
     }
+    if (registrationToken.expirationDate &&
+        moment(registrationToken.expirationDate).isBefore(new Date())) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Cannot revoke a token that has expired',
+        module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
+        user: req.user
+      });
+    }
     // Update
     registrationToken.revocationDate = new Date();
     registrationToken.lastChangedBy = { 'id': req.user.id };
