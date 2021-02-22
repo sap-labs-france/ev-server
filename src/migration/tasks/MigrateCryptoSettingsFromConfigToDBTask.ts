@@ -1,12 +1,10 @@
-import { CryptoSettings, CryptoSettingsType } from '../../types/Setting';
+import { CryptoSettings, CryptoSettingsType, TechnicalSettings } from '../../types/Setting';
 
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import MigrationTask from '../MigrationTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
@@ -24,19 +22,19 @@ export default class MigrateCryptoSettingsFromConfigToDBTask extends MigrationTa
     // Crypto Key Properties from config file
     const configCryptoKeyProperties = Utils.parseConfigCryptoAlgorithm(Configuration.getCryptoConfig().algorithm);
     // Crypto Key Setting from db
-    const keySettings = await SettingStorage.getCryptoSettings(tenant.id);
+    const cryptoSettings = await SettingStorage.getCryptoSettings(tenant.id);
     // If no Crypto Key Setting exist, initialize them with Crypto Key from config file
-    if (!keySettings) {
+    if (!cryptoSettings) {
       // Create New Crypto Key in Tenant Settings
       const keySettingToSave = {
-        identifier: TenantComponents.CRYPTO,
+        identifier: TechnicalSettings.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: {
           key: configCryptoKey,
           keyProperties: configCryptoKeyProperties,
         }
       } as CryptoSettings;
-      await Cypher.saveCryptoSetting(tenant.id, keySettingToSave);
+      await SettingStorage.saveCryptoSettings(tenant.id, keySettingToSave);
     }
   }
 

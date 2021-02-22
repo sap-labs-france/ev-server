@@ -18,6 +18,9 @@
     },
     "SortFields": {
       "$ref": "common.json#/definitions/sortFields"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
     }
   }
 }
