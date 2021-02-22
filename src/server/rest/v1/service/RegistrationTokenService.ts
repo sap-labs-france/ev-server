@@ -33,7 +33,7 @@ export default class RegistrationTokenService {
       if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
         // Not Authorized!
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.CREATE, entity: Entity.TOKEN,
           module: MODULE_NAME, method: 'handleCreateRegistrationToken'
@@ -42,7 +42,7 @@ export default class RegistrationTokenService {
     } else if (!Authorizations.canCreateRegistrationToken(req.user, null)) {
       // Not Authorized!
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleCreateRegistrationToken'
@@ -88,7 +88,7 @@ export default class RegistrationTokenService {
     if (!Authorizations.canUpdateRegistrationToken(req.user, filteredRequest.siteAreaID)) {
       // Not Authorized!
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleUpdateRegistrationToken'
@@ -147,7 +147,7 @@ export default class RegistrationTokenService {
     // Check auth
     if (!Authorizations.canDeleteRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleDeleteRegistrationToken',
@@ -179,7 +179,7 @@ export default class RegistrationTokenService {
     // Check auth
     if (!Authorizations.canUpdateRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
@@ -219,7 +219,7 @@ export default class RegistrationTokenService {
     if (!Authorizations.canListRegistrationTokens(req.user)) {
       // Not Authorized!
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TOKENS,
         module: MODULE_NAME, method: 'handleGetRegistrationTokens'
@@ -268,7 +268,7 @@ export default class RegistrationTokenService {
     if (!Authorizations.canReadRegistrationToken(req.user)) {
       // Not Authorized!
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleGetRegistrationToken'

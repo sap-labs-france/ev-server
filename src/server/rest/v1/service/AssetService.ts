@@ -34,7 +34,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleGetAsset',
@@ -105,7 +105,7 @@ export default class AssetService {
     // Is authorized to check connection ?
     if (!Authorizations.canCheckAssetConnection(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CHECK_CONNECTION, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleCheckAssetConnection'
@@ -139,7 +139,7 @@ export default class AssetService {
     // Is authorized to check connection ?
     if (!Authorizations.canRetrieveAssetConsumption(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.ASSET, action: Action.RETRIEVE_CONSUMPTION,
         module: MODULE_NAME, method: 'handleRetrieveConsumption'
@@ -208,7 +208,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canListAssetsInError(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.IN_ERROR, entity: Entity.ASSETS,
         module: MODULE_NAME, method: 'handleGetAssetsInError'
@@ -247,7 +247,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canDeleteAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleDeleteAsset',
@@ -287,7 +287,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleGetAsset',
@@ -334,7 +334,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canListAssets(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.ASSETS,
         module: MODULE_NAME, method: 'handleGetAssets'
@@ -368,7 +368,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canCreateAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleCreateAsset'
@@ -424,7 +424,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canUpdateAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.ASSET, action: Action.UPDATE,
         module: MODULE_NAME, method: 'handleUpdateAsset',

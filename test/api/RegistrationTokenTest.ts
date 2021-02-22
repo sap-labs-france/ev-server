@@ -121,7 +121,7 @@ describe('Registration token tests', function() {
           testData.newRegistrationToken,
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       // Check readById
@@ -132,7 +132,7 @@ describe('Registration token tests', function() {
           testData.newRegistrationToken,
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       // Check readAll
@@ -143,7 +143,7 @@ describe('Registration token tests', function() {
           testData.newRegistrationToken,
           false
         );
-        expect(response.status).to.equal(HTTPAuthError.ERROR);
+        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
 
       // Update
@@ -157,7 +157,7 @@ describe('Registration token tests', function() {
           testData.newRegistrationToken,
           false
         );
-        expect(response.status).to.equal(HTTPAuthError.ERROR);
+        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
 
       // Delete
@@ -168,7 +168,7 @@ describe('Registration token tests', function() {
           testData.newRegistrationToken,
           false
         );
-        expect(response.status).to.equal(HTTPAuthError.ERROR);
+        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
     });
   });

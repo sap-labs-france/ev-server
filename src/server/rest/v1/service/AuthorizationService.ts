@@ -37,7 +37,7 @@ export default class AuthorizationService {
       const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, filteredRequest.ID);
       if (Utils.isEmptyArray(siteIDs)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: userToken,
           action: Action.READ, entity: Entity.SITE,
           module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
@@ -206,7 +206,7 @@ export default class AuthorizationService {
       }
       if (!authorizationFilters.authorized) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: userToken,
           action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
           entity: Entity.USERS_SITES,

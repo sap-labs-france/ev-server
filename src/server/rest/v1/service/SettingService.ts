@@ -25,7 +25,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleDeleteSetting',
@@ -58,7 +58,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleGetSetting',
@@ -88,7 +88,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleGetSettingByIdentifier',
@@ -115,7 +115,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.SETTINGS,
         module: MODULE_NAME, method: 'handleGetSettings'
@@ -145,7 +145,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleCreateSetting'
@@ -180,7 +180,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleUpdateSetting',
