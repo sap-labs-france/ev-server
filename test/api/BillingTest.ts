@@ -11,6 +11,7 @@ import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import { HTTPAuthError } from '../../src/types/HTTPError';
+import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
@@ -20,6 +21,7 @@ import User from '../../src/types/User';
 import { UserInErrorType } from '../../src/types/InError';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import global from '../../src/types/GlobalType';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
@@ -112,6 +114,8 @@ describe('Billing Service', function() {
   this.timeout(1000000);
   describe('With component Billing (tenant utbilling)', () => {
     before(async () => {
+      global.database = new MongoDBStorage(config.get('storage'));
+      await global.database.start();
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);

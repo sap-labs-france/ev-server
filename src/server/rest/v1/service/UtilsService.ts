@@ -31,7 +31,12 @@ import moment from 'moment';
 const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
-  static handleUnknownAction(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
+  public static sendEmptyDataResult(res: Response, next: NextFunction): void {
+    res.json(Constants.DB_EMPTY_DATA_RESULT);
+    next();
+  }
+
+  public static handleUnknownAction(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
     // Action provided
     if (!action) {
       // Log
@@ -188,6 +193,14 @@ export default class UtilsService {
         dbSortField[sortField] = order;
       }
       return dbSortField;
+    }
+  }
+
+  public static httpFilterProjectToMongoDB(httpProjectFields: string): string[] {
+    // Exist?
+    if (httpProjectFields) {
+      // Convert to array
+      return httpProjectFields.split('|');
     }
   }
 
@@ -362,7 +375,7 @@ export default class UtilsService {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile\'s schedule should not exeed 24 hours',
+        message: 'Charging Profile\'s schedule should not exceed 24 hours',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
