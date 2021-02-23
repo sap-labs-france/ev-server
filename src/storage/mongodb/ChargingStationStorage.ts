@@ -133,11 +133,18 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-    params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[],
-    chargeBoxSerialNumber: string = Constants.UNKNOWN_STRING_ID): Promise<ChargingStation> {
+    params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
-      chargingStationIDs: id !== Constants.UNKNOWN_STRING_ID ? [id] : [],
-      chargeBoxSerialNumbers: chargeBoxSerialNumber !== Constants.UNKNOWN_STRING_ID ? [chargeBoxSerialNumber] : [],
+      chargingStationIDs: [id],
+      withSite: true, ...params
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
+  }
+
+  public static async getChargingStationBySerialNumber(tenantID: string, chargeBoxSerialNumber: string = Constants.UNKNOWN_STRING_ID,
+    params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[]): Promise<ChargingStation> {
+    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
+      chargeBoxSerialNumbers: [chargeBoxSerialNumber],
       withSite: true, ...params
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
@@ -617,28 +624,27 @@ export default class ChargingStationStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationFirmwareStatus', uniqueTimerID, firmwareUpdateStatus);
   }
 
-  public static async deleteChargingStation(tenantID: string, id: string, chargeBoxSerialNumber?: string): Promise<void> {
-    let filter;
-    if (chargeBoxSerialNumber) {
-      filter = { 'chargeBoxSerialNumber': chargeBoxSerialNumber };
-    } else {
-      filter = { '_id': id };
-    }
+  public static async deleteChargingStation(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteChargingStation');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Delete Configuration
     await global.database.getCollection<any>(tenantID, 'configurations')
-      .findOneAndDelete(filter);
+      .findOneAndDelete({ '_id': id });
     // Delete Charging Profiles
     await this.deleteChargingProfiles(tenantID, id);
     // Delete Charging Station
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .findOneAndDelete(filter);
+      .findOneAndDelete({ '_id': id });
     // Keep the rest (boot notification, authorize...)
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, filter);
+    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
+  }
+
+  public static async deleteChargingStationBySerialNumber(tenantID: string, chargeBoxSerialNumber?: string): Promise<void> {
+    const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenantID, chargeBoxSerialNumber);
+    await ChargingStationStorage.deleteChargingStation(tenantID, chargingStation.id);
   }
 
   public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string): Promise<string> {
