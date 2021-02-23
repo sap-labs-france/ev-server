@@ -42,7 +42,6 @@ class TestData {
   public siteAreaContext: any;
   public chargingStationContext: ChargingStationContext;
   public createdUsers: User[] = [];
-  public pending = false;
   public billingImpl: BillingIntegration<BillingSetting>;
 
   public async setBillingSystemValidCredentials() {
@@ -102,19 +101,25 @@ class TestData {
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     return transactionId;
   }
-}
 
-const testData: TestData = new TestData();
-const billingSettings = testData.getStripeSettings();
-for (const key of Object.keys(billingSettings)) {
-  if (!billingSettings[key] || billingSettings[key] === '') {
-    testData.pending = true;
+  public isBillingProperlyConfigured(): boolean {
+    const billingSettings = this.getStripeSettings();
+    for (const key of Object.keys(billingSettings)) {
+      if (!billingSettings[key] || billingSettings[key] === '') {
+        return false ;
+      }
+    }
+    return true;
   }
 }
 
+const testData: TestData = new TestData();
+
 describe('Billing Service', function() {
-  this.pending = testData.pending;
+  // Do not run the tests when the settings are not properly set
+  this.pending = !testData.isBillingProperlyConfigured();
   this.timeout(1000000);
+
   describe('With component Billing (tenant utbilling)', () => {
     before(async () => {
       global.database = new MongoDBStorage(config.get('storage'));
