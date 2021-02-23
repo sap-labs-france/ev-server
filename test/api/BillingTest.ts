@@ -29,9 +29,15 @@ chai.use(chaiSubset);
 chai.use(responseHelper);
 
 class TestData {
+  // Tenant: utbilling
   public tenantContext: TenantContext;
+  // User Service for action requiring admin permissions (e.g.: set/reset stripe settings)
+  public adminUserContext: User;
+  public adminUserService: CentralServerService;
+  // User Service for common actions
   public userContext: User;
   public userService: CentralServerService;
+  // Other test resources
   public siteContext: SiteContext;
   public siteAreaContext: any;
   public chargingStationContext: ChargingStationContext;
@@ -71,13 +77,13 @@ class TestData {
   }
 
   public async saveBillingSettings(stripeSettings: StripeBillingSetting) {
-    const tenantBillingSettings = await this.userService.settingApi.readAll({ 'Identifier': 'billing' });
+    const tenantBillingSettings = await this.adminUserService.settingApi.readAll({ 'Identifier': 'billing' });
     expect(tenantBillingSettings.data.count).to.be.eq(1);
     const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
     componentSetting.content.type = BillingSettingsType.STRIPE;
     componentSetting.content.stripe = stripeSettings;
     componentSetting.sensitiveData = ['content.stripe.secretKey'];
-    await this.userService.settingApi.update(componentSetting);
+    await this.adminUserService.settingApi.update(componentSetting);
   }
 
   public async generateTransaction(): Promise<number> {
@@ -96,7 +102,6 @@ class TestData {
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     return transactionId;
   }
-
 }
 
 const testData: TestData = new TestData();
@@ -115,7 +120,11 @@ describe('Billing Service', function() {
       global.database = new MongoDBStorage(config.get('storage'));
       await global.database.start();
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
-      testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.adminUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.adminUserService = new CentralServerService(
+        testData.tenantContext.getTenant().subdomain,
+        testData.adminUserContext
+      );
       expect(testData.userContext).to.not.be.null;
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
@@ -124,12 +133,9 @@ describe('Billing Service', function() {
 
     describe('Where admin user', () => {
       before(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userContext = testData.adminUserContext;
         assert(testData.userContext, 'User context cannot be null');
-        testData.userService = new CentralServerService(
-          testData.tenantContext.getTenant().subdomain,
-          testData.userContext
-        );
+        testData.userService = testData.adminUserService;
         assert(!!testData.userService, 'User service cannot be null');
         const tenant = testData.tenantContext.getTenant();
         if (tenant.id) {
@@ -324,14 +330,6 @@ describe('Billing Service', function() {
 
     describe('Where basic user', () => {
       before(async () => {
-        testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
-        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        assert(testData.userContext, 'User context cannot be null');
-        testData.userService = new CentralServerService(
-          testData.tenantContext.getTenant().subdomain,
-          testData.userContext
-        );
-        assert(!!testData.userService, 'User service cannot be null');
         await testData.setBillingSystemValidCredentials();
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         expect(testData.userContext).to.not.be.null;
