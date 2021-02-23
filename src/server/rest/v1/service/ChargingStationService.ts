@@ -226,7 +226,7 @@ export default class ChargingStationService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           action: action,
-          errorCode: HTTPError.GENERAL_ERROR,
+          errorCode: HTTPError.CHARGING_STATION_RESET,
           message: 'Error occurred while restarting the charging station',
           module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
           user: req.user, actionOnUser: req.user,

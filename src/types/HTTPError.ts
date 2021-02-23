@@ -58,6 +58,8 @@ export enum HTTPError {
 
   CANNOT_ACQUIRE_LOCK = 510,
   INVALID_FILE_FORMAT = 583,
+
+  CHARGING_STATION_RESET = 584,
 }
 
 export enum HTTPAuthError {
