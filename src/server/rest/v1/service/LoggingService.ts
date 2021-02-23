@@ -43,7 +43,7 @@ export default class LoggingService {
     // Check auth
     if (!Authorizations.canReadLog(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.LOGGING,
         module: MODULE_NAME, method: 'handleGetLog'
@@ -92,7 +92,7 @@ export default class LoggingService {
     // Check auth
     if (!Authorizations.canListLoggings(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.LOGGINGS,
         module: MODULE_NAME, method: 'getLogs'

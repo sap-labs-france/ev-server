@@ -32,7 +32,7 @@ export default class TagService {
     // Check auth
     if (!Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleGetTag'
@@ -62,7 +62,7 @@ export default class TagService {
     // Check auth
     if (!Authorizations.canListTags(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TAGS,
         module: MODULE_NAME, method: 'handleGetTags'
@@ -111,7 +111,7 @@ export default class TagService {
     // Check auth
     if (!Authorizations.canDeleteTag(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleDeleteTags',
@@ -131,7 +131,7 @@ export default class TagService {
     // Check auth
     if (!Authorizations.canDeleteTag(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleDeleteTag',
@@ -223,7 +223,7 @@ export default class TagService {
     // Check
     if (!Authorizations.canCreateTag(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleCreateTag'
@@ -331,7 +331,7 @@ export default class TagService {
     // Check
     if (!Authorizations.canUpdateTag(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleUpdateTag'
