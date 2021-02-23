@@ -428,7 +428,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       });
     }
     // Check Charging Station
-    if (transaction.billingData.invoiceID) {
+    if (transaction?.billingData.invoiceID) {
       throw new BackendError({
         message: 'Transaction has already billing data',
         source: Constants.CENTRAL_SERVER,
