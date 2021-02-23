@@ -1,5 +1,6 @@
+import HttpDatabaseRequest, { HttpDatabaseProjectRequest } from './HttpDatabaseRequest';
+
 import HttpByIDRequest from './HttpByIDRequest';
-import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export type HttpUserRequest = HttpByIDRequest;
 
@@ -22,7 +23,7 @@ export interface HttpUserMobileTokenRequest {
   mobileOS: string;
 }
 
-export interface HttpSitesAssignUserRequest {
+export interface HttpUserAssignSitesRequest extends HttpDatabaseProjectRequest {
   userID: string;
   siteIDs: string[];
 }
