@@ -30,32 +30,30 @@ chai.use(responseHelper);
 
 class TestData {
   public tenantContext: TenantContext;
-  public centralUserContext: any;
-  public centralUserService: CentralServerService;
   public userContext: User;
   public userService: CentralServerService;
   public siteContext: SiteContext;
   public siteAreaContext: any;
   public chargingStationContext: ChargingStationContext;
-  public transactionUserService: CentralServerService;
   public createdUsers: User[] = [];
-  public isForcedSynchro: boolean;
   public pending = false;
   public billingImpl: BillingIntegration<BillingSetting>;
 
   public async setBillingSystemValidCredentials() {
     const stripeSettings = this.getStripeSettings();
     await this.saveBillingSettings(stripeSettings);
-    stripeSettings.secretKey = await Cypher.encrypt(this.tenantContext.getTenant().id, stripeSettings.secretKey);
-    this.billingImpl = new StripeBillingIntegration(this.tenantContext.getTenant().id, stripeSettings);
+    const tenantId = this.tenantContext.getTenant().id;
+    stripeSettings.secretKey = await Cypher.encrypt(tenantId, stripeSettings.secretKey);
+    this.billingImpl = new StripeBillingIntegration(tenantId, stripeSettings);
     expect(this.billingImpl).to.not.be.null;
   }
 
   public async setBillingSystemInvalidCredentials() {
     const stripeSettings = this.getStripeSettings();
-    stripeSettings.secretKey = await Cypher.encrypt(this.tenantContext.getTenant().id, 'sk_test_invalid_credentials');
+    const tenantId = this.tenantContext.getTenant().id;
+    stripeSettings.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(stripeSettings);
-    this.billingImpl = new StripeBillingIntegration(this.tenantContext.getTenant().id, stripeSettings);
+    this.billingImpl = new StripeBillingIntegration(tenantId, stripeSettings);
     expect(this.billingImpl).to.not.be.null;
   }
 
@@ -81,23 +79,24 @@ class TestData {
     componentSetting.sensitiveData = ['content.stripe.secretKey'];
     await this.userService.settingApi.update(componentSetting);
   }
-}
 
+  public async generateTransaction(): Promise<number> {
+    const user:any = this.userContext;
+    const connectorId = 1;
+    const tagId = user?.tags[0].id; // TODO - to be clarified - user.tags is not defined in the User type!!!
+    const meterStart = 0;
+    const meterStop = 1000;
+    const startDate = moment().toDate();
+    const stopDate = moment(startDate).add(1, 'hour').toDate();
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(startTransactionResponse).to.be.transactionValid;
+    const transactionId = startTransactionResponse.transactionId;
+    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    return transactionId;
+  }
 
-async function generateTransaction(user, chargingStationContext): Promise<number> {
-  const connectorId = 1;
-  const tagId = user.tags[0].id;
-  const meterStart = 0;
-  const meterStop = 1000;
-  const startDate = moment().toDate();
-  const stopDate = moment(startDate).add(1, 'hour');
-  const startTransactionResponse = await chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  expect(startTransactionResponse).to.be.transactionValid;
-  const transactionId1 = startTransactionResponse.transactionId as number;
-  const stopTransactionResponse = await chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
-  expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
-  return transactionId1;
 }
 
 const testData: TestData = new TestData();
@@ -116,34 +115,21 @@ describe('Billing Service', function() {
       global.database = new MongoDBStorage(config.get('storage'));
       await global.database.start();
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
-      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       expect(testData.userContext).to.not.be.null;
-      testData.centralUserService = new CentralServerService(
-        testData.tenantContext.getTenant().subdomain,
-        testData.centralUserContext
-      );
-      testData.isForcedSynchro = false;
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
-      testData.transactionUserService = new CentralServerService(
-        testData.tenantContext.getTenant().subdomain, testData.userContext);
     });
 
     describe('Where admin user', () => {
       before(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         assert(testData.userContext, 'User context cannot be null');
-        if (testData.userContext === testData.centralUserContext) {
-          // Reuse the central user service (to avoid double login)
-          testData.userService = testData.centralUserService;
-        } else {
-          testData.userService = new CentralServerService(
-            testData.tenantContext.getTenant().subdomain,
-            testData.userContext
-          );
-        }
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
         assert(!!testData.userService, 'User service cannot be null');
         const tenant = testData.tenantContext.getTenant();
         if (tenant.id) {
@@ -302,7 +288,8 @@ describe('Billing Service', function() {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
         let response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT, UserID: [testData.userContext.id] }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
         const itemsBefore: number = response.data.result[0].nbrOfItems;
-        await generateTransaction(testData.userContext, testData.chargingStationContext);
+        const transactionID = await testData.generateTransaction();
+        expect(transactionID).to.not.be.null;
         await testData.userService.billingApi.synchronizeInvoices({});
         response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT, UserID: [testData.userContext.id] }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
         const itemsAfter = response.data.result[0].nbrOfItems;
@@ -311,24 +298,26 @@ describe('Billing Service', function() {
 
       it('should synchronize 1 invoice after a transaction', async () => {
         await testData.userService.billingApi.synchronizeInvoices({});
-        await generateTransaction(testData.userContext, testData.chargingStationContext);
+        const transactionID = await testData.generateTransaction();
+        expect(transactionID).to.not.be.null;
         const response = await testData.userService.billingApi.synchronizeInvoices({});
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
         expect(response.data.inSuccess).to.be.eq(1);
       });
 
       it('should not delete a transaction linked to an invoice', async () => {
-        const transactionID = await generateTransaction(testData.userContext, testData.chargingStationContext);
-        const transactionDeleted = await testData.transactionUserService.transactionApi.delete(transactionID);
+        const transactionID = await testData.generateTransaction();
+        expect(transactionID).to.not.be.null;
+        const transactionDeleted = await testData.userService.transactionApi.delete(transactionID);
         expect(transactionDeleted.data.inError).to.be.eq(1);
         expect(transactionDeleted.data.inSuccess).to.be.eq(0);
       });
 
       it('Should set a transaction in error', async () => {
         await testData.setBillingSystemInvalidCredentials();
-        const transactionID = await generateTransaction(testData.userContext, testData.chargingStationContext);
+        const transactionID = await testData.generateTransaction();
         expect(transactionID).to.not.be.null;
-        const transactions = await testData.transactionUserService.transactionApi.readAllInError({});
+        const transactions = await testData.userService.transactionApi.readAllInError({});
         expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
       });
     });
@@ -336,42 +325,20 @@ describe('Billing Service', function() {
     describe('Where basic user', () => {
       before(async () => {
         testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
-        testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         assert(testData.userContext, 'User context cannot be null');
-        if (testData.userContext === testData.centralUserContext) {
-          // Reuse the central user service (to avoid double login)
-          testData.userService = testData.centralUserService;
-        } else {
-          testData.userService = new CentralServerService(
-            testData.tenantContext.getTenant().subdomain,
-            testData.userContext
-          );
-        }
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
         assert(!!testData.userService, 'User service cannot be null');
-        const tenant = testData.tenantContext.getTenant();
-        if (tenant.id) {
-          await testData.setBillingSystemValidCredentials();
-        } else {
-          throw new Error(`Unable to get Tenant ID for tenant : ${ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING as string}`);
-        }
-
+        await testData.setBillingSystemValidCredentials();
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         expect(testData.userContext).to.not.be.null;
-        testData.centralUserService = new CentralServerService(
+        testData.userService = new CentralServerService(
           testData.tenantContext.getTenant().subdomain,
-          testData.centralUserContext
+          testData.userContext
         );
-        if (testData.userContext === testData.centralUserContext) {
-          // Reuse the central user service (to avoid double login)
-          testData.userService = testData.centralUserService;
-        } else {
-          testData.userService = new CentralServerService(
-            testData.tenantContext.getTenant().subdomain,
-            testData.userContext
-          );
-        }
         expect(testData.userService).to.not.be.null;
       });
 
@@ -479,7 +446,8 @@ describe('Billing Service', function() {
         await testData.userService.billingApi.synchronizeInvoices({});
         let response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
         const itemsBefore: number = response.data.result[0].nbrOfItems;
-        await generateTransaction(testData.userContext, testData.chargingStationContext);
+        const transactionID = await testData.generateTransaction();
+        expect(transactionID).to.not.be.null;
         await testData.userService.billingApi.synchronizeInvoices({});
         response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
         const itemsAfter = response.data.result[0].nbrOfItems;
