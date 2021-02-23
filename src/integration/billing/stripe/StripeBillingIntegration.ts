@@ -38,6 +38,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     this.stripeSettings = settings;
   }
 
+  public getStripeInstance(): Stripe {
+    // TODO - To be clarified - only used by automated tests!!! - remove it ASAP
+    return this.stripe;
+  }
+
   public async checkConnection(): Promise<void> {
     // Initialize Stripe
     await this.initializeStripe();
