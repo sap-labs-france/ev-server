@@ -11,6 +11,7 @@ import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import { HTTPAuthError } from '../../src/types/HTTPError';
+import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
@@ -20,6 +21,7 @@ import User from '../../src/types/User';
 import { UserInErrorType } from '../../src/types/InError';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import global from '../../src/types/GlobalType';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
@@ -112,6 +114,8 @@ describe('Billing Service', function() {
   this.timeout(1000000);
   describe('With component Billing (tenant utbilling)', () => {
     before(async () => {
+      global.database = new MongoDBStorage(config.get('storage'));
+      await global.database.start();
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
@@ -374,7 +378,7 @@ describe('Billing Service', function() {
 
       it('Should not be able to test connection to Billing Provider', async () => {
         const response = await testData.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not create a user', async () => {
@@ -388,7 +392,7 @@ describe('Billing Service', function() {
           false
         );
         testData.createdUsers.push(fakeUser);
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not update a user', async () => {
@@ -403,7 +407,7 @@ describe('Billing Service', function() {
           fakeUser,
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not delete a user', async () => {
@@ -412,7 +416,7 @@ describe('Billing Service', function() {
           { id: 0 },
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not synchronize a user', async () => {
@@ -420,7 +424,7 @@ describe('Billing Service', function() {
           ...Factory.user.build(),
         } as User;
         const response = await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not force synchronization of a user', async () => {
@@ -428,7 +432,7 @@ describe('Billing Service', function() {
           ...Factory.user.build(),
         } as User;
         const response = await testData.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should list invoices', async () => {

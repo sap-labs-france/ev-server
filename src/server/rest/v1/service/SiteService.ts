@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
@@ -67,19 +68,27 @@ export default class SiteService {
     }
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
         value: filteredRequest.siteID
       });
     }
+    // Check auth
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.siteID });
     // Get the Site
-    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
+    const site = await SiteStorage.getSite(
+      req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteUserAdmin', req.user);
+    // Get authorization filters
+    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.userID });
     // Get the User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    const user = await UserStorage.getUser(
+      req.user.tenantID, filteredRequest.userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteUserAdmin', req.user);
     // Check user
@@ -111,7 +120,7 @@ export default class SiteService {
   public static async handleUpdateSiteOwner(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleUpdateSiteOwner'
@@ -150,12 +159,20 @@ export default class SiteService {
         user: req.user
       });
     }
+    // Check auth
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.siteID });
     // Get the Site
-    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
+    const site = await SiteStorage.getSite(
+      req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteUserOwner', req.user);
+    // Get authorization filters
+    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.userID });
     // Get the User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    const user = await UserStorage.getUser(
+      req.user.tenantID, filteredRequest.userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteUserOwner', req.user);
     // Update
@@ -177,19 +194,29 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
-    // Filter
-    const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
-    if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
+    // Check auth
+    if (action === ServerAction.ADD_USERS_TO_SITE) {
+      if (!Authorizations.canAssignUsersSites(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: req.user,
+          action: Action.ASSIGN, entity: Entity.USERS_SITES,
+          module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
+        });
+      }
+    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.UPDATE, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleAssignUsersToSite',
-        value: filteredRequest.siteID
+        action: Action.UNASSIGN, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
       });
     }
+    // Filter
+    const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
+    // Check
     UtilsService.assertIdIsProvided(action, filteredRequest.siteID, MODULE_NAME, 'handleAssignUsersToSite', req.user);
-    if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
+    if (!filteredRequest.userIDs || Utils.isEmptyArray(filteredRequest.userIDs)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -198,8 +225,22 @@ export default class SiteService {
         user: req.user
       });
     }
+    // Check auth
+    if (!Authorizations.canReadSite(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleAssignUsersToSite',
+        value: filteredRequest.siteID
+      });
+    }
+    // Check auth
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.siteID });
     // Get the Site
-    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
+    const site = await SiteStorage.getSite(
+      req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
     UtilsService.assertObjectExists(action, site, `Site '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleAssignUsersToSite', req.user);
     // OCPI Site
@@ -213,34 +254,9 @@ export default class SiteService {
         action: action
       });
     }
-    // Get Users
-    for (const userID of filteredRequest.userIDs) {
-      // Check the user
-      const user = await UserStorage.getUser(req.user.tenantID, userID);
-      UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
-        MODULE_NAME, 'handleAssignUsersToSite', req.user);
-      // Auth
-      if (!Authorizations.canReadUser(req.user, userID)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.READ, entity: Entity.USER,
-          module: MODULE_NAME, method: 'handleAssignUsersToSite',
-          value: userID
-        });
-      }
-      // OCPI User
-      if (!user.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'User not issued by the organization',
-          module: MODULE_NAME, method: 'handleAssignUsersToSite',
-          user: req.user, actionOnUser: user,
-          action: action
-        });
-      }
-    }
+    // Check auth
+    await AuthorizationService.checkAndAssignSiteUsersAuthorizationFilters(
+      req.tenant, action, req.user, filteredRequest);
     // Save
     if (action === ServerAction.ADD_USERS_TO_SITE) {
       await SiteStorage.addUsersToSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
@@ -262,46 +278,63 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsersFromSite');
-    // Filter
-    const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
-    // Check Mandatory fields
-    if (!filteredRequest.SiteID) {
-      // Not Found!
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Site\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUsersFromSite',
-        user: req.user
+    // Check auth
+    if (!Authorizations.canListUsersSites(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'handleGetUsers'
       });
     }
-    // Get the Site
-    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.SiteID);
-    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.SiteID}' does not exist`,
-      MODULE_NAME, 'handleGetUsersFromSite', req.user);
+    // Filter
+    const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.SiteID, MODULE_NAME, 'handleGetUsersFromSite', req.user);
     // Check auth
-    if (!Authorizations.canUpdateSite(req.user, filteredRequest.SiteID)) {
+    if (!Authorizations.canReadSite(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.UPDATE, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleGetUsersFromSite',
-        value: site.id
+        action: Action.UPDATE, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleGetUsers',
+        value: filteredRequest.SiteID
       });
+    }
+    // Check auth
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.SiteID });
+    if (!authorizationSiteFilters.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
+    // Get the Site
+    const site = await SiteStorage.getSite(
+      req.user.tenantID, filteredRequest.SiteID, authorizationSiteFilters.filters);
+    if (!site) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
+    // Check auth
+    const authorizationSiteUsersFilters = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
+    if (!authorizationSiteUsersFilters.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
     }
     // Get users
     const users = await SiteStorage.getSiteUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteID: filteredRequest.SiteID
+        siteIDs: [ filteredRequest.SiteID ],
+        ...authorizationSiteUsersFilters.filters
       },
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [ 'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID' ]
+      authorizationSiteUsersFilters.projectFields
     );
     res.json(users);
     next();
@@ -318,15 +351,19 @@ export default class SiteService {
     // Check
     if (!Authorizations.canDeleteSite(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleDeleteSite',
         value: siteID
       });
     }
+    // Check auth
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, { ID: siteID });
     // Get
-    const site = await SiteStorage.getSite(req.user.tenantID, siteID);
+    const site = await SiteStorage.getSite(
+      req.user.tenantID, siteID, authorizationSiteFilters.filters);
     UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`,
       MODULE_NAME, 'handleDeleteSite', req.user);
     // OCPI Site
@@ -359,23 +396,30 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
+    // Check auth
+    if (!Authorizations.canReadSite(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
+      });
+    }
     // Filter
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSite', req.user);
     // Check auth
-    if (!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.READ, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleGetSite',
-        value: filteredRequest.ID
-      });
-    }
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID,
-      { withCompany: filteredRequest.WithCompany, withImage: true },
-      [ 'id', 'name', 'issuer', 'image', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'public' ]);
+      {
+        withCompany: filteredRequest.WithCompany,
+        withImage: true,
+        ...authorizationSiteFilters.filters
+      },
+      authorizationSiteFilters.projectFields
+    );
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSite', req.user);
     // Return
@@ -390,7 +434,7 @@ export default class SiteService {
     // Check auth
     if (!Authorizations.canListSites(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.SITES,
         module: MODULE_NAME, method: 'handleGetSites'
@@ -398,10 +442,12 @@ export default class SiteService {
     }
     // Filter
     const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
-    // Check User
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
+    // Check auth
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSitesAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
+    if (!authorizationSiteFilters.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
     }
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
@@ -409,26 +455,26 @@ export default class SiteService {
         search: filteredRequest.Search,
         userID: filteredRequest.UserID,
         issuer: filteredRequest.Issuer,
-        companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        companyIDs: filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null,
+        siteIDs: filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null,
         withCompany: filteredRequest.WithCompany,
         excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
+        ...authorizationSiteFilters.filters
       },
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [
-        'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-        'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-        ...userProject
-      ]
+      authorizationSiteFilters.projectFields
     );
+    // Add Auth flags
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites.result);
+    // Return
     res.json(sites);
     next();
   }
@@ -437,13 +483,16 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterSiteImageRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
-    // TODO: To remove when new version of Mobile App will be released (> V1.3.22)
-    if (req.user) {
-      filteredRequest.TenantID = req.user.tenantID;
-    }
+    // Check auth
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
+    // Get
+    const site = await SiteStorage.getSite(
+      req.user.tenantID, filteredRequest.ID, authorizationSiteFilters.filters);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
+      MODULE_NAME, 'handleDeleteSite', req.user);
     // Get the image
     const siteImage = await SiteStorage.getSiteImage(filteredRequest.TenantID, filteredRequest.ID);
-    // Return
     if (siteImage?.image) {
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
@@ -468,7 +517,7 @@ export default class SiteService {
     // Check auth
     if (!Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleCreateSite'
@@ -521,10 +570,11 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateSite', req.user);
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleUpdateSite',
@@ -535,6 +585,16 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
       MODULE_NAME, 'handleUpdateSite', req.user);
+    // Check auth
+    if (!Authorizations.canReadCompany(req.user, company.id)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'handleUpdateSite',
+        value: company.id
+      });
+    }
     // Check
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // OCPI Company
@@ -548,8 +608,12 @@ export default class SiteService {
         action: action
       });
     }
+    // Check auth
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.id });
     // Get Site
-    const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
+    const site = await SiteStorage.getSite(
+      req.user.tenantID, filteredRequest.id, authorizationSiteFilters.filters);
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateSite', req.user);
     // OCPI Site
