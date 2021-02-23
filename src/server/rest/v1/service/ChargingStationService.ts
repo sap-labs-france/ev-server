@@ -220,7 +220,19 @@ export default class ChargingStationService {
       }
     });
     if (rebootRequired) {
-      // Await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
+      try {
+        await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
+      } catch (error) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Error occurred while restarting the charging station',
+          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          user: req.user, actionOnUser: req.user,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
