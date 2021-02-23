@@ -61,5 +61,6 @@ export enum HTTPError {
 }
 
 export enum HTTPAuthError {
-  ERROR = StatusCodes.UNAUTHORIZED,
+  UNAUTHORIZED = StatusCodes.UNAUTHORIZED,
+  FORBIDDEN = StatusCodes.FORBIDDEN,
 }

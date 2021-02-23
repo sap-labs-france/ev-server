@@ -70,7 +70,7 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
@@ -236,7 +236,7 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -349,7 +349,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingProfiles(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CHARGING_PROFILES,
         module: MODULE_NAME, method: 'handleGetChargingProfiles'
@@ -369,10 +369,10 @@ export default class ChargingStationService {
       'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
       'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower',
       ...projectFields
-    ]
+    ];
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
@@ -386,7 +386,7 @@ export default class ChargingStationService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       projectFields
-      );
+    );
     // Build the result
     res.json(chargingProfiles);
     next();
@@ -406,7 +406,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleTriggerSmartCharging',
@@ -456,7 +456,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGenerateQrCodeForConnector',
@@ -521,7 +521,7 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleUpdateChargingProfile',
@@ -578,7 +578,7 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingProfile',
@@ -617,7 +617,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetChargingStationOcppParameters',
@@ -638,7 +638,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleRequestChargingStationOcppParameters',
@@ -688,7 +688,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canDeleteChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingStation',
@@ -760,7 +760,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetChargingStation',
@@ -777,7 +777,7 @@ export default class ChargingStationService {
     ];
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Query charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(
@@ -813,7 +813,7 @@ export default class ChargingStationService {
       // Check all chargers
       if (!Authorizations.canExportParams(req.user, chargingStation.siteArea.siteID)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.EXPORT,
           entity: Entity.CHARGING_STATION,
@@ -873,7 +873,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStationsInError(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.IN_ERROR, entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME, method: 'handleGetChargingStations'
@@ -903,7 +903,7 @@ export default class ChargingStationService {
     ];
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,
@@ -929,7 +929,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME, method: 'handleGetStatusNotifications'
@@ -949,7 +949,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user, action: Action.LIST,
         entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME, method: 'handleGetBootNotifications'
@@ -1108,7 +1108,7 @@ export default class ChargingStationService {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
@@ -1148,7 +1148,7 @@ export default class ChargingStationService {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
@@ -1172,7 +1172,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.SETTING,
         action: Action.UPDATE,
@@ -1266,7 +1266,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME, method: 'getChargingStations',
@@ -1298,7 +1298,7 @@ export default class ChargingStationService {
     }
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField))
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
