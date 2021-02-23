@@ -11,11 +11,6 @@ import config from '../../config';
 
 export default class BillingContext {
 
-  static readonly USERS: any = [
-    ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN,
-    ContextDefinition.USER_CONTEXTS.BASIC_USER
-  ];
-
   private tenantContext: TenantContext;
 
   constructor(tenantContext: TenantContext) {
@@ -58,8 +53,8 @@ export default class BillingContext {
       });
     }
 
-    const adminUser: User = this.tenantContext.getUserContext(BillingContext.USERS[0]);
-    const basicUser: User = this.tenantContext.getUserContext(BillingContext.USERS[1]);
+    const adminUser: User = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+    const basicUser: User = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
 
     await billingImpl.synchronizeUser(this.tenantContext.getTenant().id, adminUser);
     await billingImpl.synchronizeUser(this.tenantContext.getTenant().id, basicUser);
