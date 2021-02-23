@@ -378,7 +378,7 @@ describe('Billing Service', function() {
 
       it('Should not be able to test connection to Billing Provider', async () => {
         const response = await testData.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not create a user', async () => {
@@ -392,7 +392,7 @@ describe('Billing Service', function() {
           false
         );
         testData.createdUsers.push(fakeUser);
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not update a user', async () => {
@@ -407,7 +407,7 @@ describe('Billing Service', function() {
           fakeUser,
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not delete a user', async () => {
@@ -416,7 +416,7 @@ describe('Billing Service', function() {
           { id: 0 },
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not synchronize a user', async () => {
@@ -424,7 +424,7 @@ describe('Billing Service', function() {
           ...Factory.user.build(),
         } as User;
         const response = await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not force synchronization of a user', async () => {
@@ -432,7 +432,7 @@ describe('Billing Service', function() {
           ...Factory.user.build(),
         } as User;
         const response = await testData.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should list invoices', async () => {

@@ -34,7 +34,7 @@ export default class ConnectionService {
     // Check auth
     if (!Authorizations.canReadConnection(req.user, connectionID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CONNECTION,
         module: MODULE_NAME, method: 'handleGetConnection',
@@ -59,7 +59,7 @@ export default class ConnectionService {
     // Check auth
     if (!Authorizations.canListConnections(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CONNECTIONS,
         module: MODULE_NAME, method: 'handleGetConnections'
@@ -83,7 +83,7 @@ export default class ConnectionService {
     // Check auth
     if (!Authorizations.canCreateConnection(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.CONNECTION,
         module: MODULE_NAME, method: 'handleCreateConnection'
