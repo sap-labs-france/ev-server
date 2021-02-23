@@ -1277,7 +1277,7 @@ export default class UserService {
       authorizationFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     return users;
   }
