@@ -34,7 +34,7 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleDeleteTenant',
@@ -112,7 +112,7 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleGetTenant',
@@ -145,7 +145,7 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TENANTS,
         module: MODULE_NAME, method: 'handleGetTenants'
@@ -222,7 +222,7 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleCreateTenant'
@@ -324,7 +324,7 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleUpdateTenant',

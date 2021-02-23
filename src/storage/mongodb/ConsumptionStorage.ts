@@ -142,7 +142,8 @@ export default class ConsumptionStorage {
         instantWatts: { $sum: '$instantWatts' },
         instantAmps: { $sum: '$instantAmps' },
         limitWatts: { $last: '$limitSiteAreaWatts' },
-        limitAmps: { $last: '$limitSiteAreaAmps' }
+        limitAmps: { $last: '$limitSiteAreaAmps' },
+        stateOfCharge: { $last: '$stateOfCharge' },
       }
     });
     // Rebuild the date
