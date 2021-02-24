@@ -480,15 +480,22 @@ export default class SiteService {
   }
 
   public static async handleGetSiteImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // This endpoint is not protected, so no need to check user's access
     // Filter
     const filteredRequest = SiteSecurity.filterSiteImageRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
-    // Check auth
-    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      req.tenant, req.user, filteredRequest);
+    if (!filteredRequest.TenantID) {
+      // Object does not exist
+      throw new AppError({
+        action,
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The ID must be provided',
+        module: MODULE_NAME, method: 'handleGetSiteImage',
+      });
+    }
     // Get
-    const site = await SiteStorage.getSite(
-      req.user.tenantID, filteredRequest.ID, authorizationSiteFilters.filters);
+    const site = await SiteStorage.getSite(filteredRequest.TenantID, filteredRequest.ID);
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteSite', req.user);
     // Get the image
