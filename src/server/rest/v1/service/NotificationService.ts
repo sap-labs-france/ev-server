@@ -53,7 +53,7 @@ export default class NotificationService {
     // Check auth
     if (!Authorizations.canEndUserReportError(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.NOTIFICATION,
         module: MODULE_NAME, method: 'handleEndUserReportError'

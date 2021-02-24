@@ -4,6 +4,7 @@ import CentralServerService from '../api/client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import { HTTPAuthError } from '../../src/types/HTTPError';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import TenantContext from './context/TenantContext';
@@ -207,7 +208,7 @@ describe('Site Area tests', function() {
           testData.userService.siteAreaApi,
           Factory.siteArea.build({ siteID: testData.siteContext.getSite().id }), false
         );
-        expect(response.status).to.equal(401);
+        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not be able to update the site area', async () => {
@@ -218,7 +219,7 @@ describe('Site Area tests', function() {
           testData.userService.siteAreaApi,
           testData.newSiteArea, false
         );
-        expect(response.status).to.equal(401);
+        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not be able to delete the created site area', async () => {
@@ -228,7 +229,7 @@ describe('Site Area tests', function() {
           testData.newSiteArea,
           false
         );
-        expect(response.status).to.equal(401);
+        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
 
       it('Should not be able to create a site area without a site', async () => {

@@ -32,7 +32,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canListCarCatalogs(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CAR_CATALOGS,
         module: MODULE_NAME, method: 'handleGetCarCatalogs'
@@ -68,7 +68,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CAR_CATALOG,
         module: MODULE_NAME, method: 'handleGetCarCatalog'
@@ -127,7 +127,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CAR_CATALOG,
         module: MODULE_NAME, method: 'handleGetCarCatalogImages'
@@ -155,7 +155,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canSynchronizeCarCatalogs(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.SYNCHRONIZE, entity: Entity.CAR_CATALOGS,
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
@@ -183,7 +183,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CAR_CATALOG,
         module: MODULE_NAME, method: 'handleGetCarMakers'
@@ -209,7 +209,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canCreateCar(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.CAR,
         module: MODULE_NAME, method: 'handleCreateCar'
@@ -314,7 +314,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canUpdateCar(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CAR,
         module: MODULE_NAME, method: 'handleUpdateCar',
@@ -398,7 +398,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canListCars(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CARS,
         module: MODULE_NAME, method: 'handleGetCars'
@@ -422,7 +422,8 @@ export default class CarService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
-        'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
+        'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+        'carCatalog.image', 'carCatalog.fastChargePowerMax',
         ...userProject
       ]);
     res.json(cars);
@@ -436,7 +437,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canReadCar(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CAR,
         module: MODULE_NAME, method: 'handleGetCar'
@@ -476,7 +477,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canListUsersCars(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.USERS_CARS,
         module: MODULE_NAME, method: 'handleGetCarUsers'
@@ -504,7 +505,7 @@ export default class CarService {
     // Check auth
     if (!Authorizations.canDeleteCar(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.CAR,
         module: MODULE_NAME, method: 'handleDeleteCar',
@@ -525,7 +526,7 @@ export default class CarService {
       // Assigned to this user?
       if (!carUser) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.DELETE, entity: Entity.CAR,
           module: MODULE_NAME, method: 'handleDeleteCar',
@@ -597,7 +598,7 @@ export default class CarService {
         // Auth
         if (!Authorizations.canReadUser(loggedUser, foundUser.id)) {
           throw new AppAuthError({
-            errorCode: HTTPAuthError.ERROR,
+            errorCode: HTTPAuthError.FORBIDDEN,
             user: loggedUser,
             actionOnUser: foundUser.id,
             action: Action.READ, entity: Entity.USER,
