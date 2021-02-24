@@ -16,7 +16,6 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import { filter } from 'bluebird';
 import moment from 'moment';
 
 const MODULE_NAME = 'RegistrationTokenService';

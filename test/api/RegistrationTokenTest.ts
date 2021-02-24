@@ -146,21 +146,7 @@ describe('Registration token tests', function() {
         testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
         testData.basicUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         testData.basicCentralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, testData.basicUserContext);
-        // // Create the entity
-        // testData.newSiteArea = await testData.userService.createEntity(
-        //   testData.userService.siteAreaApi,
-        //   Factory.siteArea.build({ siteID: testData.siteContext.getSite().id })
-        // );
-        // testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-        // if (testData.userContext === testData.centralUserContext) {
-        //   // Reuse the central user service (to avoid double login)
-        //   testData.userService = testData.centralUserService;
-        // } else {
-        //   testData.userService = new CentralServerService(
-        //     testData.tenantContext.getTenant().subdomain,
-        //     testData.userContext
-        //   );
-        // }
+        // Create the entity
         const registrationTokenToCreate = Factory.registrationToken.build();
         testData.newRegistrationToken = await testData.adminCentralService.createEntity(
           testData.adminCentralService.registrationApi,
