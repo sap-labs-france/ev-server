@@ -460,29 +460,23 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Fetch the invoice from stripe (do NOT TRUST the local copy)
     let stripeInvoice: invoices.IInvoice = await this.stripe.invoices.retrieve(invoice.invoiceID);
     // Check the current invoice status
-    if (stripeInvoice.status === 'paid') {
-      return {
-        // TODO - Handle inconsistencies - Operation failed - unexpected status
-        invoiceStatus: stripeInvoice.status
-      };
-    }
-    // Finalize the invoice (if necessary)
-    if (stripeInvoice.status === 'draft') {
-      stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
-    }
-    // Once finalized, the invoice is in the "open" state!
-    if (stripeInvoice.status === 'open') {
-      // Set the payment options
-      // TODO - default payment is used by default - is this ok?
-      const paymentOptions: invoices.IInvoicePayOptions = {
-      };
-      const operationResult: invoices.IInvoice = await this.stripe.invoices.pay(invoice.invoiceID, paymentOptions);
-      return operationResult;
+    if (stripeInvoice.status !== 'paid') {
+      // Finalize the invoice (if necessary)
+      if (stripeInvoice.status === 'draft') {
+        stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
+      }
+      // Once finalized, the invoice is in the "open" state!
+      if (stripeInvoice.status === 'open') {
+        // Set the payment options
+        // TODO - default payment is used by default - is this ok?
+        const paymentOptions: invoices.IInvoicePayOptions = {};
+        stripeInvoice = await this.stripe.invoices.pay(invoice.invoiceID, paymentOptions);
+      }
     }
     // TODO - Handle inconsistencies - Operation failed - unexpected status
     return {
-      // ##CR - to be clarified
-      invoiceStatus: stripeInvoice.status
+      invoiceStatus: stripeInvoice.status,
+      rawData: stripeInvoice
     };
   }
 
