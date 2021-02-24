@@ -211,7 +211,7 @@ export default class UtilsService {
     // Throw
     if (!active) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         entity: entity, action: action,
         module: module, method: method,
         inactiveComponent: component,
@@ -220,13 +220,13 @@ export default class UtilsService {
     }
   }
 
-  public static async exportToCSV(req: Request, res: Response, attachementName: string,
+  public static async exportToCSV(req: Request, res: Response, attachmentName: string,
     handleGetData: (req: Request) => Promise<DataResult<any>>,
     handleConvertToCSV: (req: Request, data: any[], writeHeader: boolean) => string): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Set the attachment name
-    res.attachment(attachementName);
+    res.attachment(attachmentName);
     // Get the total number of Logs
     req.query.OnlyRecordCount = 'true';
     let data = await handleGetData(req);

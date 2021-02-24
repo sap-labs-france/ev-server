@@ -59,6 +59,8 @@ export default abstract class CarIntegration {
             // Save
             await CarStorage.saveCarCatalog(externalCar, true);
           } else {
+            externalCar.image = internalCar.image;
+            externalCar.imagesHash = internalCar.imagesHash;
             // Save
             await CarStorage.saveCarCatalog(externalCar, false);
           }
