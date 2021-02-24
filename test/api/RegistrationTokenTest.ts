@@ -215,24 +215,5 @@ describe('Registration token tests', function() {
         expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
     });
-
-    describe('Where basic user unnassigned', () => {
-      before(async () => {
-        testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-        testData.basicUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED);
-        testData.basicCentralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, testData.basicUserContext);
-      });
-      // Create
-      it('Should not be able to create a new registration token', async () => {
-        // Check cannot create
-        testData.newRegistrationToken = Factory.registrationToken.build();
-        const response = await testData.basicCentralService.createEntity(
-          testData.basicCentralService.registrationApi,
-          testData.newRegistrationToken,
-          false
-        );
-        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
-      });
-    });
   });
 });
