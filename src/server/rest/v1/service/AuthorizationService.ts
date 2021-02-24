@@ -266,7 +266,10 @@ export default class AuthorizationService {
       authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Get authorization filters from users
-    authorizationFilters.filters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, filteredRequest);
+    const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, filteredRequest);
+    // Override
+    authorizationFilters.authorized = usersAuthorizationFilters.authorized;
+    authorizationFilters.filters = usersAuthorizationFilters.filters;
     return authorizationFilters;
   }
 
