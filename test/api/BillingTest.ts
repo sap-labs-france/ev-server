@@ -1,8 +1,8 @@
+import { BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
 import BillingIntegration from '../../src/integration/billing/BillingIntegration';
-import { BillingInvoiceStatus } from '../../src/types/Billing';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -42,12 +42,17 @@ class TestData {
   public siteAreaContext: any;
   public chargingStationContext: ChargingStationContext;
   public createdUsers: User[] = [];
+  // Dynamic User for testing billing against an empty STRIPE account
+  public dynamicUser: User;
+  // Billing Implementation - STRIPE?
   public billingImpl: BillingIntegration<BillingSetting>;
+  public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
   public async setBillingSystemValidCredentials() {
     const stripeSettings = this.getStripeSettings();
     await this.saveBillingSettings(stripeSettings);
-    const tenantId = this.tenantContext.getTenant().id;
+    const tenantId = this.tenantContext?.getTenant()?.id;
+    assert(!!tenantId, 'Tenant ID cannot be null');
     stripeSettings.secretKey = await Cypher.encrypt(tenantId, stripeSettings.secretKey);
     this.billingImpl = new StripeBillingIntegration(tenantId, stripeSettings);
     expect(this.billingImpl).to.not.be.null;
@@ -55,7 +60,8 @@ class TestData {
 
   public async setBillingSystemInvalidCredentials() {
     const stripeSettings = this.getStripeSettings();
-    const tenantId = this.tenantContext.getTenant().id;
+    const tenantId = this.tenantContext?.getTenant()?.id;
+    assert(!!tenantId, 'Tenant ID cannot be null');
     stripeSettings.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(stripeSettings);
     this.billingImpl = new StripeBillingIntegration(tenantId, stripeSettings);
@@ -85,10 +91,10 @@ class TestData {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
-  public async generateTransaction(): Promise<number> {
-    const user:any = this.userContext;
+  public async generateTransaction(user: any): Promise<number> {
+    // const user:any = this.userContext;
     const connectorId = 1;
-    const tagId = user?.tags[0].id; // TODO - to be clarified - user.tags is not defined in the User type!!!
+    const tagId = (user.tags && user.tags.length) ? user.tags[0].id : 'A12342'; // TODO - to be clarified - user.tags is not defined in the User type!!!
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment().toDate();
@@ -100,6 +106,15 @@ class TestData {
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     return transactionId;
+  }
+
+  public async synchronizeAndCheckForDraftInvoices(user, expectedNumber: number): Promise<void> {
+    await testData.billingImpl.synchronizeUser(this.tenantContext.getTenant().id, user);
+    const params = { Status: BillingInvoiceStatus.DRAFT, UserID: [user.id] };
+    const paging = TestConstants.DEFAULT_PAGING;
+    const ordering = [{ field: 'createdOn', direction: 'desc' }];
+    const response = await testData.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
+    expect(response?.data?.result?.length).to.be.eq(expectedNumber);
   }
 
   public isBillingProperlyConfigured(): boolean {
@@ -134,20 +149,32 @@ describe('Billing Service', function() {
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      // Create a new user for testing stripe scenarios - BILING-TEST
+      testData.dynamicUser = {
+        ...Factory.user.build(),
+        name: 'BILLING-TEST',
+        firstName: 'Billing Integration Tests',
+        issuer: true
+      } as User;
+      await testData.adminUserService.createEntity(
+        testData.adminUserService.userApi,
+        testData.dynamicUser
+      );
+      testData.createdUsers.push(testData.dynamicUser);
+      await testData.setBillingSystemValidCredentials();
+      assert(!!testData.billingImpl, 'Billing service cannot be null');
+      const exists = await testData.billingImpl.userExists(testData.dynamicUser);
+      expect(exists).to.be.true;
     });
 
     describe('Where admin user', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
         testData.userContext = testData.adminUserContext;
         assert(testData.userContext, 'User context cannot be null');
         testData.userService = testData.adminUserService;
         assert(!!testData.userService, 'User service cannot be null');
-        const tenant = testData.tenantContext.getTenant();
-        if (tenant.id) {
-          await testData.setBillingSystemValidCredentials();
-        } else {
-          throw new Error(`Unable to get Tenant ID for tenant : ${ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING as string}`);
-        }
+        // await testData.setBillingSystemValidCredentials();
       });
 
       it('Should connect to Billing Provider', async () => {
@@ -299,7 +326,7 @@ describe('Billing Service', function() {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
         let response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT, UserID: [testData.userContext.id] }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
         const itemsBefore: number = response.data.result[0].nbrOfItems;
-        const transactionID = await testData.generateTransaction();
+        const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         await testData.userService.billingApi.synchronizeInvoices({});
         response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT, UserID: [testData.userContext.id] }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
@@ -309,7 +336,7 @@ describe('Billing Service', function() {
 
       it('should synchronize 1 invoice after a transaction', async () => {
         await testData.userService.billingApi.synchronizeInvoices({});
-        const transactionID = await testData.generateTransaction();
+        const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         const response = await testData.userService.billingApi.synchronizeInvoices({});
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
@@ -317,7 +344,7 @@ describe('Billing Service', function() {
       });
 
       it('should not delete a transaction linked to an invoice', async () => {
-        const transactionID = await testData.generateTransaction();
+        const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         const transactionDeleted = await testData.userService.transactionApi.delete(transactionID);
         expect(transactionDeleted.data.inError).to.be.eq(1);
@@ -326,7 +353,7 @@ describe('Billing Service', function() {
 
       it('Should set a transaction in error', async () => {
         await testData.setBillingSystemInvalidCredentials();
-        const transactionID = await testData.generateTransaction();
+        const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         const transactions = await testData.userService.transactionApi.readAllInError({});
         expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
@@ -337,7 +364,7 @@ describe('Billing Service', function() {
       before(async () => {
         await testData.setBillingSystemValidCredentials();
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-        expect(testData.userContext).to.not.be.null;
+        assert(!!testData.userService, 'User service cannot be null');
         testData.userService = new CentralServerService(
           testData.tenantContext.getTenant().subdomain,
           testData.userContext
@@ -449,7 +476,7 @@ describe('Billing Service', function() {
         await testData.userService.billingApi.synchronizeInvoices({});
         let response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
         const itemsBefore: number = response.data.result[0].nbrOfItems;
-        const transactionID = await testData.generateTransaction();
+        const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         await testData.userService.billingApi.synchronizeInvoices({});
         response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
@@ -457,9 +484,89 @@ describe('Billing Service', function() {
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
       });
     });
+
+    describe('Where again the admin user', () => {
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        await testData.setBillingSystemValidCredentials();
+      });
+
+      after(async () => {
+        // TODO - cleanup test data!
+        // Cleanup of the utbilling tenant is useless if we cannot cleanup the utbilling stripe account as well
+      });
+
+      it('Should connect to Billing Provider', async () => {
+        const response = await testData.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
+        expect(response.data.connectionIsValid).to.be.true;
+        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
+      });
+
+      xit('Should create BILLING-TEST user', async () => {
+        testData.dynamicUser = {
+          ...Factory.user.build(),
+          name: 'BILLING-TEST',
+          firstName: 'Billing Integration Tests',
+          issuer: true
+        } as User;
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          testData.dynamicUser
+        );
+        testData.createdUsers.push(testData.dynamicUser);
+        const exists = await testData.billingImpl.userExists(testData.dynamicUser);
+        expect(exists).to.be.true;
+      });
+
+      it('Should synchronize BILLING-TEST user', async () => {
+        const response = await testData.billingImpl.synchronizeUser(testData.tenantContext.getTenant().id, testData.dynamicUser);
+        expect(response).to.be.not.null;
+        testData.billingUser = await testData.billingImpl.getUserByEmail(testData.dynamicUser.email);
+        expect(testData?.billingUser?.billingData?.customerID).to.not.be.null;
+      });
+
+      it('Should add a payment method to BILLING-TEST user', async () => {
+        const concreteImplementation : StripeBillingIntegration = testData.billingImpl as StripeBillingIntegration;
+        const stripe_test_token = 'tok_visa';
+        const source = await concreteImplementation.getStripeInstance().customers.createSource(testData.billingUser.billingData.customerID, {
+          source: stripe_test_token
+        });
+        expect(source).to.not.be.null;
+      });
+
+      it('should see no DRAFT invoices for BILLING-TEST user', async () => {
+        await testData.synchronizeAndCheckForDraftInvoices(testData.dynamicUser, 0);
+      });
+    });
+
+    describe('Where the BILLING-TEST user', () => {
+
+      before(async () => {
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        assert(!!testData.userContext, 'User context cannot be null');
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
+        assert(!!testData.userService, 'User service cannot be null');
+        await testData.setBillingSystemValidCredentials();
+      });
+
+      after(async () => {
+        // TODO - cleanup test data!
+        // Cleanup of the utbilling tenant is useless if we cannot cleanup the utbilling stripe account as well
+      });
+
+      it('should create a first DRAFT invoice for BILLING-TEST user', async () => {
+        assert(!!testData.dynamicUser, 'Dynamic user context cannot be null');
+        const transactionID = await testData.generateTransaction(testData.dynamicUser);
+        expect(transactionID).to.not.be.null;
+        await testData.synchronizeAndCheckForDraftInvoices(testData.dynamicUser, 1);
+      });
+    });
+
   });
 
-  after(async () => {
-    await testData.setBillingSystemValidCredentials();
-  });
 });
