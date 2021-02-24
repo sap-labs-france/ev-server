@@ -38,8 +38,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     this.stripeSettings = settings;
   }
 
-  public getStripeInstance(): Stripe {
+  public async getStripeInstance(): Promise<Stripe> {
     // TODO - To be clarified - only used by automated tests!!! - remove it ASAP
+    await this.checkConnection();
     return this.stripe;
   }
 
@@ -71,12 +72,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Validate the connection
       let isKeyValid = false;
       try {
-      // Get one customer
+        // Get one customer
         const list = await this.stripe.customers.list(
           { limit: 1 }
         );
         if (('object' in list) &&
-        (list.object === 'list')) {
+          (list.object === 'list')) {
           isKeyValid = true;
         }
       } catch (error) {
@@ -433,7 +434,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Webhook signing is recommended, but if the secret is not known
       // we can retrieve the event data directly from the request body.
       event = {
-        data:req.body.data,
+        data: req.body.data,
         type: req.body.type
       };
     }
@@ -457,7 +458,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async chargeInvoice(invoice: BillingInvoice): Promise<unknown> {
     await this.checkConnection();
     // Fetch the invoice from stripe (do NOT TRUST the local copy)
-    let stripeInvoice : invoices.IInvoice = await this.stripe.invoices.retrieve(invoice.invoiceID);
+    let stripeInvoice: invoices.IInvoice = await this.stripe.invoices.retrieve(invoice.invoiceID);
     // Check the current invoice status
     if (stripeInvoice.status === 'paid') {
       return {
@@ -473,9 +474,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (stripeInvoice.status === 'open') {
       // Set the payment options
       // TODO - default payment is used by default - is this ok?
-      const paymentOptions : invoices.IInvoicePayOptions = {
+      const paymentOptions: invoices.IInvoicePayOptions = {
       };
-      const operationResult:invoices.IInvoice = await this.stripe.invoices.pay(invoice.invoiceID, paymentOptions);
+      const operationResult: invoices.IInvoice = await this.stripe.invoices.pay(invoice.invoiceID, paymentOptions);
       return operationResult;
     }
     // TODO - Handle inconsistencies - Operation failed - unexpected status
@@ -485,7 +486,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     };
   }
 
-  public async attachPaymentMethod(user: User, paymentMethodId:string): Promise<unknown> {
+  public async attachPaymentMethod(user: User, paymentMethodId: string): Promise<unknown> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
