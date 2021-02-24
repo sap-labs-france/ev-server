@@ -154,7 +154,7 @@ export default class RegistrationTokenService {
     UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist`,
       MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Check auth
-    if (!Authorizations.canDeleteRegistrationToken(req.user, registrationToken?.siteArea?.siteID)) {
+    if (!Authorizations.canDeleteRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
