@@ -624,17 +624,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return !!customer;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async checkIfUserCanBeUpdated(user: User): Promise<boolean> {
     // Check connection
-    await this.checkConnection();
-    // Get billing user
-    let customer: Stripe.customers.ICustomer = null;
-    if (user.billingData && user.billingData.customerID) {
-      customer = await this.getCustomerByEmail(user.email);
-      if (!customer) {
-        return true;
-      }
-    }
+    // await this.checkConnection();
     return true;
   }
 
