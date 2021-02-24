@@ -45,44 +45,57 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async checkConnection(): Promise<void> {
     // Initialize Stripe
-    await this.initializeStripe();
-    // Check Key
-    if (!this.settings.secretKey) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'checkConnection',
-        action: ServerAction.CHECK_CONNECTION,
-        message: 'No secret key provided for connection to Stripe'
-      });
-    }
-    // Validate the connection
-    let isKeyValid = false;
-    try {
-      this.stripe = new Stripe(this.settings.secretKey);
-      // Get one customer
-      const list = await this.stripe.customers.list(
-        { limit: 1 }
-      );
-      if (('object' in list) &&
-        (list.object === 'list')) {
-        isKeyValid = true;
+    if (!this.stripe) {
+      // STRIPE not yet initialized - let's do it!
+      this.settings.currency = this.stripeSettings.currency;
+      this.settings.secretKey = await Cypher.decrypt(this.tenantID, this.stripeSettings.secretKey);
+      // Check Key
+      if (!this.settings.secretKey) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkConnection',
+          action: ServerAction.CHECK_CONNECTION,
+          message: 'No secret key provided for connection to Stripe'
+        });
       }
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'checkConnection',
-        action: ServerAction.CHECK_CONNECTION,
-        message: `Error occurred when connecting to Stripe: ${error.message as string}`,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-    if (!isKeyValid) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'checkConnection',
-        action: ServerAction.CHECK_CONNECTION,
-        message: 'Error occurred when connecting to Stripe: Invalid key'
-      });
+      this.stripe = new Stripe(this.settings.secretKey);
+      // Let's check if the connection is working properly
+      if (!this.stripe) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkConnection',
+          action: ServerAction.CHECK_CONNECTION,
+          message: 'Failed to connect to Stripe'
+        });
+      }
+      // Validate the connection
+      let isKeyValid = false;
+      try {
+      // Get one customer
+        const list = await this.stripe.customers.list(
+          { limit: 1 }
+        );
+        if (('object' in list) &&
+        (list.object === 'list')) {
+          isKeyValid = true;
+        }
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkConnection',
+          action: ServerAction.CHECK_CONNECTION,
+          message: `Error occurred when connecting to Stripe: ${error.message as string}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+      if (!isKeyValid) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkConnection',
+          action: ServerAction.CHECK_CONNECTION,
+          message: 'Error occurred when connecting to Stripe: Invalid key'
+        });
+      }
     }
   }
 
