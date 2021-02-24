@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import User, { UserStatus } from '../../../../types/User';
+import User, { UserImportStatus, UserStatus } from '../../../../types/User';
 
 import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -856,7 +856,7 @@ export default class UserService {
           res.writeHead(HTTPError.INVALID_FILE_FORMAT);
           res.end();
         });
-        file.pipe(converter);
+        void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('users.*');
         parser.on('data', async (user) => {
@@ -1245,7 +1245,8 @@ export default class UserService {
         firstName: user.First_Name,
         email: user.Email,
         role: user.Role,
-        importedBy: req.user.id
+        importedBy: req.user.id,
+        status: UserImportStatus.UNKNOWN
       };
       await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
     } catch (error) {

@@ -62,6 +62,12 @@ export enum UserStatus {
   LOCKED = 'L',
 }
 
+export enum UserImportStatus {
+  UNKNOWN = 'U',
+  IMPORTED = 'I',
+  ERROR = 'E',
+}
+
 export enum UserRole {
   SUPER_ADMIN = 'S',
   ADMIN = 'A',
