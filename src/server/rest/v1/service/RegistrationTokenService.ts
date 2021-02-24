@@ -16,6 +16,7 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import { filter } from 'bluebird';
 import moment from 'moment';
 
 const MODULE_NAME = 'RegistrationTokenService';
@@ -54,6 +55,16 @@ export default class RegistrationTokenService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The description must be provided',
+        module: MODULE_NAME, method: 'handleCreateRegistrationToken',
+        user: req.user
+      });
+    }
+    // Check site is provided for site admins
+    if (Authorizations.isSiteAdmin(req.user) && !filteredRequest.siteAreaID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.BAD_REQUEST,
+        message: 'The site must be provided',
         module: MODULE_NAME, method: 'handleCreateRegistrationToken',
         user: req.user
       });
@@ -122,6 +133,7 @@ export default class RegistrationTokenService {
     registrationToken.expirationDate = filteredRequest.expirationDate ? filteredRequest.expirationDate : moment().add(1, 'month').toDate();
     registrationToken.lastChangedBy = { id: req.user.id };
     registrationToken.lastChangedOn = new Date();
+    // Je vois pas a quoi ça sert de le mettre à null alors qu'une fois qu'il est révoké on est pas censé pouvoir le modifier, si ?
     registrationToken.revocationDate = null;
     // Save
     registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
@@ -145,7 +157,7 @@ export default class RegistrationTokenService {
     UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist`,
       MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Check auth
-    if (!Authorizations.canDeleteRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
+    if (!Authorizations.canDeleteRegistrationToken(req.user, registrationToken?.siteArea?.siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -264,16 +276,6 @@ export default class RegistrationTokenService {
   }
 
   static async handleGetRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!Authorizations.canReadRegistrationToken(req.user)) {
-      // Not Authorized!
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.TOKEN,
-        module: MODULE_NAME, method: 'handleGetRegistrationToken'
-      });
-    }
     const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
     // Check User
     let userProject: string[] = [];
@@ -290,6 +292,16 @@ export default class RegistrationTokenService {
       ]);
     UtilsService.assertObjectExists(action, registrationToken, `Token with ID '${filteredRequest}' does not exist`,
       MODULE_NAME, 'handleGetRegistrationToken', req.user);
+    // Check auth
+    if (!Authorizations.canReadRegistrationToken(req.user, registrationToken?.siteArea?.siteID)) {
+      // Not Authorized!
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.TOKEN,
+        module: MODULE_NAME, method: 'handleGetRegistrationToken'
+      });
+    }
     // Build OCPP URLs
     registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);

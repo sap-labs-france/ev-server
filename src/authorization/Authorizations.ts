@@ -412,9 +412,11 @@ export default class Authorizations {
     });
   }
 
-  public static canReadRegistrationToken(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.READ
-    );
+  public static canReadRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.READ, {
+      site: siteID,
+      sites: loggedUser.sitesAdmin
+    });
   }
 
   public static canDeleteRegistrationToken(loggedUser: UserToken, siteID: string): boolean {

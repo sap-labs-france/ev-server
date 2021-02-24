@@ -58,6 +58,8 @@ export enum HTTPError {
 
   CANNOT_ACQUIRE_LOCK = 510,
   INVALID_FILE_FORMAT = 583,
+
+  BAD_REQUEST = 400,
 }
 
 export enum HTTPAuthError {
