@@ -132,7 +132,7 @@ export default class AuthorizationService {
       authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSites(
+    await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
   }
@@ -151,7 +151,7 @@ export default class AuthorizationService {
       authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSites(
+    await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
   }
@@ -298,7 +298,7 @@ export default class AuthorizationService {
       authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSites(
+    await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
   }
@@ -307,7 +307,7 @@ export default class AuthorizationService {
     tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      projectFields:       [
+      projectFields: [
         'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'deleted', 'plateID',
         'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
       ],
@@ -318,7 +318,7 @@ export default class AuthorizationService {
       authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSites(
+    await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
   }
@@ -378,15 +378,15 @@ export default class AuthorizationService {
     };
   }
 
-  private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
+  private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
     filteredRequest: HttpSiteUsersRequest|HttpUserSitesRequest|HttpUserRequest|HttpUserAssignSitesRequest, authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin flag
-        const siteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-        if (!Utils.isEmptyArray(siteIDs)) {
+        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(siteAdminSiteIDs)) {
           // Force the filter
-          authorizationFilters.filters.siteIDs = siteIDs;
+          authorizationFilters.filters.siteIDs = siteAdminSiteIDs;
           // Check if filter is provided
           if (Utils.objectHasProperty(filteredRequest, 'SiteID') &&
               !Utils.isNullOrUndefined(filteredRequest['SiteID'])) {

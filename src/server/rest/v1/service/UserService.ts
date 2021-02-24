@@ -213,17 +213,7 @@ export default class UserService {
   public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const userID = UserSecurity.filterUserByIDRequest(req.query);
-    // Check Mandatory fields
-    if (!userID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleDeleteUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleDeleteUser', req.user);
     // Check auth
     if (!Authorizations.canDeleteUser(req.user, userID)) {
       throw new AppAuthError({
@@ -431,17 +421,7 @@ export default class UserService {
     let statusHasChanged = false;
     // Filter
     const filteredRequest = UserSecurity.filterUserUpdateRequest(req.body, req.user);
-    // Check Mandatory fields
-    if (!filteredRequest.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateUser', req.user);
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
