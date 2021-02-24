@@ -1,4 +1,4 @@
-import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
+import { HttpUserAssignSitesRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../../types/User';
 
 import Authorizations from '../../../../../authorization/Authorizations';
@@ -10,7 +10,7 @@ import sanitize from 'mongo-sanitize';
 
 export default class UserSecurity {
 
-  public static filterAssignSitesToUserRequest(request: any): HttpSitesAssignUserRequest {
+  public static filterAssignSitesToUserRequest(request: any): HttpUserAssignSitesRequest {
     return {
       userID: sanitize(request.userID),
       siteIDs: request.siteIDs ? request.siteIDs.map(sanitize) : []
