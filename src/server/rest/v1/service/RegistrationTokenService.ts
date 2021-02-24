@@ -60,12 +60,11 @@ export default class RegistrationTokenService {
     }
     // Check site is provided for site admins
     if (Authorizations.isSiteAdmin(req.user) && !filteredRequest.siteAreaID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.BAD_REQUEST,
-        message: 'The site must be provided',
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.CREATE, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleCreateRegistrationToken',
-        user: req.user
       });
     }
     // Create
