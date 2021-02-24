@@ -5,8 +5,7 @@ export interface HttpTenantVerifyRequest {
   tenant: string;
 }
 
-export interface HttpTenantRequest extends HttpByIDRequest {
-}
+export type HttpTenantRequest = HttpByIDRequest;
 
 export interface HttpTenantsRequest extends HttpDatabaseRequest {
   Search?: string;

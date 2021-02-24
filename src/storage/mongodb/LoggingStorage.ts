@@ -1,15 +1,12 @@
 import global, { FilterParams } from './../../types/GlobalType';
 
-import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { Log } from '../../types/Log';
 import Utils from '../../utils/Utils';
-import cfenv from 'cfenv';
 import cluster from 'cluster';
-import os from 'os';
 
 const MODULE_NAME = 'LoggingStorage';
 
