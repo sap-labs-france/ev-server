@@ -1,8 +1,9 @@
-import { BillingInvoiceItem, BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
+import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
 import BillingIntegration from '../../src/integration/billing/BillingIntegration';
+import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -112,14 +113,16 @@ class TestData {
   }
 
   public async checkForDraftInvoices(userId: string): Promise<number> {
-    // await testData.billingImpl.synchronizeUser(this.tenantContext.getTenant().id, user);
-    // await testData.billingImpl.synchronizeInvoices(user);
+    const result = await this.getDraftInvoices(userId);
+    return (result?.length) ? result.length : -1;
+  }
+
+  public async getDraftInvoices(userId: string) {
     const params = { Status: BillingInvoiceStatus.DRAFT, UserID: [userId] };
     const paging = TestConstants.DEFAULT_PAGING;
     const ordering = [{ field: 'createdOn', direction: 'desc' }];
     const response = await testData.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
-    // expect(response?.data?.result?.length).to.be.eq(expectedNumber);
-    return (response?.data?.result?.length) ? response?.data?.result?.length : -1;
+    return response?.data?.result;
   }
 
   public isBillingProperlyConfigured(): boolean {
@@ -543,8 +546,19 @@ describe('Billing Service', function() {
         assert(billingInvoiceItem, 'Invoice Item should not be null');
         // TODO - Clarify why the next line is necessary?
         await testData.billingImpl.forceSynchronizeUser(testData.dynamicUser);
-        const nbInvoices = await testData.checkForDraftInvoices(testData.dynamicUser.id);
-        assert(nbInvoices === 1, 'Dynamic User should have a draft invoice');
+
+        // const nbInvoices = await testData.checkForDraftInvoices(testData.dynamicUser.id);
+        // assert(nbInvoices === 1, 'Dynamic User should have a draft invoice');
+
+        const draftInvoices = await testData.getDraftInvoices(testData.dynamicUser.id);
+        assert(draftInvoices && draftInvoices.length === 1, 'Dynamic User should have a draft invoice');
+
+        const draftInvoiceId = draftInvoices[0].id;
+        const tenantId = testData.tenantContext?.getTenant()?.id;
+        assert(!!tenantId, 'Tenant ID cannot be null');
+        const draftInvoice: BillingInvoice = await BillingStorage.getInvoice(tenantId, draftInvoiceId);
+        const operationResult: any = await testData.billingImpl.chargeInvoice(draftInvoice);
+        assert(operationResult && operationResult?.invoiceStatus === 'paid' && operationResult?.rawData?.paid, 'Invoice should have been paid');
       });
     });
 
