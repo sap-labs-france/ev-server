@@ -141,10 +141,10 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
-  public static async getChargingStationBySerialNumber(tenantID: string, chargeBoxSerialNumber: string = Constants.UNKNOWN_STRING_ID,
+  public static async getChargingStationBySerialNumber(tenantID: string, chargingStationSerialNumber: string = Constants.UNKNOWN_STRING_ID,
     params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
-      chargeBoxSerialNumbers: [chargeBoxSerialNumber],
+      chargingStationSerialNumbers: [chargingStationSerialNumber],
       withSite: true, ...params
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
@@ -152,7 +152,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStations(tenantID: string,
     params: {
-      search?: string; chargingStationIDs?: string[]; chargeBoxSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
+      search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number;
@@ -204,9 +204,9 @@ export default class ChargingStationStorage {
       };
     }
     // Charging Stations
-    if (!Utils.isEmptyArray(params.chargeBoxSerialNumbers)) {
+    if (!Utils.isEmptyArray(params.chargingStationSerialNumbers)) {
       filters.chargeBoxSerialNumber = {
-        $in: params.chargeBoxSerialNumbers
+        $in: params.chargingStationSerialNumbers
       };
     }
     // Filter on lastSeen
@@ -642,9 +642,11 @@ export default class ChargingStationStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
   }
 
-  public static async deleteChargingStationBySerialNumber(tenantID: string, chargeBoxSerialNumber?: string): Promise<void> {
-    const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenantID, chargeBoxSerialNumber);
-    await ChargingStationStorage.deleteChargingStation(tenantID, chargingStation.id);
+  public static async deleteChargingStationBySerialNumber(tenantID: string, chargingStationSerialNumber?: string): Promise<void> {
+    const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenantID, chargingStationSerialNumber);
+    if (chargingStation) {
+      await ChargingStationStorage.deleteChargingStation(tenantID, chargingStation.id);
+    }
   }
 
   public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string): Promise<string> {
