@@ -43,32 +43,6 @@
   ],
   "paths": {
     "/api/tenants": {
-      "post": {
-        "description": "Create a Tenant",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Tenant"
-              }
-            }
-          }
-        },
-        "tags": [
-          "Tenant"
-        ],
-        "responses": {
-          "200": {
-            "description": "Tenant is created with success"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "500": {
-            "$ref": "#/components/responses/500BackendError"
-          }
-        }
-      },
       "get": {
         "description": "Retrieve a list of Tenants",
         "security": [
@@ -121,6 +95,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -142,6 +119,38 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a Tenant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tenant"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tenant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenant is created with success"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -166,6 +175,9 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -184,6 +196,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -217,6 +232,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -711,6 +729,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -853,6 +874,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           }
@@ -870,6 +894,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/chargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -1007,6 +1034,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           }
@@ -1033,6 +1063,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -1098,6 +1131,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           }
@@ -1161,6 +1197,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -1256,6 +1295,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           }
@@ -1349,6 +1391,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           },
@@ -1434,6 +1479,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -1521,6 +1569,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -1656,6 +1707,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           },
@@ -1750,6 +1804,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           }
@@ -1821,6 +1878,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -1919,6 +1979,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           }
@@ -1968,6 +2031,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           }
@@ -2011,6 +2077,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -2084,6 +2153,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -2170,6 +2242,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           }
@@ -2206,6 +2281,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -2275,6 +2353,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           },
@@ -2338,6 +2419,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -2484,6 +2568,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -2495,6 +2582,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -2534,6 +2624,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -2545,6 +2638,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -2613,6 +2709,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           }
@@ -2651,6 +2750,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "404": {
             "description": "Firmware not found"
           },
@@ -2677,6 +2779,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -2734,6 +2839,9 @@
           },
           {
             "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -2763,6 +2871,9 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
@@ -2811,6 +2922,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           },
@@ -2843,6 +2957,9 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
           "500": {
             "$ref": "#/components/responses/500BackendError"
           },
@@ -2863,7 +2980,10 @@
     },
     "responses": {
       "UnauthorizedError": {
-        "description": "Access token is missing or invalid"
+        "description": "Unauthorized access to the API"
+      },
+      "ForbiddenError": {
+        "description": "Not authorized to execute this operation"
       },
       "500BackendError": {
         "description": "Unexpected Backend error, checks the Logs"
@@ -3476,6 +3596,16 @@
         "name": "SortFields",
         "description": "Sorted fields",
         "example": "id",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ProjectFields": {
+        "in": "query",
+        "name": "ProjectFields",
+        "description": "Pipe separated projected fields",
+        "example": "",
         "required": false,
         "schema": {
           "type": "string"

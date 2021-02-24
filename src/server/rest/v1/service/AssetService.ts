@@ -34,7 +34,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleGetAsset',
@@ -75,7 +75,7 @@ export default class AssetService {
       assetID: filteredRequest.AssetID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
-    }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt' ]);
+    }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt', 'stateOfCharge' ]);
     // Assign
     asset.values = consumptions;
     // Return
@@ -105,7 +105,7 @@ export default class AssetService {
     // Is authorized to check connection ?
     if (!Authorizations.canCheckAssetConnection(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CHECK_CONNECTION, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleCheckAssetConnection'
@@ -139,7 +139,7 @@ export default class AssetService {
     // Is authorized to check connection ?
     if (!Authorizations.canRetrieveAssetConsumption(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.ASSET, action: Action.RETRIEVE_CONSUMPTION,
         module: MODULE_NAME, method: 'handleRetrieveConsumption'
@@ -176,7 +176,8 @@ export default class AssetService {
       });
     }
     // Retrieve consumption
-    const consumption = await assetImpl.retrieveConsumption(asset, true);
+    const consumptions = await assetImpl.retrieveConsumptions(asset, true);
+    const consumption = consumptions[0];
     // Assign
     asset.lastConsumption = consumption.lastConsumption;
     asset.currentConsumptionWh = consumption.currentConsumptionWh;
@@ -192,6 +193,7 @@ export default class AssetService {
     asset.currentInstantWattsL1 = consumption.currentInstantWattsL1;
     asset.currentInstantWattsL2 = consumption.currentInstantWattsL2;
     asset.currentInstantWattsL3 = consumption.currentInstantWattsL3;
+    asset.currentStateOfCharge = consumption.currentStateOfCharge;
     // Save Asset
     await AssetStorage.saveAsset(req.user.tenantID, asset);
     // Ok
@@ -204,11 +206,11 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssetsInError');
     // Check auth
-    if (!Authorizations.canListAssets(req.user)) {
+    if (!Authorizations.canListAssetsInError(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.ASSETS,
+        action: Action.IN_ERROR, entity: Entity.ASSETS,
         module: MODULE_NAME, method: 'handleGetAssetsInError'
       });
     }
@@ -225,7 +227,7 @@ export default class AssetService {
       },
       { limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [ 'id', 'name', 'errorCodeDetails', 'errorCode' ]
@@ -245,7 +247,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canDeleteAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleDeleteAsset',
@@ -285,7 +287,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleGetAsset',
@@ -332,7 +334,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canListAssets(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.ASSETS,
         module: MODULE_NAME, method: 'handleGetAssets'
@@ -349,10 +351,10 @@ export default class AssetService {
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         dynamicOnly: filteredRequest.DynamicOnly,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates',
-        'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts'
+        'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
       ]
     );
     res.json(assets);
@@ -366,7 +368,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canCreateAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'handleCreateAsset'
@@ -387,6 +389,7 @@ export default class AssetService {
       name: filteredRequest.name,
       siteAreaID: filteredRequest.siteAreaID,
       assetType: filteredRequest.assetType,
+      excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
       fluctuationPercent: filteredRequest.fluctuationPercent,
       staticValueWatt: filteredRequest.staticValueWatt,
       coordinates: filteredRequest.coordinates,
@@ -422,7 +425,7 @@ export default class AssetService {
     // Check auth
     if (!Authorizations.canUpdateAsset(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.ASSET, action: Action.UPDATE,
         module: MODULE_NAME, method: 'handleUpdateAsset',
@@ -446,6 +449,7 @@ export default class AssetService {
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
     asset.assetType = filteredRequest.assetType;
+    asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     asset.fluctuationPercent = filteredRequest.fluctuationPercent;
     asset.staticValueWatt = filteredRequest.staticValueWatt;
     asset.coordinates = filteredRequest.coordinates;

@@ -99,6 +99,7 @@ class RequestMapper {
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
           [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
           [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
+          [ServerAction.USERS_IMPORT]: UserService.handleImportUsers.bind(this),
         });
         break;
 
@@ -126,6 +127,7 @@ class RequestMapper {
           [ServerAction.GENERATE_QR_CODE_FOR_CONNECTOR]: ChargingStationService.handleGenerateQrCodeForConnector.bind(this),
           [ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF]: ChargingStationService.handleDownloadQrCodesPdf.bind(this),
           [ServerAction.REGISTRATION_TOKENS]: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
+          [ServerAction.REGISTRATION_TOKEN]: RegistrationTokenService.handleGetRegistrationToken.bind(this),
           [ServerAction.STATUS_NOTIFICATIONS]: ChargingStationService.handleGetStatusNotifications.bind(this),
           [ServerAction.BOOT_NOTIFICATION]: ChargingStationService.handleGetBootNotifications.bind(this),
           [ServerAction.COMPANIES]: CompanyService.handleGetCompanies.bind(this),
@@ -182,6 +184,7 @@ class RequestMapper {
           [ServerAction.TRANSACTION_CONSUMPTION]: TransactionService.handleGetTransactionConsumption.bind(this),
           [ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS]: ChargingStationService.handleGetChargingStationOcppParameters.bind(this),
           [ServerAction.CHARGING_STATIONS_IN_ERROR]: ChargingStationService.handleGetChargingStationsInError.bind(this),
+          [ServerAction.SETTING_BY_INDENTIFIER]: SettingService.handleGetSettingByIdentifier.bind(this),
           [ServerAction.SETTINGS]: SettingService.handleGetSettings.bind(this),
           [ServerAction.SETTING]: SettingService.handleGetSetting.bind(this),
           [ServerAction.CHECK_BILLING_CONNECTION]: BillingService.handleCheckBillingConnection.bind(this),
@@ -223,6 +226,7 @@ class RequestMapper {
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
+          [ServerAction.REGISTRATION_TOKEN_UPDATE]: RegistrationTokenService.handleUpdateRegistrationToken.bind(this),
         });
         break;
 

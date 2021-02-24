@@ -1,5 +1,6 @@
+import HttpDatabaseRequest, { HttpDatabaseProjectRequest } from './HttpDatabaseRequest';
+
 import HttpByIDRequest from './HttpByIDRequest';
-import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpSiteRequest extends HttpByIDRequest {
   WithCompany?: boolean;
@@ -22,7 +23,7 @@ export interface HttpSiteImageRequest extends HttpByIDRequest {
   TenantID: string;
 }
 
-export interface HttpSiteAssignUsersRequest {
+export interface HttpSiteAssignUsersRequest extends HttpDatabaseProjectRequest {
   siteID: string;
   userIDs: string[];
   role: string;

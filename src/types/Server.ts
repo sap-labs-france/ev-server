@@ -39,9 +39,11 @@ export enum ServerAction {
   CHECK_SMART_CHARGING_CONNECTION = 'CheckSmartChargingConnection',
   TRIGGER_SMART_CHARGING = 'TriggerSmartCharging',
 
+  REGISTRATION_TOKEN = 'RegistrationToken',
   REGISTRATION_TOKENS = 'RegistrationTokens',
   REGISTRATION_TOKEN_DELETE = 'RegistrationTokenDelete',
   REGISTRATION_TOKEN_REVOKE = 'RegistrationTokenRevoke',
+  REGISTRATION_TOKEN_UPDATE = 'RegistrationTokenUpdate',
 
   STATUS_NOTIFICATIONS = 'StatusNotifications',
 
@@ -325,6 +327,7 @@ export enum ServerAction {
   SYNCHRONIZE_REFUNDED_TRANSACTIONS = 'SynchronizeRefundedTransactions',
 
   SETTING_CREATE = 'SettingCreate',
+  SETTING_BY_INDENTIFIER = 'SettingByIdentifier',
   SETTINGS = 'Settings',
   SETTING = 'Setting',
   SETTING_UPDATE = 'SettingUpdate',
@@ -353,6 +356,7 @@ export enum ServerAction {
   TAGS_DELETE = 'TagsDelete',
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
+  USERS_IMPORT = 'UsersImport',
 
   NOTIFICATIONS = 'Notifications',
 

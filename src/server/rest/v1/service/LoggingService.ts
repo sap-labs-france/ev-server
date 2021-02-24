@@ -43,7 +43,7 @@ export default class LoggingService {
     // Check auth
     if (!Authorizations.canReadLog(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.LOGGING,
         module: MODULE_NAME, method: 'handleGetLog'
@@ -92,7 +92,7 @@ export default class LoggingService {
     // Check auth
     if (!Authorizations.canListLoggings(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.LOGGINGS,
         module: MODULE_NAME, method: 'getLogs'
@@ -119,7 +119,7 @@ export default class LoggingService {
         filteredRequest.Source = sources.join('|');
       } else {
         // Add all Site Admin Chargers in filter
-        filteredRequest.Source = chargingStations.result.join('|');
+        filteredRequest.Source = chargingStations.result.map((chargingStation) => chargingStation.id).join('|');
       }
     }
     // Get logs
@@ -136,7 +136,7 @@ export default class LoggingService {
     }, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
-      sort: filteredRequest.Sort,
+      sort: filteredRequest.SortFields,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     }, [
       'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',

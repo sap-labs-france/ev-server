@@ -20,7 +20,7 @@ import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import { TechnicalSettingsType } from '../../../../types/Setting';
+import { TechnicalSettings } from '../../../../types/Setting';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -539,8 +539,8 @@ export default class AuthService {
         message: 'Wrong Verification Token'
       });
     }
-    const userSetting = await SettingStorage.getSettingByIdentifier(tenantID, TechnicalSettingsType.USER);
-    const userStatus = userSetting.content.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
+    const userSettings = await SettingStorage.getUserSettings(tenantID);
+    const userStatus = userSettings.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, userStatus);
     // For integration with billing
@@ -575,7 +575,9 @@ export default class AuthService {
       tenantID: tenantID,
       user: user, action: action,
       module: MODULE_NAME, method: 'handleVerifyEmail',
-      message: userStatus === UserStatus.ACTIVE ? 'User account has been successfully verified and activated' : 'User account has been successfully verified but needs an admin to activate it',
+      message: userStatus === UserStatus.ACTIVE ?
+        'User account has been successfully verified and activated' :
+        'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
     NotificationHandler.sendAccountVerification(

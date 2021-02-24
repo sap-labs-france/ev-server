@@ -1,9 +1,8 @@
-import HttpDatabaseRequest from './HttpDatabaseRequest';
-import User from '../User';
+import HttpDatabaseRequest, { HttpDatabaseProjectRequest } from './HttpDatabaseRequest';
 
-export interface HttpUserRequest extends Partial<User> {
-  passwords: { password?: string };
-}
+import HttpByIDRequest from './HttpByIDRequest';
+
+export type HttpUserRequest = HttpByIDRequest;
 
 export interface HttpSynchronizeUserRequest {
   id?: string;
@@ -24,7 +23,7 @@ export interface HttpUserMobileTokenRequest {
   mobileOS: string;
 }
 
-export interface HttpSitesAssignUserRequest {
+export interface HttpUserAssignSitesRequest extends HttpDatabaseProjectRequest {
   userID: string;
   siteIDs: string[];
 }

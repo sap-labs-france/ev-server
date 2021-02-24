@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { CryptoKeySetting, CryptoSettingsType, SettingDB, SettingDBContent, TechnicalSettingsType, UserSetting, UserSettingsContentType } from '../../../../types/Setting';
+import { CryptoSettings, CryptoSettingsType, SettingDB, SettingDBContent, TechnicalSettings, UserSettings, UserSettingsType } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantLogo } from '../../../../types/Tenant';
@@ -9,7 +9,6 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import Cypher from '../../../../utils/Cypher';
 import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -18,7 +17,6 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
-import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidation';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -36,7 +34,7 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleDeleteTenant',
@@ -109,24 +107,32 @@ export default class TenantService {
 
   public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const tenantID = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
-    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
+    const filteredRequest = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleGetTenant',
-        value: tenantID
+        value: filteredRequest.ID
       });
     }
+    let projectFields = [
+      'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo'
+    ];
+    // Check projection
+    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
+    }
     // Get it
-    const tenant = await TenantStorage.getTenant(tenantID,
+    const tenant = await TenantStorage.getTenant(filteredRequest.ID,
       { withLogo: true },
-      [ 'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo']
+      projectFields
     );
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTenant', req.user);
     // Return
     res.json(tenant);
@@ -139,18 +145,23 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TENANTS,
         module: MODULE_NAME, method: 'handleGetTenants'
       });
     }
     // Filter
-    const projectFields = [
+    let projectFields = [
       'id', 'name', 'email', 'subdomain', 'logo', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
     ];
     if (filteredRequest.WithComponents) {
       projectFields.push('components');
+    }
+    // Check projection
+    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
     // Get the tenants
     const tenants = await TenantStorage.getTenants(
@@ -166,44 +177,42 @@ export default class TenantService {
   }
 
   public static async createInitialSettingsForTenant(tenantID: string): Promise<void> {
-    await this.createInitialCryptoSetting(tenantID);
-    await this.createInitialUserSetting(tenantID);
+    await this.createInitialCryptoSettings(tenantID);
+    await this.createInitialUserSettings(tenantID);
   }
 
-  public static async createInitialCryptoSetting(tenantID: string): Promise<void> {
+  public static async createInitialCryptoSettings(tenantID: string): Promise<void> {
     // Check for settings in db
     const keySettings = await SettingStorage.getCryptoSettings(tenantID);
-    // Generate Crypto Key Settings
+    // Create Crypto Key Settings
     if (!keySettings) {
-      const keySettingToSave = {
-        identifier: TenantComponents.CRYPTO,
+      const keySettingToSave: CryptoSettings = {
+        identifier: TechnicalSettings.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: {
           key: Utils.generateKey(),
           keyProperties: Utils.getDefaultKeyProperties()
         }
-      } as CryptoKeySetting;
+      } as CryptoSettings;
       // Save Crypto Key Settings
-      await Cypher.saveCryptoSetting(tenantID, keySettingToSave);
+      await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
     }
   }
 
-  public static async createInitialUserSetting(tenantID: string): Promise<void> {
+  public static async createInitialUserSettings(tenantID: string): Promise<void> {
     // Check for settings in db
     const userSettings = await SettingStorage.getUserSettings(tenantID);
+    // Create new user settings
     if (!userSettings) {
-      // Create new user setting with account activation param
-      const settingsToSave = {
-        identifier: TechnicalSettingsType.USER,
-        content: {
-          type: UserSettingsContentType.USER,
-          user: {
-            autoActivateAccountAfterValidation: true
-          }
+      const settingsToSave: UserSettings = {
+        identifier: TechnicalSettings.USER,
+        type: UserSettingsType.USER,
+        user: {
+          autoActivateAccountAfterValidation: true
         },
         createdOn: new Date(),
-      } as UserSetting;
-      await SettingStorage.saveSettings(tenantID, settingsToSave);
+      };
+      await SettingStorage.saveUserSettings(tenantID, settingsToSave);
     }
   }
 
@@ -213,7 +222,7 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleCreateTenant'
@@ -315,7 +324,7 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleUpdateTenant',

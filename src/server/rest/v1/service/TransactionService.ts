@@ -44,7 +44,7 @@ export default class TransactionService {
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.UPDATE, entity: Entity.TRANSACTION,
           module: MODULE_NAME, method: 'handleSynchronizeRefundedTransactions'
@@ -110,7 +110,7 @@ export default class TransactionService {
       // Check auth
       if (!Authorizations.canRefundTransaction(req.user, transaction)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.REFUND_TRANSACTION, entity: Entity.TRANSACTION,
           module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -168,7 +168,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -243,7 +243,7 @@ export default class TransactionService {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetUnassignedTransactionsCount'
@@ -275,7 +275,7 @@ export default class TransactionService {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleRebuildTransactionConsumptions'
@@ -299,7 +299,7 @@ export default class TransactionService {
     // Check auths
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleAssignTransactionsToUser'
@@ -364,7 +364,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleDeleteTransaction',
@@ -387,7 +387,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -408,7 +408,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
@@ -498,7 +498,7 @@ export default class TransactionService {
     // Check Transaction
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetConsumptionFromTransaction',
@@ -577,7 +577,7 @@ export default class TransactionService {
     // Check Transaction
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetTransaction',
@@ -671,7 +671,7 @@ export default class TransactionService {
     // Check Transaction
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TRANSACTIONS,
         module: MODULE_NAME, method: 'handleGetRefundReports'
@@ -701,7 +701,7 @@ export default class TransactionService {
     const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
-      sort: filteredRequest.Sort,
+      sort: filteredRequest.SortFields,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
     ['id', ...userProject]);
@@ -746,7 +746,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -781,9 +781,9 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        action: Action.IN_ERROR, entity: Entity.TRANSACTIONS,
         module: MODULE_NAME, method: 'handleGetTransactionsInError'
       });
     }
@@ -937,7 +937,7 @@ export default class TransactionService {
     // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TRANSACTIONS,
         module: MODULE_NAME, method: 'handleGetTransactionsToRefund'
@@ -970,6 +970,10 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
     // Build
     const extrafilters: any = {};
     if (Utils.objectHasProperty(params, 'completedTransactions')) {
@@ -997,7 +1001,7 @@ export default class TransactionService {
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
         inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       projectFields
     );
     return transactions;

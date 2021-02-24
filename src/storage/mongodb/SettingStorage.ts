@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoKeySetting, CryptoSetting, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettingsType, UserSetting } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -304,10 +304,10 @@ export default class SettingStorage {
     }
   }
 
-  public static async getCryptoSettings(tenantID: string): Promise<CryptoKeySetting> {
+  public static async getCryptoSettings(tenantID: string): Promise<CryptoSettings> {
     // Get the Crypto Key settings
     const settings = await SettingStorage.getSettings(tenantID,
-      { identifier: TenantComponents.CRYPTO },
+      { identifier: TechnicalSettings.CRYPTO },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings.count > 0) {
       const cryptoSetting = {
@@ -328,21 +328,26 @@ export default class SettingStorage {
       }
       return {
         id: settings.result[0].id,
-        identifier: TenantComponents.CRYPTO,
+        identifier: TechnicalSettings.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: cryptoSetting
       };
     }
   }
 
-  public static async getUserSettings(tenantID: string): Promise<UserSetting> {
-    let userSetting : UserSetting = null;
+  public static async getUserSettings(tenantID: string): Promise<UserSettings> {
+    let userSettings: UserSettings;
     // Get the user settings
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: TechnicalSettingsType.USER }, Constants.DB_PARAMS_SINGLE_RECORD);
-    if (settings && settings.count > 0 && settings.result[0]) {
-      userSetting = settings.result[0] as UserSetting;
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TechnicalSettings.USER }, Constants.DB_PARAMS_SINGLE_RECORD);
+    if (settings.count > 0) {
+      userSettings = {
+        id: settings.result[0].id,
+        identifier: TechnicalSettings.USER,
+        type: UserSettingsType.USER,
+        user: settings.result[0].content.user,
+      };
     }
-    return userSetting;
+    return userSettings;
   }
 
   public static async getSettings(tenantID: string,
@@ -426,5 +431,35 @@ export default class SettingStorage {
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
+  }
+
+  public static async saveUserSettings(tenantID: string, userSettingToSave: UserSettings): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      id: userSettingToSave.id,
+      identifier: TechnicalSettings.USER,
+      lastChangedOn: new Date(),
+      content: {
+        type: UserSettingsType.USER,
+        user: userSettingToSave.user
+      },
+    } as SettingDB;
+    // Save
+    await SettingStorage.saveSettings(tenantID, settingsToSave);
+  }
+
+  public static async saveCryptoSettings(tenantID: string, cryptoSettingsToSave: CryptoSettings): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      id: cryptoSettingsToSave.id,
+      identifier: TechnicalSettings.CRYPTO,
+      lastChangedOn: new Date(),
+      content: {
+        type: CryptoSettingsType.CRYPTO,
+        crypto: cryptoSettingsToSave.crypto
+      },
+    } as SettingDB;
+    // Save
+    await SettingStorage.saveSettings(tenantID, settingsToSave);
   }
 }

@@ -136,7 +136,6 @@ export default class MongoDBStorageNotification {
         this.centralRestServer?.notifySite(tenantID, action, { id: documentID });
         break;
       case 'tenants':
-        TenantStorage.clearCache(documentID);
         this.centralRestServer?.notifyTenant(tenantID, action, { id: documentID });
         break;
       case 'transactions':

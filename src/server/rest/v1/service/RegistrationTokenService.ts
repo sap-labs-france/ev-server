@@ -33,7 +33,7 @@ export default class RegistrationTokenService {
       if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
         // Not Authorized!
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.CREATE, entity: Entity.TOKEN,
           module: MODULE_NAME, method: 'handleCreateRegistrationToken'
@@ -42,7 +42,7 @@ export default class RegistrationTokenService {
     } else if (!Authorizations.canCreateRegistrationToken(req.user, null)) {
       // Not Authorized!
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleCreateRegistrationToken'
@@ -84,25 +84,27 @@ export default class RegistrationTokenService {
     // Filter
     const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
+    // Check Auth
+    if (!Authorizations.canUpdateRegistrationToken(req.user, filteredRequest.siteAreaID)) {
+      // Not Authorized!
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TOKEN,
+        module: MODULE_NAME, method: 'handleUpdateRegistrationToken'
+      });
+    }
     // Get Token
     const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, registrationToken, `Token ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
-      // Check Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
-        MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
-    }
-    // Check Auth
-    if (!Authorizations.canUpdateRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
-      // Not Authorized!
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TOKEN,
-        module: MODULE_NAME, method: 'handleUpdateRegistrationToken'
-      });
+      // Check Site Area if it's provided
+      if (filteredRequest.siteAreaID) {
+        const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+        UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
+          MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
+      }
     }
     // Check
     if (!filteredRequest.description) {
@@ -120,6 +122,7 @@ export default class RegistrationTokenService {
     registrationToken.expirationDate = filteredRequest.expirationDate ? filteredRequest.expirationDate : moment().add(1, 'month').toDate();
     registrationToken.lastChangedBy = { id: req.user.id };
     registrationToken.lastChangedOn = new Date();
+    registrationToken.revocationDate = null;
     // Save
     registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
     // Build OCPP URLs
@@ -144,7 +147,7 @@ export default class RegistrationTokenService {
     // Check auth
     if (!Authorizations.canDeleteRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleDeleteRegistrationToken',
@@ -176,11 +179,21 @@ export default class RegistrationTokenService {
     // Check auth
     if (!Authorizations.canUpdateRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
         value: tokenID
+      });
+    }
+    if (registrationToken.expirationDate &&
+        moment(registrationToken.expirationDate).isBefore(new Date())) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Cannot revoke a token that has expired',
+        module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
+        user: req.user
       });
     }
     // Update
@@ -206,7 +219,7 @@ export default class RegistrationTokenService {
     if (!Authorizations.canListRegistrationTokens(req.user)) {
       // Not Authorized!
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TOKENS,
         module: MODULE_NAME, method: 'handleGetRegistrationTokens'
@@ -227,7 +240,7 @@ export default class RegistrationTokenService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
@@ -249,4 +262,44 @@ export default class RegistrationTokenService {
     res.json(registrationTokens);
     next();
   }
+
+  static async handleGetRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canReadRegistrationToken(req.user)) {
+      // Not Authorized!
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.TOKEN,
+        module: MODULE_NAME, method: 'handleGetRegistrationToken'
+      });
+    }
+    const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
+    // Check User
+    let userProject: string[] = [];
+    if (Authorizations.canListUsers(req.user)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
+    }
+    // Get the token
+    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID,
+      filteredRequest,
+      [
+        'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+        'siteAreaID', 'siteArea.name',
+        ...userProject
+      ]);
+    UtilsService.assertObjectExists(action, registrationToken, `Token with ID '${filteredRequest}' does not exist`,
+      MODULE_NAME, 'handleGetRegistrationToken', req.user);
+    // Build OCPP URLs
+    registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
+    registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
+    // Ok
+    res.json(registrationToken);
+    next();
+  }
 }
+
