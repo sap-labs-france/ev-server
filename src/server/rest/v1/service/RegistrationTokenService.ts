@@ -1,22 +1,22 @@
-import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
+import moment from 'moment';
 
+import Authorizations from '../../../../authorization/Authorizations';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import Authorizations from '../../../../authorization/Authorizations';
+import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
+import { Action, Entity } from '../../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
+import RegistrationToken from '../../../../types/RegistrationToken';
+import { ServerAction } from '../../../../types/Server';
+import TenantComponents from '../../../../types/TenantComponents';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
-import RegistrationToken from '../../../../types/RegistrationToken';
-import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
-import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
-import { ServerAction } from '../../../../types/Server';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import TenantComponents from '../../../../types/TenantComponents';
 import Utils from '../../../../utils/Utils';
+import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
 import UtilsService from './UtilsService';
-import moment from 'moment';
 
 const MODULE_NAME = 'RegistrationTokenService';
 
@@ -59,12 +59,15 @@ export default class RegistrationTokenService {
       });
     }
     // Check site is provided for site admins
-    if (Authorizations.isSiteAdmin(req.user) && !filteredRequest.siteAreaID) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.TOKEN,
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) &&
+        Authorizations.isSiteAdmin(req.user) &&
+        !filteredRequest.siteAreaID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The Site ID must be provided',
         module: MODULE_NAME, method: 'handleCreateRegistrationToken',
+        user: req.user
       });
     }
     // Create
