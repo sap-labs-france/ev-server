@@ -94,7 +94,8 @@ class TestData {
   public async generateTransaction(user: any): Promise<number> {
     // const user:any = this.userContext;
     const connectorId = 1;
-    const tagId = (user.tags && user.tags.length) ? user.tags[0].id : 'A12342'; // TODO - to be clarified - user.tags is not defined in the User type!!!
+    assert((user.tags && user.tags.length), 'User must have a valid tag');
+    const tagId = user.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment().toDate();
