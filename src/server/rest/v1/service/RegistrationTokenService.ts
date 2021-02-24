@@ -132,7 +132,6 @@ export default class RegistrationTokenService {
     registrationToken.expirationDate = filteredRequest.expirationDate ? filteredRequest.expirationDate : moment().add(1, 'month').toDate();
     registrationToken.lastChangedBy = { id: req.user.id };
     registrationToken.lastChangedOn = new Date();
-    // Je vois pas a quoi ça sert de le mettre à null alors qu'une fois qu'il est révoké on est pas censé pouvoir le modifier, si ?
     registrationToken.revocationDate = null;
     // Save
     registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
