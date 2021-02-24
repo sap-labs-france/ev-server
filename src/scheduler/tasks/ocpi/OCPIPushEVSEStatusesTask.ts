@@ -1,4 +1,4 @@
-import { OCPIPushLocationsTaskConfig, TaskConfig } from '../../../types/TaskConfig';
+import { OCPIPushEVSEStatusesTaskConfig, TaskConfig } from '../../../types/TaskConfig';
 
 import Constants from '../../../utils/Constants';
 import LockingHelper from '../../../locking/LockingHelper';
@@ -15,9 +15,9 @@ import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
 
-const MODULE_NAME = 'OCPIPushLocationsTask';
+const MODULE_NAME = 'OCPIPushEVSEStatusesTask';
 
-export default class OCPIPushLocationsTask extends SchedulerTask {
+export default class OCPIPushEVSEStatusesTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
@@ -31,11 +31,11 @@ export default class OCPIPushLocationsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_EVSE_STATUSES, error);
     }
   }
 
-  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIPushLocationsTaskConfig): Promise<void> {
+  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIPushEVSEStatusesTaskConfig): Promise<void> {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIPatchCpoLocationsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
@@ -45,7 +45,7 @@ export default class OCPIPushLocationsTask extends SchedulerTask {
           Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_PUSH_LOCATIONS,
+            action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the ocpiendpoint.`
           });
           return;
@@ -54,7 +54,7 @@ export default class OCPIPushLocationsTask extends SchedulerTask {
           Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_PUSH_LOCATIONS,
+            action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
           return;
@@ -62,7 +62,7 @@ export default class OCPIPushLocationsTask extends SchedulerTask {
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_PUSH_LOCATIONS,
+          action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
           message: `The push Locations process for endpoint '${ocpiEndpoint.name}' is being processed`
         });
         // Build OCPI Client
@@ -72,12 +72,12 @@ export default class OCPIPushLocationsTask extends SchedulerTask {
         Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_PUSH_LOCATIONS,
+          action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
           message: `The push Locations process for endpoint '${ocpiEndpoint.name}' is completed (Success: ${sendResult.success} / Failure: ${sendResult.failure})`
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_LOCATIONS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_EVSE_STATUSES, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

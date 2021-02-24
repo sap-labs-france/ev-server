@@ -30,7 +30,7 @@ export default class CompanyService {
     // Check auth
     if (!Authorizations.canDeleteCompany(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'handleDeleteCompany',
@@ -78,7 +78,7 @@ export default class CompanyService {
     // Check auth
     if (!Authorizations.canReadCompany(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'handleGetCompany',
@@ -127,7 +127,7 @@ export default class CompanyService {
     // Check auth
     if (!Authorizations.canListCompanies(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.COMPANIES,
         module: MODULE_NAME, method: 'handleGetCompanies'
@@ -151,7 +151,7 @@ export default class CompanyService {
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn', ...userProject ]
     );
     // Return
@@ -166,7 +166,7 @@ export default class CompanyService {
     // Check auth
     if (!Authorizations.canCreateCompany(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'handleCreateCompany'
@@ -207,7 +207,7 @@ export default class CompanyService {
     // Check auth
     if (!Authorizations.canUpdateCompany(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'handleUpdateCompany',

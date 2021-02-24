@@ -141,9 +141,18 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
+  public static async getChargingStationBySerialNumber(tenantID: string, chargingStationSerialNumber: string = Constants.UNKNOWN_STRING_ID,
+    params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[]): Promise<ChargingStation> {
+    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
+      chargingStationSerialNumbers: [chargingStationSerialNumber],
+      withSite: true, ...params
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
+  }
+
   public static async getChargingStations(tenantID: string,
     params: {
-      search?: string; chargingStationIDs?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
+      search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number;
@@ -151,6 +160,7 @@ export default class ChargingStationStorage {
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
+    let siteAreaLookUpAdded = false;
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
@@ -191,6 +201,12 @@ export default class ChargingStationStorage {
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {
       filters._id = {
         $in: params.chargingStationIDs
+      };
+    }
+    // Charging Stations
+    if (!Utils.isEmptyArray(params.chargingStationSerialNumbers)) {
+      filters.chargeBoxSerialNumber = {
+        $in: params.chargingStationSerialNumbers
       };
     }
     // Filter on lastSeen
@@ -258,13 +274,15 @@ export default class ChargingStationStorage {
       if (!Utils.isEmptyArray(params.siteAreaIDs)) {
         filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
       }
-      // Site Area
-      DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-        asField: 'siteArea', oneToOneCardinality: true
-      });
       // Check Site ID
       if (!Utils.isEmptyArray(params.siteIDs)) {
+        // TODO: Optimization: Assign SiteID to the charging station object
+        // Site Area
+        siteAreaLookUpAdded = true;
+        DatabaseUtils.pushSiteAreaLookupInAggregation({
+          tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+          asField: 'siteArea', oneToOneCardinality: true
+        });
         // Build filter
         aggregation.push({
           $match: {
@@ -305,8 +323,6 @@ export default class ChargingStationStorage {
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
     }
-    // Always add Connector ID
-    dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
     // Position coordinates
     if (Utils.containsGPSCoordinates(params.locCoordinates)) {
       // Override (can have only one sort)
@@ -328,6 +344,13 @@ export default class ChargingStationStorage {
       tenantID, aggregation: aggregation, localField: 'connectors.userID', foreignField: '_id',
       asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
     }, { sort: dbParams.sort });
+    // Site Area
+    if (!siteAreaLookUpAdded) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true
+      });
+    }
     // Site
     if (params.withSite && !params.withNoSiteArea) {
       DatabaseUtils.pushSiteLookupInAggregation({
@@ -335,12 +358,6 @@ export default class ChargingStationStorage {
         asField: 'siteArea.site', oneToOneCardinality: true
       });
     }
-    // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
-    aggregation.push({
-      '$addFields': {
-        'lastHeartBeat': '$lastSeen'
-      }
-    });
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert siteID back to string after having queried the site
@@ -351,6 +368,15 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
+    // Reorder connector ID
+    // TODO: To remove the 'if containsGPSCoordinates' when SiteID optimization will be implemented
+    if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
+      // Always add Connector ID
+      dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    }
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .aggregate(aggregation, {
@@ -616,6 +642,13 @@ export default class ChargingStationStorage {
     Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
   }
 
+  public static async deleteChargingStationBySerialNumber(tenantID: string, chargingStationSerialNumber?: string): Promise<void> {
+    const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenantID, chargingStationSerialNumber);
+    if (chargingStation) {
+      await ChargingStationStorage.deleteChargingStation(tenantID, chargingStation.id);
+    }
+  }
+
   public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string): Promise<string> {
     const configuration = await ChargingStationStorage.getOcppParameters(tenantID, chargeBoxID);
     let value: string = null;
@@ -759,17 +792,24 @@ export default class ChargingStationStorage {
         asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
       // Site Areas
-      DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
-        asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-      });
-      // Check Site ID
+      if (params.withSiteArea || !Utils.isEmptyArray(params.siteIDs)) {
+        DatabaseUtils.pushSiteAreaLookupInAggregation({
+          tenantID, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
+          asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+        });
+        // Convert
+        DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
+      }
+      // Convert
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
+      // TODO: Optimization: add the Site ID to the Charging Profile
+      // Site ID
       if (!Utils.isEmptyArray(params.siteIDs)) {
         // Build filter
         aggregation.push({
           $match: {
             'chargingStation.siteArea.siteID': {
-              $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+              $in: params.siteIDs
             }
           }
         });
@@ -817,9 +857,6 @@ export default class ChargingStationStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Convert
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

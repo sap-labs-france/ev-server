@@ -25,7 +25,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleDeleteSetting',
@@ -58,7 +58,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleGetSetting',
@@ -81,11 +81,41 @@ export default class SettingService {
     next();
   }
 
+  public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+    // Filter
+    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
+    // Check auth
+    if (!Authorizations.canReadSetting(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleGetSettingByIdentifier',
+        value: settingID
+      });
+    }
+    // Get it
+    const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, settingID);
+    UtilsService.assertObjectExists(action, setting, `Setting with Identifier '${settingID}' does not exist`,
+      MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
+    // Process the sensitive data if any
+    // Hash sensitive data before being sent to the front end
+    Cypher.hashSensitiveDataInJSON(setting);
+    // If Crypto Settings, hash key
+    if (setting.identifier === 'crypto') {
+      setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+    }
+    // Return
+    res.json(setting);
+    next();
+  }
+
   public static async handleGetSettings(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.SETTINGS,
         module: MODULE_NAME, method: 'handleGetSettings'
@@ -96,7 +126,7 @@ export default class SettingService {
     // Get the all settings identifier
     const settings = await SettingStorage.getSettings(req.user.tenantID,
       { identifier: filteredRequest.Identifier },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Process the sensitive data if any
     for (const setting of settings.result) {
       // Hash sensitive data before being sent to the front end
@@ -115,7 +145,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleCreateSetting'
@@ -150,7 +180,7 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleUpdateSetting',
@@ -210,8 +240,8 @@ export default class SettingService {
       settingUpdate.sensitiveData = [];
     }
     // Update timestamp
-    setting.lastChangedBy = { 'id': req.user.id };
-    setting.lastChangedOn = new Date();
+    settingUpdate.lastChangedBy = { 'id': req.user.id };
+    settingUpdate.lastChangedOn = new Date();
     // Update Setting
     settingUpdate.id = await SettingStorage.saveSettings(req.user.tenantID, settingUpdate);
     // Log

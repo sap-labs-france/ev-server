@@ -47,6 +47,11 @@ export default class BaseApi {
       t1 = performance.now();
     } catch (error) {
       // Handle errors
+      if (config.get('trace_logs')) {
+        console.debug('HTTP Error ======================');
+        console.debug(error);
+        console.debug('====================================');
+      }
       if (error.response) {
         httpResponse = error.response;
       } else if (error.request) {

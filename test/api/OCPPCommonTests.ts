@@ -4,9 +4,9 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
-import { Command } from '../../src/types/ChargingStation';
 import Constants from '../../src/utils/Constants';
 import Factory from '../factories/Factory';
+import { HTTPAuthError } from '../../src/types/HTTPError';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import { PricingSettingsType } from '../../src/types/Setting';
 import Tag from '../types/Tag';
@@ -697,7 +697,6 @@ export default class OCPPCommonTests {
       if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_15) {
         const instantWatts = this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs);
         expect(value).to.include({
-          'date': transactionCurrentTime.toISOString(),
           'startedAt': transactionCurrentTime.toISOString(),
           'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
             null, this.newTransaction.connectorId, instantWatts),
@@ -713,7 +712,6 @@ export default class OCPPCommonTests {
         }
       } else {
         expect(value).to.include({
-          'date': transactionCurrentTime.toISOString(),
           'startedAt': transactionCurrentTime.toISOString(),
           'instantVolts': checkNewMeterValues ? this.voltageMeterValues[i] : 0,
           'instantVoltsL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
@@ -744,7 +742,7 @@ export default class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
     let response = await this.transactionStartUserService.transactionApi.delete(this.newTransaction.id);
     if (noAuthorization) {
-      expect(response.status).to.equal(401);
+      expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       // Transaction must be deleted by Admin user
       response = await this.centralUserService.transactionApi.delete(this.newTransaction.id);
     }

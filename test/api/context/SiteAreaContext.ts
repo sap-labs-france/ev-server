@@ -56,7 +56,7 @@ export default class SiteAreaContext {
   async assignChargingStation(chargingStation) {
     const readChargingStation = (await this.tenantContext.getAdminCentralServerService().getEntityById(this.tenantContext.getAdminCentralServerService().chargingStationApi, chargingStation, false)).data;
     readChargingStation.siteArea = this.siteArea;
-    const response = await this.tenantContext.getAdminCentralServerService().chargingStationApi.updateParams(readChargingStation);
+    const response = await this.tenantContext.getAdminCentralServerService().chargingStationApi.update(readChargingStation);
     return response;
   }
 
