@@ -1,6 +1,7 @@
 import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
+import { AdminAccountVerificationNotification } from '../../types/Notification';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
@@ -146,6 +147,10 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('account-verification-notification', data, user, tenant, severity);
+  }
+
+  public async sendAdminAccountVerificationNotification(data: AdminAccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('admin-account-verification-notification', data, user, tenant, severity);
   }
 
   private async sendEmail(email: EmailNotificationMessage, data: any, tenant: Tenant, user: User, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {

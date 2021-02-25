@@ -26,6 +26,7 @@ export default interface UserNotifications {
   sendSessionNotStarted: boolean;
   sendEndUserErrorNotification: boolean;
   sendAccountVerificationNotification: boolean;
+  sendAdminAccountVerificationNotification: boolean;
 }
 
 export type UserNotificationKeys =
@@ -47,7 +48,8 @@ export type UserNotificationKeys =
  'sendSessionNotStarted' |
  'sendCarCatalogSynchronizationFailed' |
  'sendEndUserErrorNotification' |
- 'sendAccountVerificationNotification'
+ 'sendAccountVerificationNotification' |
+ 'sendAdminAccountVerificationNotification'
 ;
 
 export enum UserNotificationType {

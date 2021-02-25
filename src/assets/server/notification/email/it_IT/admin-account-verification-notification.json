@@ -1,0 +1,37 @@
+{
+  "subject": "User Account Verification",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "User Account Verification",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },  
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear Administrator,",
+      "",
+      "New user (<%- user.email ? user.email : user.name %>) wants to create an account.",
+      "",
+      "Please follow the link to review the account."
+    ],
+    "actions": [{
+      "title": "Verify account",
+      "url": "<%- evseUserToVerifyURL %>"
+    }],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

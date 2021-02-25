@@ -1,6 +1,7 @@
 import User, { UserRole } from '../types/User';
 import UserNotifications, { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
+import { AdminAccountVerificationNotification } from '../types/Notification';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -345,6 +346,44 @@ export default class NotificationHandler {
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
             Logging.logActionExceptionMessage(tenantID, ServerAction.USER_ACCOUNT_VERIFICATION, error);
+          }
+        }
+      }
+      await this.sendAdminAccountVerification(
+        tenantID,
+        Utils.generateUUID(),
+        user,
+        {
+          'user': user,
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+          'evseUserToVerifyURL': Utils.buildEvseUserToVerifyURL(tenant.subdomain, user.id)
+        }
+      );
+    }
+  }
+
+  static async sendAdminAccountVerification(tenantID: string, notificationID: string, user: User, adminSourceData: AdminAccountVerificationNotification): Promise<void> {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get the Tenant
+      const tenant = await TenantStorage.getTenant(tenantID);
+      // Get the admin
+      const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendAdminAccountVerificationNotification');
+      if (adminUsers && adminUsers.length > 0) {
+        // For each Sources
+        for (const notificationSource of NotificationHandler.notificationSources) {
+          // Active?
+          if (notificationSource.enabled) {
+            try {
+              // Save
+              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, ServerAction.ADMIN_ACCOUNT_VERIFICATION);
+              // Send
+              for (const adminUser of adminUsers) {
+                await notificationSource.notificationTask.sendAdminAccountVerificationNotification(
+                  adminSourceData, adminUser, tenant, NotificationSeverity.INFO);
+              }
+            } catch (error) {
+              Logging.logActionExceptionMessage(tenantID, ServerAction.ADMIN_ACCOUNT_VERIFICATION, error);
+            }
           }
         }
       }

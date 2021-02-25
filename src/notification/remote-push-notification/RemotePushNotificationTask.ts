@@ -186,20 +186,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Set the locale
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    // Get Message Text
-    const title = i18nManager.translate('notifications.accountVerificationNotification.title');
-    const body = i18nManager.translate('notifications.accountVerificationNotification.body',
-      { activated: data.userStatus === UserStatus.ACTIVE ? i18nManager.translate('notifications.accountVerificationNotification.activated') : ' ' ,
-        needAdminActivation: data.userStatus === UserStatus.INACTIVE ? i18nManager.translate('notifications.accountVerificationNotification.needAdminActivation') : '' });
-    // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.ACCOUNT_VERIFICATION_NOTIFICATION, title, body, user, null,
-      severity
-    );
-  }
-
   public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
@@ -357,6 +343,26 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
       title, body, user, { 'invoiceNumber': data.invoice.number.toString() }, severity);
+  }
+
+  public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    // Get Message Text
+    const title = i18nManager.translate('notifications.accountVerificationNotification.title');
+    const body = i18nManager.translate('notifications.accountVerificationNotification.body',
+      { activated: data.userStatus === UserStatus.ACTIVE ? i18nManager.translate('notifications.accountVerificationNotification.activated') : ' ' ,
+        needAdminActivation: data.userStatus === UserStatus.INACTIVE ? i18nManager.translate('notifications.accountVerificationNotification.needAdminActivation') : '' });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.ACCOUNT_VERIFICATION_NOTIFICATION, title, body, user, null,
+      severity
+    );
+  }
+
+  // Public async sendAdminAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendAdminAccountVerificationNotification(): Promise<void> {
+    // Nothing to send
+    return Promise.resolve();
   }
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,

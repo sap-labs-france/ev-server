@@ -133,6 +133,7 @@ export default class UserSecurity {
       sendEndUserErrorNotification: false,
       sendComputeAndApplyChargingProfilesFailed: false,
       sendAccountVerificationNotification: notifications ? Utils.convertToBoolean(notifications.sendAccountVerificationNotification) : false,
+      sendAdminAccountVerificationNotification: false,
     };
     // Admin Notif only
     if (role === UserRole.ADMIN) {
@@ -148,6 +149,7 @@ export default class UserSecurity {
         sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
         sendEndUserErrorNotification: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndUserErrorNotification) : false,
         sendComputeAndApplyChargingProfilesFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendComputeAndApplyChargingProfilesFailed) : false,
+        sendAdminAccountVerificationNotification: notifications ? Utils.convertToBoolean(notifications.sendAdminAccountVerificationNotification) : false,
       };
     }
     return filteredNotifications;

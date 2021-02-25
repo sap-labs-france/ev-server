@@ -7,3 +7,8 @@ export interface NotifySessionNotStarted {
   authDate: Date;
   user: User;
 }
+export interface AdminAccountVerificationNotification {
+  user: User;
+  evseDashboardURL: string;
+  evseUserToVerifyURL: string;
+}

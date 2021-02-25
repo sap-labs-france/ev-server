@@ -979,6 +979,10 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
+  public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/users/${userId}`;
+  }
+
   public static hideShowMessage(message: string): string {
     // Check Prod
     if (Utils.isProductionEnv()) {

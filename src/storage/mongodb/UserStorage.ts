@@ -920,6 +920,7 @@ export default class UserStorage {
         sendComputeAndApplyChargingProfilesFailed: false,
         sendBillingNewInvoice: false,
         sendAccountVerificationNotification: true,
+        sendAdminAccountVerificationNotification: false,
       },
       role: UserRole.BASIC,
       status: UserStatus.PENDING
