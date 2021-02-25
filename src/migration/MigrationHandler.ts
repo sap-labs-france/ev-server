@@ -38,6 +38,7 @@ import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPr
 import RenameSMTPAuthErrorTask from './tasks/RenameSMTPAuthErrorTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
+import ResetCarCatalogsHashTask from './tasks/ResetCarCatalogsHashTask';
 import { ServerAction } from '../types/Server';
 import SetDefaultTagToUserTask from './tasks/SetDefaultTagToUserTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
@@ -111,6 +112,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddLastChangedOnToCarCatalogTask());
         currentMigrationTasks.push(new MigrateUserSettingsTask());
         currentMigrationTasks.push(new RenameSMTPAuthErrorTask());
+        currentMigrationTasks.push(new ResetCarCatalogsHashTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
