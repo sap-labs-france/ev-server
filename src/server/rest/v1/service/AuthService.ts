@@ -20,7 +20,6 @@ import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import { TechnicalSettings } from '../../../../types/Setting';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
