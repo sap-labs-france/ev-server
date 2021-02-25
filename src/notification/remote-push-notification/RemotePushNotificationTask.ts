@@ -359,7 +359,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  // Public async sendAdminAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
   public async sendAdminAccountVerificationNotification(): Promise<void> {
     // Nothing to send
     return Promise.resolve();
