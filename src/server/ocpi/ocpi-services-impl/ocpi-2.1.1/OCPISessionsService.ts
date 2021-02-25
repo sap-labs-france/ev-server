@@ -56,7 +56,7 @@ export default class OCPISessionsService {
       }
       const evse = session.location.evses[0];
       const chargingStationId = OCPIUtils.buildChargingStationId(session.location.id, evse.uid);
-      const chargingStation = await ChargingStationStorage.getChargingStation(tenantId, chargingStationId);
+      const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenantId, chargingStationId);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
