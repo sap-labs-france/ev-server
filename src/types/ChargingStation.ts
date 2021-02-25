@@ -68,7 +68,8 @@ export interface ChargingStationQRCode {
 
 export enum ChargingStationEndpoint {
   SCP = 'scp',
-  AWS = 'aws'
+  SCP_QA = 'scpqa',
+  AWS = 'aws',
 }
 
 export interface TemplateUpdate {

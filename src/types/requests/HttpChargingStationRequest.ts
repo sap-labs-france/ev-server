@@ -68,8 +68,7 @@ export interface HttpChargingStationParamsUpdateRequest {
   }[];
 }
 
-export interface HttpChargingStationRequest extends HttpByIDRequest {
-}
+export type HttpChargingStationRequest = HttpByIDRequest;
 
 export interface HttpChargingStationOcppRequest {
   ChargeBoxID: string;

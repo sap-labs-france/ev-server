@@ -27,16 +27,16 @@ export interface SettingLink {
 
 export interface SettingDBContent {
   type:
-    RoamingSettingsType
-    | AnalyticsSettingsType
-    | RefundSettingsType
-    | PricingSettingsType
-    | BillingSettingsType
-    | SmartChargingSettingsType
-    | AssetSettingsType
-    | SmartChargingContentType
-    | CryptoSettingsType
-    | UserSettingsType;
+  RoamingSettingsType
+  | AnalyticsSettingsType
+  | RefundSettingsType
+  | PricingSettingsType
+  | BillingSettingsType
+  | SmartChargingSettingsType
+  | AssetSettingsType
+  | SmartChargingContentType
+  | CryptoSettingsType
+  | UserSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;

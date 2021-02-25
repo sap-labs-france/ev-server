@@ -141,9 +141,18 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
+  public static async getChargingStationBySerialNumber(tenantID: string, chargingStationSerialNumber: string = Constants.UNKNOWN_STRING_ID,
+    params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[]): Promise<ChargingStation> {
+    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
+      chargingStationSerialNumbers: [chargingStationSerialNumber],
+      withSite: true, ...params
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
+  }
+
   public static async getChargingStations(tenantID: string,
     params: {
-      search?: string; chargingStationIDs?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
+      search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number;
@@ -192,6 +201,12 @@ export default class ChargingStationStorage {
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {
       filters._id = {
         $in: params.chargingStationIDs
+      };
+    }
+    // Charging Stations
+    if (!Utils.isEmptyArray(params.chargingStationSerialNumbers)) {
+      filters.chargeBoxSerialNumber = {
+        $in: params.chargingStationSerialNumbers
       };
     }
     // Filter on lastSeen
@@ -354,7 +369,7 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID
-    // TODO: To remove the 'if containsGPSCoordinates' when SiteID optimization will be implemented 
+    // TODO: To remove the 'if containsGPSCoordinates' when SiteID optimization will be implemented
     if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
       // Always add Connector ID
       dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
@@ -626,6 +641,13 @@ export default class ChargingStationStorage {
     // Keep the rest (boot notification, authorize...)
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
+  }
+
+  public static async deleteChargingStationBySerialNumber(tenantID: string, chargingStationSerialNumber?: string): Promise<void> {
+    const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenantID, chargingStationSerialNumber);
+    if (chargingStation) {
+      await ChargingStationStorage.deleteChargingStation(tenantID, chargingStation.id);
+    }
   }
 
   public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string): Promise<string> {

@@ -119,7 +119,7 @@ export default class LoggingService {
         filteredRequest.Source = sources.join('|');
       } else {
         // Add all Site Admin Chargers in filter
-        filteredRequest.Source = chargingStations.result.join('|');
+        filteredRequest.Source = chargingStations.result.map((chargingStation) => chargingStation.id).join('|');
       }
     }
     // Get logs
