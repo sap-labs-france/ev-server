@@ -45,7 +45,7 @@ describe('Registration token tests', function() {
           testData.adminCentralService.registrationApi,
           registrationTokenToCreate
         );
-        testData.createdRegistrationTokens.push(registrationTokenToCreate);
+        testData.createdRegistrationTokens.push(testData.newRegistrationToken);
       });
 
       // Check creation readById
@@ -65,11 +65,9 @@ describe('Registration token tests', function() {
         );
       });
 
-      // Update / revoke
+      // Update
       it('Should be able to update a registration token', async () => {
-        testData.newRegistrationToken.description = faker.random.word();
-        testData.newRegistrationToken.expirationDate = faker.date.future();
-
+        testData.newRegistrationToken.expirationDate = faker.date.past();
         await testData.adminCentralService.updateEntity(
           testData.adminCentralService.registrationApi,
           testData.newRegistrationToken,
@@ -84,8 +82,35 @@ describe('Registration token tests', function() {
           testData.newRegistrationToken,
           false
         );
-        expect(updatedRegistrationToken.data.description).to.equal(testData.newRegistrationToken.description);
+        // Expect(updatedRegistrationToken.data.description).to.equal(testData.newRegistrationToken.description);
         expect(updatedRegistrationToken.data.expirationDate).to.equal(moment.utc(testData.newRegistrationToken.expirationDate).format('yyyy-MM-DD[T]HH:mm:ss.SSS[Z]'));
+      });
+
+      // Check revoke expired
+      it('Should not be able to revoke expired registration token', async () => {
+        // TestData.newRegistrationToken = Factory.registrationToken.build();
+        testData.newRegistrationToken.description = faker.random.word();
+        const response = await testData.adminCentralService.revokeEntity(
+          testData.adminCentralService.registrationApi,
+          testData.newRegistrationToken,
+          false
+        );
+        expect(response.status).to.be.eq(HTTPError.GENERAL_ERROR);
+      });
+
+      // Revoke
+      it('Should be able to revoke a registration token', async () => {
+        // Update expiration date before testing revocation
+        testData.newRegistrationToken.expirationDate = faker.date.future();
+        await testData.adminCentralService.updateEntity(
+          testData.adminCentralService.registrationApi,
+          testData.newRegistrationToken,
+        );
+        // TestData.newRegistrationToken.revocationDate = new Date();
+        await testData.adminCentralService.revokeEntity(
+          testData.adminCentralService.registrationApi,
+          testData.newRegistrationToken,
+        );
       });
 
       // Delete
@@ -99,6 +124,15 @@ describe('Registration token tests', function() {
 
       // Verify delete readById
       it('Should not find the deleted asset with its id', async () => {
+        const registrationTokenToCreate = Factory.registrationToken.build();
+        testData.newRegistrationToken = await testData.adminCentralService.createEntity(
+          testData.adminCentralService.registrationApi,
+          registrationTokenToCreate
+        );
+        await testData.adminCentralService.deleteEntity(
+          testData.adminCentralService.registrationApi,
+          testData.newRegistrationToken
+        );
         // Check the deleted entity cannot be retrieved with its id
         await testData.adminCentralService.checkDeletedEntityById(
           testData.adminCentralService.registrationApi,
@@ -107,11 +141,19 @@ describe('Registration token tests', function() {
       });
     });
 
-    describe('Where basic user', () => {
+    describe('Where basic user assigned', () => {
       before(async () => {
         testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
         testData.basicUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         testData.basicCentralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, testData.basicUserContext);
+        // Create the entity
+        const registrationTokenToCreate = Factory.registrationToken.build();
+        testData.newRegistrationToken = await testData.adminCentralService.createEntity(
+          testData.adminCentralService.registrationApi,
+          registrationTokenToCreate
+        );
+        testData.createdRegistrationTokens.push(testData.newRegistrationToken);
+
       });
       // Create
       it('Should not be able to create a new registration token', async () => {
@@ -127,10 +169,11 @@ describe('Registration token tests', function() {
 
       // Check readById
       it('Should not be able to get registration token by id', async () => {
+        // Add a token user should
         // Check cannot access
         const response = await testData.basicCentralService.getEntityById(
           testData.basicCentralService.registrationApi,
-          testData.newRegistrationToken,
+          testData.createdRegistrationTokens[1],
           false
         );
         expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
@@ -141,7 +184,7 @@ describe('Registration token tests', function() {
         // Check cannot access
         const response = await testData.basicCentralService.checkEntityInList(
           testData.basicCentralService.registrationApi,
-          testData.newRegistrationToken,
+          testData.createdRegistrationTokens[1],
           false
         );
         expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
@@ -155,21 +198,21 @@ describe('Registration token tests', function() {
 
         const response = await testData.basicCentralService.updateEntity(
           testData.basicCentralService.registrationApi,
-          testData.newRegistrationToken,
+          testData.createdRegistrationTokens[1],
           false
         );
         expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
 
       // Delete
-      it('Should not be able to delete the created registration token', async () => {
+      it('Should not be able to delete a registration token', async () => {
         // Check cannot delete
         const response = await testData.basicCentralService.deleteEntity(
           testData.basicCentralService.registrationApi,
-          testData.newRegistrationToken,
+          testData.createdRegistrationTokens[1],
           false
         );
-        expect(response.status).to.equal(HTTPError.GENERAL_ERROR);
+        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
     });
   });
