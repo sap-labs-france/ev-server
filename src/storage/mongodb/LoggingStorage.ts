@@ -1,15 +1,12 @@
 import global, { FilterParams } from './../../types/GlobalType';
 
-import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { Log } from '../../types/Log';
 import Utils from '../../utils/Utils';
-import cfenv from 'cfenv';
 import cluster from 'cluster';
-import os from 'os';
 
 const MODULE_NAME = 'LoggingStorage';
 
@@ -58,7 +55,7 @@ export default class LoggingStorage {
     return result.result;
   }
 
-  public static async saveLog(tenantID: string, logToSave: Log): Promise<void> {
+  public static async saveLog(tenantID: string, logToSave: Log): Promise<string> {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Set
@@ -80,6 +77,7 @@ export default class LoggingStorage {
     // Insert
     if (global.database) {
       await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
+      return logMDB._id.toHexString();
     }
   }
 

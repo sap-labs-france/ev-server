@@ -51,6 +51,7 @@ export default class AssetStorage {
       coordinates: Utils.containsGPSCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
+      excludeFromSmartCharging: Utils.convertToBoolean(assetToSave.excludeFromSmartCharging),
       fluctuationPercent:  Utils.convertToFloat(assetToSave.fluctuationPercent),
       staticValueWatt: Utils.convertToFloat(assetToSave.staticValueWatt),
       dynamicAsset: assetToSave.dynamicAsset,
