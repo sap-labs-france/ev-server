@@ -26,18 +26,15 @@ describe('Billing Stripe Service', function() {
 
     describe('Where the admin user', () => {
       before(async () => {
-        testData.billingImpl = await testData.setBillingSystemValidCredentials();
       });
 
       after(async () => {
-        // TODO - cleanup test data!
-        // Cleanup of the utbilling tenant is useless if we cannot cleanup the utbilling stripe account as well
+        // Cleanup of the utbilling tenant is useless
+        // Anyway, there is no way to cleanup the utbilling stripe account!
       });
 
       it('Should add a payment method to BILLING-TEST user', async () => {
-        const customerID: string = testData.billingUser.billingData.customerID;
-        const stripe_test_token = 'tok_visa';
-        await testData.assignPaymentMethod(customerID, stripe_test_token);
+        await testData.assignPaymentMethod('tok_visa');
       });
 
       it('should create and pay a first invoice for BILLING-TEST user', async () => {
@@ -58,9 +55,7 @@ describe('Billing Stripe Service', function() {
       });
 
       it('Should add a different payment method to BILLING-TEST user', async () => {
-        const customerID: string = testData.billingUser.billingData.customerID;
-        const stripe_test_token = 'tok_fr';
-        await testData.assignPaymentMethod(customerID, stripe_test_token);
+        await testData.assignPaymentMethod('tok_fr');
       });
 
       it('should create and pay a second invoice for BILLING-TEST user', async () => {

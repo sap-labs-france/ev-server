@@ -58,10 +58,9 @@ export default class StripeIntegrationTestData {
     assert(userData && userData.id, 'response should not be null');
     // Let's get the newly created user
     this.dynamicUser = await UserStorage.getUser(this.getTenantID(), userData.id);
-    assert(this.dynamicUser && this.dynamicUser?.billingData?.customerID, 'Customer ID should be set');
     // Let's get access to the STRIPE implementation - StripeBillingIntegration instance
     this.billingImpl = await this.setBillingSystemValidCredentials();
-    this.billingUser = await this.billingImpl.getUser(this.dynamicUser.billingData.customerID);
+    this.billingUser = await this.billingImpl.getUser(this.getCustomerID());
     expect(this.billingUser, 'Billing user should not ber null');
   }
 
@@ -130,10 +129,10 @@ export default class StripeIntegrationTestData {
     return true;
   }
 
-  public async assignPaymentMethod(customerID: string, stripe_test_token: string) : Promise<IStripeSource> {
+  public async assignPaymentMethod(stripe_test_token: string) : Promise<IStripeSource> {
     const concreteImplementation : StripeBillingIntegration = this.billingImpl as StripeBillingIntegration;
     const stripeInstance = await concreteImplementation.getStripeInstance();
-    const source = await stripeInstance.customers.createSource(customerID, {
+    const source = await stripeInstance.customers.createSource(this.getCustomerID(), {
       source: stripe_test_token
     });
     expect(source).to.not.be.null;
@@ -167,5 +166,11 @@ export default class StripeIntegrationTestData {
     const tenantId = this.tenantContext?.getTenant()?.id;
     assert(tenantId, 'Tenant ID cannot be null');
     return tenantId;
+  }
+
+  public getCustomerID(): string {
+    const customerID = this.dynamicUser?.billingData?.customerID;
+    assert(customerID, 'customer ID cannot be null');
+    return customerID;
   }
 }
