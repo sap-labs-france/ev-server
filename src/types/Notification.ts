@@ -11,4 +11,5 @@ export interface AdminAccountVerificationNotification {
   user: User;
   evseDashboardURL: string;
   evseUserToVerifyURL: string;
+  tenantLogoURL: string;
 }

@@ -93,6 +93,7 @@ export interface EmailNotificationMessage {
 }
 
 interface BaseNotification {
+  tenantLogoURL?: string;
 }
 
 export interface EndOfChargeNotification extends BaseNotification {
