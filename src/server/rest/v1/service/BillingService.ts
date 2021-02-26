@@ -590,8 +590,8 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingSecurity.filterChargeInvoiceRequest(req.body);
     // Get the Invoice
-    const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.invoiceID);
-    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.invoiceID}' does not exist`,
+    const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID); // ID of the Billing Invoice (not the stripe invoice)
+    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
     // Check Auth
     // if (!Authorizations.canChargeInvoice(req.user, invoice.userID)) {
