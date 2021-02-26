@@ -261,7 +261,6 @@ export default class CentralServerService {
     }
     // Let the caller to handle response
     return response;
-
   }
 
   public async checkDeletedEntityById(entityApi, entity, performCheck = true) {
@@ -277,6 +276,22 @@ export default class CentralServerService {
       // Let the caller to handle response
       return response;
     }
+  }
+
+  public async revokeEntity(entityApi, entity, performCheck = true) {
+    // Check
+    expect(entity).to.not.be.null;
+    // Delete it in the backend
+    const response = await entityApi.revoke(entity.id);
+    // Check
+    if (performCheck) {
+      // Check
+      expect(response.status).to.equal(200);
+      expect(response.data.status).to.eql('Success');
+      return response;
+    }
+    // Let the caller to handle response
+    return response;
   }
 
   public async reconnect() {
