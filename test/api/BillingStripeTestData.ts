@@ -32,7 +32,7 @@ export default class StripeIntegrationTestData {
   // Dynamic User for testing billing against an test STRIPE account
   public dynamicUser: User;
   // Billing Implementation - STRIPE
-  public billingImpl: BillingIntegration<BillingSetting>; // ==> StripeBillingIntegration
+  public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
   public async initialize(): Promise<void> {
@@ -43,7 +43,7 @@ export default class StripeIntegrationTestData {
       this.tenantContext.getTenant().subdomain,
       this.adminUserContext
     );
-    // Create a new user for testing stripe scenarios - BILING-TEST
+    // Create a new user for testing stripe scenarios - BILLING-TEST
     const user = {
       ...Factory.user.build(),
       name: 'BILLING-TEST',
@@ -130,7 +130,7 @@ export default class StripeIntegrationTestData {
   }
 
   public async assignPaymentMethod(stripe_test_token: string) : Promise<IStripeSource> {
-    const concreteImplementation : StripeBillingIntegration = this.billingImpl as StripeBillingIntegration;
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
     const source = await stripeInstance.customers.createSource(this.getCustomerID(), {
       source: stripe_test_token
@@ -142,9 +142,17 @@ export default class StripeIntegrationTestData {
   public async createDraftInvoice() : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
     const item = { description: 'Stripe Integration - Item 777', amount: 777 };
-    const invoiceWrapper: { invoice: BillingInvoice; invoiceItem: BillingInvoiceItem } = await this.billingImpl.createInvoice(this.billingUser, item);
-    assert(invoiceWrapper?.invoice, 'Invoice should not be null');
-    return invoiceWrapper?.invoice;
+    // const invoiceWrapper: { invoice: BillingInvoice; invoiceItem: BillingInvoiceItem } = await this.billingImpl.createInvoice(this.billingUser, item);
+    // const billingInvoice: BillingInvoice = await this.billingImpl.createEmptyInvoice(this.billingUser);
+    // assert(billingInvoice, 'Billing invoice should not be null');
+    // const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createInvoiceItem(this.billingUser, billingInvoice.invoiceID, item);
+
+    const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createInvoiceItem(this.billingUser, null, item);
+    const billingInvoice: BillingInvoice = await this.billingImpl.createEmptyInvoice(this.billingUser);
+    assert(billingInvoice, 'Billing invoice should not be null');
+
+    assert(billingInvoiceItem, 'Billing invoice should not be null');
+    return billingInvoice;
   }
 
   public async updateDraftInvoice(billingInvoice: BillingInvoice) : Promise<void> {
