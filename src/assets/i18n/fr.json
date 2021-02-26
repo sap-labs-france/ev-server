@@ -136,9 +136,8 @@
     },
     "accountVerificationNotification": {
       "title": "Compte vérifié",
-      "body": "votre compte a été vérifié{{activated}}avec succès. {{needAdminActivation}}",
-      "activated": " et activé ",
-      "needAdminActivation": "Un administrateur va examiner et activer votre compte."
+      "bodyVerified": "Votre compte a été vérifié avec succès. Un administrateur va examiner et activer votre compte.",
+      "bodyVerifiedAndActivated": "Votre compte a été vérifié et activé avec succès."
     }
   },
   "siteArea": "Zone",

@@ -136,9 +136,8 @@
     },
     "accountVerificationNotification": {
       "title": "Account verified",
-      "body": "Your account has been verified{{activated}}with success. {{needAdminActivation}}",
-      "activated": " and activated ",
-      "needAdminActivation": "An administrator will check and activate your account."
+      "bodyVerified": "Your account has been verified with success. An administrator will check and activate your account.",
+      "bodyVerifiedAndActivated": "Your account has been verified and activated with success."
     }
   },
   "siteArea": "Area de Site",

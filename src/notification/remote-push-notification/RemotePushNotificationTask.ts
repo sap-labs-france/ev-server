@@ -350,9 +350,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
     const title = i18nManager.translate('notifications.accountVerificationNotification.title');
-    const body = i18nManager.translate('notifications.accountVerificationNotification.body',
-      { activated: data.userStatus === UserStatus.ACTIVE ? i18nManager.translate('notifications.accountVerificationNotification.activated') : ' ' ,
-        needAdminActivation: data.userStatus === UserStatus.INACTIVE ? i18nManager.translate('notifications.accountVerificationNotification.needAdminActivation') : '' });
+    let body: string;
+    if (data.userStatus === UserStatus.ACTIVE) {
+      body = i18nManager.translate('notifications.accountVerificationNotification.bodyVerifiedAndActivated');
+    } else {
+      body = i18nManager.translate('notifications.accountVerificationNotification.bodyVerified');
+    }
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.ACCOUNT_VERIFICATION_NOTIFICATION, title, body, user, null,
       severity
