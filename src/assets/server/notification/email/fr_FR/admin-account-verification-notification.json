@@ -19,9 +19,9 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "Un nouvel utilisateur (<%- user.email ? user.email : user.name %>) veut créer un compte.",
+      "Un nouvel utilisateur avec l'email '<%- user.email %>' vient de créer un compte.",
       "",
-      "Suivez le lien ci-dessous pour vérifier le compte."
+      "Suivez le lien ci-dessous pour le vérifier et l'activer."
     ],
     "actions": [{
       "title": "Vérifier le compte",
