@@ -238,6 +238,7 @@ export default class UserStorage {
         sendEndUserErrorNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndUserErrorNotification) : false,
         sendComputeAndApplyChargingProfilesFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendComputeAndApplyChargingProfilesFailed) : false,
         sendBillingNewInvoice: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingNewInvoice) : false,
+        sendAccountVerificationNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendAccountVerificationNotification) : false,
       },
       deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false,
     };
@@ -917,7 +918,9 @@ export default class UserStorage {
         sendCarCatalogSynchronizationFailed: false,
         sendEndUserErrorNotification: false,
         sendComputeAndApplyChargingProfilesFailed: false,
-        sendBillingNewInvoice: false
+        sendBillingNewInvoice: false,
+        sendAccountVerificationNotification: true,
+        sendAdminAccountVerificationNotification: false,
       },
       role: UserRole.BASIC,
       status: UserStatus.PENDING
