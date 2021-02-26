@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
@@ -20,7 +20,6 @@ import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import { TechnicalSettings } from '../../../../types/Setting';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -580,6 +579,16 @@ export default class AuthService {
         'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
+    NotificationHandler.sendAccountVerification(
+      tenantID,
+      Utils.generateUUID(),
+      user,
+      {
+        'user': user,
+        'userStatus': userStatus,
+        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.Tenant),
+      }
+    ).catch(() => { });
     // Ok
     res.json({ status: 'Success', userStatus });
     next();

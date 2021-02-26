@@ -70,10 +70,13 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
           user.notifications.sendComputeAndApplyChargingProfilesFailed : false,
         sendEndUserErrorNotification: user.notifications?.sendEndUserErrorNotification ? user.notifications.sendEndUserErrorNotification : false,
         sendBillingNewInvoice: user.notifications?.sendBillingNewInvoice ? user.notifications.sendBillingNewInvoice : false,
+        sendAccountVerificationNotification: user.notifications?.sendAccountVerificationNotification ? user.notifications.sendAccountVerificationNotification : false,
+        sendAdminAccountVerificationNotification: user.notifications?.sendAdminAccountVerificationNotification ? user.notifications.sendAdminAccountVerificationNotification : false,
       };
       // Add new prop
       if (user.role === UserRole.ADMIN) {
         user.notifications.sendEndUserErrorNotification = true;
+        user.notifications.sendAdminAccountVerificationNotification = true;
       }
       // Update
       await global.database.getCollection(tenant.id, 'users').findOneAndUpdate(
@@ -85,7 +88,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.5';
+    return '1.6';
   }
 
   getName(): string {

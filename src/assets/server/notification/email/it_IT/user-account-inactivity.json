@@ -8,7 +8,7 @@
       "image": {
         "left": {
           "height": 60,
-          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+          "url": "<%- tenantLogoURL %>"
         },
         "right": {
           "height": 50,
