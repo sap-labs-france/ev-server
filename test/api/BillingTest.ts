@@ -1,9 +1,8 @@
-import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
+import { BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
 import BillingIntegration from '../../src/integration/billing/BillingIntegration';
-import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -134,6 +133,20 @@ class TestData {
     }
     return true;
   }
+
+  public async getNumberOfItems(forUser?: User): Promise<number> {
+    // ACHTUNG: There is no data after running: npm run mochatest:createContext
+    // In that situation we return 0!
+    let params;
+    if (forUser) {
+      params = { Status: BillingInvoiceStatus.DRAFT, UserID: [this.userContext.id] };
+    } else {
+      params = { Status: BillingInvoiceStatus.DRAFT };
+    }
+
+    const response = await this.userService.billingApi.readAll(params, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
+    return (response.data?.result?.[0]) ? response.data?.result?.[0]?.nbrOfItems : 0;
+  }
 }
 
 const testData: TestData = new TestData();
@@ -244,50 +257,6 @@ describe('Billing Service', function() {
         testData.createdUsers.shift();
       });
 
-      it('Should synchronize a new user', async () => {
-        const fakeUser = {
-          ...Factory.user.build(),
-        } as User;
-        fakeUser.issuer = true;
-        testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
-        await testData.userService.createEntity(
-          testData.userService.userApi,
-          fakeUser
-        );
-        testData.createdUsers.push(fakeUser);
-        testData.billingImpl = await testData.setBillingSystemValidCredentials();
-        await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
-        const userExists = await testData.billingImpl.userExists(fakeUser);
-        expect(userExists).to.be.true;
-      });
-
-      it('Should set in error users without Billing data', async () => {
-        const fakeUser = {
-          ...Factory.user.build()
-        } as User;
-        fakeUser.issuer = true;
-        testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
-        // Creates user without billing data
-        await testData.userService.createEntity(
-          testData.userService.userApi,
-          fakeUser
-        );
-        testData.createdUsers.push(fakeUser);
-        // Check if user is in Users In Error
-        const response = await testData.userService.userApi.readAllInError({ ErrorType: UserInErrorType.NO_BILLING_DATA }, {
-          limit: 100,
-          skip: 0
-        });
-        let userFound = false;
-        for (const user of response.data.result) {
-          if (user.id === fakeUser.id) {
-            userFound = true;
-            break;
-          }
-        }
-        assert(userFound, 'User with no billing data not found in Users In Error');
-      });
-
       it('Should force a user synchronization', async () => {
         const fakeUser = {
           ...Factory.user.build(),
@@ -309,41 +278,13 @@ describe('Billing Service', function() {
         expect(fakeUser.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
       });
 
-      it('Should list invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-        expect(response.status).to.be.eq(200);
-        expect(response.data.result.length).to.be.gt(0);
-      });
-
-      it('Should list filtered invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-        expect(response.data.result.length).to.be.gt(0);
-        for (const invoice of response.data.result) {
-          expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
-        }
-      });
-
-      it('Should download invoice as PDF', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-        expect(response.data.result.length).to.be.gt(0);
-        const downloadResponse = await testData.userService.billingApi.downloadInvoiceDocument({ ID: response.data.result[0].id });
-        expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
-      });
-
-      it('Should synchronize invoices', async () => {
-        const response = await testData.userService.billingApi.synchronizeInvoices({});
-        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
-      });
-
       it('should add an item to the existing invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
-        let response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT, UserID: [testData.userContext.id] }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
-        const itemsBefore: number = response.data.result[0].nbrOfItems;
+        const itemsBefore = await testData.getNumberOfItems(testData.userContext);
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         await testData.userService.billingApi.synchronizeInvoices({});
-        response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT, UserID: [testData.userContext.id] }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
-        const itemsAfter = response.data.result[0].nbrOfItems;
+        const itemsAfter = await testData.getNumberOfItems(testData.userContext);
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
       });
 
@@ -356,24 +297,35 @@ describe('Billing Service', function() {
         expect(response.data.inSuccess).to.be.eq(1);
       });
 
-      it('should not delete a transaction linked to an invoice', async () => {
-        const transactionID = await testData.generateTransaction(testData.userContext);
-        expect(transactionID).to.not.be.null;
-        const transactionDeleted = await testData.userService.transactionApi.delete(transactionID);
-        expect(transactionDeleted.data.inError).to.be.eq(1);
-        expect(transactionDeleted.data.inSuccess).to.be.eq(0);
+      it('Should list invoices', async () => {
+        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.status).to.be.eq(200);
+        expect(response.data.result.length).to.be.gt(0);
       });
 
-      it('Should set a transaction in error', async () => {
-        testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
-        const transactionID = await testData.generateTransaction(testData.userContext);
-        expect(transactionID).to.not.be.null;
-        const transactions = await testData.userService.transactionApi.readAllInError({});
-        expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
+      xit('Should list filtered invoices', async () => {
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.data.result.length).to.be.gt(0);
+        for (const invoice of response.data.result) {
+          expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
+        }
+      });
+
+      xit('Should download invoice as PDF', async () => {
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.data.result.length).to.be.gt(0);
+        const downloadResponse = await testData.userService.billingApi.downloadInvoiceDocument({ ID: response.data.result[0].id });
+        expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
+      });
+
+      it('Should synchronize invoices', async () => {
+        const response = await testData.userService.billingApi.synchronizeInvoices({});
+        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
       });
     });
 
     describe('Where basic user', () => {
+
       before(async () => {
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -444,7 +396,7 @@ describe('Billing Service', function() {
         expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
       });
 
-      it('Should list invoices', async () => {
+      xit('Should list invoices', async () => {
         const basicUser: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
 
         // Set back userContext to BASIC to consult invoices
@@ -463,7 +415,7 @@ describe('Billing Service', function() {
         }
       });
 
-      it('Should download invoice as PDF', async () => {
+      xit('Should download invoice as PDF', async () => {
         const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         expect(response.data.result.length).to.be.gt(0);
         const downloadResponse = await testData.userService.billingApi.downloadInvoiceDocument({ ID: response.data.result[0].id });
@@ -487,14 +439,113 @@ describe('Billing Service', function() {
           testData.userContext
         );
         await testData.userService.billingApi.synchronizeInvoices({});
-        let response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
-        const itemsBefore: number = response.data.result[0].nbrOfItems;
+        const itemsBefore = await testData.getNumberOfItems();
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         await testData.userService.billingApi.synchronizeInvoices({});
-        response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.DRAFT }, TestConstants.DEFAULT_PAGING, [{ field: 'createdOn', direction: 'desc' }], '/client/api/BillingUserInvoices');
-        const itemsAfter = response.data.result[0].nbrOfItems;
+        const itemsAfter = await testData.getNumberOfItems();
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
+      });
+    });
+
+    describe('Negative tests as an admin user', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        // await testData.setBillingSystemValidCredentials();
+      });
+
+      it('should not delete a transaction linked to an invoice', async () => {
+        const transactionID = await testData.generateTransaction(testData.userContext);
+        expect(transactionID).to.not.be.null;
+        const transactionDeleted = await testData.userService.transactionApi.delete(transactionID);
+        expect(transactionDeleted.data.inError).to.be.eq(1);
+        expect(transactionDeleted.data.inSuccess).to.be.eq(0);
+      });
+    });
+
+    describe('Recovery Scenarios', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+      });
+
+      after(async () => {
+        // Restore VALID STRIPE credentials
+        testData.billingImpl = await testData.setBillingSystemValidCredentials();
+      });
+
+      it('Should recover after a synchronization issue', async () => {
+        const fakeUser = {
+          ...Factory.user.build(),
+        } as User;
+        fakeUser.issuer = true;
+        testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        testData.createdUsers.push(fakeUser);
+        testData.billingImpl = await testData.setBillingSystemValidCredentials();
+        await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
+        const userExists = await testData.billingImpl.userExists(fakeUser);
+        expect(userExists).to.be.true;
+      });
+    });
+
+    describe('Negative tests - Invalid Credentials', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        // Force INVALID STRIPE credentials
+        testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
+      });
+
+      after(async () => {
+        // Restore VALID STRIPE credentials
+        testData.billingImpl = await testData.setBillingSystemValidCredentials();
+      });
+
+      it('Should set a transaction in error', async () => {
+        const transactionID = await testData.generateTransaction(testData.userContext);
+        expect(transactionID).to.not.be.null;
+        const transactions = await testData.userService.transactionApi.readAllInError({});
+        expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
+      });
+
+      it('Should set in error users without Billing data', async () => {
+        const fakeUser = {
+          ...Factory.user.build()
+        } as User;
+        fakeUser.issuer = true;
+        // Creates user without billing data
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        testData.createdUsers.push(fakeUser);
+        // Check if user is in Users In Error
+        const response = await testData.userService.userApi.readAllInError({ ErrorType: UserInErrorType.NO_BILLING_DATA }, {
+          limit: 100,
+          skip: 0
+        });
+        let userFound = false;
+        for (const user of response.data.result) {
+          if (user.id === fakeUser.id) {
+            userFound = true;
+            break;
+          }
+        }
+        assert(userFound, 'User with no billing data not found in Users In Error');
       });
     });
 

@@ -6,6 +6,7 @@ import Cypher from '../../../src/utils/Cypher';
 import SettingStorage from '../../../src/storage/mongodb/SettingStorage';
 import { StripeBillingSetting } from '../../../src/types/Setting';
 import TenantContext from './TenantContext';
+import Transaction from '../../types/Transaction';
 import User from '../../../src/types/User';
 import config from '../../config';
 
@@ -59,20 +60,20 @@ export default class BillingContext {
     await billingImpl.synchronizeUser(this.tenantContext.getTenant().id, adminUser);
     await billingImpl.synchronizeUser(this.tenantContext.getTenant().id, basicUser);
 
-    const adminBillingUser = await billingImpl.getUserByEmail(adminUser.email);
-    const basicBillingUser = await billingImpl.getUserByEmail(basicUser.email);
+    // const adminBillingUser = await billingImpl.getUserByEmail(adminUser.email);
+    // const basicBillingUser = await billingImpl.getUserByEmail(basicUser.email);
 
-    const adminInvoice = await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin 1', amount: 100 });
-    const userInvoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic 1', amount: 100 });
-    await billingImpl.createInvoiceItem(adminBillingUser, adminInvoice.invoice.invoiceID, { description: 'TestAdmin 2', amount: 100 });
-    await billingImpl.createInvoiceItem(basicBillingUser, userInvoice.invoice.invoiceID, { description: 'TestBasic 2', amount: 100 });
+    // const adminInvoice = await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin 1', amount: 100 });
+    // const userInvoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic 1', amount: 100 });
+    // await billingImpl.createInvoiceItem(adminBillingUser, adminInvoice.invoice.invoiceID, { description: 'TestAdmin 2', amount: 100 });
+    // await billingImpl.createInvoiceItem(basicBillingUser, userInvoice.invoice.invoiceID, { description: 'TestBasic 2', amount: 100 });
 
-    let invoice = await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin3', amount: 100 });
-    await billingImpl.finalizeInvoice(invoice.invoice);
-    await billingImpl.sendInvoiceToUser(invoice.invoice);
-    invoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic3', amount: 100 });
-    await billingImpl.finalizeInvoice(invoice.invoice);
-    await billingImpl.sendInvoiceToUser(invoice.invoice);
+    // let invoice = await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin3', amount: 100 });
+    // await billingImpl.finalizeInvoice(invoice.invoice);
+    // await billingImpl.sendInvoiceToUser(invoice.invoice);
+    // invoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic3', amount: 100 });
+    // await billingImpl.finalizeInvoice(invoice.invoice);
+    // await billingImpl.sendInvoiceToUser(invoice.invoice);
     // Await billingImpl.synchronizeInvoices(this.tenantContext.getTenant().id);
   }
 

@@ -281,19 +281,23 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
     }
     await this.checkConnection();
-
+    // Let's create the STRIPE invoice
     const stripeInvoice: IInvoice = await this.stripe.invoices.create({
       customer: user.billingData.customerID,
       collection_method: 'send_invoice',
       days_until_due: 30,
       auto_advance: false
     }, {
-      idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
+      idempotency_key: idempotencyKey?.toString()
     });
+    // Let's update the data which is replicated on our side
+    return this.upsertBillingInvoice(user, stripeInvoice);
+  }
 
+  private async upsertBillingInvoice(billingUser: BillingUser, stripeInvoice: IInvoice): Promise<BillingInvoice> {
     const invoice = {
       invoiceID: stripeInvoice.id,
-      customerID: stripeInvoice.customer.toString(),
+      customerID: stripeInvoice.customerID,
       number: stripeInvoice.number,
       amount: stripeInvoice.amount_due,
       status: stripeInvoice.status as BillingInvoiceStatus,
@@ -301,9 +305,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       createdOn: new Date(),
       nbrOfItems: stripeInvoice.lines.total_count
     } as BillingInvoice;
-
     // Set user
-    invoice.user = await UserStorage.getUserByBillingID(this.tenantID, user.billingData.customerID);
+    invoice.user = await UserStorage.getUserByBillingID(this.tenantID, billingUser.billingData.customerID);
     // Save Invoice
     invoice.id = await BillingStorage.saveInvoice(this.tenantID, invoice);
     return invoice;
@@ -325,7 +328,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
     }
     try {
-
       const itemInputParameters: any = {
         customer: user.billingData.customerID,
         currency: this.settings.currency.toLocaleLowerCase(),
@@ -333,22 +335,16 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         description: invoiceItem.description,
         tax_rates: this.getTaxRateIds()
       };
-
+      // STRIPE throws an exception when invoice is set to null.
       if (invoiceID) {
-        // STRIPE throws an exception when invoice is set to null.
         // Make sure to only add that property when updating an existing invoice
         itemInputParameters.invoice = invoiceID;
       }
-
+      // Let's create the line item
       const stripeInvoiceItem = await this.stripe.invoiceItems.create(itemInputParameters, {
         idempotency_key: idempotencyKey?.toString()
       });
-
-      // TODO - move that logic somewhere else!
-      // const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(this.tenantID, invoiceID);
-      // invoice.nbrOfItems++; // TODO - Clarify why we only update the number of items and not the other info (amount?)
-      // await BillingStorage.saveInvoice(this.tenantID, invoice);
-
+      // returns the newly created invoice item
       return stripeInvoiceItem;
     } catch (e) {
       throw new BackendError({
@@ -561,37 +557,51 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     let draftInvoice = await this.getDraftInvoice(transaction);
     if (!draftInvoice) {
       // STRIPE requires that we first create an item (a pending one - and then create the invoice)
-      newInvoiceItem = await this.createPendingInvoiceItem(billingUser, lineItemInputParameters, transaction.id);
-      draftInvoice = await this.createInvoice(billingUser, transaction.id);
+      newInvoiceItem = await this.createPendingInvoiceItem(billingUser, lineItemInputParameters, this.buildIdemPotencyKey(transaction, true));
+      // Make sure a new item has been created
+      if (!newInvoiceItem) {
+        throw new BackendError({
+          message: 'Failed to create a pending item',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'stopTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
+      draftInvoice = await this.createInvoice(billingUser, this.buildIdemPotencyKey(transaction));
+      // Make sure we have now a draft invoice (before we trigger a payment attempt)
+      if (!draftInvoice) {
+        throw new BackendError({
+          message: 'Failed to create DRAFT invoice',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'stopTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
     } else {
+      // We already have a draft invoice - let's add an item to it
       newInvoiceItem = await this.createInvoiceItem(billingUser, draftInvoice.invoiceID, lineItemInputParameters, transaction.id);
-    }
-
-    if (!draftInvoice) {
-      throw new BackendError({
-        message: 'Failed to create DRAFT invoice',
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'stopTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
-    }
-
-    // Make sure a new item has been created
-    if (!draftInvoice || !newInvoiceItem) {
-      throw new BackendError({
-        message: 'Failed to create draft invoice',
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'stopTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
+      if (!newInvoiceItem) {
+        throw new BackendError({
+          message: 'Failed to create a new item',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'stopTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
+      // Well ... we need to update the billing invoice to reflect the latest changes
+      await this.upsertBillingInvoice(billingUser, draftInvoice);
     }
     // Return the operation result as a BillingDataTransactionStop
     return {
       status: BillingStatus.BILLED,
       invoiceID: draftInvoice.id,
       invoiceStatus: draftInvoice.status,
-      invoiceItem: newInvoiceItem // TODO - get rid of that information - the new item might be pending!
+      invoiceItem: newInvoiceItem // TODO - is this used by any layer?
     };
+  }
+
+  private buildIdemPotencyKey(transaction: Transaction, forLineItem = false): string {
+    return (forLineItem) ? 'item_' + transaction.id : 'invoice_' + transaction.id;
   }
 
   private buildLineItem(transaction: Transaction) {
@@ -633,7 +643,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return Math.round(transaction.stop.roundedPrice * 100);
   }
 
-  private async getDraftInvoice(transaction: Transaction) {
+  private async getDraftInvoice(transaction: Transaction): Promise<BillingInvoice> {
     // Get the draft invoice
     const draftInvoices = await BillingStorage.getInvoices(this.tenantID, {
       invoiceStatus: [BillingInvoiceStatus.DRAFT], userIDs: [transaction.userID] }, { limit: 1, skip: 0, sort: { createdOn: -1 }
