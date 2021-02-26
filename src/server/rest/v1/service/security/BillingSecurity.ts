@@ -1,5 +1,5 @@
 import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest } from '../../../../../types/requests/HttpBillingRequest';
-import { HttpChargeInvoiceRequest, HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
+import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
 import UtilsSecurity from './UtilsSecurity';
@@ -57,9 +57,9 @@ export default class BillingSecurity {
     };
   }
 
-  static filterChargeInvoiceRequest(request: any): HttpChargeInvoiceRequest {
+  static filterChargeInvoiceRequest(request: any): HttpByIDRequest {
     return {
-      invoiceID: sanitize(request.invoiceID)
+      ID: sanitize(request.ID)
     };
   }
 
