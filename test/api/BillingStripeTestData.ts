@@ -1,8 +1,7 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
-import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import { BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
-import BillingIntegration from '../../src/integration/billing/BillingIntegration';
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
@@ -148,7 +147,7 @@ export default class StripeIntegrationTestData {
     // const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createInvoiceItem(this.billingUser, billingInvoice.invoiceID, item);
 
     const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createInvoiceItem(this.billingUser, null, item);
-    const billingInvoice: BillingInvoice = await this.billingImpl.createEmptyInvoice(this.billingUser);
+    const billingInvoice: BillingInvoice = await this.billingImpl.createInvoice(this.billingUser);
     assert(billingInvoice, 'Billing invoice should not be null');
 
     assert(billingInvoiceItem, 'Billing invoice should not be null');
