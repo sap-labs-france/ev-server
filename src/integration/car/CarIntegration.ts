@@ -18,7 +18,7 @@ export default abstract class CarIntegration {
     const externalCars = await this.getCarCatalogs();
     for (const externalCar of externalCars) {
       try {
-        const internalCar = await CarStorage.getCarCatalog(externalCar.id, { withImage: true });
+        const internalCar = await CarStorage.getCarCatalog(externalCar.id);
         if (!internalCar) {
           // New Car: Create it
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
