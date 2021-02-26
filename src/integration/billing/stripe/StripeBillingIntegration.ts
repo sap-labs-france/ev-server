@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 import Stripe, { IResourceObject, customers, invoices, paymentMethods } from 'stripe';
@@ -528,6 +529,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate> {
     // Check User
     if (!transaction.userID || !transaction.user) {
@@ -559,51 +561,88 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    const chargeBox = transaction.chargeBox;
-    // Create or update invoice in Stripe
-    let description = '';
-    const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
-    const totalConsumptionkWh = Math.round(transaction.stop.totalConsumptionWh / 100) / 10;
-    const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
-    if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-      description = i18nManager.translate('billing.chargingStopSiteArea',
-        { totalConsumption: totalConsumptionkWh, siteArea: chargeBox.siteArea, time: time });
-    } else {
-      description = i18nManager.translate('billing.chargingStopChargeBox',
-        { totalConsumption: totalConsumptionkWh, chargeBox: transaction.chargeBoxID, time: time });
-    }
+
     // pragma const taxRates: ITaxRate[] = [];
     // if (this.settings.taxID) {
     //   taxRates.push(this.settings.taxID);
     // }
-    const invoice = {} as {
-      invoice: BillingInvoice;
-      invoiceItem: BillingInvoiceItem
-    };
-    // Get the draft invoice
-    const draftInvoices = await BillingStorage.getInvoices(this.tenantID,
-      { invoiceStatus: [BillingInvoiceStatus.DRAFT], userIDs: [transaction.userID] }, { limit: 1, skip: 0, sort: { createdOn: -1 } });
-    // Set
-    invoice.invoice = draftInvoices.count > 0 ? draftInvoices.result[0] : null;
-    if (invoice.invoice) {
+
+    let newInvoiceItem: BillingInvoiceItem;
+    const lineItem = this.buildLineItem(transaction);
+    // Get the current draft invoice (if any)
+    let draftInvoice = await this.getDraftInvoice(transaction);
+    if (draftInvoice) {
       // Append a new invoice item
-      invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice.invoiceID, {
-        description: description,
-        amount: Math.round(transaction.stop.roundedPrice * 100)
-      }, transaction.id);
+      newInvoiceItem = await this.createInvoiceItem(billingUser, draftInvoice.invoiceID, lineItem, transaction.id);
     } else {
       // Create a new invoice with invoice item
-      invoice.invoice = (await this.createInvoice(billingUser, {
-        description: description,
-        amount: Math.round(transaction.stop.roundedPrice * 100)
-      }, transaction.id)).invoice;
+      const operationResult = await this.createInvoice(billingUser, lineItem, transaction.id);
+      draftInvoice = operationResult.invoice;
+      newInvoiceItem = operationResult.invoiceItem;
     }
+    // Make sure a new item has been created
+    if (!draftInvoice || !newInvoiceItem) {
+      throw new BackendError({
+        message: 'Failed to create draft invoice',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'stopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    // Return the operation result as a BillingDataTransactionStop
     return {
       status: BillingStatus.BILLED,
-      invoiceID: invoice.invoice.id,
-      invoiceStatus: invoice.invoice.status,
-      invoiceItem: invoice.invoiceItem,
+      invoiceID: draftInvoice.id,
+      invoiceStatus: draftInvoice.status,
+      invoiceItem: newInvoiceItem
     };
+  }
+
+  private buildLineItem(transaction: Transaction) {
+    return {
+      description: this.buildLineItemDescription(transaction),
+      amount: this.convertTransactionPrice(transaction)
+    };
+  }
+
+  private buildLineItemDescription(transaction: Transaction) {
+    let description: string;
+    const chargeBox = transaction.chargeBox;
+    const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
+    const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
+    const consumptionkWh = this.convertConsumptionWh(transaction);
+
+    if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
+      description = i18nManager.translate('billing.chargingStopSiteArea', {
+        totalConsumption: consumptionkWh,
+        siteArea:
+        chargeBox.siteArea,
+        time: time
+      });
+    } else {
+      description = i18nManager.translate('billing.chargingStopChargeBox', {
+        totalConsumption: consumptionkWh, chargeBox: transaction.chargeBoxID, time: time
+      });
+    }
+    return description;
+  }
+
+  private convertConsumptionWh(transaction: Transaction): number {
+    // TODO - clarify why we need this conversion
+    return Math.round(transaction.stop.totalConsumptionWh / 100) / 10;
+  }
+
+  private convertTransactionPrice(transaction: Transaction): number {
+    // STRIPE expects the amount, in cents!!!
+    return Math.round(transaction.stop.roundedPrice * 100);
+  }
+
+  private async getDraftInvoice(transaction: Transaction) {
+    // Get the draft invoice
+    const draftInvoices = await BillingStorage.getInvoices(this.tenantID, {
+      invoiceStatus: [BillingInvoiceStatus.DRAFT], userIDs: [transaction.userID] }, { limit: 1, skip: 0, sort: { createdOn: -1 }
+    });
+    return draftInvoices?.result?.[0];
   }
 
   public async checkIfUserCanBeCreated(user: User): Promise<boolean> {
