@@ -1,7 +1,6 @@
-import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
-import { AdminAccountVerificationNotification } from '../../types/Notification';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
@@ -157,7 +156,7 @@ export default class EMailNotificationTask implements NotificationTask {
     // Email configuration sanity checks
     if (!this.smtpMainClientInstance) {
       // No suitable main SMTP server configuration found to send the email
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenant.id,
         source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
@@ -169,7 +168,7 @@ export default class EMailNotificationTask implements NotificationTask {
     }
     if (useSmtpClientBackup && !this.smtpBackupClientInstance) {
     // No suitable backup SMTP server configuration found or activated to send the email
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenant.id,
         source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
@@ -197,7 +196,7 @@ export default class EMailNotificationTask implements NotificationTask {
       // Send the message
       const messageSent: Message = await smtpClient.sendAsync(messageToSend);
       // Email sent successfully
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
         source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
@@ -219,7 +218,7 @@ export default class EMailNotificationTask implements NotificationTask {
     } catch (error) {
       // Log
       try {
-        Logging.logError({
+        await Logging.logError({
           tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
           source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
           action: ServerAction.EMAIL_NOTIFICATION,
@@ -391,7 +390,7 @@ export default class EMailNotificationTask implements NotificationTask {
         html: html
       }, data, tenant, user, severity, useSmtpClientBackup);
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenant.id,
         source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,

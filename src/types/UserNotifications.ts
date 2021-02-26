@@ -1,6 +1,7 @@
 import User, { UserStatus } from './User';
 
 import { BillingInvoice } from './Billing';
+import ChargingStation from './ChargingStation';
 import NotificationTask from '../notification/NotificationTask';
 import { SMTPError } from 'emailjs';
 
@@ -305,4 +306,17 @@ export interface AccountVerificationNotification extends BaseNotification {
   user: User;
   userStatus: UserStatus;
   evseDashboardURL: string;
+}
+
+export interface NotifySessionNotStarted extends BaseNotification {
+  chargingStation: ChargingStation;
+  tagID: string;
+  authDate: Date;
+  user: User;
+}
+
+export interface AdminAccountVerificationNotification extends BaseNotification {
+  user: User;
+  evseDashboardURL: string;
+  evseUserToVerifyURL: string;
 }
