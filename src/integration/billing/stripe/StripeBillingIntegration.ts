@@ -177,6 +177,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return taxes;
   }
 
+  public async getStripeInvoice(id: string): Promise<invoices.IInvoice> {
+    // Get Invoice
+    const stripeInvoice = await this.stripe.invoices.retrieve(id);
+    return stripeInvoice;
+  }
+
   public async getInvoice(id: string): Promise<BillingInvoice> {
     // Check Stripe
     await this.checkConnection();
@@ -295,9 +301,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   private async upsertBillingInvoice(billingUser: BillingUser, stripeInvoice: IInvoice): Promise<BillingInvoice> {
+    const customerID = stripeInvoice.customer;
     const invoice = {
       invoiceID: stripeInvoice.id,
-      customerID: stripeInvoice.customerID,
+      customerID,
       number: stripeInvoice.number,
       amount: stripeInvoice.amount_due,
       status: stripeInvoice.status as BillingInvoiceStatus,
@@ -554,7 +561,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     let newInvoiceItem: BillingInvoiceItem;
     const lineItemInputParameters = this.buildLineItem(transaction);
     // Get the current draft invoice (if any)
-    let draftInvoice = await this.getDraftInvoice(transaction);
+    let draftInvoice = await this.getDraftInvoice(transaction); // TODO - clarify if we can trust the local replication of the data
     if (!draftInvoice) {
       // STRIPE requires that we first create an item (a pending one - and then create the invoice)
       newInvoiceItem = await this.createPendingInvoiceItem(billingUser, lineItemInputParameters, this.buildIdemPotencyKey(transaction, true));
@@ -588,8 +595,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           action: ServerAction.BILLING_TRANSACTION
         });
       }
+
+      // Let's get the raw data from stripe!
+      const stripeInvoice = await this.getStripeInvoice(draftInvoice.invoiceID);
+
       // Well ... we need to update the billing invoice to reflect the latest changes
-      await this.upsertBillingInvoice(billingUser, draftInvoice);
+      await this.upsertBillingInvoice(billingUser, stripeInvoice);
     }
     // Return the operation result as a BillingDataTransactionStop
     return {
