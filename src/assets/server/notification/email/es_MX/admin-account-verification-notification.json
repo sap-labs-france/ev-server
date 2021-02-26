@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "A new user with the email '<%- user.email %>' has just created an account.",
+      "A new user with email '<%- user.email %>' has just created an account.",
       "",
       "Please follow the link below to review and activate it."
     ],
