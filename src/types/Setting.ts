@@ -286,16 +286,16 @@ export interface CryptoKeyProperties {
   operationMode: string;
 }
 
-export enum UserSettingsType {
-  USER = 'user',
-}
-
 export interface CryptoSetting {
   key: string;
   keyProperties: CryptoKeyProperties;
   formerKey?: string;
   formerKeyProperties?: CryptoKeyProperties;
   migrationToBeDone?: boolean;
+}
+
+export enum UserSettingsType {
+  USER = 'user',
 }
 
 export interface UserSettings extends Setting {
