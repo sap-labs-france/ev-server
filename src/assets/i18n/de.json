@@ -133,6 +133,11 @@
     "endUserErrorNotification": {
       "title": "Ein Nutzer hat einen Fehler gemeldet",
       "body": "'{{userName}}' hat foglenden Fehler: '{{errorTitle}}' - '{{errorDescription}}' in Organisaion '{{tenantName}}' gemeldet"
+    },
+    "accountVerificationNotification": {
+      "title": "Account verified",
+      "bodyVerified": "Your account has been verified with success. An administrator will check and activate your account.",
+      "bodyVerifiedAndActivated": "Your account has been verified and activated with success."
     }
   },
   "siteArea": "Standortbereich",
