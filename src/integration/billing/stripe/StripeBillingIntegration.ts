@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
-import Stripe, { IResourceObject, customers, invoices, paymentMethods } from 'stripe';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -14,6 +13,7 @@ import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
+import Stripe from 'stripe';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -21,12 +21,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
-import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
-import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
-import IInvoice = Stripe.invoices.IInvoice;
-
 const MODULE_NAME = 'StripeBillingIntegration';
-
 export default class StripeBillingIntegration extends BillingIntegration<StripeBillingSetting> {
   private static readonly STRIPE_MAX_LIST = 100;
   private axiosInstance: AxiosInstance;
@@ -60,7 +55,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           message: 'No secret key provided for connection to Stripe'
         });
       }
-      this.stripe = new Stripe(this.settings.secretKey);
+      this.stripe = new Stripe(this.settings.secretKey, {
+        apiVersion: '2020-08-27',
+      });
       // Let's check if the connection is working properly
       if (!this.stripe) {
         throw new BackendError({
@@ -104,7 +101,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async getUsers(): Promise<BillingUser[]> {
     const users = [];
     let request;
-    const requestParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST } as ICustomerListOptions;
+    const requestParams: Stripe.CustomerListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST };
     // Check Stripe
     await this.checkConnection();
     do {
@@ -128,7 +125,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // Get customer
-    const customer = await this.getCustomerByID(id);
+    const customer: Stripe.Customer = await this.getCustomerByID(id);
     if (customer && customer.email) {
       return {
         email: customer.email,
@@ -159,7 +156,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async getTaxes(): Promise<BillingTax[]> {
     const taxes = [] as BillingTax[];
     let request;
-    const requestParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST } as ItaxRateSearchOptions;
+    const requestParams : Stripe.TaxRateListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST };
     do {
       request = await this.stripe.taxRates.list(requestParams);
       for (const tax of request.data) {
@@ -177,7 +174,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return taxes;
   }
 
-  public async getStripeInvoice(id: string): Promise<invoices.IInvoice> {
+  public async getStripeInvoice(id: string): Promise<Stripe.Invoice> {
     // Get Invoice
     const stripeInvoice = await this.stripe.invoices.retrieve(id);
     return stripeInvoice;
@@ -191,13 +188,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       const stripeInvoice = await this.stripe.invoices.retrieve(id);
       return {
         invoiceID: stripeInvoice.id,
-        customerID: stripeInvoice.customer.toString(),
+        customerID: stripeInvoice.customer,
         number: stripeInvoice.number,
         amount: stripeInvoice.amount_due,
         status: stripeInvoice.status as BillingInvoiceStatus,
         currency: stripeInvoice.currency,
         createdOn: new Date(stripeInvoice.created * 1000),
-        nbrOfItems: stripeInvoice.lines.total_count,
+        nbrOfItems: stripeInvoice.lines.data.length,
         downloadUrl: stripeInvoice.invoice_pdf
       } as BillingInvoice;
     } catch (e) {
@@ -206,11 +203,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
-    const createdSince = this.settings.usersLastSynchronizedOn ? `${moment(this.settings.usersLastSynchronizedOn).unix()}` : '0';
-    let events: Stripe.IList<Stripe.events.IEvent>;
+    const createdSince = this.settings.usersLastSynchronizedOn ? moment(this.settings.usersLastSynchronizedOn).unix() : 0;
     const collectedCustomerIDs: string[] = [];
-    const request = {
-      created: { gt: createdSince },
+    const queryRange: Stripe.RangeQueryParam = { gt: createdSince };
+    const request: Stripe.EventListParams = {
+      created: queryRange,
       limit: StripeBillingIntegration.STRIPE_MAX_LIST,
       type: 'customer.*',
     };
@@ -218,11 +215,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     // Loop until all users are read
     do {
-      events = await this.stripe.events.list(request);
+      const events: Stripe.ApiList<Stripe.Event> = await this.stripe.events.list(request);
       for (const evt of events.data) {
-        if (evt.data.object.object === 'customer' && (evt.data.object as IResourceObject).id) {
-          if (!collectedCustomerIDs.includes((evt.data.object as IResourceObject).id)) {
-            collectedCustomerIDs.push((evt.data.object as IResourceObject).id);
+        // c.f.: https://stripe.com/docs/api/events/object
+        const customer: Stripe.Customer = evt.data.object as Stripe.Customer; // TODO - to be clarified how to determine the object type?
+        if (customer.object === 'customer' && customer.id) {
+          if (!collectedCustomerIDs.includes(customer.id)) {
+            collectedCustomerIDs.push(customer.id);
           }
         }
       }
@@ -234,29 +233,30 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]> {
-    let createdSince: string;
+    let createdSince: number;
     // Check Stripe
     await this.checkConnection();
     if (billingUser) {
       // Start sync from last invoices sync
-      createdSince = billingUser.billingData.invoicesLastSynchronizedOn ? `${moment(billingUser.billingData.invoicesLastSynchronizedOn).unix()}` : '0';
+      createdSince = billingUser.billingData.invoicesLastSynchronizedOn ? moment(billingUser.billingData.invoicesLastSynchronizedOn).unix() : 0;
     } else {
       // Start sync from last global sync
-      createdSince = this.settings.invoicesLastSynchronizedOn ? `${moment(this.settings.invoicesLastSynchronizedOn).unix()}` : '0';
+      createdSince = this.settings.invoicesLastSynchronizedOn ? moment(this.settings.invoicesLastSynchronizedOn).unix() : 0;
     }
-    let events: Stripe.IList<Stripe.events.IEvent>;
     const collectedInvoiceIDs: string[] = [];
-    const request = {
-      created: { gt: createdSince },
+    const queryRange: Stripe.RangeQueryParam = { gt: createdSince };
+    const request: Stripe.EventListParams = {
+      created: queryRange,
       limit: StripeBillingIntegration.STRIPE_MAX_LIST,
       type: 'invoice.*',
     };
     // Loop until all invoices are read
     do {
-      events = await this.stripe.events.list(request);
+      const events: Stripe.ApiList<Stripe.Event> = await this.stripe.events.list(request);
       for (const evt of events.data) {
-        if (evt.data.object.object === 'invoice' && (evt.data.object as IInvoice).id) {
-          const invoice = (evt.data.object as IInvoice);
+        // c.f.: https://stripe.com/docs/api/events/object
+        const invoice: Stripe.Invoice = evt.data.object as Stripe.Invoice; // TODO - to be clarified how to determine the object type?
+        if (invoice.object === 'invoice' && invoice.id) {
           if (!collectedInvoiceIDs.includes(invoice.id)) {
             if (billingUser) {
               // Collect specific user's invoices
@@ -288,7 +288,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
     await this.checkConnection();
     // Let's create the STRIPE invoice
-    const stripeInvoice: IInvoice = await this.stripe.invoices.create({
+    const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
       customer: user.billingData.customerID,
       collection_method: 'send_invoice',
       days_until_due: 30,
@@ -300,7 +300,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return this.upsertBillingInvoice(user, stripeInvoice);
   }
 
-  private async upsertBillingInvoice(billingUser: BillingUser, stripeInvoice: IInvoice): Promise<BillingInvoice> {
+  private async upsertBillingInvoice(billingUser: BillingUser, stripeInvoice: Stripe.Invoice): Promise<BillingInvoice> {
     const customerID = stripeInvoice.customer;
     const invoice = {
       invoiceID: stripeInvoice.id,
@@ -310,7 +310,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       status: stripeInvoice.status as BillingInvoiceStatus,
       currency: stripeInvoice.currency,
       createdOn: new Date(),
-      nbrOfItems: stripeInvoice.lines.total_count
+      nbrOfItems: stripeInvoice.lines.data.length,
     } as BillingInvoice;
     // Set user
     invoice.user = await UserStorage.getUserByBillingID(this.tenantID, billingUser.billingData.customerID);
@@ -455,7 +455,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async chargeInvoice(invoice: BillingInvoice): Promise<unknown> {
     await this.checkConnection();
     // Fetch the invoice from stripe (do NOT TRUST the local copy)
-    let stripeInvoice: invoices.IInvoice = await this.stripe.invoices.retrieve(invoice.invoiceID);
+    let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoice.invoiceID);
     // Check the current invoice status
     if (stripeInvoice.status !== 'paid') {
       // Finalize the invoice (if necessary)
@@ -466,7 +466,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       if (stripeInvoice.status === 'open') {
         // Set the payment options
         // TODO - default payment is used by default - is this ok?
-        const paymentOptions: invoices.IInvoicePayOptions = {};
+        const paymentOptions: Stripe.InvoicePayParams = {};
         stripeInvoice = await this.stripe.invoices.pay(invoice.invoiceID, paymentOptions);
       }
     }
@@ -492,7 +492,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
     // Attach payment method to stripe customer
     const customerID = user.billingData.customerID;
-    const operationResult: paymentMethods.IPaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
+    const operationResult: Stripe.Response<Stripe.PaymentMethod> = await this.stripe.paymentMethods.attach(paymentMethodId, {
       customer: customerID
     });
     // Set this payment method as the default
@@ -781,14 +781,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  private async getCustomerByID(id: string): Promise<Stripe.customers.ICustomer> {
+  private async getCustomerByID(id: string): Promise<Stripe.Customer> {
     await this.checkConnection();
     // Get customer
-    const billingUser = await this.stripe.customers.retrieve(id);
-    return billingUser && !billingUser['deleted'] ? billingUser : null;
+    const customer: Stripe.Customer = await this.stripe.customers.retrieve(id) as Stripe.Customer;
+    return customer;
   }
 
-  private async getCustomerByEmail(email: string): Promise<Stripe.customers.ICustomer> {
+  private async getCustomerByEmail(email: string): Promise<Stripe.Customer> {
     await this.checkConnection();
     // Get customer
     const list = await this.stripe.customers.list(
@@ -821,7 +821,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
     }
     // Update user data
-    const userDataToUpdate: customers.ICustomerUpdateOptions = {};
+    const userDataToUpdate: Stripe.CustomerUpdateParams = {};
     if (customer.description !== description) {
       userDataToUpdate.description = description;
     }
@@ -850,13 +850,5 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         hasSynchroError: false
       }
     };
-  }
-
-  private async initializeStripe() {
-    if (!this.stripe) {
-      this.settings.currency = this.stripeSettings.currency;
-      this.settings.secretKey = await Cypher.decrypt(this.tenantID, this.stripeSettings.secretKey);
-      this.stripe = new Stripe(this.settings.secretKey);
-    }
   }
 }

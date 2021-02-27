@@ -8,7 +8,7 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
-import { IStripeSource } from 'stripe';
+import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
@@ -128,7 +128,7 @@ export default class StripeIntegrationTestData {
     return true;
   }
 
-  public async assignPaymentMethod(stripe_test_token: string) : Promise<IStripeSource> {
+  public async assignPaymentMethod(stripe_test_token: string) : Promise<Stripe.CustomerSource> {
     const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
     const source = await stripeInstance.customers.createSource(this.getCustomerID(), {
