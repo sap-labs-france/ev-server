@@ -7,21 +7,20 @@ import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
-import { LockEntity } from '../../../../types/Locking';
-import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import { TechnicalSettings } from '../../../../types/Setting';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
 
 const MODULE_NAME = 'SettingService';
 
 export default class SettingService {
-  public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
@@ -42,7 +41,7 @@ export default class SettingService {
     // Delete
     await SettingStorage.deleteSetting(req.user.tenantID, settingID);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSetting',
       message: `Setting '${setting.identifier}' has been deleted successfully`,
@@ -54,7 +53,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
@@ -84,7 +83,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
@@ -114,7 +113,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSettings(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSettings(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
@@ -144,7 +143,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleCreateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
       throw new AppAuthError({
@@ -164,7 +163,7 @@ export default class SettingService {
     // Save Setting
     filteredRequest.id = await SettingStorage.saveSettings(req.user.tenantID, filteredRequest);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSetting',
       message: `Setting '${filteredRequest.identifier}' has been created successfully`,
@@ -236,14 +235,47 @@ export default class SettingService {
     setting.lastChangedBy = { 'id': req.user.id };
     setting.lastChangedOn = new Date();
     if (settingUpdate.identifier === TechnicalSettings.CRYPTO) {
-      if (setting.content.crypto.migrationToBeDone) {
-        // If migration in progress, throw error
+      // Check supported alogrithm
+      if (!Constants.CRYPTO_SUPPORTED_ALGORITHM.includes(
+        Utils.buildAlgorithm(settingUpdate.content.crypto.keyProperties))) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.MIGRATION_IN_PROGRESS,
-          message: 'Sensitive Data Migration is in progress',
-          module: MODULE_NAME,
-          method: 'handleUpdateSetting',
+          errorCode: HTTPError.CRYPTO_ALGORITHM_NOT_SUPPORTED,
+          message: 'Crypto algorithm not supported',
+          module: MODULE_NAME, method: 'handleUpdateSetting',
+          user: req.user
+        });
+      }
+      // Check crypto key
+      const keyLength = settingUpdate.content.crypto.keyProperties.blockSize / 8;
+      if (settingUpdate.content.crypto.key.length !== keyLength) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.CRYPTO_KEY_LENGTH_INVALID,
+          message: 'Crypto key length is invalid',
+          module: MODULE_NAME, method: 'handleUpdateSetting',
+          user: req.user
+        });
+      }
+      // Check if config is valid
+      try {
+        await Cypher.checkCryptoSettings(settingUpdate.content.crypto);
+      } catch (error) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.CRYPTO_CHECK_FAILED,
+          message: 'Crypto check failed to run: ' + error.message,
+          module: MODULE_NAME, method: 'handleUpdateSetting',
+          user: req.user
+        });
+      }
+      // Check if migration is on-going
+      if (setting.content.crypto.migrationToBeDone) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.CRYPTO_MIGRATION_IN_PROGRESS,
+          message: 'Crypto migration is in progress',
+          module: MODULE_NAME, method: 'handleUpdateSetting',
           user: req.user
         });
       } else {
@@ -263,7 +295,7 @@ export default class SettingService {
       }
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',
       message: `Setting '${settingUpdate.id}' has been updated successfully`,

@@ -46,6 +46,22 @@ export default class Cypher {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
+  public static async checkCryptoSettings(cryptoSetting: CryptoSetting): Promise<void> {
+    const dataToEncrypt = 'test-data-to-encrypt';
+    // Cypher
+    const encryptedData = await Cypher.encrypt(null, dataToEncrypt, false, cryptoSetting);
+    // Decypher
+    const decryptedData = await Cypher.decrypt(null, encryptedData, false, cryptoSetting);
+    // Check
+    if (decryptedData !== dataToEncrypt) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        message: 'Crypto algorithm check failed',
+        module: MODULE_NAME, method: 'checkCryptoSettings',
+      });
+    }
+  }
+
   public static async encryptSensitiveDataInJSON(tenantID: string, data: Record<string, any>, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<void> {
     if (typeof data !== 'object') {
       throw new BackendError({
