@@ -8,7 +8,7 @@ export default class MigrateSensitiveDataTask extends SchedulerTask {
 
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     const keySettings = await SettingStorage.getCryptoSettings(tenant.id);
-    if (keySettings?.crypto.migrationToBeDone === true) {
+    if (keySettings?.crypto.migrationToBeDone) {
       await Cypher.handleCryptoSettingsChange(tenant.id);
     }
   }
