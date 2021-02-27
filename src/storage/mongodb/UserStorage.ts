@@ -279,6 +279,7 @@ export default class UserStorage {
       name: userToSave.name,
       role: userToSave.role,
       status: userToSave.status,
+      error: userToSave.error,
       importedOn: new Date(),
       importedBy: Utils.convertToObjectID(userToSave.importedBy)
     };
@@ -739,6 +740,8 @@ export default class UserStorage {
     });
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'importedBy');
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Project
