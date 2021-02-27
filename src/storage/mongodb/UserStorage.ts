@@ -239,6 +239,7 @@ export default class UserStorage {
         sendComputeAndApplyChargingProfilesFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendComputeAndApplyChargingProfilesFailed) : false,
         sendBillingNewInvoice: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingNewInvoice) : false,
         sendAccountVerificationNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendAccountVerificationNotification) : false,
+        sendAdminAccountVerificationNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendAdminAccountVerificationNotification) : false,
       },
       deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false,
     };
