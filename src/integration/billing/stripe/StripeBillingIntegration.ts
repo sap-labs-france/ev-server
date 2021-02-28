@@ -186,6 +186,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Get Invoice
     try {
       const stripeInvoice = await this.stripe.invoices.retrieve(id);
+      const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
       return {
         invoiceID: stripeInvoice.id,
         customerID: stripeInvoice.customer,
@@ -194,12 +195,18 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         status: stripeInvoice.status as BillingInvoiceStatus,
         currency: stripeInvoice.currency,
         createdOn: new Date(stripeInvoice.created * 1000),
-        nbrOfItems: stripeInvoice.lines.data.length,
+        nbrOfItems: nbrOfItems,
         downloadUrl: stripeInvoice.invoice_pdf
       } as BillingInvoice;
     } catch (e) {
       return null;
     }
+  }
+
+  private getNumberOfItems(stripeInvoice: Stripe.Invoice): number {
+    // STRIPE version 8.137.0 - total_count property is deprecated - TODO - find another way to get it!
+    const nbrOfItems: number = stripeInvoice.lines['total_count'];
+    return nbrOfItems;
   }
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
@@ -297,11 +304,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       idempotency_key: idempotencyKey?.toString()
     });
     // Let's update the data which is replicated on our side
-    return this.upsertBillingInvoice(user, stripeInvoice);
+    return this.updateBillingInvoice(user, stripeInvoice);
   }
 
-  private async upsertBillingInvoice(billingUser: BillingUser, stripeInvoice: Stripe.Invoice): Promise<BillingInvoice> {
+  private async updateBillingInvoice(billingUser: BillingUser, stripeInvoice: Stripe.Invoice): Promise<BillingInvoice> {
     const customerID = stripeInvoice.customer;
+    const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
     const invoice = {
       invoiceID: stripeInvoice.id,
       customerID,
@@ -310,7 +318,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       status: stripeInvoice.status as BillingInvoiceStatus,
       currency: stripeInvoice.currency,
       createdOn: new Date(),
-      nbrOfItems: stripeInvoice.lines.data.length,
+      nbrOfItems,
     } as BillingInvoice;
     // Set user
     invoice.user = await UserStorage.getUserByBillingID(this.tenantID, billingUser.billingData.customerID);
@@ -595,12 +603,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           action: ServerAction.BILLING_TRANSACTION
         });
       }
-
       // Let's get the raw data from stripe!
       const stripeInvoice = await this.getStripeInvoice(draftInvoice.invoiceID);
-
       // Well ... we need to update the billing invoice to reflect the latest changes
-      await this.upsertBillingInvoice(billingUser, stripeInvoice);
+      await this.updateBillingInvoice(billingUser, stripeInvoice);
     }
     // Return the operation result as a BillingDataTransactionStop
     return {

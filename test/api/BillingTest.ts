@@ -193,6 +193,28 @@ describe('Billing Service', function() {
       // expect(exists).to.be.true;
     });
 
+    describe('Where admin user (essential)', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        // await testData.setBillingSystemValidCredentials();
+      });
+
+      it('should add an item to the existing invoice after a transaction', async () => {
+        await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        const itemsBefore = await testData.getNumberOfItems(testData.userContext);
+        const transactionID = await testData.generateTransaction(testData.userContext);
+        expect(transactionID).to.not.be.null;
+        await testData.userService.billingApi.synchronizeInvoices({});
+        const itemsAfter = await testData.getNumberOfItems(testData.userContext);
+        expect(itemsAfter).to.be.eq(itemsBefore + 1);
+      });
+
+    });
+
     describe('Where admin user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
