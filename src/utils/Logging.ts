@@ -18,6 +18,7 @@ import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
+import chalk from 'chalk';
 import cluster from 'cluster';
 import sizeof from 'object-sizeof';
 
@@ -56,16 +57,19 @@ export default class Logging {
       }
       const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
       const numberOfRecords = Array.isArray(data) ? data.length : 0;
-      console.debug(`${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''}${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`);
+      const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''}${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`;
+      console.debug(chalk.green(message));
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
     }
   }
@@ -259,16 +263,19 @@ export default class Logging {
           sizeOfDataKB = Utils.truncTo(res.getHeader('content-length') as number / 1024, 2);
         }
         if (Utils.isDevelopmentEnv()) {
-          console.debug(`Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
+          const message = `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`;
+          console.debug(chalk.green(message));
           if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-            console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB`));
-            console.warn('====================================');
+            console.error(chalk.red('===================================='));
+            console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB`)));
+            console.error(chalk.red(message));
+            console.error(chalk.red('===================================='));
           }
           if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-            console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`));
-            console.warn('====================================');
+            console.error(chalk.red('===================================='));
+            console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`)));
+            console.error(chalk.red(message));
+            console.error(chalk.red('===================================='));
           }
         }
         void Logging.logSecurityDebug({
@@ -320,16 +327,19 @@ export default class Logging {
       sizeOfDataKB = Utils.truncTo(response.config.headers['Content-Length'] / 1024, 2);
     }
     if (Utils.isDevelopmentEnv()) {
-      console.log(`Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`);
+      const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
+      console.log(chalk.green(message));
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
     }
     await Logging.logSecurityDebug({
@@ -848,11 +858,13 @@ export default class Logging {
       found = true;
     }
     if (Utils.isDevelopmentEnv()) {
-      console.debug(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`);
+      const message = `${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
+      console.debug(chalk.green(message));
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
     }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {
