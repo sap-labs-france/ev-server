@@ -215,11 +215,7 @@ export default class OCPPUtils {
             consumption.roundedAmount = pricedConsumption.roundedAmount;
             consumption.currencyCode = pricedConsumption.currencyCode;
             consumption.pricingSource = pricedConsumption.pricingSource;
-            if (pricedConsumption.cumulatedAmount) {
-              consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            } else {
-              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 3);
-            }
+            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
           }
           break;
@@ -233,11 +229,7 @@ export default class OCPPUtils {
             consumption.roundedAmount = pricedConsumption.roundedAmount;
             consumption.currencyCode = pricedConsumption.currencyCode;
             consumption.pricingSource = pricedConsumption.pricingSource;
-            if (pricedConsumption.cumulatedAmount) {
-              consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            } else {
-              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 3);
-            }
+            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
             // Update Transaction
             if (!transaction.stop) {

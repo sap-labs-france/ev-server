@@ -475,11 +475,11 @@ export default class Utils {
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 6);
+    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 6);
   }
 
   public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 2);
+    return Utils.roundTo(pricePerkWh * (consumptionWh / 1000), 2);
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
