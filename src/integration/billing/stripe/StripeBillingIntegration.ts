@@ -827,8 +827,18 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
 
     if (customerID) {
-      const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
-      return customer;
+      try {
+        const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
+        return customer;
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'getStripeCustomer',
+          action: ServerAction.BILLING,
+          message: `Stripe Inconsistency: ${error.message as string}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
     }
 
     // No Customer in STRIPE DB so far!

@@ -261,7 +261,7 @@ describe('Billing Service', function() {
           fakeUser
         );
         testData.createdUsers.push(fakeUser);
-        fakeUser.billingData = { customerID: 'cus_test' }; // TODO - Updating billing data is not possible anymore - filterUserRequest prevents this to happen!!!
+        fakeUser.billingData = { customerID: 'cus_utbilling_fake_user' }; // TODO - Updating billing data is not possible anymore - filterUserRequest prevents this to happen!!!
         await testData.userService.updateEntity(
           testData.userService.userApi,
           fakeUser
