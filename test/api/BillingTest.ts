@@ -170,27 +170,8 @@ describe('Billing Service', function() {
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
-      // Create a new user for testing stripe scenarios - BILING-TEST
-      testData.dynamicUser = {
-        ...Factory.user.build(),
-        name: 'BILLING-TEST',
-        firstName: 'Billing Integration Tests',
-        issuer: true
-      } as User;
-      await testData.adminUserService.createEntity(
-        testData.adminUserService.userApi,
-        testData.dynamicUser
-      );
-      // testData.createdUsers.push(testData.dynamicUser);
+      // Initialize the Billing module
       testData.billingImpl = await testData.setBillingSystemValidCredentials();
-      await testData.adminUserService.billingApi.forceSynchronizeUser({ id: testData.dynamicUser.id });
-      testData.billingUser = await testData.billingImpl.getUser(testData.dynamicUser); // billingData is missing!
-      expect(testData.billingUser, 'Billing user should not ber null');
-
-      // await testData.setBillingSystemValidCredentials();
-      // assert(!!testData.billingImpl, 'Billing service cannot be null');
-      // const exists = await testData.billingImpl.userExists(testData.dynamicUser);
-      // expect(exists).to.be.true;
     });
 
     describe('Where admin user (essential)', () => {
@@ -231,30 +212,21 @@ describe('Billing Service', function() {
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
       });
 
-      it('Should create a user', async () => {
+      it('Should create/update/delete a user', async () => {
         const fakeUser = {
           ...Factory.user.build(),
         } as User;
         fakeUser.issuer = true;
+        // Let's create a user
         await testData.userService.createEntity(
           testData.userService.userApi,
           fakeUser
         );
         testData.createdUsers.push(fakeUser);
-
-        const exists = await testData.billingImpl.userExists(fakeUser);
+        // Let's check that the corresponding billing user exists as well (a Customer in the STRIPE DB)
+        let exists = await testData.billingImpl.userExists(fakeUser);
         expect(exists).to.be.true;
-      });
-
-      it('Should update a user', async () => {
-        const fakeUser = {
-          ...Factory.user.build(),
-        } as User;
-        fakeUser.issuer = true;
-        await testData.userService.createEntity(
-          testData.userService.userApi,
-          fakeUser
-        );
+        // Let's update the new user
         fakeUser.firstName = 'Test';
         fakeUser.name = 'NAME';
         fakeUser.issuer = true;
@@ -263,20 +235,19 @@ describe('Billing Service', function() {
           fakeUser,
           false
         );
-        testData.createdUsers.push(fakeUser);
+        // Let's check that the corresponding billing user was updated as well
         const billingUser = await testData.billingImpl.getUser(fakeUser);
         expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
-      });
-
-      it('Should delete a user', async () => {
+        // Let's delete the user
         await testData.userService.deleteEntity(
           testData.userService.userApi,
           { id: testData.createdUsers[0].id }
         );
-
-        const exists = await testData.billingImpl.userExists(testData.createdUsers[0]);
+        // Verify that the corresponding billing user is gone
+        exists = await testData.billingImpl.userExists(testData.createdUsers[0]);
         expect(exists).to.be.false;
         testData.createdUsers.shift();
+
       });
 
       it('Should force a user synchronization', async () => {
@@ -290,7 +261,7 @@ describe('Billing Service', function() {
           fakeUser
         );
         testData.createdUsers.push(fakeUser);
-        fakeUser.billingData = { customerID: 'cus_test' };
+        fakeUser.billingData = { customerID: 'cus_test' }; // TODO - Updating billing data is not possible anymore - filterUserRequest prevents this to happen!!!
         await testData.userService.updateEntity(
           testData.userService.userApi,
           fakeUser
