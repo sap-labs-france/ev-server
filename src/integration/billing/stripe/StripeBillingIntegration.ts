@@ -136,29 +136,39 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       return billingUser;
     }
 
-    // TODO ? throw exception?
     return null;
+  }
+
+  public async userExists(user: User): Promise<boolean> {
+    // Check Stripe
+    await this.checkConnection();
+    // Make sure the billing data has been provided
+    if (!user.billingData) {
+      user = await UserStorage.getUser(this.tenantID, user.id);
+    }
+    // Get customer
+    const customer = await this.getStripeCustomer(user);
+    return !!customer;
   }
 
   public async getUser(user: User): Promise<BillingUser> {
     // Check Stripe
     await this.checkConnection();
-    // Get customer
-    const customerID = user?.billingData?.customerID;
-    if (customerID) {
-      const customer: Stripe.Customer = await this.getCustomerByID(customerID);
-      return this.convertToBillingUser(customer);
+    // Make sure the billing data has been provided
+    if (!user.billingData) {
+      user = await UserStorage.getUser(this.tenantID, user.id);
     }
-
-    // User and customer not yet in sync
-    return null;
+    // Get the STRIPE customer
+    const customer = await this.getStripeCustomer(user);
+    // Return the corresponding  Billing User
+    return this.convertToBillingUser(customer);
   }
 
   public async getBillingUserByInternalID(customerID: string): Promise<BillingUser> {
     // Check Stripe
     await this.checkConnection();
     // Get customIDer
-    const customer: Stripe.Customer = await this.getCustomerByID(customerID);
+    const customer: Stripe.Customer = await this.getStripeCustomer(customerID);
     return this.convertToBillingUser(customer);
   }
 
@@ -698,15 +708,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return this.checkIfUserCanBeUpdated(user);
   }
 
-  public async userExists(user: User): Promise<boolean> {
-    // Check Stripe
-    await this.checkConnection();
-    // Get customer
-    // const customer = await this.getCustomerByEmail(user.email);
-    const customer = await this.getStripeCustomer(user);
-    return !!customer;
-  }
-
   // eslint-disable-next-line @typescript-eslint/require-await
   public async checkIfUserCanBeUpdated(user: User): Promise<boolean> {
     // Check connection
@@ -814,36 +815,25 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  private async getStripeCustomer(user: User): Promise<Stripe.Customer> {
+  private async getStripeCustomer(userOrCustomerID: User | string): Promise<Stripe.Customer> {
     await this.checkConnection();
     // Get customer
-    const customerID = user?.billingData?.customerID;
+
+    let customerID ;
+    if (typeof userOrCustomerID === 'string') {
+      customerID = userOrCustomerID;
+    } else {
+      customerID = userOrCustomerID?.billingData?.customerID;
+    }
+
     if (customerID) {
       const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
       return customer;
     }
 
-    // eMobility User does not yet have its Customer counterpart in STRIPE DB!
+    // No Customer in STRIPE DB so far!
     return null;
   }
-
-  private async getCustomerByID(customerID: string): Promise<Stripe.Customer> {
-    await this.checkConnection();
-    // Get customer
-    const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
-    return customer;
-  }
-
-  // private async getCustomerByEmail(email: string): Promise<Stripe.Customer> {
-  //   await this.checkConnection();
-  //   // Get customer
-  //   const list = await this.stripe.customers.list(
-  //     { email: email, limit: 1 }
-  //   );
-  //   if (list && list.data && list.data.length > 0) {
-  //     return list.data[0];
-  //   }
-  // }
 
   private async modifyUser(user: User): Promise<BillingUser> {
     await this.checkConnection();
@@ -851,14 +841,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     const description = i18nManager.translate('billing.generatedUser', { email: user.email });
+    // Let's check if the STRIPE customer exists
     let customer = await this.getStripeCustomer(user);
-    // let customer;
-    // if (user.billingData && user.billingData.customerID) {
-    //   customer = await this.getCustomerByID(user.billingData.customerID);
-    // } else {
-    //   customer = await this.getCustomerByEmail(user.email);
-    // }
-    // Create
     if (!customer) {
       customer = await this.stripe.customers.create({
         email: user.email,
