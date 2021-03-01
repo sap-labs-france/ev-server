@@ -1347,13 +1347,12 @@ export default class Utils {
     };
   }
 
-  public static buildAlgorithm(properties: CryptoKeyProperties): string | CipherGCMTypes {
-    return `${properties.blockCypher}-${properties.blockSize}-${properties.operationMode}`;
+  public static buildAlgorithm(keyProperties: CryptoKeyProperties): string | CipherGCMTypes {
+    return `${keyProperties.blockCypher}-${keyProperties.blockSize}-${keyProperties.operationMode}`;
   }
 
-  public static generateKey(): string {
-    // TODO: change 16 to 32 and test on Mac
-    return crypto.randomBytes(16).toString('hex');
+  public static generateKey(keyProperties: CryptoKeyProperties): string {
+    return crypto.randomBytes(keyProperties.blockSize / 8).toString('hex');
   }
 
   public static getDefaultKeyProperties(): CryptoKeyProperties {
