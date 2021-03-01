@@ -1,52 +1,53 @@
 import Constants from '../../utils/Constants';
-import Performance from '../../types/Performance';
+import PerformanceRecord from '../../types/Performance';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 export default class PerformanceStorage {
-  static async savePerformance(performance: Performance): Promise<void> {
+  static async savePerformance(performanceRecord: PerformanceRecord): Promise<void> {
     // Set
-    const performanceMDB: any = {
-      tenantID: performance.tenantID && performance.tenantID !== Constants.DEFAULT_TENANT ? Utils.convertToObjectID(performance.tenantID) : Constants.DEFAULT_TENANT,
-      timestamp: Utils.convertToDate(performance.timestamp),
-      host: performance.host,
-      memoryTotalGb: performance.memoryTotalGb,
-      memoryFreeGb: performance.memoryFreeGb,
-      loadAverageLastMin: performance.loadAverageLastMin,
-      process: performance.process,
-      source: performance.source,
-      module: performance.module,
-      method: performance.method,
-      action: performance.action,
+    const performanceRecordMDB: any = {
+      tenantID: performanceRecord.tenantID && performanceRecord.tenantID !== Constants.DEFAULT_TENANT ?
+        Utils.convertToObjectID(performanceRecord.tenantID) : Constants.DEFAULT_TENANT,
+      timestamp: Utils.convertToDate(performanceRecord.timestamp),
+      host: performanceRecord.host,
+      memoryTotalGb: performanceRecord.memoryTotalGb,
+      memoryFreeGb: performanceRecord.memoryFreeGb,
+      loadAverageLastMin: performanceRecord.loadAverageLastMin,
+      process: performanceRecord.process,
+      source: performanceRecord.source,
+      module: performanceRecord.module,
+      method: performanceRecord.method,
+      action: performanceRecord.action,
     };
     // Add user only if provided
-    if (performance.userID) {
-      performanceMDB.userID = Utils.convertToObjectID(performance.userID);
+    if (performanceRecord.userID) {
+      performanceRecordMDB.userID = Utils.convertToObjectID(performanceRecord.userID);
     }
     // Add parent only if provided
-    if (performance.parentID) {
-      performanceMDB.parentID = Utils.convertToObjectID(performance.parentID);
+    if (performanceRecord.parentID) {
+      performanceRecordMDB.parentID = Utils.convertToObjectID(performanceRecord.parentID);
     }
     // Add nbr charging stations only if provided
-    if (Utils.convertToInt(performance.numberOfChargingStations) > 0) {
-      performanceMDB.numberOfChargingStations = Utils.convertToInt(performance.numberOfChargingStations);
+    if (Utils.convertToInt(performanceRecord.numberOfChargingStations) > 0) {
+      performanceRecordMDB.numberOfChargingStations = Utils.convertToInt(performanceRecord.numberOfChargingStations);
     }
     // Add duration only if provided
-    if (Utils.convertToInt(performance.durationMs) > 0) {
-      performanceMDB.durationMs = Utils.convertToInt(performance.durationMs);
+    if (Utils.convertToInt(performanceRecord.durationMs) > 0) {
+      performanceRecordMDB.durationMs = Utils.convertToInt(performanceRecord.durationMs);
     }
     // Add size only if provided
-    if (Utils.convertToInt(performance.sizeKb) > 0) {
-      performanceMDB.sizeKb = Utils.convertToInt(performance.sizeKb);
+    if (Utils.convertToInt(performanceRecord.sizeKb) > 0) {
+      performanceRecordMDB.sizeKb = Utils.convertToInt(performanceRecord.sizeKb);
     }
     // Add HTTP only when provided (httpMethod is always provided)
-    if (performance.httpMethod) {
-      performanceMDB.httpMethod = performance.httpMethod;
-      performanceMDB.httpCode = Utils.convertToInt(performance.httpCode);
-      performanceMDB.httpUrl = performance.httpUrl;
+    if (performanceRecord.httpMethod) {
+      performanceRecordMDB.httpMethod = performanceRecord.httpMethod;
+      performanceRecordMDB.httpCode = Utils.convertToInt(performanceRecord.httpCode);
+      performanceRecordMDB.httpUrl = performanceRecord.httpUrl;
     }
     // Insert
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'performances')
-      .insertOne(performanceMDB);
+      .insertOne(performanceRecordMDB);
   }
 }

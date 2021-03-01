@@ -73,7 +73,7 @@ export default class Logging {
         console.error(chalk.red('===================================='));
       }
       await PerformanceStorage.savePerformance(
-        Utils.buildPerformance({
+        Utils.buildPerformanceRecord({
           tenantID,
           durationMs: executionDurationMillis,
           sizeKb: sizeOfDataKB,
@@ -303,7 +303,7 @@ export default class Logging {
           }
         });
         void PerformanceStorage.savePerformance(
-          Utils.buildPerformance({
+          Utils.buildPerformanceRecord({
             tenantID,
             httpUrl: req.url,
             httpCode: res.statusCode,
@@ -380,7 +380,7 @@ export default class Logging {
       }
     });
     await PerformanceStorage.savePerformance(
-      Utils.buildPerformance({
+      Utils.buildPerformanceRecord({
         tenantID,
         httpUrl: response.config.url,
         httpCode: response.status,
@@ -924,7 +924,7 @@ export default class Logging {
       });
     }
     await PerformanceStorage.savePerformance(
-      Utils.buildPerformance({
+      Utils.buildPerformanceRecord({
         tenantID,
         durationMs: executionDurationMillis,
         source: Constants.OCPP_SERVER,

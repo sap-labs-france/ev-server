@@ -13,7 +13,7 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { ObjectID } from 'mongodb';
-import Performance from '../types/Performance';
+import PerformanceRecord from '../types/Performance';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -1365,11 +1365,11 @@ export default class Utils {
     };
   }
 
-  public static buildPerformance(params: {
+  public static buildPerformanceRecord(params: {
     tenantID: string; durationMs: number; sizeKb?: number;
     source?: string; module: string; method: string; action: ServerAction|string;
     httpUrl?: string; httpMethod?: string; httpCode?: number;
-  }): Performance {
+  }): PerformanceRecord {
     return {
       tenantID: params.tenantID,
       timestamp: new Date(),

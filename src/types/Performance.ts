@@ -1,6 +1,6 @@
 import { ServerAction } from './Server';
 
-export default interface Performance {
+export default interface PerformanceRecord {
   id?: string;
   tenantID: string;
   timestamp?: Date;
