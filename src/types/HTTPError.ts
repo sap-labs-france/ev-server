@@ -63,7 +63,7 @@ export enum HTTPError {
   CRYPTO_KEY_LENGTH_INVALID = 513,
   CRYPTO_CHECK_FAILED = 514,
 
-  CANNOT_ACQUIRE_LOCK = 510, // FIXME: duplicate already defined BILLING_DELETE_ERROR and existing HTTP status code
+  CANNOT_ACQUIRE_LOCK = 510, // FIXME: override an already defined HTTP status code: Not extended (RFC 2774)
   INVALID_FILE_FORMAT = 583,
 }
 
