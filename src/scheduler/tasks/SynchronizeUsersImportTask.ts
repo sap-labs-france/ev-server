@@ -61,7 +61,9 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                   sendEndUserErrorNotification: false,
                   sendSmtpError: false,
                   sendBillingNewInvoice: false,
-                  sendComputeAndApplyChargingProfilesFailed: false
+                  sendComputeAndApplyChargingProfilesFailed: false,
+                  sendAccountVerificationNotification: true,
+                  sendAdminAccountVerificationNotification: true
                 },
               };
               try {
