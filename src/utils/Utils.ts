@@ -13,6 +13,7 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { ObjectID } from 'mongodb';
+import Performance from '../types/Performance';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -24,8 +25,10 @@ import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import cfenv from 'cfenv';
+import cluster from 'cluster';
 import crypto from 'crypto';
 import fs from 'fs';
+import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -34,8 +37,6 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
-
-const MODULE_NAME = 'Utils';
 
 export default class Utils {
   public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
@@ -1361,6 +1362,32 @@ export default class Utils {
       blockCypher: 'aes',
       blockSize: 256,
       operationMode: 'ctr'
+    };
+  }
+
+  public static buildPerformance(params: {
+    tenantID: string; durationMs: number; sizeKb?: number;
+    source?: string; module: string; method: string; action: ServerAction|string;
+    httpUrl?: string; httpMethod?: string; httpCode?: number;
+  }): Performance {
+    return {
+      tenantID: params.tenantID,
+      timestamp: new Date(),
+      durationMs: params.durationMs,
+      sizeKb: params.sizeKb,
+      host: Utils.getHostname(),
+      process: cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master',
+      memoryTotalGb: Utils.truncTo(os.totalmem() / 1000000000, 3),
+      memoryFreeGb: Utils.truncTo(os.freemem() / 1000000000, 3),
+      loadAverageLastMin: os.loadavg()[0],
+      numberOfChargingStations: global.centralSystemJsonServer?.getNumberOfJsonConnections(),
+      source: params.source,
+      module: params.module,
+      method: params.method,
+      action: params.action,
+      httpUrl: params.httpUrl,
+      httpMethod: params.httpMethod,
+      httpCode: params.httpCode,
     };
   }
 
