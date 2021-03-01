@@ -184,7 +184,7 @@ describe('Billing Service', function() {
       // testData.createdUsers.push(testData.dynamicUser);
       testData.billingImpl = await testData.setBillingSystemValidCredentials();
       await testData.adminUserService.billingApi.forceSynchronizeUser({ id: testData.dynamicUser.id });
-      testData.billingUser = await testData.billingImpl.getUserByEmail(testData.dynamicUser.email);
+      testData.billingUser = await testData.billingImpl.getUser(testData.dynamicUser); // billingData is missing!
       expect(testData.billingUser, 'Billing user should not ber null');
 
       // await testData.setBillingSystemValidCredentials();
@@ -264,7 +264,7 @@ describe('Billing Service', function() {
           false
         );
         testData.createdUsers.push(fakeUser);
-        const billingUser = await testData.billingImpl.getUserByEmail(fakeUser.email);
+        const billingUser = await testData.billingImpl.getUser(fakeUser);
         expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
       });
 
@@ -296,7 +296,7 @@ describe('Billing Service', function() {
           fakeUser
         );
         await testData.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
-        const billingUserAfter = await testData.billingImpl.getUserByEmail(fakeUser.email);
+        const billingUserAfter = await testData.billingImpl.getUser(fakeUser);
         expect(fakeUser.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
       });
 

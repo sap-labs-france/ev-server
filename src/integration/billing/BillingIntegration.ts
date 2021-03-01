@@ -105,7 +105,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           continue;
         }
         // Get Billing User
-        const billingUser = await this.getUser(userBillingIDChangedInBilling);
+        const billingUser = await this.getBillingUserByInternalID(userBillingIDChangedInBilling);
         if (!billingUser) {
           // Only triggers an error if e-Mobility user is not deleted
           actionsDone.inError++;
@@ -174,7 +174,8 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   }
 
   public async forceSynchronizeUser(user: User): Promise<void> {
-    let billingUser = await this.getUserByEmail(user.email);
+    // let billingUser = await this.getUserByEmail(user.email);
+    let billingUser = await this.getUser(user);
     if (billingUser) {
       if (user.billingData) {
         // Only override user's customerID
@@ -473,7 +474,8 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   }
 
   private async checkAndGetBillingUser(user: User): Promise<BillingUser> {
-    const billingUser = await this.getUserByEmail(user.email);
+    // const billingUser = await this.getUserByEmail(user.email);
+    const billingUser = await this.getUser(user);
     if (!billingUser) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -534,11 +536,17 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
 
-  abstract getUser(id: string): Promise<BillingUser>;
+  // abstract getBillingUser(user: User): Promise<BillingUser>;
 
-  abstract getUserByEmail(email: string): Promise<BillingUser>;
+  abstract getBillingUserByInternalID(id: string): Promise<BillingUser>;
 
   abstract getUsers(): Promise<BillingUser[]>;
+
+  abstract getUser(user: User): Promise<BillingUser>;
+
+  // TODO - there is no use-case for such method - the billing data provides the customerID
+  // abstract getUserByEmail(email: string): Promise<BillingUser>;
+
 
   abstract createUser(user: User): Promise<BillingUser>;
 

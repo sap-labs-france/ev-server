@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceRawData, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -23,6 +23,7 @@ import moment from 'moment';
 
 const MODULE_NAME = 'StripeBillingIntegration';
 export default class StripeBillingIntegration extends BillingIntegration<StripeBillingSetting> {
+
   private static readonly STRIPE_MAX_LIST = 100;
   private axiosInstance: AxiosInstance;
   private stripe: Stripe;
@@ -121,37 +122,53 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return users;
   }
 
-  public async getUser(id: string): Promise<BillingUser> {
-    // Check Stripe
-    await this.checkConnection();
-    // Get customer
-    const customer: Stripe.Customer = await this.getCustomerByID(id);
-    if (customer && customer.email) {
-      return {
-        email: customer.email,
+
+  private convertToBillingUser(customer: Stripe.Customer) : BillingUser {
+    if (customer) {
+      const billingUser: BillingUser = {
+        userID: customer.metadata['userID'],
+        // email: customer.email,
         name: customer.name,
         billingData: {
           customerID: customer.id
         }
       };
+      return billingUser;
     }
+
+    // TODO ? throw exception?
+    return null;
   }
 
-  public async getUserByEmail(email: string): Promise<BillingUser> {
+  public async getUser(user: User): Promise<BillingUser> {
     // Check Stripe
     await this.checkConnection();
     // Get customer
-    const billingUser = await this.getCustomerByEmail(email);
-    if (billingUser) {
-      return {
-        email: email,
-        name: billingUser.name,
-        billingData: {
-          customerID: billingUser.id
-        }
-      };
+    const customerID = user?.billingData?.customerID;
+    if (customerID) {
+      const customer: Stripe.Customer = await this.getCustomerByID(customerID);
+      return this.convertToBillingUser(customer);
     }
+
+    // User and customer not yet in sync
+    return null;
   }
+
+  public async getBillingUserByInternalID(customerID: string): Promise<BillingUser> {
+    // Check Stripe
+    await this.checkConnection();
+    // Get customIDer
+    const customer: Stripe.Customer = await this.getCustomerByID(customerID);
+    return this.convertToBillingUser(customer);
+  }
+
+  // public async getUserByEmail(email: string): Promise<BillingUser> {
+  //   // Check Stripe
+  //   await this.checkConnection();
+  //   // Get customer
+  //   const customer = await this.getCustomerByEmail(email);
+  //   return this.convertToBillingUser(customer);
+  // }
 
   public async getTaxes(): Promise<BillingTax[]> {
     const taxes = [] as BillingTax[];
@@ -301,30 +318,36 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       days_until_due: 30,
       auto_advance: false
     }, {
-      idempotency_key: idempotencyKey?.toString()
+      // idempotency_key: idempotencyKey?.toString(),
+      idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
     });
     // Let's update the data which is replicated on our side
     return this.updateBillingInvoice(user, stripeInvoice);
   }
 
   private async updateBillingInvoice(billingUser: BillingUser, stripeInvoice: Stripe.Invoice): Promise<BillingInvoice> {
-    const customerID = stripeInvoice.customer;
     const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
-    const invoice = {
+    const invoiceData: BillingInvoiceRawData = {
+      userID: billingUser.userID,
       invoiceID: stripeInvoice.id,
-      customerID,
+      customerID: stripeInvoice.customer as string, // TODO - clarify is this is always correct - customer might be expanded
       number: stripeInvoice.number,
       amount: stripeInvoice.amount_due,
       status: stripeInvoice.status as BillingInvoiceStatus,
       currency: stripeInvoice.currency,
       createdOn: new Date(),
       nbrOfItems,
-    } as BillingInvoice;
-    // Set user
-    invoice.user = await UserStorage.getUserByBillingID(this.tenantID, billingUser.billingData.customerID);
+    };
+    // --------------------------------------------------------
+    // Set user - This is useless - we only need the userID
+    // invoice.user = await UserStorage.getUserByBillingID(this.tenantID, billingUser.billingData.customerID);
+    // --------------------------------------------------------
     // Save Invoice
-    invoice.id = await BillingStorage.saveInvoice(this.tenantID, invoice);
-    return invoice;
+    const billingInvoice: BillingInvoice = {
+      id: await BillingStorage.saveInvoice(this.tenantID, invoiceData),
+      ...invoiceData,
+    };
+    return billingInvoice;
   }
 
   public async createPendingInvoiceItem(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<BillingInvoiceItem> {
@@ -357,7 +380,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       }
       // Let's create the line item
       const stripeInvoiceItem = await this.stripe.invoiceItems.create(itemInputParameters, {
-        idempotency_key: idempotencyKey?.toString()
+        // idempotency_key: idempotencyKey?.toString()
+        idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
       });
       // returns the newly created invoice item
       return stripeInvoiceItem;
@@ -518,7 +542,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Transaction
     this.checkStartTransaction(transaction);
     // Checks
-    const customer = await this.getCustomerByEmail(transaction.user.email);
+    // const customer = await this.getCustomerByUserID(transaction.user.id);
+    const customer = await this.getStripeCustomer(transaction.user);
     if (!customer || customer.id !== transaction.user.billingData.customerID) {
       throw new BackendError({
         message: 'Stripe customer ID of the transaction user is invalid',
@@ -556,7 +581,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check object
     this.checkStopTransaction(transaction);
     // Get the user
-    const billingUser = await this.getUser(transaction.user.billingData.customerID);
+    const billingUser = await this.getUser(transaction.user);
     if (!billingUser) {
       throw new BackendError({
         message: 'User does not exists in Stripe',
@@ -677,7 +702,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // Get customer
-    const customer = await this.getCustomerByEmail(user.email);
+    // const customer = await this.getCustomerByEmail(user.email);
+    const customer = await this.getStripeCustomer(user);
     return !!customer;
   }
 
@@ -779,7 +805,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async deleteUser(user: User): Promise<void> {
     // Check Stripe
     await this.checkConnection();
-    const customer = await this.getCustomerByEmail(user.email);
+    // const customer = await this.getCustomerByEmail(user.email);
+    const customer = await this.getStripeCustomer(user);
     if (customer && customer.id) {
       await this.stripe.customers.del(
         customer.id
@@ -787,23 +814,36 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  private async getCustomerByID(id: string): Promise<Stripe.Customer> {
+  private async getStripeCustomer(user: User): Promise<Stripe.Customer> {
     await this.checkConnection();
     // Get customer
-    const customer: Stripe.Customer = await this.stripe.customers.retrieve(id) as Stripe.Customer;
+    const customerID = user?.billingData?.customerID;
+    if (customerID) {
+      const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
+      return customer;
+    }
+
+    // eMobility User does not yet have its Customer counterpart in STRIPE DB!
+    return null;
+  }
+
+  private async getCustomerByID(customerID: string): Promise<Stripe.Customer> {
+    await this.checkConnection();
+    // Get customer
+    const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
     return customer;
   }
 
-  private async getCustomerByEmail(email: string): Promise<Stripe.Customer> {
-    await this.checkConnection();
-    // Get customer
-    const list = await this.stripe.customers.list(
-      { email: email, limit: 1 }
-    );
-    if (list && list.data && list.data.length > 0) {
-      return list.data[0];
-    }
-  }
+  // private async getCustomerByEmail(email: string): Promise<Stripe.Customer> {
+  //   await this.checkConnection();
+  //   // Get customer
+  //   const list = await this.stripe.customers.list(
+  //     { email: email, limit: 1 }
+  //   );
+  //   if (list && list.data && list.data.length > 0) {
+  //     return list.data[0];
+  //   }
+  // }
 
   private async modifyUser(user: User): Promise<BillingUser> {
     await this.checkConnection();
@@ -811,19 +851,21 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     const description = i18nManager.translate('billing.generatedUser', { email: user.email });
-    let customer;
-    if (user.billingData && user.billingData.customerID) {
-      customer = await this.getCustomerByID(user.billingData.customerID);
-    } else {
-      customer = await this.getCustomerByEmail(user.email);
-    }
+    let customer = await this.getStripeCustomer(user);
+    // let customer;
+    // if (user.billingData && user.billingData.customerID) {
+    //   customer = await this.getCustomerByID(user.billingData.customerID);
+    // } else {
+    //   customer = await this.getCustomerByEmail(user.email);
+    // }
     // Create
     if (!customer) {
       customer = await this.stripe.customers.create({
         email: user.email,
         description: description,
         name: fullName,
-        preferred_locales: [locale]
+        preferred_locales: [locale],
+        metadata: { 'userID': user.id } // IMPORTANT - keep track on the stripe side of the original eMobility user
       });
     }
     // Update user data
@@ -847,14 +889,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     customer = await this.stripe.customers.update(
       customer.id, userDataToUpdate
     );
-    return {
-      name: customer.name,
-      email: customer.email,
-      billingData: {
-        customerID: customer.id,
-        lastChangedOn: new Date(),
-        hasSynchroError: false
-      }
-    };
+    // Let's return the corresponding Billing User
+    return this.convertToBillingUser(customer);
   }
 }

@@ -59,7 +59,7 @@ export default class StripeIntegrationTestData {
     this.dynamicUser = await UserStorage.getUser(this.getTenantID(), userData.id);
     // Let's get access to the STRIPE implementation - StripeBillingIntegration instance
     this.billingImpl = await this.setBillingSystemValidCredentials();
-    this.billingUser = await this.billingImpl.getUser(this.getCustomerID());
+    this.billingUser = await this.billingImpl.getBillingUserByInternalID(this.getCustomerID());
     expect(this.billingUser, 'Billing user should not ber null');
   }
 

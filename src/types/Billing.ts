@@ -45,7 +45,8 @@ export interface BillingUserData {
 }
 
 export interface BillingUser {
-  email: string;
+  userID: string; // Added to make it easier to find the corresponding eMobility user data
+  // email: string;
   name: string;
   billingData: BillingUserData;
 }
@@ -65,8 +66,11 @@ export interface BillingTax {
   percentage: number;
 }
 
-export interface BillingInvoice {
+export interface BillingInvoice extends BillingInvoiceRawData {
   id: string;
+}
+
+export interface BillingInvoiceRawData {
   invoiceID: string;
   userID?: string;
   user?: User;
@@ -80,6 +84,7 @@ export interface BillingInvoice {
   downloadable?: boolean
   downloadUrl?: string;
 }
+
 
 export interface BillingInvoiceItem {
   description: string;
