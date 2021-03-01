@@ -1377,6 +1377,8 @@ export default class Utils {
       sizeKb: params.sizeKb,
       host: Utils.getHostname(),
       process: cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master',
+      processMemoryUsage: process.memoryUsage(),
+      processCPUUsage: process.cpuUsage(),
       memoryTotalGb: Utils.truncTo(os.totalmem() / 1000000000, 3),
       memoryFreeGb: Utils.truncTo(os.freemem() / 1000000000, 3),
       loadAverageLastMin: os.loadavg()[0],

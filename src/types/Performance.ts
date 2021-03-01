@@ -8,6 +8,8 @@ export default interface PerformanceRecord {
   sizeKb?: number;
   host: string;
   process: string;
+  processMemoryUsage: NodeJS.MemoryUsage,
+  processCPUUsage: NodeJS.CpuUsage,
   memoryTotalGb: number;
   memoryFreeGb: number;
   loadAverageLastMin: number,

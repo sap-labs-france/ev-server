@@ -4,7 +4,7 @@ import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 export default class PerformanceStorage {
-  static async savePerformance(performanceRecord: PerformanceRecord): Promise<void> {
+  public static async savePerformanceRecord(performanceRecord: PerformanceRecord): Promise<void> {
     // Set
     const performanceRecordMDB: any = {
       tenantID: performanceRecord.tenantID && performanceRecord.tenantID !== Constants.DEFAULT_TENANT ?
@@ -15,6 +15,8 @@ export default class PerformanceStorage {
       memoryFreeGb: performanceRecord.memoryFreeGb,
       loadAverageLastMin: performanceRecord.loadAverageLastMin,
       process: performanceRecord.process,
+      processMemoryUsage: JSON.stringify(performanceRecord.processMemoryUsage),
+      processCPUUsage: JSON.stringify(performanceRecord.processCPUUsage),
       source: performanceRecord.source,
       module: performanceRecord.module,
       method: performanceRecord.method,
