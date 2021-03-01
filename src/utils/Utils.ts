@@ -4,6 +4,7 @@ import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
+import crypto, { CipherGCMTypes } from 'crypto';
 
 import Address from '../types/Address';
 import { AxiosError } from 'axios';
@@ -24,7 +25,6 @@ import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import cfenv from 'cfenv';
-import crypto from 'crypto';
 import fs from 'fs';
 import http from 'http';
 import moment from 'moment';
@@ -1347,7 +1347,7 @@ export default class Utils {
     };
   }
 
-  public static buildAlgorithm(properties: CryptoKeyProperties): string {
+  public static buildAlgorithm(properties: CryptoKeyProperties): string | CipherGCMTypes {
     return `${properties.blockCypher}-${properties.blockSize}-${properties.operationMode}`;
   }
 

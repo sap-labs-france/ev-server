@@ -1,4 +1,5 @@
 import { CryptoSetting, CryptoSettings, SettingDB, TechnicalSettings } from '../types/Setting';
+import crypto, { CipherGCM, CipherGCMTypes, DecipherGCM } from 'crypto';
 
 import BackendError from '../exception/BackendError';
 import Constants from './Constants';
@@ -7,13 +8,11 @@ import LockingManager from '../locking/LockingManager';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import Utils from './Utils';
 import _ from 'lodash';
-import crypto from 'crypto';
 
 const IV_LENGTH = 16;
 const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
-
   public static async encrypt(tenantID: string, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
     const iv = crypto.randomBytes(IV_LENGTH);
     if (!cryptoSetting) {
@@ -21,22 +20,36 @@ export default class Cypher {
     }
     const algo = useFormerKey ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
     const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
-    const cipher = crypto.createCipheriv(algo, key, iv);
+    const cipher: CipherGCM = crypto.createCipheriv(algo, key, iv) as CipherGCM;
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
+    let authTag: Buffer;
+    if (Cypher.isAuthenticatedEncryptionMode(algo)) {
+      authTag = cipher.getAuthTag();
+    }
+    if (!Utils.isUndefined(authTag)) {
+      return iv.toString('hex') + ':' + encryptedData.toString('hex') + ':' + authTag.toString('hex');
+    }
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
   }
 
   public static async decrypt(tenantID: string, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
     const dataParts = data.split(':');
     const iv = Buffer.from(dataParts.shift(), 'hex');
-    const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
+    const encryptedData = Buffer.from(dataParts.shift(), 'hex');
+    let authTag: Buffer;
+    if (!Utils.isEmptyArray(dataParts)) {
+      authTag = Buffer.from(dataParts.shift(), 'hex');
+    }
     if (!cryptoSetting) {
       cryptoSetting = (await Cypher.getCryptoSettings(tenantID)).crypto;
     }
-    const algo = useFormerKey ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
+    const algo: string | CipherGCMTypes = useFormerKey ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
     const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
-    const decipher = crypto.createDecipheriv(algo, key , iv);
+    const decipher: DecipherGCM = crypto.createDecipheriv(algo, key, iv) as DecipherGCM;
+    if (!Utils.isUndefined(authTag) && Cypher.isAuthenticatedEncryptionMode(algo)) {
+      decipher.setAuthTag(authTag);
+    }
     let decrypted = decipher.update(encryptedData);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();
@@ -239,7 +252,7 @@ export default class Cypher {
   private static prepareBackupSensitiveData(setting: SettingDB): Record<string, any> {
     const backupSensitiveData: Record<string, any> = {};
     for (const property of setting.sensitiveData) {
-    // Check that the property does exist otherwise skip to the next property
+      // Check that the property does exist otherwise skip to the next property
       if (Utils.objectHasProperty(setting, property)) {
         const value = _.get(setting, property) as string;
         // If the value is undefined, null or empty then do nothing and skip to the next property
@@ -249,6 +262,10 @@ export default class Cypher {
       }
     }
     return backupSensitiveData;
+  }
+
+  private static isAuthenticatedEncryptionMode(opMode: string): boolean {
+    return opMode.includes('gcm') || opMode.includes('ccm') || opMode.includes('GCM') || opMode.includes('CCM') || opMode.includes('ocb');
   }
 
   private static async cleanupBackupSensitiveData(tenantID: string): Promise<void> {
