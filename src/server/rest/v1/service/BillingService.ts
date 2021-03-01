@@ -29,7 +29,7 @@ export default class BillingService {
   public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.BILLING, action: Action.CHECK_CONNECTION,
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
@@ -72,7 +72,7 @@ export default class BillingService {
   public static async handleSynchronizeUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canSynchronizeUsersBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.USERS, action: Action.SYNCHRONIZE_BILLING_USERS,
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
@@ -125,7 +125,7 @@ export default class BillingService {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
     if (!Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER,
         module: MODULE_NAME, method: 'handleSynchronizeUser',
@@ -178,7 +178,7 @@ export default class BillingService {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
     if (!Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER,
         module: MODULE_NAME, method: 'handleForceSynchronizeUser',
@@ -248,7 +248,7 @@ export default class BillingService {
   public static async handleGetBillingTaxes(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canReadTaxesBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.TAXES, action: Action.LIST,
         module: MODULE_NAME, method: 'handleGetBillingTaxes',
@@ -282,7 +282,7 @@ export default class BillingService {
       Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoices');
     if (!Authorizations.canListInvoicesBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.INVOICES, action: Action.LIST,
         module: MODULE_NAME, method: 'handleGetInvoices',
@@ -307,7 +307,7 @@ export default class BillingService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
@@ -322,7 +322,7 @@ export default class BillingService {
   public static async handleSynchronizeInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canSynchronizeInvoicesBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.INVOICES, action: Action.SYNCHRONIZE,
         module: MODULE_NAME, method: 'handleSynchronizeInvoices',
@@ -383,7 +383,7 @@ export default class BillingService {
   public static async handleForceSynchronizeUserInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canSynchronizeInvoicesBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.INVOICES, action: Action.SYNCHRONIZE,
         module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
@@ -444,7 +444,7 @@ export default class BillingService {
     // Check Auth
     if (!Authorizations.canCreateTransactionInvoice(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.INVOICE, action: Action.CREATE,
         module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
@@ -505,7 +505,7 @@ export default class BillingService {
     // Check Auth
     if (!Authorizations.canDownloadInvoiceBilling(req.user, invoice.userID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.INVOICE, action: Action.DOWNLOAD,
         module: MODULE_NAME, method: 'handleDownloadInvoice',

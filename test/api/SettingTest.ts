@@ -9,6 +9,8 @@ import ContextDefinition from './context/ContextDefinition';
 import Tenant from '../types/Tenant';
 import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
+import Utils from '../../src/utils/Utils';
+import _ from 'lodash';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
@@ -132,6 +134,82 @@ describe('Setting tests', function() {
       const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, { limit: TestConstants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
+    });
+    it('Check crypto settings update', async () => {
+      // Update pricing setting to have sensitive data to test on it
+      const readTEST = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readTEST.status).to.equal(200);
+      expect(readTEST.data.count).to.equal(1);
+      const clientSecret = 'a8242e0ed0fa70aee7c802e41e1c7c3b';
+      testData.data = JSON.parse(`{
+          "id":"${readTEST.data.result[0].id}",
+          "identifier":"refund",
+          "sensitiveData":["content.concur.clientSecret"],
+          "content":{
+            "type" : "concur",
+            "concur" : {
+                "authenticationUrl" : "https://url.com",
+                "apiUrl" : "https://url.com",
+                "appUrl" : "https://url.com",
+                "clientId" : "6cf707fb-9161-48fa-94fe-9e003be680df",
+                "clientSecret" : "${clientSecret}",
+                "paymentTypeId" : "gWtUBRXx$s3h0bNdgyv9gwiHLnCGMF",
+                "expenseTypeCode" : "01104",
+                "policyId" : "1119",
+                "reportName" : "E-Car Charging"
+            }
+        }
+      }`);
+      const updateTEST = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(read.status).to.equal(200);
+      expect(read.data.count).to.equal(1);
+
+      // Update crypto setting
+      testData.data = JSON.parse(`{
+          "id":"${read.data.result[0].id}",
+          "identifier":"${read.data.result[0].identifier}",
+          "sensitiveData":[],
+          "content":{
+            "type":"crypto",
+            "crypto" : {
+              "key" : "${Utils.generateKey()}",
+              "keyProperties" : {
+                  "blockCypher" : "${read.data.result[0].content.crypto.keyProperties.blockCypher}",
+                  "blockSize" : "${read.data.result[0].content.crypto.keyProperties.blockSize}",
+                  "operationMode" : "${read.data.result[0].content.crypto.keyProperties.operationMode}"
+              },
+              "formerKey" : "${read.data.result[0].content.crypto.key}",
+              "formerKeyProperties" : {
+                  "blockCypher" : "${read.data.result[0].content.crypto.keyProperties.blockCypher}",
+                  "blockSize" : "${read.data.result[0].content.crypto.keyProperties.blockSize}",
+                  "operationMode" : "${read.data.result[0].content.crypto.keyProperties.operationMode}"
+              },
+              "migrationToBeDone" : true
+            }
+          }
+      }`);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
     });
   });
 });

@@ -30,6 +30,7 @@ import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateCryptoSettingsFromConfigToDBTask from './tasks/MigrateCryptoSettingsFromConfigToDBTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
+import MigrateUserSettingsTask from './tasks/MigrateUserSettingsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
 import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
@@ -37,6 +38,7 @@ import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPr
 import RenameSMTPAuthErrorTask from './tasks/RenameSMTPAuthErrorTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import RenameTransactionsAndConsumptionsTask from './tasks/RenameTransactionsAndConsumptionsTask';
+import ResetCarCatalogsHashTask from './tasks/ResetCarCatalogsHashTask';
 import { ServerAction } from '../types/Server';
 import SetDefaultTagToUserTask from './tasks/SetDefaultTagToUserTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
@@ -108,7 +110,9 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new MigrateCryptoSettingsFromConfigToDBTask());
         currentMigrationTasks.push(new ImportLocalCarCatalogTask());
         currentMigrationTasks.push(new AddLastChangedOnToCarCatalogTask());
+        currentMigrationTasks.push(new MigrateUserSettingsTask());
         currentMigrationTasks.push(new RenameSMTPAuthErrorTask());
+        currentMigrationTasks.push(new ResetCarCatalogsHashTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

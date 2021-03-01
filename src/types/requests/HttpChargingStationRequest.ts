@@ -1,5 +1,6 @@
 import { ConnectorType, CurrentType, PhaseAssignmentToGrid } from '../ChargingStation';
 
+import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpTriggerSmartChargingRequest {
@@ -66,7 +67,9 @@ export interface HttpChargingStationParamsUpdateRequest {
   }[];
 }
 
-export interface HttpChargingStationRequest {
+export type HttpChargingStationRequest = HttpByIDRequest;
+
+export interface HttpChargingStationOcppRequest {
   ChargeBoxID: string;
 }
 

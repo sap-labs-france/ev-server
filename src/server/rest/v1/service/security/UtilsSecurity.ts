@@ -24,16 +24,14 @@ export default class UtilsSecurity {
     return result;
   }
 
-  static filterSort(request, filteredRequest): void {
+  static filterSort(request: any, filteredRequest): void {
     // Exist?
     if (request.SortFields) {
       // Sanitize
       request.SortFields = sanitize(request.SortFields);
       const sortFields = request.SortFields.split('|');
-      // Array?
-      if (sortFields.length > 0) {
-        // Init
-        filteredRequest.Sort = {};
+      if (!Utils.isEmptyArray(sortFields)) {
+        filteredRequest.SortFields = {};
         // Build
         for (let i = 0; i < sortFields.length; i++) {
           let sortField: string = sortFields[i];
@@ -46,9 +44,19 @@ export default class UtilsSecurity {
             sortField = '_id';
           }
           // Set
-          filteredRequest.Sort[sortField] = order;
+          filteredRequest.SortFields[sortField] = order;
         }
       }
+    }
+  }
+
+  public static filterProject(request: any, filteredRequest: any): void {
+    // Count Only?
+    if (Utils.objectHasProperty(request, 'ProjectFields')) {
+      // Clean
+      request.ProjectFields = sanitize(request.ProjectFields);
+      // Convert to array
+      filteredRequest.ProjectFields = request.ProjectFields.split('|');
     }
   }
 

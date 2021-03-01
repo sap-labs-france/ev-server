@@ -8,7 +8,7 @@ export default class ConnectionValidator extends SchemaValidator {
 
   private constructor() {
     super('ConnectionValidator');
-    this.connectionCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-create-req.json`, 'utf8'));
+    this.connectionCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-create.json`, 'utf8'));
   }
 
   public static getInstance(): ConnectionValidator {

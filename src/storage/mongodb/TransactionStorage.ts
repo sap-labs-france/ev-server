@@ -9,7 +9,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { NotifySessionNotStarted } from '../../types/Notification';
+import { NotifySessionNotStarted } from '../../types/UserNotifications';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
 import moment from 'moment';

@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
@@ -15,6 +15,7 @@ import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
@@ -537,8 +538,10 @@ export default class AuthService {
         message: 'Wrong Verification Token'
       });
     }
+    const userSettings = await SettingStorage.getUserSettings(tenantID);
+    const userStatus = userSettings.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     // Save User Status
-    await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.ACTIVE);
+    await UserStorage.saveUserStatus(tenantID, user.id, userStatus);
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
@@ -571,11 +574,23 @@ export default class AuthService {
       tenantID: tenantID,
       user: user, action: action,
       module: MODULE_NAME, method: 'handleVerifyEmail',
-      message: 'User account has been successfully verified and activated',
+      message: userStatus === UserStatus.ACTIVE ?
+        'User account has been successfully verified and activated' :
+        'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
+    NotificationHandler.sendAccountVerification(
+      tenantID,
+      Utils.generateUUID(),
+      user,
+      {
+        'user': user,
+        'userStatus': userStatus,
+        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.Tenant),
+      }
+    ).catch(() => { });
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json({ status: 'Success', userStatus });
     next();
   }
 

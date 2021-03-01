@@ -133,6 +133,11 @@
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",
       "body": "'{{userName}}' a reporté: '{{errorTitle}}' - '{{errorDescription}}' dans l'organisation '{{tenantName}}'"
+    },
+    "accountVerificationNotification": {
+      "title": "Compte vérifié",
+      "bodyVerified": "Votre compte a été vérifié avec succès. Un administrateur va examiner et activer votre compte.",
+      "bodyVerifiedAndActivated": "Votre compte a été vérifié et activé avec succès."
     }
   },
   "siteArea": "Zone",

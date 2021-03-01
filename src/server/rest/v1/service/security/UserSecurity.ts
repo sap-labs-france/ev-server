@@ -1,8 +1,8 @@
-import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
+import { HttpUserAssignSitesRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
+import User, { UserRole } from '../../../../../types/User';
 
 import Authorizations from '../../../../../authorization/Authorizations';
 import UserNotifications from '../../../../../types/UserNotifications';
-import { UserRole } from '../../../../../types/User';
 import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
@@ -10,7 +10,7 @@ import sanitize from 'mongo-sanitize';
 
 export default class UserSecurity {
 
-  public static filterAssignSitesToUserRequest(request: any): HttpSitesAssignUserRequest {
+  public static filterAssignSitesToUserRequest(request: any): HttpUserAssignSitesRequest {
     return {
       userID: sanitize(request.userID),
       siteIDs: request.siteIDs ? request.siteIDs.map(sanitize) : []
@@ -21,11 +21,19 @@ export default class UserSecurity {
     return sanitize(request.UserID);
   }
 
+  public static filterUserRequest(request: any): HttpUserRequest {
+    const filteredRequest: HttpUserRequest = {
+      ID: sanitize(request.ID)
+    };
+    UtilsSecurity.filterProject(request, filteredRequest);
+    return filteredRequest;
+  }
+
   public static filterUserByIDRequest(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterUserRequestByIDs(request: any): string[] {
+  public static filterUserByIDsRequest(request: any): string[] {
     return request.usersIDs.map(sanitize);
   }
 
@@ -69,6 +77,7 @@ export default class UserSecurity {
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 
@@ -78,11 +87,12 @@ export default class UserSecurity {
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 
-  public static filterUserUpdateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
-    const filteredRequest = UserSecurity.filterUserRequest(request, loggedUser);
+  public static filterUserUpdateRequest(request: any, loggedUser: UserToken): Partial<User> {
+    const filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
@@ -95,8 +105,8 @@ export default class UserSecurity {
     };
   }
 
-  public static filterUserCreateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
-    return UserSecurity.filterUserRequest(request, loggedUser);
+  public static filterUserCreateRequest(request: any, loggedUser: UserToken): Partial<User> {
+    return UserSecurity._filterUserRequest(request, loggedUser);
   }
 
   static filterNotificationsRequest(role: UserRole, notifications: UserNotifications): UserNotifications {
@@ -122,6 +132,8 @@ export default class UserSecurity {
       sendOfflineChargingStations: false,
       sendEndUserErrorNotification: false,
       sendComputeAndApplyChargingProfilesFailed: false,
+      sendAccountVerificationNotification: notifications ? Utils.convertToBoolean(notifications.sendAccountVerificationNotification) : false,
+      sendAdminAccountVerificationNotification: false,
     };
     // Admin Notif only
     if (role === UserRole.ADMIN) {
@@ -137,13 +149,14 @@ export default class UserSecurity {
         sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
         sendEndUserErrorNotification: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndUserErrorNotification) : false,
         sendComputeAndApplyChargingProfilesFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendComputeAndApplyChargingProfilesFailed) : false,
+        sendAdminAccountVerificationNotification: notifications ? Utils.convertToBoolean(notifications.sendAdminAccountVerificationNotification) : false,
       };
     }
     return filteredNotifications;
   }
 
-  private static filterUserRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
-    const filteredRequest: Partial<HttpUserRequest> = {};
+  private static _filterUserRequest(request: any, loggedUser: UserToken): Partial<User> {
+    const filteredRequest: Partial<User> = {};
     if (request.costCenter) {
       filteredRequest.costCenter = sanitize(request.costCenter);
     }
