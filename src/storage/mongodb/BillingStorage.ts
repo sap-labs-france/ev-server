@@ -1,7 +1,6 @@
 import { BillingInvoice, BillingInvoiceDocument, BillingInvoiceRawData, BillingInvoiceStatus } from '../../types/Billing';
 import global, { FilterParams } from '../../types/GlobalType';
 
-import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
