@@ -49,8 +49,9 @@ describe('Billing Stripe Service', function() {
         expect(draftInvoices.length).to.be.eql(1);
         // Let's pay that particular DRAFT invoice
         await testData.payDraftInvoice(draftInvoices[0]);
+        // Next step should not be necessary
+        // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
         // Let's check that the user do not have any DRAFT invoice anymore
-        await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
         await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
       });
 
@@ -70,8 +71,9 @@ describe('Billing Stripe Service', function() {
         expect(draftInvoices.length).to.be.eql(1);
         // Let's pay that particular DRAFT invoice
         await testData.payDraftInvoice(draftInvoices[0]);
+        // Next step should not be necessary
+        // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
         // Let's check that the user do not have any DRAFT invoice anymore
-        await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
         await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
       });
 

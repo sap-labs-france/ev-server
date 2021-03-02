@@ -159,10 +159,10 @@ export default class StripeIntegrationTestData {
 
   public async payDraftInvoice(draftInvoice: { id: string }): Promise<void> {
     const draftInvoiceId = draftInvoice.id;
-    const billingInvoice: BillingInvoice = await BillingStorage.getInvoice(this.getTenantID(), draftInvoiceId);
+    let billingInvoice: BillingInvoice = await BillingStorage.getInvoice(this.getTenantID(), draftInvoiceId);
     // Let's attempt a payment using the default payment method
-    const operationResult: any = await this.billingImpl.chargeInvoice(billingInvoice);
-    assert(operationResult && operationResult?.invoiceStatus === 'paid' && operationResult?.rawData?.paid, 'Invoice should have been paid');
+    billingInvoice = await this.billingImpl.chargeInvoice(billingInvoice);
+    assert(billingInvoice.status === BillingInvoiceStatus.PAID, 'Invoice should have been paid');
   }
 
   public getTenantID(): string {

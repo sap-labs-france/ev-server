@@ -329,14 +329,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
     });
     // Let's update the data which is replicated on our side
-    return this.persistBillingInvoice(user, stripeInvoice);
+    return this.persistBillingInvoice(user.userID, stripeInvoice);
   }
 
-  private async persistBillingInvoice(billingUser: BillingUser, stripeInvoice: Stripe.Invoice, billingInvoiceID?: string): Promise<BillingInvoice> {
+  private async persistBillingInvoice(userID: string, stripeInvoice: Stripe.Invoice, billingInvoiceID?: string): Promise<BillingInvoice> {
     const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
     const invoiceToSave: Partial<BillingInvoice> = {
       id: billingInvoiceID, // null when the billing invoice does not yet exist
-      userID: billingUser.userID,
+      userID,
       invoiceID: stripeInvoice.id,
       customerID: stripeInvoice.customer as string, // TODO - clarify is this is always correct - customer might be expanded
       number: stripeInvoice.number,
@@ -345,11 +345,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       currency: stripeInvoice.currency,
       createdOn: new Date(),
       nbrOfItems,
+      downloadUrl: stripeInvoice.invoice_pdf,
+      downloadable: !!stripeInvoice.invoice_pdf,
     };
-    // --------------------------------------------------------
-    // Set user - This is useless - we only need the userID
-    // invoice.user = await UserStorage.getUserByBillingID(this.tenantID, billingUser.billingData.customerID);
-    // --------------------------------------------------------
     // Save Invoice
     const billingInvoice: BillingInvoice = {
       id: await BillingStorage.saveInvoice(this.tenantID, invoiceToSave),
@@ -492,29 +490,44 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return true;
   }
 
-  public async chargeInvoice(invoice: BillingInvoice): Promise<unknown> {
+  public async chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice> {
     await this.checkConnection();
+    try {
+      const stripeInvoice = await this._chargeStripeInvoice(invoice.invoiceID);
+      const billingInvoice = await this.persistBillingInvoice(invoice.userID, stripeInvoice, invoice.id);
+      if (billingInvoice.downloadable) {
+        const invoiceDocument = await this.downloadInvoiceDocument(billingInvoice);
+        await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
+      }
+      return billingInvoice;
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'chargeInvoice',
+        action: ServerAction.BILLING,
+        message: `Stripe Operation Failed: ${error.message as string}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+  }
+
+  private async _chargeStripeInvoice(invoiceID: string): Promise<Stripe.Invoice> {
     // Fetch the invoice from stripe (do NOT TRUST the local copy)
-    let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoice.invoiceID);
+    let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoiceID);
     // Check the current invoice status
     if (stripeInvoice.status !== 'paid') {
       // Finalize the invoice (if necessary)
       if (stripeInvoice.status === 'draft') {
-        stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
+        stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoiceID);
       }
       // Once finalized, the invoice is in the "open" state!
       if (stripeInvoice.status === 'open') {
         // Set the payment options
-        // TODO - default payment is used by default - is this ok?
         const paymentOptions: Stripe.InvoicePayParams = {};
-        stripeInvoice = await this.stripe.invoices.pay(invoice.invoiceID, paymentOptions);
+        stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
       }
     }
-    // TODO - Handle inconsistencies - Operation failed - unexpected status
-    return {
-      invoiceStatus: stripeInvoice.status,
-      rawData: stripeInvoice
-    };
+    return stripeInvoice;
   }
 
   public async attachPaymentMethod(user: User, paymentMethodId: string): Promise<unknown> {
@@ -639,8 +652,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Let's get the raw data from stripe!
       const stripeInvoice = await this.getStripeInvoice(draftInvoice.invoiceID);
       // Well ... we need to update the billing invoice to reflect the latest changes
-      await this.persistBillingInvoice(billingUser, stripeInvoice, draftInvoice.id);
+      await this.persistBillingInvoice(billingUser.userID, stripeInvoice, draftInvoice.id);
     }
+
+    if (this.settings.immediateBillingAllowed) {
+      // Let's try to bill the invoice
+      await this.chargeInvoice(draftInvoice);
+    }
+
     // Return the operation result as a BillingDataTransactionStop
     return {
       status: BillingStatus.BILLED,
