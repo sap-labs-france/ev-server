@@ -143,13 +143,10 @@ export default class StripeIntegrationTestData {
   public async createDraftInvoice() : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
     const item = { description: 'Stripe Integration - Item 777', amount: 777 };
-
-
     const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createPendingInvoiceItem(this.billingUser, item);
+    assert(billingInvoiceItem, 'Billing invoice item should not be null');
     const billingInvoice: BillingInvoice = await this.billingImpl.createInvoice(this.billingUser);
     assert(billingInvoice, 'Billing invoice should not be null');
-
-    assert(billingInvoiceItem, 'Billing invoice should not be null');
     return billingInvoice;
   }
 
