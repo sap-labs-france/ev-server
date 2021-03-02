@@ -380,7 +380,7 @@ export default class AuthorizationService {
 
   private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
     filteredRequest: HttpSiteUsersRequest|HttpUserSitesRequest|HttpUserRequest|HttpUserAssignSitesRequest, authorizationFilters: AuthorizationFilter): Promise<void> {
-    if (userToken.role !== UserRole.ADMIN) {
+    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin flag
         const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
