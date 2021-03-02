@@ -72,7 +72,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                   .insertOne(user);
                 importedUser.status = UserImportStatus.IMPORTED;
                 await UserStorage.saveImportedUser(tenant.id, importedUser);
-                Logging.logDebug({
+                await Logging.logDebug({
                   tenantID: tenant.id,
                   action: ServerAction.SYNCHRONIZE_USERS,
                   module: MODULE_NAME, method: 'SYNCHRONIZE_USERS',
@@ -83,7 +83,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                 importedUser.error = error.message;
                 await UserStorage.saveImportedUser(tenant.id, importedUser);
                 // Error
-                Logging.logError({
+                await Logging.logError({
                   tenantID: tenant.id,
                   action: ServerAction.SYNCHRONIZE_USERS,
                   module: MODULE_NAME, method: 'createUser',
