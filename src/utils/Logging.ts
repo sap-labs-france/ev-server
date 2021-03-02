@@ -72,7 +72,7 @@ export default class Logging {
         console.error(chalk.red(message));
         console.error(chalk.red('===================================='));
       }
-      await PerformanceStorage.savePerformance(
+      await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantID,
           durationMs: executionDurationMillis,
@@ -302,7 +302,7 @@ export default class Logging {
             headers: res.getHeaders(),
           }
         });
-        void PerformanceStorage.savePerformance(
+        void PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantID,
             httpUrl: req.url,
@@ -379,7 +379,7 @@ export default class Logging {
         response: Utils.cloneObject(response.data)
       }
     });
-    await PerformanceStorage.savePerformance(
+    await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
         tenantID,
         httpUrl: response.config.url,
@@ -923,7 +923,7 @@ export default class Logging {
         detailedMessages
       });
     }
-    await PerformanceStorage.savePerformance(
+    await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
         tenantID,
         durationMs: executionDurationMillis,
