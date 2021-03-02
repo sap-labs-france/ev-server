@@ -61,7 +61,7 @@ export default class TransactionService {
       res.json(response);
       next();
     } catch (error) {
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
 
@@ -86,7 +86,7 @@ export default class TransactionService {
     for (const transactionId of filteredRequest.transactionIds) {
       const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
       if (!transaction) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -97,7 +97,7 @@ export default class TransactionService {
         continue;
       }
       if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -222,7 +222,7 @@ export default class TransactionService {
         // Save
         await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
         // Ok
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: req.user.tenantID,
           action: action,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
@@ -447,7 +447,7 @@ export default class TransactionService {
       true
     );
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
       user: req.user, actionOnUser: user,
@@ -869,7 +869,7 @@ export default class TransactionService {
       // Not Found
       if (!transaction) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -880,7 +880,7 @@ export default class TransactionService {
         // Already Refunded
       } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -891,7 +891,7 @@ export default class TransactionService {
         // Billed
       } else if (billingImpl && transaction.billingData && transaction.billingData.invoiceID) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -922,7 +922,7 @@ export default class TransactionService {
     // Delete All Transactions
     result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
     // Log
-    Logging.logActionsResponse(loggedUser.tenantID,
+    await Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,
       MODULE_NAME, 'deleteTransactions', result,
       '{{inSuccess}} transaction(s) were successfully deleted',
