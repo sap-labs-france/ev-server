@@ -437,6 +437,8 @@ export enum ServerRoute {
   REST_CHARGING_PROFILES = 'chargingprofiles',
   REST_CHARGING_PROFILE = 'chargingprofiles/:id',
 
+  REST_TRANSACTIONS = 'transactions',
+
   REST_PING = 'ping',
 
   REST_TENANTS = 'tenants'

@@ -667,6 +667,144 @@
         }
       }
     },
+    "/api/transactions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Transactions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorID"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/TagID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          },
+          {
+            "$ref": "#/components/parameters/InactivityStatus"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionStatistics"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Transaction's list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "id": 1234567889,
+                      "issuer": true,
+                      "siteID": "####",
+                      "siteAreaID": "####",
+                      "connectorId": 2,
+                      "tagID": "####",
+                      "userID": "####",
+                      "chargeBoxID": "####",
+                      "meterStart": 1122030,
+                      "timestamp": "2021-02-15T16:04:04.000Z",
+                      "stateOfCharge": 0,
+                      "timezone": "Europe/Paris",
+                      "stop": {
+                        "userID": "####",
+                        "timestamp": "2021-02-15T16:05:38.000Z",
+                        "tagID": "####",
+                        "meterStop": 1122046,
+                        "stateOfCharge": 0,
+                        "totalConsumptionWh": 16,
+                        "totalInactivitySecs": 0,
+                        "inactivityStatus": "I",
+                        "totalDurationSecs": 94,
+                        "price": 0.002,
+                        "priceUnit": "EUR",
+                        "user": {
+                          "email": "####",
+                          "firstName": "####",
+                          "name": "####",
+                          "id": "####"
+                        }
+                      },
+                      "ocpi": false,
+                      "ocpiWithCdr": false,
+                      "user": {
+                        "email": "####",
+                        "firstName": "####",
+                        "name": "####",
+                        "id": "####"
+                      },
+                      "car": {
+                        "licensePlate": "####"
+                      },
+                      "carCatalog": {
+                        "vehicleMake": "Tesla",
+                        "vehicleModel": "Model 3",
+                        "vehicleModelVersion": "Long Range Dual Motor"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
     "/api/chargingstations": {
       "get": {
         "security": [
@@ -2526,18 +2664,7 @@
             }
           },
           {
-            "in": "query",
-            "name": "Statistics",
-            "required": false,
-            "description": "Refund or History statistics",
-            "schema": {
-              "type": "string",
-              "example": "history",
-              "enum": [
-                "refund",
-                "history"
-              ]
-            }
+            "$ref": "#/components/parameters/TransactionStatistics"
           },
           {
             "in": "query",
@@ -3634,6 +3761,42 @@
           ]
         }
       },
+      "StartDateTime": {
+        "in": "query",
+        "name": "StartDateTime",
+        "description": "Start Date (ISO format)",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "EndDateTime": {
+        "in": "query",
+        "name": "EndDateTime",
+        "description": "End Date (ISO format)",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TagID": {
+        "in": "query",
+        "name": "TagID",
+        "description": "Badge ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserID": {
+        "in": "query",
+        "name": "UserID",
+        "description": "User ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
       "ChargingStationID": {
         "in": "query",
         "name": "ChargingStationID",
@@ -3650,6 +3813,18 @@
         "required": false,
         "schema": {
           "type": "number"
+        }
+      },
+      "InactivityStatus": {
+        "in": "query",
+        "name": "InactivityStatus",
+        "description": "Inactivity Status",
+        "required": false,
+        "schema": {
+          "type": "number",
+          "enum": [
+            "I", "W", "E"
+          ]
         }
       },
       "chargingProfileID": {
@@ -3679,6 +3854,19 @@
           "type": "integer",
           "minimum": 1,
           "example": 1
+        }
+      },
+      "TransactionStatistics": {
+        "in": "query",
+        "name": "Statistics",
+        "description": "Refund or History statistics",
+        "schema": {
+          "type": "string",
+          "example": "history",
+          "enum": [
+            "refund",
+            "history"
+          ]
         }
       },
       "SiteID": {
