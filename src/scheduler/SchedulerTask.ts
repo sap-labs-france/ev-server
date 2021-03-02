@@ -14,7 +14,7 @@ export default abstract class SchedulerTask {
   public async run(name: string, config: TaskConfig): Promise<void> {
     this.name = name;
     const startMigrationTime = moment();
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.SCHEDULER,
       module: MODULE_NAME, method: 'run',
@@ -26,7 +26,7 @@ export default abstract class SchedulerTask {
     for (const tenant of tenants.result) {
       try {
         const startMigrationTimeInTenant = moment();
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
@@ -36,14 +36,14 @@ export default abstract class SchedulerTask {
         await this.processTenant(tenant, config);
         // Log Total Processing Time in Tenant
         const totalMigrationTimeSecsInTenant = moment.duration(moment().diff(startMigrationTimeInTenant)).asSeconds();
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
           message: `The task '${name}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
         });
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
@@ -54,7 +54,7 @@ export default abstract class SchedulerTask {
     }
     // Log Total Processing Time
     const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.SCHEDULER,
       module: MODULE_NAME, method: 'run',
