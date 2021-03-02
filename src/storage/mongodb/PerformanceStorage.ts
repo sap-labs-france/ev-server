@@ -11,7 +11,7 @@ export default class PerformanceStorage {
         Utils.convertToObjectID(performanceRecord.tenantID) : Constants.DEFAULT_TENANT,
       timestamp: Utils.convertToDate(performanceRecord.timestamp),
       host: performanceRecord.host,
-      cpusInfo: performanceRecord.cpusInfo,
+      cpusInfo: JSON.stringify(performanceRecord.cpusInfo),
       memoryTotalGb: performanceRecord.memoryTotalGb,
       memoryFreeGb: performanceRecord.memoryFreeGb,
       loadAverageLastMin: performanceRecord.loadAverageLastMin,
