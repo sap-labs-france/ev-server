@@ -695,7 +695,7 @@ export default class Logging {
     if (log.detailedMessages) {
       // Anonymize message
       log.detailedMessages = Utils.cloneObject(log.detailedMessages);
-      log.detailedMessages = Logging.anonymizeSensitiveData(log.detailedMessages);
+      log.detailedMessages = await Logging.anonymizeSensitiveData(log.detailedMessages);
       // Array?
       if (!Array.isArray(log.detailedMessages)) {
         log.detailedMessages = [log.detailedMessages];
@@ -755,7 +755,7 @@ export default class Logging {
     } else if (Array.isArray(message)) { // If the message is an array, apply the anonymizeSensitiveData function for each item
       const anonymizedMessage = [];
       for (const item of message) {
-        anonymizedMessage.push(Logging.anonymizeSensitiveData(item));
+        anonymizedMessage.push(await Logging.anonymizeSensitiveData(item));
       }
       return anonymizedMessage;
     } else if (typeof message === 'object') { // If the message is an object
@@ -764,7 +764,7 @@ export default class Logging {
           // If the key indicates sensitive data and the value is a string, Anonymize the value
           message[key] = Constants.ANONYMIZED_VALUE;
         } else { // Otherwise, apply the anonymizeSensitiveData function
-          message[key] = Logging.anonymizeSensitiveData(message[key]);
+          message[key] = await Logging.anonymizeSensitiveData(message[key]);
         }
       }
       return message;
