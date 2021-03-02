@@ -18,6 +18,7 @@ import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
+import chalk from 'chalk';
 import cluster from 'cluster';
 import sizeof from 'object-sizeof';
 
@@ -56,16 +57,19 @@ export default class Logging {
       }
       const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
       const numberOfRecords = Array.isArray(data) ? data.length : 0;
-      console.debug(`${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''}${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`);
+      const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''}${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`;
+      console.debug(chalk.green(message));
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
     }
   }
@@ -127,7 +131,7 @@ export default class Logging {
       // Check perfs
       req['timestamp'] = new Date();
       // Log
-      Logging.logSecurityDebug({
+      await Logging.logSecurityDebug({
         tenantID,
         action: ServerAction.HTTP_REQUEST,
         user: (Utils.objectHasProperty(decodedToken, 'id') ? decodedToken as UserToken : null),
@@ -151,10 +155,10 @@ export default class Logging {
     }
   }
 
-  public static logActionsResponse(
+  public static async logActionsResponse(
     tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
     messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string): void {
+    messageNoSuccessNoError: string): Promise<void> {
     // Replace
     messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
     messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
@@ -162,28 +166,28 @@ export default class Logging {
     messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', actionsResponse.inError.toString());
     // Success and Error
     if (actionsResponse.inSuccess > 0 && actionsResponse.inError > 0) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccessAndError
       });
     } else if (actionsResponse.inSuccess > 0) {
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccess
       });
     } else if (actionsResponse.inError > 0) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageError
       });
     } else {
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
@@ -192,10 +196,10 @@ export default class Logging {
     }
   }
 
-  public static logOcpiResult(
+  public static async logOcpiResult(
     tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
     messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string): void {
+    messageNoSuccessNoError: string): Promise<void> {
     // Replace
     messageSuccess = messageSuccess.replace('{{inSuccess}}', ocpiResult.success.toString());
     messageError = messageError.replace('{{inError}}', ocpiResult.failure.toString());
@@ -206,7 +210,7 @@ export default class Logging {
     }
     // Success and Error
     if (ocpiResult.success > 0 && ocpiResult.failure > 0) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
@@ -214,7 +218,7 @@ export default class Logging {
         detailedMessages: ocpiResult.logs
       });
     } else if (ocpiResult.success > 0) {
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
@@ -222,7 +226,7 @@ export default class Logging {
         detailedMessages: ocpiResult.logs
       });
     } else if (ocpiResult.failure > 0) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
@@ -230,7 +234,7 @@ export default class Logging {
         detailedMessages: ocpiResult.logs
       });
     } else {
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
@@ -259,19 +263,22 @@ export default class Logging {
           sizeOfDataKB = Utils.truncTo(res.getHeader('content-length') as number / 1024, 2);
         }
         if (Utils.isDevelopmentEnv()) {
-          console.debug(`Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`);
+          const message = `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`;
+          console.debug(chalk.green(message));
           if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-            console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB`));
-            console.warn('====================================');
+            console.error(chalk.red('===================================='));
+            console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB`)));
+            console.error(chalk.red(message));
+            console.error(chalk.red('===================================='));
           }
           if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-            console.warn('====================================');
-            console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`));
-            console.warn('====================================');
+            console.error(chalk.red('===================================='));
+            console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`)));
+            console.error(chalk.red(message));
+            console.error(chalk.red('===================================='));
           }
         }
-        Logging.logSecurityDebug({
+        void Logging.logSecurityDebug({
           tenantID: tenantID,
           user: req.user,
           action: ServerAction.HTTP_RESPONSE,
@@ -290,14 +297,14 @@ export default class Logging {
     });
   }
 
-  public static logExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
-    Logging.logActionExceptionMessageAndSendResponse(
+  public static async logExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {
+    await Logging.logActionExceptionMessageAndSendResponse(
       error['params'] && error['params']['action'] ? error['params']['action'] : ServerAction.HTTP_ERROR, error, req, res, next);
   }
 
-  public static logAxiosRequest(tenantID: string, request: AxiosRequestConfig): void {
+  public static async logAxiosRequest(tenantID: string, request: AxiosRequestConfig): Promise<void> {
     request['timestamp'] = new Date();
-    Logging.logSecurityDebug({
+    await Logging.logSecurityDebug({
       tenantID: tenantID,
       action: ServerAction.HTTP_REQUEST,
       message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
@@ -308,7 +315,7 @@ export default class Logging {
     });
   }
 
-  public static logAxiosResponse(tenantID: string, response: AxiosResponse): void {
+  public static async logAxiosResponse(tenantID: string, response: AxiosResponse): Promise<void> {
     // Compute duration
     let executionDurationMillis: number;
     if (response.config['timestamp']) {
@@ -320,19 +327,22 @@ export default class Logging {
       sizeOfDataKB = Utils.truncTo(response.config.headers['Content-Length'] / 1024, 2);
     }
     if (Utils.isDevelopmentEnv()) {
-      console.log(`Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`);
+      const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
+      console.log(chalk.green(message));
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
     }
-    Logging.logSecurityDebug({
+    await Logging.logSecurityDebug({
       tenantID: tenantID,
       action: ServerAction.HTTP_RESPONSE,
       message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
@@ -347,9 +357,9 @@ export default class Logging {
     });
   }
 
-  public static logAxiosError(tenantID: string, error: AxiosError): void {
+  public static async logAxiosError(tenantID: string, error: AxiosError): Promise<void> {
     // Error handling is done outside to get the proper module information
-    Logging.logSecurityError({
+    await Logging.logSecurityError({
       tenantID: tenantID,
       action: ServerAction.HTTP_ERROR,
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
@@ -365,58 +375,60 @@ export default class Logging {
     });
   }
 
-  public static logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, args: any): void {
-    this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, args, '<<');
+  public static async logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, args: any): Promise<void> {
+    await this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, args, '<<');
   }
 
-  public static logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, detailedMessages: any): void {
-    this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>');
+  public static async logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, detailedMessages: any): Promise<void> {
+    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>');
   }
 
-  public static logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, payload: any): void {
-    this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, payload, '>>');
+  public static async logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, payload: any): Promise<void> {
+    await this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, payload, '>>');
   }
 
-  public static logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, detailedMessages: any): void {
-    this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<');
+  public static async logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, detailedMessages: any): Promise<void> {
+    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<');
   }
 
   // Used to log exception in catch(...) only
-  public static logException(error: Error, action: ServerAction, source: string, module: string, method: string, tenantID: string, user?: UserToken|User|string): void {
+  public static async logException(error: Error, action: ServerAction, source: string,
+    module: string, method: string, tenantID: string, user?: UserToken|User|string): Promise<void> {
     const log: Log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
-      Logging.logSecurityError(log);
+      await Logging.logSecurityError(log);
     } else if (error instanceof AppError) {
-      Logging.logError(log);
+      await Logging.logError(log);
     } else if (error instanceof BackendError) {
-      Logging.logError(log);
+      await Logging.logError(log);
     } else {
-      Logging.logError(log);
+      await Logging.logError(log);
     }
   }
 
   // Used to log exception in catch(...) only
-  public static logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error): void {
+  public static async logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error): Promise<void> {
     // Log App Error
     if (exception instanceof AppError) {
-      Logging._logActionAppExceptionMessage(tenantID, action, exception);
+      await Logging._logActionAppExceptionMessage(tenantID, action, exception);
     // Log Backend Error
     } else if (exception instanceof BackendError) {
-      Logging._logActionBackendExceptionMessage(tenantID, action, exception);
+      await Logging._logActionBackendExceptionMessage(tenantID, action, exception);
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
-      Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+      await Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
     } else {
-      Logging._logActionExceptionMessage(tenantID, action, exception);
+      await Logging._logActionExceptionMessage(tenantID, action, exception);
     }
   }
 
   // Used to log exception in catch(...) only
-  public static logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
+  public static async logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error,
+    req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): Promise<void> {
     // Clear password
     if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
@@ -427,18 +439,18 @@ export default class Logging {
     let statusCode;
     // Log App Error
     if (exception instanceof AppError) {
-      Logging._logActionAppExceptionMessage(tenantID, action, exception);
+      await Logging._logActionAppExceptionMessage(tenantID, action, exception);
       statusCode = exception.params.errorCode;
     // Log Backend Error
     } else if (exception instanceof BackendError) {
-      Logging._logActionBackendExceptionMessage(tenantID, action, exception);
+      await Logging._logActionBackendExceptionMessage(tenantID, action, exception);
       statusCode = HTTPError.GENERAL_ERROR;
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
-      Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+      await Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
       statusCode = exception.params.errorCode;
     } else {
-      Logging._logActionExceptionMessage(tenantID, action, exception);
+      await Logging._logActionExceptionMessage(tenantID, action, exception);
     }
     // Send error
     res.status(statusCode ? statusCode : HTTPError.GENERAL_ERROR).send({
@@ -447,9 +459,9 @@ export default class Logging {
     next();
   }
 
-  private static _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any): void {
+  private static async _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any): Promise<void> {
     // Log
-    Logging.logError({
+    await Logging.logError({
       tenantID: tenantID,
       type: LogType.SECURITY,
       user: exception.user,
@@ -462,7 +474,7 @@ export default class Logging {
     });
   }
 
-  private static _logActionAppExceptionMessage(tenantID: string, action: ServerAction, exception: AppError): void {
+  private static async _logActionAppExceptionMessage(tenantID: string, action: ServerAction, exception: AppError): Promise<void> {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -475,7 +487,7 @@ export default class Logging {
       };
     }
     // Log
-    Logging.logError({
+    await Logging.logError({
       tenantID: tenantID,
       type: LogType.SECURITY,
       source: exception.params.source,
@@ -489,7 +501,7 @@ export default class Logging {
     });
   }
 
-  private static _logActionBackendExceptionMessage(tenantID: string, action: ServerAction, exception: BackendError): void {
+  private static async _logActionBackendExceptionMessage(tenantID: string, action: ServerAction, exception: BackendError): Promise<void> {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -502,7 +514,7 @@ export default class Logging {
       };
     }
     // Log
-    Logging.logError({
+    await Logging.logError({
       tenantID: tenantID,
       type: LogType.SECURITY,
       source: exception.params.source,
@@ -517,9 +529,9 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _logActionAppAuthExceptionMessage(tenantID: string, action: ServerAction, exception: AppAuthError): void {
+  private static async _logActionAppAuthExceptionMessage(tenantID: string, action: ServerAction, exception: AppAuthError): Promise<void> {
     // Log
-    Logging.logSecurityError({
+    await Logging.logSecurityError({
       tenantID: tenantID,
       type: LogType.SECURITY,
       user: exception.params.user,
@@ -713,7 +725,7 @@ export default class Logging {
     return LoggingStorage.saveLog(log.tenantID, log);
   }
 
-  private static anonymizeSensitiveData(message: any): any {
+  private static async anonymizeSensitiveData(message: any): Promise<any> {
     if (!message || typeof message === 'number' || Utils.isBoolean(message) || typeof message === 'function') {
       return message;
     } else if (typeof message === 'string') { // If the message is a string
@@ -758,7 +770,7 @@ export default class Logging {
       return message;
     }
     // Log
-    Logging.logError({
+    await Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       type: LogType.SECURITY,
       module: MODULE_NAME,
@@ -820,12 +832,12 @@ export default class Logging {
     }
   }
 
-  private static traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, args: any, direction: '<<'|'>>'): void {
+  private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, args: any, direction: '<<'|'>>'): Promise<void> {
     // Keep duration
     Logging.traceCalls[`${chargeBoxID}~action`] = new Date().getTime();
     // Log
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
       module: module, method: action,
@@ -835,7 +847,8 @@ export default class Logging {
     });
   }
 
-  private static traceChargingStationActionEnd(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): void {
+  private static async traceChargingStationActionEnd(module: string, tenantID: string, chargeBoxID: string,
+    action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): Promise<void> {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;
@@ -845,15 +858,17 @@ export default class Logging {
       found = true;
     }
     if (Utils.isDevelopmentEnv()) {
-      console.debug(`${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`);
+      const message = `${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
+      console.debug(chalk.green(message));
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-        console.warn('====================================');
-        console.warn(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`));
-        console.warn('====================================');
+        console.error(chalk.red('===================================='));
+        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`)));
+        console.error(chalk.red(message));
+        console.error(chalk.red('===================================='));
       }
     }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
@@ -862,7 +877,7 @@ export default class Logging {
         detailedMessages
       });
     } else {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
