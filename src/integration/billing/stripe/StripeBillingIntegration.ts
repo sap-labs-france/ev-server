@@ -27,12 +27,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   private static readonly STRIPE_MAX_LIST = 100;
   private axiosInstance: AxiosInstance;
   private stripe: Stripe;
-  private stripeSettings: StripeBillingSetting;
 
   constructor(tenantId: string, settings: StripeBillingSetting) {
     super(tenantId, settings);
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
-    this.stripeSettings = settings;
   }
 
   public async getStripeInstance(): Promise<Stripe> {
@@ -45,8 +43,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Initialize Stripe
     if (!this.stripe) {
       // STRIPE not yet initialized - let's do it!
-      this.settings.currency = this.stripeSettings.currency;
-      this.settings.secretKey = await Cypher.decrypt(this.tenantID, this.stripeSettings.secretKey);
+      this.settings.secretKey = await Cypher.decrypt(this.tenantID, this.settings.secretKey);
       // Check Key
       if (!this.settings.secretKey) {
         throw new BackendError({
@@ -630,7 +627,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       }
     } else {
       // We already have a draft invoice - let's add an item to it
-      newInvoiceItem = await this.createInvoiceItem(billingUser, draftInvoice.invoiceID, lineItemInputParameters, transaction.id);
+      newInvoiceItem = await this.createInvoiceItem(billingUser, draftInvoice.invoiceID, lineItemInputParameters, this.buildIdemPotencyKey(transaction));
       if (!newInvoiceItem) {
         throw new BackendError({
           message: 'Failed to create a new item',
