@@ -1,14 +1,14 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
-import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
+import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -325,7 +325,62 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  // Replace HttpUserRequest with apporpriate
+  public static async addCompaniesAuthorizations(tenant: Tenant, userToken: UserToken, companies: Company[]): Promise<void> {
+    // Get Site Admins - needed?
+    const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
+    // Set to user
+    userToken.sitesAdmin = siteAdminIDs;
+    userToken.sitesOwner = siteOwnerIDs;
+    // Enrich
+    for (const company of companies) {
+      company.canRead = Authorizations.canReadCompany(userToken, company.id);
+      company.canUpdate = Authorizations.canUpdateCompany(userToken);
+      company.canDelete = Authorizations.canDeleteCompany(userToken);
+    }
+  }
+
+  public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompaniesRequest):Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn' ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Add user info
+    if (Authorizations.canListUsers(userToken)) {
+      authorizationFilters.projectFields.push(
+        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
+    }
+    // Check Projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Company IDs from Site Admin flag
+        const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(companyIDs)) {
+        // Force the filter
+          authorizationFilters.filters.companyIDs = companyIDs;
+          // Check if filter is provided
+          if (Utils.objectHasProperty(filteredRequest, 'CompanyID') &&
+              !Utils.isNullOrUndefined(filteredRequest['CompanyID'])) {
+            const filteredCompanyIDs: string[] = filteredRequest['CompanyID'].split('|');
+            // Override
+            authorizationFilters.filters.companyIDs = filteredCompanyIDs.filter(
+              (companyID) => authorizationFilters.filters.companyIDs.includes(companyID));
+          }
+        }
+        if (!Utils.isEmptyArray(authorizationFilters.filters.companyIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+    return authorizationFilters;
+  }
+
   public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompanyRequest):Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},

@@ -56,7 +56,7 @@ export default class CompanyService {
     // Delete
     await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCompany',
       message: `Company '${company.name}' has been deleted successfully`,
@@ -141,13 +141,14 @@ export default class CompanyService {
         module: MODULE_NAME, method: 'handleGetCompanies'
       });
     }
-    // Check User
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
-    }
     // Filter
     const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
+    // Check auth
+    const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    if (!authorizationCompaniesFilter.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get the companies
     const companies = await CompanyStorage.getCompanies(req.user.tenantID,
       {
@@ -158,10 +159,18 @@ export default class CompanyService {
         withLogo: filteredRequest.WithLogo,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
+        ...authorizationCompaniesFilter.filters
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn', ...userProject ]
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+      authorizationCompaniesFilter.projectFields
     );
+    // Add Auth flags
+    AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies.result);
     // Return
     res.json(companies);
     next();
@@ -194,7 +203,7 @@ export default class CompanyService {
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.user.tenantID, newCompany);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCompany',
       message: `Company '${newCompany.id}' has been created successfully`,
@@ -250,7 +259,7 @@ export default class CompanyService {
     // Update Company
     await CompanyStorage.saveCompany(req.user.tenantID, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCompany',
       message: `Company '${company.name}' has been updated successfully`,
