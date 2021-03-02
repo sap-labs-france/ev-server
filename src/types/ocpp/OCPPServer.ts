@@ -293,7 +293,7 @@ export interface OCPPAuthorizeRequestExtended extends OCPPAuthorizeRequest {
 }
 
 export interface OCPPIdTokenInfo {
-  status: OCPPPnCAuthorizationStatus
+  status: OCPP16PnCAuthorizationStatus
 }
 
 export interface OCPPAuthorizeResponse {
@@ -302,12 +302,12 @@ export interface OCPPAuthorizeResponse {
 }
 
 export interface OCPPIdTagInfo {
-  status: OCPPAuthorizationStatus;
+  status: OCPP16AuthorizationStatus;
   expiryDate?: Date;
   parentIdTag?: string;
 }
 
-export enum OCPPAuthorizationStatus {
+export enum OCPP16AuthorizationStatus {
   ACCEPTED = 'Accepted',
   BLOCKED = 'Blocked',
   EXPIRED = 'Expired',
@@ -315,16 +315,18 @@ export enum OCPPAuthorizationStatus {
   CONCURRENT_TX = 'ConcurrentTx'
 }
 
-export type OCPPPnCAuthorizationStatus = typeof OCPPPnCAuthorizationStatus;
-
-export const OCPPPnCAuthorizationStatus = {
-  ...OCPPAuthorizationStatus,
-  NO_CREDIT: 'NoCredit',
-  NOT_ALLOWED_TYPE_EVSE: 'NotAllowedTypeEVSE',
-  NOT_AT_THIS_LOCATION: 'NotAtThisLocation',
-  NOT_AT_THIS_TIME: 'NotAtThisTime',
-  UNKNOWN: 'Unknown'
-};
+export enum OCPP16PnCAuthorizationStatus {
+  ACCEPTED = 'Accepted',
+  BLOCKED = 'Blocked',
+  EXPIRED = 'Expired',
+  INVALID = 'Invalid',
+  CONCURRENT_TX = 'ConcurrentTx',
+  NO_CREDIT = 'NoCredit',
+  NOT_ALLOWED_TYPE_EVSE = 'NotAllowedTypeEVSE',
+  NOT_AT_THIS_LOCATION = 'NotAtThisLocation',
+  NOT_AT_THIS_TIME = 'NotAtThisTime',
+  UNKNOWN = 'Unknown'
+}
 
 export interface OCPPGet15118EVCertificateRequest {
   '15118SchemaVersion': string,

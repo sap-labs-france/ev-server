@@ -1,4 +1,4 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPP15TransactionData, OCPPAuthorizationStatus, OCPPMeterValue, OCPPReadingContext, OCPPStatusNotificationRequest, OCPPVersion } from '../../src/types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPP15TransactionData, OCPP16AuthorizationStatus, OCPPMeterValue, OCPPReadingContext, OCPPStatusNotificationRequest, OCPPVersion } from '../../src/types/ocpp/OCPPServer';
 import Transaction, { InactivityStatus } from '../../src/types/Transaction';
 import chai, { expect } from 'chai';
 
@@ -365,7 +365,7 @@ export default class OCPPCommonTests {
     // Asserts that the stop user is authorized.
     await this.testAuthorize(this.transactionStopUser.tags[0].id, OCPPStatus.ACCEPTED);
     // Asserts that the user with a too long tag is not authorized.
-    await this.testAuthorize('ThisIsATooTooTooLongTag', OCPPAuthorizationStatus.INVALID);
+    await this.testAuthorize('ThisIsATooTooTooLongTag', OCPP16AuthorizationStatus.INVALID);
   }
 
   public async testStartTransaction(validTransaction = true) {
@@ -398,7 +398,7 @@ export default class OCPPCommonTests {
       expect(connector.currentTagID).eq(this.transactionStartUser.tags[0].id);
     } else {
       this.newTransaction = null;
-      expect(startTransactionResponse).to.be.transactionStatus(OCPPAuthorizationStatus.INVALID);
+      expect(startTransactionResponse).to.be.transactionStatus(OCPP16AuthorizationStatus.INVALID);
     }
   }
 
@@ -794,9 +794,9 @@ export default class OCPPCommonTests {
   }
 
   public async testAuthorizeInvalidTag() {
-    await this.testAuthorize(this.invalidTag, OCPPAuthorizationStatus.INVALID);
-    await this.testAuthorize('', OCPPAuthorizationStatus.INVALID);
-    await this.testAuthorize(null, OCPPAuthorizationStatus.INVALID);
+    await this.testAuthorize(this.invalidTag, OCPP16AuthorizationStatus.INVALID);
+    await this.testAuthorize('', OCPP16AuthorizationStatus.INVALID);
+    await this.testAuthorize(null, OCPP16AuthorizationStatus.INVALID);
   }
 
   public async testStartTransactionWithConnectorIdAsString() {
@@ -828,21 +828,21 @@ export default class OCPPCommonTests {
       0,
       this.transactionStartTime
     );
-    expect(response).to.be.transactionStatus(OCPPAuthorizationStatus.INVALID);
+    expect(response).to.be.transactionStatus(OCPP16AuthorizationStatus.INVALID);
     response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       '',
       0,
       this.transactionStartTime
     );
-    expect(response).to.be.transactionStatus(OCPPAuthorizationStatus.INVALID);
+    expect(response).to.be.transactionStatus(OCPP16AuthorizationStatus.INVALID);
     response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       null,
       0,
       this.transactionStartTime
     );
-    expect(response).to.be.transactionStatus(OCPPAuthorizationStatus.INVALID);
+    expect(response).to.be.transactionStatus(OCPP16AuthorizationStatus.INVALID);
   }
 
   public async testStopTransactionWithoutTransactionData() {
@@ -997,7 +997,7 @@ export default class OCPPCommonTests {
     }
     let stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime, transactionData);
     expect(stopTransactionResponse).to.have.property('idTagInfo');
-    expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPAuthorizationStatus.INVALID);
+    expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPP16AuthorizationStatus.INVALID);
     // Now stop the transaction without Transaction Data
     stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime);
     expect(stopTransactionResponse).to.have.property('idTagInfo');

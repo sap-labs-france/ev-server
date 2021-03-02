@@ -1,4 +1,4 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPP16AuthorizationStatus, OCPP16PnCAuthorizationStatus, OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
@@ -473,6 +473,7 @@ export default class OCPPService {
       // Check
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
         authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
+      // FIXME: handle idToken authorization, always accepted first if idTag is authorized
       // OCPI User
       if (user && !user.issuer && user.authorizationID) {
         // Keep the Auth ID
@@ -483,7 +484,7 @@ export default class OCPPService {
       // Save
       await OCPPStorage.saveAuthorize(headers.tenantID, authorize);
       // Log
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: headers.tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'handleAuthorize',
@@ -493,19 +494,21 @@ export default class OCPPService {
       // Return
       return {
         idTagInfo: {
-          status: OCPPAuthorizationStatus.ACCEPTED
-        }
+          status: OCPP16AuthorizationStatus.ACCEPTED
+        },
+        ...!Utils.isUndefined(authorize.idToken) && { idTokenInfo: { status: OCPP16PnCAuthorizationStatus.ACCEPTED } }
       };
     } catch (error) {
       if (error.params) {
         error.params.source = headers.chargeBoxIdentity;
       }
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
       return {
         idTagInfo: {
-          status: OCPPAuthorizationStatus.INVALID
-        }
+          status: OCPP16AuthorizationStatus.INVALID
+        },
+        ...!Utils.isUndefined(authorize.idToken) && { idTokenInfo: { status: OCPP16PnCAuthorizationStatus.INVALID } }
       };
     }
   }
@@ -731,7 +734,7 @@ export default class OCPPService {
       return {
         transactionId: transaction.id,
         idTagInfo: {
-          status: OCPPAuthorizationStatus.ACCEPTED
+          status: OCPP16AuthorizationStatus.ACCEPTED
         }
       };
     } catch (error) {
@@ -743,7 +746,7 @@ export default class OCPPService {
       return {
         transactionId: 0,
         idTagInfo: {
-          status: OCPPAuthorizationStatus.INVALID
+          status: OCPP16AuthorizationStatus.INVALID
         }
       };
     }
@@ -803,7 +806,7 @@ export default class OCPPService {
         // Ignore it! (DELTA bug)
         return {
           idTagInfo: {
-            status: OCPPAuthorizationStatus.ACCEPTED
+            status: OCPP16AuthorizationStatus.ACCEPTED
           }
         };
       }
@@ -921,7 +924,7 @@ export default class OCPPService {
       // Success
       return {
         idTagInfo: {
-          status: OCPPAuthorizationStatus.ACCEPTED
+          status: OCPP16AuthorizationStatus.ACCEPTED
         }
       };
     } catch (error) {
@@ -931,7 +934,7 @@ export default class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.STOP_TRANSACTION, error);
       // Error
-      return { idTagInfo: { status: OCPPAuthorizationStatus.INVALID } };
+      return { idTagInfo: { status: OCPP16AuthorizationStatus.INVALID } };
     }
   }
 
@@ -993,8 +996,8 @@ export default class OCPPService {
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&
-        foundConnector.errorCode === statusNotification.errorCode &&
-        foundConnector.info === statusNotification.info) {
+      foundConnector.errorCode === statusNotification.errorCode &&
+      foundConnector.info === statusNotification.info) {
       // No Change: Do not save it
       Logging.logWarning({
         tenantID: tenantID,
@@ -1038,7 +1041,7 @@ export default class OCPPService {
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
     if (statusNotification.status === ChargePointStatus.CHARGING ||
-        statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
+      statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
         await this.triggerSmartCharging(tenantID, chargingStation);
@@ -1059,7 +1062,7 @@ export default class OCPPService {
     statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check Inactivity
     if (statusNotification.status === ChargePointStatus.AVAILABLE &&
-        Utils.objectHasProperty(statusNotification, 'timestamp')) {
+      Utils.objectHasProperty(statusNotification, 'timestamp')) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
         tenantID, chargingStation.id, connector.connectorId, { withChargingStation: true, withUser: true });
@@ -1147,8 +1150,8 @@ export default class OCPPService {
   private async notifyStatusNotification(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Faulted?
     if (statusNotification.status !== ChargePointStatus.AVAILABLE &&
-        statusNotification.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
-        statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
+      statusNotification.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
+      statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
       // Log
       Logging.logError({
         tenantID: tenantID,
@@ -1438,7 +1441,7 @@ export default class OCPPService {
             const consumptions = await ConsumptionStorage.getTransactionConsumptions(
               tenantID, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
             if (consumptions.result.every((consumption) => consumption.consumptionWh === 0 &&
-               (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
+              (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
                 consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)))) {
               // Send Notification
               await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
@@ -1622,7 +1625,7 @@ export default class OCPPService {
             'timestamp': Utils.convertToDate(activeTransaction.lastConsumption ? activeTransaction.lastConsumption.timestamp : activeTransaction.timestamp).toISOString(),
           }, false, true);
           // Check
-          if (result.idTagInfo.status === OCPPAuthorizationStatus.INVALID) {
+          if (result.idTagInfo.status === OCPP16AuthorizationStatus.INVALID) {
             // No consumption: delete
             Logging.logError({
               tenantID: tenantID,

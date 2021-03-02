@@ -23,6 +23,7 @@ export default class OCPPStorage {
       .insertOne({
         _id: Cypher.hash(`${authorize.chargeBoxID}~${timestamp.toISOString()}`),
         tagID: authorize.idTag,
+        tokenID: authorize.idToken ? authorize.idToken : null,
         authorizationId: authorize.authorizationId,
         chargeBoxID: authorize.chargeBoxID,
         userID: authorize.user ? Utils.convertToObjectID(authorize.user.id) : null,
