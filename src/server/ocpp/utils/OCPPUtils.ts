@@ -986,7 +986,7 @@ export default class OCPPUtils {
     return foundTemplate;
   }
 
-  public static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation, manualCall?: boolean): Promise<TemplateUpdateResult> {
+  public static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
     const templateUpdate: TemplateUpdate = {
       chargingStationUpdate: false,
       technicalUpdate: false,
@@ -1005,10 +1005,10 @@ export default class OCPPUtils {
     // Copy from template
     if (chargingStationTemplate) {
       // Already updated?
-      if (chargingStation.templateHash !== chargingStationTemplate.hash || manualCall) {
+      if (chargingStation.templateHash !== chargingStationTemplate.hash && !chargingStation.manualConfiguration) {
         templateUpdate.chargingStationUpdate = true;
         // Check Technical Hash
-        if (chargingStation.templateHashTechnical !== chargingStationTemplate.hashTechnical && (!chargingStation.manualConfiguration || manualCall)) {
+        if (chargingStation.templateHashTechnical !== chargingStationTemplate.hashTechnical) {
           templateUpdate.technicalUpdate = true;
           if (Utils.objectHasProperty(chargingStationTemplate.technical, 'maximumPower')) {
             chargingStation.maximumPower = chargingStationTemplate.technical.maximumPower;

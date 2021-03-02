@@ -97,7 +97,7 @@ export default class ChargingStationService {
               await ocpiClient.removeChargingStation(chargingStation);
             }
           } catch (error) {
-            Logging.logError({
+            await Logging.logError({
               tenantID: req.user.tenantID,
               module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
               action: action,
@@ -117,31 +117,16 @@ export default class ChargingStationService {
       chargingStation.forceInactive = filteredRequest.forceInactive;
     }
     if (Utils.objectHasProperty(filteredRequest, 'manualConfiguration')) {
-      if (Utils.getChargingStationCurrentType(chargingStation, null, null) !== CurrentType.DC || !(chargingStation.chargePoints?.length !== 0)) {
-        // Check manual config
-        if (!chargingStation.manualConfiguration && filteredRequest.manualConfiguration) {
-          for (const connector of chargingStation.connectors) {
-            const chargePoint = chargingStation.chargePoints.find((cp) => cp.chargePointID === connector.chargePointID);
-            connector.currentType = Utils.getChargingStationCurrentType(chargingStation, chargePoint);
-            connector.numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint);
-          }
-          // Do not save charge point
-          delete chargingStation.chargePoints;
-          delete chargingStation.templateHashTechnical;
-          rebootRequired = true;
-        } else if (chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) {
-          await OCPPUtils.enrichChargingStationWithTemplate(req.user.tenantID, chargingStation, true);
-          rebootRequired = true;
-        }
-      } else if (filteredRequest.manualConfiguration) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Manual configuration is only possible for AC Charging Stations`,
-          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-          user: req.user,
-          action: action
-        });
+      // Check manual config
+      if (!chargingStation.manualConfiguration && filteredRequest.manualConfiguration) {
+        delete chargingStation.templateHash;
+        delete chargingStation.templateHashCapabilities;
+        delete chargingStation.templateHashOcppStandard;
+        delete chargingStation.templateHashOcppVendor;
+        delete chargingStation.templateHashTechnical;
+      } else if (chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) {
+        await OCPPUtils.enrichChargingStationWithTemplate(req.user.tenantID, chargingStation);
+        rebootRequired = true;
       }
       chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
     }
@@ -150,7 +135,7 @@ export default class ChargingStationService {
       for (const filteredConnector of filteredRequest.connectors) {
         const connector = Utils.getConnectorFromID(chargingStation, filteredConnector.connectorId);
         // Update Connectors only if no Charge Point is defined
-        if (connector && Utils.isEmptyArray(chargingStation.chargePoints)) {
+        if (connector && (Utils.isEmptyArray(chargingStation.chargePoints) || chargingStation.manualConfiguration)) {
           connector.type = filteredConnector.type;
           connector.power = filteredConnector.power;
           connector.amperage = filteredConnector.amperage;
@@ -159,6 +144,28 @@ export default class ChargingStationService {
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
         }
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+      }
+    }
+    // Existing charge points
+    if (!Utils.isEmptyArray(filteredRequest.chargePoints)) {
+      for (const filteredChargePoint of filteredRequest.chargePoints) {
+        UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, req);
+        const chargePoint = Utils.getChargePointFromID(chargingStation, filteredChargePoint.chargePointID);
+        // Update Connectors only if manual configuration is enabled
+        if (chargePoint && chargingStation.manualConfiguration) {
+          chargePoint.chargePointID = filteredChargePoint.chargePointID,
+          chargePoint.currentType = filteredChargePoint.currentType,
+          chargePoint.voltage = filteredChargePoint.voltage,
+          chargePoint.amperage = filteredChargePoint.amperage,
+          chargePoint.numberOfConnectedPhase = filteredChargePoint.numberOfConnectedPhase,
+          chargePoint.cannotChargeInParallel = filteredChargePoint.cannotChargeInParallel,
+          chargePoint.sharePowerToAllConnectors = filteredChargePoint.sharePowerToAllConnectors,
+          chargePoint.excludeFromPowerLimitation = filteredChargePoint.excludeFromPowerLimitation;
+          chargePoint.ocppParamForPowerLimitation = filteredChargePoint.ocppParamForPowerLimitation,
+          chargePoint.power = filteredChargePoint.power,
+          chargePoint.efficiency = filteredChargePoint.efficiency;
+          chargePoint.connectorIDs = filteredChargePoint.connectorIDs;
+        }
       }
     }
     // Update Site Area
@@ -209,7 +216,7 @@ export default class ChargingStationService {
     // Update
     await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id, action: action,
       user: req.user, module: MODULE_NAME,
@@ -221,12 +228,12 @@ export default class ChargingStationService {
     });
     if (rebootRequired) {
       try {
-        await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
+        // Await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
       } catch (error) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           action: action,
-          errorCode: HTTPError.CHARGING_STATION_RESET,
+          errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
           message: 'Error occurred while restarting the charging station',
           module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
           user: req.user, actionOnUser: req.user,
@@ -347,7 +354,7 @@ export default class ChargingStationService {
           });
         }
         // Log
-        Logging.logWarning({
+        await Logging.logWarning({
           tenantID: req.user.tenantID,
           source: chargingStation.id,
           action: action,
@@ -375,7 +382,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
       action: action,
@@ -787,7 +794,7 @@ export default class ChargingStationService {
       await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
       message: `Charging Station '${chargingStation.id}' has been deleted successfully`,

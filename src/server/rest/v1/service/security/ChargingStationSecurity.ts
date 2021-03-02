@@ -170,6 +170,28 @@ export default class ChargingStationSecurity {
         return null;
       });
     }
+    // Filter charge points
+    if (request.chargePoints) {
+      filteredRequest.chargePoints = request.chargePoints.map((chargePoint) => {
+        if (chargePoint) {
+          return {
+            chargePointID: sanitize(chargePoint.chargePointID),
+            currentType: sanitize(chargePoint.currentType),
+            voltage: sanitize(chargePoint.voltage),
+            amperage: sanitize(chargePoint.amperage),
+            numberOfConnectedPhase: sanitize(chargePoint.numberOfConnectedPhase),
+            cannotChargeInParallel: sanitize(chargePoint.cannotChargeInParallel),
+            sharePowerToAllConnectors: sanitize(chargePoint.sharePowerToAllConnectors),
+            excludeFromPowerLimitation: sanitize(chargePoint.excludeFromPowerLimitation),
+            ocppParamForPowerLimitation: sanitize(chargePoint.ocppParamForPowerLimitation),
+            power: sanitize(chargePoint.power),
+            efficiency: sanitize(chargePoint.efficiency),
+            connectorIDs: chargePoint.connectorIDs.map(sanitize)
+          };
+        }
+        return null;
+      });
+    }
     return filteredRequest;
   }
 

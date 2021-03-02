@@ -413,6 +413,89 @@ export default class UtilsService {
     }
   }
 
+  public static checkIfChargePointValid(chargingStation: ChargingStation, chargePoint: ChargePoint, req: Request): void {
+    const connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+    let chargePointAmperage = 0;
+    let chargePointPower = 0;
+    for (const connector of connectors) {
+      if (connector.voltage && chargePoint.voltage && connector.voltage !== chargePoint.voltage) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+          errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
+          message: 'Charge Point does not match the voltage of its connectors',
+          module: MODULE_NAME, method: 'checkIfChargePointValid',
+          user: req.user.id
+        });
+      }
+      if (connector.numberOfConnectedPhase && chargePoint.numberOfConnectedPhase && connector.numberOfConnectedPhase !== chargePoint.numberOfConnectedPhase) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+          errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
+          message: 'Charge Point does not match the number of phases of its connectors',
+          module: MODULE_NAME, method: 'checkIfChargePointValid',
+          user: req.user.id
+        });
+      }
+      if (connector.currentType && chargePoint.currentType && connector.currentType !== chargePoint.currentType) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+          errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
+          message: 'Charge Point does not match the currentType of its connectors',
+          module: MODULE_NAME, method: 'checkIfChargePointValid',
+          user: req.user.id
+        });
+      }
+      if (chargePoint.sharePowerToAllConnectors) {
+        if (connector.amperage && chargePoint.amperage && connector.amperage !== chargePoint.amperage) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+            errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
+            message: 'Charge Points amperage does not equal the amperage of the connectors (shared power between connectors)',
+            module: MODULE_NAME, method: 'checkIfChargePointValid',
+            user: req.user.id
+          });
+        }
+        if (connector.power && chargePoint.power && connector.power !== chargePoint.power) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+            errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
+            message: 'Charge Points power does not equal the power of the connectors (shared power between connectors)',
+            module: MODULE_NAME, method: 'checkIfChargePointValid',
+            user: req.user.id
+          });
+        }
+      } else {
+        chargePointAmperage += connector.amperage;
+        chargePointPower += connector.power;
+      }
+    }
+    if (chargePointAmperage > 0 && chargePointAmperage !== chargePoint.amperage) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+        errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
+        message: 'Charge Points power does not match the combined amperage of the connectors (shared power between connectors)',
+        module: MODULE_NAME, method: 'checkIfChargePointValid',
+        user: req.user.id
+      });
+    }
+    if (chargePointPower > 0 && chargePointPower !== chargePoint.power) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+        errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
+        message: 'Charge Points power does not match the combined power of the connectors (shared power between connectors)',
+        module: MODULE_NAME, method: 'checkIfChargePointValid',
+        user: req.user.id
+      });
+    }
+  }
+
   public static checkIfSiteValid(site: Partial<Site>, req: Request): void {
     if (req.method !== 'POST' && !site.id) {
       throw new AppError({
