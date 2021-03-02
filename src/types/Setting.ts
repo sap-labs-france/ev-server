@@ -10,6 +10,7 @@ export interface Setting extends CreatedUpdatedProps {
   id?: string;
   identifier: TenantComponents | TechnicalSettings;
   sensitiveData?: string[];
+  backupSensitiveData?: Record<string, any>;
   category?: 'business' | 'technical';
 }
 
@@ -27,16 +28,16 @@ export interface SettingLink {
 
 export interface SettingDBContent {
   type:
-    RoamingSettingsType
-    | AnalyticsSettingsType
-    | RefundSettingsType
-    | PricingSettingsType
-    | BillingSettingsType
-    | SmartChargingSettingsType
-    | AssetSettingsType
-    | SmartChargingContentType
-    | CryptoSettingsType
-    | UserSettingsType;
+  RoamingSettingsType
+  | AnalyticsSettingsType
+  | RefundSettingsType
+  | PricingSettingsType
+  | BillingSettingsType
+  | SmartChargingSettingsType
+  | AssetSettingsType
+  | SmartChargingContentType
+  | CryptoSettingsType
+  | UserSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -284,6 +285,15 @@ export interface CryptoKeyProperties {
   blockSize: number;
   operationMode: string;
 }
+
+export interface CryptoSetting {
+  key: string;
+  keyProperties: CryptoKeyProperties;
+  formerKey?: string;
+  formerKeyProperties?: CryptoKeyProperties;
+  migrationToBeDone?: boolean;
+}
+
 export enum UserSettingsType {
   USER = 'user',
 }

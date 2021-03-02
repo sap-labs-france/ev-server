@@ -2,11 +2,9 @@ import { CryptoSettings, CryptoSettingsType, TechnicalSettings } from '../../typ
 
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import MigrationTask from '../MigrationTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
