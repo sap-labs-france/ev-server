@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
 import CompanySecurity from './security/CompanySecurity';
@@ -85,10 +86,17 @@ export default class CompanyService {
         value: filteredRequest.ID
       });
     }
-    // Get it
+    // Get authorization filters
+    const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    // Get company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID,
-      { withLogo: true },
-      [ 'id', 'name', 'issuer', 'logo', 'address' ]);
+      {
+        withLogo: true,
+        ...authorizationCompanyFilters.filters
+      },
+      authorizationCompanyFilters.projectFields
+    );
+    // Check Company exists
     UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetCompany', req.user);
     // Return

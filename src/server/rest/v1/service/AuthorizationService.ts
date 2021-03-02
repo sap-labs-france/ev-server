@@ -5,8 +5,10 @@ import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
+import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
+import { HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -321,6 +323,62 @@ export default class AuthorizationService {
     await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
+  }
+
+  // Replace HttpUserRequest with apporpriate
+  public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompanyRequest):Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'name', 'issuer', 'logo', 'address'
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(companyIDs)) {
+          if (!companyIDs.includes(filteredRequest.ID)) {
+            throw new AppAuthError({
+              errorCode: HTTPAuthError.FORBIDDEN,
+              user: userToken,
+              action: Action.READ, entity: Entity.SITE,
+              module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
+            });
+          } else {
+            authorizationFilters.authorized = true;
+          }
+        } else {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.FORBIDDEN,
+            user: userToken,
+            action: Action.READ, entity: Entity.SITE,
+            module: MODULE_NAME, method: 'checkAndGetCompanyAuthorizationFilters',
+          });
+        }
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+    return authorizationFilters;
+  }
+
+  private static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
+    // Get the Company IDs of the assigned Sites
+    const sites = await SiteStorage.getSites(tenantID,
+      {
+        siteIDs: siteID ? [ siteID ] : null,
+        userID: userToken.id,
+        issuer: true,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      [ 'companyID' ]
+    );
+    return sites.result.map((site) => site.companyID);
   }
 
   private static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
