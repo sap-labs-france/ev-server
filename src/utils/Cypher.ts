@@ -6,21 +6,25 @@ import Constants from './Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import SettingStorage from '../storage/mongodb/SettingStorage';
+import { TransformOptions } from 'stream';
 import Utils from './Utils';
 import _ from 'lodash';
 
-const IV_LENGTH = 16;
 const MODULE_NAME = 'Cypher';
+
+interface CipherOptions extends TransformOptions {
+  authTagLength?: number
+}
 
 export default class Cypher {
   public static async encrypt(tenantID: string, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
-    const iv = crypto.randomBytes(IV_LENGTH);
     if (!cryptoSetting) {
       cryptoSetting = (await Cypher.getCryptoSettings(tenantID)).crypto;
     }
     const algo = useFormerKey ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
+    const iv = crypto.randomBytes(Cypher.getIVLength(algo));
     const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
-    const cipher: CipherGCM = crypto.createCipheriv(algo, key, iv) as CipherGCM;
+    const cipher: CipherGCM = crypto.createCipheriv(algo, key, iv, Cypher.getCipherOptions(algo)) as CipherGCM;
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
     if (Cypher.isAuthenticatedEncryptionMode(algo)) {
@@ -45,7 +49,7 @@ export default class Cypher {
     }
     const algo: string | CipherGCMTypes = useFormerKey ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
     const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
-    const decipher: DecipherGCM = crypto.createDecipheriv(algo, key, iv) as DecipherGCM;
+    const decipher: DecipherGCM = crypto.createDecipheriv(algo, key, iv, Cypher.getCipherOptions(algo)) as DecipherGCM;
     if (!Utils.isUndefined(authTag) && Cypher.isAuthenticatedEncryptionMode(algo)) {
       decipher.setAuthTag(authTag);
     }
@@ -265,6 +269,25 @@ export default class Cypher {
 
   private static isAuthenticatedEncryptionMode(algo: string): boolean {
     return algo.includes('gcm') || algo.includes('ccm') || algo.includes('GCM') || algo.includes('CCM') || algo.includes('ocb');
+  }
+
+  private static getIVLength(algo: string): number {
+    if (algo.includes('ccm') || algo.includes('ocb')) {
+      // Bytes
+      return 13;
+    }
+    // Bytes
+    return 16;
+  }
+
+  private static getCipherOptions(algo: string): CipherOptions {
+    if (algo.includes('ccm') || algo.includes('ocb')) {
+      return {
+        // Bytes
+        authTagLength: 16
+      };
+    }
+    return {};
   }
 
   private static async cleanupBackupSensitiveData(tenantID: string): Promise<void> {
