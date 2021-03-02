@@ -23,12 +23,11 @@ export default class Cypher {
     const cipher: CipherGCM = crypto.createCipheriv(algo, key, iv) as CipherGCM;
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
-    let authTag: Buffer;
     if (Cypher.isAuthenticatedEncryptionMode(algo)) {
-      authTag = cipher.getAuthTag();
-    }
-    if (!Utils.isUndefined(authTag)) {
-      return iv.toString('hex') + ':' + encryptedData.toString('hex') + ':' + authTag.toString('hex');
+      const authTag = cipher.getAuthTag();
+      if (!Utils.isUndefined(authTag)) {
+        return iv.toString('hex') + ':' + encryptedData.toString('hex') + ':' + authTag.toString('hex');
+      }
     }
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
   }
@@ -265,7 +264,7 @@ export default class Cypher {
   }
 
   private static isAuthenticatedEncryptionMode(algo: string): boolean {
-    return algo.includes('gcm') || algo.includes('ccm') || algo.includes('GCM') || algo.includes('CCM') || algo.includes('ocb');
+    return algo.includes('gcm') || algo.includes('ccm') || algo.includes('GCM') || algo.includes('CCM') || algo.includes('ofb');
   }
 
   private static async cleanupBackupSensitiveData(tenantID: string): Promise<void> {
