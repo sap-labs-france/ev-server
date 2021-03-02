@@ -1379,6 +1379,7 @@ export default class Utils {
       process: cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master',
       processMemoryUsage: process.memoryUsage(),
       processCPUUsage: process.cpuUsage(),
+      cpusInfo: os.cpus(),
       memoryTotalGb: os.totalmem(),
       memoryFreeGb: os.freemem(),
       loadAverageLastMin: os.loadavg()[0],
