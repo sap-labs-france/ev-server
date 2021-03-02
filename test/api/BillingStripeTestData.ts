@@ -129,10 +129,12 @@ export default class StripeIntegrationTestData {
   }
 
   public async assignPaymentMethod(stripe_test_token: string) : Promise<Stripe.CustomerSource> {
+    // Assign a payment method using test tokens (instead of test card numbers)
+    // c.f.: https://stripe.com/docs/testing#cards
     const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
     const source = await stripeInstance.customers.createSource(this.getCustomerID(), {
-      source: stripe_test_token
+      source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
     });
     expect(source).to.not.be.null;
     return source;
@@ -141,12 +143,9 @@ export default class StripeIntegrationTestData {
   public async createDraftInvoice() : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
     const item = { description: 'Stripe Integration - Item 777', amount: 777 };
-    // const invoiceWrapper: { invoice: BillingInvoice; invoiceItem: BillingInvoiceItem } = await this.billingImpl.createInvoice(this.billingUser, item);
-    // const billingInvoice: BillingInvoice = await this.billingImpl.createEmptyInvoice(this.billingUser);
-    // assert(billingInvoice, 'Billing invoice should not be null');
-    // const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createInvoiceItem(this.billingUser, billingInvoice.invoiceID, item);
 
-    const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createInvoiceItem(this.billingUser, null, item);
+
+    const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createPendingInvoiceItem(this.billingUser, item);
     const billingInvoice: BillingInvoice = await this.billingImpl.createInvoice(this.billingUser);
     assert(billingInvoice, 'Billing invoice should not be null');
 
