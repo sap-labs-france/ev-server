@@ -264,8 +264,24 @@ export enum ChargePointStatus {
   FAULTED = 'Faulted',
 }
 
+export enum IdTokenType {
+  CENTRAL = 'Central',
+  EMAID = 'eMAID',
+  ISO_14443 = 'ISO14443',
+  KEY_CODE = 'KeyCode',
+  LOCAL = 'Local',
+  NO_AUTHORIZATION = 'NoAuthorization',
+  ISO_15693 = 'ISO15693'
+}
+
+export interface OCPPIdToken {
+  idToken: string,
+  type: IdTokenType
+}
+
 export interface OCPPAuthorizeRequest {
   idTag: string;
+  idToken?: OCPPIdToken
 }
 
 export interface OCPPAuthorizeRequestExtended extends OCPPAuthorizeRequest {
@@ -276,8 +292,13 @@ export interface OCPPAuthorizeRequestExtended extends OCPPAuthorizeRequest {
   authorizationId?: string;
 }
 
+export interface OCPPIdTokenInfo {
+  status: OCPPPnCAuthorizationStatus
+}
+
 export interface OCPPAuthorizeResponse {
   idTagInfo: OCPPIdTagInfo;
+  idTokenInfo?: OCPPIdTokenInfo
 }
 
 export interface OCPPIdTagInfo {
@@ -292,6 +313,101 @@ export enum OCPPAuthorizationStatus {
   EXPIRED = 'Expired',
   INVALID = 'Invalid',
   CONCURRENT_TX = 'ConcurrentTx'
+}
+
+export type OCPPPnCAuthorizationStatus = typeof OCPPPnCAuthorizationStatus;
+
+export const OCPPPnCAuthorizationStatus = {
+  ...OCPPAuthorizationStatus,
+  NO_CREDIT: 'NoCredit',
+  NOT_ALLOWED_TYPE_EVSE: 'NotAllowedTypeEVSE',
+  NOT_AT_THIS_LOCATION: 'NotAtThisLocation',
+  NOT_AT_THIS_TIME: 'NotAtThisTime',
+  UNKNOWN: 'Unknown'
+};
+
+export interface OCPPGet15118EVCertificateRequest {
+  '15118SchemaVersion': string,
+  exiRequest: string
+}
+
+export enum OCPP15118EVCertificateStatus {
+  ACCEPTED = 'Accepted',
+  FAILED = 'Failed'
+}
+
+export interface OCPPGet15118EVCertificateResponse {
+  status: OCPP15118EVCertificateStatus,
+  exiResponse: string
+}
+
+export enum CertificateType {
+  V2GRootCertificate = 'V2GRootCertificate',
+  MORootCertificate = 'MORootCertificate',
+  CSOSubCA1 = 'CSOSubCA1',
+  CSOSubCA2 = 'CSOSubCA2',
+  CSMSRootCertificate = 'CSMSRootCertificate',
+  ManufacturerRootCertificate = 'ManufacturerRootCertificate'
+}
+
+export interface OCPPGetInstalledCertificateIdsRequest {
+  typeOfCertificate: CertificateType
+}
+
+export enum OCPPInstalledCertificateStatus {
+  ACCEPTED = 'Accepted',
+  NOT_FOUND = 'NotFound'
+}
+
+export enum CertificateHashAlgorithm {
+  SHA256 = 'SHA256',
+  SHA384 = 'SHA384',
+  SHA512 = 'SHA512'
+}
+
+export interface CertificateHashDataType {
+  hashAlgorithm: CertificateHashAlgorithm,
+  issuerNameHash: string,
+  issuerKeyHash: string,
+  serialNumber: string
+}
+
+export interface OCPPGetInstalledCertificateIdsResponse {
+  status: OCPPInstalledCertificateStatus
+  certificateHashData?: CertificateHashDataType[],
+}
+
+export interface OCPPDeleteCertificateRequest {
+  certificateHashData: CertificateHashDataType
+}
+
+export enum OCPPDeleteCertificateStatus {
+  ACCEPTED = 'Accepted',
+  FAILED = 'Failed',
+  NOT_FOUND = 'NotFound'
+}
+
+export interface OCPPDeleteCertificateResponse {
+  status: OCPPDeleteCertificateStatus
+}
+
+export interface OCPPInstallCertificateRequest {
+  certificateType: CertificateType
+  certificate: string
+}
+
+export enum OCPPInstallCertificateStatus {
+  Accepted = 'Accepted',
+  SignatureError = 'SignatureError',
+  CertificateExpired = 'CertificateExpired',
+  CertificateRevoked = 'CertificateRevoked',
+  NoCertificateAvailable = 'NoCertificateAvailable',
+  CertChainError = 'CertChainError',
+  ContractCancelled = 'ContractCancelled'
+}
+
+export interface OCPPInstallCertificateResponse {
+  status: OCPPInstallCertificateStatus
 }
 
 export interface OCPPDiagnosticsStatusNotificationRequest {
