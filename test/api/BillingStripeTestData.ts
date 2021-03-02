@@ -113,7 +113,7 @@ export default class StripeIntegrationTestData {
   public async getDraftInvoices(userId: string) : Promise<any> {
     const params = { Status: BillingInvoiceStatus.DRAFT, UserID: [userId] };
     const paging = TestConstants.DEFAULT_PAGING;
-    const ordering = [{ field: 'createdOn', direction: 'desc' }];
+    const ordering = [{ field: '-createdOn' }];
     const response = await this.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
     return response?.data?.result;
   }

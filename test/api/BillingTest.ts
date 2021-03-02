@@ -125,7 +125,7 @@ class TestData {
     }
 
     const paging = TestConstants.DEFAULT_PAGING;
-    const ordering = [{ field: 'createdOn', direction: 'desc' }];
+    const ordering = [{ field: '-createdOn' }];
     const response = await testData.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
     return response?.data?.result;
   }
@@ -144,7 +144,7 @@ class TestData {
     // ACHTUNG: There is no data after running: npm run mochatest:createContext
     // In that situation we return 0!
     const draftInvoices = await this.getDraftInvoices(userId);
-    return (draftInvoices && draftInvoices.length) ? draftInvoices[draftInvoices.length - 1] : null;
+    return (draftInvoices && draftInvoices.length > 0) ? draftInvoices[0] : null;
   }
 
   public async getNumberOfItems(userId?: string): Promise<number> {
