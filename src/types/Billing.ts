@@ -66,11 +66,8 @@ export interface BillingTax {
   percentage: number;
 }
 
-export interface BillingInvoice extends BillingInvoiceRawData {
+export interface BillingInvoice {
   id: string;
-}
-
-export interface BillingInvoiceRawData {
   invoiceID: string;
   userID?: string;
   user?: User;
@@ -84,7 +81,6 @@ export interface BillingInvoiceRawData {
   downloadable?: boolean
   downloadUrl?: string;
 }
-
 
 export interface BillingInvoiceItem {
   description: string;

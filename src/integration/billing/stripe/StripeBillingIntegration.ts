@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceRawData, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -332,12 +332,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
     });
     // Let's update the data which is replicated on our side
-    return this.updateBillingInvoice(user, stripeInvoice);
+    return this.persistBillingInvoice(user, stripeInvoice);
   }
 
-  private async updateBillingInvoice(billingUser: BillingUser, stripeInvoice: Stripe.Invoice): Promise<BillingInvoice> {
+  private async persistBillingInvoice(billingUser: BillingUser, stripeInvoice: Stripe.Invoice, billingInvoiceID?: string): Promise<BillingInvoice> {
     const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
-    const invoiceData: BillingInvoiceRawData = {
+    const invoiceToSave: Partial<BillingInvoice> = {
+      id: billingInvoiceID, // null when the billing invoice does not yet exist
       userID: billingUser.userID,
       invoiceID: stripeInvoice.id,
       customerID: stripeInvoice.customer as string, // TODO - clarify is this is always correct - customer might be expanded
@@ -354,9 +355,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // --------------------------------------------------------
     // Save Invoice
     const billingInvoice: BillingInvoice = {
-      id: await BillingStorage.saveInvoice(this.tenantID, invoiceData),
-      ...invoiceData,
-    };
+      id: await BillingStorage.saveInvoice(this.tenantID, invoiceToSave),
+      ...invoiceToSave,
+    } as BillingInvoice;
     return billingInvoice;
   }
 
@@ -641,7 +642,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Let's get the raw data from stripe!
       const stripeInvoice = await this.getStripeInvoice(draftInvoice.invoiceID);
       // Well ... we need to update the billing invoice to reflect the latest changes
-      await this.updateBillingInvoice(billingUser, stripeInvoice);
+      await this.persistBillingInvoice(billingUser, stripeInvoice, draftInvoice.id);
     }
     // Return the operation result as a BillingDataTransactionStop
     return {

@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoiceDocument, BillingInvoiceRawData, BillingInvoiceStatus } from '../../types/Billing';
+import { BillingInvoice, BillingInvoiceDocument, BillingInvoiceStatus } from '../../types/Billing';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -157,28 +157,24 @@ export default class BillingStorage {
     };
   }
 
-  public static async saveInvoice(tenantID: string, invoiceRawData: BillingInvoice | BillingInvoiceRawData): Promise<string> {
+  public static async saveInvoice(tenantID: string, invoiceToSave: Partial<BillingInvoice>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveInvoice');
-    // Is it an a create or an update
-    const _id = (invoiceRawData['id']) ? Utils.convertToObjectID(invoiceRawData['id']) : new ObjectID();
-    const userID = Utils.convertToObjectID(invoiceRawData.userID);
-
     // Build Request
     // Properties to save
     const invoiceMDB = {
-      _id,
-      invoiceID: invoiceRawData.invoiceID,
-      number: invoiceRawData.number,
-      userID,
-      customerID: invoiceRawData.customerID,
-      amount: Utils.convertToFloat(invoiceRawData.amount),
-      status: invoiceRawData.status,
-      currency: invoiceRawData.currency,
-      createdOn: Utils.convertToDate(invoiceRawData.createdOn),
-      nbrOfItems: Utils.convertToInt(invoiceRawData.nbrOfItems),
-      downloadable: Utils.convertToBoolean(invoiceRawData.downloadable),
-      downloadUrl: invoiceRawData.downloadUrl
+      _id: invoiceToSave.id ? Utils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
+      invoiceID: invoiceToSave.invoiceID,
+      number: invoiceToSave.number,
+      userID: invoiceToSave.userID ? Utils.convertToObjectID(invoiceToSave.userID) : null,
+      customerID: invoiceToSave.customerID,
+      amount: Utils.convertToFloat(invoiceToSave.amount),
+      status: invoiceToSave.status,
+      currency: invoiceToSave.currency,
+      createdOn: Utils.convertToDate(invoiceToSave.createdOn),
+      nbrOfItems: Utils.convertToInt(invoiceToSave.nbrOfItems),
+      downloadable: Utils.convertToBoolean(invoiceToSave.downloadable),
+      downloadUrl: invoiceToSave.downloadUrl
     };
     // Modify and return the modified document
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices').findOneAndReplace(
