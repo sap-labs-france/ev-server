@@ -47,7 +47,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                   sendEndOfCharge: true,
                   sendEndOfSession: true,
                   sendUserAccountStatusChanged: true,
-                  sendPreparingSessionNotStarted: true,
+                  sendPreparingSessionNotStarted: false,
                   sendUserAccountInactivity: true,
                   sendSessionNotStarted: true,
                   sendNewRegisteredUser: false,
@@ -62,8 +62,8 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                   sendSmtpError: false,
                   sendBillingNewInvoice: false,
                   sendComputeAndApplyChargingProfilesFailed: false,
-                  sendAccountVerificationNotification: true,
-                  sendAdminAccountVerificationNotification: true
+                  sendAccountVerificationNotification: false,
+                  sendAdminAccountVerificationNotification: false
                 },
               };
               try {
