@@ -33,12 +33,12 @@ export default class Cypher {
   }
 
   public static async decrypt(tenantID: string, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
-    const dataParts = data.split(':');
-    const iv = Buffer.from(dataParts.shift(), 'hex');
-    const encryptedData = Buffer.from(dataParts.shift(), 'hex');
+    const [ivStr, encryptedDataStr, authTagStr] = data.split(':');
+    const iv = Buffer.from(ivStr, 'hex');
+    const encryptedData = Buffer.from(encryptedDataStr, 'hex');
     let authTag: Buffer;
-    if (!Utils.isEmptyArray(dataParts)) {
-      authTag = Buffer.from(dataParts.shift(), 'hex');
+    if (!Utils.isUndefined(authTagStr)) {
+      authTag = Buffer.from(authTagStr, 'hex');
     }
     if (!cryptoSetting) {
       cryptoSetting = (await Cypher.getCryptoSettings(tenantID)).crypto;
