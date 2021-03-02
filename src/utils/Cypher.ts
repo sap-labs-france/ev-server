@@ -264,7 +264,7 @@ export default class Cypher {
   }
 
   private static isAuthenticatedEncryptionMode(algo: string): boolean {
-    return algo.includes('gcm') || algo.includes('ccm') || algo.includes('GCM') || algo.includes('CCM') || algo.includes('ofb');
+    return algo.includes('gcm') || algo.includes('ccm') || algo.includes('GCM') || algo.includes('CCM') || algo.includes('ocb');
   }
 
   private static async cleanupBackupSensitiveData(tenantID: string): Promise<void> {
