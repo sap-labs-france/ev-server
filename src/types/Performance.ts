@@ -1,3 +1,4 @@
+import { CpuInfo } from 'os';
 import { ServerAction } from './Server';
 
 export default interface PerformanceRecord {
@@ -10,6 +11,7 @@ export default interface PerformanceRecord {
   process: string;
   processMemoryUsage: NodeJS.MemoryUsage,
   processCPUUsage: NodeJS.CpuUsage,
+  cpusInfo: CpuInfo[],
   memoryTotalGb: number;
   memoryFreeGb: number;
   loadAverageLastMin: number,
