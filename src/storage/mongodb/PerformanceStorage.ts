@@ -1,7 +1,8 @@
+import global, { FilterParams } from '../../types/GlobalType';
+
 import Constants from '../../utils/Constants';
 import PerformanceRecord from '../../types/Performance';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 export default class PerformanceStorage {
   public static async savePerformanceRecord(performanceRecord: PerformanceRecord): Promise<void> {
@@ -51,5 +52,20 @@ export default class PerformanceStorage {
     // Insert
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'performances')
       .insertOne(performanceRecordMDB);
+  }
+
+  public static async deletePerformanceRecords(params?: { deleteUpToDate: Date }): Promise<{ ok?: number; n?: number; }> {
+    // Build filter
+    const filters: FilterParams = {};
+    // Date provided?
+    if (params?.deleteUpToDate) {
+      filters.timestamp = {};
+      filters.timestamp.$lte = Utils.convertToDate(params.deleteUpToDate);
+    }
+    // Delete
+    const result = await global.database.getCollection<PerformanceRecord>(Constants.DEFAULT_TENANT, 'performances')
+      .deleteMany(filters);
+    // Return the result
+    return result.result;
   }
 }
