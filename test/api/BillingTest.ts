@@ -184,12 +184,12 @@ describe('Billing Service', function() {
         // await testData.setBillingSystemValidCredentials();
       });
 
-      it('should add an item to the existing invoice after a transaction', async () => {
-        await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+      it('should add an item to a DRAFT invoice after a transaction', async () => {
+        // await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
         const itemsBefore = await testData.getNumberOfItems(testData.userContext);
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
-        await testData.userService.billingApi.synchronizeInvoices({});
+        // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfItems(testData.userContext);
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
       });
