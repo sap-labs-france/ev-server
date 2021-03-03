@@ -119,16 +119,17 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'manualConfiguration')) {
       // Check manual config
       if (!chargingStation.manualConfiguration && filteredRequest.manualConfiguration) {
+        chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
         delete chargingStation.templateHash;
         delete chargingStation.templateHashCapabilities;
         delete chargingStation.templateHashOcppStandard;
         delete chargingStation.templateHashOcppVendor;
         delete chargingStation.templateHashTechnical;
       } else if (chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) {
+        chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
         await OCPPUtils.enrichChargingStationWithTemplate(req.user.tenantID, chargingStation);
         rebootRequired = true;
       }
-      chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
     }
     // Existing Connectors
     if (!Utils.isEmptyArray(filteredRequest.connectors)) {
@@ -147,9 +148,8 @@ export default class ChargingStationService {
       }
     }
     // Existing charge points
-    if (!Utils.isEmptyArray(filteredRequest.chargePoints)) {
-      for (const filteredChargePoint of filteredRequest.chargePoints) {
-        UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, req);
+    if (!Utils.isEmptyArray(filteredRequest.chargePoints) || !Utils.isEmptyArray(chargingStation.chargePoints)) {
+      for (const filteredChargePoint of filteredRequest.chargePoints ? filteredRequest.chargePoints : chargingStation.chargePoints) {
         const chargePoint = Utils.getChargePointFromID(chargingStation, filteredChargePoint.chargePointID);
         // Update Connectors only if manual configuration is enabled
         if (chargePoint && chargingStation.manualConfiguration) {
@@ -166,6 +166,7 @@ export default class ChargingStationService {
           chargePoint.efficiency = filteredChargePoint.efficiency;
           chargePoint.connectorIDs = filteredChargePoint.connectorIDs;
         }
+        UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, req);
       }
     }
     // Update Site Area
