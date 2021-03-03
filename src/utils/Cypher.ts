@@ -239,7 +239,7 @@ export default class Cypher {
       for (const settingToMigrate of settingsToMigrate) {
         // Migration already done?
         if (Utils.isEmptyJSon(settingToMigrate.backupSensitiveData)) {
-          // Save former senitive data in setting
+          // Save former sensitive data in setting
           settingToMigrate.backupSensitiveData = Cypher.prepareBackupSensitiveData(settingToMigrate);
           // Decrypt sensitive data with former key and key properties
           await Cypher.decryptSensitiveDataInJSON(tenantID, settingToMigrate, true, cryptoSetting);
