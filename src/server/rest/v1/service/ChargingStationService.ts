@@ -1608,6 +1608,18 @@ export default class ChargingStationService {
             retryInterval: params.retryInterval
           });
           break;
+        case Command.INSTALL_CERTIFICATE:
+          result = await chargingStationClient.installCertificate({
+            certificateType: params.certificateType,
+            certificate: params.certificate
+          });
+          break;
+        case Command.GET_15118_EV_CERTIFICATE:
+          result = await chargingStationClient.get15118EVCertificate({
+            '15118SchemaVersion': params['15118SchemaVersion'],
+            exiRequest: params.exiRequest
+          });
+          break;
       }
       // Ok?
       if (result) {

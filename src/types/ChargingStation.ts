@@ -105,6 +105,8 @@ export enum Command {
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   UPDATE_FIRMWARE = 'UpdateFirmware',
+  INSTALL_CERTIFICATE = 'InstallCertificate',
+  GET_15118_EV_CERTIFICATE = 'Get15118EVCertificate'
 }
 
 export enum StaticLimitAmps {

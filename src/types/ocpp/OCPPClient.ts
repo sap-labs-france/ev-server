@@ -197,3 +197,87 @@ export interface OCPPUpdateFirmwareCommandParam extends OCPPCommandParam {
   retrieveDate: Date;
   retryInterval?: number;
 }
+
+export interface OCPPGet15118EVCertificateCommandParam extends OCPPCommandParam {
+  '15118SchemaVersion': string,
+  exiRequest: string
+}
+
+export enum OCPP15118EVCertificateStatus {
+  ACCEPTED = 'Accepted',
+  FAILED = 'Failed'
+}
+
+export interface OCPPGet15118EVCertificateCommandResult {
+  status: OCPP15118EVCertificateStatus,
+  exiResponse: string
+}
+
+export interface OCPPGetInstalledCertificateIdsCommandParam extends OCPPCommandParam {
+  typeOfCertificate: CertificateType
+}
+
+export enum OCPPInstalledCertificateStatus {
+  ACCEPTED = 'Accepted',
+  NOT_FOUND = 'NotFound'
+}
+
+export enum CertificateHashAlgorithm {
+  SHA256 = 'SHA256',
+  SHA384 = 'SHA384',
+  SHA512 = 'SHA512'
+}
+
+export interface CertificateHashDataType {
+  hashAlgorithm: CertificateHashAlgorithm,
+  issuerNameHash: string,
+  issuerKeyHash: string,
+  serialNumber: string
+}
+
+export interface OCPPGetInstalledCertificateIdsCommandResult {
+  status: OCPPInstalledCertificateStatus
+  certificateHashData?: CertificateHashDataType[],
+}
+
+export interface OCPPDeleteCertificateCommandParam extends OCPPCommandParam {
+  certificateHashData: CertificateHashDataType
+}
+
+export enum OCPPDeleteCertificateStatus {
+  ACCEPTED = 'Accepted',
+  FAILED = 'Failed',
+  NOT_FOUND = 'NotFound'
+}
+
+export interface OCPPDeleteCertificateCommandResult {
+  status: OCPPDeleteCertificateStatus
+}
+
+export enum CertificateType {
+  V2GRootCertificate = 'V2GRootCertificate',
+  MORootCertificate = 'MORootCertificate',
+  CSOSubCA1 = 'CSOSubCA1',
+  CSOSubCA2 = 'CSOSubCA2',
+  CSMSRootCertificate = 'CSMSRootCertificate',
+  ManufacturerRootCertificate = 'ManufacturerRootCertificate'
+}
+
+export interface OCPPInstallCertificateCommandParam extends OCPPCommandParam {
+  certificateType: CertificateType
+  certificate: string
+}
+
+export enum OCPPInstallCertificateStatus {
+  Accepted = 'Accepted',
+  SignatureError = 'SignatureError',
+  CertificateExpired = 'CertificateExpired',
+  CertificateRevoked = 'CertificateRevoked',
+  NoCertificateAvailable = 'NoCertificateAvailable',
+  CertChainError = 'CertChainError',
+  ContractCancelled = 'ContractCancelled'
+}
+
+export interface OCPPInstallCertificateCommandResult {
+  status: OCPPInstallCertificateStatus
+}
