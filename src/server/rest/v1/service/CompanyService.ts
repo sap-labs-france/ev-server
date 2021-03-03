@@ -221,6 +221,7 @@ export default class CompanyService {
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check auth
     if (!Authorizations.canUpdateCompany(req.user)) {
       throw new AppAuthError({
@@ -231,8 +232,11 @@ export default class CompanyService {
         value: filteredRequest.id
       });
     }
+    // Get authorization filters
+    const authorizationUserFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.id });
     // Get Company
-    const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
+    const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check Mandatory fields
