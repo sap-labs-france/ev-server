@@ -479,7 +479,7 @@ export default class UtilsService {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
         errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
-        message: 'Charge Points power does not match the combined amperage of the connectors (shared power between connectors)',
+        message: `Charge Points amperage ${chargePoint.amperage}A does not match the combined amperage of the connectors ${chargePointPower}A`,
         module: MODULE_NAME, method: 'checkIfChargePointValid',
         user: req.user.id
       });
@@ -489,7 +489,7 @@ export default class UtilsService {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
         errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
-        message: 'Charge Points power does not match the combined power of the connectors (shared power between connectors)',
+        message: `Charge Points power ${chargePoint.power}W does not match the combined power of the connectors ${chargePointPower}W`,
         module: MODULE_NAME, method: 'checkIfChargePointValid',
         user: req.user.id
       });
