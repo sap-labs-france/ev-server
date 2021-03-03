@@ -7,6 +7,7 @@ import ChargingStation from '../types/ChargingStation';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
 import { RefundTransactionData } from './Refund';
+import Tag from './Tag';
 import User from './User';
 
 export type InactivityStatusLevel =
@@ -40,6 +41,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   issuer: boolean;
   connectorId: number;
   tagID: string;
+  tag?: Tag;
   userID: string;
   chargeBoxID: string;
   signedData?: string;

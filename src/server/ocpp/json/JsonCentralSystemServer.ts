@@ -51,7 +51,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Get the Json Web Socket
     const jsonWebSocket = this.jsonChargingStationClients.get(id);
     if (!jsonWebSocket) {
-      Logging.logError({
+      void Logging.logError({
         tenantID: tenantID,
         source: chargingStationID,
         module: MODULE_NAME, method: 'getChargingStationClient',
@@ -71,6 +71,10 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   public removeJsonConnection(wsConnection: JsonWSConnection): boolean {
     // Remove from cache
     return this.jsonChargingStationClients.delete(wsConnection.getID());
+  }
+
+  public getNumberOfJsonConnections(): number {
+    return this.jsonChargingStationClients.size;
   }
 
   public removeRestConnection(wsConnection: JsonRestWSConnection): boolean {
@@ -104,7 +108,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       if (info.req.url.startsWith('/REST')) {
         return true;
       }
-      Logging.logError({
+      void Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'verifyClient',
         action: ServerAction.EXPRESS_SERVER,
@@ -128,7 +132,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       } else if (protocols === 'rest') {
         return protocols;
       }
-      Logging.logError({
+      void Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'handleProtocols',
         action: ServerAction.EXPRESS_SERVER,
@@ -162,8 +166,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           throw Error('Wrong WebSocket client connection URI path');
         }
       } catch (error) {
-        // Log
-        Logging.logException(
+        void Logging.logException(
           error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
         ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
@@ -174,8 +177,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       this.keepAliveInterval = setInterval((): void => {
         for (const jsonWSConnection of this.jsonChargingStationClients.values()) {
           if (!jsonWSConnection.isConnectionAlive) {
-            // Log
-            Logging.logError({
+            void Logging.logError({
               tenantID: jsonWSConnection.getTenantID(),
               source: jsonWSConnection.getChargingStationID(),
               action: ServerAction.WS_JSON_CONNECTION_CLOSED,
