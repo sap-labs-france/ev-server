@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingOperationResult, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -572,7 +572,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
 
   // ##CR - TO BE CLARIFIED - clarify the return type!
-  abstract attachPaymentMethod(user: User, paymentMethodId: string): Promise<unknown>;
+  abstract attachPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
   abstract chargeInvoice(invoice: BillingInvoice): Promise<unknown>;
   abstract handleBillingEvent(req: Request): boolean;
 

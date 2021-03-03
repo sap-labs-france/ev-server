@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { BillingInvoiceStatus, BillingUserSynchronizeAction } from '../../../../types/Billing';
+import { BillingInvoiceStatus, BillingOperationResult, BillingUserSynchronizeAction } from '../../../../types/Billing';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
@@ -516,7 +516,7 @@ export default class BillingService {
       MODULE_NAME, 'handleAttachPaymentMethod', req.user);
     // Invoke the billing implementation
     const paymentMethodId: string = req.body.paymentMethodId;
-    const operationResult = await billingImpl.attachPaymentMethod(user, paymentMethodId);
+    const operationResult: BillingOperationResult = await billingImpl.attachPaymentMethod(user, paymentMethodId);
     if (operationResult) {
       console.log(operationResult);
     }
