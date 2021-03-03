@@ -34,9 +34,17 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async getStripeInstance(): Promise<Stripe> {
-    // TODO - To be clarified - only used by automated tests!!! - remove it ASAP
+    // TODO - To be removed - only used by automated tests!
     await this.checkConnection();
     return this.stripe;
+  }
+
+  public alterStripeSettings(someSettings: Partial<StripeBillingSetting>): void {
+    // TODO - To be removed - only used by automated tests!
+    this.settings = {
+      ...this.settings,
+      ...someSettings // overrides defult settings to test different scenarios - e.g.: VAT 20%
+    };
   }
 
   public async checkConnection(): Promise<void> {
@@ -405,6 +413,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   private getTaxRateIds(): Array<string> {
     // TODO - just a hack for now - tax rate should be part of the billing settings
     // return [ 'txr_1IP3FJKHtGlSi68frTdAro48' ];
+    if (this.settings.taxID) {
+      return [this.settings.taxID] ;
+    }
     return []; // No tax rates so far!
   }
 

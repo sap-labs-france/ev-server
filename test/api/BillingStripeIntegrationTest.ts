@@ -59,6 +59,10 @@ describe('Billing Stripe Service', function() {
         await testData.assignPaymentMethod('tok_fr');
       });
 
+      it('Should set VAT tax rate to 20% (non inclusive)', async () => {
+        await testData.assignTaxRate(20);
+      });
+
       it('should create and pay a second invoice for BILLING-TEST user', async () => {
         await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
         // Let's create an Invoice with a first Item

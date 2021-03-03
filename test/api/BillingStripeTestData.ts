@@ -140,6 +140,25 @@ export default class StripeIntegrationTestData {
     return source;
   }
 
+  public async assignTaxRate(rate: number) : Promise<Stripe.TaxRate> {
+    // Let's create a tax rate
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
+    const stripeInstance = await concreteImplementation.getStripeInstance();
+    const taxRate = await stripeInstance.taxRates.create({
+      display_name: 'TVA',
+      description: `TVA France - ${rate}%`,
+      jurisdiction: 'FR',
+      percentage: rate,
+      inclusive: false
+    });
+    expect(taxRate).to.not.be.null;
+    // Make it the default tax to apply when charging invoices
+    concreteImplementation.alterStripeSettings({
+      taxID: taxRate?.id
+    });
+    return taxRate;
+  }
+
   public async createDraftInvoice() : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
     const item = { description: 'Stripe Integration - Item 777', amount: 777 };
