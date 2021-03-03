@@ -230,6 +230,10 @@ export default class Constants {
 
   public static readonly CENTRAL_SERVER = 'Central Server';
   public static readonly OCPI_SERVER = 'OCPI Server';
+  public static readonly OCPP_SERVER = 'OCPP Server';
+  public static readonly DATABASE_SERVER = 'Database Server';
+  public static readonly REST_SERVER = 'REST Server';
+  public static readonly AXIOS_CLIENT = 'Axios Client';
 
   public static readonly WITH_CHARGING_STATIONS = true; // Not used
   public static readonly WITHOUT_CHARGING_STATIONS = false; // Not used

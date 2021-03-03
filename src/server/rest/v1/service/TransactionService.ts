@@ -570,7 +570,7 @@ export default class TransactionService {
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'signedData',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice', 'stop.signedData', 'stop.tagID'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice', 'stop.signedData', 'stop.tagID', 'tagID.description'
     ]);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
@@ -719,10 +719,10 @@ export default class TransactionService {
 
   public static async getCompletedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     // Get transaction
-    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true }, [
+    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true, withTag: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description'
     ]);
   }
 
@@ -822,6 +822,8 @@ export default class TransactionService {
       csv += i18nManager.translate('chargers.connector') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('users.userID') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('tags.id') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('tags.description') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('chargers.timezone') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('general.startDate') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('general.startTime') + Constants.CSV_SEPARATOR;
@@ -840,6 +842,8 @@ export default class TransactionService {
       csv += transaction.connectorId + Constants.CSV_SEPARATOR;
       csv += (transaction.user ? Cypher.hash(transaction.user.id) : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.user ? Utils.buildUserFullName(transaction.user, false) : '') + Constants.CSV_SEPARATOR;
+      csv += transaction.tagID + Constants.CSV_SEPARATOR;
+      csv += (transaction.tag?.description || '') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone || 'N/A (UTC by default)') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
@@ -933,7 +937,7 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -978,6 +982,9 @@ export default class TransactionService {
     const extrafilters: any = {};
     if (Utils.objectHasProperty(params, 'completedTransactions')) {
       extrafilters.stop = params.completedTransactions ? { $exists: true } : { $exists: false };
+    }
+    if (Utils.objectHasProperty(params, 'withTag')) {
+      extrafilters.withTag = params.withTag;
     }
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,

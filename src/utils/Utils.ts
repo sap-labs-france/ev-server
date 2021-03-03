@@ -14,6 +14,7 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { ObjectID } from 'mongodb';
+import PerformanceRecord from '../types/Performance';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -25,7 +26,9 @@ import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import cfenv from 'cfenv';
+import cluster from 'cluster';
 import fs from 'fs';
+import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -34,8 +37,6 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
-
-const MODULE_NAME = 'Utils';
 
 export default class Utils {
   public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
@@ -1334,7 +1335,7 @@ export default class Utils {
     return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
   }
 
-  public static isPlateIDValid(plateID): boolean {
+  public static isPlateIDValid(plateID: string): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
   }
 
@@ -1353,7 +1354,8 @@ export default class Utils {
 
   public static generateRandomKey(keyProperties: CryptoKeyProperties): string {
     // Ensure the key's number of characters is always keyProperties.blockSize / 8
-    return crypto.randomBytes(keyProperties.blockSize / 8).toString('base64').slice(0, keyProperties.blockSize / 8);
+    const keyLength = keyProperties.blockSize / 8;
+    return crypto.randomBytes(keyLength).toString('base64').slice(0, keyLength);
   }
 
   public static getDefaultKeyProperties(): CryptoKeyProperties {
@@ -1361,6 +1363,35 @@ export default class Utils {
       blockCypher: 'aes',
       blockSize: 256,
       operationMode: 'gcm'
+    };
+  }
+
+  public static buildPerformanceRecord(params: {
+    tenantID: string; durationMs: number; sizeKb?: number;
+    source?: string; module: string; method: string; action: ServerAction|string;
+    httpUrl?: string; httpMethod?: string; httpCode?: number;
+  }): PerformanceRecord {
+    return {
+      tenantID: params.tenantID,
+      timestamp: new Date(),
+      durationMs: params.durationMs,
+      sizeKb: params.sizeKb,
+      host: Utils.getHostname(),
+      process: cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master',
+      processMemoryUsage: process.memoryUsage(),
+      processCPUUsage: process.cpuUsage(),
+      cpusInfo: os.cpus(),
+      memoryTotalGb: os.totalmem(),
+      memoryFreeGb: os.freemem(),
+      loadAverageLastMin: os.loadavg()[0],
+      numberOfChargingStations: global.centralSystemJsonServer?.getNumberOfJsonConnections(),
+      source: params.source,
+      module: params.module,
+      method: params.method,
+      action: params.action,
+      httpUrl: params.httpUrl,
+      httpMethod: params.httpMethod,
+      httpCode: params.httpCode,
     };
   }
 
