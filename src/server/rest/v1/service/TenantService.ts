@@ -190,7 +190,7 @@ export default class TenantService {
         identifier: TechnicalSettings.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: {
-          key: Utils.generateKey(Utils.getDefaultKeyProperties()),
+          key: Utils.generateRandomKey(Utils.getDefaultKeyProperties()),
           keyProperties: Utils.getDefaultKeyProperties()
         }
       } as CryptoSettings;

@@ -21,7 +21,7 @@ export default class Cypher {
     if (!cryptoSetting) {
       cryptoSetting = (await Cypher.getCryptoSettings(tenantID)).crypto;
     }
-    const algo = useFormerKey ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
+    const algo = useFormerKey ? Utils.buildCryptoAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildCryptoAlgorithm(cryptoSetting.keyProperties);
     const iv = crypto.randomBytes(Cypher.getIVLength(algo));
     const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
     const cipher: CipherGCM = crypto.createCipheriv(algo, key, iv, Cypher.getCipherOptions(algo)) as CipherGCM;
@@ -47,7 +47,7 @@ export default class Cypher {
     if (!cryptoSetting) {
       cryptoSetting = (await Cypher.getCryptoSettings(tenantID)).crypto;
     }
-    const algo: string | CipherGCMTypes = useFormerKey ? Utils.buildAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildAlgorithm(cryptoSetting.keyProperties);
+    const algo: string | CipherGCMTypes = useFormerKey ? Utils.buildCryptoAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildCryptoAlgorithm(cryptoSetting.keyProperties);
     const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
     const decipher: DecipherGCM = crypto.createDecipheriv(algo, key, iv, Cypher.getCipherOptions(algo)) as DecipherGCM;
     if (!Utils.isUndefined(authTag) && Cypher.isAuthenticatedEncryptionMode(algo)) {
