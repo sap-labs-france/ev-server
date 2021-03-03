@@ -534,7 +534,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
-    if (!user.billingData || !user.billingData.customerID) {
+    if (!user?.billingData?.customerID) {
       throw new BackendError({
         message: 'User is not yet known in Stripe',
         source: Constants.CENTRAL_SERVER,
@@ -543,17 +543,26 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    // Attach payment method to stripe customer
+
     const customerID = user.billingData.customerID;
-    const operationResult: Stripe.Response<Stripe.PaymentMethod> = await this.stripe.paymentMethods.attach(paymentMethodId, {
-      customer: customerID
-    });
-    // Set this payment method as the default
-    await this.stripe.customers.update(customerID, {
-      invoice_settings: {
-        default_payment_method: paymentMethodId,
-      }
-    });
+    let operationResult: any;
+    if (!paymentMethodId) {
+      // Let's create a setupIntent for the stripe customer
+      operationResult = await this.stripe.setupIntents.create({
+        customer: customerID
+      });
+    } else {
+      // Attach payment method to the stripe customer
+      operationResult = await this.stripe.paymentMethods.attach(paymentMethodId, {
+        customer: customerID
+      });
+      // Set this payment method as the default
+      await this.stripe.customers.update(customerID, {
+        invoice_settings: {
+          default_payment_method: paymentMethodId,
+        }
+      });
+    }
     return operationResult;
   }
 
