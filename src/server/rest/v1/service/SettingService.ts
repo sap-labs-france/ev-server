@@ -237,7 +237,7 @@ export default class SettingService {
     if (settingUpdate.identifier === TechnicalSettings.CRYPTO) {
       // Check supported algorithm
       if (!Constants.CRYPTO_SUPPORTED_ALGORITHM.includes(
-        Utils.buildAlgorithm(settingUpdate.content.crypto.keyProperties))) {
+        Utils.buildCryptoAlgorithm(settingUpdate.content.crypto.keyProperties))) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CRYPTO_ALGORITHM_NOT_SUPPORTED,

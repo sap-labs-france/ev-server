@@ -4,6 +4,7 @@ import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
+import crypto, { CipherGCMTypes } from 'crypto';
 
 import Address from '../types/Address';
 import { AxiosError } from 'axios';
@@ -26,7 +27,6 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
-import crypto from 'crypto';
 import fs from 'fs';
 import global from '../types/GlobalType';
 import http from 'http';
@@ -1335,7 +1335,7 @@ export default class Utils {
     return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
   }
 
-  public static isPlateIDValid(plateID): boolean {
+  public static isPlateIDValid(plateID: string): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
   }
 
@@ -1348,20 +1348,21 @@ export default class Utils {
     };
   }
 
-  public static buildAlgorithm(properties: CryptoKeyProperties): string {
-    return `${properties.blockCypher}-${properties.blockSize}-${properties.operationMode}`;
+  public static buildCryptoAlgorithm(keyProperties: CryptoKeyProperties): string | CipherGCMTypes {
+    return `${keyProperties.blockCypher}-${keyProperties.blockSize}-${keyProperties.operationMode}`;
   }
 
-  public static generateKey(): string {
-    // TODO change 16 to 32 and test on Mac
-    return crypto.randomBytes(16).toString('hex');
+  public static generateRandomKey(keyProperties: CryptoKeyProperties): string {
+    // Ensure the key's number of characters is always keyProperties.blockSize / 8
+    const keyLength = keyProperties.blockSize / 8;
+    return crypto.randomBytes(keyLength).toString('base64').slice(0, keyLength);
   }
 
   public static getDefaultKeyProperties(): CryptoKeyProperties {
     return {
       blockCypher: 'aes',
       blockSize: 256,
-      operationMode: 'ctr'
+      operationMode: 'gcm'
     };
   }
 
