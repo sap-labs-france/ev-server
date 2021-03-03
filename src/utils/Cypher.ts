@@ -252,8 +252,8 @@ export default class Cypher {
     }
   }
 
-  private static prepareBackupSensitiveData(setting: SettingDB): Record<string, any> {
-    const backupSensitiveData: Record<string, any> = {};
+  private static prepareBackupSensitiveData(setting: SettingDB): Record<string, unknown> {
+    const backupSensitiveData: Record<string, unknown> = {};
     for (const property of setting.sensitiveData) {
       // Check that the property does exist otherwise skip to the next property
       if (Utils.objectHasProperty(setting, property)) {
