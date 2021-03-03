@@ -38,8 +38,11 @@ export default class CompanyService {
         value: companyID
       });
     }
+    // Get authorization filters
+    const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
+      req.tenant, req.user, { ID: companyID });
     // Get
-    const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
+    const company = await CompanyStorage.getCompany(req.user.tenantID, companyID, authorizationCompanyFilters.filters);
     UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`,
       MODULE_NAME, 'handleDeleteCompany', req.user);
     // OCPI Company
@@ -233,10 +236,10 @@ export default class CompanyService {
       });
     }
     // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
+    const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.id });
     // Get Company
-    const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
+    const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id, authorizationCompanyFilters.filters);
     UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check Mandatory fields
