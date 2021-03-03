@@ -101,3 +101,8 @@ export interface BillingInvoiceDocument {
   type: DocumentType;
   encoding: DocumentEncoding;
 }
+
+export interface BillingOperationResult {
+  error?: string;
+  internalData: unknown; // Object returned by the concrete implementation - e.g.: STRIPE
+}

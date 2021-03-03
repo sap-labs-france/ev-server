@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -530,7 +530,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
-  public async attachPaymentMethod(user: User, paymentMethodId: string): Promise<unknown> {
+  public async attachPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -545,7 +545,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
 
     const customerID = user.billingData.customerID;
-    let operationResult: any;
+    let operationResult: Stripe.SetupIntent | Stripe.PaymentMethod;
     if (!paymentMethodId) {
       // Let's create a setupIntent for the stripe customer
       operationResult = await this.stripe.setupIntents.create({
@@ -563,7 +563,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         }
       });
     }
-    return operationResult;
+    // TODO - exception handling
+    return {
+      internalData: operationResult
+    };
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
