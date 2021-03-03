@@ -30,46 +30,24 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
             } else {
               const user: Partial<User> = {
                 firstName: importedUser.firstName,
-                name: importedUser.name.toUpperCase(),
-                email: importedUser.email.toLowerCase(),
+                name: importedUser.name,
+                email: importedUser.email,
                 locale: null, // Defaults to the browser locale
                 issuer: true,
                 deleted: false,
                 role: UserRole.BASIC,
                 status: UserStatus.ACTIVE,
-                createdBy: importedUser.importedBy,
+                createdBy: { id: importedUser.importedBy },
                 createdOn: new Date(),
-                passwordWrongNbrTrials: 0,
-                notificationsActive: true,
-                notifications: {
-                  sendSessionStarted: true,
-                  sendOptimalChargeReached: true,
-                  sendEndOfCharge: true,
-                  sendEndOfSession: true,
-                  sendUserAccountStatusChanged: true,
-                  sendPreparingSessionNotStarted: false,
-                  sendUserAccountInactivity: true,
-                  sendSessionNotStarted: true,
-                  sendNewRegisteredUser: false,
-                  sendUnknownUserBadged: false,
-                  sendChargingStationStatusError: false,
-                  sendChargingStationRegistered: false,
-                  sendOcpiPatchStatusError: false,
-                  sendOfflineChargingStations: false,
-                  sendBillingSynchronizationFailed: false,
-                  sendCarCatalogSynchronizationFailed: false,
-                  sendEndUserErrorNotification: false,
-                  sendSmtpError: false,
-                  sendBillingNewInvoice: false,
-                  sendComputeAndApplyChargingProfilesFailed: false,
-                  sendAccountVerificationNotification: false,
-                  sendAdminAccountVerificationNotification: false
-                },
+                notificationsActive: true
               };
               try {
                 UserValidator.getInstance().validateUserCreation(user);
-                await global.database.getCollection<any>(tenant.id, 'users')
-                  .insertOne(user);
+                user.id = await UserStorage.saveUser(tenant.id, user);
+                // Role need to be set separately
+                await UserStorage.saveUserRole(tenant.id, user.id, UserRole.BASIC);
+                // Status need to be set separately
+                await UserStorage.saveUserStatus(tenant.id, user.id, UserStatus.ACTIVE);
                 importedUser.status = UserImportStatus.IMPORTED;
                 await UserStorage.saveImportedUser(tenant.id, importedUser);
                 await Logging.logDebug({
@@ -96,7 +74,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
         }
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_USERS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_USERS, error);
       } finally {
         // Release the lock
         await LockingManager.release(synchronizeUsersImport);

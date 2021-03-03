@@ -1,5 +1,5 @@
 import Site, { SiteUser } from '../../types/Site';
-import User, { UserImportStatus, UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, UserImportStatus, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { FilterParams, Image } from '../../types/GlobalType';
 
@@ -272,18 +272,17 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
-  public static async saveImportedUser(tenantID: string, userToSave: any): Promise<void> {
+  public static async saveImportedUser(tenantID: string, importedUserToSave: ImportedUser): Promise<void> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUser');
     const userMDB = {
-      _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
-      email: userToSave.email,
-      firstName: userToSave.firstName,
-      name: userToSave.name,
-      role: userToSave.role,
-      status: userToSave.status,
-      error: userToSave.error,
+      _id: importedUserToSave.id ? Utils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
+      email: importedUserToSave.email,
+      firstName: importedUserToSave.firstName,
+      name: importedUserToSave.name,
+      status: importedUserToSave.status,
+      error: importedUserToSave.error,
       importedOn: new Date(),
-      importedBy: Utils.convertToObjectID(userToSave.importedBy)
+      importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
     };
     await global.database.getCollection<any>(tenantID, 'usersImport').findOneAndUpdate(
       { _id: userMDB._id },
@@ -676,7 +675,7 @@ export default class UserStorage {
     params: {
       statuses?: UserImportStatus[]; search?: string
     },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<any>> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getImportedUsers');
     // Check Tenant

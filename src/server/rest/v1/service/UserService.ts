@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import User, { UserImportStatus, UserStatus } from '../../../../types/User';
+import User, { ImportedUser, UserImportStatus, UserStatus } from '../../../../types/User';
 
 import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -1281,10 +1281,9 @@ export default class UserService {
         name: user.Name,
         firstName: user.First_Name,
         email: user.Email,
-        role: user.Role,
         importedBy: req.user.id,
         status: UserImportStatus.UNKNOWN
-      };
+      } as ImportedUser;
       await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
     } catch (error) {
       await Logging.logError({

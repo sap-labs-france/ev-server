@@ -4,18 +4,13 @@
   "type": "object",
   "properties": {
     "email": {
-      "type": "string",
-      "format": "email"
+      "$ref": "common.json#/definitions/email"
     },
     "name": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 100
+      "$ref": "common.json#/definitions/name"
     },
     "firstName": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 100
+      "$ref": "common.json#/definitions/firstName"
     },
     "password": {
       "type": "string",
@@ -26,7 +21,7 @@
       "format": "date"
     },
     "createdBy": {
-      "$ref": "common.json#/definitions/id"
+      "type": "object"
     },
     "locale": {
       "type": "string"
