@@ -198,21 +198,6 @@ export interface OCPPUpdateFirmwareCommandParam extends OCPPCommandParam {
   retryInterval?: number;
 }
 
-export interface OCPPGet15118EVCertificateCommandParam extends OCPPCommandParam {
-  '15118SchemaVersion': string,
-  exiRequest: string
-}
-
-export enum OCPP15118EVCertificateStatus {
-  ACCEPTED = 'Accepted',
-  FAILED = 'Failed'
-}
-
-export interface OCPPGet15118EVCertificateCommandResult {
-  status: OCPP15118EVCertificateStatus,
-  exiResponse: string
-}
-
 export interface OCPPGetInstalledCertificateIdsCommandParam extends OCPPCommandParam {
   typeOfCertificate: CertificateType
 }

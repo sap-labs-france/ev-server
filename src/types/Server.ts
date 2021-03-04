@@ -1,4 +1,3 @@
-
 export enum ServerAction {
   LOGIN = 'Login',
   LOGOUT = 'Logout',
@@ -23,6 +22,8 @@ export enum ServerAction {
   CHARGING_STATION_UPDATE_FIRMWARE = 'ChargingStationUpdateFirmware',
   CHARGING_STATION_CHANGE_AVAILABILITY = 'ChargingStationChangeAvailability',
   CHARGING_STATION_INSTALL_CERTIFICATE = 'ChargingStationInstallCertificate',
+  CHARGING_STATION_DELETE_CERTIFICATE = 'ChargingStationDeleteCertificate',
+  CHARGING_STATION_GET_INSTALLED_CERTIFICATE_IDS = 'ChargingStationGetInstalledCertificateIds',
   CHARGING_STATION_GET_15118_EV_CERTIFICATE = 'ChargingStationGet15118EVCertificate',
   CHARGING_STATION_DOWNLOAD_QR_CODE_PDF = 'ChargingStationDownloadQrCodePdf',
 
@@ -420,8 +421,9 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'chargingstations/diagnostics',
   REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'chargingstations/firmware/update',
   REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'chargingstations/availability/change',
-  REST_CHARGING_STATIONS_INSTALL_CERTIFICATE = 'chargingstations/certificate/install',
-  REST_CHARGING_STATIONS_GET_15118_EV_CERTIFICATE = 'chargingstations/15118/certificate/install',
+  REST_CHARGING_STATIONS_INSTALL_CERTIFICATE = 'chargingstations/certificates/install',
+  REST_CHARGING_STATIONS_DELETE_CERTIFICATE = 'chargingstations/certificates/delete',
+  REST_CHARGING_STATIONS_GET_INSTALLED_CERTIFICATE_IDS = 'chargingstations/certificates',
 
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:id',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',

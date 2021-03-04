@@ -106,7 +106,8 @@ export enum Command {
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   UPDATE_FIRMWARE = 'UpdateFirmware',
   INSTALL_CERTIFICATE = 'InstallCertificate',
-  GET_15118_EV_CERTIFICATE = 'Get15118EVCertificate'
+  DELETE_CERTIFICATE = 'DeleteCertificate',
+  GET_INSTALLED_CERTIFICATE_IDS = 'GetInstalledCertificateIds'
 }
 
 export enum StaticLimitAmps {

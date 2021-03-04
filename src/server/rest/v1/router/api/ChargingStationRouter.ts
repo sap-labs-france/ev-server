@@ -37,7 +37,8 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationGetDiagnostics();
     this.buildRouteChargingStationUpdateFirmware();
     this.buildRouteChargingStationInstallCertificate();
-    this.buildRouteChargingStationGet15118EVCertificate();
+    this.buildRouteChargingStationDeleteCertificate();
+    this.buildRouteChargingStationGetInstalledCertificateIds();
     this.buildRouteChargingStationDownloadQRCode();
     this.buildRouteChargingStationGetOCPPParameters();
     this.buildRouteChargingStationExportOCPPParameters();
@@ -127,9 +128,15 @@ export default class ChargingStationRouter {
     });
   }
 
-  protected buildRouteChargingStationGet15118EVCertificate(): void {
-    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_GET_15118_EV_CERTIFICATE}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_GET_15118_EV_CERTIFICATE, req, res, next);
+  protected buildRouteChargingStationDeleteCertificate(): void {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_DELETE_CERTIFICATE}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_DELETE_CERTIFICATE, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationGetInstalledCertificateIds(): void {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_GET_INSTALLED_CERTIFICATE_IDS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_GET_INSTALLED_CERTIFICATE_IDS, req, res, next);
     });
   }
 

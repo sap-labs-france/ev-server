@@ -1,5 +1,5 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGet15118EVCertificateCommandParam, OCPPGet15118EVCertificateCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPInstallCertificateCommandParam, OCPPInstallCertificateCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDeleteCertificateCommandParam, OCPPDeleteCertificateCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPGetInstalledCertificateIdsCommandParam, OCPPGetInstalledCertificateIdsCommandResult, OCPPInstallCertificateCommandParam, OCPPInstallCertificateCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
@@ -371,7 +371,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     throw new Error('Method not implemented.');
   }
 
-  public async get15118EVCertificate(params: OCPPGet15118EVCertificateCommandParam): Promise<OCPPGet15118EVCertificateCommandResult> {
+  public async deleteCertificate(params: OCPPDeleteCertificateCommandParam): Promise<OCPPDeleteCertificateCommandResult> {
+    throw new Error('Method not implemented.');
+  }
+
+  public async getInstalledCertificateIds(params: OCPPGetInstalledCertificateIdsCommandParam): Promise<OCPPGetInstalledCertificateIdsCommandResult> {
     throw new Error('Method not implemented.');
   }
 

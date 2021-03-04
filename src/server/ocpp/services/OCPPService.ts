@@ -1,4 +1,4 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPP16AuthorizationStatus, OCPP16PnCAuthorizationStatus, OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPP15118EVCertificateStatus, OCPP16AuthorizationStatus, OCPP16PnCAuthorizationStatus, OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPGet15118EVCertificateRequest, OCPPGet15118EVCertificateResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
@@ -418,7 +418,7 @@ export default class OCPPService {
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station
-          await this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
+          this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
           // Handle End Of charge
           await this.checkNotificationEndOfCharge(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
@@ -513,8 +513,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleDiagnosticsStatusNotification(headers: OCPPHeader,
-    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+  public async handleDiagnosticsStatusNotification(headers: OCPPHeader, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -938,6 +937,27 @@ export default class OCPPService {
     }
   }
 
+  public async handleGet15118EVCertificate(headers: OCPPHeader, evCertificate: OCPPGet15118EVCertificateRequest): Promise<OCPPGet15118EVCertificateResponse> {
+    try {
+      // Get the charging station
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
+      return {
+        status: OCPP15118EVCertificateStatus.ACCEPTED,
+        exiResponse: ''
+      };
+    } catch (error) {
+      if (error.params) {
+        error.params.source = headers.chargeBoxIdentity;
+      }
+      // Log error
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_GET_15118_EV_CERTIFICATE, error);
+      return {
+        status: OCPP15118EVCertificateStatus.FAILED,
+        exiResponse: ''
+      };
+    }
+  }
+
   private async deleteAllTransactionTxProfile(tenantID: string, transaction: Transaction) {
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID, {
       chargingStationIDs: [transaction.chargeBoxID],
@@ -1342,7 +1362,7 @@ export default class OCPPService {
     }
   }
 
-  private async updateChargingStationWithTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
+  private updateChargingStationWithTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector
     const foundConnector: Connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
     // Active transaction?
@@ -1361,7 +1381,7 @@ export default class OCPPService {
       // Update lastSeen
       chargingStation.lastSeen = new Date();
       // Log
-      Logging.logInfo({
+      void Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'updateChargingStationWithTransaction',

@@ -1,4 +1,4 @@
-import { OCPP15118EVCertificateStatus, OCPPAvailabilityStatus, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearCacheCommandResult, OCPPClearCacheStatus, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGet15118EVCertificateCommandParam, OCPPGet15118EVCertificateCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPInstallCertificateCommandParam, OCPPInstallCertificateCommandResult, OCPPInstallCertificateStatus, OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPResetStatus, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUnlockStatus, OCPPUpdateFirmwareCommandParam } from '../../types/ocpp/OCPPClient';
+import { OCPPAvailabilityStatus, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearCacheCommandResult, OCPPClearCacheStatus, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPDeleteCertificateCommandParam, OCPPDeleteCertificateCommandResult, OCPPDeleteCertificateStatus, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPGetInstalledCertificateIdsCommandParam, OCPPGetInstalledCertificateIdsCommandResult, OCPPInstallCertificateCommandParam, OCPPInstallCertificateCommandResult, OCPPInstallCertificateStatus, OCPPInstalledCertificateStatus, OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPResetStatus, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUnlockStatus, OCPPUpdateFirmwareCommandParam } from '../../types/ocpp/OCPPClient';
 
 import ChargingStation from '../../types/ChargingStation';
 import ChargingStationClient from '../ocpp/ChargingStationClient';
@@ -101,10 +101,15 @@ export default class OCPIChargingStationClient extends ChargingStationClient {
     };
   }
 
-  async get15118EVCertificate(params: OCPPGet15118EVCertificateCommandParam): Promise<OCPPGet15118EVCertificateCommandResult> {
+  async deleteCertificate(params: OCPPDeleteCertificateCommandParam): Promise<OCPPDeleteCertificateCommandResult> {
     return {
-      status: OCPP15118EVCertificateStatus.FAILED,
-      exiResponse: ''
+      status: OCPPDeleteCertificateStatus.NOT_FOUND
+    };
+  }
+
+  async getInstalledCertificateIds(params: OCPPGetInstalledCertificateIdsCommandParam): Promise<OCPPGetInstalledCertificateIdsCommandResult> {
+    return {
+      status: OCPPInstalledCertificateStatus.NOT_FOUND
     };
   }
 

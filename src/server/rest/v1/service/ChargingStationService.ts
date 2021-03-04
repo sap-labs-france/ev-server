@@ -1614,10 +1614,19 @@ export default class ChargingStationService {
             certificate: params.certificate
           });
           break;
-        case Command.GET_15118_EV_CERTIFICATE:
-          result = await chargingStationClient.get15118EVCertificate({
-            '15118SchemaVersion': params['15118SchemaVersion'],
-            exiRequest: params.exiRequest
+        case Command.DELETE_CERTIFICATE:
+          result = await chargingStationClient.deleteCertificate({
+            certificateHashData: {
+              hashAlgorithm: params.hashAlgorithm,
+              issuerNameHash: params.issuerNameHash,
+              issuerKeyHash: params.issuerKeyHash,
+              serialNumber: params.issuerKeyHash
+            }
+          });
+          break;
+        case Command.GET_INSTALLED_CERTIFICATE_IDS:
+          result = await chargingStationClient.getInstalledCertificateIds({
+            typeOfCertificate: params.typeOfCertificate
           });
           break;
       }
