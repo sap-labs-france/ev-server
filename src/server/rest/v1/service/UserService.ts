@@ -1277,13 +1277,13 @@ export default class UserService {
 
   private static async importUser(action: ServerAction, req: Request, user: any): Promise<void> {
     try {
-      const newUploadedUser = {
+      const newUploadedUser: ImportedUser = {
         name: user.Name,
         firstName: user.First_Name,
         email: user.Email,
         importedBy: req.user.id,
         status: UserImportStatus.UNKNOWN
-      } as ImportedUser;
+      };
       await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
     } catch (error) {
       await Logging.logError({
