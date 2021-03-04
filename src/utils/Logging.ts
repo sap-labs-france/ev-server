@@ -14,6 +14,7 @@ import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
+import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
 import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
@@ -45,7 +46,7 @@ export default class Logging {
   }
 
   // Debug DB
-  public static traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): void {
+  public static async traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): Promise<void> {
     if (Utils.isDevelopmentEnv()) {
       // Compute duration if provided
       let executionDurationMillis: number;
@@ -71,6 +72,16 @@ export default class Logging {
         console.error(chalk.red(message));
         console.error(chalk.red('===================================='));
       }
+      await PerformanceStorage.savePerformanceRecord(
+        Utils.buildPerformanceRecord({
+          tenantID,
+          durationMs: executionDurationMillis,
+          sizeKb: sizeOfDataKB,
+          source: Constants.DATABASE_SERVER,
+          module, method,
+          action: key,
+        })
+      );
     }
   }
 
@@ -291,6 +302,19 @@ export default class Logging {
             headers: res.getHeaders(),
           }
         });
+        void PerformanceStorage.savePerformanceRecord(
+          Utils.buildPerformanceRecord({
+            tenantID,
+            httpUrl: req.url,
+            httpCode: res.statusCode,
+            httpMethod: req.method,
+            durationMs: executionDurationMillis,
+            sizeKb: sizeOfDataKB,
+            source: Constants.REST_SERVER,
+            module: MODULE_NAME, method: 'logExpressResponse',
+            action: ServerAction.HTTP_RESPONSE,
+          })
+        );
       } finally {
         next();
       }
@@ -346,7 +370,7 @@ export default class Logging {
       tenantID: tenantID,
       action: ServerAction.HTTP_RESPONSE,
       message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
-      module: MODULE_NAME, method: 'interceptor',
+      module: MODULE_NAME, method: 'logAxiosResponse',
       detailedMessages: {
         status: response.status,
         statusText: response.statusText,
@@ -355,6 +379,19 @@ export default class Logging {
         response: Utils.cloneObject(response.data)
       }
     });
+    await PerformanceStorage.savePerformanceRecord(
+      Utils.buildPerformanceRecord({
+        tenantID,
+        httpUrl: response.config.url,
+        httpCode: response.status,
+        httpMethod: response.config.method.toLocaleUpperCase(),
+        durationMs: executionDurationMillis,
+        sizeKb: sizeOfDataKB,
+        source: Constants.AXIOS_CLIENT,
+        module: MODULE_NAME, method: 'logAxiosResponse',
+        action: ServerAction.HTTP_RESPONSE,
+      })
+    );
   }
 
   public static async logAxiosError(tenantID: string, error: AxiosError): Promise<void> {
@@ -695,7 +732,7 @@ export default class Logging {
     if (log.detailedMessages) {
       // Anonymize message
       log.detailedMessages = Utils.cloneObject(log.detailedMessages);
-      log.detailedMessages = Logging.anonymizeSensitiveData(log.detailedMessages);
+      log.detailedMessages = await Logging.anonymizeSensitiveData(log.detailedMessages);
       // Array?
       if (!Array.isArray(log.detailedMessages)) {
         log.detailedMessages = [log.detailedMessages];
@@ -755,7 +792,7 @@ export default class Logging {
     } else if (Array.isArray(message)) { // If the message is an array, apply the anonymizeSensitiveData function for each item
       const anonymizedMessage = [];
       for (const item of message) {
-        anonymizedMessage.push(Logging.anonymizeSensitiveData(item));
+        anonymizedMessage.push(await Logging.anonymizeSensitiveData(item));
       }
       return anonymizedMessage;
     } else if (typeof message === 'object') { // If the message is an object
@@ -764,7 +801,7 @@ export default class Logging {
           // If the key indicates sensitive data and the value is a string, Anonymize the value
           message[key] = Constants.ANONYMIZED_VALUE;
         } else { // Otherwise, apply the anonymizeSensitiveData function
-          message[key] = Logging.anonymizeSensitiveData(message[key]);
+          message[key] = await Logging.anonymizeSensitiveData(message[key]);
         }
       }
       return message;
@@ -886,5 +923,14 @@ export default class Logging {
         detailedMessages
       });
     }
+    await PerformanceStorage.savePerformanceRecord(
+      Utils.buildPerformanceRecord({
+        tenantID,
+        durationMs: executionDurationMillis,
+        source: Constants.OCPP_SERVER,
+        module: module, method: 'traceChargingStationActionEnd',
+        action: action,
+      })
+    );
   }
 }

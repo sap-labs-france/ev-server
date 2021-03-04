@@ -10,7 +10,7 @@ export interface Setting extends CreatedUpdatedProps {
   id?: string;
   identifier: TenantComponents | TechnicalSettings;
   sensitiveData?: string[];
-  backupSensitiveData?: Record<string, any>;
+  backupSensitiveData?: Record<string, unknown>;
   category?: 'business' | 'technical';
 }
 
