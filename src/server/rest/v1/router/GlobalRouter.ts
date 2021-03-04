@@ -6,6 +6,7 @@ import ChargingStationRouter from './api/ChargingStationRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TenantRouter from './api/TenantRouter';
+import TransactionRouter from './api/TransactionRouter';
 import UtilRouter from './util/UtilRouter';
 
 export default class GlobalRouter {
@@ -31,7 +32,8 @@ export default class GlobalRouter {
   protected buildRouteAPI(): void {
     this.router.use('/api', AuthService.authenticate(), [
       new TenantRouter().buildRoutes(),
-      new ChargingStationRouter().buildRoutes()
+      new ChargingStationRouter().buildRoutes(),
+      new TransactionRouter().buildRoutes(),
     ]);
   }
 

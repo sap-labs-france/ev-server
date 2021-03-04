@@ -133,6 +133,11 @@
     "endUserErrorNotification": {
       "title": "Um utilizador reportou um erro",
       "body": "'{{userName}}' reportou: '{{errorTitle}}' - '{{errorDescription}}' do '{{tenantName}}'"
+    },
+    "accountVerificationNotification": {
+      "title": "Account verified",
+      "bodyVerified": "Your account has been verified with success. An administrator will check and activate your account.",
+      "bodyVerifiedAndActivated": "Your account has been verified and activated with success."
     }
   },
   "siteArea": "Area de Site",
@@ -143,6 +148,8 @@
     "usage": "Usage (Hours)"
   },
   "tags": {
+    "id": "Badge ID",
+    "description": "Badge Description",
     "virtualBadge": "Virtual Badge"
   },
   "transactions": {

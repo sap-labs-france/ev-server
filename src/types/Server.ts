@@ -88,6 +88,7 @@ export enum ServerAction {
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
 
   LOGS_CLEANUP = 'LogsCleanup',
+  PERFORMANCES_CLEANUP = 'PerformancesCleanup',
 
   SCHEDULER = 'Scheduler',
 
@@ -226,6 +227,8 @@ export enum ServerAction {
   OFFLINE_CHARGING_STATIONS = 'OfflineChargingStations',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
+  USER_ACCOUNT_VERIFICATION = 'UserAccountVerification',
+  ADMIN_ACCOUNT_VERIFICATION = 'AdminAccountVerificationNotification',
 
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
   CAR_CATALOG_SYNCHRONIZATION = 'CarCatalogSynchronization',
@@ -434,6 +437,8 @@ export enum ServerRoute {
 
   REST_CHARGING_PROFILES = 'chargingprofiles',
   REST_CHARGING_PROFILE = 'chargingprofiles/:id',
+
+  REST_TRANSACTIONS = 'transactions',
 
   REST_PING = 'ping',
 
