@@ -8,11 +8,10 @@ import Promise from 'bluebird';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 
-const MODULE_NAME = 'RecomputeAllTransactionsConsumptionsTask';
+const TASK_NAME = 'RecomputeAllTransactionsWithSimplePricingTask';
 
-export default class RecomputeAllTransactionsConsumptionsTask extends MigrationTask {
+export default class RecomputeAllTransactionsWithSimplePricingTask extends MigrationTask {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
@@ -23,7 +22,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async migrateTenant(tenant: Tenant) {
-    const consumptionsUpdated: ActionsResponse = {
+    const transactionsUpdated: ActionsResponse = {
       inError: 0,
       inSuccess: 0,
     };
@@ -33,8 +32,8 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
       .aggregate([
         {
           $match: {
-            'stop.extraInactivitySecs': { $gt: 0 },
-            'stop.extraInactivityComputed': false
+            'stop.price': { $gt: 0 },
+            'stop.pricingSource': 'simple'
           }
         },
         {
@@ -42,43 +41,23 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
         }
       ]).toArray();
     if (transactionsMDB.length > 0) {
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrateTenant',
+        module: TASK_NAME, method: 'migrateTenant',
         message: `${transactionsMDB.length} Transaction(s) are going to be recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')...`,
       });
       await Promise.map(transactionsMDB, async (transactionMDB) => {
         try {
-          // Recompute consumption
-          const timeFrom = new Date().getTime();
-          const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(tenant.id, transactionMDB._id);
-          const durationSecs = Math.trunc((new Date().getTime() - timeFrom) / 1000);
-          consumptionsUpdated.inSuccess++;
-          if (nbrOfConsumptions > 0) {
-            Logging.logDebug({
-              tenantID: Constants.DEFAULT_TENANT,
-              action: ServerAction.MIGRATION,
-              module: MODULE_NAME, method: 'migrateTenant',
-              message: `> ${consumptionsUpdated.inError + consumptionsUpdated.inSuccess}/${transactionsMDB.length} - Processed Transaction ID '${transactionMDB._id}' with ${nbrOfConsumptions} consumptions in ${durationSecs}s in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-            });
-          } else {
-            // Delete transaction
-            await TransactionStorage.deleteTransaction(tenant.id, transactionMDB._id);
-            Logging.logDebug({
-              tenantID: Constants.DEFAULT_TENANT,
-              action: ServerAction.MIGRATION,
-              module: MODULE_NAME, method: 'migrateTenant',
-              message: `> ${consumptionsUpdated.inError + consumptionsUpdated.inSuccess}/${transactionsMDB.length} - Deleted Transaction ID '${transactionMDB._id}' with no consumption in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-            });
-          }
+          await OCPPUtils.rebuildTransactionSimplePricing(tenant.id, transactionMDB._id);
+          transactionsUpdated.inSuccess++;
         } catch (error) {
-          consumptionsUpdated.inError++;
-          Logging.logError({
+          transactionsUpdated.inError++;
+          await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.MIGRATION,
-            module: MODULE_NAME, method: 'migrateTenant',
-            message: `> ${consumptionsUpdated.inError + consumptionsUpdated.inSuccess}/${transactionsMDB.length} - Cannot recompute the consumptions of Transaction ID '${transactionMDB._id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
+            module: TASK_NAME, method: 'migrateTenant',
+            message: `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Cannot recompute the consumptions of Transaction ID '${transactionMDB._id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
         }
@@ -86,7 +65,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
         const totalDurationSecs = Math.trunc((new Date().getTime() - timeTotalFrom) / 1000);
         // Log in the default tenant
         Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
-          MODULE_NAME, 'migrateTenant', consumptionsUpdated,
+          TASK_NAME, 'migrateTenant', transactionsUpdated,
           `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
           `{{inError}} transaction(s) failed to be processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
           `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed to be processed in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
@@ -97,11 +76,11 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
   }
 
   getVersion(): string {
-    return '1.1';
+    return '1.0';
   }
 
   getName(): string {
-    return 'RecomputeAllTransactionsConsumptionsTask';
+    return TASK_NAME;
   }
 
   isAsynchronous(): boolean {

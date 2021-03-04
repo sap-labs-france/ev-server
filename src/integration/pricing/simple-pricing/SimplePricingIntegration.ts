@@ -29,7 +29,7 @@ export default class SimplePricingIntegration extends PricingIntegration<SimpleP
     let roundedAmount: number;
     if (consumptionData.consumptionWh && typeof consumptionData.consumptionWh === 'number') {
       amount = Utils.computeSimplePrice(this.settings.price, consumptionData.consumptionWh);
-      roundedAmount = Utils.computeSimpleRoundedPrice(this.settings.price, consumptionData.consumptionWh);
+      roundedAmount = Utils.truncTo(amount, 2);
     } else {
       amount = 0;
       roundedAmount = 0;

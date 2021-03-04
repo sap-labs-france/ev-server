@@ -430,6 +430,64 @@ export default class OCPPUtils {
       chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs);
   }
 
+  public static async rebuildTransactionSimplePricing(tenantID: string, transactionId: number): Promise<void> {
+    if (!transactionId) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
+        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        message: 'Transaction ID must be provided',
+      });
+    }
+    // Get the Transaction
+    const transaction = await TransactionStorage.getTransaction(tenantID, transactionId);
+    if (!transaction) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
+        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        message: `Transaction ID '${transactionId}' does not exist`,
+      });
+    }
+    if (!transaction.stop) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
+        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        message: `Transaction ID '${transactionId}' is in progress`,
+      });
+    }
+    if (transaction.stop.pricingSource !== PricingSettingsType.SIMPLE) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
+        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        message: `Transaction ID '${transactionId}' was not priced with simple pricing`,
+      });
+    }
+
+    // Retrieve price per kWh
+    const transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
+    const consumptionDataResult: DataResult<Consumption> = await ConsumptionStorage.getTransactionConsumptions(tenantID, { transactionId });
+
+    transaction.currentCumulatedPrice = 0;
+    for (const consumption of consumptionDataResult.result) {
+      consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
+      consumption.roundedAmount = Utils.truncTo(consumption.amount, 2);
+
+      transaction.currentCumulatedPrice += consumption.amount;
+      consumption.cumulatedAmount = transaction.currentCumulatedPrice;
+      // Save all
+      await ConsumptionStorage.saveConsumption(tenantID, consumption);
+    }
+
+    transaction.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
+    transaction.stop.price = transaction.currentCumulatedPrice;
+    transaction.stop.roundedPrice = transaction.roundedPrice;
+
+    await TransactionStorage.saveTransaction(tenantID, transaction);
+  }
+
   public static async rebuildTransactionConsumptions(tenantID: string, transactionId: number): Promise<number> {
     let consumptions: Consumption[] = [];
     let transactionSimplePricePerkWh;
@@ -461,7 +519,7 @@ export default class OCPPUtils {
     }
     // Check Simple Pricing
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
-      transactionSimplePricePerkWh = Utils.truncTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
+      transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,
@@ -513,7 +571,7 @@ export default class OCPPUtils {
         // Override the price if simple pricing only
         if (transactionSimplePricePerkWh > 0) {
           consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
-          consumption.roundedAmount = Utils.computeSimpleRoundedPrice(transactionSimplePricePerkWh, consumption.consumptionWh);
+          consumption.roundedAmount = Utils.truncTo(consumption.amount, 2);
           consumption.pricingSource = PricingSettingsType.SIMPLE;
         }
         // Cumulated props

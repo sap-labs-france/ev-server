@@ -48,6 +48,7 @@ import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjec
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
 import cluster from 'cluster';
 import moment from 'moment';
+import RecomputeAllTransactionsWithSimplePricingTask from './tasks/RecomputeAllTransactionsWithSimplePricingTask';
 
 const MODULE_NAME = 'MigrationHandler';
 
@@ -113,6 +114,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new MigrateUserSettingsTask());
         currentMigrationTasks.push(new RenameSMTPAuthErrorTask());
         currentMigrationTasks.push(new ResetCarCatalogsHashTask());
+        currentMigrationTasks.push(new RecomputeAllTransactionsWithSimplePricingTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
