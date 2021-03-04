@@ -541,7 +541,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
-  public async attachPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
+  public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -550,7 +550,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'User is not yet known in Stripe',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'attachPaymentMethod',
+        method: 'setupPaymentMethod',
         action: ServerAction.BILLING_TRANSACTION
       });
     }

@@ -572,7 +572,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
 
   // ##CR - TO BE CLARIFIED - clarify the return type!
-  abstract attachPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+  abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
   abstract chargeInvoice(invoice: BillingInvoice): Promise<unknown>;
   abstract handleBillingEvent(req: Request): boolean;
 

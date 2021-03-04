@@ -12,13 +12,13 @@ export default class BillingRouter {
   }
 
   public buildRoutes(): express.Router {
-    this.buildRouteAttachPaymentMethod();
+    this.buildRouteSetupPaymentMethod();
     return this.router;
   }
 
-  protected buildRouteAttachPaymentMethod(): void {
-    this.router.put(`/${ServerAction.BILLING_ATTACH_PAYMENT_METHOD}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(BillingService.handleBillingAttachPaymentMethod.bind(this), ServerAction.BILLING_ATTACH_PAYMENT_METHOD, req, res, next);
+  protected buildRouteSetupPaymentMethod(): void {
+    this.router.put(`/${ServerAction.BILLING_SETUP_PAYMENT_METHOD}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(BillingService.handleBillingSetupPaymentMethod.bind(this), ServerAction.BILLING_SETUP_PAYMENT_METHOD, req, res, next);
     });
   }
 }
