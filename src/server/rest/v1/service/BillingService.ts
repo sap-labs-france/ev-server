@@ -492,10 +492,10 @@ export default class BillingService {
     next();
   }
 
-  public static async handleBillingAttachPaymentMethod(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleBillingSetupPaymentMethod(action: ServerAction, req: Request, res: Response): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_ATTACH_PAYMENT_METHOD, Entity.BILLING, MODULE_NAME, 'handleBillingAttachPaymentMethod');
+      Action.BILLING_SETUP_PAYMENT_METHOD, Entity.BILLING, MODULE_NAME, 'handleSetupSetupPaymentMethod');
     // Filter
     // TODO - const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
     // Get the billing impl
@@ -505,7 +505,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleBillingAttachPaymentMethod',
+        module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod',
         action: action,
         user: req.user
       });
@@ -513,10 +513,10 @@ export default class BillingService {
     // Get user
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
-      MODULE_NAME, 'handleAttachPaymentMethod', req.user);
+      MODULE_NAME, 'handleSetupPaymentMethod', req.user);
     // Invoke the billing implementation
     const paymentMethodId: string = req.body.paymentMethodId;
-    const operationResult: BillingOperationResult = await billingImpl.attachPaymentMethod(user, paymentMethodId);
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId);
     if (operationResult) {
       console.log(operationResult);
     }
