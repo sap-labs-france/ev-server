@@ -2902,7 +2902,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Samrt Charging is enabled"
+            "description": "Smart Charging is enabled"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"

@@ -36,6 +36,8 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationGetCompositeSchedule();
     this.buildRouteChargingStationGetDiagnostics();
     this.buildRouteChargingStationUpdateFirmware();
+    this.buildRouteChargingStationInstallCertificate();
+    this.buildRouteChargingStationGet15118EVCertificate();
     this.buildRouteChargingStationDownloadQRCode();
     this.buildRouteChargingStationGetOCPPParameters();
     this.buildRouteChargingStationExportOCPPParameters();
@@ -116,6 +118,18 @@ export default class ChargingStationRouter {
   protected buildRouteChargingStationUpdateFirmware(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_FIRMWARE_UPDATE}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_UPDATE_FIRMWARE, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationInstallCertificate(): void {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_INSTALL_CERTIFICATE}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_INSTALL_CERTIFICATE, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationGet15118EVCertificate(): void {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_GET_15118_EV_CERTIFICATE}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_GET_15118_EV_CERTIFICATE, req, res, next);
     });
   }
 

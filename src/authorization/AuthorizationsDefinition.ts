@@ -47,8 +47,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION,
           Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION, Action.START_TRANSACTION,
           Action.UNLOCK_CONNECTOR, Action.AUTHORIZE, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
-          Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.EXPORT,
-          Action.CHANGE_AVAILABILITY], attributes: ['*']
+          Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.INSTALL_CERTIFICATE, Action.GET_15118_EV_CERTIFICATE,
+          Action.EXPORT, Action.CHANGE_AVAILABILITY], attributes: ['*']
       },
       { resource: Entity.TRANSACTIONS, action: [Action.LIST, Action.EXPORT, Action.IN_ERROR], attributes: ['*'] },
       {

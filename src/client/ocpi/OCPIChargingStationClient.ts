@@ -97,7 +97,7 @@ export default class OCPIChargingStationClient extends ChargingStationClient {
 
   async installCertificate(params: OCPPInstallCertificateCommandParam): Promise<OCPPInstallCertificateCommandResult> {
     return {
-      status: OCPPInstallCertificateStatus.CertificateRevoked
+      status: OCPPInstallCertificateStatus.NoCertificateAvailable
     };
   }
 

@@ -117,6 +117,8 @@ export enum Action {
   CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
   GET_DIAGNOSTICS = 'GetDiagnostics',
   UPDATE_FIRMWARE = 'UpdateFirmware',
+  INSTALL_CERTIFICATE = 'InstallCertificate',
+  GET_15118_EV_CERTIFICATE = 'Get15118EVCertificate',
   EXPORT = 'Export',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   REFUND_TRANSACTION = 'RefundTransaction',
