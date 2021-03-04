@@ -133,7 +133,10 @@ class TestData {
   public isBillingProperlyConfigured(): boolean {
     const billingSettings = this.getStripeSettings();
     for (const key of Object.keys(billingSettings)) {
-      if (!billingSettings[key] || billingSettings[key] === '') {
+      if (typeof billingSettings[key] === 'undefined') {
+        return false ;
+      }
+      if (typeof billingSettings[key] === 'string' && billingSettings[key] === '') {
         return false ;
       }
     }

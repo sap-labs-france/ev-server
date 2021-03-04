@@ -121,7 +121,10 @@ export default class StripeIntegrationTestData {
   public isBillingProperlyConfigured(): boolean {
     const billingSettings = this.getStripeSettings();
     for (const key of Object.keys(billingSettings)) {
-      if (!billingSettings[key] || billingSettings[key] === '') {
+      if (typeof billingSettings[key] === 'undefined') {
+        return false ;
+      }
+      if (typeof billingSettings[key] === 'string' && billingSettings[key] === '') {
         return false ;
       }
     }
@@ -152,9 +155,9 @@ export default class StripeIntegrationTestData {
       inclusive: false
     });
     expect(taxRate).to.not.be.null;
-    // Make it the default tax to apply when charging invoices
     concreteImplementation.alterStripeSettings({
-      taxID: taxRate?.id
+      taxID: taxRate?.id, // Default tax to apply when charging invoices
+      // immediateBillingAllowed: true // Activate immediate billing
     });
     return taxRate;
   }
