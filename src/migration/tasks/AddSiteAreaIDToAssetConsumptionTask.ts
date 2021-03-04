@@ -23,7 +23,6 @@ export default class AddSiteAreaIDToAssetConsumptionTask extends MigrationTask {
     // Get Assets
     const assets = await AssetStorage.getAssets(tenant.id, { withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const asset of assets.result) {
-
       const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
         {
           assetID: Utils.convertToObjectID(asset.id),
@@ -36,7 +35,6 @@ export default class AddSiteAreaIDToAssetConsumptionTask extends MigrationTask {
         }
       );
       modifiedCount += result.modifiedCount;
-
     }
     // Log in the default tenant
     if (modifiedCount > 0) {
