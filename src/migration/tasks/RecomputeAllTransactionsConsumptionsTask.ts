@@ -9,7 +9,6 @@ import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'RecomputeAllTransactionsConsumptionsTask';
 

@@ -11,7 +11,7 @@ export enum ServerAction {
   CHARGING_STATION_CLEAR_CACHE = 'ChargingStationClearCache',
   CHARGING_STATION_GET_CONFIGURATION = 'ChargingStationGetConfiguration',
   CHARGING_STATION_CHANGE_CONFIGURATION = 'ChargingStationChangeConfiguration',
-  CHARGING_STATION_DATA_TRANSFER = 'DataTransfer',
+  CHARGING_STATION_DATA_TRANSFER = 'ChargingStationChangeDataTransfer',
   CHARGING_STATION_REMOTE_START_TRANSACTION = 'ChargingStationRemoteStartTransaction',
   CHARGING_STATION_REMOTE_STOP_TRANSACTION = 'ChargingStationRemoteStopTransaction',
   CHARGING_STATION_UNLOCK_CONNECTOR = 'ChargingStationUnlockConnector',
