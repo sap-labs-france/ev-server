@@ -121,7 +121,7 @@ describe('Setting tests', function() {
     const res = await testData.superCentralService.updateEntity(
       testData.centralService.tenantApi, initialTenant);
     expect(res.status).to.equal(200);
-    // Await resetCryptoSettingToDefault();
+    await resetCryptoSettingToDefault();
   });
 
 
