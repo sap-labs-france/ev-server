@@ -21,6 +21,7 @@ import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import { OCPIStatusCode } from '../../../types/ocpi/OCPIStatusCode';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
@@ -937,14 +938,21 @@ export default class OCPPService {
     }
   }
 
-  public async handleGet15118EVCertificate(headers: OCPPHeader, evCertificate: OCPPGet15118EVCertificateRequest): Promise<OCPPGet15118EVCertificateResponse> {
+  public async handleGet15118EVCertificate(headers: OCPPHeader, ev15118Certificate: OCPPGet15118EVCertificateRequest): Promise<OCPPGet15118EVCertificateResponse> {
     try {
-      // Get the charging station
+      // Check and get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
-      return {
-        status: OCPP15118EVCertificateStatus.ACCEPTED,
-        exiResponse: ''
-      };
+      // Get OCPI CPO client
+      const cpoOcpiClient = await OCPIClientFactory.getCpoOcpiClient(await TenantStorage.getTenant(headers.tenantID), null);
+      // Get 15118 EV Certificate
+      const ocpi15118EVCertificateResponse = await cpoOcpiClient.pull15118EVCertificate(ev15118Certificate);
+      if (ocpi15118EVCertificateResponse.status_code === OCPIStatusCode.CODE_1000_SUCCESS.status_code && ocpi15118EVCertificateResponse.data.status === 'Accepted') {
+        return {
+          status: OCPP15118EVCertificateStatus.ACCEPTED,
+          exiResponse: ocpi15118EVCertificateResponse.data.exiResponse
+        };
+      }
+      throw Error('Request to get EV 15118 certificate failed');
     } catch (error) {
       if (error.params) {
         error.params.source = headers.chargeBoxIdentity;

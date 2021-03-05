@@ -1,4 +1,5 @@
 import ChargingStation, { Connector } from '../../types/ChargingStation';
+import { OCPI15118EVCertificateRequest, OCPI15118EVCertificateResponse } from '../../types/ocpi/OCPICertificate';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
@@ -802,6 +803,13 @@ export default class CpoOCPIClient extends OCPIClient {
     );
     // Return result
     return result;
+  }
+
+  public async pull15118EVCertificate(request: OCPI15118EVCertificateRequest): Promise<OCPI15118EVCertificateResponse> {
+    const cpsSCCBEndpoint = 'https://15118-demo.gireve.com/15118/ContractCertificate/get_SCCB';
+    // Call IOP
+    const result = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(cpsSCCBEndpoint, request);
+    return result.data;
   }
 
   // Get ChargeBoxIds with new status notifications
