@@ -479,7 +479,7 @@ export default class Utils {
 
   public static fixJSFloatValue(value: number): number {
     // Avoid JS decimal issue on IEEE 754 standard floating points
-    return parseFloat(value.toFixed(12));
+    return Utils.roundTo(value, 12);
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
