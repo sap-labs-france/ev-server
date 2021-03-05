@@ -943,7 +943,18 @@ export default class OCPPService {
       // Check and get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Get OCPI CPO client
-      const cpoOcpiClient = await OCPIClientFactory.getCpoOcpiClient(await TenantStorage.getTenant(headers.tenantID), null);
+      const cpoOcpiClient = await OCPIClientFactory.getCpoOcpiClient(await TenantStorage.getTenant(headers.tenantID),
+        {
+          id: '',
+          role: OCPIRole.CPO,
+          name: '',
+          baseUrl: '',
+          localToken: '',
+          token: '',
+          countryCode: '',
+          partyId: '',
+          backgroundPatchJob: false
+        });
       // Get 15118 EV Certificate
       const ocpi15118EVCertificateResponse = await cpoOcpiClient.pull15118EVCertificate(ev15118Certificate);
       if (ocpi15118EVCertificateResponse.status_code === OCPIStatusCode.CODE_1000_SUCCESS.status_code && ocpi15118EVCertificateResponse.data.status === 'Accepted') {
