@@ -121,7 +121,7 @@ describe('Setting tests', function() {
     const res = await testData.superCentralService.updateEntity(
       testData.centralService.tenantApi, initialTenant);
     expect(res.status).to.equal(200);
-    await resetCryptoSettingToDefault();
+    // Await resetCryptoSettingToDefault();
   });
 
 
@@ -922,6 +922,47 @@ describe('Setting tests', function() {
       expect(readSettingAfter.data.count).to.equal(1);
 
       const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+  });
+  describe('Error cases (tenant utall)', () => {
+    it('Check crypto settings update fails - CRYPTO_KEY_LENGTH_INVALID (513)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher : read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize : read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode : read.data.result[0].content.crypto.keyProperties.operationMode
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      newKeyProperties.blockSize = 128;
+      testData.data.content.crypto.key = Utils.generateRandomKey(newKeyProperties);
+      try {
+        await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      } catch (error) {
+        expect(error.actual).to.equal(513);
+      }
+    });
+    it('Check crypto settings update fails - CRYPTO_ALGORITHM_NOT_SUPPORTED (512)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher : 'camellia',
+        blockSize : 192,
+        operationMode : 'ccm'
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      testData.data.content.crypto.key = Utils.generateRandomKey(newKeyProperties);
+      try {
+        await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      } catch (error) {
+        expect(error.actual).to.equal(512);
+      }
     });
   });
 });
