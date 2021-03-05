@@ -61,7 +61,7 @@ export default class TransactionService {
       res.json(response);
       next();
     } catch (error) {
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
 
@@ -86,7 +86,7 @@ export default class TransactionService {
     for (const transactionId of filteredRequest.transactionIds) {
       const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
       if (!transaction) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -97,7 +97,7 @@ export default class TransactionService {
         continue;
       }
       if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -222,7 +222,7 @@ export default class TransactionService {
         // Save
         await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
         // Ok
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: req.user.tenantID,
           action: action,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
@@ -447,7 +447,7 @@ export default class TransactionService {
       true
     );
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
       user: req.user, actionOnUser: user,
@@ -570,7 +570,7 @@ export default class TransactionService {
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'signedData',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice', 'stop.signedData', 'stop.tagID'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice', 'stop.signedData', 'stop.tagID', 'tag.description'
     ]);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
@@ -719,10 +719,10 @@ export default class TransactionService {
 
   public static async getCompletedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     // Get transaction
-    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true }, [
+    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true, withTag: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description'
     ]);
   }
 
@@ -822,6 +822,8 @@ export default class TransactionService {
       csv += i18nManager.translate('chargers.connector') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('users.userID') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('tags.id') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('tags.description') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('chargers.timezone') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('general.startDate') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('general.startTime') + Constants.CSV_SEPARATOR;
@@ -840,6 +842,8 @@ export default class TransactionService {
       csv += transaction.connectorId + Constants.CSV_SEPARATOR;
       csv += (transaction.user ? Cypher.hash(transaction.user.id) : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.user ? Utils.buildUserFullName(transaction.user, false) : '') + Constants.CSV_SEPARATOR;
+      csv += transaction.tagID + Constants.CSV_SEPARATOR;
+      csv += (transaction.tag?.description || '') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone || 'N/A (UTC by default)') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
@@ -869,7 +873,7 @@ export default class TransactionService {
       // Not Found
       if (!transaction) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -880,7 +884,7 @@ export default class TransactionService {
         // Already Refunded
       } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -891,7 +895,7 @@ export default class TransactionService {
         // Billed
       } else if (billingImpl && transaction.billingData && transaction.billingData.invoiceID) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -922,7 +926,7 @@ export default class TransactionService {
     // Delete All Transactions
     result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
     // Log
-    Logging.logActionsResponse(loggedUser.tenantID,
+    await Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,
       MODULE_NAME, 'deleteTransactions', result,
       '{{inSuccess}} transaction(s) were successfully deleted',
@@ -933,7 +937,7 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -978,6 +982,9 @@ export default class TransactionService {
     const extrafilters: any = {};
     if (Utils.objectHasProperty(params, 'completedTransactions')) {
       extrafilters.stop = params.completedTransactions ? { $exists: true } : { $exists: false };
+    }
+    if (Utils.objectHasProperty(params, 'withTag')) {
+      extrafilters.withTag = params.withTag;
     }
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,

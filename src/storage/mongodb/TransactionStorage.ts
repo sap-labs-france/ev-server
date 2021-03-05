@@ -1,5 +1,4 @@
 import RefundReport, { RefundStatus } from '../../types/Refund';
-import Transaction, { OcpiData } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import global, { FilterParams } from './../../types/GlobalType';
 
@@ -11,6 +10,7 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/UserNotifications';
 import { ServerAction } from '../../types/Server';
+import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -261,7 +261,7 @@ export default class TransactionStorage {
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
       ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
       ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean;
-      statistics?: 'refund' | 'history'; refundStatus?: string[];
+      statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean;
     },
     dbParams: DbParams, projectFields?: string[]):
     Promise<{
@@ -569,6 +569,13 @@ export default class TransactionStorage {
             $cond: { if: { $and: [{ $gt: ['$ocpiData', null] }, { $gt: ['$ocpiData.cdr', null] }] }, then: true, else: false }
           }
         }
+      });
+    }
+    // Transaction tag
+    if (params.withTag) {
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation: aggregation, asField: 'tag', localField: 'tagID',
+        foreignField: '_id', oneToOneCardinality: true
       });
     }
     // Charge Box
@@ -1032,7 +1039,7 @@ export default class TransactionStorage {
       const id = Utils.getRandomIntSafe();
       existingTransaction = await TransactionStorage.getTransaction(tenantID, id);
       if (existingTransaction) {
-        Logging.logWarning({
+        await Logging.logWarning({
           tenantID: tenantID,
           module: MODULE_NAME, method: '_findAvailableID',
           action: ServerAction.TRANSACTION_STARTED,

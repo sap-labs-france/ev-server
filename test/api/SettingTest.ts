@@ -182,7 +182,7 @@ describe('Setting tests', function() {
           "content":{
             "type":"crypto",
             "crypto" : {
-              "key" : "${Utils.generateKey()}",
+              "key" : "${Utils.generateRandomKey(read.data.result[0].content.crypto.keyProperties)}",
               "keyProperties" : {
                   "blockCypher" : "${read.data.result[0].content.crypto.keyProperties.blockCypher}",
                   "blockSize" : "${read.data.result[0].content.crypto.keyProperties.blockSize}",
