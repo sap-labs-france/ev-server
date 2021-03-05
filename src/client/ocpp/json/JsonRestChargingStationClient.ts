@@ -101,7 +101,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private async openConnection(): Promise<unknown> {
     // Log
-    await Logging.logInfo({
+    void Logging.logInfo({
       tenantID: this.tenantID,
       source: this.chargingStation.id,
       action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
@@ -132,9 +132,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       };
       this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
       // Opened
-      this.wsConnection.onopen = async () => {
+      this.wsConnection.onopen = () => {
         // Log
-        await Logging.logInfo({
+        void Logging.logInfo({
           tenantID: this.tenantID,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
