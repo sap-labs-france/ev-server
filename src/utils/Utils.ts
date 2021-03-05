@@ -476,7 +476,8 @@ export default class Utils {
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return pricePerkWh * (consumptionWh / 1000);
+    // Trunc is called to avoid JS decimal issue on IEEE 754 standard floating points
+    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 12);
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
