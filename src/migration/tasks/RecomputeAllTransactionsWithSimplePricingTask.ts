@@ -8,6 +8,7 @@ import Promise from 'bluebird';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 
 const TASK_NAME = 'RecomputeAllTransactionsWithSimplePricingTask';
 
@@ -35,10 +36,11 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
             'stop.price': { $gt: 0 },
             'stop.pricingSource': 'simple',
             'refundData': { $exists: false },
+            'migrationTag': { $ne: `${TASK_NAME}~${this.getVersion()}` },
           }
         },
         {
-          $project: { '_id': 1 }
+          $project: { '_id': 1, 'migrationFlag': 1 }
         }
       ]).toArray();
     if (transactionsMDB.length > 0) {
@@ -50,7 +52,12 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
       });
       await Promise.map(transactionsMDB, async (transactionMDB) => {
         try {
-          await OCPPUtils.rebuildTransactionSimplePricing(tenant.id, transactionMDB._id);
+          // Get the transaction
+          const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
+          // Flag the transaction as migrated
+          transaction.migrationTag = `${TASK_NAME}~${this.getVersion()}`;
+          // Rebuild the pricing
+          await OCPPUtils.rebuildTransactionSimplePricing(tenant.id, transaction);
           transactionsUpdated.inSuccess++;
         } catch (error) {
           transactionsUpdated.inError++;
