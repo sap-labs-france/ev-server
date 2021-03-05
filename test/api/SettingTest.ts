@@ -6,6 +6,7 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
+import { CryptoKeyProperties } from '../types/Setting';
 import Tenant from '../types/Tenant';
 import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
@@ -20,6 +21,85 @@ chai.use(responseHelper);
 
 const testData: TestData = new TestData();
 let initialTenant: Tenant;
+
+async function updatePricingWithSensitiveData():Promise<any> {
+  // Update pricing setting to have sensitive data to test on it
+  const readTEST = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+    limit: TestConstants.UNLIMITED,
+    skip: 0
+  });
+  expect(readTEST.status).to.equal(200);
+  expect(readTEST.data.count).to.equal(1);
+  const clientSecret = 'a8242e0ed0fa70aee7c802e41e1c7c3b';
+  testData.data = JSON.parse(`{
+      "id":"${readTEST.data.result[0].id}",
+      "identifier":"refund",
+      "sensitiveData":["content.concur.clientSecret"],
+      "content":{
+        "type" : "concur",
+        "concur" : {
+            "authenticationUrl" : "https://url.com",
+            "apiUrl" : "https://url.com",
+            "appUrl" : "https://url.com",
+            "clientId" : "6cf707fb-9161-48fa-94fe-9e003be680df",
+            "clientSecret" : "${clientSecret}",
+            "paymentTypeId" : "gWtUBRXx$s3h0bNdgyv9gwiHLnCGMF",
+            "expenseTypeCode" : "01104",
+            "policyId" : "1119",
+            "reportName" : "E-Car Charging"
+        }
+    }
+  }`);
+  return testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+}
+
+function getCryptoTestData(originalCryptoObject, newKeyProperties:CryptoKeyProperties) {
+  return JSON.parse(`{
+    "id":"${originalCryptoObject.id}",
+    "identifier":"${originalCryptoObject.identifier}",
+    "sensitiveData":[],
+    "content":{
+      "type":"crypto",
+      "crypto" : {
+        "key" : "${Utils.generateRandomKey(newKeyProperties)}",
+        "keyProperties" : {
+            "blockCypher" : "${newKeyProperties.blockCypher}",
+            "blockSize" : "${newKeyProperties.blockSize}",
+            "operationMode" : "${newKeyProperties.operationMode}"
+        },
+        "formerKey" : "${originalCryptoObject.content.crypto.key}",
+        "formerKeyProperties" : {
+            "blockCypher" : "${originalCryptoObject.content.crypto.keyProperties.blockCypher}",
+            "blockSize" : "${originalCryptoObject.content.crypto.keyProperties.blockSize}",
+            "operationMode" : "${originalCryptoObject.content.crypto.keyProperties.operationMode}"
+        },
+        "migrationToBeDone" : true
+      }
+    }
+}`);
+}
+
+async function getCurrentCryptoData() {
+  const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, {
+    limit: TestConstants.UNLIMITED,
+    skip: 0
+  });
+  expect(read.status).to.equal(200);
+  expect(read.data.count).to.equal(1);
+  return read;
+}
+
+async function resetCryptoSettingToDefault() {
+  const read = await getCurrentCryptoData();
+  const newKeyProperties:CryptoKeyProperties = {
+    blockCypher : 'aes',
+    blockSize : 256,
+    operationMode : 'gcm'
+  };
+  testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+  const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+  expect(update.status).to.equal(200);
+}
 
 describe('Setting tests', function() {
   this.timeout(30000);
@@ -41,6 +121,7 @@ describe('Setting tests', function() {
     const res = await testData.superCentralService.updateEntity(
       testData.centralService.tenantApi, initialTenant);
     expect(res.status).to.equal(200);
+    await resetCryptoSettingToDefault();
   });
 
 
@@ -135,69 +216,18 @@ describe('Setting tests', function() {
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
     });
-    it('Check crypto settings update', async () => {
-      // Update pricing setting to have sensitive data to test on it
-      const readTEST = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
-        limit: TestConstants.UNLIMITED,
-        skip: 0
-      });
-      expect(readTEST.status).to.equal(200);
-      expect(readTEST.data.count).to.equal(1);
-      const clientSecret = 'a8242e0ed0fa70aee7c802e41e1c7c3b';
-      testData.data = JSON.parse(`{
-          "id":"${readTEST.data.result[0].id}",
-          "identifier":"refund",
-          "sensitiveData":["content.concur.clientSecret"],
-          "content":{
-            "type" : "concur",
-            "concur" : {
-                "authenticationUrl" : "https://url.com",
-                "apiUrl" : "https://url.com",
-                "appUrl" : "https://url.com",
-                "clientId" : "6cf707fb-9161-48fa-94fe-9e003be680df",
-                "clientSecret" : "${clientSecret}",
-                "paymentTypeId" : "gWtUBRXx$s3h0bNdgyv9gwiHLnCGMF",
-                "expenseTypeCode" : "01104",
-                "policyId" : "1119",
-                "reportName" : "E-Car Charging"
-            }
-        }
-      }`);
-      const updateTEST = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+    it('Check crypto settings update - change key', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
       expect(updateTEST.status).to.equal(200);
-
       // Retrieve the crypto setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, {
-        limit: TestConstants.UNLIMITED,
-        skip: 0
-      });
-      expect(read.status).to.equal(200);
-      expect(read.data.count).to.equal(1);
-
+      const read = await getCurrentCryptoData();
       // Update crypto setting
-      testData.data = JSON.parse(`{
-          "id":"${read.data.result[0].id}",
-          "identifier":"${read.data.result[0].identifier}",
-          "sensitiveData":[],
-          "content":{
-            "type":"crypto",
-            "crypto" : {
-              "key" : "${Utils.generateRandomKey(read.data.result[0].content.crypto.keyProperties)}",
-              "keyProperties" : {
-                  "blockCypher" : "${read.data.result[0].content.crypto.keyProperties.blockCypher}",
-                  "blockSize" : "${read.data.result[0].content.crypto.keyProperties.blockSize}",
-                  "operationMode" : "${read.data.result[0].content.crypto.keyProperties.operationMode}"
-              },
-              "formerKey" : "${read.data.result[0].content.crypto.key}",
-              "formerKeyProperties" : {
-                  "blockCypher" : "${read.data.result[0].content.crypto.keyProperties.blockCypher}",
-                  "blockSize" : "${read.data.result[0].content.crypto.keyProperties.blockSize}",
-                  "operationMode" : "${read.data.result[0].content.crypto.keyProperties.operationMode}"
-              },
-              "migrationToBeDone" : true
-            }
-          }
-      }`);
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher : read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize : read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode : read.data.result[0].content.crypto.keyProperties.operationMode
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
       const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(200);
 
@@ -211,5 +241,353 @@ describe('Setting tests', function() {
 
       const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
     });
+    it('Check crypto settings update - change key + block size (256->128)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial BlockSize is 256
+      expect(read.data.result[0].content.crypto.keyProperties.blockSize).to.equal(256);
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: 128,
+        operationMode: read.data.result[0].content.crypto.keyProperties.operationMode
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + block size (128->192)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial BlockSize is 128
+      expect(read.data.result[0].content.crypto.keyProperties.blockSize).to.equal(128);
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: 192,
+        operationMode: read.data.result[0].content.crypto.keyProperties.operationMode
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + block size (192->128)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial BlockSize is 192
+      expect(read.data.result[0].content.crypto.keyProperties.blockSize).to.equal(192);
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: 128,
+        operationMode: read.data.result[0].content.crypto.keyProperties.operationMode
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + block size (128->256)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial BlockSize is 128
+      expect(read.data.result[0].content.crypto.keyProperties.blockSize).to.equal(128);
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: 256,
+        operationMode: read.data.result[0].content.crypto.keyProperties.operationMode
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + operation mode (gcm->ctr)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial OperationMode is gcm
+      expect(read.data.result[0].content.crypto.keyProperties.operationMode).to.equal('gcm');
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode: 'ctr'
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + algorithm (aes->camellia)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial OperationMode is ctr
+      expect(read.data.result[0].content.crypto.keyProperties.blockCypher).to.equal('aes');
+
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: 'camellia',
+        blockSize: read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode: read.data.result[0].content.crypto.keyProperties.operationMode
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + algorithm (camellia->aes)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial OperationMode is ctr
+      expect(read.data.result[0].content.crypto.keyProperties.blockCypher).to.equal('camellia');
+
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: 'aes',
+        blockSize: read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode: read.data.result[0].content.crypto.keyProperties.operationMode
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + operation mode (ctr->gcm)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial OperationMode is ctr
+      expect(read.data.result[0].content.crypto.keyProperties.operationMode).to.equal('ctr');
+
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode: 'gcm'
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + operation mode (gcm->ccm)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial OperationMode is ctr
+      expect(read.data.result[0].content.crypto.keyProperties.operationMode).to.equal('gcm');
+
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode: 'ccm'
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + operation mode (ccm->ctr)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial OperationMode is ctr
+      expect(read.data.result[0].content.crypto.keyProperties.operationMode).to.equal('ccm');
+
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode: 'ctr'
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + operation mode (ctr->ccm)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial OperationMode is ctr
+      expect(read.data.result[0].content.crypto.keyProperties.operationMode).to.equal('ctr');
+
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode: 'ccm'
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    it('Check crypto settings update - change key + operation mode (ccm->gcm)', async () => {
+      const updateTEST = await updatePricingWithSensitiveData();
+      expect(updateTEST.status).to.equal(200);
+
+      // Retrieve the crypto setting id
+      const read = await getCurrentCryptoData();
+      // Make sure initial OperationMode is ctr
+      expect(read.data.result[0].content.crypto.keyProperties.operationMode).to.equal('ccm');
+
+      // Update crypto setting
+      const newKeyProperties:CryptoKeyProperties = {
+        blockCypher: read.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize: read.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode: 'gcm'
+      };
+      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+
+      // Get setting with sensitive data after crypto setting update
+      const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: TestConstants.UNLIMITED,
+        skip: 0
+      });
+      expect(readSettingAfter.status).to.equal(200);
+      expect(readSettingAfter.data.count).to.equal(1);
+
+      const clientSecretAfter = _.get(readSettingAfter.data.result[0], readSettingAfter.data.result[0].sensitiveData[0]);
+    });
+    // Ofb?
+    // It('Check crypto settings update - change key + algorithm + block size', async () => {
+    // });
+    // it('Check crypto settings update - change key + block size + operation mode', async () => {
+    // });
+    // it('Check crypto settings update - change key + algorithm + operation mode', async () => {
+    // });
   });
 });
