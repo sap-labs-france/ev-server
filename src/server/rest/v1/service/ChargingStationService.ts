@@ -143,30 +143,37 @@ export default class ChargingStationService {
           connector.voltage = filteredConnector.voltage;
           connector.currentType = filteredConnector.currentType;
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
+          connector.amperageLimit = connector.amperage;
         }
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
       }
     }
-    // Existing charge points
-    if (!Utils.isEmptyArray(filteredRequest.chargePoints) || !Utils.isEmptyArray(chargingStation.chargePoints)) {
-      for (const filteredChargePoint of filteredRequest.chargePoints ? filteredRequest.chargePoints : chargingStation.chargePoints) {
-        const chargePoint = Utils.getChargePointFromID(chargingStation, filteredChargePoint.chargePointID);
-        // Update Connectors only if manual configuration is enabled
-        if (chargePoint && chargingStation.manualConfiguration) {
-          chargePoint.chargePointID = filteredChargePoint.chargePointID,
-          chargePoint.currentType = filteredChargePoint.currentType,
-          chargePoint.voltage = filteredChargePoint.voltage,
-          chargePoint.amperage = filteredChargePoint.amperage,
-          chargePoint.numberOfConnectedPhase = filteredChargePoint.numberOfConnectedPhase,
-          chargePoint.cannotChargeInParallel = filteredChargePoint.cannotChargeInParallel,
-          chargePoint.sharePowerToAllConnectors = filteredChargePoint.sharePowerToAllConnectors,
-          chargePoint.excludeFromPowerLimitation = filteredChargePoint.excludeFromPowerLimitation;
-          chargePoint.ocppParamForPowerLimitation = filteredChargePoint.ocppParamForPowerLimitation,
-          chargePoint.power = filteredChargePoint.power,
-          chargePoint.efficiency = filteredChargePoint.efficiency;
-          chargePoint.connectorIDs = filteredChargePoint.connectorIDs;
+    if (chargingStation.manualConfiguration) {
+      // Existing charge points
+      if (!Utils.isEmptyArray(filteredRequest.chargePoints)) {
+        for (const filteredChargePoint of filteredRequest.chargePoints) {
+          const chargePoint = Utils.getChargePointFromID(chargingStation, filteredChargePoint.chargePointID);
+          // Update Connectors only if manual configuration is enabled
+          if (chargePoint) {
+            chargePoint.currentType = filteredChargePoint.currentType,
+            chargePoint.voltage = filteredChargePoint.voltage,
+            chargePoint.amperage = filteredChargePoint.amperage,
+            chargePoint.numberOfConnectedPhase = filteredChargePoint.numberOfConnectedPhase,
+            chargePoint.cannotChargeInParallel = filteredChargePoint.cannotChargeInParallel,
+            chargePoint.sharePowerToAllConnectors = filteredChargePoint.sharePowerToAllConnectors,
+            chargePoint.excludeFromPowerLimitation = filteredChargePoint.excludeFromPowerLimitation;
+            chargePoint.ocppParamForPowerLimitation = filteredChargePoint.ocppParamForPowerLimitation,
+            chargePoint.power = filteredChargePoint.power,
+            chargePoint.efficiency = filteredChargePoint.efficiency;
+            chargePoint.connectorIDs = filteredChargePoint.connectorIDs;
+            UtilsService.checkIfChargePointValid(chargingStation, chargePoint, req);
+          } else {
+            chargingStation.chargePoints ? chargingStation.chargePoints.push(filteredChargePoint) : chargingStation.chargePoints = [filteredChargePoint];
+            UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, req);
+          }
         }
-        UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, req);
+      } else if (Utils.isEmptyArray(filteredRequest.chargePoints) && !Utils.isEmptyArray(chargingStation.chargePoints)) {
+        delete chargingStation.chargePoints;
       }
     }
     // Update Site Area
@@ -1495,7 +1502,7 @@ export default class ChargingStationService {
           ChargingStationService.build3SizesPDFQrCode(pdfDocument, qrCodeImage, qrCodeTitle);
           // Add page (expect the last one)
           if (!connectorID && (chargingStations[chargingStations.length - 1] !== chargingStation ||
-              chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
+            chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
             pdfDocument.addPage();
           }
         }
