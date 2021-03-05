@@ -33,7 +33,8 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
         {
           $match: {
             'stop.price': { $gt: 0 },
-            'stop.pricingSource': 'simple'
+            'stop.pricingSource': 'simple',
+            'refundData': { $exists: false },
           }
         },
         {
