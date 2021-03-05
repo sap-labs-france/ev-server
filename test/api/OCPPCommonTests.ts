@@ -658,6 +658,7 @@ export default class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
     const response = await this.centralUserService.transactionApi.readAllConsumption({ TransactionId: this.newTransaction.id });
     expect(response.status).to.equal(200);
+    expect(this.totalPrice).equal(this.pricekWh * this.transactionTotalConsumptionWh / 1000);
     // Check Headers
     expect(response.data).to.deep['containSubset']({
       'chargeBoxID': this.newTransaction.chargeBoxID,
