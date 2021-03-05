@@ -23,12 +23,13 @@ export default class SimplePricingIntegration extends PricingIntegration<SimpleP
     return this.computePrice(transaction, consumptionData);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async computePrice(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
     let amount: number;
     let roundedAmount: number;
     if (consumptionData.consumptionWh && typeof consumptionData.consumptionWh === 'number') {
       amount = Utils.computeSimplePrice(this.settings.price, consumptionData.consumptionWh);
-      roundedAmount = Utils.computeSimpleRoundedPrice(this.settings.price, consumptionData.consumptionWh);
+      roundedAmount = Utils.truncTo(amount, 2);
     } else {
       amount = 0;
       roundedAmount = 0;
@@ -38,7 +39,7 @@ export default class SimplePricingIntegration extends PricingIntegration<SimpleP
       amount: amount,
       roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,
-      cumulatedAmount: 0
+      cumulatedAmount: transaction.currentCumulatedPrice ? transaction.currentCumulatedPrice + amount : amount
     };
     return pricedConsumption;
   }
