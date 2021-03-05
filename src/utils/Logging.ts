@@ -13,7 +13,6 @@ import { HTTPError } from '../types/HTTPError';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
-import { OCPP16Command } from '../types/ocpp/OCPPServer';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
 import { ServerAction } from '../types/Server';

@@ -1,20 +1,5 @@
 import User from '../User';
 
-export enum OCPP16Command {
-  BOOT_NOTIFICATION = 'BootNotification',
-  HEARTBEAT = 'Heartbeat',
-  STATUS_NOTIFICATION = 'StatusNotification',
-  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
-  CHANGE_CONFIGURATION = 'ChangeConfiguration',
-  AUTHORIZE = 'Authorize',
-  START_TRANSACTION = 'StartTransaction',
-  STOP_TRANSACTION = 'StopTransaction',
-  METERVALUES = 'MeterValues',
-  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
-  DATA_TRANSFER = 'DataTransfer',
-  GET_15118_EV_CERTIFICATE = 'Get15118EVCertificate'
-}
-
 export interface OCPPBootNotificationRequest {
   chargeBoxSerialNumber?: string;
   chargePointModel: string;

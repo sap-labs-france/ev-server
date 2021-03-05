@@ -36,9 +36,6 @@ export enum ServerAction {
   CHARGING_STATION_LIMIT_POWER = 'ChargingStationLimitPower',
   CHARGING_STATION_DELETE = 'ChargingStationDelete',
 
-  START_TRANSACTION = 'StartTransaction',
-  STOP_TRANSACTION = 'StopTransaction',
-
   CHECK_SMART_CHARGING_CONNECTION = 'CheckSmartChargingConnection',
   TRIGGER_SMART_CHARGING = 'TriggerSmartCharging',
 
@@ -158,8 +155,6 @@ export enum ServerAction {
   OCPI_ENDPOINT_UNREGISTER = 'OcpiEndpointUnregister',
   OCPI_ENDPOINT_DELETE = 'OcpiEndpointDelete',
 
-  AUTHORIZE = 'Authorize',
-
   OCPP_SERVICE = 'OCPPService',
 
   AUTHORIZATIONS = 'Authorizations',
@@ -176,9 +171,17 @@ export enum ServerAction {
 
   SOCKET_IO = 'SocketIO',
 
+  // OCPP server commands
+  AUTHORIZE = 'Authorize',
   HEARTBEAT = 'Heartbeat',
-
+  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
+  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
   STATUS_NOTIFICATION = 'StatusNotification',
+  START_TRANSACTION = 'StartTransaction',
+  STOP_TRANSACTION = 'StopTransaction',
+  METERVALUES = 'MeterValues',
+  DATA_TRANSFER = 'DataTransfer',
+  GET_15118_EV_CERTIFICATE = 'Get15118EVCertificate',
 
   EXTRA_INACTIVITY = 'ExtraInactivity',
 
@@ -272,10 +275,6 @@ export enum ServerAction {
   USER_PRICING_STATISTICS = 'UserPricingStatistics',
 
   CHARGING_STATION_TRANSACTIONS = 'ChargingStationTransactions',
-
-  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
-
-  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
 
   ADD_CHARGING_STATIONS_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
   REMOVE_CHARGING_STATIONS_FROM_SITE_AREA = 'RemoveChargingStationsFromSiteArea',
