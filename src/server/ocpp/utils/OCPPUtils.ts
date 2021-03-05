@@ -465,26 +465,21 @@ export default class OCPPUtils {
         message: `Transaction ID '${transactionId}' was not priced with simple pricing`,
       });
     }
-
     // Retrieve price per kWh
     const transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     const consumptionDataResult: DataResult<Consumption> = await ConsumptionStorage.getTransactionConsumptions(tenantID, { transactionId });
-
     transaction.currentCumulatedPrice = 0;
     for (const consumption of consumptionDataResult.result) {
       consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
       consumption.roundedAmount = Utils.truncTo(consumption.amount, 2);
-
       transaction.currentCumulatedPrice += consumption.amount;
       consumption.cumulatedAmount = transaction.currentCumulatedPrice;
       // Save all
       await ConsumptionStorage.saveConsumption(tenantID, consumption);
     }
-
     transaction.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
     transaction.stop.price = transaction.currentCumulatedPrice;
     transaction.stop.roundedPrice = transaction.roundedPrice;
-
     await TransactionStorage.saveTransaction(tenantID, transaction);
   }
 
