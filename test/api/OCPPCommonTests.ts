@@ -630,6 +630,7 @@ export default class OCPPCommonTests {
     // Check the Transaction
     const transactionValidation = await this.basicTransactionValidation(this.newTransaction.id,
       this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
+    expect(this.totalPrice).equal(this.pricekWh * this.transactionTotalConsumptionWh / 1000);
     expect(transactionValidation.data).to.deep['containSubset']({
       'stop': {
         'meterStop': this.energyActiveImportEndMeterValue,
