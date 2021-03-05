@@ -145,9 +145,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         resolve();
       };
       // Closed
-      this.wsConnection.onclose = async (code: number) => {
+      this.wsConnection.onclose = (code: number) => {
         // Log
-        await Logging.logInfo({
+        void Logging.logInfo({
           tenantID: this.tenantID,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
@@ -156,9 +156,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         });
       };
       // Handle Error Message
-      this.wsConnection.onerror = async (error: Error) => {
+      this.wsConnection.onerror = (error: Error) => {
         // Log
-        await Logging.logError({
+        void Logging.logError({
           tenantID: this.tenantID,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
@@ -170,7 +170,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         this.terminateConnection();
       };
       // Handle Server Message
-      this.wsConnection.onmessage = async (message) => {
+      this.wsConnection.onmessage = (message) => {
         try {
           // Parse the message
           const [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
@@ -179,7 +179,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             // Check message type
             if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
               // Error message
-              await Logging.logError({
+              void Logging.logError({
                 tenantID: this.tenantID,
                 source: this.chargingStation.id,
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
@@ -198,7 +198,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           } else {
             // Error message
             // eslint-disable-next-line no-lonely-if
-            await Logging.logError({
+            void Logging.logError({
               tenantID: this.tenantID,
               source: this.chargingStation.id,
               action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
@@ -209,7 +209,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         } catch (error) {
           // Log
-          await Logging.logException(
+          void Logging.logException(
             error,
             ServerAction.WS_REST_CLIENT_MESSAGE,
             this.chargingStation.id,

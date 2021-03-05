@@ -485,7 +485,7 @@ export default class OCPPService {
       // Save
       await OCPPStorage.saveAuthorize(headers.tenantID, authorize);
       // Log
-      await Logging.logInfo({
+      void Logging.logInfo({
         tenantID: headers.tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'handleAuthorize',
@@ -504,7 +504,7 @@ export default class OCPPService {
         error.params.source = headers.chargeBoxIdentity;
       }
       // Log error
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
+      void Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
       return {
         idTagInfo: {
           status: OCPP16AuthorizationStatus.INVALID
