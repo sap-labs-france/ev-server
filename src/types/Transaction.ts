@@ -79,6 +79,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   ocpi?: boolean;
   ocpiWithCdr?: boolean;
   ocpiData?: OcpiData;
+  migrationTag?: string;
 }
 
 export interface OcpiData {
