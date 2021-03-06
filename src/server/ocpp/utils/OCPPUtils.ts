@@ -514,9 +514,6 @@ export default class OCPPUtils {
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
       transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     }
-    console.log('🚀 ---------------------------------------------------------------');
-    console.log('🚀 ~ transactionSimplePricePerkWh', transactionSimplePricePerkWh);
-    console.log('🚀 ---------------------------------------------------------------');
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,
       transaction.chargeBoxID, { includeDeleted: true });
