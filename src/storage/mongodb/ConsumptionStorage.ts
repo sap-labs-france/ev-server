@@ -17,17 +17,6 @@ export default class ConsumptionStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveConsumption');
     // Check
     await DatabaseUtils.checkTenant(tenantID);
-    // Set the ID
-    if (!consumptionToSave.id) {
-      const timestamp = Utils.convertToDate(consumptionToSave.endedAt);
-      if (consumptionToSave.transactionId) {
-        consumptionToSave.id = Cypher.hash(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`);
-      } else if (consumptionToSave.assetID) {
-        consumptionToSave.id = Cypher.hash(`${consumptionToSave.assetID}~${timestamp.toISOString()}`);
-      } else {
-        throw new Error('Consumption cannot be saved: no Transaction ID or Asset ID provided');
-      }
-    }
     // Build
     const consumptionMDB = ConsumptionStorage.buildConsumptionMDB(consumptionToSave);
     // Modify
@@ -48,17 +37,6 @@ export default class ConsumptionStorage {
     await DatabaseUtils.checkTenant(tenantID);
     const consumptionsMDB = [];
     for (const consumptionToSave of consumptionsToSave) {
-      // Set the ID
-      if (!consumptionToSave.id) {
-        const timestamp = Utils.convertToDate(consumptionToSave.endedAt);
-        if (consumptionToSave.transactionId) {
-          consumptionToSave.id = Cypher.hash(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`);
-        } else if (consumptionToSave.assetID) {
-          consumptionToSave.id = Cypher.hash(`${consumptionToSave.assetID}~${timestamp.toISOString()}`);
-        } else {
-          throw new Error('Consumption cannot be saved: no Transaction ID or Asset ID provided');
-        }
-      }
       // Build
       const consumptionMDB = ConsumptionStorage.buildConsumptionMDB(consumptionToSave);
       // Add
@@ -418,6 +396,17 @@ export default class ConsumptionStorage {
   }
 
   private static buildConsumptionMDB(consumption: Consumption): any {
+    // Set the ID
+    if (!consumption.id) {
+      const timestamp = Utils.convertToDate(consumption.endedAt);
+      if (consumption.transactionId) {
+        consumption.id = Cypher.hash(`${consumption.transactionId}~${timestamp.toISOString()}`);
+      } else if (consumption.assetID) {
+        consumption.id = Cypher.hash(`${consumption.assetID}~${timestamp.toISOString()}`);
+      } else {
+        throw new Error('Consumption cannot be saved: no Transaction ID or Asset ID provided');
+      }
+    }
     return {
       _id: consumption.id,
       startedAt: Utils.convertToDate(consumption.startedAt),
