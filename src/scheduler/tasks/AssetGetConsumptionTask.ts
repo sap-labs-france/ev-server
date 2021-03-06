@@ -55,6 +55,8 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                   startedAt: asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment(consumption.lastConsumption.timestamp).subtract(1, 'minutes').toDate(),
                   endedAt: consumption.lastConsumption.timestamp,
                   assetID: asset.id,
+                  siteAreaID: asset.siteAreaID,
+                  siteID: asset.siteArea.siteID,
                   cumulatedConsumptionWh: consumption.currentConsumptionWh,
                   cumulatedConsumptionAmps: Math.floor(consumption.currentConsumptionWh / asset.siteArea.voltage),
                   instantAmps: consumption.currentInstantAmps,

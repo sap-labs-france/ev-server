@@ -9,6 +9,7 @@ import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesT
 import AddLastChangedOnToCarCatalogTask from './tasks/AddLastChangedOnToCarCatalogTask';
 import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
+import AddSiteAreaIDToAssetConsumptionTask from './tasks/AddSiteAreaIDToAssetConsumptionTask';
 import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsumptionsTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
@@ -65,7 +66,7 @@ export default class MigrationHandler {
         const startMigrationTime = moment();
         const currentMigrationTasks: MigrationTask[] = [];
         // Log
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
@@ -114,6 +115,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new MigrateUserSettingsTask());
         currentMigrationTasks.push(new RenameSMTPAuthErrorTask());
         currentMigrationTasks.push(new ResetCarCatalogsHashTask());
+        currentMigrationTasks.push(new AddSiteAreaIDToAssetConsumptionTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsWithSimplePricingTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
@@ -140,14 +142,14 @@ export default class MigrationHandler {
         }
         // Log Total Processing Time
         const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
           message: `The ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration has been run in ${totalMigrationTimeSecs} secs`
         });
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
@@ -171,7 +173,7 @@ export default class MigrationHandler {
     try {
       // Log Start Task
       let logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'executeTask',
@@ -195,7 +197,7 @@ export default class MigrationHandler {
         durationSecs: totalTaskTimeSecs
       });
       logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'executeTask',
@@ -205,7 +207,7 @@ export default class MigrationHandler {
       console.log(logMsg);
     } catch (error) {
       const logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()} ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
-      Logging.logError({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'executeTask',
