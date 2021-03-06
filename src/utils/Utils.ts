@@ -472,15 +472,18 @@ export default class Utils {
       // Create Object
       changedValue = parseFloat(value);
     }
+    // Fix float
+    changedValue = Utils.fixJSFloatValue(changedValue);
     return changedValue;
   }
 
-  public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 6);
+  public static fixJSFloatValue(value: number): number {
+    // Avoid JS decimal issue on IEEE 754 standard floating points
+    return Utils.roundTo(value, 12);
   }
 
-  public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 2);
+  public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
+    return Utils.fixJSFloatValue(pricePerkWh * (consumptionWh / 1000));
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -513,7 +516,7 @@ export default class Utils {
   public static convertWattToAmp(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, wattValue: number): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
-      return wattValue / voltage;
+      return Utils.fixJSFloatValue(wattValue / voltage);
     }
     return 0;
   }

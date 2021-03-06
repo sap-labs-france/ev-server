@@ -215,11 +215,7 @@ export default class OCPPUtils {
             consumption.roundedAmount = pricedConsumption.roundedAmount;
             consumption.currencyCode = pricedConsumption.currencyCode;
             consumption.pricingSource = pricedConsumption.pricingSource;
-            if (pricedConsumption.cumulatedAmount) {
-              consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            } else {
-              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 3);
-            }
+            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
           }
           break;
@@ -233,11 +229,7 @@ export default class OCPPUtils {
             consumption.roundedAmount = pricedConsumption.roundedAmount;
             consumption.currencyCode = pricedConsumption.currencyCode;
             consumption.pricingSource = pricedConsumption.pricingSource;
-            if (pricedConsumption.cumulatedAmount) {
-              consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            } else {
-              consumption.cumulatedAmount = Utils.truncTo(transaction.currentCumulatedPrice + consumption.amount, 3);
-            }
+            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
             // Update Transaction
             if (!transaction.stop) {
@@ -438,6 +430,57 @@ export default class OCPPUtils {
       chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs);
   }
 
+  public static async rebuildTransactionSimplePricing(tenantID: string, transaction: Transaction): Promise<void> {
+    // Check
+    if (!transaction) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
+        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        message: `Transaction ID '${transaction.id}' does not exist`,
+      });
+    }
+    if (!transaction.stop) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
+        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        message: `Transaction ID '${transaction.id}' is in progress`,
+      });
+    }
+    if (transaction.stop.pricingSource !== PricingSettingsType.SIMPLE) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
+        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        message: `Transaction ID '${transaction.id}' was not priced with simple pricing`,
+      });
+    }
+    // Retrieve price per kWh
+    const transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
+    // Get the consumptions
+    const consumptionDataResult = await ConsumptionStorage.getTransactionConsumptions(
+      tenantID, { transactionId: transaction.id });
+    transaction.currentCumulatedPrice = 0;
+    const consumptions = consumptionDataResult.result;
+    for (const consumption of consumptions) {
+      // Update the price
+      consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
+      consumption.roundedAmount = Utils.truncTo(consumption.amount, 2);
+      transaction.currentCumulatedPrice += consumption.amount;
+      consumption.cumulatedAmount = transaction.currentCumulatedPrice;
+    }
+    // Delete consumptions
+    await ConsumptionStorage.deleteConsumptions(tenantID, [ transaction.id ]);
+    // Save all
+    await ConsumptionStorage.saveConsumptions(tenantID, consumptions);
+    // Update transaction
+    transaction.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
+    transaction.stop.price = transaction.currentCumulatedPrice;
+    transaction.stop.roundedPrice = transaction.roundedPrice;
+    await TransactionStorage.saveTransaction(tenantID, transaction);
+  }
+
   public static async rebuildTransactionConsumptions(tenantID: string, transactionId: number): Promise<number> {
     let consumptions: Consumption[] = [];
     let transactionSimplePricePerkWh;
@@ -469,7 +512,7 @@ export default class OCPPUtils {
     }
     // Check Simple Pricing
     if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
-      transactionSimplePricePerkWh = Utils.truncTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
+      transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,
@@ -521,7 +564,7 @@ export default class OCPPUtils {
         // Override the price if simple pricing only
         if (transactionSimplePricePerkWh > 0) {
           consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
-          consumption.roundedAmount = Utils.computeSimpleRoundedPrice(transactionSimplePricePerkWh, consumption.consumptionWh);
+          consumption.roundedAmount = Utils.truncTo(consumption.amount, 2);
           consumption.pricingSource = PricingSettingsType.SIMPLE;
         }
         // Cumulated props
