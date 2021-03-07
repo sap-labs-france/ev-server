@@ -77,7 +77,6 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
               const recomputedConsumptionTransaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
               if (recomputedConsumptionTransaction.stop.price === Utils.computeSimplePrice(pricePerkWh, recomputedConsumptionTransaction.stop.totalConsumptionWh)) {
                 transactionsUpdated.inSuccess++;
-                console.log(chalk.green('🚀 ~ RESULT OK'));
               } else {
                 transactionsUpdated.inError++;
               }
