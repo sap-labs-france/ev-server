@@ -39,7 +39,7 @@ export default class SimplePricingIntegration extends PricingIntegration<SimpleP
       amount: amount,
       roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,
-      cumulatedAmount: transaction.currentCumulatedPrice ? transaction.currentCumulatedPrice + amount : amount
+      cumulatedAmount: transaction.currentCumulatedPrice ? Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber() : amount
     };
     return pricedConsumption;
   }
