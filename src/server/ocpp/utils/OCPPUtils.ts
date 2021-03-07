@@ -138,7 +138,7 @@ export default class OCPPUtils {
           break;
       }
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
@@ -261,7 +261,7 @@ export default class OCPPUtils {
               lastUpdate: new Date()
             };
           } catch (error) {
-            Logging.logError({
+            await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
@@ -280,7 +280,7 @@ export default class OCPPUtils {
             // Update
             transaction.billingData.lastUpdate = new Date();
           } catch (error) {
-            Logging.logError({
+            await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
@@ -303,7 +303,7 @@ export default class OCPPUtils {
             transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
             transaction.billingData.lastUpdate = new Date();
           } catch (error) {
-            Logging.logError({
+            await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
@@ -475,15 +475,15 @@ export default class OCPPUtils {
     // Save all
     await ConsumptionStorage.saveConsumptions(tenantID, consumptions);
     // Update transaction
-    transaction.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
+    transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
     transaction.stop.price = transaction.currentCumulatedPrice;
-    transaction.stop.roundedPrice = transaction.roundedPrice;
+    transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
     await TransactionStorage.saveTransaction(tenantID, transaction);
   }
 
   public static async rebuildTransactionConsumptions(tenantID: string, transactionId: number): Promise<number> {
     let consumptions: Consumption[] = [];
-    let transactionSimplePricePerkWh;
+    let transactionSimplePricePerkWh: number;
     if (!transactionId) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -530,22 +530,19 @@ export default class OCPPUtils {
     if (meterValues.count > 0) {
       // Build all Consumptions
       consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenantID, chargingStation, transaction, meterValues.result);
-      // Build last Consumptions
-      const stopTransaction: OCPPStopTransactionRequestExtended = {
-        idTag: transaction.stop.tagID,
-        meterStop: transaction.stop.meterStop,
-        timestamp: meterValues.result[meterValues.count - 1].timestamp.toISOString(),
-        transactionId: transaction.id,
-        chargeBoxID: transaction.chargeBoxID,
-      };
       // Push last dummy consumption for Stop Transaction
       consumptions.push({} as Consumption);
-      // Delete first all transaction's consumptions
-      await ConsumptionStorage.deleteConsumptions(tenantID, [transactionId]);
-      // Price/Bill Transaction and Save the Consumptions
       for (let i = 0; i < consumptions.length; i++) {
         // Last consumption is a Stop Transaction
         if (i === consumptions.length - 1) {
+          // Create OCPP Stop Transaction
+          const stopTransaction: OCPPStopTransactionRequestExtended = {
+            idTag: transaction.stop.tagID,
+            meterStop: transaction.stop.meterStop,
+            timestamp: transaction.stop.timestamp.toISOString(),
+            transactionId: transaction.id,
+            chargeBoxID: transaction.chargeBoxID,
+          };
           // Create last meter values based on history of transaction/stopTransaction
           const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(transaction, stopTransaction);
           // Create last consumption
@@ -590,15 +587,23 @@ export default class OCPPUtils {
           }
           consumption.totalDurationSecs = consumptions[i - 1].totalDurationSecs + currentDurationSecs;
         }
-        // Save all
-        await ConsumptionStorage.saveConsumption(tenantID, consumption);
+      }
+      // Delete first all transaction's consumptions
+      await ConsumptionStorage.deleteConsumptions(tenantID, [ transactionId ]);
+      // Save all
+      await ConsumptionStorage.saveConsumptions(tenantID, consumptions);
+      // Update the price
+      if (!transaction.refundData) {
+        // Override the price
+        transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
+        transaction.stop.price = transaction.currentCumulatedPrice;
+        transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
       }
     }
     // Build extra inactivity consumption
     const consumptionCreated = await OCPPUtils.buildExtraConsumptionInactivity(tenantID, transaction);
-    if (consumptionCreated) {
-      await TransactionStorage.saveTransaction(tenantID, transaction);
-    }
+    // Save
+    await TransactionStorage.saveTransaction(tenantID, transaction);
     return consumptions.length + (consumptionCreated ? 1 : 0);
   }
 
@@ -1142,7 +1147,7 @@ export default class OCPPUtils {
               if (matchFirmware && matchOcpp) {
                 for (const parameter in ocppStandardParameters.parameters) {
                   if (OCPPUtils.isOcppParamForPowerLimitationKey(parameter, chargingStation)) {
-                    Logging.logError({
+                    await Logging.logError({
                       tenantID: tenantID,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1153,7 +1158,7 @@ export default class OCPPUtils {
                     continue;
                   }
                   if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
-                    Logging.logWarning({
+                    await Logging.logWarning({
                       tenantID: tenantID,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1203,7 +1208,7 @@ export default class OCPPUtils {
               if (matchFirmware && matchOcpp) {
                 for (const parameter in ocppVendorParameters.parameters) {
                   if (OCPPUtils.isOcppParamForPowerLimitationKey(parameter, chargingStation)) {
-                    Logging.logError({
+                    await Logging.logError({
                       tenantID: tenantID,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1214,7 +1219,7 @@ export default class OCPPUtils {
                     continue;
                   }
                   if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
-                    Logging.logWarning({
+                    await Logging.logWarning({
                       tenantID: tenantID,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1257,7 +1262,7 @@ export default class OCPPUtils {
         if (templateUpdate.ocppVendorUpdate && !templateUpdateResult.ocppVendorUpdated) {
           sectionsNotMatched.push('OCPPVendor');
         }
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenantID,
           source: chargingStation.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1266,7 +1271,7 @@ export default class OCPPUtils {
           detailedMessages: { templateUpdateResult, chargingStationTemplate, chargingStation }
         });
         if (!Utils.isEmptyArray(sectionsNotMatched)) {
-          Logging.logWarning({
+          await Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1279,7 +1284,7 @@ export default class OCPPUtils {
         return templateUpdateResult;
       }
       // Log
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1296,7 +1301,7 @@ export default class OCPPUtils {
       noMatchingTemplateLogMsg = 'No template matching the charging station has been found';
     }
     // Log
-    Logging.logWarning({
+    await Logging.logWarning({
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1319,7 +1324,7 @@ export default class OCPPUtils {
           (connector) => connector.connectorId === connectorID);
         if (!templateConnector) {
           // Log
-          Logging.logWarning({
+          await Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1384,7 +1389,7 @@ export default class OCPPUtils {
         }
       }
       // Log
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1395,7 +1400,7 @@ export default class OCPPUtils {
       return true;
     }
     // Log
-    Logging.logWarning({
+    await Logging.logWarning({
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -1423,7 +1428,7 @@ export default class OCPPUtils {
           await this.clearAndDeleteChargingProfile(tenantID, chargingProfile);
           actionsResponse.inSuccess++;
         } catch (error) {
-          Logging.logError({
+          await Logging.logError({
             tenantID: tenantID,
             source: chargingProfile.chargingStationID,
             action: ServerAction.CHARGING_PROFILE_DELETE,
@@ -1468,7 +1473,7 @@ export default class OCPPUtils {
     try {
       await chargingStationVendor.clearChargingProfile(tenantID, chargingStation, chargingProfile);
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_DELETE,
@@ -1481,7 +1486,7 @@ export default class OCPPUtils {
     // Delete from database
     await ChargingStationStorage.deleteChargingProfile(tenantID, chargingProfile.id);
     // Log
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_DELETE,
@@ -1566,7 +1571,7 @@ export default class OCPPUtils {
     }
     // Saves
     const chargingProfileID = await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_UPDATE,
@@ -1655,7 +1660,7 @@ export default class OCPPUtils {
       // Get the OCPP Configuration
       const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(tenantID, chargingStation, {});
       // Log
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -1699,7 +1704,7 @@ export default class OCPPUtils {
           tenantID, chargingStation, chargingStationOcppParameters.configuration);
       }
       // Ok
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -1709,7 +1714,7 @@ export default class OCPPUtils {
       return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, error);
+      await Logging.logActionExceptionMessage(tenantID, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, error);
       return { status: OCPPConfigurationStatus.REJECTED };
     }
   }
@@ -1731,7 +1736,7 @@ export default class OCPPUtils {
     }
     // Check
     if (Utils.isEmptyArray(chargingStation.ocppStandardParameters) && Utils.isEmptyArray(chargingStation.ocppVendorParameters)) {
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -1751,7 +1756,7 @@ export default class OCPPUtils {
         // Check Value
         if (currentOcppParam && currentOcppParam.value === ocppParameter.value) {
           // Ok: Already the good value
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -1767,7 +1772,7 @@ export default class OCPPUtils {
         }, false);
         if (result.status === OCPPConfigurationStatus.ACCEPTED) {
           updatedOcppParams.inSuccess++;
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -1777,7 +1782,7 @@ export default class OCPPUtils {
         } else if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
           updatedOcppParams.inSuccess++;
           rebootRequired = true;
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -1786,7 +1791,7 @@ export default class OCPPUtils {
           });
         } else {
           updatedOcppParams.inError++;
-          Logging.logError({
+          await Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -1796,7 +1801,7 @@ export default class OCPPUtils {
         }
       } catch (error) {
         updatedOcppParams.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: tenantID,
           source: chargingStation.id,
           action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -1838,7 +1843,7 @@ export default class OCPPUtils {
       await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
     }
     if (triggerConditionalReset && result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -1901,7 +1906,7 @@ export default class OCPPUtils {
 
     let resetResult = await chargingStationClient.reset({ type: resetType });
     if (resetResult.status === OCPPResetStatus.REJECTED) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_RESET,
@@ -1909,7 +1914,7 @@ export default class OCPPUtils {
         message: `Error at ${resetType} Rebooting charging station`,
       });
       if (hardResetFallback && resetType !== OCPPResetType.HARD) {
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenantID,
           source: chargingStation.id,
           action: ServerAction.CHARGING_STATION_RESET,
@@ -1918,7 +1923,7 @@ export default class OCPPUtils {
         });
         resetResult = await chargingStationClient.reset({ type: OCPPResetType.HARD });
         if (resetResult.status === OCPPResetStatus.REJECTED) {
-          Logging.logError({
+          await Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_RESET,
