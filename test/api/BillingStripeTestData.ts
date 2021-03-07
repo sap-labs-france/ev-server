@@ -12,6 +12,7 @@ import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
+import Transaction from '../types/Transaction';
 import User from '../../src/types/User';
 import UserStorage from '../../src/storage/mongodb/UserStorage';
 import chaiSubset from 'chai-subset';
@@ -162,21 +163,68 @@ export default class StripeIntegrationTestData {
     return taxRate;
   }
 
+  // public async createDraftInvoice() : Promise<BillingInvoice> {
+  //   assert(this.billingUser, 'Billing user cannot be null');
+  //   const item = {
+  //     description: 'Stripe Integration - Item 777',
+  //     pricingData: {
+  //       amount: 777,
+  //       quantity: 1,
+  //       price: 777
+  //     },
+  //   };
+  //   const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createPendingInvoiceItem(this.billingUser, item);
+  //   assert(billingInvoiceItem, 'Billing invoice item should not be null');
+  //   const billingInvoice: BillingInvoice = await this.billingImpl.createInvoice(this.billingUser);
+  //   assert(billingInvoice, 'Billing invoice should not be null');
+  //   return billingInvoice;
+  // }
+
   public async createDraftInvoice() : Promise<BillingInvoice> {
+
     assert(this.billingUser, 'Billing user cannot be null');
-    const item = { description: 'Stripe Integration - Item 777', amount: 777 };
-    const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createPendingInvoiceItem(this.billingUser, item);
-    assert(billingInvoiceItem, 'Billing invoice item should not be null');
-    const billingInvoice: BillingInvoice = await this.billingImpl.createInvoice(this.billingUser);
+    const invoiceItem = {
+      description: 'Stripe Integration - Item 777',
+      pricingData: {
+        amount: 777,
+        quantity: 1,
+        price: 777
+      }
+    };
+
+    const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItems(this.dynamicUser, [ invoiceItem ]);
     assert(billingInvoice, 'Billing invoice should not be null');
     return billingInvoice;
   }
 
-  public async updateDraftInvoice(billingInvoice: BillingInvoice) : Promise<void> {
+  // public async updateDraftInvoice(billingInvoice: BillingInvoice) : Promise<void> {
+  //   assert(this.billingUser, 'Billing user cannot be null');
+  //   const item = {
+  //     description: 'Stripe Integration - Item 555',
+  //     pricingData: {
+  //       amount: 555,
+  //       quantity: 1,
+  //       price: 555
+  //     },
+  //   };
+  //   const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createInvoiceItem(this.billingUser, billingInvoice.invoiceID, item);
+  //   assert(billingInvoiceItem, 'Invoice Item should not be null');
+  // }
+
+  public async updateDraftInvoice() : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
-    const item = { description: 'Stripe Integration - Item 555', amount: 555 };
-    const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createInvoiceItem(this.billingUser, billingInvoice.invoiceID, item);
-    assert(billingInvoiceItem, 'Invoice Item should not be null');
+    const invoiceItem = {
+      description: 'Stripe Integration - Item 555',
+      pricingData: {
+        amount: 555,
+        quantity: 1,
+        price: 555
+      }
+    };
+
+    const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItems(this.dynamicUser, [ invoiceItem ]);
+    assert(billingInvoice, 'Billing invoice should not be null');
+    return billingInvoice;
   }
 
   public async payDraftInvoice(draftInvoice: { id: string }): Promise<void> {

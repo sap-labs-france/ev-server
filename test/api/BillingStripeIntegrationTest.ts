@@ -39,10 +39,12 @@ describe('Billing Stripe Service', function() {
 
       it('should create and pay a first invoice for BILLING-TEST user', async () => {
         await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
-        // Let's create an INvoice with a first Item
+        // Let's create an Invoice with a first Item
         const dynamicInvoice = await testData.createDraftInvoice();
+        assert(dynamicInvoice, 'Invoice should not be null');
         // Let's add an second item to the same invoice
-        await testData.updateDraftInvoice(dynamicInvoice);
+        const updatedInvoice = await testData.updateDraftInvoice();
+        assert(updatedInvoice, 'Invoice should not be null');
         // User should have a DRAFT invoice
         const draftInvoices = await testData.getDraftInvoices(testData.dynamicUser.id);
         assert(draftInvoices, 'User should have at least a draft invoice');
@@ -67,8 +69,10 @@ describe('Billing Stripe Service', function() {
         await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
         // Let's create an Invoice with a first Item
         const dynamicInvoice = await testData.createDraftInvoice();
+        assert(dynamicInvoice, 'Invoice should not be null');
         // Let's add an second item to the same invoice
-        await testData.updateDraftInvoice(dynamicInvoice);
+        const updatedInvoice = await testData.updateDraftInvoice();
+        assert(updatedInvoice, 'Invoice should not be null');
         // User should have a DRAFT invoice
         const draftInvoices = await testData.getDraftInvoices(testData.dynamicUser.id);
         assert(draftInvoices, 'User should have at least a draft invoice');
