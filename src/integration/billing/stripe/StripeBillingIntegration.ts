@@ -337,10 +337,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
     });
     // Let's update the data which is replicated on our side
-    return this.persistBillingInvoice(user.userID, stripeInvoice);
+    return this.saveAsBillingInvoice(user.userID, stripeInvoice);
   }
 
-  private async persistBillingInvoice(userID: string, stripeInvoice: Stripe.Invoice, billingInvoiceID?: string): Promise<BillingInvoice> {
+  private async saveAsBillingInvoice(userID: string, stripeInvoice: Stripe.Invoice, billingInvoiceID?: string): Promise<BillingInvoice> {
     const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
     const invoiceToSave: Partial<BillingInvoice> = {
       id: billingInvoiceID, // null when the billing invoice does not yet exist
@@ -351,7 +351,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       amount: stripeInvoice.amount_due,
       status: stripeInvoice.status as BillingInvoiceStatus,
       currency: stripeInvoice.currency,
-      createdOn: new Date(),
+      createdOn: new Date(stripeInvoice.created),
       nbrOfItems,
       downloadUrl: stripeInvoice.invoice_pdf,
       downloadable: !!stripeInvoice.invoice_pdf,
@@ -505,7 +505,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     try {
       const stripeInvoice = await this._chargeStripeInvoice(invoice.invoiceID);
-      const billingInvoice = await this.persistBillingInvoice(invoice.userID, stripeInvoice, invoice.id);
+      const billingInvoice = await this.saveAsBillingInvoice(invoice.userID, stripeInvoice, invoice.id);
       if (billingInvoice.downloadable) {
         const invoiceDocument = await this.downloadInvoiceDocument(billingInvoice);
         await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
@@ -737,7 +737,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Let's get the raw data from stripe!
       const stripeInvoice = await this.getStripeInvoice(draftInvoice.invoiceID);
       // Well ... we need to update the billing invoice to reflect the latest changes
-      await this.persistBillingInvoice(billingUser.userID, stripeInvoice, draftInvoice.id);
+      await this.saveAsBillingInvoice(billingUser.userID, stripeInvoice, draftInvoice.id);
     }
 
     if (this.settings.immediateBillingAllowed) {
