@@ -156,7 +156,7 @@
     "urlencode": "^1.1.0",
     "uuid": "^8.3.2",
     "validator": "^13.5.2",
-    "ws": "^7.4.3"
+    "ws": "^7.4.4"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.3",

@@ -483,7 +483,7 @@ export default class OCPPService {
       // Save
       await OCPPStorage.saveAuthorize(headers.tenantID, authorize);
       // Log
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: headers.tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'handleAuthorize',
@@ -501,7 +501,7 @@ export default class OCPPService {
         error.params.source = headers.chargeBoxIdentity;
       }
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error);
       return {
         idTagInfo: {
           status: OCPPAuthorizationStatus.INVALID
@@ -510,8 +510,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleDiagnosticsStatusNotification(headers: OCPPHeader,
-    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+  public async handleDiagnosticsStatusNotification(headers: OCPPHeader, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -993,8 +992,8 @@ export default class OCPPService {
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&
-        foundConnector.errorCode === statusNotification.errorCode &&
-        foundConnector.info === statusNotification.info) {
+      foundConnector.errorCode === statusNotification.errorCode &&
+      foundConnector.info === statusNotification.info) {
       // No Change: Do not save it
       Logging.logWarning({
         tenantID: tenantID,
@@ -1038,7 +1037,7 @@ export default class OCPPService {
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
     if (statusNotification.status === ChargePointStatus.CHARGING ||
-        statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
+      statusNotification.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
         await this.triggerSmartCharging(tenantID, chargingStation);
@@ -1059,7 +1058,7 @@ export default class OCPPService {
     statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check Inactivity
     if (statusNotification.status === ChargePointStatus.AVAILABLE &&
-        Utils.objectHasProperty(statusNotification, 'timestamp')) {
+      Utils.objectHasProperty(statusNotification, 'timestamp')) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
         tenantID, chargingStation.id, connector.connectorId, { withChargingStation: true, withUser: true });
@@ -1147,8 +1146,8 @@ export default class OCPPService {
   private async notifyStatusNotification(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Faulted?
     if (statusNotification.status !== ChargePointStatus.AVAILABLE &&
-        statusNotification.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
-        statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
+      statusNotification.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
+      statusNotification.errorCode !== ChargePointErrorCode.NO_ERROR) {
       // Log
       Logging.logError({
         tenantID: tenantID,
@@ -1358,7 +1357,7 @@ export default class OCPPService {
       // Update lastSeen
       chargingStation.lastSeen = new Date();
       // Log
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'updateChargingStationWithTransaction',
@@ -1438,7 +1437,7 @@ export default class OCPPService {
             const consumptions = await ConsumptionStorage.getTransactionConsumptions(
               tenantID, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
             if (consumptions.result.every((consumption) => consumption.consumptionWh === 0 &&
-               (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
+              (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
                 consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)))) {
               // Send Notification
               await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
