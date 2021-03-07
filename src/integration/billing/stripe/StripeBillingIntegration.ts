@@ -601,7 +601,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_createSetupIntent',
+        module: MODULE_NAME, method: '_attachPaymentMethod',
         message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}'`
       });
       // Set this payment method as the default
@@ -612,7 +612,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_createSetupIntent',
+        module: MODULE_NAME, method: '_attachPaymentMethod',
         message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}'`
       });
       // Send some feedback
