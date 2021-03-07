@@ -103,6 +103,9 @@ export interface BillingInvoiceDocument {
 }
 
 export interface BillingOperationResult {
-  error?: string;
-  internalData: unknown; // Object returned by the concrete implementation - e.g.: STRIPE
+  succeeded: boolean
+  error?: {
+    message: string
+  };
+  internalData?: unknown; // Object returned by the concrete implementation - e.g.: STRIPE
 }

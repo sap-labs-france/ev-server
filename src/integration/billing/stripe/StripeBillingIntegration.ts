@@ -555,28 +555,90 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
     }
 
+    let billingOperationResult: BillingOperationResult;
     const customerID = user.billingData.customerID;
-    let operationResult: Stripe.SetupIntent | Stripe.PaymentMethod;
     if (!paymentMethodId) {
       // Let's create a setupIntent for the stripe customer
-      operationResult = await this.stripe.setupIntents.create({
-        customer: customerID
-      });
+      billingOperationResult = await this._createSetupIntent(user, customerID);
     } else {
       // Attach payment method to the stripe customer
-      operationResult = await this.stripe.paymentMethods.attach(paymentMethodId, {
+      billingOperationResult = await this._attachPaymentMethod(user, customerID, paymentMethodId);
+    }
+    return billingOperationResult;
+  }
+
+  private async _createSetupIntent(user: User, customerID: string): Promise<BillingOperationResult> {
+    try {
+      // Let's create a setupIntent for the stripe customer
+      const setupIntent: Stripe.SetupIntent = await this.stripe.setupIntents.create({
         customer: customerID
+      });
+      void Logging.logInfo({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        module: MODULE_NAME, method: '_createSetupIntent',
+        message: `Setup intent has been created - customer '${customerID}'`
+      });
+      // Send some feedback
+      return {
+        succeeded: true,
+        internalData: setupIntent
+      };
+    } catch (e) {
+      // catch stripe errors and send the information back to the client
+      return this._handleStripeError(e, user, '_createSetupIntent');
+    }
+  }
+
+  private async _attachPaymentMethod(user: User, customerID: string, paymentMethodId: string): Promise<BillingOperationResult> {
+    try {
+      // Attach payment method to the stripe customer
+      const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
+        customer: customerID
+      });
+      void Logging.logInfo({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        module: MODULE_NAME, method: '_createSetupIntent',
+        message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}'`
       });
       // Set this payment method as the default
       await this.stripe.customers.update(customerID, {
-        invoice_settings: {
-          default_payment_method: paymentMethodId,
-        }
+        invoice_settings: { default_payment_method: paymentMethodId }
       });
+      void Logging.logInfo({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        module: MODULE_NAME, method: '_createSetupIntent',
+        message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}'`
+      });
+      // Send some feedback
+      return {
+        succeeded: true,
+        internalData: paymentMethod
+      };
+    } catch (e) {
+      // catch stripe errors and send the information back to the client
+      return this._handleStripeError(e, user, '_attachPaymentMethod');
     }
-    // TODO - exception handling
+  }
+
+  private _handleStripeError(e:Error, user: User, methodName:string): BillingOperationResult {
+    void Logging.logError({
+      tenantID: this.tenantID,
+      action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+      actionOnUser: user,
+      module: MODULE_NAME, method: methodName,
+      message: `Stripe operation failed - ${e?.message }`
+    });
     return {
-      internalData: operationResult
+      succeeded: false,
+      error: {
+        message: e?.message
+      }
     };
   }
 
