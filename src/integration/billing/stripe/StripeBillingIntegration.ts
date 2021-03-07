@@ -327,8 +327,15 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
     await this.checkConnection();
     // Let's create the STRIPE invoice
+    const stripeInvoice: Stripe.Invoice = await this._createStripeInvoice(user.billingData.customerID, idempotencyKey);
+    // Let's update the data which is replicated on our side
+    return this._saveAsBillingInvoice(user.userID, stripeInvoice);
+  }
+
+  private async _createStripeInvoice(customerID: string, idempotencyKey?: string | number): Promise<Stripe.Invoice> {
+    // Let's create the STRIPE invoice
     const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
-      customer: user.billingData.customerID,
+      customer: customerID,
       collection_method: 'send_invoice',
       days_until_due: 30,
       auto_advance: false
@@ -336,17 +343,23 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // idempotency_key: idempotencyKey?.toString(),
       idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
     });
-    // Let's update the data which is replicated on our side
-    return this.saveAsBillingInvoice(user.userID, stripeInvoice);
+    return stripeInvoice;
   }
 
-  private async saveAsBillingInvoice(userID: string, stripeInvoice: Stripe.Invoice, billingInvoiceID?: string): Promise<BillingInvoice> {
+  private async _saveAsBillingInvoice(userID: string, stripeInvoice: Stripe.Invoice, billingInvoiceID?: string): Promise<BillingInvoice> {
     const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
+    let customerID: string;
+    if (typeof stripeInvoice.customer === 'string') {
+      customerID = stripeInvoice.customer;
+    } else {
+      customerID = stripeInvoice.customer.id; // Only happens when the STRIPE customer is expanded
+    }
+
     const invoiceToSave: Partial<BillingInvoice> = {
       id: billingInvoiceID, // null when the billing invoice does not yet exist
       userID,
       invoiceID: stripeInvoice.id,
-      customerID: stripeInvoice.customer as string, // TODO - clarify is this is always correct - customer might be expanded
+      customerID,
       number: stripeInvoice.number,
       amount: stripeInvoice.amount_due,
       status: stripeInvoice.status as BillingInvoiceStatus,
@@ -505,7 +518,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     try {
       const stripeInvoice = await this._chargeStripeInvoice(invoice.invoiceID);
-      const billingInvoice = await this.saveAsBillingInvoice(invoice.userID, stripeInvoice, invoice.id);
+      const billingInvoice = await this._saveAsBillingInvoice(invoice.userID, stripeInvoice, invoice.id);
       if (billingInvoice.downloadable) {
         const invoiceDocument = await this.downloadInvoiceDocument(billingInvoice);
         await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
@@ -737,7 +750,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Let's get the raw data from stripe!
       const stripeInvoice = await this.getStripeInvoice(draftInvoice.invoiceID);
       // Well ... we need to update the billing invoice to reflect the latest changes
-      await this.saveAsBillingInvoice(billingUser.userID, stripeInvoice, draftInvoice.id);
+      await this._saveAsBillingInvoice(billingUser.userID, stripeInvoice, draftInvoice.id);
     }
 
     if (this.settings.immediateBillingAllowed) {
