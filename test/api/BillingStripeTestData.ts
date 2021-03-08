@@ -163,62 +163,36 @@ export default class StripeIntegrationTestData {
     return taxRate;
   }
 
-  // public async createDraftInvoice() : Promise<BillingInvoice> {
-  //   assert(this.billingUser, 'Billing user cannot be null');
-  //   const item = {
-  //     description: 'Stripe Integration - Item 777',
-  //     pricingData: {
-  //       amount: 777,
-  //       quantity: 1,
-  //       price: 777
-  //     },
-  //   };
-  //   const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createPendingInvoiceItem(this.billingUser, item);
-  //   assert(billingInvoiceItem, 'Billing invoice item should not be null');
-  //   const billingInvoice: BillingInvoice = await this.billingImpl.createInvoice(this.billingUser);
-  //   assert(billingInvoice, 'Billing invoice should not be null');
-  //   return billingInvoice;
-  // }
-
-  public async createDraftInvoice() : Promise<BillingInvoice> {
-
-    assert(this.billingUser, 'Billing user cannot be null');
-    const invoiceItem = {
-      description: 'Stripe Integration - Item 777',
-      pricingData: {
-        amount: 777,
-        quantity: 1,
-        price: 777
-      }
-    };
-
-    const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItems(this.dynamicUser, [ invoiceItem ]);
-    assert(billingInvoice, 'Billing invoice should not be null');
-    return billingInvoice;
+  public async checkBusinessProcessBillToPay() : Promise<number> {
+    await this.checkForDraftInvoices(this.dynamicUser.id, 0);
+    // Let's create an Invoice with a first Item
+    const dynamicInvoice = await this.billInvoiceItem(777);
+    assert(dynamicInvoice, 'Invoice should not be null');
+    // Let's add an second item to the same invoice
+    const updatedInvoice = await this.billInvoiceItem(555);
+    assert(updatedInvoice, 'Invoice should not be null');
+    // User should have a DRAFT invoice
+    const draftInvoices = await this.getDraftInvoices(this.dynamicUser.id);
+    assert(draftInvoices, 'User should have at least a draft invoice');
+    expect(draftInvoices.length).to.be.eql(1);
+    // Let's pay that particular DRAFT invoice
+    await this.payDraftInvoice(draftInvoices[0]);
+    // Next step should not be necessary
+    // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
+    // Let's check that the user do not have any DRAFT invoice anymore
+    const nbDraftInvoice:number = await this.checkForDraftInvoices(this.dynamicUser.id, 0);
+    return nbDraftInvoice;
   }
 
-  // public async updateDraftInvoice(billingInvoice: BillingInvoice) : Promise<void> {
-  //   assert(this.billingUser, 'Billing user cannot be null');
-  //   const item = {
-  //     description: 'Stripe Integration - Item 555',
-  //     pricingData: {
-  //       amount: 555,
-  //       quantity: 1,
-  //       price: 555
-  //     },
-  //   };
-  //   const billingInvoiceItem: BillingInvoiceItem = await this.billingImpl.createInvoiceItem(this.billingUser, billingInvoice.invoiceID, item);
-  //   assert(billingInvoiceItem, 'Invoice Item should not be null');
-  // }
+  public async billInvoiceItem(price: number) : Promise<BillingInvoice> {
 
-  public async updateDraftInvoice() : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
     const invoiceItem = {
-      description: 'Stripe Integration - Item 555',
+      description: `Stripe Integration - Item ${price}`,
       pricingData: {
-        amount: 555,
+        amount: price,
         quantity: 1,
-        price: 555
+        price: price
       }
     };
 

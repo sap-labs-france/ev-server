@@ -1,7 +1,6 @@
-import chai, { assert, expect } from 'chai';
-
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import StripeIntegrationTestData from './BillingStripeTestData';
+import chai from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -38,23 +37,7 @@ describe('Billing Stripe Service', function() {
       });
 
       it('should create and pay a first invoice for BILLING-TEST user', async () => {
-        await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
-        // Let's create an Invoice with a first Item
-        const dynamicInvoice = await testData.createDraftInvoice();
-        assert(dynamicInvoice, 'Invoice should not be null');
-        // Let's add an second item to the same invoice
-        const updatedInvoice = await testData.updateDraftInvoice();
-        assert(updatedInvoice, 'Invoice should not be null');
-        // User should have a DRAFT invoice
-        const draftInvoices = await testData.getDraftInvoices(testData.dynamicUser.id);
-        assert(draftInvoices, 'User should have at least a draft invoice');
-        expect(draftInvoices.length).to.be.eql(1);
-        // Let's pay that particular DRAFT invoice
-        await testData.payDraftInvoice(draftInvoices[0]);
-        // Next step should not be necessary
-        // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
-        // Let's check that the user do not have any DRAFT invoice anymore
-        await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
+        void testData.checkBusinessProcessBillToPay();
       });
 
       it('Should add a different payment method to BILLING-TEST user', async () => {
@@ -67,24 +50,8 @@ describe('Billing Stripe Service', function() {
 
       it('should create and pay a second invoice for BILLING-TEST user', async () => {
         await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
-        // Let's create an Invoice with a first Item
-        const dynamicInvoice = await testData.createDraftInvoice();
-        assert(dynamicInvoice, 'Invoice should not be null');
-        // Let's add an second item to the same invoice
-        const updatedInvoice = await testData.updateDraftInvoice();
-        assert(updatedInvoice, 'Invoice should not be null');
-        // User should have a DRAFT invoice
-        const draftInvoices = await testData.getDraftInvoices(testData.dynamicUser.id);
-        assert(draftInvoices, 'User should have at least a draft invoice');
-        expect(draftInvoices.length).to.be.eql(1);
-        // Let's pay that particular DRAFT invoice
-        await testData.payDraftInvoice(draftInvoices[0]);
-        // Next step should not be necessary
-        // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
-        // Let's check that the user do not have any DRAFT invoice anymore
-        await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
+        void testData.checkBusinessProcessBillToPay();
       });
-
 
     });
 

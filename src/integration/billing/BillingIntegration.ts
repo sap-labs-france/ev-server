@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingOperationResult, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingOperationResult, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -536,17 +536,11 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
 
-  // abstract getBillingUser(user: User): Promise<BillingUser>;
-
   abstract getBillingUserByInternalID(id: string): Promise<BillingUser>;
 
   abstract getUsers(): Promise<BillingUser[]>;
 
   abstract getUser(user: User): Promise<BillingUser>;
-
-  // TODO - there is no use-case for such method - the billing data provides the customerID
-  // abstract getUserByEmail(email: string): Promise<BillingUser>;
-
 
   abstract createUser(user: User): Promise<BillingUser>;
 
@@ -562,18 +556,16 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]>;
 
-  // abstract createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<BillingInvoiceItem>;
-
-  // eslint-disable-next-line max-len
-  // abstract createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
+  abstract billInvoiceItems(user: User, billingInvoiceItems: Array<BillingInvoiceItem>, idemPotencyKey?: string): Promise<BillingInvoice>;
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
 
   abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
 
-  // ##CR - TO BE CLARIFIED - clarify the return type!
   abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
-  abstract chargeInvoice(invoice: BillingInvoice): Promise<unknown>;
-  abstract handleBillingEvent(req: Request): boolean;
+
+  abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
+
+  abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
 }

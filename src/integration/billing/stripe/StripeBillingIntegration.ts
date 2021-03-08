@@ -316,22 +316,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return collectedInvoiceIDs;
   }
 
-  // public async createInvoice(user: BillingUser, idempotencyKey?: string | number): Promise<BillingInvoice> {
-  //   if (!user) {
-  //     throw new BackendError({
-  //       source: Constants.CENTRAL_SERVER,
-  //       action: ServerAction.BILLING_CREATE_INVOICE,
-  //       module: MODULE_NAME, method: 'createInvoice',
-  //       message: 'Billing User not provided',
-  //     });
-  //   }
-  //   await this.checkConnection();
-  //   // Let's create the STRIPE invoice
-  //   const stripeInvoice: Stripe.Invoice = await this._createStripeInvoice(user.billingData.customerID, idempotencyKey);
-  //   // Let's update the data which is replicated on our side
-  //   return this._replicateStripeInvoice(user.userID, stripeInvoice.id);
-  // }
-
   private async _createStripeInvoice(customerID: string, idempotencyKey?: string | number): Promise<Stripe.Invoice> {
     // Let's create the STRIPE invoice
     const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
@@ -383,52 +367,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const invoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
     return BillingStorage.getInvoice(this.tenantID, invoiceId);
   }
-
-  // public async createPendingInvoiceItem(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<BillingInvoiceItem> {
-  //   // TODO - We create an item while the invoice ID is not yet known!
-  //   return this.createInvoiceItem(user, null, invoiceItem, idempotencyKey);
-  // }
-
-  // public async createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string | number): Promise<BillingInvoiceItem> {
-  //   await this.checkConnection();
-  //   if (!invoiceItem) {
-  //     throw new BackendError({
-  //       source: Constants.CENTRAL_SERVER,
-  //       action: ServerAction.BILLING_CREATE_INVOICE_ITEM,
-  //       module: MODULE_NAME, method: 'createInvoiceItem',
-  //       message: 'Invoice item not provided',
-  //     });
-  //   }
-  //   try {
-
-  //     const invoiceItemCreateParams: Stripe.InvoiceItemCreateParams = {
-  //       customer: user.billingData.customerID,
-  //       currency: this.settings.currency.toLocaleLowerCase(),
-  //       amount: invoiceItem.pricingData.amount,
-  //       description: invoiceItem.description,
-  //       tax_rates: this.getTaxRateIds()
-  //     };
-  //     // STRIPE throws an exception when invoice is set to null.
-  //     if (invoiceID) {
-  //       // Make sure to only add that property when updating an existing invoice
-  //       invoiceItemCreateParams.invoice = invoiceID;
-  //     }
-  //     // returns the newly created invoice item
-  //     // const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemCreateParams, idempotencyKey);
-  //     // return stripeInvoiceItem;
-  //     await this._createStripeInvoiceItem(invoiceItemCreateParams, idempotencyKey);
-  //     return invoiceItem;
-
-  //   } catch (e) {
-  //     throw new BackendError({
-  //       source: Constants.CENTRAL_SERVER,
-  //       action: ServerAction.BILLING_CREATE_INVOICE_ITEM,
-  //       module: MODULE_NAME, method: 'createInvoiceItem',
-  //       message: 'Failed to create invoice item',
-  //       detailedMessages: { error: e.message, stack: e.stack }
-  //     });
-  //   }
-  // }
 
   private async _createStripeInvoiceItem(parameters: Stripe.InvoiceItemCreateParams, idempotencyKey: string | number): Promise<Stripe.InvoiceItem> {
     // Let's create the line item
@@ -490,7 +428,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  public handleBillingEvent(req: Request): boolean {
+  public async consumeBillingEvent(req: Request): Promise<boolean> {
     let event: { data, type: string };
     if (process.env.STRIPE_WEBHOOK_SECRET) { // ##CR - to be clarified - where this secret key should come from
       // Retrieve the event by verifying the signature using the raw body and secret.
