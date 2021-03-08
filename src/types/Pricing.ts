@@ -1,8 +1,12 @@
 
-export interface Pricing {
+export interface SimplePricingModel {
   timestamp: Date;
-  pricekWh: number;
   priceUnit: string;
+  pricePerKWH: SimplePricingKWH;
+}
+
+export interface SimplePricingKWH {
+  pricekWh: number;
 }
 
 export interface PricedConsumption {

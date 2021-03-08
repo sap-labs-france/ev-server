@@ -321,8 +321,11 @@ export default class OCPPUtils {
   public static assertConsistencyInConsumption(chargingStation: ChargingStation, connectorID: number, consumption: Consumption): void {
     // Check Total Power with Meter Value Power L1, L2, L3
     if (consumption.instantWattsL1 > 0 || consumption.instantWattsL2 > 0 || consumption.instantWattsL3 > 0) {
+      consumption.instantWattsL1 = Utils.convertToFloat(consumption.instantWattsL1);
+      consumption.instantWattsL2 = Utils.convertToFloat(consumption.instantWattsL2);
+      consumption.instantWattsL3 = Utils.convertToFloat(consumption.instantWattsL3);
       // Check total Power with L1/l2/L3
-      const totalWatts = consumption.instantWattsL1 + consumption.instantWattsL2 + consumption.instantWattsL3;
+      const totalWatts = Utils.createDecimal(consumption.instantWattsL1).plus(consumption.instantWattsL2).plus(consumption.instantWattsL3).toNumber();
       // Tolerance ± 10%
       const minTotalWatts = totalWatts / 1.1;
       const maxTotalWatts = totalWatts * 1.1;
@@ -334,8 +337,11 @@ export default class OCPPUtils {
     }
     // Check Total Current with Meter Value Current L1, L2, L3 (Schneider Bug)
     if (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0) {
+      consumption.instantAmpsL1 = Utils.convertToFloat(consumption.instantAmpsL1);
+      consumption.instantAmpsL2 = Utils.convertToFloat(consumption.instantAmpsL2);
+      consumption.instantAmpsL3 = Utils.convertToFloat(consumption.instantAmpsL3);
       // Check total Current with L1/l2/L3
-      const totalAmps = consumption.instantAmpsL1 + consumption.instantAmpsL2 + consumption.instantAmpsL3;
+      const totalAmps = Utils.createDecimal(consumption.instantAmpsL1).plus(consumption.instantAmpsL2).plus(consumption.instantAmpsL3).toNumber();
       // Tolerance ± 10%
       const minTotalAmps = totalAmps / 1.1;
       const maxTotalAmps = totalAmps * 1.1;
@@ -350,7 +356,7 @@ export default class OCPPUtils {
       // Based on provided Amps/Volts
       if (consumption.instantAmps > 0) {
         if (consumption.instantVolts > 0) {
-          consumption.instantWatts = consumption.instantVolts * consumption.instantAmps;
+          consumption.instantWatts = Utils.createDecimal(consumption.instantVolts).mul(consumption.instantAmps).toNumber();
         } else {
           consumption.instantWatts = Utils.convertAmpToWatt(chargingStation, null, connectorID, consumption.instantAmps);
         }
@@ -359,8 +365,8 @@ export default class OCPPUtils {
         // Compute average Instant Power based on consumption over a time period (usually 60s)
         const diffSecs = moment(consumption.endedAt).diff(consumption.startedAt, 'milliseconds') / 1000;
         // Consumption is always provided
-        const sampleMultiplierWhToWatt = diffSecs > 0 ? 3600 / diffSecs : 0;
-        consumption.instantWatts = consumption.consumptionWh * sampleMultiplierWhToWatt;
+        const sampleMultiplierWhToWatt = diffSecs > 0 ? Utils.createDecimal(3600).div(diffSecs).toNumber() : 0;
+        consumption.instantWatts = Utils.createDecimal(consumption.consumptionWh).mul(sampleMultiplierWhToWatt).toNumber();
       }
     }
     // Current not provided in Meter Value
@@ -368,7 +374,7 @@ export default class OCPPUtils {
       // Backup on Instant Watts
       if (consumption.instantWatts > 0) {
         if (consumption.instantVolts > 0) {
-          consumption.instantAmps = consumption.instantWatts / consumption.instantVolts;
+          consumption.instantAmps = Utils.createDecimal(consumption.instantWatts).div(consumption.instantVolts).toNumber();
         } else {
           consumption.instantAmps = Utils.convertWattToAmp(chargingStation, null, connectorID, consumption.instantWatts);
         }
@@ -378,30 +384,31 @@ export default class OCPPUtils {
     if (!consumption.instantWattsL1 && !consumption.instantWattsL2 && !consumption.instantWattsL3 &&
       (consumption.instantAmpsL1 > 0 || consumption.instantAmpsL2 > 0 || consumption.instantAmpsL3 > 0)) {
       if (consumption.instantVoltsL1 > 0) {
-        consumption.instantWattsL1 = consumption.instantAmpsL1 * consumption.instantVoltsL1;
+        consumption.instantWattsL1 = Utils.createDecimal(consumption.instantAmpsL1).mul(consumption.instantVoltsL1).toNumber();
       } else {
         consumption.instantWattsL1 = Utils.convertAmpToWatt(chargingStation, null, connectorID, consumption.instantAmpsL1);
       }
       if (consumption.instantVoltsL2 > 0) {
-        consumption.instantWattsL2 = consumption.instantAmpsL2 * consumption.instantVoltsL2;
+        consumption.instantWattsL2 = Utils.createDecimal(consumption.instantAmpsL2).mul(consumption.instantVoltsL2).toNumber();
       } else {
         consumption.instantWattsL2 = Utils.convertAmpToWatt(chargingStation, null, connectorID, consumption.instantAmpsL2);
       }
       if (consumption.instantVoltsL3 > 0) {
-        consumption.instantWattsL3 = consumption.instantAmpsL3 * consumption.instantVoltsL3;
+        consumption.instantWattsL3 = Utils.createDecimal(consumption.instantAmpsL3).mul(consumption.instantVoltsL3).toNumber();
       } else {
         consumption.instantWattsL3 = Utils.convertAmpToWatt(chargingStation, null, connectorID, consumption.instantAmpsL3);
       }
     }
     // Fill Power per Phase
     if (!consumption.instantWattsDC && consumption.instantAmpsDC > 0 && consumption.instantVoltsDC > 0) {
-      consumption.instantWattsDC = consumption.instantAmpsDC * consumption.instantVoltsDC;
+      consumption.instantWattsDC = Utils.createDecimal(consumption.instantAmpsDC).mul(consumption.instantVoltsDC).toNumber();
     }
   }
 
   public static updateTransactionWithConsumption(chargingStation: ChargingStation, transaction: Transaction, consumption: Consumption): void {
     // Set Consumption (currentTotalConsumptionWh, currentTotalInactivitySecs are updated in consumption creation)
     transaction.currentConsumptionWh = Utils.convertToFloat(consumption.consumptionWh);
+    transaction.currentTotalConsumptionWh = Utils.convertToFloat(consumption.cumulatedConsumptionWh);
     transaction.currentInstantWatts = Utils.convertToFloat(consumption.instantWatts);
     transaction.currentInstantWattsL1 = Utils.convertToFloat(consumption.instantWattsL1);
     transaction.currentInstantWattsL2 = Utils.convertToFloat(consumption.instantWattsL2);
@@ -430,14 +437,14 @@ export default class OCPPUtils {
       chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs);
   }
 
-  public static async rebuildTransactionSimplePricing(tenantID: string, transaction: Transaction): Promise<void> {
+  public static async rebuildTransactionSimplePricing(tenantID: string, transaction: Transaction, pricePerkWh?: number): Promise<void> {
     // Check
     if (!transaction) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionPrices',
-        message: `Transaction ID '${transaction.id}' does not exist`,
+        message: 'Transaction does not exist',
       });
     }
     if (!transaction.stop) {
@@ -457,7 +464,7 @@ export default class OCPPUtils {
       });
     }
     // Retrieve price per kWh
-    const transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
+    const transactionSimplePricePerkWh = pricePerkWh > 0 ? pricePerkWh : Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     // Get the consumptions
     const consumptionDataResult = await ConsumptionStorage.getTransactionConsumptions(
       tenantID, { transactionId: transaction.id });
@@ -467,7 +474,7 @@ export default class OCPPUtils {
       // Update the price
       consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
       consumption.roundedAmount = Utils.truncTo(consumption.amount, 2);
-      transaction.currentCumulatedPrice += consumption.amount;
+      transaction.currentCumulatedPrice = Utils.createDecimal(transaction.currentCumulatedPrice).plus(consumption.amount).toNumber();
       consumption.cumulatedAmount = transaction.currentCumulatedPrice;
     }
     // Delete consumptions
@@ -481,25 +488,15 @@ export default class OCPPUtils {
     await TransactionStorage.saveTransaction(tenantID, transaction);
   }
 
-  public static async rebuildTransactionConsumptions(tenantID: string, transactionId: number): Promise<number> {
+  public static async rebuildTransactionConsumptions(tenantID: string, transaction: Transaction): Promise<number> {
     let consumptions: Consumption[] = [];
     let transactionSimplePricePerkWh: number;
-    if (!transactionId) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
-        message: 'Session ID must be provided',
-      });
-    }
-    // Get the Transaction
-    const transaction = await TransactionStorage.getTransaction(tenantID, transactionId);
     if (!transaction) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
-        message: `Session ID '${transactionId}' does not exist`,
+        message: 'Session does not exist',
       });
     }
     if (!transaction.stop) {
@@ -507,7 +504,7 @@ export default class OCPPUtils {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
-        message: `Session ID '${transactionId}' is in progress`,
+        message: `Session ID '${transaction.id}' is in progress`,
       });
     }
     // Check Simple Pricing
@@ -526,7 +523,7 @@ export default class OCPPUtils {
       });
     }
     // Get the Meter Values
-    const meterValues = await OCPPStorage.getMeterValues(tenantID, { transactionId }, Constants.DB_PARAMS_MAX_LIMIT);
+    const meterValues = await OCPPStorage.getMeterValues(tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
     if (meterValues.count > 0) {
       // Build all Consumptions
       consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenantID, chargingStation, transaction, meterValues.result);
@@ -548,7 +545,14 @@ export default class OCPPUtils {
           // Create last consumption
           const lastConsumptions = await OCPPUtils.createConsumptionsFromMeterValues(
             tenantID, chargingStation, transaction, stopMeterValues);
-          consumptions.splice(consumptions.length - 1, 1, lastConsumptions[0]);
+          const lastConsumption = lastConsumptions[0];
+          // No consumption or no duration, skip it
+          if (!lastConsumption || lastConsumption.startedAt.getTime() === lastConsumption.endedAt.getTime()) {
+            // Not a consumption: Remove last record and quit the loop
+            consumptions.splice(consumptions.length - 1, 1);
+            break;
+          }
+          consumptions.splice(consumptions.length - 1, 1, lastConsumption);
         }
         const consumption = consumptions[i];
         // Update Transaction with Consumption
@@ -578,26 +582,32 @@ export default class OCPPUtils {
           consumption.totalDurationSecs = currentDurationSecs;
         } else {
           // Take total from previous consumption
-          consumption.cumulatedConsumptionWh = consumptions[i - 1].cumulatedConsumptionWh + consumption.consumptionWh;
+          consumption.cumulatedConsumptionWh = Utils.createDecimal(consumptions[i - 1].cumulatedConsumptionWh).plus(
+            Utils.convertToFloat(consumption.consumptionWh)).toNumber();
           consumption.cumulatedConsumptionAmps = Utils.convertWattToAmp(
             chargingStation, null, transaction.connectorId, consumption.cumulatedConsumptionWh);
-          consumption.cumulatedAmount = consumptions[i - 1].cumulatedAmount + consumption.amount;
+          consumption.cumulatedAmount = Utils.createDecimal(consumptions[i - 1].cumulatedAmount).plus(consumption.amount).toNumber();
           if (!consumption.consumptionWh) {
-            consumption.totalInactivitySecs = consumptions[i - 1].totalInactivitySecs + currentDurationSecs;
+            consumption.totalInactivitySecs = Utils.createDecimal(consumptions[i - 1].totalInactivitySecs).plus(currentDurationSecs).toNumber();
           }
-          consumption.totalDurationSecs = consumptions[i - 1].totalDurationSecs + currentDurationSecs;
+          consumption.totalDurationSecs = Utils.createDecimal(consumptions[i - 1].totalDurationSecs).plus(currentDurationSecs).toNumber();
         }
       }
       // Delete first all transaction's consumptions
-      await ConsumptionStorage.deleteConsumptions(tenantID, [ transactionId ]);
+      await ConsumptionStorage.deleteConsumptions(tenantID, [ transaction.id ]);
       // Save all
       await ConsumptionStorage.saveConsumptions(tenantID, consumptions);
-      // Update the price
+      // Update the Transaction
       if (!transaction.refundData) {
-        // Override the price
         transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
         transaction.stop.price = transaction.currentCumulatedPrice;
         transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
+        transaction.stop.stateOfCharge = transaction.currentStateOfCharge;
+        transaction.stop.totalConsumptionWh = transaction.currentTotalConsumptionWh;
+        transaction.stop.totalInactivitySecs = transaction.currentTotalInactivitySecs;
+        transaction.stop.totalDurationSecs = transaction.currentTotalDurationSecs;
+        transaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(
+          transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
       }
     }
     // Build extra inactivity consumption
@@ -823,8 +833,8 @@ export default class OCPPUtils {
       } else if (OCPPUtils.isPowerActiveImportMeterValue(meterValue)) {
         // Compute power
         const powerInMeterValue = Utils.convertToFloat(meterValue.value);
-        const powerInMeterValueWatts = (meterValue.attribute && meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT ?
-          powerInMeterValue * 1000 : powerInMeterValue);
+        const powerInMeterValueWatts = meterValue.attribute?.unit === OCPPUnitOfMeasure.KILO_WATT ?
+          Utils.createDecimal(powerInMeterValue).mul(1000).toNumber() : powerInMeterValue;
         const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
         switch (currentType) {
           case CurrentType.DC:
@@ -912,43 +922,51 @@ export default class OCPPUtils {
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
-        const diffSecs = moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds') / 1000;
+        const diffSecs = Utils.createDecimal(moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
         // Handle current Connector limitation
         await OCPPUtils.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
         // Handle current Site Area limitation
         await OCPPUtils.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
-        // Consumption
-        if (Utils.convertToFloat(meterValue.value) > lastConsumption.value) {
+        // Convert to Wh
+        const meterValueWh = meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT_HOUR ?
+          Utils.createDecimal(Utils.convertToFloat(meterValue.value)).mul(1000).toNumber() : Utils.convertToFloat(meterValue.value);
+        // Check if valid Consumption
+        if (meterValueWh > lastConsumption.value) {
           // Compute consumption
-          const consumptionInMeterValue = Utils.convertToFloat(meterValue.value) - Utils.convertToFloat(lastConsumption.value);
-          // Current consumption
-          consumption.consumptionWh = (meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT_HOUR ?
-            consumptionInMeterValue * 1000 : consumptionInMeterValue);
+          consumption.consumptionWh = Utils.createDecimal(meterValueWh).minus(lastConsumption.value).toNumber();
           consumption.consumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.consumptionWh);
           // Cumulated Consumption
-          transaction.currentTotalConsumptionWh += consumption.consumptionWh;
-          // No Consumption
+          transaction.currentTotalConsumptionWh = Utils.createDecimal(transaction.currentTotalConsumptionWh).plus(consumption.consumptionWh).toNumber();
+          // Keep the last consumption
+          transaction.lastConsumption = {
+            value: meterValueWh,
+            timestamp: Utils.convertToDate(meterValue.timestamp)
+          };
+        // No Consumption
         } else {
+          // Keep the last consumption only if not <
+          if (meterValueWh === lastConsumption.value) {
+            transaction.lastConsumption = {
+              value: meterValueWh,
+              timestamp: Utils.convertToDate(meterValue.timestamp)
+            };
+          }
           consumption.consumptionWh = 0;
           consumption.consumptionAmps = 0;
           if (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
-            consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)) {
+              consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)) {
             // Update inactivity
-            transaction.currentTotalInactivitySecs += diffSecs;
+            transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(diffSecs).toNumber();
             consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
           }
         }
         consumption.cumulatedConsumptionWh = transaction.currentTotalConsumptionWh;
-        consumption.cumulatedConsumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, transaction.currentTotalConsumptionWh);
+        consumption.cumulatedConsumptionAmps = Utils.convertWattToAmp(
+          chargingStation, null, transaction.connectorId, transaction.currentTotalConsumptionWh);
         consumption.totalDurationSecs = !transaction.stop ?
           moment.duration(moment(meterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
         consumption.toPrice = true;
-        // Keep last one
-        transaction.lastConsumption = {
-          value: Utils.convertToFloat(meterValue.value),
-          timestamp: Utils.convertToDate(meterValue.timestamp)
-        };
       }
       // Return
       return consumption;
@@ -963,14 +981,15 @@ export default class OCPPUtils {
       // Maximum power of the Site Area provided?
       if (siteArea && siteArea.maximumPower) {
         consumption.limitSiteAreaWatts = siteArea.maximumPower;
-        consumption.limitSiteAreaAmps = siteArea.maximumPower / siteArea.voltage;
+        consumption.limitSiteAreaAmps = Utils.createDecimal(siteArea.maximumPower).div(siteArea.voltage).toNumber();
         consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
       } else {
         // Compute it for Charging Stations
-        const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+        const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID,
+          { siteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
           for (const connector of chargingStationOfSiteArea.connectors) {
-            consumption.limitSiteAreaWatts += connector.power;
+            consumption.limitSiteAreaWatts = Utils.createDecimal(consumption.limitSiteAreaWatts).plus(connector.power).toNumber();
           }
         }
         consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / siteArea.voltage);
