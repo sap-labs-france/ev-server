@@ -120,7 +120,7 @@ export default class Authorizations {
   }
 
   public static async buildUserToken(tenantID: string, user: User, tags: Tag[]): Promise<UserToken> {
-    const companyIDs = new Set<string>();
+    // Const companyIDs = new Set<string>();
     const siteIDs = [];
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
@@ -130,7 +130,7 @@ export default class Authorizations {
     for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
         siteIDs.push(siteUser.site.id);
-        companyIDs.add(siteUser.site.companyID);
+        // CompanyIDs.add(siteUser.site.companyID);
         if (siteUser.siteAdmin) {
           siteAdminIDs.push(siteUser.site.id);
         }
@@ -173,7 +173,7 @@ export default class Authorizations {
       'userHashID': SessionHashService.buildUserHashID(user),
       'tenantHashID': tenantHashID,
       'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length, siteOwnerIDs.length),
-      'companies': [...companyIDs],
+      // 'companies': [...companyIDs],
       'sitesAdmin': siteAdminIDs,
       'sitesOwner': siteOwnerIDs,
       'sites': siteIDs,
