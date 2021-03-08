@@ -289,7 +289,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get unassigned transactions
-    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.user.tenantID, filteredRequest.ID);
+    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.user.tenantID, transaction);
     // Return
     res.json({ nbrOfConsumptions, ...Constants.REST_RESPONSE_SUCCESS });
     next();
