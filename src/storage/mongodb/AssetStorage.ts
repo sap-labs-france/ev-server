@@ -116,9 +116,8 @@ export default class AssetStorage {
     const filters: FilterParams = {};
     // Search
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'name': { $regex: params.search, $options: 'i' } },
       ];
     }
     // With no Site Area
@@ -227,9 +226,8 @@ export default class AssetStorage {
     // Set the filters
     const filters: FilterParams = {};
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'name': { $regex: params.search, $options: 'i' } },
       ];
     }
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {

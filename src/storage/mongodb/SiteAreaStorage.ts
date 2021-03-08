@@ -166,7 +166,7 @@ export default class SiteAreaStorage {
     // Otherwise check if search is present
     if (params.search) {
       filters.$or = [
-        { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Site Area

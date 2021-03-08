@@ -119,10 +119,9 @@ export default class TenantStorage {
     // Set the filters
     const filters: FilterParams = {};
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
-        { 'subdomain': { $regex: searchRegex, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'subdomain': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Tenant

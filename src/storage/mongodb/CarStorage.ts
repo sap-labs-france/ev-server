@@ -38,14 +38,13 @@ export default class CarStorage {
     // Create Aggregation
     const aggregation = [];
     // Set the filters
-    const filters: any = {};
+    const filters: FilterParams = {};
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { '_id': Utils.convertToInt(params.search) },
-        { 'vehicleModel': { $regex: searchRegex, $options: 'i' } },
-        { 'vehicleMake': { $regex: searchRegex, $options: 'i' } },
-        { 'vehicleModelVersion': { $regex: searchRegex, $options: 'i' } },
+        { 'vehicleModel': { $regex: params.search, $options: 'i' } },
+        { 'vehicleMake': { $regex: params.search, $options: 'i' } },
+        { 'vehicleModelVersion': { $regex: params.search, $options: 'i' } },
       ];
     }
     // Limit on Car for Basic Users
@@ -425,7 +424,7 @@ export default class CarStorage {
     const filters: ({ $or?: any[] } | undefined) = {};
     if (params.search) {
       filters.$or = [
-        { 'vehicleMake': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } },
+        { 'vehicleMake': { $regex: params.search, $options: 'i' } },
       ];
     }
     // Create Aggregation
@@ -623,10 +622,9 @@ export default class CarStorage {
     const filters: FilterParams = {};
     // Search
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'vin': { $regex: searchRegex, $options: 'i' } },
-        { 'licensePlate': { $regex: searchRegex, $options: 'i' } },
+        { 'vin': { $regex: params.search, $options: 'i' } },
+        { 'licensePlate': { $regex: params.search, $options: 'i' } },
       ];
     }
     if (params.licensePlate) {

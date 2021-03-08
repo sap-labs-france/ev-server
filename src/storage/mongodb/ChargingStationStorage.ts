@@ -186,9 +186,7 @@ export default class ChargingStationStorage {
       });
     }
     // Set the filters
-    const filters: FilterParams = {
-      $or: DatabaseUtils.getNotDeletedFilter()
-    };
+    const filters: FilterParams = {};
     // Filter
     if (params.search) {
       filters.$or = [
@@ -197,6 +195,8 @@ export default class ChargingStationStorage {
         { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
       ];
     }
+    // Remove deleted
+    filters.deleted = { '$ne': true };
     // Charging Stations
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {
       filters._id = {
@@ -410,11 +410,7 @@ export default class ChargingStationStorage {
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
     // Set the filters
-    const filters: FilterParams = { '$or': DatabaseUtils.getNotDeletedFilter() };
-    filters.issuer = true;
-    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
-      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
-    }
+    const filters: FilterParams = {};
     // Search filters
     if (params.search) {
       filters.$or = [
@@ -422,6 +418,14 @@ export default class ChargingStationStorage {
         { 'chargePointModel': { $regex: params.search, $options: 'i' } },
         { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    // Remove deleted
+    filters.deleted = { '$ne': true };
+    // Issuer
+    filters.issuer = true;
+    // Site Areas
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
+      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
     }
     // Add in aggregation
     aggregation.push({
@@ -751,10 +755,9 @@ export default class ChargingStationStorage {
     const filters: FilterParams = {};
     // Build filter
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'chargingStationID': { $regex: searchRegex, $options: 'i' } },
-        { 'profile.transactionId': Utils.convertToInt(searchRegex) },
+        { 'chargingStationID': { $regex: params.search, $options: 'i' } },
+        { 'profile.transactionId': Utils.convertToInt(params.search) },
       ];
     }
     if (params.chargingProfileID) {

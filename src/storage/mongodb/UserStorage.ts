@@ -496,27 +496,26 @@ export default class UserStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
-    const filters: FilterParams = {
-      '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }]
-    };
+    const filters: FilterParams = {};
     // Create Aggregation
     const aggregation = [];
     // Filter
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
-      filters.$and.push({
-        '$or': [
-          { 'name': { $regex: searchRegex, $options: 'i' } },
-          { 'firstName': { $regex: searchRegex, $options: 'i' } },
-          { 'email': { $regex: searchRegex, $options: 'i' } },
-          { 'plateID': { $regex: searchRegex, $options: 'i' } }
-        ]
-      });
+      filters.$or = [
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'firstName': { $regex: params.search, $options: 'i' } },
+        { 'email': { $regex: params.search, $options: 'i' } },
+        { 'plateID': { $regex: params.search, $options: 'i' } }
+      ];
     }
+    // Remove deleted
+    filters.deleted = { '$ne': true };
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
+    // Remove deleted
+    filters.deleted = { '$ne': true };
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
@@ -561,14 +560,12 @@ export default class UserStorage {
     }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
-      filters.$and.push({
-        '$or': [
-          { 'billingData': { '$exists': false } },
-          { 'billingData.lastChangedOn': { '$exists': false } },
-          { 'billingData.lastChangedOn': null },
-          { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
-        ]
-      });
+      filters.$or = [
+        { 'billingData': { '$exists': false } },
+        { 'billingData.lastChangedOn': { '$exists': false } },
+        { 'billingData.lastChangedOn': null },
+        { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
+      ];
     }
     // Add filters
     aggregation.push({
@@ -686,21 +683,19 @@ export default class UserStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
-    const filters: FilterParams = {
-      '$or': DatabaseUtils.getNotDeletedFilter()
-    };
+    const filters: FilterParams = {};
     // Create Aggregation
     const aggregation = [];
     // Filter
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
-        { 'firstName': { $regex: searchRegex, $options: 'i' } },
-        { 'email': { $regex: searchRegex, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'firstName': { $regex: params.search, $options: 'i' } },
+        { 'email': { $regex: params.search, $options: 'i' } }
       ];
     }
-
+    // Remove deleted
+    filters.deleted = { '$ne': true };
     // Status (Previously getUsersInError)
     if (params.statuses && params.statuses.length > 0) {
       filters.status = { $in: params.statuses };
@@ -784,24 +779,26 @@ export default class UserStorage {
     // Mongodb aggregation creation
     const aggregation = [];
     // Mongodb filter block ($match)
-    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
-    match.issuer = true;
-    if (params.roles) {
-      match.role = { '$in': params.roles };
-    }
+    const filters: FilterParams = {};
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
-      match.$and.push({
-        '$or': [
-          { 'name': { $regex: searchRegex, $options: 'i' } },
-          { 'firstName': { $regex: searchRegex, $options: 'i' } },
-          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
-          { 'email': { $regex: searchRegex, $options: 'i' } },
-          { 'plateID': { $regex: searchRegex, $options: 'i' } }]
-      }
-      );
+      filters.$or = [
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'firstName': { $regex: params.search, $options: 'i' } },
+        { 'tags.id': { $regex: params.search, $options: 'i' } },
+        { 'email': { $regex: params.search, $options: 'i' } },
+        { 'plateID': { $regex: params.search, $options: 'i' } }
+      ];
     }
-    aggregation.push({ $match: match });
+    // Issuer
+    filters.issuer = true;
+    // Remove deleted
+    filters.deleted = { '$ne': true };
+    // Roles
+    if (params.roles) {
+      filters.role = { '$in': params.roles };
+    }
+    // Filters
+    aggregation.push({ $match: filters });
     // Mongodb Lookup block
     // Add Tags
     DatabaseUtils.pushTagLookupInAggregation({

@@ -50,7 +50,7 @@ export default class BillingStorage {
     // Filter by other properties
     if (params.search) {
       filters.$or = [
-        { 'number': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
+        { 'number': { $regex: params.search, $options: 'i' } }
       ];
     }
     if (!Utils.isEmptyArray(params.invoiceIDs)) {

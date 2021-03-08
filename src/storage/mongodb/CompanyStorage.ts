@@ -114,11 +114,10 @@ export default class CompanyStorage {
     // Set the filters
     const filters: FilterParams = {};
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
-        { 'address.city': { $regex: searchRegex, $options: 'i' } },
-        { 'address.country': { $regex: searchRegex, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.city': { $regex: params.search, $options: 'i' } },
+        { 'address.country': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Limit on Company for Basic Users

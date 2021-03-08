@@ -129,7 +129,7 @@ export default class SiteStorage {
     // Filter deleted users
     aggregation.push({
       $match: {
-        '$or': DatabaseUtils.getNotDeletedFilter('user')
+        'user.deleted': { $ne: true }
       }
     });
     // Another match for searching on Users
@@ -340,7 +340,7 @@ export default class SiteStorage {
     const filters: FilterParams = {};
     if (params.search) {
       filters.$or = [
-        { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Site

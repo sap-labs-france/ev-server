@@ -115,32 +115,36 @@ export default class TagStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
-    const filters: FilterParams = {
-      '$or': DatabaseUtils.getNotDeletedFilter()
-    };
+    const filters: FilterParams = {};
     // Filter by other properties
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { '_id': { $regex: searchRegex, $options: 'i' } },
-        { 'description': { $regex: searchRegex, $options: 'i' } }
+        { '_id': { $regex: params.search, $options: 'i' } },
+        { 'description': { $regex: params.search, $options: 'i' } }
       ];
     }
+    // Remove deleted
+    filters.deleted = { '$ne': true };
+    // Tag IDs
     if (!Utils.isEmptyArray(params.tagIDs)) {
       filters._id = { $in: params.tagIDs };
     }
+    // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
       if (params.defaultTag) {
         filters.default = true;
       }
     }
+    // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
     }
+    // Active
     if (Utils.objectHasProperty(params, 'active') && Utils.isBoolean(params.active)) {
       filters.active = params.active;
     }
+    // Dates
     if (params.dateFrom && moment(params.dateFrom).isValid()) {
       filters.lastChangedOn = { $gte: new Date(params.dateFrom) };
     }
