@@ -4233,7 +4233,6 @@
       "WithSite": {
         "in": "query",
         "name": "WithSite",
-        "required": false,
         "description": "With site attribute",
         "schema": {
           "type": "boolean"
