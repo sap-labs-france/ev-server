@@ -359,6 +359,8 @@ export enum ServerAction {
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
   USERS_IMPORT = 'UsersImport',
+  SYNCHRONIZE_USERS = 'SynchronizeUsers',
+
 
   NOTIFICATIONS = 'Notifications',
 
