@@ -3270,7 +3270,7 @@
         "description": "Retrieve a User",
         "parameters": [
           {
-            "$ref": "#/components/parameters/UserIDPath"
+            "$ref": "#/components/parameters/userID"
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
@@ -4058,7 +4058,7 @@
           "type": "string"
         }
       },
-      "UserIDPath": {
+      "userID": {
         "in": "path",
         "name": "id",
         "description": "User ID",
