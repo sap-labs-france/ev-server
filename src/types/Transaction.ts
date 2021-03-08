@@ -7,6 +7,7 @@ import ChargingStation from '../types/ChargingStation';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
 import { RefundTransactionData } from './Refund';
+import { SimplePricingModel } from './Pricing';
 import Tag from './Tag';
 import User from './User';
 
@@ -60,6 +61,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   roundedPrice?: number;
   priceUnit?: string;
   pricingSource?: string;
+  pricingModel?: SimplePricingModel,
   stateOfCharge: number;
   timezone: string;
   currentTimestamp?: Date;
@@ -69,7 +71,6 @@ export default interface Transaction extends AbstractCurrentConsumption {
   currentTotalDurationSecs?: number;
   transactionEndReceived?: boolean;
   currentCumulatedPrice?: number;
-  currentTotalConsumptionWh: number;
   currentSignedData?: string;
   status?: ChargePointStatus;
   numberOfMeterValues: number;
@@ -79,6 +80,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   ocpi?: boolean;
   ocpiWithCdr?: boolean;
   ocpiData?: OcpiData;
+  migrationTag?: string;
 }
 
 export interface OcpiData {

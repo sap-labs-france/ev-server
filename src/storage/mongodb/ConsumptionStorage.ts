@@ -17,73 +17,37 @@ export default class ConsumptionStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveConsumption');
     // Check
     await DatabaseUtils.checkTenant(tenantID);
-    // Set the ID
-    if (!consumptionToSave.id) {
-      const timestamp = Utils.convertToDate(consumptionToSave.endedAt);
-      if (consumptionToSave.transactionId) {
-        consumptionToSave.id = Cypher.hash(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`);
-      } else if (consumptionToSave.assetID) {
-        consumptionToSave.id = Cypher.hash(`${consumptionToSave.assetID}~${timestamp.toISOString()}`);
-      } else {
-        throw new Error('Consumption cannot be saved: no Transaction ID or Asset ID provided');
-      }
-    }
-    // Transfer
-    const consumptionMDB: any = {
-      _id: consumptionToSave.id,
-      startedAt: Utils.convertToDate(consumptionToSave.startedAt),
-      endedAt: Utils.convertToDate(consumptionToSave.endedAt),
-      transactionId: Utils.convertToInt(consumptionToSave.transactionId),
-      chargeBoxID: consumptionToSave.chargeBoxID,
-      connectorId: Utils.convertToInt(consumptionToSave.connectorId),
-      siteAreaID: Utils.convertToObjectID(consumptionToSave.siteAreaID),
-      siteID: Utils.convertToObjectID(consumptionToSave.siteID),
-      assetID: Utils.convertToObjectID(consumptionToSave.assetID),
-      consumptionWh: Utils.convertToFloat(consumptionToSave.consumptionWh),
-      consumptionAmps: Utils.convertToFloat(consumptionToSave.consumptionAmps),
-      cumulatedAmount: Utils.convertToFloat(consumptionToSave.cumulatedAmount),
-      cumulatedConsumptionWh: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionWh),
-      cumulatedConsumptionAmps: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionAmps),
-      pricingSource: consumptionToSave.pricingSource,
-      amount: Utils.convertToFloat(consumptionToSave.amount),
-      roundedAmount: Utils.convertToFloat(consumptionToSave.roundedAmount),
-      currencyCode: consumptionToSave.currencyCode,
-      instantWatts: Utils.convertToFloat(consumptionToSave.instantWatts),
-      instantWattsL1: Utils.convertToFloat(consumptionToSave.instantWattsL1),
-      instantWattsL2: Utils.convertToFloat(consumptionToSave.instantWattsL2),
-      instantWattsL3: Utils.convertToFloat(consumptionToSave.instantWattsL3),
-      instantWattsDC: Utils.convertToFloat(consumptionToSave.instantWattsDC),
-      instantAmps: Utils.convertToFloat(consumptionToSave.instantAmps),
-      instantAmpsL1: Utils.convertToFloat(consumptionToSave.instantAmpsL1),
-      instantAmpsL2: Utils.convertToFloat(consumptionToSave.instantAmpsL2),
-      instantAmpsL3: Utils.convertToFloat(consumptionToSave.instantAmpsL3),
-      instantAmpsDC: Utils.convertToFloat(consumptionToSave.instantAmpsDC),
-      instantVolts: Utils.convertToFloat(consumptionToSave.instantVolts),
-      instantVoltsL1: Utils.convertToFloat(consumptionToSave.instantVoltsL1),
-      instantVoltsL2: Utils.convertToFloat(consumptionToSave.instantVoltsL2),
-      instantVoltsL3: Utils.convertToFloat(consumptionToSave.instantVoltsL3),
-      instantVoltsDC: Utils.convertToFloat(consumptionToSave.instantVoltsDC),
-      totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
-      totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
-      stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
-      limitAmps: Utils.convertToInt(consumptionToSave.limitAmps),
-      limitWatts: Utils.convertToInt(consumptionToSave.limitWatts),
-      limitSource: consumptionToSave.limitSource,
-      userID: Utils.convertToObjectID(consumptionToSave.userID),
-      smartChargingActive: Utils.convertToBoolean(consumptionToSave.smartChargingActive),
-      limitSiteAreaWatts: consumptionToSave.limitSiteAreaWatts ? Utils.convertToInt(consumptionToSave.limitSiteAreaWatts) : null,
-      limitSiteAreaAmps: consumptionToSave.limitSiteAreaAmps ? Utils.convertToInt(consumptionToSave.limitSiteAreaAmps) : null,
-      limitSiteAreaSource: consumptionToSave.limitSiteAreaSource ? consumptionToSave.limitSiteAreaSource : null,
-    };
+    // Build
+    const consumptionMDB = ConsumptionStorage.buildConsumptionMDB(consumptionToSave);
     // Modify
     await global.database.getCollection<any>(tenantID, 'consumptions').findOneAndUpdate(
       { '_id': consumptionMDB._id },
       { $set: consumptionMDB },
       { upsert: true });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumption', uniqueTimerID, consumptionMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumption', uniqueTimerID, consumptionMDB);
     // Return
     return consumptionMDB._id;
+  }
+
+  static async saveConsumptions(tenantID: string, consumptionsToSave: Consumption[]): Promise<string[]> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveConsumptions');
+    // Check
+    await DatabaseUtils.checkTenant(tenantID);
+    const consumptionsMDB = [];
+    for (const consumptionToSave of consumptionsToSave) {
+      // Build
+      const consumptionMDB = ConsumptionStorage.buildConsumptionMDB(consumptionToSave);
+      // Add
+      consumptionsMDB.push(consumptionMDB);
+    }
+    // Insert
+    await global.database.getCollection<any>(tenantID, 'consumptions').insertMany(consumptionsMDB);
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumptions', uniqueTimerID);
+    // Return
+    return consumptionsMDB.map((consumptionMDB) => consumptionMDB._id);
   }
 
   static async deleteConsumptions(tenantID: string, transactionIDs: number[]): Promise<void> {
@@ -95,7 +59,7 @@ export default class ConsumptionStorage {
     await global.database.getCollection<any>(tenantID, 'consumptions')
       .deleteMany({ 'transactionId': { $in: transactionIDs } });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
   static async getAssetConsumptions(tenantID: string, params: { assetID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
@@ -174,7 +138,7 @@ export default class ConsumptionStorage {
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetConsumptions', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetConsumptions', uniqueTimerID, consumptionsMDB);
     return consumptionsMDB;
   }
 
@@ -257,7 +221,7 @@ export default class ConsumptionStorage {
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, consumptionsMDB);
     return consumptionsMDB;
   }
 
@@ -307,7 +271,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionConsumptions', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionConsumptions', uniqueTimerID, consumptionsMDB);
     return {
       count: consumptionsMDB.length,
       result: consumptionsMDB
@@ -349,7 +313,7 @@ export default class ConsumptionStorage {
       consumption = consumptionsMDB[0];
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getLastTransactionConsumption', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getLastTransactionConsumption', uniqueTimerID, consumptionsMDB);
     return consumption;
   }
 
@@ -427,7 +391,67 @@ export default class ConsumptionStorage {
     // Sort
     consumptions.sort((cons1, cons2) => cons1.endedAt.getTime() - cons2.endedAt.getTime());
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOptimizedTransactionConsumptions', uniqueTimerID, consumptions);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getOptimizedTransactionConsumptions', uniqueTimerID, consumptions);
     return consumptions;
+  }
+
+  private static buildConsumptionMDB(consumption: Consumption): any {
+    // Set the ID
+    if (!consumption.id) {
+      const timestamp = Utils.convertToDate(consumption.endedAt);
+      if (consumption.transactionId) {
+        consumption.id = Cypher.hash(`${consumption.transactionId}~${timestamp.toISOString()}`);
+      } else if (consumption.assetID) {
+        consumption.id = Cypher.hash(`${consumption.assetID}~${timestamp.toISOString()}`);
+      } else {
+        throw new Error('Consumption cannot be saved: no Transaction ID or Asset ID provided');
+      }
+    }
+    return {
+      _id: consumption.id,
+      startedAt: Utils.convertToDate(consumption.startedAt),
+      endedAt: Utils.convertToDate(consumption.endedAt),
+      transactionId: Utils.convertToInt(consumption.transactionId),
+      chargeBoxID: consumption.chargeBoxID,
+      connectorId: Utils.convertToInt(consumption.connectorId),
+      siteAreaID: Utils.convertToObjectID(consumption.siteAreaID),
+      siteID: Utils.convertToObjectID(consumption.siteID),
+      assetID: Utils.convertToObjectID(consumption.assetID),
+      consumptionWh: Utils.convertToFloat(consumption.consumptionWh),
+      consumptionAmps: Utils.convertToFloat(consumption.consumptionAmps),
+      cumulatedAmount: Utils.convertToFloat(consumption.cumulatedAmount),
+      cumulatedConsumptionWh: Utils.convertToFloat(consumption.cumulatedConsumptionWh),
+      cumulatedConsumptionAmps: Utils.convertToFloat(consumption.cumulatedConsumptionAmps),
+      pricingSource: consumption.pricingSource,
+      amount: Utils.convertToFloat(consumption.amount),
+      roundedAmount: Utils.convertToFloat(consumption.roundedAmount),
+      currencyCode: consumption.currencyCode,
+      instantWatts: Utils.convertToFloat(consumption.instantWatts),
+      instantWattsL1: Utils.convertToFloat(consumption.instantWattsL1),
+      instantWattsL2: Utils.convertToFloat(consumption.instantWattsL2),
+      instantWattsL3: Utils.convertToFloat(consumption.instantWattsL3),
+      instantWattsDC: Utils.convertToFloat(consumption.instantWattsDC),
+      instantAmps: Utils.convertToFloat(consumption.instantAmps),
+      instantAmpsL1: Utils.convertToFloat(consumption.instantAmpsL1),
+      instantAmpsL2: Utils.convertToFloat(consumption.instantAmpsL2),
+      instantAmpsL3: Utils.convertToFloat(consumption.instantAmpsL3),
+      instantAmpsDC: Utils.convertToFloat(consumption.instantAmpsDC),
+      instantVolts: Utils.convertToFloat(consumption.instantVolts),
+      instantVoltsL1: Utils.convertToFloat(consumption.instantVoltsL1),
+      instantVoltsL2: Utils.convertToFloat(consumption.instantVoltsL2),
+      instantVoltsL3: Utils.convertToFloat(consumption.instantVoltsL3),
+      instantVoltsDC: Utils.convertToFloat(consumption.instantVoltsDC),
+      totalInactivitySecs: Utils.convertToInt(consumption.totalInactivitySecs),
+      totalDurationSecs: Utils.convertToInt(consumption.totalDurationSecs),
+      stateOfCharge: Utils.convertToInt(consumption.stateOfCharge),
+      limitAmps: Utils.convertToInt(consumption.limitAmps),
+      limitWatts: Utils.convertToInt(consumption.limitWatts),
+      limitSource: consumption.limitSource,
+      userID: Utils.convertToObjectID(consumption.userID),
+      smartChargingActive: Utils.convertToBoolean(consumption.smartChargingActive),
+      limitSiteAreaWatts: consumption.limitSiteAreaWatts ? Utils.convertToInt(consumption.limitSiteAreaWatts) : null,
+      limitSiteAreaAmps: consumption.limitSiteAreaAmps ? Utils.convertToInt(consumption.limitSiteAreaAmps) : null,
+      limitSiteAreaSource: consumption.limitSiteAreaSource ? consumption.limitSiteAreaSource : null,
+    };
   }
 }
