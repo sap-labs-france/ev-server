@@ -1,5 +1,5 @@
 import Site, { SiteUser } from '../../types/Site';
-import User, { UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, UserImportStatus, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { FilterParams, Image } from '../../types/GlobalType';
 
@@ -272,18 +272,23 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
-  public static async saveImportedUser(tenantID: string, userToSave: any): Promise<void> {
+  public static async saveImportedUser(tenantID: string, importedUserToSave: ImportedUser): Promise<void> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUser');
     const userMDB = {
-      email: userToSave.email,
-      firstName: userToSave.firstName,
-      name: userToSave.name,
-      role: userToSave.role,
+      _id: importedUserToSave.id ? Utils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
+      email: importedUserToSave.email,
+      firstName: importedUserToSave.firstName,
+      name: importedUserToSave.name,
+      status: importedUserToSave.status,
+      error: importedUserToSave.error,
       importedOn: new Date(),
-      importedBy: Utils.convertToObjectID(userToSave.importedBy)
+      importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
     };
-    await global.database.getCollection<any>(tenantID, 'usersImport').insertOne(
-      userMDB);
+    await global.database.getCollection<any>(tenantID, 'usersImport').findOneAndUpdate(
+      { _id: userMDB._id },
+      { $set: userMDB },
+      { upsert: true, returnOriginal: false }
+    );
     // Debug
     Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUser', uniqueTimerID, userMDB);
   }
@@ -663,6 +668,103 @@ export default class UserStorage {
       count: (usersCountMDB.length > 0 ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB
+    };
+  }
+
+  public static async getImportedUsers(tenantID: string,
+    params: {
+      statuses?: UserImportStatus[]; search?: string
+    },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getImportedUsers');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneObject(dbParams);
+    // Check Limit
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    const filters: FilterParams = {
+      '$or': DatabaseUtils.getNotDeletedFilter()
+    };
+    // Create Aggregation
+    const aggregation = [];
+    // Filter
+    if (params.search) {
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'firstName': { $regex: searchRegex, $options: 'i' } },
+        { 'email': { $regex: searchRegex, $options: 'i' } }
+      ];
+    }
+
+    // Status (Previously getUsersInError)
+    if (params.statuses && params.statuses.length > 0) {
+      filters.status = { $in: params.statuses };
+    }
+    // Add filters
+    aggregation.push({
+      $match: filters
+    });
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Count Records
+    const usersImportCountMDB = await global.database.getCollection<any>(tenantID, 'usersImport')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      // Return only the count
+      Logging.traceEnd(tenantID, MODULE_NAME, 'getUsersImport', uniqueTimerID, usersImportCountMDB);
+      return {
+        count: (usersImportCountMDB.length > 0 ? usersImportCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
+    // Sort
+    if (!dbParams.sort) {
+      dbParams.sort = { status: -1, name: 1, firstName: 1 };
+    }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
+    // Change ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'importedBy');
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
+    // Read DB
+    const usersImportMDB = await global.database.getCollection<any>(tenantID, 'usersImport')
+      .aggregate(aggregation, {
+        allowDiskUse: true
+      })
+      .toArray();
+    // Debug
+    Logging.traceEnd(tenantID, MODULE_NAME, 'getUsersImport', uniqueTimerID, usersImportMDB);
+    // Ok
+    return {
+      count: (usersImportCountMDB.length > 0 ?
+        (usersImportCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersImportCountMDB[0].count) : 0),
+      result: usersImportMDB
     };
   }
 

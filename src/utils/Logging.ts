@@ -58,19 +58,21 @@ export default class Logging {
       }
       const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
       const numberOfRecords = Array.isArray(data) ? data.length : 0;
-      const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''}${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`;
-      console.debug(chalk.green(message));
-      if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`)));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
-      }
-      if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`)));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+      if (Utils.isDevelopmentEnv()) {
+        const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''}${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`;
+        console.debug(chalk.green(message));
+        if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+          console.error(chalk.red('===================================='));
+          console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`)));
+          console.error(chalk.red(message));
+          console.error(chalk.red('===================================='));
+        }
+        if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+          console.error(chalk.red('===================================='));
+          console.error(chalk.red(new Error(`Tenant ID '${tenantID}': Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`)));
+          console.error(chalk.red(message));
+          console.error(chalk.red('===================================='));
+        }
       }
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
@@ -183,6 +185,7 @@ export default class Logging {
         action, module, method,
         message: messageSuccessAndError
       });
+      Utils.isDevelopmentEnv() && console.error(chalk.red(messageSuccessAndError));
     } else if (actionsResponse.inSuccess > 0) {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -190,6 +193,7 @@ export default class Logging {
         action, module, method,
         message: messageSuccess
       });
+      Utils.isDevelopmentEnv() && console.info(chalk.green(messageSuccess));
     } else if (actionsResponse.inError > 0) {
       await Logging.logError({
         tenantID: tenantID,
@@ -197,6 +201,7 @@ export default class Logging {
         action, module, method,
         message: messageError
       });
+      Utils.isDevelopmentEnv() && console.error(chalk.red(messageError));
     } else {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -204,6 +209,7 @@ export default class Logging {
         action, module, method,
         message: messageNoSuccessNoError
       });
+      Utils.isDevelopmentEnv() && console.info(chalk.green(messageNoSuccessNoError));
     }
   }
 
@@ -228,6 +234,7 @@ export default class Logging {
         message: messageSuccessAndError,
         detailedMessages: ocpiResult.logs
       });
+      Utils.isDevelopmentEnv() && console.error(chalk.red(messageSuccessAndError));
     } else if (ocpiResult.success > 0) {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -236,6 +243,7 @@ export default class Logging {
         message: messageSuccess,
         detailedMessages: ocpiResult.logs
       });
+      Utils.isDevelopmentEnv() && console.info(chalk.green(messageSuccess));
     } else if (ocpiResult.failure > 0) {
       await Logging.logError({
         tenantID: tenantID,
@@ -244,6 +252,7 @@ export default class Logging {
         message: messageError,
         detailedMessages: ocpiResult.logs
       });
+      Utils.isDevelopmentEnv() && console.error(chalk.red(messageError));
     } else {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -252,6 +261,7 @@ export default class Logging {
         message: messageNoSuccessNoError,
         detailedMessages: ocpiResult.logs
       });
+      Utils.isDevelopmentEnv() && console.info(chalk.green(messageNoSuccessNoError));
     }
   }
 
@@ -273,8 +283,8 @@ export default class Logging {
         if (res.getHeader('content-length')) {
           sizeOfDataKB = Utils.truncTo(res.getHeader('content-length') as number / 1024, 2);
         }
+        const message = `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`;
         if (Utils.isDevelopmentEnv()) {
-          const message = `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`;
           console.debug(chalk.green(message));
           if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
             console.error(chalk.red('===================================='));
@@ -293,7 +303,7 @@ export default class Logging {
           tenantID: tenantID,
           user: req.user,
           action: ServerAction.HTTP_RESPONSE,
-          message: `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`,
+          message,
           module: MODULE_NAME, method: 'logExpressResponse',
           detailedMessages: {
             request: req.url,
@@ -350,8 +360,8 @@ export default class Logging {
     if (response.config.headers['Content-Length']) {
       sizeOfDataKB = Utils.truncTo(response.config.headers['Content-Length'] / 1024, 2);
     }
+    const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
     if (Utils.isDevelopmentEnv()) {
-      const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
       console.log(chalk.green(message));
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
         console.error(chalk.red('===================================='));
@@ -369,7 +379,7 @@ export default class Logging {
     await Logging.logSecurityDebug({
       tenantID: tenantID,
       action: ServerAction.HTTP_RESPONSE,
-      message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+      message,
       module: MODULE_NAME, method: 'logAxiosResponse',
       detailedMessages: {
         status: response.status,
@@ -894,8 +904,8 @@ export default class Logging {
       delete Logging.traceCalls[`${chargeBoxID}~action`];
       found = true;
     }
+    const message = `${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
     if (Utils.isDevelopmentEnv()) {
-      const message = `${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
       console.debug(chalk.green(message));
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         console.error(chalk.red('===================================='));
@@ -909,7 +919,7 @@ export default class Logging {
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: `${direction} OCPP Request has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`,
+        message,
         action: action,
         detailedMessages
       });
@@ -918,7 +928,7 @@ export default class Logging {
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: `${direction} OCPP Request has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`,
+        message,
         action: action,
         detailedMessages
       });

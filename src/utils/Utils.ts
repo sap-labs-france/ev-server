@@ -13,6 +13,7 @@ import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
+import { Decimal } from 'decimal.js';
 import { ObjectID } from 'mongodb';
 import PerformanceRecord from '../types/Performance';
 import QRCode from 'qrcode';
@@ -472,15 +473,12 @@ export default class Utils {
       // Create Object
       changedValue = parseFloat(value);
     }
+    // Fix float
     return changedValue;
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 6);
-  }
-
-  public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 2);
+    return Utils.createDecimal(pricePerkWh).mul(Utils.convertToFloat(consumptionWh)).div(1000).toNumber();
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -505,7 +503,7 @@ export default class Utils {
   public static convertAmpToWatt(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, ampValue: number): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
-      return voltage * ampValue;
+      return Utils.createDecimal(voltage).mul(ampValue).toNumber();
     }
     return 0;
   }
@@ -513,9 +511,16 @@ export default class Utils {
   public static convertWattToAmp(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, wattValue: number): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
-      return wattValue / voltage;
+      return Utils.createDecimal(wattValue).div(voltage).toNumber();
     }
     return 0;
+  }
+
+  public static createDecimal(value: number): Decimal {
+    if (Utils.isNullOrUndefined(value)) {
+      value = 0;
+    }
+    return new Decimal(value);
   }
 
   public static getChargePointFromID(chargingStation: ChargingStation, chargePointID: number): ChargePoint {

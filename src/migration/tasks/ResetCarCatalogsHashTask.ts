@@ -12,10 +12,15 @@ export default class ResetCarCatalogsHashTask extends MigrationTask {
       const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs').updateMany({
       },
       [
-        { '$set': { 'hash': null } }
+        {
+          '$set': {
+            'hash': null,
+            'imagesHash': null,
+          }
+        }
       ]);
       if (result.modifiedCount > 0) {
-        Logging.logDebug({
+        await Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
@@ -23,7 +28,7 @@ export default class ResetCarCatalogsHashTask extends MigrationTask {
         });
       }
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrate',
         action: ServerAction.MIGRATION,
