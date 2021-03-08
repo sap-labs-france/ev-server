@@ -90,7 +90,7 @@ export default class Bootstrap {
           logMsg = `Database connected to '${Bootstrap.storageConfig.implementation}' successfully in worker ${cluster.worker.id}`;
         }
         // Log
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.STARTUP,
           module: MODULE_NAME, method: 'start',
@@ -134,7 +134,7 @@ export default class Bootstrap {
       // Log
       // eslint-disable-next-line no-console
       console.error(error);
-      Logging.logError({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'start',
@@ -294,7 +294,7 @@ export default class Bootstrap {
       // Log
       // eslint-disable-next-line no-console
       console.error(error);
-      Logging.logError({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',

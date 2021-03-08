@@ -6,6 +6,14 @@ import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import SiteArea from '../types/SiteArea';
 
 export default class LockingHelper {
+  public static async tryCreateSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea, timeout: number): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`);
+    if (!(await LockingManager.tryAcquire(lock, timeout))) {
+      return null;
+    }
+    return lock;
+  }
+
   public static async createSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`);
     if (!(await LockingManager.acquire(lock))) {
@@ -32,14 +40,6 @@ export default class LockingHelper {
 
   public static async createAssetRetrieveConsumptionsLock(tenantID: string, asset: Asset): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASSET, `${asset.id}-consumptions`);
-    if (!(await LockingManager.acquire(lock))) {
-      return null;
-    }
-    return lock;
-  }
-
-  public static async createOCPIEndpointActionLock(tenantID: string, ocpiEndpoint: OCPIEndpoint, action: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.OCPI_ENDPOINT, `${ocpiEndpoint.id}-${action}`);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
@@ -92,5 +92,13 @@ export default class LockingHelper {
 
   public static async createOCPIPatchCpoLocationsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock | null> {
     return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'patch-cpo-locations');
+  }
+
+  private static async createOCPIEndpointActionLock(tenantID: string, ocpiEndpoint: OCPIEndpoint, action: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.OCPI_ENDPOINT, `${ocpiEndpoint.id}-${action}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
   }
 }
