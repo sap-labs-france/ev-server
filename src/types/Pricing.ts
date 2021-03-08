@@ -1,13 +1,25 @@
-
-export interface SimplePricingModel {
+export interface PricingModel {
+  version: string;
   timestamp: Date;
   priceUnit: string;
-  pricePerKWH: SimplePricingKWH;
+  pricingItems: PricingItem[];
 }
 
-export interface SimplePricingKWH {
-  pricekWh: number;
+export interface PricingItem {
+  category: PricingCategory;
+  precisionPrice: number;
+  calculatedPrice: number;
+  calculatedRoudedPrice: number;
 }
+
+export enum PricingCategory {
+  CONSUMPTION = 'consumption',
+}
+
+export interface KWHPricingItem extends PricingItem {
+  pricePerKWH: number;
+}
+
 
 export interface PricedConsumption {
   amount: number;

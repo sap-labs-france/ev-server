@@ -23,18 +23,27 @@ export default class OCPIClientFactory {
       const ocpiSettings = await SettingStorage.getOCPISettings(tenant.id);
       // Check
       if (!ocpiSettings && ocpiSettings.ocpi) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.OCPI_SETTINGS,
           module: MODULE_NAME, method: 'getOcpiClient',
           message: 'OCPI Settings are not configured'
         });
       }
-      switch (ocpiEndpoint.role) {
-        case OCPIRole.CPO:
-          return new CpoOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
-        case OCPIRole.EMSP:
-          return new EmspOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
+      if (ocpiEndpoint) {
+        switch (ocpiEndpoint.role) {
+          case OCPIRole.CPO:
+            return new CpoOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
+          case OCPIRole.EMSP:
+            return new EmspOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
+        }
+      } else {
+        await Logging.logError({
+          tenantID: tenant.id,
+          action: ServerAction.OCPI_SETTINGS,
+          module: MODULE_NAME, method: 'getOcpiClient',
+          message: 'OCPI endpoint is not provided'
+        });
       }
     }
   }
