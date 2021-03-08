@@ -120,7 +120,7 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, transactionStatsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, transactionStatsMDB);
     return transactionStatsMDB;
   }
 
@@ -248,7 +248,7 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getUserStats', uniqueTimerID, transactionStatsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserStats', uniqueTimerID, transactionStatsMDB);
     return transactionStatsMDB;
   }
 }

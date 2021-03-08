@@ -32,17 +32,6 @@ export default class DatabaseUtils {
     return `${prefix}.${collectionNameSuffix}`;
   }
 
-  public static getNotDeletedFilter(fieldName?: string): any {
-    if (fieldName) {
-      return JSON.parse(`[
-        { "${fieldName}.deleted": { "$ne": true } }
-      ]`);
-    }
-    return [
-      { deleted: { $ne: true } }
-    ];
-  }
-
   public static pushSiteLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('sites', {
       objectIDFields: ['companyID', 'createdBy', 'lastChangedBy'],

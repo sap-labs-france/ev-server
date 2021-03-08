@@ -23,7 +23,7 @@ export default class OCPIClientFactory {
       const ocpiSettings = await SettingStorage.getOCPISettings(tenant.id);
       // Check
       if (!ocpiSettings && ocpiSettings.ocpi) {
-        void Logging.logError({
+        await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.OCPI_SETTINGS,
           module: MODULE_NAME, method: 'getOcpiClient',
@@ -38,7 +38,7 @@ export default class OCPIClientFactory {
             return new EmspOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
         }
       } else {
-        void Logging.logError({
+        await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.OCPI_SETTINGS,
           module: MODULE_NAME, method: 'getOcpiClient',

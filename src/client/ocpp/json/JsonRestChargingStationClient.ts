@@ -101,7 +101,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private async openConnection(): Promise<unknown> {
     // Log
-    void Logging.logInfo({
+    await Logging.logInfo({
       tenantID: this.tenantID,
       source: this.chargingStation.id,
       action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,

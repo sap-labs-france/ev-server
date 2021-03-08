@@ -363,7 +363,6 @@ export enum ServerAction {
   USERS_IMPORT = 'UsersImport',
   SYNCHRONIZE_USERS = 'SynchronizeUsers',
 
-
   NOTIFICATIONS = 'Notifications',
 
   BILLING = 'Billing',
@@ -446,6 +445,9 @@ export enum ServerRoute {
   REST_CHARGING_PROFILE = 'chargingprofiles/:id',
 
   REST_TRANSACTIONS = 'transactions',
+
+  REST_USERS = 'users',
+  REST_USER = 'users/:id',
 
   REST_PING = 'ping',
 
